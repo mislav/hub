@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+# hub(1)
+#
+
 class Hub
   PRIVATE = 'git@github.com:%s/%s.git'
   PUBLIC  = 'git://github.com/%s/%s.git'
