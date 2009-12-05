@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+class Hub
+  PRIVATE = 'git@github.com:%s/%s.git'
+  PUBLIC  = 'git://github.com/%s/%s.git'
+  USER    = `git config --global github.user`.chomp
+  REPO    = `basename $(pwd)`.chomp
+
+  attr_reader :args, :after
+  def initialize(*args)
+    @args = args
+  end
+
+  def clone
+    ssh = @args.delete('-p')
+    @args.each_with_index do |arg, i|
+      if arg.scan('/').size == 1 && !arg.include?(':')
+        url = ssh ? PRIVATE : PUBLIC
+        @args[i] = url % arg.split('/')
+      end
+    end
+  end
+
+  def remote
+    if @args[1] == 'add'
+      if @args.delete('-g')
+        ssh  = @args.delete('-p')
+        user = @args.last
+        url  = ssh ? PRIVATE : PUBLIC
+        @args << url % [ user, REPO ]
+      end
+    end
+  end
+
+  def init
+    if @args.delete('-g')
+      url = PRIVATE % [ USER, REPO ]
+      @after = "git remote add origin #{url}"
+    end
+  end
+
+  def execute
+    if respond_to?(@args[0])
+      send(@args[0])
+    end
+
+    if @after
+      if system("git", *@args)
+        exec @after
+      else
+        exit 1
+      end
+    else
+      exec "git", *@args
+    end
+  end
+end
+
+if $0 == __FILE__
+  Hub.new(*ARGV).execute
+end
