@@ -43,7 +43,9 @@ class Hub
   end
 
   def execute
-    if respond_to?(@args[0])
+    if @args.empty?
+      @args[0] = 'help'
+    elsif respond_to?(@args[0])
       send(@args[0])
     end
 
