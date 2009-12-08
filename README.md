@@ -120,7 +120,6 @@ Meta
 
 * Code: `git clone git://github.com/defunkt/hub.git`
 * Home: <http://github.com/defunkt/hub>
-* Docs: <http://defunkt.github.com/hub/>
 * Bugs: <http://github.com/defunkt/hub/issues>
 * List: <http://groups.google.com/group/github>
 * Gems: <http://gemcutter.org/gems/hub>

@@ -62,12 +62,6 @@ rescue LoadError
   puts "Install it with: gem install jeweler"
 end
 
-begin
-  require 'sdoc_helpers'
-rescue LoadError
-  puts "sdoc support not enabled. Please gem install sdoc-helpers."
-end
-
 desc "Push a new version to Gemcutter"
 task :publish => [ :test, :gemspec, :build ] do
   system "git tag v#{Hub::Version}"
@@ -75,6 +69,6 @@ task :publish => [ :test, :gemspec, :build ] do
   system "git push origin master"
   system "gem push pkg/hub-#{Hub::Version}.gem"
   system "git clean -fd"
-  exec "rake pages"
+  puts :ok
 end
 
