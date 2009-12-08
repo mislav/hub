@@ -43,7 +43,7 @@ Typing `hub install <shell>` will display install instructions for you
 shell.
 
 
-COMMANDS
+Commands
 --------
 
 ### git clone
@@ -61,7 +61,7 @@ COMMANDS
     $ git init -g
 
 
-PRIOR ART
+Prior Art
 ---------
 
 These projects also aim to either improve git or make interacting with
@@ -72,14 +72,33 @@ GitHub simpler:
 * [gh](http://github.com/visionmedia/gh)
 
 
+Contributing
+------------
+
+Once you've made your great commits:
+
+1. [Fork][0] hub
+2. Create a topic branch - `git checkout -b my_branch`
+3. Push to your branch - `git push origin my_branch`
+4. Create an [Issue][1] with a link to your branch
+5. That's it!
+
+
 Meta
 ----
 
-* Code: `git clone git://github.com/defunkt/mustache.git`
-* Home: <http://github.com/defunkt/mustache>
-* Docs: <http://defunkt.github.com/mustache>
-* Bugs: <http://github.com/defunkt/mustache/issues>
-* List: <http://groups.google.com/group/mustache-rb>
-* Test: <http://runcoderun.com/defunkt/mustache>
-* Gems: <http://gemcutter.org/gems/mustache>
-* Boss: Chris Wanstrath :: <http://github.com/defunkt>
+* Code: `git clone git://github.com/defunkt/hub.git`
+* Home: <http://github.com/defunkt/hub>
+* Docs: <http://defunkt.github.com/hub/>
+* Bugs: <http://github.com/defunkt/hub/issues>
+* List: <http://groups.google.com/group/github>
+* Gems: <http://gemcutter.org/gems/hub>
+
+
+Author
+------
+
+Chris Wanstrath :: chris@ozmm.org :: @defunkt
+
+[0]: http://help.github.com/forking/
+[1]: http://github.com/defunkt/hub/issues
