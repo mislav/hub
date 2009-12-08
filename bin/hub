@@ -1,8 +1,13 @@
 #!/usr/bin/env ruby
 
 # hub(1)
+# alias git=hub
+
 class Hub
   VERSION = '0.1.0'
+   AUTHOR = "Chris Wanstrath"
+    EMAIL = "chris@ozmm.org"
+   SOURCE = "http://github.com/defunkt/hub"
 end
 
 
@@ -44,11 +49,11 @@ end
 
 
 class Hub
-  # The AugmentedGitCommands module houses the git commands that hub
+  # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
   # corresponding git command which either gets run before or after
   # the method executes.
-  module AugmentedGitCommands
+  module Commands
     # We are a blank slate.
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
     extend self
@@ -82,6 +87,8 @@ class Hub
     def remote(args)
       return unless args[1] == 'add'
 
+      # Assume GitHub usernames don't ever contain : or /, while URLs
+      # do.
       if args[-1] !~ /:\//
         ssh  = args.delete('-p')
         user = args.last
@@ -112,7 +119,8 @@ class Hub
   end
 end
 
-
+# The Hub class serves as both our namespace and controlling
+# application.
 class Hub
   attr_reader :args
   def initialize(*args)
@@ -120,19 +128,28 @@ class Hub
 
     if @args.empty?
       @args[0] = 'help'
-    elsif AugmentedGitCommands.respond_to?(@args[0])
-      AugmentedGitCommands.send(@args[0], @args)
+    elsif Commands.respond_to?(@args[0])
+      Commands.send(@args[0], @args)
     end
   end
 
-  def command
-    "git #{args.join(' ')}"
-  end
-
+  # Returns the current after callback, which (if set) is run after
+  # the target git command.
+  #
+  # See the `Hub::Args` class for more information on the `after`
+  # callback.
   def after
     args.after.to_s
   end
 
+  # A string representation of the git command we would run if
+  # #execute were called.
+  def command
+    "git #{args.join(' ')}"
+  end
+
+  # Runs the target git command with an optional callback. Replaces
+  # the current process.
   def execute
     if args.after?
       execute_with_after_callback
@@ -141,6 +158,10 @@ class Hub
     end
   end
 
+  # Runs the target git command then executes the `after` callback.
+  #
+  # See the `Hub::Args` class for more information on the `after`
+  # callback.
   def execute_with_after_callback
     after = args.after
     if system("git", *args)
