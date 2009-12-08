@@ -132,7 +132,7 @@ class Hub
     # (print hub version)
     def version(args)
       args.after do
-        puts "hub version %s" % VERSION
+        puts "hub version %s" % Version
       end
     end
     alias_method "--version", :version
