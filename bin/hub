@@ -142,6 +142,7 @@ class Hub
   end
 end
 
+
 # The Hub class serves as both our namespace and controlling
 # application. It expects to be initialized with `ARGV` and primarily
 # exists to run a git command.
