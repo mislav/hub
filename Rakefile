@@ -20,7 +20,7 @@ task :gem => [ :gemspec, :build ]
 begin
   require 'jeweler'
   $LOAD_PATH.unshift 'lib'
-  load 'bin/hub'
+  require 'hub'
   Jeweler::Tasks.new do |gemspec|
     gemspec.name = "hub"
     gemspec.summary = gemspec.description = "hub introduces git to GitHub"
