@@ -82,7 +82,10 @@ task :standalone => :test do
   File.open('standalone', 'w') do |f|
     f.puts Standalone::PREAMBLE
     Dir['lib/*/**'].each do |file|
-      f.puts File.read(file)
+      File.readlines(file).each do |line|
+        next if line =~ /^\s*#/
+        f.puts line
+      end
     end
     f.puts Standalone::POSTAMBLE
   end
