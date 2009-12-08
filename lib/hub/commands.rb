@@ -98,6 +98,11 @@ module Hub
         end
       else
         puts "usage: hub install [-s] SHELL", ""
+        puts "You already have hub installed and available in your PATH,"
+        puts "but to get the full experience you'll want to alias it to"
+        puts "`git`.", ""
+        puts "To see how to accomplish this for your shell, run the install"
+        puts "command again with the name of your shell.", ""
         puts "Known shells:"
         shells.map { |key, _| key }.sort.each do |key|
           puts "  " + key
