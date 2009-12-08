@@ -53,6 +53,29 @@ class Hub
   # lovingly wraps. If a method exists here, it is expected to have a
   # corresponding git command which either gets run before or after
   # the method executes.
+  #
+  # The typical flow is as follows:
+  #
+  # 1. hub is invoked from the command line:
+  #    $ hub clone rtomayko/tilt
+  #
+  # 2. The Hub class is initialized:
+  #    >> hub = Hub.new('clone', 'rtomayko/tilt')
+  #
+  # 3. The method representing the git subcommand is executed with the
+  #    full args:
+  #    >> Commands.clone('clone', 'rtomayko/tilt')
+  #
+  # 4. That method rewrites the args as it sees fit:
+  #    >> args[1] = "git://github.com/" + args[1] + ".git"
+  #    => "git://github.com/rtomayko/tilt.git"
+  #
+  # 5. The new args are used to run `git`:
+  #    >> exec "git", "clone", "git://github.com/rtomayko/tilt.git"
+  #
+  # An optional `after` callback can be set. If so, it is run after
+  # step 5 (which then performs a `system` call rather than an
+  # `exec`). See `Hub::Args` for more information on the `after` callback.
   module Commands
     # We are a blank slate.
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
@@ -120,7 +143,11 @@ class Hub
 end
 
 # The Hub class serves as both our namespace and controlling
-# application.
+# application. It expects to be initialized with `ARGV` and primarily
+# exists to run a git command.
+#
+# The actual functionality, that is, the code it runs when it needs to
+# augment a git command, is kept in the `Hub::Commands` module.
 class Hub
   attr_reader :args
   def initialize(*args)
