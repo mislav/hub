@@ -17,6 +17,23 @@ end
 desc "Build a gem"
 task :gem => [ :gemspec, :build ]
 
+desc "Install `hub`"
+task :setup => :standalone do
+  path = ENV['BINPATH'] || %w( ~/bin /usr/local/bin /usr/bin ).detect do |dir|
+    File.directory? File.expand_path(dir)
+  end
+
+  if path
+    puts "Installing into #{path}"
+    cp "standalone", hub = File.expand_path(File.join(path, 'hub'))
+    chmod 0755, hub
+    puts "Done. Type `hub version` to see if it worked!"
+  else
+    puts  "** Can't find a suitable installation location."
+    abort "** Please set the BINPATH env variable and try again."
+  end
+end
+
 begin
   require 'jeweler'
   $LOAD_PATH.unshift 'lib'

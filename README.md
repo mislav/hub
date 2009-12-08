@@ -43,12 +43,12 @@ Or from source:
 
     $ git clone git://github.com/defunkt/hub.git
     $ cd hub
-    $ rake install
+    $ rake setup
 
 Once you've installed `hub`, you can invoke it directly from the
 command line:
 
-    $ hub --version
+    $ hub version
 
 To get the full experience, alias your `git` command to run `hub` by
 placing the following in your `.bash_profile` (or relevant startup
