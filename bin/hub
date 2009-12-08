@@ -3,77 +3,106 @@
 # hub(1)
 
 class Hub
-  PRIVATE = 'git@github.com:%s/%s.git'
-  PUBLIC  = 'git://github.com/%s/%s.git'
-  USER    = `git config --global github.user`.chomp
-  REPO    = `basename $(pwd)`.chomp
   VERSION = '0.1.0'
+end
 
+
+class Hub
+  class Args < Array
+    def after(command = nil, &block)
+      @after ||= block ? block : command
+    end
+
+    def after?
+      !!@after
+    end
+  end
+end
+
+
+class Hub
+  module Commands
+    instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
+    extend self
+
+    PRIVATE = 'git@github.com:%s/%s.git'
+    PUBLIC  = 'git://github.com/%s/%s.git'
+    USER    = `git config --global github.user`.chomp
+    REPO    = `basename $(pwd)`.chomp
+
+    def clone(args)
+      ssh = args.delete('-p')
+      args.each_with_index do |arg, i|
+        if arg.scan('/').size == 1 && !arg.include?(':')
+          url = ssh ? PRIVATE : PUBLIC
+          args[i] = url % arg.split('/')
+        end
+      end
+      args
+    end
+
+    def remote(args)
+      if args[1] == 'add'
+        if args.delete('-g')
+          ssh  = args.delete('-p')
+          user = args.last
+          url  = ssh ? PRIVATE : PUBLIC
+          args << url % [ user, REPO ]
+        end
+      end
+      args
+    end
+
+    def init(args)
+      if args.delete('-g')
+        url = PRIVATE % [ USER, REPO ]
+        args.after "git remote add origin #{url}"
+      end
+      args
+    end
+
+    def version(args)
+      args.after do
+        puts "hub version %s" % VERSION
+      end
+    end
+    alias_method "--version", :version
+  end
+end
+
+
+class Hub
   attr_reader :args
   def initialize(*args)
-    @args = args
+    @args = Args.new(args)
 
     if @args.empty?
       @args[0] = 'help'
-    elsif respond_to?(@args[0])
-      send(@args[0])
+    elsif Commands.respond_to?(@args[0])
+      Commands.send(@args[0], @args)
     end
   end
-
-  def clone
-    ssh = @args.delete('-p')
-    @args.each_with_index do |arg, i|
-      if arg.scan('/').size == 1 && !arg.include?(':')
-        url = ssh ? PRIVATE : PUBLIC
-        @args[i] = url % arg.split('/')
-      end
-    end
-  end
-
-  def remote
-    if @args[1] == 'add'
-      if @args.delete('-g')
-        ssh  = @args.delete('-p')
-        user = @args.last
-        url  = ssh ? PRIVATE : PUBLIC
-        @args << url % [ user, REPO ]
-      end
-    end
-  end
-
-  def init
-    if @args.delete('-g')
-      url = PRIVATE % [ USER, REPO ]
-      after "git remote add origin #{url}"
-    end
-  end
-
-  def version
-    after do
-      puts "hub version %s" % VERSION
-    end
-  end
-  alias_method "--version", :version
 
   def command
-    "git #{@args.join(' ')}"
+    "git #{args.join(' ')}"
   end
 
-  def after(command = nil, &block)
-    @after ||= block ? block : command
+  def after
+    args.after.to_s
   end
 
   def execute
-    if @after
+    if args.after?
       execute_with_after_callback
     else
-      exec "git", *@args
+      exec "git", *args
     end
   end
 
   def execute_with_after_callback
-    if system("git", *@args)
-      @after.respond_to?(:call) ? @after.call : exec(@after)
+    after = args.after
+    if system("git", *args)
+      after.respond_to?(:call) ? after.call : exec(after)
       exit
     else
       exit 1
