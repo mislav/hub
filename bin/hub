@@ -4,10 +4,7 @@
 # alias git=hub
 
 class Hub
-  VERSION = '0.1.0'
-   AUTHOR = "Chris Wanstrath"
-    EMAIL = "chris@ozmm.org"
-   SOURCE = "http://github.com/defunkt/hub"
+  Version = '0.1.0'
 end
 
 
