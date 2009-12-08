@@ -286,6 +286,8 @@ class Hub
   end
 end
 
-if $0 == __FILE__
+# Hack for Rubygems.
+# But really, you don't want to run hub under Rubygems.
+if $0.split('/').last == __FILE__.split('/').last
   Hub.new(*ARGV).execute
 end
