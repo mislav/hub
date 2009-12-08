@@ -35,12 +35,11 @@ hub can be installed most easily as a stand alone script:
 
     curl http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 0755 !$
 
-
-hub can be installed using rubygems:
+It also can be installed using Rubygems:
 
     $ gem install hub -s http://gemcutter.org/
 
-Or installed from source:
+Or from source:
 
     $ git clone git://github.com/defunkt/hub.git
     $ cd hub
@@ -59,6 +58,10 @@ script):
 
 Typing `hub install <shell>` will display install instructions for you
 shell.
+
+Note that if you're running `hub` under Rubygems, it may be
+slow. Installing the standalone script is the fastest (and
+recommended) method.
 
 
 Commands
