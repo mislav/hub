@@ -8,6 +8,7 @@ class Hub
   PUBLIC  = 'git://github.com/%s/%s.git'
   USER    = `git config --global github.user`.chomp
   REPO    = `basename $(pwd)`.chomp
+  VERSION = '0.1.0'
 
   attr_reader :args, :after
   def initialize(*args)
@@ -41,6 +42,11 @@ class Hub
       @after = "git remote add origin #{url}"
     end
   end
+
+  def version
+    puts "hub version %s" % VERSION
+  end
+  alias_method "--version", :version
 
   def execute
     if @args.empty?
