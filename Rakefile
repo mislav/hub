@@ -8,34 +8,6 @@ Rake::TestTask.new do |t|
   t.verbose = false
 end
 
-module Standalone
-  PREAMBLE = <<-premable
-#!/usr/bin/env ruby
-#
-# This file, hub, is generated code.
-# Please DO NOT EDIT or send patches for it.
-#
-# Please take a look at the source from
-# http://github.com/defunkt/hub
-# and submit patches against the individual files
-# that build hub.
-#
-
-premable
-  POSTAMBLE = "Hub::Runner.execute(*ARGV)"
-end
-
-desc "Build standalone script"
-task :standalone => :test do
-  File.open('hub-standalone', 'w') do |f|
-    f.puts Standalone::PREAMBLE
-    Dir['lib/*/**'].each do |file|
-      f.puts File.read(file)
-    end
-    f.puts Standalone::POSTAMBLE
-  end
-end
-
 desc "Launch Kicker (like autotest)"
 task :kicker do
   puts "Kicking... (ctrl+c to cancel)"
@@ -75,13 +47,43 @@ end
 desc "Publish to GitHub Pages"
 task :pages => [ :check_dirty, :standalone ] do
   `git checkout gh-pages`
-  `ls -1 | grep -v docs | xargs rm -rf; mv docs/* .; rm -rf docs`
-  `git add .; git commit -m "update docs"; git push origin gh-pages`
+  `git add standalone`
+  `git commit -m "update standalone"`
+  `git push origin gh-pages`
   `git checkout master`
+  puts :done
 end
 
 task :check_dirty do
   if !`git status`.include?('nothing to commit')
     abort "dirty index - not publishing!"
+  end
+end
+
+module Standalone
+  PREAMBLE = <<-premable
+#!/usr/bin/env ruby
+#
+# This file, hub, is generated code.
+# Please DO NOT EDIT or send patches for it.
+#
+# Please take a look at the source from
+# http://github.com/defunkt/hub
+# and submit patches against the individual files
+# that build hub.
+#
+
+premable
+  POSTAMBLE = "Hub::Runner.execute(*ARGV)"
+end
+
+desc "Build standalone script"
+task :standalone => :test do
+  File.open('standalone', 'w') do |f|
+    f.puts Standalone::PREAMBLE
+    Dir['lib/*/**'].each do |file|
+      f.puts File.read(file)
+    end
+    f.puts Standalone::POSTAMBLE
   end
 end
