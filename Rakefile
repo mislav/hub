@@ -28,6 +28,26 @@ begin
     gemspec.version = Hub::Version
     gemspec.authors = ["Chris Wanstrath"]
     gemspec.email = "chris@ozmm.org"
+    gemspec.post_install_message = <<-message
+
+------------------------------------------------------------
+
+                  You there! Wait, I say!
+                  =======================
+
+       If you are a heavy user of `git` on the command
+       line  you  may  want  to  install `hub` the old
+       fashioned way!  Faster  startup  time,  you see.
+
+       Check  out  the  installation  instructions  at
+       http://github.com/defunkt/hub#readme or  simply
+       use the `install` command:
+
+       $ hub install
+
+------------------------------------------------------------
+
+message
   end
 rescue LoadError
   puts "Jeweler not available."
