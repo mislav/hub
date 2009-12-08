@@ -60,13 +60,13 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_private_remote
-    input   = "remote add -g -p rtomayko"
+    input   = "remote add -p rtomayko"
     command = "git remote add rtomayko git@github.com:rtomayko/hub.git"
     assert_command input, command
   end
 
   def test_public_remote
-    input   = "remote add -g rtomayko"
+    input   = "remote add rtomayko"
     command = "git remote add rtomayko git://github.com/rtomayko/hub.git"
     assert_command input, command
   end
