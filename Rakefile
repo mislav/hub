@@ -69,6 +69,19 @@ task :publish => [ :test, :gemspec, :build ] do
   system "git push origin master"
   system "gem push pkg/hub-#{Hub::Version}.gem"
   system "git clean -fd"
-  puts :ok
+  exec "rake pages"
 end
 
+desc "Publish to GitHub Pages"
+task :pages => [ :check_dirty, :standalone ] do
+  `git checkout gh-pages`
+  `ls -1 | grep -v docs | xargs rm -rf; mv docs/* .; rm -rf docs`
+  `git add .; git commit -m "update docs"; git push origin gh-pages`
+  `git checkout master`
+end
+
+task :check_dirty do
+  if !`git status`.include?('nothing to commit')
+    abort "dirty index - not publishing!"
+  end
+end
