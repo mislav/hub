@@ -80,6 +80,26 @@ module Hub
       end
     end
 
+    def install(args)
+      shells = {
+        'sh'   => 'alias git=hub',
+        'bash' => 'alias git=hub',
+        'zsh'  => 'alias git=hub',
+        'csh'  => 'alias git hub',
+        'fish' => 'alias git hub'
+      }
+
+      shell = args[1]
+
+      if shells[shell]
+        puts shells[shell]
+      else
+        abort "fatal: never heard of `#{shell}'"
+      end
+
+      exit
+    end
+
     # $ hub version
     # > git version
     # (print hub version)
