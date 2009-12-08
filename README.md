@@ -1,18 +1,11 @@
 hub: git + hub = github
 =======================
 
-`hub` is a command line utility which improves your `git` experience.
+`hub` is a command line utility which injects `git` with GitHub
+knowledge.
 
-The goal is threefold:
-
-* Augment existing `git` subcommands (such as `git clone`) with
-  additional, often GitHub-aware functionality.
-* Clarify many of git's famous error messages.
-* Add new and useful subcommands.
-
-`hub` can be used in place of `git` or you can alias the `git` command in
-your shell to run `hub` - no existing functionality is removed. `hub`
-simply adds and improves.
+It can used on its own or can serve as a complete, backwards
+compatible replacement for the `git` script.
 
 
 Install
@@ -49,16 +42,29 @@ Commands
 ### git clone
 
     $ git clone schacon/ticgit
+    > git clone git://github.com/schacon/ticgit.git
+
     $ git clone -p schacon/ticgit
+    > git clone git@github.com:schacon/ticgit.git
 
 ### git remote add
 
     $ git remote add rtomayko
+    > git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git
+
     $ git remote add -p pjhyett
+    > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
 
 ### git init
 
     $ git init -g
+    > git init
+    > git remote add origin git@github.com:USER/REPO.git
+
+### git help
+
+    $ git help
+    > (improved git help)
 
 
 Prior Art
