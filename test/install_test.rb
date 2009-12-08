@@ -11,6 +11,10 @@ class InstallTest < Test::Unit::TestCase
     assert_includes "fish", instructions
   end
 
+  def test_install_silent
+    assert_equal "alias git=hub\n", hub("install -s bash")
+  end
+
   def test_install_bash
     assert_install_command "bash", "alias git=hub"
   end

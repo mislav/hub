@@ -89,15 +89,23 @@ module Hub
         'fish' => 'alias git hub'
       }
 
+      silent = args.delete('-s')
+
       if shell = args[1]
-        puts "Run this in your shell to start using `hub` as `git`:"
-        print "  "
+        if silent.nil?
+          puts "Run this in your shell to start using `hub` as `git`:"
+          print "  "
+        end
       else
-        puts "usage: hub install SHELL", ""
-        puts "known shells:"
+        puts "usage: hub install [-s] SHELL", ""
+        puts "Known shells:"
         shells.map { |key, _| key }.sort.each do |key|
           puts "  " + key
         end
+        puts "", "Options:"
+        puts "  -s   Silent. Useful when using the output with eval, e.g."
+        puts "       $ eval `hub install -s bash`"
+
         exit
       end
 
