@@ -7,7 +7,7 @@ knowledge.
 It can used on its own or can serve as a complete, backwards
 compatible replacement for the `git` script.
 
-Standalone:
+Normal:
 
     $ hub clone rtomayko/tilt
     Initialized empty Git repository in /Users/chris/sandbox/tilt/.git/
@@ -30,6 +30,11 @@ Aliased:
 
 Install
 -------
+
+hub can be installed most easily as a stand alone script:
+
+    curl http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 0755 !$
+
 
 hub can be installed using rubygems:
 

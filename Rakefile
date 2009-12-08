@@ -8,6 +8,34 @@ Rake::TestTask.new do |t|
   t.verbose = false
 end
 
+module Standalone
+  PREAMBLE = <<-premable
+#!/usr/bin/env ruby
+#
+# This file, hub, is generated code.
+# Please DO NOT EDIT or send patches for it.
+#
+# Please take a look at the source from
+# http://github.com/defunkt/hub
+# and submit patches against the individual files
+# that build hub.
+#
+
+premable
+  POSTAMBLE = "Hub::Runner.execute(*ARGV)"
+end
+
+desc "Build standalone script"
+task :standalone => :test do
+  File.open('hub-standalone', 'w') do |f|
+    f.puts Standalone::PREAMBLE
+    Dir['lib/*/**'].each do |file|
+      f.puts File.read(file)
+    end
+    f.puts Standalone::POSTAMBLE
+  end
+end
+
 desc "Launch Kicker (like autotest)"
 task :kicker do
   puts "Kicking... (ctrl+c to cancel)"
