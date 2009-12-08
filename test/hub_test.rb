@@ -1,5 +1,6 @@
 require 'test/unit'
-load File.dirname(__FILE__) + '/../bin/hub'
+$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
+require 'hub'
 
 class HubTest < Test::Unit::TestCase
   # Shortcut for creating a `Hub` instance. Pass it what you would
@@ -8,7 +9,7 @@ class HubTest < Test::Unit::TestCase
   # shell: hub clone rtomayko/tilt
   #  test: Hub("clone rtomayko/tilt")
   def Hub(args)
-    Hub.new(*args.split(' '))
+    Hub::Runner.new(*args.split(' '))
   end
 
   # Shortcut for running the `hub` command in a subprocess. Returns

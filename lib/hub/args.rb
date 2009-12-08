@@ -1,0 +1,35 @@
+module Hub
+  # The Args class exists to make it more convenient to work with
+  # command line arguments intended for git from within the Hub
+  # codebase.
+  #
+  # The ARGV array is converted into an Args instance by the Hub
+  # instance when instantiated.
+  class Args < Array
+    # With no arguments, returns the `after` callback.
+    #
+    # With a single argument, sets the `after` callback.
+    # Can be set to a string or a proc.
+    #
+    # If proc:
+    #   The proc is executed after the git command is executed. For
+    #   example, the `hub version` command sets the following proc to
+    #   print its information after running `git version`:
+    #
+    #     after { puts "hub version #{version_number}" }
+    #
+    # If string:
+    #   The string is assumed to be a command and executed after the
+    #   git command is executed:
+    #
+    #     after "echo 'hub version #{version_number}'"
+    def after(command = nil, &block)
+      @after ||= block ? block : command
+    end
+
+    # Boolean indicating whether an `after` callback has been set.
+    def after?
+      !!@after
+    end
+  end
+end
