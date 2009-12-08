@@ -1,18 +1,41 @@
 #!/usr/bin/env ruby
 
 # hub(1)
-
 class Hub
   VERSION = '0.1.0'
 end
 
 
 class Hub
+  # The Args class exists to make it more convenient to work with
+  # command line arguments intended for git from within the Hub
+  # codebase.
+  #
+  # The ARGV array is converted into an Args instance by the Hub
+  # instance when instantiated.
   class Args < Array
+    # With no arguments, returns the `after` callback.
+    #
+    # With a single argument, sets the `after` callback.
+    # Can be set to a string or a proc.
+    #
+    # If proc:
+    #   The proc is executed after the git command is executed. For
+    #   example, the `hub version` command sets the following proc to
+    #   print its information after running `git version`:
+    #
+    #     after { puts "hub version #{version_number}" }
+    #
+    # If string:
+    #   The string is assumed to be a command and executed after the
+    #   git command is executed:
+    #
+    #     after "echo 'hub version #{version_number}'"
     def after(command = nil, &block)
       @after ||= block ? block : command
     end
 
+    # Boolean indicating whether an `after` callback has been set.
     def after?
       !!@after
     end
@@ -21,15 +44,26 @@ end
 
 
 class Hub
-  module Commands
+  # The AugmentedGitCommands module houses the git commands that hub
+  # lovingly wraps. If a method exists here, it is expected to have a
+  # corresponding git command which either gets run before or after
+  # the method executes.
+  module AugmentedGitCommands
+    # We are a blank slate.
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
     extend self
 
+    # Templates and useful information.
     PRIVATE = 'git@github.com:%s/%s.git'
     PUBLIC  = 'git://github.com/%s/%s.git'
     USER    = `git config --global github.user`.chomp
     REPO    = `basename $(pwd)`.chomp
 
+    # $ hub clone rtomayko/tilt
+    # > git clone git://github.com/rtomayko/tilt.
+    #
+    # $ hub clone -p kneath/hemingway
+    # > git clone git@github.com:kneath/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
       args.each_with_index do |arg, i|
@@ -38,9 +72,13 @@ class Hub
           args[i] = url % arg.split('/')
         end
       end
-      args
     end
 
+    # $ hub remote add pjhyett
+    # > git remote add pjhyett git://github.com/pjhyett/THIS_REPO.git
+    #
+    # $ hub remote add -p mojombo
+    # > git remote add mojombo git@github.com:mojombo/THIS_REPO.git
     def remote(args)
       if args[1] == 'add'
         if args.delete('-g')
@@ -50,17 +88,21 @@ class Hub
           args << url % [ user, REPO ]
         end
       end
-      args
     end
 
+    # $ hub init -g
+    # > git init
+    # > git remote add origin git@github.com:USER/REPO.git
     def init(args)
       if args.delete('-g')
         url = PRIVATE % [ USER, REPO ]
         args.after "git remote add origin #{url}"
       end
-      args
     end
 
+    # $ hub version
+    # > git version
+    # (print hub version)
     def version(args)
       args.after do
         puts "hub version %s" % VERSION
@@ -78,8 +120,8 @@ class Hub
 
     if @args.empty?
       @args[0] = 'help'
-    elsif Commands.respond_to?(@args[0])
-      Commands.send(@args[0], @args)
+    elsif AugmentedGitCommands.respond_to?(@args[0])
+      AugmentedGitCommands.send(@args[0], @args)
     end
   end
 
