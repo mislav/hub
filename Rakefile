@@ -22,7 +22,7 @@ begin
   $LOAD_PATH.unshift 'lib'
   require 'hub'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "hub"
+    gemspec.name = "hub/version"
     gemspec.summary = gemspec.description = "hub introduces git to GitHub"
     gemspec.homepage = "http://github.com/defunkt/hub"
     gemspec.version = Hub::Version
