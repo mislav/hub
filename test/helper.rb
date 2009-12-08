@@ -23,6 +23,7 @@ class Test::Unit::TestCase
 
     fork do
       $stdout.reopen(child_write)
+      $stderr.reopen(child_write)
       Hub(args).execute
     end
 
