@@ -89,7 +89,17 @@ module Hub
         'fish' => 'alias git hub'
       }
 
-      shell = args[1]
+      if shell = args[1]
+        puts "Run this in your shell to start using `hub` as `git`:"
+        print "  "
+      else
+        puts "usage: hub install SHELL", ""
+        puts "known shells:"
+        shells.map { |key, _| key }.sort.each do |key|
+          puts "  " + key
+        end
+        exit
+      end
 
       if shells[shell]
         puts shells[shell]
@@ -162,7 +172,7 @@ help
 
     # All calls to `puts` in after hooks or commands are paged,
     # git-style.
-    def puts(content)
+    def puts(*args)
       page_stdout
       super
     end
