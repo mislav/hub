@@ -1,8 +1,5 @@
-hub(7) -- git + hub = github
-============================
-
-DESCRIPTION
------------
+hub: git + hub = github
+=======================
 
 `hub` is a command line utility which improves your `git` experience.
 
@@ -18,16 +15,12 @@ your shell to run `hub` - no existing functionality is removed. `hub`
 simply adds and improves.
 
 
-INSTALL
+Install
 -------
 
-hub can be installed using homebrew:
+hub can be installed using rubygems:
 
-    $ brew install hub
-
-It can also be installed with rubygems:
-
-    $ gem install ron
+    $ gem install hub -s http://gemcutter.org/
 
 Or installed from source:
 
@@ -65,7 +58,7 @@ COMMANDS
 
 ### git init
 
-   $ git init -g
+    $ git init -g
 
 
 PRIOR ART
@@ -79,8 +72,14 @@ GitHub simpler:
 * [gh](http://github.com/visionmedia/gh)
 
 
-COPYRIGHT
----------
+Meta
+----
 
-hub is Copyright (C) 2009 Chris Wanstrath
-See the file COPYING for more information.
+* Code: `git clone git://github.com/defunkt/mustache.git`
+* Home: <http://github.com/defunkt/mustache>
+* Docs: <http://defunkt.github.com/mustache>
+* Bugs: <http://github.com/defunkt/mustache/issues>
+* List: <http://groups.google.com/group/mustache-rb>
+* Test: <http://runcoderun.com/defunkt/mustache>
+* Gems: <http://gemcutter.org/gems/mustache>
+* Boss: Chris Wanstrath :: <http://github.com/defunkt>
