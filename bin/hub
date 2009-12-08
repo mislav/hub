@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 # hub(1)
-#
 
 class Hub
   PRIVATE = 'git@github.com:%s/%s.git'
@@ -10,9 +9,15 @@ class Hub
   REPO    = `basename $(pwd)`.chomp
   VERSION = '0.1.0'
 
-  attr_reader :args, :after
+  attr_reader :args
   def initialize(*args)
     @args = args
+
+    if @args.empty?
+      @args[0] = 'help'
+    elsif respond_to?(@args[0])
+      send(@args[0])
+    end
   end
 
   def clone
@@ -39,30 +44,39 @@ class Hub
   def init
     if @args.delete('-g')
       url = PRIVATE % [ USER, REPO ]
-      @after = "git remote add origin #{url}"
+      after "git remote add origin #{url}"
     end
   end
 
   def version
-    puts "hub version %s" % VERSION
+    after do
+      puts "hub version %s" % VERSION
+    end
   end
   alias_method "--version", :version
 
-  def execute
-    if @args.empty?
-      @args[0] = 'help'
-    elsif respond_to?(@args[0])
-      send(@args[0])
-    end
+  def command
+    "git #{@args.join(' ')}"
+  end
 
+  def after(command = nil, &block)
+    @after ||= block ? block : command
+  end
+
+  def execute
     if @after
-      if system("git", *@args)
-        exec @after
-      else
-        exit 1
-      end
+      execute_with_after_callback
     else
       exec "git", *@args
+    end
+  end
+
+  def execute_with_after_callback
+    if system("git", *@args)
+      @after.respond_to?(:call) ? @after.call : exec(@after)
+      exit
+    else
+      exit 1
     end
   end
 end
