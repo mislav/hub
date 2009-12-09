@@ -31,9 +31,15 @@ Aliased:
 Install
 -------
 
+### Standalone
+
 `hub` can be installed most easily as a stand alone script:
 
     curl http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 0755 !$
+
+If ~/bin/hub is in your path, you're ready to roll!
+
+### Rubygem
 
 It also can be installed using Rubygems:
 
@@ -44,16 +50,17 @@ standalone script, to avoid the Rubygems startup tax:
 
     $ hub install standalone
 
+### Source
+
 You can also install from source:
 
     $ git clone git://github.com/defunkt/hub.git
     $ cd hub
     $ rake install_standalone
 
-Once you've installed `hub`, you can invoke it directly from the
-command line:
 
-    $ hub version
+Aliasing
+--------
 
 To get the full experience, alias your `git` command to run `hub` by
 placing the following in your `.bash_profile` (or relevant startup
@@ -62,15 +69,14 @@ script):
     alias git=hub
 
 Typing `hub alias <shell>` will display alias instructions for you
-shell.
-
-Note that if you're running `hub` under Rubygems, it may be
-slow. Installing the standalone script is the fastest (and
-recommended) method.
+shell. `hub alias` alone will show the known shells.
 
 
 Commands
 --------
+
+Assuming you've aliased `hub` to `git` these commands now have
+superpowers:
 
 ### git clone
 
@@ -98,6 +104,23 @@ Commands
 
     $ git help
     > (improved git help)
+
+
+GitHub Login
+------------
+
+To get the most out of `hub`, you'll want to ensure your GitHub login
+is stored locally in your Git config.
+
+To test it run this:
+
+    $ git config --global github.user
+
+If you see nothing, you need to set the config setting:
+
+    $ git config --global github.user YOUR_USERNAME
+
+See <http://github.com/guides/local-github-config> for more information.
 
 
 Prior Art
