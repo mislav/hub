@@ -41,7 +41,7 @@ module Hub
           break
         elsif arg !~ /:|\//
           url = ssh ? PRIVATE : PUBLIC
-          args[i] = url % [ USER, arg ]
+          args[i] = url % [ github_user, arg ]
           break
         end
       end
@@ -61,11 +61,7 @@ module Hub
     def init(args)
       if args.delete('-g')
 
-        if USER.empty?
-          abort "** No GitHub user set. See #{LGHCONF}"
-        end
-
-        url = PRIVATE % [ USER, REPO ]
+        url = PRIVATE % [ github_user, REPO ]
         args.after "git remote add origin #{url}"
       end
     end
@@ -167,6 +163,14 @@ help
     end
 
   private
+
+    def github_user
+      if USER.empty?
+        abort "** No GitHub user set. See #{LGHCONF}"
+      else
+        USER
+      end
+    end
 
     def puts(*args)
       page_stdout
