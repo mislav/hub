@@ -27,9 +27,8 @@ alias command displays information on configuring your environment:
 .
 .TP
 \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR 
-Writes shell aliasing code for \fISHELL\fR (bash, sh, zsh, csh) to
-standard output. With the \fB\-s\fR option, the output of this command
-can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR 
+Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output. With the \fB\-s\fR option, the output of
+this command can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR 
 .
 .P
 After configuring the alias, the following commands have superpowers:
@@ -46,7 +45,7 @@ basename of the current working directory is used. With \fB\-p\fR, use private
 remote "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
 .TP
-\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIrepository\fR]
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]
 Add remote "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" as with
 git\-remote(1). When /\fIREPOSITORY\fR is omitted, the basename of the
 current working directory is used. With \fB\-p\fR, use private remote
