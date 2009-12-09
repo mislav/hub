@@ -133,13 +133,31 @@ module Hub
     end
     alias_method "--version", :version
 
+    # $ hub install
+    # $ hub install check
+    # $ hub install standalone
     # $ hub install standalone ~/bin
     def install(args)
       command, subcommand, target = args
+
       if subcommand.to_s == 'standalone'
         Standalone.save('hub', target.empty? ? '.' : target)
-        exit
+      else
+        puts <<-output
+usage: hub install COMMAND [ARGS]
+
+Commands:
+  standalone    Installs the standalone `hub` script locally. If
+                a path is provided, attempts to install it there.
+                If not path is provided asks you to choose from
+                possible install locations.
+
+  check         Checks if the current installation is up to date
+                by phoning home.
+output
       end
+
+      exit
     end
 
     # $ hub help
