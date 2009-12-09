@@ -70,4 +70,19 @@ class Test::Unit::TestCase
   def assert_not_includes(needle, haystack)
     assert !haystack.include?(needle)
   end
+
+  def fake_up_to_date
+    Hub::Commands.class_eval do
+      alias_method :real_latest_md5, :latest_md5
+      alias_method :latest_md5, :current_md5
+    end
+
+    yield
+
+  ensure
+    Hub::Commands.class_eval do
+      alias_method :real_latest_md5, :latest_md5
+      alias_method :latest_md5, :current_md5
+    end
+  end
 end

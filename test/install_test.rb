@@ -48,24 +48,33 @@ class InstallTest < Test::Unit::TestCase
     out = hub("install")
     assert_includes "usage: hub", out
     assert_includes "check", out
+    assert_includes "update", out
   end
 
   def test_install_check_up_to_date
-    Hub::Commands.class_eval do
-      alias_method :real_latest_md5, :latest_md5
-      alias_method :latest_md5, :current_md5
+    fake_up_to_date do
+      assert_equal "* hub is up to date\n", hub("install check")
     end
-
-    assert_equal "* hub is up to date\n", hub("install check")
   end
 
   def test_install_check_not_up_to_date
-    if Hub::Commands.instance_methods.include? 'real_latest_md5'
-      Hub::Commands.class_eval do
-        alias_method :latest_md5, :real_latest_md5
-      end
-    end
-
     assert_equal "* hub is not up to date\n", hub("install check")
+  end
+
+  def test_update_nothing_to_do
+    fake_up_to_date do
+      out = hub("install update")
+      assert_equal "* hub is up to date\n", out
+    end
+  end
+
+  def test_update_standalone
+    out = hub("install update")
+    assert_equal "0.1.1", out
+  end
+
+  def test_update_rubygems
+    out = hub("install update")
+    assert_equal "rubygems", out
   end
 end
