@@ -76,7 +76,7 @@ For example:
       alias git=hub
 
 You should place this command in your `.bash_profile` or other startup
-script to ensure it is run on login.
+script to ensure runs on login.
 
 The alias command can also be eval'd directly using the `-s` flag:
 
