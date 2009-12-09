@@ -13,7 +13,7 @@ class Test::Unit::TestCase
   end
 
   # Shortcut for running the `hub` command in a subprocess. Returns
-  # STDOUT as a string. Pass it what you would normall pass `hub` on
+  # STDOUT as a string. Pass it what you would normally pass `hub` on
   # the command line, e.g.
   #
   # shell: hub clone rtomayko/tilt
