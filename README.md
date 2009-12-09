@@ -61,7 +61,7 @@ script):
 
     alias git=hub
 
-Typing `hub install <shell>` will display install instructions for you
+Typing `hub alias <shell>` will display alias instructions for you
 shell.
 
 Note that if you're running `hub` under Rubygems, it may be
