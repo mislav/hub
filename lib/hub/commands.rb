@@ -190,7 +190,20 @@ help
     def install(args)
       command, subcommand, target = args
 
-      if subcommand.to_s == 'check'
+      if subcommand.to_s == 'update'
+        begin
+          if up_to_date?
+            puts "*".green + " hub is up to date"
+          elsif rubygems?
+            puts "*".red + " hub is " + "not".bold.underline + " up to date"
+          else
+            update
+          end
+        rescue Object => e
+          puts "*".bold.yellow + " error updating hub: #{e.class}"
+        end
+
+      elsif subcommand.to_s == 'check'
         begin
           if up_to_date?
             puts "*".green + " hub is up to date"
@@ -200,13 +213,15 @@ help
         rescue Object => e
           puts "*".bold.yellow + " error checking status: #{e.class}"
         end
+
       else
         puts <<-output
 usage: hub install COMMAND [ARGS]
 
 Commands:
-  check         Checks if the current installation is up to date
-                by phoning home.
+  check      Checks if the current installation is up to date
+             by phoning home.
+  update     Updates hub if a newer version is available.
 output
       end
 
@@ -216,7 +231,7 @@ output
   private
     #
     # Helper methods are private so they cannot be invoked
-    # from the command line
+    # from the command line.
     #
 
     # Is the current running version of hub up to date?
