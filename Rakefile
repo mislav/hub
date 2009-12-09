@@ -70,7 +70,7 @@ task :publish => [ :test, :gemspec, :build ] do
   system "git tag v#{Hub::Version}"
   system "git push origin v#{Hub::Version}"
   system "git push origin master"
-  system "gem push pkg/hub-#{Hub::Version}.gem"
+#   system "gem push pkg/hub-#{Hub::Version}.gem"
   system "git clean -fd"
   exec "rake pages"
 end
