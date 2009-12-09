@@ -110,7 +110,7 @@ superpowers:
     $ git remote add rtomayko
     > git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git
 
-    $ git remote add -p pjhyett
+    $ git remote add -p rtomayko
     > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
 
 ### git init
