@@ -30,6 +30,22 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_your_private_clone_fails_without_config
+    out = hub("clone -p mustache") do
+      Hub::Commands::USER.replace("")
+    end
+
+    assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
+  end
+
+  def test_your_public_clone_fails_without_config
+    out = hub("clone mustache") do
+      Hub::Commands::USER.replace("")
+    end
+
+    assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
+  end
+
   def test_private_clone_left_alone
     input   = "clone git@github.com:rtomayko/ron.git"
     command = "git clone git@github.com:rtomayko/ron.git"

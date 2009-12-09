@@ -53,7 +53,7 @@ module Hub
           break
         elsif arg !~ /:|\//
           url = ssh ? PRIVATE : PUBLIC
-          args[i] = url % [ USER, arg ]
+          args[i] = url % [ github_user, arg ]
           break
         end
       end
@@ -84,11 +84,7 @@ module Hub
       if args.delete('-g')
         # Can't do anything if we don't have a USER set.
 
-        if USER.empty?
-          abort "** No GitHub user set. See #{LGHCONF}"
-        end
-
-        url = PRIVATE % [ USER, REPO ]
+        url = PRIVATE % [ github_user, REPO ]
         args.after "git remote add origin #{url}"
       end
     end
@@ -201,6 +197,14 @@ help
     # Helper methods are private so they cannot be invoked
     # from the command line.
     #
+
+    def github_user
+      if USER.empty?
+        abort "** No GitHub user set. See #{LGHCONF}"
+      else
+        USER
+      end
+    end
 
     # All calls to `puts` in after hooks or commands are paged,
     # git-style.
