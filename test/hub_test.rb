@@ -85,7 +85,9 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_version
-    assert_equal "git version 1.6.4.2\nhub version 0.1.0\n", hub('--version')
+    out = hub('--version')
+    assert_includes "git version 1.6", out
+    assert_includes "hub version 0.1.0", out
   end
 
   def test_help
