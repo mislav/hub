@@ -36,6 +36,7 @@ module Hub
     PUBLIC  = 'git://github.com/%s/%s.git'
     USER    = `git config --global github.user`.chomp
     REPO    = `basename $(pwd)`.chomp
+    LGHCONF = "http://github.com/guides/local-github-config"
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
@@ -75,6 +76,12 @@ module Hub
     # > git remote add origin git@github.com:USER/REPO.git
     def init(args)
       if args.delete('-g')
+        # Can't do anything if we don't have a USER set.
+
+        if USER.empty?
+          abort "** No GitHub user set. See #{LGHCONF}"
+        end
+
         url = PRIVATE % [ USER, REPO ]
         args.after "git remote add origin #{url}"
       end

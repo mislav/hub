@@ -27,9 +27,18 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_init
+    Hub::Commands::USER.replace("tpw")
     h = Hub("init -g")
     assert_equal "git init", h.command
-    assert_equal "git remote add origin git@github.com:defunkt/hub.git", h.after
+    assert_equal "git remote add origin git@github.com:tpw/hub.git", h.after
+  end
+
+  def test_init_no_login
+    out = hub("init -g") do
+      Hub::Commands::USER.replace("")
+    end
+
+    assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
   end
 
   def test_version
