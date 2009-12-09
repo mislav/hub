@@ -133,6 +133,15 @@ module Hub
     end
     alias_method "--version", :version
 
+    # $ hub install standalone ~/bin
+    def install(args)
+      command, subcommand, target = args
+      if subcommand.to_s == 'standalone'
+        Standalone.save('hub', target.empty? ? '.' : target)
+        exit
+      end
+    end
+
     # $ hub help
     # (print improved help text)
     def help(args)

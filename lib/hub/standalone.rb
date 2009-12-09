@@ -18,6 +18,15 @@ premable
 
     POSTAMBLE = "Hub::Runner.execute(*ARGV)"
 
+    def save(filename, path)
+      target = File.join(File.expand_path(path), filename)
+      File.open(target, 'w') do |f|
+        f.puts build
+      end
+    rescue Errno::EACCES, Errno::ENOENT
+      puts "** can't write to #{target}"
+    end
+
     def build
       root = File.dirname(__FILE__)
 
