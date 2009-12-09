@@ -2,7 +2,7 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 require 'fileutils'
 
-class InstallTest < Test::Unit::TestCase
+class StandaloneTest < Test::Unit::TestCase
   include FileUtils
 
   def setup
@@ -42,39 +42,5 @@ class InstallTest < Test::Unit::TestCase
     assert_raises Errno::ENOENT do
       Hub::Standalone.save("hub", "/tmp/something/not/real")
     end
-  end
-
-  def test_install
-    out = hub("install")
-    assert_includes "usage: hub", out
-    assert_includes "check", out
-    assert_includes "update", out
-  end
-
-  def test_install_check_up_to_date
-    fake_up_to_date do
-      assert_equal "* hub is up to date\n", hub("install check")
-    end
-  end
-
-  def test_install_check_not_up_to_date
-    assert_equal "* hub is not up to date\n", hub("install check")
-  end
-
-  def test_update_nothing_to_do
-    fake_up_to_date do
-      out = hub("install update")
-      assert_equal "* hub is up to date\n", out
-    end
-  end
-
-  def test_update_standalone
-    out = hub("install update")
-    assert_equal "0.1.1", out
-  end
-
-  def test_update_rubygems
-    out = hub("install update")
-    assert_equal "rubygems", out
   end
 end
