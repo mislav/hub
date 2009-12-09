@@ -2,6 +2,10 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 
 class HubTest < Test::Unit::TestCase
+  def setup
+    Hub::Commands::USER.replace("tpw")
+  end
+
   def test_private_clone
     input   = "clone -p rtomayko/ron"
     command = "git clone git@github.com:rtomayko/ron.git"
@@ -10,6 +14,30 @@ class HubTest < Test::Unit::TestCase
 
   def test_public_clone
     input   = "clone rtomayko/ron"
+    command = "git clone git://github.com/rtomayko/ron.git"
+    assert_command input, command
+  end
+
+  def test_your_private_clone
+    input   = "clone -p resque"
+    command = "git clone git@github.com:tpw/resque.git"
+    assert_command input, command
+  end
+
+  def test_your_public_clone
+    input   = "clone resque"
+    command = "git clone git://github.com/tpw/resque.git"
+    assert_command input, command
+  end
+
+  def test_private_clone_left_alone
+    input   = "clone git@github.com:rtomayko/ron.git"
+    command = "git clone git@github.com:rtomayko/ron.git"
+    assert_command input, command
+  end
+
+  def test_public_clone_left_alone
+    input   = "clone git://github.com/rtomayko/ron.git"
     command = "git clone git://github.com/rtomayko/ron.git"
     assert_command input, command
   end
@@ -27,7 +55,6 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_init
-    Hub::Commands::USER.replace("tpw")
     h = Hub("init -g")
     assert_equal "git init", h.command
     assert_equal "git remote add origin git@github.com:tpw/hub.git", h.after

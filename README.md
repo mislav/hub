@@ -97,6 +97,12 @@ superpowers:
     $ git clone -p schacon/ticgit
     > git clone git@github.com:schacon/ticgit.git
 
+    $ git clone resque
+    > git clone git://github.com/YOUR_USER/resque.git
+
+    $ git clone -p resque
+    > git clone git@github.com:YOUR_USER/resque.git
+
 ### git remote add
 
     $ git remote add rtomayko
@@ -109,7 +115,7 @@ superpowers:
 
     $ git init -g
     > git init
-    > git remote add origin git@github.com:USER/REPO.git
+    > git remote add origin git@github.com:YOUR_USER/REPO.git
 
 ### git help
 

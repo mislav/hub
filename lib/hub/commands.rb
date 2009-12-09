@@ -45,10 +45,16 @@ module Hub
     # > git clone git@github.com:kneath/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
-      args.each_with_index do |arg, i|
+      args[1..-1].each_with_index do |arg, i|
+        i += 1
         if arg.scan('/').size == 1 && !arg.include?(':')
           url = ssh ? PRIVATE : PUBLIC
           args[i] = url % arg.split('/')
+          break
+        elsif arg !~ /:|\//
+          url = ssh ? PRIVATE : PUBLIC
+          args[i] = url % [ USER, arg ]
+          break
         end
       end
     end
@@ -63,7 +69,7 @@ module Hub
 
       # Assume GitHub usernames don't ever contain : or /, while URLs
       # do.
-      if args[-1] !~ /:\//
+      if args[-1] !~ /:|\//
         ssh  = args.delete('-p')
         user = args.last
         url  = ssh ? PRIVATE : PUBLIC
