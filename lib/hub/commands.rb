@@ -133,43 +133,6 @@ module Hub
     end
     alias_method "--version", :version
 
-    # $ hub install
-    # $ hub install check
-    # $ hub install standalone
-    # $ hub install standalone ~/bin
-    def install(args)
-      command, subcommand, target = args
-
-      if subcommand.to_s == 'standalone'
-        Standalone.save('hub', target.empty? ? '.' : target)
-      elsif subcommand.to_s == 'check'
-        if up_to_date?
-          puts "*".green + " hub is up to date"
-        else
-          puts "*".red + " hub is " + "not".bold.underline + " up to date"
-        end
-      else
-        puts <<-output
-usage: hub install COMMAND [ARGS]
-
-Commands:
-  standalone    Installs the standalone `hub` script locally. If
-                a path is provided, attempts to install it there.
-                If not path is provided asks you to choose from
-                possible install locations.
-
-  check         Checks if the current installation is up to date
-                by phoning home.
-output
-      end
-
-      exit
-    end
-
-    def up_to_date?
-      false
-    end
-
     # $ hub help
     # (print improved help text)
     def help(args)
@@ -218,6 +181,64 @@ Advanced commands:
 
 See 'git help COMMAND' for more information on a specific command.
 help
+    end
+
+    # $ hub install
+    # $ hub install check
+    # $ hub install standalone
+    # $ hub install standalone ~/bin
+    def install(args)
+      command, subcommand, target = args
+
+      if subcommand.to_s == 'standalone'
+        Standalone.save('hub', target.empty? ? '.' : target)
+      elsif subcommand.to_s == 'check'
+        if up_to_date?
+          puts "*".green + " hub is up to date"
+        else
+          puts "*".red + " hub is " + "not".bold.underline + " up to date"
+        end
+      else
+        puts <<-output
+usage: hub install COMMAND [ARGS]
+
+Commands:
+  standalone    Installs the standalone `hub` script locally. If
+                a path is provided, attempts to install it there.
+                If not path is provided asks you to choose from
+                possible install locations.
+
+  check         Checks if the current installation is up to date
+                by phoning home.
+output
+      end
+
+      exit
+    end
+
+  private
+    #
+    # Helper methods are private so they cannot be invoked
+    # from the command line
+    #
+
+    # Is the current running version of hub up to date?
+    def up_to_date?
+      latest_md5 == current_md5
+    end
+
+    # Grab the latest standalone's md5 from the web
+    def latest_md5
+      require 'open-uri'
+      md5_url = "http://defunkt.github.com/hub/standalone.md5"
+      md5 = open(md5_url).read.chomp
+    end
+
+    # Compute the current standalone's md5
+    def current_md5
+      require 'digest/md5'
+      hub = defined?(Standalone) ? Standalone.build : File.read(__FILE__)
+      Digest::MD5.hexdigest(hub)
     end
 
     # All calls to `puts` in after hooks or commands are paged,

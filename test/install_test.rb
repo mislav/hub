@@ -49,7 +49,22 @@ class InstallTest < Test::Unit::TestCase
     assert_includes "standalone", out
   end
 
-  def test_install_check
+  def test_install_check_up_to_date
+    Hub::Commands.class_eval do
+      alias_method :real_latest_md5, :latest_md5
+      alias_method :latest_md5, :current_md5
+    end
 
+    assert_equal "* hub is up to date\n", hub("install check")
+  end
+
+  def test_install_check_not_up_to_date
+    if Hub::Commands.instance_methods.include? 'real_latest_md5'
+      Hub::Commands.class_eval do
+        alias_method :latest_md5, :real_latest_md5
+      end
+    end
+
+    assert_equal "* hub is not up to date\n", hub("install check")
   end
 end
