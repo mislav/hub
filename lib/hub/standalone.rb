@@ -16,7 +16,8 @@ module Hub
 
 premable
 
-    POSTAMBLE = "Hub::Runner.execute(*ARGV)"
+    POSTAMBLE = "Hub::Runner.execute(*ARGV)\n"
+    MANPAGE   = "__END__\n#{File.read('man/hub.1')}"
 
     def save(filename, path = '.')
       target = File.join(File.expand_path(path), filename)
@@ -43,6 +44,7 @@ premable
       end
 
       standalone << POSTAMBLE
+      standalone << MANPAGE
       standalone
     end
   end

@@ -25,11 +25,12 @@ class StandaloneTest < Test::Unit::TestCase
     assert_includes "Commands", standalone
     assert_includes ".execute(*ARGV)", standalone
     assert_not_includes "module Standalone", standalone
+    assert_equal File.read('man/hub.1'), standalone.scan(/__END__\s*(.+)/m).to_s
   end
 
   def test_standalone_save
     Hub::Standalone.save("hub")
-    assert_equal Hub::Standalone.build + "\n", File.read('./hub')
+    assert_equal Hub::Standalone.build, File.read('./hub')
   end
 
   def test_standalone_save_permission_denied
