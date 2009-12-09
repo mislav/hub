@@ -22,6 +22,11 @@ task :standalone => [ :test, :load_hub ] do
   Hub::Standalone.save('hub')
 end
 
+desc "Build hub manual"
+task 'man' do
+  sh "ron -br5 -m --organization=DEFUNKT --manual='Git Manual' man/*.ron"
+end
+
 task :load_hub do
   $LOAD_PATH.unshift 'lib'
   require 'hub'
