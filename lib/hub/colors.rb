@@ -53,6 +53,7 @@ module Colored
   end
 
   def colorize(string, options = {})
+    return string unless $stdout.tty?
     colored = [color(options[:foreground]), color("on_#{options[:background]}"), extra(options[:extra])].compact * ''
     colored << string
     colored << extra(:clear)
