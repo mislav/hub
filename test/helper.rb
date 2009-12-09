@@ -45,20 +45,20 @@ class Test::Unit::TestCase
     assert_equal expected, Hub(input).command
   end
 
-  # Asserts that `hub` will show a specific installation command for a
+  # Asserts that `hub` will show a specific alias command for a
   # specific shell.
   #
   # e.g.
-  #  assert_install_command "sh", "alias git=hub"
+  #  assert_alias_command "sh", "alias git=hub"
   #
   # Here we are saying that this:
-  #   $ hub install sh
+  #   $ hub alias sh
   # Should display this:
   #   Run this in your shell to start using `hub` as `git`:
   #     alias git=hub
-  def assert_install_command(shell, command)
+  def assert_alias_command(shell, command)
     expected = "Run this in your shell to start using `hub` as `git`:\n  %s\n"
-    assert_equal(expected % command, hub("install #{shell}"))
+    assert_equal(expected % command, hub("alias #{shell}"))
   end
 
   # Asserts that `haystack` includes `needle`.

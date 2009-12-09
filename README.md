@@ -31,7 +31,7 @@ Aliased:
 Install
 -------
 
-hub can be installed most easily as a stand alone script:
+`hub` can be installed most easily as a stand alone script:
 
     curl http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 0755 !$
 
@@ -39,11 +39,16 @@ It also can be installed using Rubygems:
 
     $ gem install hub -s http://gemcutter.org/
 
-Or from source:
+Once you have the gem installed you will probably want to install the
+standalone script, to avoid the Rubygems startup tax:
+
+    $ hub install standalone
+
+You can also install from source:
 
     $ git clone git://github.com/defunkt/hub.git
     $ cd hub
-    $ rake setup
+    $ rake install_standalone
 
 Once you've installed `hub`, you can invoke it directly from the
 command line:

@@ -80,7 +80,7 @@ module Hub
       end
     end
 
-    def install(args)
+    def alias(args)
       shells = {
         'sh'   => 'alias git=hub',
         'bash' => 'alias git=hub',
@@ -97,11 +97,11 @@ module Hub
           print "  "
         end
       else
-        puts "usage: hub install [-s] SHELL", ""
+        puts "usage: hub alias [-s] SHELL", ""
         puts "You already have hub installed and available in your PATH,"
         puts "but to get the full experience you'll want to alias it to"
         puts "`git`.", ""
-        puts "To see how to accomplish this for your shell, run the install"
+        puts "To see how to accomplish this for your shell, run the alias"
         puts "command again with the name of your shell.", ""
         puts "Known shells:"
         shells.map { |key, _| key }.sort.each do |key|
@@ -109,7 +109,7 @@ module Hub
         end
         puts "", "Options:"
         puts "  -s   Silent. Useful when using the output with eval, e.g."
-        puts "       $ eval `hub install -s bash`"
+        puts "       $ eval `hub alias -s bash`"
 
         exit
       end
