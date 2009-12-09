@@ -71,6 +71,7 @@ class Test::Unit::TestCase
     assert !haystack.include?(needle)
   end
 
+  # Pretends hub is up to date when running `hub install check`
   def fake_up_to_date
     Hub::Commands.class_eval do
       alias_method :real_latest_md5, :latest_md5
