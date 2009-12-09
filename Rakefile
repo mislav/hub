@@ -77,8 +77,8 @@ end
 
 desc "Publish to GitHub Pages"
 task :pages => [ :check_dirty, :standalone ] do
-  `mv hub standalone`
   `git checkout gh-pages`
+  `mv hub standalone`
   `md5 -q standalone > standalone.md5`
   `git add standalone*`
   `git commit -m "update standalone"`
