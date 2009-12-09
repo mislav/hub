@@ -172,7 +172,8 @@ Meta
 * Home: <http://github.com/defunkt/hub>
 * Bugs: <http://github.com/defunkt/hub/issues>
 * List: <http://groups.google.com/group/github>
-* Gems: <http://gemcutter.org/gems/hub>
+* Test: <http://runcoderun.com/defunkt/hub>
+* Gems: <http://gemcutter.org/gems/git-hub>
 
 
 Author
