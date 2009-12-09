@@ -26,7 +26,7 @@ Wrapping `git`:
     Resolving deltas: 100% (2505/2505), done.
 
 hub requires you have `git` installed and in your path. It also
-requires Ruby 1.8.6+ or Ruby 1.9.1+. No other libraries are necessary.
+requires Ruby 1.8.6+ or Ruby 1.9.1+. No other libraries necessary.
 
 
 Install
@@ -135,7 +135,7 @@ To test it run this:
 
 If you see nothing, you need to set the config setting:
 
-    $ git config --global github.user YOUR_USERNAME
+    $ git config --global github.user YOUR_USER
 
 See <http://github.com/guides/local-github-config> for more information.
 
