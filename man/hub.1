@@ -1,33 +1,33 @@
-.\" generated with Ron/v0.2
+.\" generated with Ron/v0.3
 .\" http://github.com/rtomayko/ron/
 .
-.TH "HUB" 1 "December 2009" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "December 2009" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \-\- git + hub = github
 .
 .SH "SYNOPSIS"
-\fBhub\fR \fIcommand\fR \fIoptions\fR
+\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
 .
 .br
-\fBhub alias\fR [\fB\-s\fR] \fIshell\fR
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 .
 .P
-\fBgit init \-g\fR \fIoptions\fR
+\fBgit init \-g\fR \fIOPTIONS\fR
 .
 .br
-\fBgit clone\fR [\fB\-p\fR] \fIoptions\fR \fIuser\fR[/\fIrepository\fR] \fIdirectory\fR
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR] \fIDIRECTORY\fR
 .
 .br
-\fBgit remote add\fR [\fB\-p\fR] \fIoptions\fR \fIuser\fR[/\fIrepository\fR]
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:
 .
 .TP
- \fBhub alias\fR [\fB\-s\fR] \fIshell\fR 
-Writes shell aliasing code for \fIshell\fR (bash, sh, zsh, csh) to
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR 
+Writes shell aliasing code for \fISHELL\fR (bash, sh, zsh, csh) to
 standard output. With the \fB\-s\fR option, the output of this command
 can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR 
 .
@@ -35,22 +35,22 @@ can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR
 After configuring the alias, the following commands have superpowers:
 .
 .TP
- \fBgit init\fR \fB\-g\fR \fIoptions\fR 
+\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR 
 Create a git repository as with git\-init(1) and add remote \fBorigin\fR at
-"git@github.com:\fIuser\fR/\fIrepository\fR.git"; \fIuser\fR is your GitHub username and \fIrepository\fR is the current working directory's basename.
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory's basename.
 .
 .TP
- \fBgit clone\fR [\fB\-p\fR] \fIoptions\fR \fIuser\fR[\fB/\fR\fIrepository\fR] \fIdirectory\fR 
-Clone repository "git://github.com/\fIuser\fR/\fIrepository\fR.git" into \fIdirectory\fR as with git\-clone(1). When /\fIrepository\fR is omitted, the
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR] \fIDIRECTORY\fR 
+Clone repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-clone(1). When /\fIREPOSITORY\fR is omitted, the
 basename of the current working directory is used. With \fB\-p\fR, use private
-remote "git@github.com:\fIuser\fR/\fIrepository\fR.git".
+remote "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
 .TP
- \fBgit remote add\fR [\fB\-p\fR] \fIoptions\fR \fIuser\fR[\fB/\fR\fIrepository\fR]
-Add remote "git://github.com/\fIuser\fR/\fIrepository\fR.git" as with
-git\-remote(1). When /\fIrepository\fR is omitted, the basename of the
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIrepository\fR]
+Add remote "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" as with
+git\-remote(1). When /\fIREPOSITORY\fR is omitted, the basename of the
 current working directory is used. With \fB\-p\fR, use private remote
-"git@github.com:\fIuser\fR/\fIrepository\fR.git".
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
 .TP
 \fBgit help\fR
@@ -59,18 +59,28 @@ Display enhanced git\-help(1).
 .SH "CONFIGURATION"
 Use git\-config(1) to display the currently configured GitHub username:
 .
+.IP "" 4
+.
 .nf
+
 $ git config \-\-global github.user 
 .
 .fi
 .
+.IP "" 0
+.
 .P
 Or, set the GitHub username with:
 .
+.IP "" 4
+.
 .nf
+
 $ git config \-\-global github.user <username> 
 .
 .fi
+.
+.IP "" 0
 .
 .P
 See \fIhttp://github.com/guides/local\-github\-config\fR for more information.
@@ -82,4 +92,4 @@ See \fIhttp://github.com/guides/local\-github\-config\fR for more information.
 Chris Wanstrath :: chris@ozmm.org :: @defunkt
 .
 .SH "SEE ALSO"
-git(1), git\-clone(1), git\-remote(1), git\-init(1), \fIhttp://github.com\fR, \fIhttp://github.com/defunkt/hub\fR
+git(1), git\-clone(1), git\-remote(1), git\-init(1),\fIhttp://github.com\fR, \fIhttp://github.com/defunkt/hub\fR

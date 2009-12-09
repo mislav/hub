@@ -3,42 +3,42 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <command> <options>  
-`hub alias` [`-s`] <shell>
+`hub` <COMMAND> <OPTIONS>  
+`hub alias` [`-s`] <SHELL>
 
-`git init -g` <options>  
-`git clone` [`-p`] <options> <user>[/<repository>] <directory>  
-`git remote add` [`-p`] <options> <user>[/<repository>]
+`git init -g` <OPTIONS>  
+`git clone` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>] <DIRECTORY>  
+`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]
 
 ## DESCRIPTION
 
 `hub` enhances various `git` commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:
 
-  * `hub alias` [`-s`] <shell>:
-    Writes shell aliasing code for <shell> (bash, sh, zsh, csh) to
-    standard output. With the `-s` option, the output of this command
-    can be evaluated directly within the shell:
+  * `hub alias` [`-s`] <SHELL>:
+    Writes shell aliasing code for <SHELL> (`bash`, `sh`, `zsh`,
+    `csh`) to standard output. With the `-s` option, the output of
+    this command can be evaluated directly within the shell:
     `eval $(hub alias -s bash)`
 
 After configuring the alias, the following commands have superpowers:
 
-  * `git init` `-g` <options>:
+  * `git init` `-g` <OPTIONS>:
     Create a git repository as with git-init(1) and add remote `origin` at
-    "git@github.com:<user>/<repository>.git"; <user> is your GitHub username and
-    <repository> is the current working directory's basename.
+    "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
+    <REPOSITORY> is the current working directory's basename.
 
-  * `git clone` [`-p`] <options> <user>[`/`<repository>] <directory>:
-    Clone repository "git://github.com/<user>/<repository>.git" into
-    <directory> as with git-clone(1). When /<repository> is omitted, the
+  * `git clone` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>] <DIRECTORY>:
+    Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
+    <DIRECTORY> as with git-clone(1). When /<REPOSITORY> is omitted, the
     basename of the current working directory is used. With `-p`, use private
-    remote "git@github.com:<user>/<repository>.git".
+    remote "git@github.com:<USER>/<REPOSITORY>.git".
 
-  * `git remote add` [`-p`] <options> <user>[`/`<repository>]:
-    Add remote "git://github.com/<user>/<repository>.git" as with
-    git-remote(1). When /<repository> is omitted, the basename of the
+  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:
+    Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
+    git-remote(1). When /<REPOSITORY> is omitted, the basename of the
     current working directory is used. With `-p`, use private remote
-    "git@github.com:<user>/<repository>.git".
+    "git@github.com:<USER>/<REPOSITORY>.git".
 
   * `git help`:
     Display enhanced git-help(1).
