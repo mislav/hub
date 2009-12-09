@@ -22,6 +22,7 @@ premable
       target = File.join(File.expand_path(path), filename)
       File.open(target, 'w') do |f|
         f.puts build
+        f.chmod 0755
       end
     rescue Errno::EACCES, Errno::ENOENT
       puts "** can't write to #{target}"

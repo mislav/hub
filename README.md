@@ -1,11 +1,9 @@
 hub: git + hub = github
 =======================
 
-`hub` is a command line utility which injects `git` with GitHub
-knowledge.
+`hub` is a command line utility which adds GitHub knowledge to `git`.
 
-It can used on its own or can serve as a complete, backwards
-compatible replacement for the `git` script.
+It can used on its own or as a `git` wrapper.
 
 Normal:
 
@@ -17,7 +15,7 @@ Normal:
     Receiving objects: 100% (307/307), 48.91 KiB, done.
     Resolving deltas: 100% (175/175), done.
 
-Aliased:
+Wrapping `git`:
 
     $ git clone rack/rack
     Initialized empty Git repository in /Users/chris/sandbox/rack/.git/
@@ -33,22 +31,21 @@ Install
 
 ### Standalone
 
-`hub` can be installed most easily as a stand alone script:
+`hub` can be installed most easily as a standalone script:
 
     curl http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 0755 !$
 
-If ~/bin/hub is in your path, you're ready to roll!
+Assuming `~/bin/` is in your path, you're ready to roll:
 
-### Rubygem
+    $ hub version
+    git version 1.6.4.2
+    hub version 0.1.0
 
-It also can be installed using Rubygems:
+### Rubygems
+
+Though not recommended, `hub` can also be installed as a Rubygem:
 
     $ gem install hub -s http://gemcutter.org/
-
-Once you have the gem installed you will probably want to install the
-standalone script, to avoid the Rubygems startup tax:
-
-    $ hub install standalone
 
 ### Source
 
@@ -56,7 +53,8 @@ You can also install from source:
 
     $ git clone git://github.com/defunkt/hub.git
     $ cd hub
-    $ rake install_standalone
+    $ rake standalone
+    $ cp hub /usr/local/bin/
 
 
 Aliasing

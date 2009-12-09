@@ -17,21 +17,14 @@ end
 desc "Build a gem"
 task :gem => [ :gemspec, :build ]
 
-desc "Install `hub`"
-task :setup => :standalone do
-  path = ENV['BINPATH'] || %w( ~/bin /usr/local/bin /usr/bin ).detect do |dir|
-    File.directory? File.expand_path(dir)
-  end
+desc "Build standalone script"
+task :standalone => [ :test, :load_hub ] do
+  Hub::Standalone.save('hub')
+end
 
-  if path
-    puts "Installing into #{path}"
-    cp "standalone", hub = File.expand_path(File.join(path, 'hub'))
-    chmod 0755, hub
-    puts "Done. Type `hub version` to see if it worked!"
-  else
-    puts  "** Can't find a suitable installation location."
-    abort "** Please set the BINPATH env variable and try again."
-  end
+task :load_hub do
+  $LOAD_PATH.unshift 'lib'
+  require 'hub'
 end
 
 begin
@@ -54,13 +47,14 @@ begin
 
        If you are a heavy user of `git` on the command
        line  you  may  want  to  install `hub` the old
-       fashioned way!  Faster  startup  time,  you see.
+       fashioned way.  Faster  startup  time,  you see.
 
        Check  out  the  installation  instructions  at
-       http://github.com/defunkt/hub#readme or  simply
-       use the `install` command:
+       http://github.com/defunkt/hub#readme  under the
+       "Standalone" section.
 
-       $ hub install
+       Cheers,
+       defunkt
 
 ------------------------------------------------------------
 
@@ -83,6 +77,7 @@ end
 
 desc "Publish to GitHub Pages"
 task :pages => [ :check_dirty, :standalone ] do
+  `mv hub standalone`
   `git checkout gh-pages`
   `md5 -q standalone > standalone.md5`
   `git add standalone*`
@@ -96,11 +91,4 @@ task :check_dirty do
   if !`git status`.include?('nothing to commit')
     abort "dirty index - not publishing!"
   end
-end
-
-desc "Build standalone script"
-task :standalone => :test do
-  $LOAD_PATH.unshift 'lib'
-  require 'hub'
-  Hub::Standalone.save('standalone')
 end
