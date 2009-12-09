@@ -65,4 +65,9 @@ class Test::Unit::TestCase
   def assert_includes(needle, haystack)
     assert haystack.include?(needle)
   end
+
+  # Asserts that `haystack` does not include `needle`.
+  def assert_not_includes(needle, haystack)
+    assert !haystack.include?(needle)
+  end
 end
