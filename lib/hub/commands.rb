@@ -192,7 +192,6 @@ help
 
     # http://nex-3.com/posts/73-git-style-automatic-paging-in-ruby
     def page_stdout
-      return if PLATFORM =~ /win32/
       return unless $stdout.tty?
 
       read, write = IO.pipe
