@@ -117,14 +117,7 @@ end
 
 desc "Build standalone script"
 task :standalone => :test do
-  File.open('standalone', 'w') do |f|
-    f.puts Standalone::PREAMBLE
-    Dir['lib/*/**'].each do |file|
-      File.readlines(file).each do |line|
-        next if line =~ /^\s*#/
-        f.puts line
-      end
-    end
-    f.puts Standalone::POSTAMBLE
-  end
+  $LOAD_PATH.unshift 'lib'
+  require 'hub'
+  Hub::Standalone.save('standalone')
 end
