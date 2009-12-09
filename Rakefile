@@ -38,6 +38,7 @@ begin
     gemspec.version = Hub::Version
     gemspec.authors = ["Chris Wanstrath"]
     gemspec.email = "chris@ozmm.org"
+    gemspec.executables = ["hub"]
     gemspec.post_install_message = <<-message
 
 ------------------------------------------------------------
