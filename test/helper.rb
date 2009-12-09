@@ -18,10 +18,15 @@ class Test::Unit::TestCase
   #
   # shell: hub clone rtomayko/tilt
   #  test: hub("clone rtomayko/tilt")
+  #
+  # If a block is given it will be run in the child process before
+  # execution begins. You can use this to monkeypatch or fudge the
+  # environment before running hub.
   def hub(args)
     parent_read, child_write = IO.pipe
 
     fork do
+      yield if block_given?
       $stdout.reopen(child_write)
       $stderr.reopen(child_write)
       Hub(args).execute
