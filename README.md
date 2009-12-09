@@ -60,20 +60,30 @@ You can also install from source:
 Aliasing
 --------
 
-To get the full experience, alias your `git` command to run `hub` by
-placing the following in your `.bash_profile` (or relevant startup
-script):
+hub works best when it wraps `git`. This is not dangerous - your
+normal git commands should all work. hub merely adds some sugar.
 
-    alias git=hub
+Typing `hub alias <shell>` will display alias instructions for
+your shell. `hub alias` alone will show the known shells.
 
-Typing `hub alias <shell>` will display alias instructions for you
-shell. `hub alias` alone will show the known shells.
+For example:
+
+    $ hub alias bash
+    Run this in your shell to start using `hub` as `git`:
+      alias git=hub
+
+You should place this command in your `.bash_profile` or other startup
+script to ensure it is run on login.
+
+The alias command can also be eval'd directly using the `-s` flag:
+
+    $ eval `hub alias -s bash`
 
 
 Commands
 --------
 
-Assuming you've aliased `hub` to `git` these commands now have
+Assuming you've aliased `hub` to `git` the following commands now have
 superpowers:
 
 ### git clone
