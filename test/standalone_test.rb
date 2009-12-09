@@ -25,7 +25,9 @@ class StandaloneTest < Test::Unit::TestCase
     assert_includes "Commands", standalone
     assert_includes ".execute(*ARGV)", standalone
     assert_not_includes "module Standalone", standalone
-    assert_equal File.read('man/hub.1'), standalone.scan(/__END__\s*(.+)/m).to_s
+
+    standalone =~ /__END__\s*(.+)/m
+    assert_equal File.read('man/hub.1'), $1
   end
 
   def test_standalone_save
