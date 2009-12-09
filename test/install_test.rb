@@ -2,7 +2,7 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 require 'fileutils'
 
-class StandaloneTest < Test::Unit::TestCase
+class InstallTest < Test::Unit::TestCase
   include FileUtils
 
   def setup
