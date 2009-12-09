@@ -1,0 +1,95 @@
+.\" generated with Ron/v0.3
+.\" http://github.com/rtomayko/ron/
+.
+.TH "HUB" "1" "December 2009" "DEFUNKT" "Git Manual"
+.
+.SH "NAME"
+\fBhub\fR \-\- git + hub = github
+.
+.SH "SYNOPSIS"
+\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
+.
+.br
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+.
+.P
+\fBgit init \-g\fR \fIOPTIONS\fR
+.
+.br
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR] \fIDIRECTORY\fR
+.
+.br
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
+.
+.SH "DESCRIPTION"
+\fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
+alias command displays information on configuring your environment:
+.
+.TP
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR 
+Writes shell aliasing code for \fISHELL\fR (bash, sh, zsh, csh) to
+standard output. With the \fB\-s\fR option, the output of this command
+can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR 
+.
+.P
+After configuring the alias, the following commands have superpowers:
+.
+.TP
+\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR 
+Create a git repository as with git\-init(1) and add remote \fBorigin\fR at
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory's basename.
+.
+.TP
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR] \fIDIRECTORY\fR 
+Clone repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-clone(1). When /\fIREPOSITORY\fR is omitted, the
+basename of the current working directory is used. With \fB\-p\fR, use private
+remote "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
+.
+.TP
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIrepository\fR]
+Add remote "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" as with
+git\-remote(1). When /\fIREPOSITORY\fR is omitted, the basename of the
+current working directory is used. With \fB\-p\fR, use private remote
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
+.
+.TP
+\fBgit help\fR
+Display enhanced git\-help(1).
+.
+.SH "CONFIGURATION"
+Use git\-config(1) to display the currently configured GitHub username:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github.user 
+.
+.fi
+.
+.IP "" 0
+.
+.P
+Or, set the GitHub username with:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github.user <username> 
+.
+.fi
+.
+.IP "" 0
+.
+.P
+See \fIhttp://github.com/guides/local\-github\-config\fR for more information.
+.
+.SH "BUGS"
+\fIhttp://github.com/defunkt/hub/issues\fR
+.
+.SH "AUTHOR"
+Chris Wanstrath :: chris@ozmm.org :: @defunkt
+.
+.SH "SEE ALSO"
+git(1), git\-clone(1), git\-remote(1), git\-init(1),\fIhttp://github.com\fR, \fIhttp://github.com/defunkt/hub\fR
