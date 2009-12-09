@@ -24,8 +24,6 @@ premable
         f.puts build
         f.chmod 0755
       end
-    rescue Errno::EACCES, Errno::ENOENT
-      puts "** can't write to #{target}"
     end
 
     def build

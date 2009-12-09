@@ -28,25 +28,26 @@ class InstallTest < Test::Unit::TestCase
   end
 
   def test_standalone_save
-    hub("install standalone .")
+    Hub::Standalone.save("hub")
     assert_equal Hub::Standalone.build + "\n", File.read('./hub')
   end
 
   def test_standalone_save_permission_denied
-    out = hub("install standalone /tmp/_hub_private")
-    assert_equal "** can't write to /tmp/_hub_private/hub\n", out
+    assert_raises Errno::EACCES do
+      Hub::Standalone.save("hub", "/tmp/_hub_private")
+    end
   end
 
   def test_standalone_save_doesnt_exist
-    out = hub("install standalone /tmp/something/not/real")
-    assert_equal "** can't write to /tmp/something/not/real/hub\n", out
+    assert_raises Errno::ENOENT do
+      Hub::Standalone.save("hub", "/tmp/something/not/real")
+    end
   end
 
   def test_install
     out = hub("install")
     assert_includes "usage: hub", out
     assert_includes "check", out
-    assert_includes "standalone", out
   end
 
   def test_install_check_up_to_date

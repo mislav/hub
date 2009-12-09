@@ -190,9 +190,7 @@ help
     def install(args)
       command, subcommand, target = args
 
-      if subcommand.to_s == 'standalone'
-        Standalone.save('hub', target.empty? ? '.' : target)
-      elsif subcommand.to_s == 'check'
+      if subcommand.to_s == 'check'
         begin
           if up_to_date?
             puts "*".green + " hub is up to date"
@@ -207,11 +205,6 @@ help
 usage: hub install COMMAND [ARGS]
 
 Commands:
-  standalone    Installs the standalone `hub` script locally. If
-                a path is provided, attempts to install it there.
-                If not path is provided asks you to choose from
-                possible install locations.
-
   check         Checks if the current installation is up to date
                 by phoning home.
 output
