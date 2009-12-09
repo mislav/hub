@@ -98,23 +98,6 @@ task :check_dirty do
   end
 end
 
-module Standalone
-  PREAMBLE = <<-premable
-#!/usr/bin/env ruby
-#
-# This file, hub, is generated code.
-# Please DO NOT EDIT or send patches for it.
-#
-# Please take a look at the source from
-# http://github.com/defunkt/hub
-# and submit patches against the individual files
-# that build hub.
-#
-
-premable
-  POSTAMBLE = "Hub::Runner.execute(*ARGV)"
-end
-
 desc "Build standalone script"
 task :standalone => :test do
   $LOAD_PATH.unshift 'lib'
