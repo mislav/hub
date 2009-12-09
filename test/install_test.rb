@@ -41,4 +41,15 @@ class InstallTest < Test::Unit::TestCase
     out = hub("install standalone /tmp/something/not/real")
     assert_equal "** can't write to /tmp/something/not/real/hub\n", out
   end
+
+  def test_install
+    out = hub("install")
+    assert_includes "usage: hub", out
+    assert_includes "check", out
+    assert_includes "standalone", out
+  end
+
+  def test_install_check
+
+  end
 end

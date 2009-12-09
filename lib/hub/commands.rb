@@ -142,6 +142,12 @@ module Hub
 
       if subcommand.to_s == 'standalone'
         Standalone.save('hub', target.empty? ? '.' : target)
+      elsif subcommand.to_s == 'check'
+        if up_to_date?
+          puts "*".green + " hub is up to date"
+        else
+          puts "*".red + " hub is " + "not".bold.underline + " up to date"
+        end
       else
         puts <<-output
 usage: hub install COMMAND [ARGS]
@@ -158,6 +164,10 @@ output
       end
 
       exit
+    end
+
+    def up_to_date?
+      false
     end
 
     # $ hub help
