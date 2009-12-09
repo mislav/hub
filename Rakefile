@@ -11,7 +11,7 @@ end
 desc "Launch Kicker (like autotest)"
 task :kicker do
   puts "Kicking... (ctrl+c to cancel)"
-  exec "kicker -e rake test bin"
+  exec "kicker -e rake test lib"
 end
 
 desc "Build a gem"
