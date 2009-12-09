@@ -25,13 +25,16 @@ Wrapping `git`:
     Receiving objects: 100% (4005/4005), 785.82 KiB | 129 KiB/s, done.
     Resolving deltas: 100% (2505/2505), done.
 
+hub requires you have `git` installed and in your path. It also
+requires Ruby 1.8.6+ or Ruby 1.9.1+. No other libraries are necessary.
+
 
 Install
 -------
 
 ### Standalone
 
-`hub` can be installed most easily as a standalone script:
+`hub` is most easily installed as a standalone script:
 
     curl http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 0755 !$
 
