@@ -194,7 +194,6 @@ help
         Standalone.save('hub', target.empty? ? '.' : target)
       elsif subcommand.to_s == 'check'
         begin
-          raise 'blah'
           if up_to_date?
             puts "*".green + " hub is up to date"
           else
