@@ -32,7 +32,7 @@ begin
   $LOAD_PATH.unshift 'lib'
   require 'hub'
   Jeweler::Tasks.new do |gemspec|
-    gemspec.name = "hub"
+    gemspec.name = "git-hub"
     gemspec.summary = gemspec.description = "hub introduces git to GitHub"
     gemspec.homepage = "http://github.com/defunkt/hub"
     gemspec.version = Hub::Version
@@ -70,7 +70,7 @@ task :publish => [ :test, :gemspec, :build ] do
   system "git tag v#{Hub::Version}"
   system "git push origin v#{Hub::Version}"
   system "git push origin master"
-#   system "gem push pkg/hub-#{Hub::Version}.gem"
+  system "gem push pkg/git-hub-#{Hub::Version}.gem"
   system "git clean -fd"
   exec "rake pages"
 end
