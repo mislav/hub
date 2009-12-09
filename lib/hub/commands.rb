@@ -145,9 +145,13 @@ module Hub
     # $ hub help
     # (print improved help text)
     def help(args)
-      return if args.size > 1
-      puts improved_help_text
-      exit
+      if args[1] == 'hub'
+        puts hub_manpage
+        exit
+      elsif args.size == 1
+        puts improved_help_text
+        exit
+      end
     end
 
     # The text print when `hub help` is run, kept in its own method
@@ -205,6 +209,49 @@ help
         abort "** No GitHub user set. See #{LGHCONF}"
       else
         USER
+      end
+    end
+
+    # Returns the terminal-formatted manpage, ready to be printed to
+    # the screen.
+    def hub_manpage
+      return "** Can't find groff(1)" unless groff?
+
+      require 'open3'
+      out = nil
+      Open3.popen3(groff_command) do |stdin, stdout, _|
+        stdin.puts hub_raw_manpage
+        stdin.close
+        out = stdout.read.strip
+      end
+      out
+    end
+
+    # Returns true if groff is installed and in our path, false if
+    # not.
+    def groff?
+      system("which groff")
+    end
+
+    # The groff command complete with crazy arguments we need to run
+    # in order to turn our raw roff (manpage markup) into something
+    # readable on the terminal.
+    def groff_command
+      "groff -Wall -mtty-char -mandoc -Tascii"
+    end
+
+    # Returns the raw hub manpage. If we're not running in standalone
+    # mode, it's a file sitting at the root under the `man`
+    # directory.
+    #
+    # If we are running in standalone mode the manpage will be
+    # included after the __END__ of the file so we can grab it using
+    # DATA.
+    def hub_raw_manpage
+      if File.exists? file = File.dirname(__FILE__) + '/../../man/hub.1'
+        File.read(file)
+      else
+        DATA.read
       end
     end
 
