@@ -193,10 +193,15 @@ help
       if subcommand.to_s == 'standalone'
         Standalone.save('hub', target.empty? ? '.' : target)
       elsif subcommand.to_s == 'check'
-        if up_to_date?
-          puts "*".green + " hub is up to date"
-        else
-          puts "*".red + " hub is " + "not".bold.underline + " up to date"
+        begin
+          raise 'blah'
+          if up_to_date?
+            puts "*".green + " hub is up to date"
+          else
+            puts "*".red + " hub is " + "not".bold.underline + " up to date"
+          end
+        rescue Object => e
+          puts "*".bold.yellow + " error checking status: #{e.class}"
         end
       else
         puts <<-output
