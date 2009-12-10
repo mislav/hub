@@ -1,6 +1,8 @@
-## 0.1.2 (2009-??-??)
+## 0.1.2 (2009-12-10)
 
 * Fixed README typos
+* Added man page
+* Added `hub help hub`
 
 ## 0.1.1 (2009-12-08)
 
