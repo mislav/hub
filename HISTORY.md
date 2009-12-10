@@ -1,3 +1,7 @@
+## 0.1.3 (2009-??-??)
+
+* Fix inaccuracy in man page
+
 ## 0.1.2 (2009-12-10)
 
 * Fixed README typos
