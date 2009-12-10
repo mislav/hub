@@ -104,9 +104,7 @@ class HubTest < Test::Unit::TestCase
     assert_includes "Writes shell aliasing code for", help_manpage
     assert_includes "Chris Wanstrath :: chris@ozmm.org", help_manpage
     assert_includes <<-config, help_manpage
-       Use git-config(1) to display the currently configured GitHub username:
-
-           $ git config --global github.user
+Use git-config(1) to display the currently configured GitHub username:
 config
   end
 
