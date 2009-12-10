@@ -44,9 +44,9 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
     git version 1.6.4.2
     hub version 0.1.0
 
-### Rubygems
+### RubyGems
 
-Though not recommended, `hub` can also be installed as a Rubygem:
+Though not recommended, `hub` can also be installed as a RubyGem:
 
     $ gem install git-hub -s http://gemcutter.org/
 
