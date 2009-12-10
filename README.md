@@ -123,6 +123,8 @@ superpowers:
 
     $ git help
     > (improved git help)
+    $ git help hub
+    > (hub man page)
 
 
 GitHub Login
