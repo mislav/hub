@@ -3,11 +3,11 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <COMMAND> <OPTIONS>  
+`hub` <COMMAND> <OPTIONS>
 `hub alias` [`-s`] <SHELL>
 
-`git init -g` <OPTIONS>  
-`git clone` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>] <DIRECTORY>  
+`git init -g` <OPTIONS>
+`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]
 
 ## DESCRIPTION
@@ -28,11 +28,11 @@ After configuring the alias, the following commands have superpowers:
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
     <REPOSITORY> is the current working directory's basename.
 
-  * `git clone` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>] <DIRECTORY>:
+  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
-    <DIRECTORY> as with git-clone(1). When /<REPOSITORY> is omitted, the
-    basename of the current working directory is used. With `-p`, use private
-    remote "git@github.com:<USER>/<REPOSITORY>.git".
+    <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
+    your GitHub login. With `-p`, use private remote
+    "git@github.com:<USER>/<REPOSITORY>.git".
 
   * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:
     Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
