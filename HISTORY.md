@@ -1,6 +1,7 @@
 ## 0.1.2 (2009-12-10)
 
 * Fixed README typos
+* Better standalone install line
 * Added man page
 * Added `hub help hub`
 
