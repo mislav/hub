@@ -25,7 +25,7 @@ Wrapping `git`:
     Receiving objects: 100% (4005/4005), 785.82 KiB | 129 KiB/s, done.
     Resolving deltas: 100% (2505/2505), done.
 
-hub requires you have `git` installed and in your path. It also
+hub requires you have `git` installed and in your `$PATH`. It also
 requires Ruby 1.8.6+ or Ruby 1.9.1+. No other libraries necessary.
 
 
@@ -38,7 +38,7 @@ Install
 
     curl http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 0755 !$
 
-Assuming `~/bin/` is in your path, you're ready to roll:
+Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
     $ hub version
     git version 1.6.4.2
