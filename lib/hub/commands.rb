@@ -280,7 +280,7 @@ help
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]
 
-        pager = ENV['PAGER'] || 'less'
+        pager = ENV['PAGER'] || 'less -isr'
         exec pager rescue exec "/bin/sh", "-c", pager
       else
         # Child process
