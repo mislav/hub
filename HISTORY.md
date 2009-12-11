@@ -1,6 +1,7 @@
 ## 0.1.3 (2009-??-??)
 
 * Fix inaccuracy in man page
+* Better help arrangement
 * Bugfix: Path problems in standalone.rb
 * Bugfix: Standalone not loaded by default
 
