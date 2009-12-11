@@ -1,6 +1,7 @@
 require 'test/unit'
 $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 require 'hub'
+require 'hub/standalone'
 
 class Test::Unit::TestCase
   # Shortcut for creating a `Hub` instance. Pass it what you would

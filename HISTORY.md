@@ -2,6 +2,7 @@
 
 * Fix inaccuracy in man page
 * Bugfix: Path problems in standalone.rb
+* Bugfix: Standalone not loaded by default
 
 ## 0.1.2 (2009-12-10)
 
