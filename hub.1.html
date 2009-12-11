@@ -66,11 +66,11 @@
 <p><code>hub</code> -- git + hub = github</p>
 <h2>SYNOPSIS</h2>
 
-<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var><br>
+<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var>
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
-<p><code>git init -g</code> <var>OPTIONS</var><br>
-<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>] <var>DIRECTORY</var><br>
+<p><code>git init -g</code> <var>OPTIONS</var>
+<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]</p>
 
 <h2>DESCRIPTION</h2>
@@ -100,12 +100,12 @@ this command can be evaluated directly within the shell:
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
 <var>REPOSITORY</var> is the current working directory's basename.</p></dd>
 <dt>
-<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>] <var>DIRECTORY</var>
+<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>
 </dt>
 <dd><p>Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
-<var>DIRECTORY</var> as with git-clone(1). When /<var>REPOSITORY</var> is omitted, the
-basename of the current working directory is used. With <code>-p</code>, use private
-remote "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
+<var>DIRECTORY</var> as with git-clone(1). When <var>USER</var>/ is omitted, assumes
+your GitHub login. With <code>-p</code>, use private remote
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
 <dt>
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]</dt>
 <dd><p>Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
