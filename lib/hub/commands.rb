@@ -162,35 +162,37 @@ usage: git [--version] [--exec-path[=GIT_EXEC_PATH]] [--html-path]
     [-p|--paginate|--no-pager] [--bare] [--git-dir=GIT_DIR]
     [--work-tree=GIT_WORK_TREE] [--help] COMMAND [ARGS]
 
-Creating a git repository:
-   clone      Clone a repository into a new directory
+Basic Commands:
    init       Create an empty git repository or reinitialize an existing one
-
-Working with content:
-   add        Add file contents to the index
-   branch     List, create, or delete branches
-   checkout   Checkout a branch or paths to the working tree
-   commit     Record changes to the repository
-   diff       Show changes between commits, commit and working tree, etc
-   log        Show commit logs
-   merge      Join two or more development histories together
+   add        Add new or modified files to the staging area
+   rm         Remove files from the working directory and staging area
    mv         Move or rename a file, a directory, or a symlink
-   rm         Remove files from the working tree and from the index
-   status     Show the working tree status
-   show       Show various types of objects
-   tag        Create, list, delete or verify a tag object signed with GPG
+   status     Show the status of the working directory and staging area
+   commit     Record changes to the repository
 
-Over the network:
-   fetch      Download objects and refs from another repository
+History Commands:
+   log        Show the commit history log
+   diff       Show changes between commits, commit and working tree, etc
+   show       Show information about commits, tags or files
+
+Branching Commands:
+   branch     List, create, or delete branches
+   checkout   Switch the active branch to another branch
+   merge      Join two or more development histories (branches) together
+   tag        Create, list, delete, sign or verify a tag object
+
+Remote Commands:
+   clone      Clone a remote repository into a new directory
+   fetch      Download data, tags and branches from a remote repository
    pull       Fetch from and merge with another repository or a local branch
-   push       Update remote refs along with associated objects
-   remote     Manage a set of tracked repositories
+   push       Upload data, tags and branches to a remote repository
+   remote     View and manage a set of remote repositories
 
 Advanced commands:
+   reset      Reset your staging area or working directory to another point
+   rebase     Re-apply a series of patches in one branch onto another
    bisect     Find by binary search the change that introduced a bug
-   grep       Print lines matching a pattern
-   reset      Reset current HEAD to the specified state
-   rebase     Forward-port local commits to the updated upstream head
+   grep       Print files with lines matching a pattern in your codebase
 
 See 'git help COMMAND' for more information on a specific command.
 help
