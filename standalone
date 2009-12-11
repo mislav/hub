@@ -293,10 +293,21 @@ __END__
 \fBhub\fR \-\- git + hub = github
 .
 .SH "SYNOPSIS"
-\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
+.
+.br
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 .
 .P
-\fBgit init \-g\fR \fIOPTIONS\fR \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
+\fBgit init \-g\fR \fIOPTIONS\fR
+.
+.br
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.
+.br
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
+.
+.br
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
