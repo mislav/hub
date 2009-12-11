@@ -18,7 +18,7 @@ desc "Build a gem"
 task :gem => [ :gemspec, :build ]
 
 desc "Build standalone script"
-task :standalone => [ :test, :load_hub ] do
+task :standalone => :load_hub do
   require 'hub/standalone'
   Hub::Standalone.save('hub')
 end
