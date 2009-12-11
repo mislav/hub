@@ -88,10 +88,13 @@ task :publish => [ :test, :gemspec, :build ] do
 end
 
 desc "Publish to GitHub Pages"
-task :pages => [ :check_dirty, :standalone ] do
+task :pages => [ :build_man, :check_dirty, :standalone ] do
+  cp "man/hub.1.html html"
   `git checkout gh-pages`
   `mv hub standalone`
   `git add standalone*`
+  `mv html hub.1.html`
+  `git add hub.1.html`
   `git commit -m "update standalone"`
   `git push origin gh-pages`
   `git checkout master`
