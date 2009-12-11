@@ -1,4 +1,4 @@
-## 0.1.3 (2009-??-??)
+## 0.1.3 (2009-12-11)
 
 * Homebrew!
 * Fix inaccuracy in man page
