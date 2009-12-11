@@ -24,8 +24,13 @@ task :standalone => [ :test, :load_hub ] do
 end
 
 desc "Build hub manual"
-task 'man' do
-  sh "ron -br5 -m --organization=DEFUNKT --manual='Git Manual' man/*.ron"
+task :build_man do
+  sh "ron -br5 --organization=DEFUNKT --manual='Git Manual' man/*.ron"
+end
+
+desc "Show hub manual"
+task :man => :build_man do
+  exec "man man/hub.1"
 end
 
 task :load_hub do
