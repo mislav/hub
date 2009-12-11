@@ -2,7 +2,7 @@ module Hub
   module Standalone
     extend self
 
-    PREAMBLE = <<-premable
+    PREAMBLE = <<-preamble
 #!/usr/bin/env ruby
 #
 # This file, hub, is generated code.
@@ -14,10 +14,11 @@ module Hub
 # that build hub.
 #
 
-premable
+preamble
 
     POSTAMBLE = "Hub::Runner.execute(*ARGV)\n"
-    MANPAGE   = "__END__\n#{File.read('man/hub.1')}"
+    __DIR__   = File.dirname(__FILE__)
+    MANPAGE   = "__END__\n#{File.read(__DIR__ + '/../../man/hub.1')}"
 
     def save(filename, path = '.')
       target = File.join(File.expand_path(path), filename)

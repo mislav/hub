@@ -1,6 +1,7 @@
 ## 0.1.3 (2009-??-??)
 
 * Fix inaccuracy in man page
+* Bugfix: Path problems in standalone.rb
 
 ## 0.1.2 (2009-12-10)
 
