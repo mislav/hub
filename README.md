@@ -44,6 +44,10 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
     git version 1.6.4.2
     hub version 0.1.0
 
+### Homebrew
+
+  brew install hub
+
 ### RubyGems
 
 Though not recommended, `hub` can also be installed as a RubyGem:
@@ -58,8 +62,7 @@ You can also install from source:
 
     $ git clone git://github.com/defunkt/hub.git
     $ cd hub
-    $ rake standalone
-    $ cp hub /usr/local/bin/
+    $ rake install prefix=/usr/local
 
 
 Aliasing

@@ -77,6 +77,27 @@ rescue LoadError
   puts "Install it with: gem install jeweler"
 end
 
+
+Rake::TaskManager.class_eval do
+  def remove_task(task_name)
+    @tasks.delete(task_name.to_s)
+  end
+end
+
+# Remove jewelers install task
+Rake.application.remove_task(:install)
+
+desc "Install standalone script and man pages"
+task :install => :standalone do
+  prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+
+  FileUtils.mkdir_p "#{prefix}/bin"
+  FileUtils.cp "hub", "#{prefix}/bin"
+
+  FileUtils.mkdir_p "#{prefix}/share/man/man1"
+  FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
+end
+
 desc "Push a new version to Gemcutter"
 task :publish => [ :test, :gemspec, :build ] do
   system "git tag v#{Hub::Version}"
