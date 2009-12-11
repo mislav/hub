@@ -3,12 +3,12 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <COMMAND> <OPTIONS>
+`hub` <COMMAND> <OPTIONS>  
 `hub alias` [`-s`] <SHELL>
 
-`git init -g` <OPTIONS>
-`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>
-`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]
+`git init -g` <OPTIONS>  
+`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
+`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 
 ## DESCRIPTION
 
