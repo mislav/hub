@@ -89,7 +89,7 @@ end
 
 desc "Publish to GitHub Pages"
 task :pages => [ :build_man, :check_dirty, :standalone ] do
-  cp "man/hub.1.html html"
+  cp "man/hub.1.html", "html"
   `git checkout gh-pages`
   `mv hub standalone`
   `git add standalone*`
