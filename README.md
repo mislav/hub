@@ -52,7 +52,7 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
 Though not recommended, `hub` can also be installed as a RubyGem:
 
-    $ gem install git-hub -s http://gemcutter.org/
+    $ gem install git-hub
 
 (Yes, the gem name is `git-hub`.)
 
