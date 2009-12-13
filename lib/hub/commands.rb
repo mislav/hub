@@ -282,7 +282,9 @@ help
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]
 
-        pager = ENV['PAGER'] || 'less -isr'
+        pager = ENV['GIT_PAGER'] || `git config --get-all core.pager`.first ||
+          ENV['PAGER'] || 'less -isr'
+
         exec pager rescue exec "/bin/sh", "-c", pager
       else
         # Child process
