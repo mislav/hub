@@ -153,6 +153,7 @@ module Hub
         exit
       end
     end
+    alias_method "--help", :help
 
     # The text print when `hub help` is run, kept in its own method
     # for the convenience of the author.
