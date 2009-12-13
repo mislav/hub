@@ -1,3 +1,7 @@
+## 0.1.4 (2009-??-??)
+
+* Respected GIT_PAGER and core.pager
+
 ## 0.1.3 (2009-12-11)
 
 * Homebrew!
