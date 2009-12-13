@@ -46,7 +46,7 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
 ### Homebrew
 
-  brew install hub
+    brew install hub
 
 ### RubyGems
 
