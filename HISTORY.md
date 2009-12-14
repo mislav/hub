@@ -2,6 +2,9 @@
 
 * Respected GIT_PAGER and core.pager
 * Aliased `--help` to `help`
+* Ruby 1.9 fixes
+* Respect git behavior when pager is empty string
+
 
 ## 0.1.3 (2009-12-11)
 
