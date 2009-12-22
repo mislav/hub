@@ -89,6 +89,20 @@ module Hub
       end
     end
 
+    # $ hub push origin,staging cool-feature
+    # > git push origin cool-feature
+    # > git push other cool-feature
+    def push(args)
+      return unless args[1] =~ /,/
+
+      branch = args[2]
+      remotes = args[1].split(',')
+      args[1] = remotes.shift
+      while remotes.length > 0 do
+        args.after "git push #{remotes.shift} #{branch}"
+      end
+    end
+
     def alias(args)
       shells = {
         'sh'   => 'alias git=hub',

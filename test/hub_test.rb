@@ -84,6 +84,12 @@ class HubTest < Test::Unit::TestCase
     assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
   end
 
+  def test_push_two
+    h = Hub("push origin,staging cool-feature")
+    assert_equal "git push origin cool-feature", h.command
+    assert_equal "git push staging cool-feature", h.after
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.6", out
