@@ -10,6 +10,7 @@ hub(1) -- git + hub = github
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>   
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]   
 `git browse` [`-p`] [<USER>/]<REPOSITORY>   
+`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>
 
 ## DESCRIPTION
 
@@ -51,6 +52,12 @@ After configuring the alias, the following commands have superpowers:
     using `open(1)` or the `BROWSER` env variable. Use `-p` to open a
     page with https. If the repository isn't specified, `browse` opens
     the page of the repository found in the current directory.
+
+  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:
+    Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
+    <DIRECTORY> as with git-submodule(1). When <USER>/ is omitted, assumes
+    your GitHub login. With `-p`, use private remote
+    "git@github.com:<USER>/<REPOSITORY>.git".
 
   * `git help`:
     Display enhanced git-help(1).

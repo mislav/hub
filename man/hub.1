@@ -1,7 +1,7 @@
 .\" generated with Ron/v0.3
 .\" http://github.com/rtomayko/ron/
 .
-.TH "HUB" "1" "February 2010" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "March 2010" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \-\- git + hub = github
@@ -27,6 +27,7 @@
 \fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR 
 .
 .br
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
@@ -70,6 +71,12 @@ Open repository's GitHub page in the system's default web browser
 using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
 page with https. If the repository isn't specified, \fBbrowse\fR opens
 the page of the repository found in the current directory.
+.
+.TP
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR 
+Submodule repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-submodule(1). When \fIUSER\fR/ is omitted, assumes
+your GitHub login. With \fB\-p\fR, use private remote
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
 .TP
 \fBgit help\fR
