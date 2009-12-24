@@ -6,6 +6,7 @@
 * Respect git behavior when pager is empty string
 * `git push` multi-remote support
 * `hub.http-clone` configuration setting
+* Use the origin url to find the repo name
 
 ## 0.1.3 (2009-12-11)
 

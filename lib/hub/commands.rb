@@ -32,12 +32,20 @@ module Hub
     extend self
 
     # Templates and useful information.
+    USER       = `git config --global github.user`.chomp
+    ORIGIN     = `git config remote.origin.url`.chomp
     HTTP_CLONE = `git config --global hub.http-clone`.chomp == 'yes'
     PUBLIC     = (HTTP_CLONE ? 'http' : 'git') + '://github.com/%s/%s.git'
     PRIVATE    = 'git@github.com:%s/%s.git'
-    USER       = `git config --global github.user`.chomp
-    REPO       = `basename $(pwd)`.chomp
     LGHCONF    = "http://github.com/guides/local-github-config"
+
+    # Set the repo name based on the current origin or, as a fallback,
+    # the cwd.
+    if ORIGIN =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+      REPO = $2
+    else
+      REPO = `basename $(pwd)`.chomp
+    end
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
