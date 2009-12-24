@@ -3,12 +3,12 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <COMMAND> <OPTIONS>  
+`hub` <COMMAND> <OPTIONS>
 `hub alias` [`-s`] <SHELL>
 
-`git init -g` <OPTIONS>  
-`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
-`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
+`git init -g` <OPTIONS>
+`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>
+`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]
 
 ## DESCRIPTION
 
@@ -39,6 +39,10 @@ After configuring the alias, the following commands have superpowers:
     git-remote(1). When /<REPOSITORY> is omitted, the basename of the
     current working directory is used. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git".
+
+  * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>:
+    Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
+    multiple `git push` commands.
 
   * `git help`:
     Display enhanced git-help(1).

@@ -122,6 +122,13 @@ superpowers:
     > git init
     > git remote add origin git@github.com:YOUR_USER/REPO.git
 
+### git push
+
+    $ git push origin,staging,qa bert_timeout
+    > git push origin bert_timeout
+    > git push staging bert_timeout
+    > git push qa bert_timeout
+
 ### git help
 
     $ git help

@@ -66,13 +66,12 @@
 <p><code>hub</code> -- git + hub = github</p>
 <h2>SYNOPSIS</h2>
 
-<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var><br>
+<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var>
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
-<p><code>git init -g</code> <var>OPTIONS</var><br>
-<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br>
-<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br>
-</p>
+<p><code>git init -g</code> <var>OPTIONS</var>
+<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>
+<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]</p>
 
 <h2>DESCRIPTION</h2>
 
@@ -113,6 +112,11 @@ your GitHub login. With <code>-p</code>, use private remote
 git-remote(1). When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
+<dt>
+<code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var>
+</dt>
+<dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
+multiple <code>git push</code> commands.</p></dd>
 <dt><code>git help</code></dt>
 <dd><p>Display enhanced git-help(1).</p></dd>
 </dl>
