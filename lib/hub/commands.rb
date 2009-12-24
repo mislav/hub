@@ -87,6 +87,18 @@ module Hub
       end
     end
 
+    # $ hub submodule add wycats/bundler vendor/bundler
+    # > git submodule add git://github.com/wycats/bundler.git vendor/bundler
+    #
+    # $ hub submodule add -p wycats/bundler vendor/bundler
+    # > git submodule add git@github.com:wycats/bundler.git vendor/bundler
+    def submodule(args)
+      return unless index = args.index('add')
+      args.delete_at index
+      clone(args)
+      args.insert index, 'add'
+    end
+
     # $ hub remote add pjhyett
     # > git remote add pjhyett git://github.com/pjhyett/THIS_REPO.git
     #

@@ -90,6 +90,21 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_public_submodule
+    input   = "submodule add wycats/bundler vendor/bundler"
+    command = "git submodule add git://github.com/wycats.bundler.git"
+  end
+
+  def test_private_submodule
+    input   = "submodule add -p grit vendor/grit"
+    command = "git submodule add git@github.com:tpw/grit.git"
+  end
+
+  def test_submodule_with_args
+    input   = "submodule -q add --bare -- grit grit"
+    command = "git submodule -q add --bare -- git://github.com/tpw/grit.git grit"
+  end
+
   def test_private_remote
     input   = "remote add -p rtomayko"
     command = "git remote add rtomayko git@github.com:rtomayko/hub.git"
