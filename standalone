@@ -25,11 +25,18 @@ module Hub
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
     extend self
 
-    PRIVATE = 'git@github.com:%s/%s.git'
-    PUBLIC  = 'git://github.com/%s/%s.git'
-    USER    = `git config --global github.user`.chomp
-    REPO    = `basename $(pwd)`.chomp
-    LGHCONF = "http://github.com/guides/local-github-config"
+    USER       = `git config --global github.user`.chomp
+    ORIGIN     = `git config remote.origin.url`.chomp
+    HTTP_CLONE = `git config --global hub.http-clone`.chomp == 'yes'
+    PUBLIC     = (HTTP_CLONE ? 'http' : 'git') + '://github.com/%s/%s.git'
+    PRIVATE    = 'git@github.com:%s/%s.git'
+    LGHCONF    = "http://github.com/guides/local-github-config"
+
+    if ORIGIN =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+      REPO = $2
+    else
+      REPO = `basename $(pwd)`.chomp
+    end
 
     def clone(args)
       ssh = args.delete('-p')
@@ -64,6 +71,22 @@ module Hub
         url = PRIVATE % [ github_user, REPO ]
         args.after "git remote add origin #{url}"
       end
+    end
+
+    def push(args)
+      return unless args[1] =~ /,/
+
+      branch  = args[2]
+      remotes = args[1].split(',')
+      args[1] = remotes.shift
+
+      after = "git push #{remotes.shift} #{branch}"
+
+      while remotes.length > 0
+        after += "; git push #{remotes.shift} #{branch}"
+      end
+
+      args.after after
     end
 
     def alias(args)
@@ -125,6 +148,7 @@ module Hub
         exit
       end
     end
+    alias_method "--help", :help
 
     def improved_help_text
       <<-help
@@ -226,7 +250,12 @@ help
 
         Kernel.select [STDIN]
 
-        pager = ENV['PAGER'] || 'less -isr'
+        pager = ENV['GIT_PAGER'] ||
+          `git config --get-all core.pager`.split.first || ENV['PAGER'] ||
+          'less -isr'
+
+        pager = 'cat' if pager.empty?
+
         exec pager rescue exec "/bin/sh", "-c", pager
       else
         $stdout.reopen(write)
@@ -282,7 +311,7 @@ module Hub
   end
 end
 module Hub
-  Version = '0.1.3'
+  Version = '0.2.0'
 end
 Hub::Runner.execute(*ARGV)
 __END__
@@ -295,21 +324,10 @@ __END__
 \fBhub\fR \-\- git + hub = github
 .
 .SH "SYNOPSIS"
-\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
-.
-.br
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 .
 .P
-\fBgit init \-g\fR \fIOPTIONS\fR
-.
-.br
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
-.
-.br
-\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
-.
-.br
+\fBgit init \-g\fR \fIOPTIONS\fR \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
@@ -342,6 +360,11 @@ current working directory is used. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
 .TP
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR 
+Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
+multiple \fBgit push\fR commands.
+.
+.TP
 \fBgit help\fR
 Display enhanced git\-help(1).
 .
@@ -372,7 +395,84 @@ $ git config \-\-global github.user <username>
 .IP "" 0
 .
 .P
-See \fIhttp://github.com/guides/local\-github\-config\fR for more information.
+See \fIhttp://github.com/guides/local\-github\-config\fR for more
+information.
+.
+.P
+You can also tell \fBhub\fR to use \fBhttp://\fR rather than \fBgit://\fR when
+cloning:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global \-\-add hub.http\-clone yes 
+.
+.fi
+.
+.IP "" 0
+.
+.SH "EXAMPLES"
+.
+.SS "git clone"
+.
+.nf
+
+$ git clone schacon/ticgit
+> git clone git://github.com/schacon/ticgit.git 
+$ git clone \-p schacon/ticgit
+> git clone git@github.com:schacon/ticgit.git
+
+$ git clone resque
+> git clone git://github.com/YOUR_USER/resque.git
+
+$ git clone \-p resque
+> git clone git@github.com:YOUR_USER/resque.git
+.
+.fi
+.
+.SS "git remote add"
+.
+.nf
+
+$ git remote add rtomayko
+> git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git 
+$ git remote add \-p rtomayko
+> git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
+.
+.fi
+.
+.SS "git init"
+.
+.nf
+
+$ git init \-g
+> git init
+> git remote add origin git@github.com:YOUR_USER/REPO.git 
+.
+.fi
+.
+.SS "git push"
+.
+.nf
+
+$ git push origin,staging,qa bert_timeout
+> git push origin bert_timeout
+> git push staging bert_timeout
+> git push qa bert_timeout 
+.
+.fi
+.
+.SS "git help"
+.
+.nf
+
+$ git help
+> (improved git help)
+$ git help hub
+> (hub man page) 
+.
+.fi
 .
 .SH "BUGS"
 \fIhttp://github.com/defunkt/hub/issues\fR

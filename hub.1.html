@@ -66,13 +66,12 @@
 <p><code>hub</code> -- git + hub = github</p>
 <h2>SYNOPSIS</h2>
 
-<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var><br>
+<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var>
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
-<p><code>git init -g</code> <var>OPTIONS</var><br>
-<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br>
-<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br>
-</p>
+<p><code>git init -g</code> <var>OPTIONS</var>
+<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>
+<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]</p>
 
 <h2>DESCRIPTION</h2>
 
@@ -113,6 +112,11 @@ your GitHub login. With <code>-p</code>, use private remote
 git-remote(1). When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
+<dt>
+<code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var>
+</dt>
+<dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
+multiple <code>git push</code> commands.</p></dd>
 <dt><code>git help</code></dt>
 <dd><p>Display enhanced git-help(1).</p></dd>
 </dl>
@@ -130,7 +134,63 @@ current working directory is used. With <code>-p</code>, use private remote
 <pre><code>$ git config --global github.user &lt;username&gt;
 </code></pre>
 
-<p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more information.</p>
+<p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more
+information.</p>
+
+<p>You can also tell <code>hub</code> to use <code>http://</code> rather than <code>git://</code> when
+cloning:</p>
+
+<pre><code>$ git config --global --add hub.http-clone yes
+</code></pre>
+
+<h2>EXAMPLES</h2>
+
+<h3>git clone</h3>
+
+<pre><code>$ git clone schacon/ticgit
+&gt; git clone git://github.com/schacon/ticgit.git
+
+$ git clone -p schacon/ticgit
+&gt; git clone git@github.com:schacon/ticgit.git
+
+$ git clone resque
+&gt; git clone git://github.com/YOUR_USER/resque.git
+
+$ git clone -p resque
+&gt; git clone git@github.com:YOUR_USER/resque.git
+</code></pre>
+
+<h3>git remote add</h3>
+
+<pre><code>$ git remote add rtomayko
+&gt; git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git
+
+$ git remote add -p rtomayko
+&gt; git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
+</code></pre>
+
+<h3>git init</h3>
+
+<pre><code>$ git init -g
+&gt; git init
+&gt; git remote add origin git@github.com:YOUR_USER/REPO.git
+</code></pre>
+
+<h3>git push</h3>
+
+<pre><code>$ git push origin,staging,qa bert_timeout
+&gt; git push origin bert_timeout
+&gt; git push staging bert_timeout
+&gt; git push qa bert_timeout
+</code></pre>
+
+<h3>git help</h3>
+
+<pre><code>$ git help
+&gt; (improved git help)
+$ git help hub
+&gt; (hub man page)
+</code></pre>
 
 <h2>BUGS</h2>
 
