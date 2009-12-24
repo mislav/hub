@@ -54,15 +54,22 @@ module Hub
     # > git clone git@github.com:kneath/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
-      args[1..-1].each_with_index do |arg, i|
-        i += 1
+
+      last_args = args[1..-1].reject { |arg| arg == "--" }.last(3)
+      last_args.each do |arg|
+        if arg =~ /^-/
+          # Skip mandatory arguments.
+          last_args.shift if arg =~ /^(--(ref|o|br|u|t|d)[^=]+|-(o|b|u|d))$/
+          next
+        end
+
         if arg.scan('/').size == 1 && !arg.include?(':')
           url = ssh ? PRIVATE : PUBLIC
-          args[i] = url % arg.split('/')
+          args[args.index(arg)] = url % arg.split('/')
           break
         elsif arg !~ /:|\//
           url = ssh ? PRIVATE : PUBLIC
-          args[i] = url % [ github_user, arg ]
+          args[args.index(arg)] = url % [ github_user, arg ]
           break
         end
       end

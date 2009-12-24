@@ -30,6 +30,12 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_clone_with_arguments_and_path
+    input   = "clone --bare -o master -- resque"
+    command = "git clone --bare -o master -- git://github.com/tpw/resque.git"
+    assert_command input, command
+  end
+
   def test_your_private_clone_fails_without_config
     out = hub("clone -p mustache") do
       Hub::Commands::USER.replace("")
