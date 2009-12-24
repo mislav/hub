@@ -136,6 +136,55 @@ multiple <code>git push</code> commands.</p></dd>
 
 <p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more information.</p>
 
+<h2>EXAMPLES</h2>
+
+<h3>git clone</h3>
+
+<pre><code>$ git clone schacon/ticgit
+&gt; git clone git://github.com/schacon/ticgit.git
+
+$ git clone -p schacon/ticgit
+&gt; git clone git@github.com:schacon/ticgit.git
+
+$ git clone resque
+&gt; git clone git://github.com/YOUR_USER/resque.git
+
+$ git clone -p resque
+&gt; git clone git@github.com:YOUR_USER/resque.git
+</code></pre>
+
+<h3>git remote add</h3>
+
+<pre><code>$ git remote add rtomayko
+&gt; git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git
+
+$ git remote add -p rtomayko
+&gt; git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
+</code></pre>
+
+<h3>git init</h3>
+
+<pre><code>$ git init -g
+&gt; git init
+&gt; git remote add origin git@github.com:YOUR_USER/REPO.git
+</code></pre>
+
+<h3>git push</h3>
+
+<pre><code>$ git push origin,staging,qa bert_timeout
+&gt; git push origin bert_timeout
+&gt; git push staging bert_timeout
+&gt; git push qa bert_timeout
+</code></pre>
+
+<h3>git help</h3>
+
+<pre><code>$ git help
+&gt; (improved git help)
+$ git help hub
+&gt; (hub man page)
+</code></pre>
+
 <h2>BUGS</h2>
 
 <p><a href="http://github.com/defunkt/hub/issues">http://github.com/defunkt/hub/issues</a></p>

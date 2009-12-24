@@ -80,6 +80,68 @@ $ git config \-\-global github.user <username>
 .P
 See \fIhttp://github.com/guides/local\-github\-config\fR for more information.
 .
+.SH "EXAMPLES"
+.
+.SS "git clone"
+.
+.nf
+
+$ git clone schacon/ticgit
+> git clone git://github.com/schacon/ticgit.git 
+$ git clone \-p schacon/ticgit
+> git clone git@github.com:schacon/ticgit.git
+
+$ git clone resque
+> git clone git://github.com/YOUR_USER/resque.git
+
+$ git clone \-p resque
+> git clone git@github.com:YOUR_USER/resque.git
+.
+.fi
+.
+.SS "git remote add"
+.
+.nf
+
+$ git remote add rtomayko
+> git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git 
+$ git remote add \-p rtomayko
+> git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
+.
+.fi
+.
+.SS "git init"
+.
+.nf
+
+$ git init \-g
+> git init
+> git remote add origin git@github.com:YOUR_USER/REPO.git 
+.
+.fi
+.
+.SS "git push"
+.
+.nf
+
+$ git push origin,staging,qa bert_timeout
+> git push origin bert_timeout
+> git push staging bert_timeout
+> git push qa bert_timeout 
+.
+.fi
+.
+.SS "git help"
+.
+.nf
+
+$ git help
+> (improved git help)
+$ git help hub
+> (hub man page) 
+.
+.fi
+.
 .SH "BUGS"
 \fIhttp://github.com/defunkt/hub/issues\fR
 .
