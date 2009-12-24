@@ -90,10 +90,16 @@ class HubTest < Test::Unit::TestCase
     assert_equal "git push staging cool-feature", h.after
   end
 
+  def test_push_more
+    h = Hub("push origin,staging,qa cool-feature")
+    assert_equal "git push origin cool-feature", h.command
+    assert_equal "git push staging cool-feature; git push qa cool-feature", h.after
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.6", out
-    assert_includes "hub version 0.1", out
+    assert_includes "hub version 0.2", out
   end
 
   def test_help
