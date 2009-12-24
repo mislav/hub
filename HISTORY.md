@@ -4,7 +4,8 @@
 * Aliased `--help` to `help`
 * Ruby 1.9 fixes
 * Respect git behavior when pager is empty string
-* Add `git push` multi-remote support
+* `git push` multi-remote support
+* `hub.http-clone` configuration setting
 
 ## 0.1.3 (2009-12-11)
 

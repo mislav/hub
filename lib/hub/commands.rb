@@ -32,11 +32,12 @@ module Hub
     extend self
 
     # Templates and useful information.
-    PRIVATE = 'git@github.com:%s/%s.git'
-    PUBLIC  = 'git://github.com/%s/%s.git'
-    USER    = `git config --global github.user`.chomp
-    REPO    = `basename $(pwd)`.chomp
-    LGHCONF = "http://github.com/guides/local-github-config"
+    HTTP_CLONE = `git config --global hub.http-clone`.chomp == 'yes'
+    PUBLIC     = (HTTP_CLONE ? 'http' : 'git') + '://github.com/%s/%s.git'
+    PRIVATE    = 'git@github.com:%s/%s.git'
+    USER       = `git config --global github.user`.chomp
+    REPO       = `basename $(pwd)`.chomp
+    LGHCONF    = "http://github.com/guides/local-github-config"
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.

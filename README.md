@@ -42,7 +42,7 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
     $ hub version
     git version 1.6.4.2
-    hub version 0.1.0
+    hub version 0.2.0
 
 ### Homebrew
 
@@ -152,6 +152,27 @@ If you see nothing, you need to set the config setting:
     $ git config --global github.user YOUR_USER
 
 See <http://github.com/guides/local-github-config> for more information.
+
+
+Configuration
+-------------
+
+If you prefer `http://` clones to `git://` clones, you can set the
+`hub.http-clone` option using `git-config`.
+
+For example:
+
+    $ git clone defunkt/repl
+    < git clone >
+    $ git config --global --add hub.http-clone yes
+    $ git clone defunkt/repl
+    < http clone >
+
+Or you can enter this manually into your `~/.gitconfig` file:
+
+    $ cat ~/.gitconfig
+    [hub]
+      http-clone = yes
 
 
 Prior Art

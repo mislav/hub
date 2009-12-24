@@ -57,7 +57,13 @@ Or, set the GitHub username with:
 
     $ git config --global github.user <username>
 
-See <http://github.com/guides/local-github-config> for more information.
+See <http://github.com/guides/local-github-config> for more
+information.
+
+You can also tell `hub` to use `http://` rather than `git://` when
+cloning:
+
+    $ git config --global --add hub.http-clone yes
 
 ## EXAMPLES
 
