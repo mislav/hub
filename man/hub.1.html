@@ -134,7 +134,14 @@ multiple <code>git push</code> commands.</p></dd>
 <pre><code>$ git config --global github.user &lt;username&gt;
 </code></pre>
 
-<p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more information.</p>
+<p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more
+information.</p>
+
+<p>You can also tell <code>hub</code> to use <code>http://</code> rather than <code>git://</code> when
+cloning:</p>
+
+<pre><code>$ git config --global --add hub.http-clone yes
+</code></pre>
 
 <h2>EXAMPLES</h2>
 
