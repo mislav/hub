@@ -1,4 +1,4 @@
-## 0.2.0 (2009-??-??)
+## 0.2.0 (2009-12-24)
 
 * Respected GIT_PAGER and core.pager
 * Aliased `--help` to `help`
