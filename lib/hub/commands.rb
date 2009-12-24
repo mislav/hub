@@ -91,13 +91,14 @@ module Hub
 
     # $ hub push origin,staging cool-feature
     # > git push origin cool-feature
-    # > git push other cool-feature
+    # > git push staging cool-feature
     def push(args)
       return unless args[1] =~ /,/
 
-      branch = args[2]
+      branch  = args[2]
       remotes = args[1].split(',')
       args[1] = remotes.shift
+
       while remotes.length > 0 do
         args.after "git push #{remotes.shift} #{branch}"
       end
