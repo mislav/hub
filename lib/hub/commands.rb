@@ -63,7 +63,9 @@ module Hub
           next
         end
 
-        if arg.scan('/').size == 1 && !arg.include?(':')
+        if arg =~ %r{.+?://|.+?@} # Bail out early for URLs.
+          break
+        elsif arg.scan('/').size == 1 && !arg.include?(':')
           url = ssh ? PRIVATE : PUBLIC
           args[args.index(arg)] = url % arg.split('/')
           break
