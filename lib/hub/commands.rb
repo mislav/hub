@@ -63,7 +63,8 @@ module Hub
           next
         end
 
-        if arg =~ %r{.+?://|.+?@} # Bail out early for URLs.
+        if arg =~ %r{.+?://|.+?@} || File.directory?(arg)
+          # Bail out early for URLs and local paths.
           break
         elsif arg.scan('/').size == 1 && !arg.include?(':')
           url = ssh ? PRIVATE : PUBLIC

@@ -70,6 +70,12 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_normal_clone_from_path
+    input   = "clone ./test"
+    command = "git clone ./test"
+    assert_command input, command
+  end
+
   def test_private_remote
     input   = "remote add -p rtomayko"
     command = "git remote add rtomayko git@github.com:rtomayko/hub.git"
