@@ -52,6 +52,12 @@ module Hub
     #
     # $ hub clone -p kneath/hemingway
     # > git clone git@github.com:kneath/hemingway.git
+    #
+    # $ hub clone tilt
+    # > git clone git://github.com/YOUR_LOGIN/tilt.
+    #
+    # $ hub clone -p github
+    # > git clone git@github.com:YOUR_LOGIN/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
 
@@ -67,10 +73,12 @@ module Hub
           # Bail out early for URLs and local paths.
           break
         elsif arg.scan('/').size == 1 && !arg.include?(':')
+          # $ hub clone rtomayko/tilt
           url = ssh ? PRIVATE : PUBLIC
           args[args.index(arg)] = url % arg.split('/')
           break
         elsif arg !~ /:|\//
+          # $ hub clone tilt
           url = ssh ? PRIVATE : PUBLIC
           args[args.index(arg)] = url % [ github_user, arg ]
           break
