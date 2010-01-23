@@ -36,7 +36,8 @@ Install
 
 `hub` is most easily installed as a standalone script:
 
-    curl -s http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 755 !#:4
+    curl -s http://defunkt.github.com/hub/standalone > ~/bin/hub &&
+    chmod 755 ~/bin/hub
 
 Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
