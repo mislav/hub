@@ -60,6 +60,14 @@ Though not recommended, `hub` can also be installed as a RubyGem:
 (It's not recommended because of the RubyGems startup time. See [this
 gist][speed] for information.)
 
+### Standalone via RubyGems
+
+Yes, the gem name is still `git-hub`:
+
+    $ gem install git-hub
+    $ hub hub standalone > ~/bin/hub && chmod 755 ~/bin/hub
+    $ gem uninstall git-hub
+
 ### Source
 
 You can also install from source:

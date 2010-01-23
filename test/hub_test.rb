@@ -147,6 +147,11 @@ config
     assert_equal "** Can't find groff(1)\n", help_manpage
   end
 
+  def test_hub_standalone
+    help_standalone = hub("hub standalone")
+    assert_equal Hub::Standalone.build, help_standalone
+  end
+
   def test_hub_open
     input   = "browse mojombo/bert"
     command = "http://github.com/mojombo/bert\n"

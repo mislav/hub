@@ -161,6 +161,20 @@ module Hub
       exec "#{browser} #{protocol}://github.com/#{user}/#{repo}"
     end
 
+    # $ hub hub standalone
+    # Prints the "standalone" version of hub for an easy, memorable
+    # installation sequence:
+    #
+    # $ gem install git-hub
+    # $ hub standalone > ~/bin/standalone
+    # $ gem uninstall git-hub
+    def hub(args)
+      return help(args) unless args[1] == 'standalone'
+      require 'hub/standalone'
+      puts Hub::Standalone.build
+      exit
+    end
+
     def alias(args)
       shells = {
         'sh'   => 'alias git=hub',
