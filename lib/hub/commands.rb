@@ -44,7 +44,7 @@ module Hub
     if ORIGIN =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
       REPO = $2
     else
-      REPO = `basename $(pwd)`.chomp
+      REPO = File.basename(Dir.pwd)
     end
 
     # $ hub clone rtomayko/tilt
