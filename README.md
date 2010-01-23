@@ -133,6 +133,20 @@ superpowers:
     > git push staging bert_timeout
     > git push qa bert_timeout
 
+### git browse
+
+    $ git browse schacon/ticgit
+    > open http://github.com/schacon/ticgit
+
+    $ git browse -p schacon/ticgit
+    > open http://github.com/schacon/ticgit
+
+    $ git browse resque
+    > open http://github.com/YOUR_USER/resque
+
+    $ git browse -p resque
+    > open https://github.com:YOUR_USER/resque
+
 ### git help
 
     $ git help

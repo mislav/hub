@@ -135,6 +135,32 @@ module Hub
       args.after after
     end
 
+    # $ hub browse pjhyett/github-services
+    # > open http://github.com/pjhyett/github-services
+    #
+    # $ hub browse -p pjhyett/github-fi
+    # > open https://github.com/pjhyett/github-fi
+    #
+    # $ hub browse github-services
+    # > open http://github.com/YOUR_LOGIN/github-services
+    #
+    # $ hub browse -p github-fi
+    # > open https://github.com/YOUR_LOGIN/github-fi
+    def browse(args)
+      protocol = args.delete('-p') ? 'https' : 'http'
+
+      if args.last.include? '/'
+        # $ hub browse pjhyett/github-services
+        user, repo = args.last.split('/')
+      else
+        user = github_user
+        repo = args.last
+      end
+
+      browser = ENV['BROWSER'] || "open"
+      exec "#{browser} #{protocol}://github.com/#{user}/#{repo}"
+    end
+
     def alias(args)
       shells = {
         'sh'   => 'alias git=hub',

@@ -44,6 +44,11 @@ After configuring the alias, the following commands have superpowers:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
     multiple `git push` commands.
 
+  * `git browse` [`-p`] [<USER>`/`]<REPOSITORY>:
+    Open repository's GitHub page in the system's default web browser
+    using `open(1)` or the `BROWSER` env variable. Use `-p` to open a
+    page with https.
+
   * `git help`:
     Display enhanced git-help(1).
 
