@@ -9,6 +9,7 @@ hub(1) -- git + hub = github
 `git init -g` <OPTIONS>   
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>   
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]   
+`git browse` [`-p`] [<USER>/]<REPOSITORY>   
 
 ## DESCRIPTION
 
