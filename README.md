@@ -57,6 +57,9 @@ Though not recommended, `hub` can also be installed as a RubyGem:
 
 (Yes, the gem name is `git-hub`.)
 
+(It's not recommended because of the RubyGems startup time. See [this
+gist][speed] for information.)
+
 ### Source
 
 You can also install from source:
@@ -217,3 +220,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
 [0]: http://help.github.com/forking/
 [1]: http://github.com/defunkt/hub/issues
+[speed]: http://gist.github.com/284823
