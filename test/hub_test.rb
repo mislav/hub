@@ -70,6 +70,12 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_normal_clone_from_path
+    input   = "clone ./test"
+    command = "git clone ./test"
+    assert_command input, command
+  end
+
   def test_private_remote
     input   = "remote add -p rtomayko"
     command = "git remote add rtomayko git@github.com:rtomayko/hub.git"
@@ -139,5 +145,34 @@ config
       end
     end
     assert_equal "** Can't find groff(1)\n", help_manpage
+  end
+
+  def test_hub_standalone
+    help_standalone = hub("hub standalone")
+    assert_equal Hub::Standalone.build, help_standalone
+  end
+
+  def test_hub_open
+    input   = "browse mojombo/bert"
+    command = "http://github.com/mojombo/bert\n"
+    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
+  end
+
+  def test_hub_open_private
+    input   = "browse -p bmizerany/sinatra"
+    command = "https://github.com/bmizerany/sinatra\n"
+    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
+  end
+
+  def test_hub_open_self
+    input   = "browse resque"
+    command = "http://github.com/tpw/resque\n"
+    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
+  end
+
+  def test_hub_open_self_private
+    input   = "browse -p github"
+    command = "https://github.com/tpw/github\n"
+    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
   end
 end

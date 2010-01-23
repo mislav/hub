@@ -52,6 +52,12 @@ module Hub
     #
     # $ hub clone -p kneath/hemingway
     # > git clone git@github.com:kneath/hemingway.git
+    #
+    # $ hub clone tilt
+    # > git clone git://github.com/YOUR_LOGIN/tilt.
+    #
+    # $ hub clone -p github
+    # > git clone git@github.com:YOUR_LOGIN/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
 
@@ -63,13 +69,16 @@ module Hub
           next
         end
 
-        if arg =~ %r{.+?://|.+?@} # Bail out early for URLs.
+        if arg =~ %r{.+?://|.+?@} || File.directory?(arg)
+          # Bail out early for URLs and local paths.
           break
         elsif arg.scan('/').size == 1 && !arg.include?(':')
+          # $ hub clone rtomayko/tilt
           url = ssh ? PRIVATE : PUBLIC
           args[args.index(arg)] = url % arg.split('/')
           break
         elsif arg !~ /:|\//
+          # $ hub clone tilt
           url = ssh ? PRIVATE : PUBLIC
           args[args.index(arg)] = url % [ github_user, arg ]
           break
@@ -124,6 +133,46 @@ module Hub
       end
 
       args.after after
+    end
+
+    # $ hub browse pjhyett/github-services
+    # > open http://github.com/pjhyett/github-services
+    #
+    # $ hub browse -p pjhyett/github-fi
+    # > open https://github.com/pjhyett/github-fi
+    #
+    # $ hub browse github-services
+    # > open http://github.com/YOUR_LOGIN/github-services
+    #
+    # $ hub browse -p github-fi
+    # > open https://github.com/YOUR_LOGIN/github-fi
+    def browse(args)
+      protocol = args.delete('-p') ? 'https' : 'http'
+
+      if args.last.include? '/'
+        # $ hub browse pjhyett/github-services
+        user, repo = args.last.split('/')
+      else
+        user = github_user
+        repo = args.last
+      end
+
+      browser = ENV['BROWSER'] || "open"
+      exec "#{browser} #{protocol}://github.com/#{user}/#{repo}"
+    end
+
+    # $ hub hub standalone
+    # Prints the "standalone" version of hub for an easy, memorable
+    # installation sequence:
+    #
+    # $ gem install git-hub
+    # $ hub standalone > ~/bin/standalone
+    # $ gem uninstall git-hub
+    def hub(args)
+      return help(args) unless args[1] == 'standalone'
+      require 'hub/standalone'
+      puts Hub::Standalone.build
+      exit
     end
 
     def alias(args)

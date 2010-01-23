@@ -36,7 +36,8 @@ Install
 
 `hub` is most easily installed as a standalone script:
 
-    curl -s http://defunkt.github.com/hub/standalone > ~/bin/hub && chmod 755 !#:4
+    curl -s http://defunkt.github.com/hub/standalone > ~/bin/hub &&
+    chmod 755 ~/bin/hub
 
 Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
@@ -55,6 +56,17 @@ Though not recommended, `hub` can also be installed as a RubyGem:
     $ gem install git-hub
 
 (Yes, the gem name is `git-hub`.)
+
+(It's not recommended because of the RubyGems startup time. See [this
+gist][speed] for information.)
+
+### Standalone via RubyGems
+
+Yes, the gem name is still `git-hub`:
+
+    $ gem install git-hub
+    $ hub hub standalone > ~/bin/hub && chmod 755 ~/bin/hub
+    $ gem uninstall git-hub
 
 ### Source
 
@@ -128,6 +140,20 @@ superpowers:
     > git push origin bert_timeout
     > git push staging bert_timeout
     > git push qa bert_timeout
+
+### git browse
+
+    $ git browse schacon/ticgit
+    > open http://github.com/schacon/ticgit
+
+    $ git browse -p schacon/ticgit
+    > open http://github.com/schacon/ticgit
+
+    $ git browse resque
+    > open http://github.com/YOUR_USER/resque
+
+    $ git browse -p resque
+    > open https://github.com:YOUR_USER/resque
 
 ### git help
 
@@ -216,3 +242,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 
 [0]: http://help.github.com/forking/
 [1]: http://github.com/defunkt/hub/issues
+[speed]: http://gist.github.com/284823
