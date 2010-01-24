@@ -35,20 +35,28 @@ module Hub
     if ORIGIN =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
       REPO = $2
     else
-      REPO = `basename $(pwd)`.chomp
+      REPO = File.basename(Dir.pwd)
     end
 
     def clone(args)
       ssh = args.delete('-p')
-      args[1..-1].each_with_index do |arg, i|
-        i += 1
-        if arg.scan('/').size == 1 && !arg.include?(':')
+
+      last_args = args[1..-1].reject { |arg| arg == "--" }.last(3)
+      last_args.each do |arg|
+        if arg =~ /^-/
+          last_args.shift if arg =~ /^(--(ref|o|br|u|t|d)[^=]+|-(o|b|u|d))$/
+          next
+        end
+
+        if arg =~ %r{.+?://|.+?@} || File.directory?(arg)
+          break
+        elsif arg.scan('/').size == 1 && !arg.include?(':')
           url = ssh ? PRIVATE : PUBLIC
-          args[i] = url % arg.split('/')
+          args[args.index(arg)] = url % arg.split('/')
           break
         elsif arg !~ /:|\//
           url = ssh ? PRIVATE : PUBLIC
-          args[i] = url % [ github_user, arg ]
+          args[args.index(arg)] = url % [ github_user, arg ]
           break
         end
       end
@@ -87,6 +95,29 @@ module Hub
       end
 
       args.after after
+    end
+
+    def browse(args)
+      protocol = args.delete('-p') ? 'https' : 'http'
+
+      if args.last.include? '/'
+        user, repo = args.last.split('/')
+      else
+        user = github_user
+        repo = args.last
+      end
+
+      browser = ENV['BROWSER'] || "open"
+      exec "#{browser} #{protocol}://github.com/#{user}/#{repo}"
+    end
+
+    def hub(args)
+      return help(args) unless args[1] == 'standalone'
+      require 'hub/standalone'
+      puts Hub::Standalone.build
+      exit
+    rescue LoadError
+      abort "hub is running in standalone mode."
     end
 
     def alias(args)
@@ -311,14 +342,14 @@ module Hub
   end
 end
 module Hub
-  Version = '0.2.0'
+  Version = '0.3.0'
 end
 Hub::Runner.execute(*ARGV)
 __END__
 .\" generated with Ron/v0.3
 .\" http://github.com/rtomayko/ron/
 .
-.TH "HUB" "1" "December 2009" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "January 2010" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \-\- git + hub = github
@@ -339,6 +370,9 @@ __END__
 .
 .br
 \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR] 
+.
+.br
+\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR 
 .
 .br
 .
@@ -376,6 +410,12 @@ current working directory is used. With \fB\-p\fR, use private remote
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR 
 Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
+.
+.TP
+\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR 
+Open repository's GitHub page in the system's default web browser
+using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
+page with https.
 .
 .TP
 \fBgit help\fR
@@ -473,6 +513,23 @@ $ git push origin,staging,qa bert_timeout
 > git push origin bert_timeout
 > git push staging bert_timeout
 > git push qa bert_timeout 
+.
+.fi
+.
+.SS "git browse"
+.
+.nf
+
+$ git browse schacon/ticgit
+> open http://github.com/schacon/ticgit 
+$ git browse \-p schacon/ticgit
+> open http://github.com/schacon/ticgit
+
+$ git browse resque
+> open http://github.com/YOUR_USER/resque
+
+$ git browse \-p resque
+> open https://github.com:YOUR_USER/resque
 .
 .fi
 .

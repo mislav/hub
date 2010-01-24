@@ -73,6 +73,7 @@
 <p><code>git init -g</code> <var>OPTIONS</var> <br>
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var> <br>
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>] <br>
+<code>git browse</code> [<code>-p</code>] [<var>USER</var>/]<var>REPOSITORY</var> <br>
 </p>
 
 <h2>DESCRIPTION</h2>
@@ -119,6 +120,12 @@ current working directory is used. With <code>-p</code>, use private remote
 </dt>
 <dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></dd>
+<dt>
+<code>git browse</code> [<code>-p</code>] [<var>USER</var><code>/</code>]<var>REPOSITORY</var>
+</dt>
+<dd><p>Open repository's GitHub page in the system's default web browser
+using <code>open(1)</code> or the <code>BROWSER</code> env variable. Use <code>-p</code> to open a
+page with https.</p></dd>
 <dt><code>git help</code></dt>
 <dd><p>Display enhanced git-help(1).</p></dd>
 </dl>
@@ -186,6 +193,21 @@ $ git remote add -p rtomayko
 &gt; git push qa bert_timeout
 </code></pre>
 
+<h3>git browse</h3>
+
+<pre><code>$ git browse schacon/ticgit
+&gt; open http://github.com/schacon/ticgit
+
+$ git browse -p schacon/ticgit
+&gt; open http://github.com/schacon/ticgit
+
+$ git browse resque
+&gt; open http://github.com/YOUR_USER/resque
+
+$ git browse -p resque
+&gt; open https://github.com:YOUR_USER/resque
+</code></pre>
+
 <h3>git help</h3>
 
 <pre><code>$ git help
@@ -210,7 +232,7 @@ $ git help hub
 
 <ol class='foot man'>
   <li class='tl'>DEFUNKT</li>
-  <li class='tc'>December 2009</li>
+  <li class='tc'>January 2010</li>
   <li class='tr'>hub(1)</li>
 </ol>
 
