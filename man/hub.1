@@ -1,7 +1,7 @@
 .\" generated with Ron/v0.3
 .\" http://github.com/rtomayko/ron/
 .
-.TH "HUB" "1" "December 2009" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "January 2010" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \-\- git + hub = github
@@ -22,6 +22,9 @@
 .
 .br
 \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR] 
+.
+.br
+\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR 
 .
 .br
 .
@@ -59,6 +62,12 @@ current working directory is used. With \fB\-p\fR, use private remote
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR 
 Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
+.
+.TP
+\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR 
+Open repository's GitHub page in the system's default web browser
+using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
+page with https.
 .
 .TP
 \fBgit help\fR
@@ -156,6 +165,23 @@ $ git push origin,staging,qa bert_timeout
 > git push origin bert_timeout
 > git push staging bert_timeout
 > git push qa bert_timeout 
+.
+.fi
+.
+.SS "git browse"
+.
+.nf
+
+$ git browse schacon/ticgit
+> open http://github.com/schacon/ticgit 
+$ git browse \-p schacon/ticgit
+> open http://github.com/schacon/ticgit
+
+$ git browse resque
+> open http://github.com/YOUR_USER/resque
+
+$ git browse \-p resque
+> open https://github.com:YOUR_USER/resque
 .
 .fi
 .
