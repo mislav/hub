@@ -153,6 +153,7 @@ module Hub
         # $ hub browse pjhyett/github-services
         user, repo = args.last.split('/')
       else
+        # $ hub browse github-services
         user = github_user
         repo = args.last
       end
@@ -173,6 +174,8 @@ module Hub
       require 'hub/standalone'
       puts Hub::Standalone.build
       exit
+    rescue LoadError
+      abort "hub is running in standalone mode."
     end
 
     def alias(args)
