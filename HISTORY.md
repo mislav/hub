@@ -1,7 +1,8 @@
-## 0.2.1 (2010-??-??)
+## 0.2.1 (2010-02-13)
 
-* Bugfix: `git clone` flags are now passed through. 
+* Bugfix: `git clone` flags are now passed through.
 * Bugfix: `git clone` with url and path works.
+* Add `hub remote origin` shortcut. Assumes your GitHub login.
 
 ## 0.2.0 (2009-12-24)
 
