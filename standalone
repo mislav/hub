@@ -69,6 +69,9 @@ module Hub
         ssh  = args.delete('-p')
         user = args.last
         url  = ssh ? PRIVATE : PUBLIC
+
+        user = github_user if args[2] == 'origin'
+
         args << url % [ user, REPO ]
       end
     end
@@ -342,14 +345,14 @@ module Hub
   end
 end
 module Hub
-  Version = '0.3.0'
+  Version = '0.3.1'
 end
 Hub::Runner.execute(*ARGV)
 __END__
 .\" generated with Ron/v0.3
 .\" http://github.com/rtomayko/ron/
 .
-.TH "HUB" "1" "January 2010" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "February 2010" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \-\- git + hub = github
@@ -404,7 +407,8 @@ your GitHub login. With \fB\-p\fR, use private remote
 Add remote "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" as with
 git\-remote(1). When /\fIREPOSITORY\fR is omitted, the basename of the
 current working directory is used. With \fB\-p\fR, use private remote
-"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git". If \fIUSER\fR is "origin"
+then uses your GitHub login.
 .
 .TP
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR 
@@ -492,6 +496,9 @@ $ git remote add rtomayko
 > git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git 
 $ git remote add \-p rtomayko
 > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
+
+$ git remote add origin
+> git remote add origingit://github.com/YOUR_USER/CURRENT_REPO.git
 .
 .fi
 .
