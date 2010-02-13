@@ -1,8 +1,13 @@
-## 0.2.1 (2010-02-13)
+## 0.3.0 (2010-01-23)
 
+* Add `hub browse` command for opening a repo in a browser.
+* Add `hub standalone` for installation of standalone via RubyGems
+* Bugfix: Don't run hub standalone in standalone mode
 * Bugfix: `git clone` flags are now passed through.
 * Bugfix: `git clone` with url and path works.
-* Add `hub remote origin` shortcut. Assumes your GitHub login.
+* Bugfix: basename call
+* Bugfix: Check for local directories before cloning
+
 
 ## 0.2.0 (2009-12-24)
 
