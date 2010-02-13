@@ -76,6 +76,18 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_remote_origin
+    input   = "remote add origin"
+    command = "git remote add origin git://github.com/tpw/hub.git"
+    assert_command input, command
+  end
+
+  def test_private_remote_origin
+    input   = "remote add -p origin"
+    command = "git remote add origin git@github.com:tpw/hub.git"
+    assert_command input, command
+  end
+
   def test_private_remote
     input   = "remote add -p rtomayko"
     command = "git remote add rtomayko git@github.com:rtomayko/hub.git"

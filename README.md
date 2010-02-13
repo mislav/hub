@@ -128,6 +128,9 @@ superpowers:
     $ git remote add -p rtomayko
     > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
 
+    $ git remote add origin
+    > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+
 ### git init
 
     $ git init -g

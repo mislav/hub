@@ -39,7 +39,8 @@ After configuring the alias, the following commands have superpowers:
     Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
     git-remote(1). When /<REPOSITORY> is omitted, the basename of the
     current working directory is used. With `-p`, use private remote
-    "git@github.com:<USER>/<REPOSITORY>.git".
+    "git@github.com:<USER>/<REPOSITORY>.git". If <USER> is "origin"
+    then uses your GitHub login.
 
   * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
@@ -94,6 +95,9 @@ cloning:
 
     $ git remote add -p rtomayko
     > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
+
+    $ git remote add origin
+    > git remote add origingit://github.com/YOUR_USER/CURRENT_REPO.git
 
 ### git init
 
