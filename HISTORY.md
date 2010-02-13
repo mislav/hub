@@ -1,3 +1,7 @@
+## 1.0.0 (2010-??-??)
+
+*
+
 ## 0.3.1 (2010-02-13)
 
 * Add `hub remote origin` shortcut. Assumes your GitHub login.
