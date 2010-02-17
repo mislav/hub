@@ -127,7 +127,7 @@ module Hub
       shells = {
         'sh'   => 'alias git=hub',
         'bash' => 'alias git=hub',
-        'zsh'  => 'alias git=hub',
+        'zsh'  => 'function git(){hub $@}',
         'csh'  => 'alias git hub',
         'fish' => 'alias git hub'
       }
@@ -345,7 +345,7 @@ module Hub
   end
 end
 module Hub
-  Version = '0.3.1'
+  Version = '0.3.2'
 end
 Hub::Runner.execute(*ARGV)
 __END__
@@ -498,7 +498,7 @@ $ git remote add \-p rtomayko
 > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
 
 $ git remote add origin
-> git remote add origingit://github.com/YOUR_USER/CURRENT_REPO.git
+> git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
 .
 .fi
 .
