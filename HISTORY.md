@@ -2,6 +2,10 @@
 
 *
 
+## 0.3.2 (2010-02-17)
+
+* Fixed zshell git completion / aliasing - `hub alias zsh`.
+
 ## 0.3.1 (2010-02-13)
 
 * Add `hub remote origin` shortcut. Assumes your GitHub login.

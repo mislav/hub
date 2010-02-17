@@ -189,7 +189,7 @@ module Hub
       shells = {
         'sh'   => 'alias git=hub',
         'bash' => 'alias git=hub',
-        'zsh'  => 'alias git=hub',
+        'zsh'  => 'function git(){hub $@}',
         'csh'  => 'alias git hub',
         'fish' => 'alias git hub'
       }
