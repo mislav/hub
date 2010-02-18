@@ -153,6 +153,7 @@ config
   def test_help_hub_no_groff
     help_manpage = hub("help hub") do
       Hub::Commands.class_eval do
+        remove_method :groff?
         def groff?; false end
       end
     end
