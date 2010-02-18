@@ -29,7 +29,7 @@ module Hub
 
     # Boolean indicating whether an `after` callback has been set.
     def after?
-      !!@after
+      defined?(@after)
     end
   end
 end
