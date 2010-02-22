@@ -187,7 +187,7 @@ module Hub
     # installation sequence:
     #
     # $ gem install git-hub
-    # $ hub standalone > ~/bin/standalone
+    # $ hub hub standalone > ~/bin/hub && chmod 755 ~/bin/hub
     # $ gem uninstall git-hub
     def hub(args)
       return help(args) unless args[1] == 'standalone'
