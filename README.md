@@ -8,22 +8,13 @@ It can used on its own or as a `git` wrapper.
 Normal:
 
     $ hub clone rtomayko/tilt
-    Initialized empty Git repository in /Users/chris/sandbox/tilt/.git/
-    remote: Counting objects: 307, done.
-    remote: Compressing objects: 100% (219/219), done.
-    remote: Total 307 (delta 175), reused 85 (delta 45)
-    Receiving objects: 100% (307/307), 48.91 KiB, done.
-    Resolving deltas: 100% (175/175), done.
+    
+    Expands to:
+    $ git clone git://github.com/rtomayko/tilt.git
 
 Wrapping `git`:
 
     $ git clone rack/rack
-    Initialized empty Git repository in /Users/chris/sandbox/rack/.git/
-    remote: Counting objects: 4005, done.
-    remote: Compressing objects: 100% (1738/1738), done.
-    remote: Total 4005 (delta 2505), reused 3620 (delta 2208)
-    Receiving objects: 100% (4005/4005), 785.82 KiB | 129 KiB/s, done.
-    Resolving deltas: 100% (2505/2505), done.
 
 hub requires you have `git` installed and in your `$PATH`. It also
 requires Ruby 1.8.6+ or Ruby 1.9.1+. No other libraries necessary.
@@ -43,7 +34,7 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
     $ hub version
     git version 1.6.4.2
-    hub version 0.2.0
+    hub version 0.3.2
 
 ### Homebrew
 
