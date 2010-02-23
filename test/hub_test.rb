@@ -3,7 +3,9 @@ require 'helper'
 
 class HubTest < Test::Unit::TestCase
   def setup
+    Hub::Commands::REPO.replace("hub")
     Hub::Commands::USER.replace("tpw")
+    Hub::Commands::OWNER.replace("defunkt")
   end
 
   def test_private_clone

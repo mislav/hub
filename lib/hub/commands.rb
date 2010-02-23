@@ -42,9 +42,10 @@ module Hub
     # Set the repo name based on the current origin or, as a fallback,
     # the cwd.
     if ORIGIN =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
-      REPO = $2
+      OWNER, REPO = $1, $2
     else
       REPO = File.basename(Dir.pwd)
+      OWNER = ''
     end
 
     # $ hub clone rtomayko/tilt
