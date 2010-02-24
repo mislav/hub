@@ -33,11 +33,14 @@ module Hub
 
     # Templates and useful information.
     USER       = `git config --global github.user`.chomp
+    TOKEN      = `git config --global github.token`.chomp
     ORIGIN     = `git config remote.origin.url`.chomp
     HTTP_CLONE = `git config --global hub.http-clone`.chomp == 'yes'
     PUBLIC     = (HTTP_CLONE ? 'http' : 'git') + '://github.com/%s/%s.git'
     PRIVATE    = 'git@github.com:%s/%s.git'
     LGHCONF    = "http://github.com/guides/local-github-config"
+    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
 
     # Set the repo name based on the current origin or, as a fallback,
     # the cwd.
@@ -144,6 +147,27 @@ module Hub
 
         url = PRIVATE % [ github_user, REPO ]
         args.after "git remote add origin #{url}"
+      end
+    end
+    
+    def fork(args)
+      require 'net/http'
+      
+      # can't do anything without token and original owner name
+      if github_user and github_token and !OWNER.empty?
+        if own_repo_exists?
+          puts "#{github_user}/#{REPO} already exists on GitHub"
+        else
+          fork_repo
+        end
+        
+        if args.include?('--no-remote')
+          exit
+        else
+          url = PRIVATE % [ github_user, REPO ]
+          args.replace %W"remote add #{github_user} #{url}"
+          args.after { puts "new remote: #{github_user}" }
+        end
       end
     end
 
@@ -349,6 +373,14 @@ help
         USER
       end
     end
+    
+    def github_token
+      if TOKEN.empty?
+        abort "** No GitHub token set. See #{LGHCONF}"
+      else
+        TOKEN
+      end
+    end
 
     # Returns the terminal-formatted manpage, ready to be printed to
     # the screen.
@@ -432,6 +464,16 @@ help
         read.close
         write.close
       end
+    end
+    
+    def own_repo_exists?
+      url = API_REPO % [USER, REPO]
+      Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
+    end
+    
+    def fork_repo
+      url = API_FORK % [OWNER, REPO]
+      Net::HTTP.post_form(URI(url), 'login' => USER, 'token' => TOKEN)
     end
   end
 end

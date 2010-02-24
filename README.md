@@ -125,6 +125,15 @@ superpowers:
     $ git remote add origin
     > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
 
+### git fork
+
+    $ git fork
+    ... hardcore forking action ...
+    > git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+
+Forks the original repo on GitHub and adds the new remote under your username.
+It requires your GitHub token to be present; see "GitHub login" below for details.
+
 ### git init
 
     $ git init -g
@@ -177,7 +186,8 @@ If you see nothing, you need to set the config setting:
 
     $ git config --global github.user YOUR_USER
 
-See <http://github.com/guides/local-github-config> for more information.
+For commands that require write access to GitHub (such as `fork`), you'll want to
+setup "github.token" as well. See [local GitHub config guide][2] for more information.
 
 
 Configuration
@@ -243,3 +253,4 @@ Chris Wanstrath :: chris@ozmm.org :: @defunkt
 [0]: http://help.github.com/forking/
 [1]: http://github.com/defunkt/hub/issues
 [speed]: http://gist.github.com/284823
+[2]: http://github.com/guides/local-github-config

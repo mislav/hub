@@ -59,6 +59,11 @@ After configuring the alias, the following commands have superpowers:
     your GitHub login. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git".
 
+  * `git fork` [`--no-remote`]:
+    Forks the original project (as specified in "origin" remote) on GitHub
+    and adds a new remote named <USER> referencing the newly created repo.
+    Requires `github.token` to be set (see CONFIGURATION).
+
   * `git help`:
     Display enhanced git-help(1).
 
@@ -68,9 +73,10 @@ Use git-config(1) to display the currently configured GitHub username:
 
     $ git config --global github.user
 
-Or, set the GitHub username with:
+Or, set the GitHub username and token with:
 
     $ git config --global github.user <username>
+    $ git config --global github.token <token>
 
 See <http://github.com/guides/local-github-config> for more
 information.
@@ -106,6 +112,12 @@ cloning:
 
     $ git remote add origin
     > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+
+### git fork
+
+    $ git fork
+    ... hardcore forking action ...
+    > git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
 ### git init
 

@@ -79,6 +79,12 @@ your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
 .TP
+\fBgit fork\fR [\fB\-\-no\-remote\fR]
+Forks the original project (as specified in "origin" remote) on GitHub
+and adds a new remote named \fIUSER\fR referencing the newly created repo.
+Requires \fBgithub.token\fR to be set (see CONFIGURATION).
+.
+.TP
 \fBgit help\fR
 Display enhanced git\-help(1).
 .
@@ -95,12 +101,13 @@ $ git config \-\-global github.user
 .IP "" 0
 .
 .P
-Or, set the GitHub username with:
+Or, set the GitHub username and token with:
 .
 .IP "" 4
 .
 .nf
 $ git config \-\-global github.user <username>
+$ git config \-\-global github.token <token>
 .
 .fi
 .
@@ -148,6 +155,15 @@ $ git remote add \-p rtomayko
 > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
 $ git remote add origin
 > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+.
+.fi
+.
+.SS "git fork"
+.
+.nf
+$ git fork
+... hardcore forking action ...
+> git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 .
 .fi
 .

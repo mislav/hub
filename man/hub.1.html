@@ -115,6 +115,9 @@ the page of the repository found in the current directory.</p></dd>
 <var>DIRECTORY</var> as with git-submodule(1). When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
+<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (as specified in "origin" remote) on GitHub
+and adds a new remote named <var>USER</var> referencing the newly created repo.
+Requires <code>github.token</code> to be set (see CONFIGURATION).</p></dd>
 <dt><code>git help</code></dt><dd><p>Display enhanced git-help(1).</p></dd>
 </dl>
 
@@ -126,9 +129,10 @@ your GitHub login. With <code>-p</code>, use private remote
 <pre><code>$ git config --global github.user
 </code></pre>
 
-<p>Or, set the GitHub username with:</p>
+<p>Or, set the GitHub username and token with:</p>
 
 <pre><code>$ git config --global github.user &lt;username>
+$ git config --global github.token &lt;token>
 </code></pre>
 
 <p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more
@@ -167,6 +171,13 @@ $ git remote add -p rtomayko
 
 $ git remote add origin
 &gt; git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+</code></pre>
+
+<h3>git fork</h3>
+
+<pre><code>$ git fork
+... hardcore forking action ...
+&gt; git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 </code></pre>
 
 <h3>git init</h3>

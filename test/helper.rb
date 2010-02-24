@@ -26,16 +26,22 @@ class Test::Unit::TestCase
   # If a block is given it will be run in the child process before
   # execution begins. You can use this to monkeypatch or fudge the
   # environment before running hub.
-  def hub(args)
+  def hub(args, input = nil)
     parent_read, child_write = IO.pipe
+    child_read, parent_write = IO.pipe if input
 
     fork do
       yield if block_given?
+      $stdin.reopen(child_read) if input
       $stdout.reopen(child_write)
       $stderr.reopen(child_write)
       Hub(args).execute
     end
-
+    
+    if input
+      parent_write.write input
+      parent_write.close
+    end
     child_write.close
     parent_read.read
   end
