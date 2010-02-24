@@ -6,6 +6,14 @@ module Hub
   # The ARGV array is converted into an Args instance by the Hub
   # instance when instantiated.
   class Args < Array
+    attr_accessor :executable
+    
+    def initialize(*args)
+      super
+      @executable = ENV["GIT"] || "git"
+      @after = nil
+    end
+
     # With no arguments, returns the `after` callback.
     #
     # With a single argument, sets the `after` callback.
@@ -29,7 +37,13 @@ module Hub
 
     # Boolean indicating whether an `after` callback has been set.
     def after?
-      !!defined?(@after)
+      !!@after
+    end
+    
+    # Array of `executable` followed by all args suitable as arguments
+    # for `exec` or `system` calls.
+    def to_exec
+      [executable].concat self
     end
   end
 end

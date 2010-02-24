@@ -6,6 +6,7 @@ module Hub
   # augment a git command, is kept in the `Hub::Commands` module.
   class Runner
     attr_reader :args
+    
     def initialize(*args)
       @args = Args.new(args)
 
@@ -34,7 +35,7 @@ module Hub
     # A string representation of the git command we would run if
     # #execute were called.
     def command
-      "git #{args.join(' ')}"
+      args.to_exec.join(' ')
     end
 
     # Runs the target git command with an optional callback. Replaces
@@ -43,7 +44,7 @@ module Hub
       if args.after?
         execute_with_after_callback
       else
-        exec "git", *args
+        exec(*args.to_exec)
       end
     end
 
@@ -53,7 +54,7 @@ module Hub
     # callback.
     def execute_with_after_callback
       after = args.after
-      if system("git", *args)
+      if system(*args.to_exec)
         after.respond_to?(:call) ? after.call : exec(after)
         exit
       else

@@ -168,26 +168,18 @@ config
   end
 
   def test_hub_open
-    input   = "browse mojombo/bert"
-    command = "http://github.com/mojombo/bert\n"
-    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
+    assert_command "browse mojombo/bert", "open http://github.com/mojombo/bert"
   end
 
   def test_hub_open_private
-    input   = "browse -p bmizerany/sinatra"
-    command = "https://github.com/bmizerany/sinatra\n"
-    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
+    assert_command "browse -p bmizerany/sinatra", "open https://github.com/bmizerany/sinatra"
   end
 
   def test_hub_open_self
-    input   = "browse resque"
-    command = "http://github.com/tpw/resque\n"
-    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
+    assert_command "browse resque", "open http://github.com/tpw/resque"
   end
 
   def test_hub_open_self_private
-    input   = "browse -p github"
-    command = "https://github.com/tpw/github\n"
-    assert_equal command, hub(input) { ENV['BROWSER'] = 'echo' }
+    assert_command "browse -p github", "open https://github.com/tpw/github"
   end
 end

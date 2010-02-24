@@ -155,19 +155,20 @@ module Hub
     # $ hub browse -p github-fi
     # > open https://github.com/YOUR_LOGIN/github-fi
     def browse(args)
+      args.shift
       protocol = args.delete('-p') ? 'https' : 'http'
-
-      if args.last.include? '/'
+      dest = args.pop
+      
+      if dest.include? '/'
         # $ hub browse pjhyett/github-services
-        user, repo = args.last.split('/')
+        user, repo = dest.split('/')
       else
         # $ hub browse github-services
-        user = github_user
-        repo = args.last
+        user, repo = github_user, dest
       end
 
-      browser = ENV['BROWSER'] || "open"
-      exec "#{browser} #{protocol}://github.com/#{user}/#{repo}"
+      args.executable = ENV['BROWSER'] || 'open'
+      args.push "#{protocol}://github.com/#{user}/#{repo}"
     end
 
     # $ hub hub standalone
