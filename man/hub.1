@@ -65,10 +65,11 @@ Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
 .
 .TP
-\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR 
+\fBgit browse\fR [\fB\-p\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR]
 Open repository's GitHub page in the system's default web browser
 using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
-page with https.
+page with https. If the repository isn't specified, \fBbrowse\fR opens
+the page of the repository found in the current directory.
 .
 .TP
 \fBgit help\fR

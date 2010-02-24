@@ -182,4 +182,18 @@ config
   def test_hub_open_self_private
     assert_command "browse -p github", "open https://github.com/tpw/github"
   end
+
+  def test_hub_open_current
+    assert_command "browse", "open http://github.com/defunkt/hub"
+  end
+
+  def test_hub_open_current_private
+    assert_command "browse -p", "open https://github.com/defunkt/hub"
+  end
+
+  def test_hub_open_no_repo
+    Hub::Commands::OWNER.replace("")
+    input = "browse"
+    assert_equal "Usage: hub browse [<USER>/]<REPOSITORY>\n", hub(input)
+  end
 end

@@ -122,11 +122,11 @@ then uses your GitHub login.</p></dd>
 <dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></dd>
 <dt>
-<code>git browse</code> [<code>-p</code>] [<var>USER</var><code>/</code>]<var>REPOSITORY</var>
-</dt>
+<code>git browse</code> [<code>-p</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>]</dt>
 <dd><p>Open repository's GitHub page in the system's default web browser
 using <code>open(1)</code> or the <code>BROWSER</code> env variable. Use <code>-p</code> to open a
-page with https.</p></dd>
+page with https. If the repository isn't specified, <code>browse</code> opens
+the page of the repository found in the current directory.</p></dd>
 <dt><code>git help</code></dt>
 <dd><p>Display enhanced git-help(1).</p></dd>
 </dl>

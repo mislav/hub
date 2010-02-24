@@ -143,6 +143,9 @@ module Hub
       args.after after
     end
 
+    # $ hub browse
+    # > open http://github.com/CURRENT_REPO
+    #
     # $ hub browse pjhyett/github-services
     # > open http://github.com/pjhyett/github-services
     #
@@ -159,12 +162,20 @@ module Hub
       protocol = args.delete('-p') ? 'https' : 'http'
       dest = args.pop
       
-      if dest.include? '/'
-        # $ hub browse pjhyett/github-services
-        user, repo = dest.split('/')
+      if dest
+        if dest.include? '/'
+          # $ hub browse pjhyett/github-services
+          user, repo = dest.split('/')
+        else
+          # $ hub browse github-services
+          user, repo = github_user, dest
+        end
+      elsif !OWNER.empty?
+        # $ hub browse
+        user, repo = OWNER, REPO
       else
-        # $ hub browse github-services
-        user, repo = github_user, dest
+        $stderr.puts "Usage: hub browse [<USER>/]<REPOSITORY>"
+        exit(1)
       end
 
       args.executable = ENV['BROWSER'] || 'open'

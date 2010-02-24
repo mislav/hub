@@ -146,6 +146,9 @@ superpowers:
 
 ### git browse
 
+    $ git browse
+    > open http://github.com/CURRENT_REPO
+
     $ git browse schacon/ticgit
     > open http://github.com/schacon/ticgit
 
