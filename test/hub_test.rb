@@ -117,6 +117,18 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_private_remote_with_repo
+    input   = "remote add -p rtomayko/tilt"
+    command = "git remote add rtomayko git@github.com:rtomayko/tilt.git"
+    assert_command input, command
+  end
+
+  def test_public_remote_with_repo
+    input   = "remote add rtomayko/tilt"
+    command = "git remote add rtomayko git://github.com/rtomayko/tilt.git"
+    assert_command input, command
+  end
+
   def test_init
     h = Hub("init -g")
     assert_equal "git init", h.command

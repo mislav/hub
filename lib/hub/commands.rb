@@ -110,16 +110,19 @@ module Hub
     def remote(args)
       return unless args[1] == 'add'
 
+      ssh = args.delete('-p')
+      url = ssh ? PRIVATE : PUBLIC
+
       # Assume GitHub usernames don't ever contain : or /, while URLs
       # do.
-      if args[-1] !~ /:|\//
-        ssh  = args.delete('-p')
+      if args.last =~ /\b(\w+)\/(\w+)/
+        user, repo = $1, $2
+        args[-1] = user
+        args << url % [ user, repo ]
+      elsif args.last !~ /:|\//
         user = args.last
-        url  = ssh ? PRIVATE : PUBLIC
-
         # Origin special case.
         user = github_user if args[2] == 'origin'
-
         args << url % [ user, REPO ]
       end
     end
