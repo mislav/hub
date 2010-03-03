@@ -161,7 +161,7 @@ module Hub
       args.shift
       protocol = args.delete('-p') ? 'https' : 'http'
       dest = args.pop
-      
+
       if dest
         if dest.include? '/'
           # $ hub browse pjhyett/github-services
@@ -174,7 +174,7 @@ module Hub
         # $ hub browse
         user, repo = OWNER, REPO
       else
-        $stderr.puts "Usage: hub browse [<USER>/]<REPOSITORY>"
+        warn "Usage: hub browse [<USER>/]<REPOSITORY>"
         exit(1)
       end
 
