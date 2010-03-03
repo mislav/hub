@@ -1,6 +1,7 @@
-## 1.0.0 (2010-??-??)
+## 1.0.0 (2010-03-03)
 
 * `hub browse` with no arguments uses the current repo.
+* `hub submodule add user/repo directory
 
 ## 0.3.2 (2010-02-17)
 
