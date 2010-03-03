@@ -3,6 +3,7 @@
 * `hub browse` with no arguments uses the current repo.
 * `hub submodule add user/repo directory
 * `hub remote add rtomayko/tilt`
+* `remote add -p origin rtomayko/tilt`
 
 ## 0.3.2 (2010-02-17)
 

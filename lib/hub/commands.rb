@@ -113,16 +113,37 @@ module Hub
       ssh = args.delete('-p')
       url = ssh ? PRIVATE : PUBLIC
 
-      # Assume GitHub usernames don't ever contain : or /, while URLs
-      # do.
       if args.last =~ /\b(\w+)\/(\w+)/
+        # user/repo
         user, repo = $1, $2
-        args[-1] = user
+
+        if args[-2] == args[1]
+          # rtomayko/tilt => rtomayko
+          args[-1] = user
+        else
+          # They're specifying the remote name manually (e.g.
+          # git remote add blah rtomayko/tilt), so just drop the last
+          # argument.
+          args.replace args[0...-1]
+        end
+
         args << url % [ user, repo ]
       elsif args.last !~ /:|\//
-        user = args.last
-        # Origin special case.
-        user = github_user if args[2] == 'origin'
+        if args[2] == 'origin' && args[3].nil?
+          # Origin special case.
+          user = github_user
+        else
+          # Assume no : or / means GitHub user.
+          user = args.last
+        end
+
+        if args[-2] != args[1]
+          # They're specifying the remote name manually (e.g.
+          # git remote add blah rtomayko), so just drop the last
+          # argument.
+          args.replace args[0...-1]
+        end
+
         args << url % [ user, REPO ]
       end
     end

@@ -117,6 +117,12 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_named_public_remote
+    input   = "remote add origin rtomayko"
+    command = "git remote add origin git://github.com/rtomayko/hub.git"
+    assert_command input, command
+  end
+
   def test_private_remote_with_repo
     input   = "remote add -p rtomayko/tilt"
     command = "git remote add rtomayko git@github.com:rtomayko/tilt.git"
@@ -126,6 +132,12 @@ class HubTest < Test::Unit::TestCase
   def test_public_remote_with_repo
     input   = "remote add rtomayko/tilt"
     command = "git remote add rtomayko git://github.com/rtomayko/tilt.git"
+    assert_command input, command
+  end
+
+  def test_named_private_remote_with_repo
+    input   = "remote add -p origin rtomayko/tilt"
+    command = "git remote add origin git@github.com:rtomayko/tilt.git"
     assert_command input, command
   end
 
