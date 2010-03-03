@@ -74,7 +74,7 @@
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var> <br>
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>] <br>
 <code>git browse</code> [<code>-p</code>] [<var>USER</var>/]<var>REPOSITORY</var> <br>
-</p>
+<code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></p>
 
 <h2>DESCRIPTION</h2>
 
@@ -122,11 +122,18 @@ then uses your GitHub login.</p></dd>
 <dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></dd>
 <dt>
-<code>git browse</code> [<code>-p</code>] [<var>USER</var><code>/</code>]<var>REPOSITORY</var>
-</dt>
+<code>git browse</code> [<code>-p</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>]</dt>
 <dd><p>Open repository's GitHub page in the system's default web browser
 using <code>open(1)</code> or the <code>BROWSER</code> env variable. Use <code>-p</code> to open a
-page with https.</p></dd>
+page with https. If the repository isn't specified, <code>browse</code> opens
+the page of the repository found in the current directory.</p></dd>
+<dt>
+<code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>
+</dt>
+<dd><p>Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
+<var>DIRECTORY</var> as with git-submodule(1). When <var>USER</var>/ is omitted, assumes
+your GitHub login. With <code>-p</code>, use private remote
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
 <dt><code>git help</code></dt>
 <dd><p>Display enhanced git-help(1).</p></dd>
 </dl>
@@ -236,7 +243,7 @@ $ git help hub
 
 <ol class='foot man'>
   <li class='tl'>DEFUNKT</li>
-  <li class='tc'>February 2010</li>
+  <li class='tc'>March 2010</li>
   <li class='tr'>hub(1)</li>
 </ol>
 
