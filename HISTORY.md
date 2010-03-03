@@ -1,6 +1,6 @@
 ## 1.0.0 (2010-??-??)
 
-*
+* `hub browse` with no arguments uses the current repo.
 
 ## 0.3.2 (2010-02-17)
 
