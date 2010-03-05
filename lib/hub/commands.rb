@@ -290,10 +290,13 @@ module Hub
     # $ hub help
     # (print improved help text)
     def help(args)
-      if args[1] == 'hub'
+      command = args.grep(/^[^-]/)[1]
+
+      if command == 'hub'
         puts hub_manpage
         exit
-      elsif args.size == 1
+      elsif command.nil?
+        ENV['GIT_PAGER'] = '' if args.grep(/^-{1,2}p/).empty? # Use `cat`.
         puts improved_help_text
         exit
       end

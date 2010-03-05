@@ -169,7 +169,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_version
     out = hub('--version')
-    assert_includes "git version 1.6", out
+    assert_includes "git version", out
     assert_includes "hub version #{Hub::Version}", out
   end
 
@@ -179,6 +179,10 @@ class HubTest < Test::Unit::TestCase
 
   def test_help_by_default
     assert_equal Hub::Commands.improved_help_text, hub("")
+  end
+
+  def test_help_with_pager
+    assert_equal Hub::Commands.improved_help_text, hub("-p")
   end
 
   def test_help_hub

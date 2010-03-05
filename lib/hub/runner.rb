@@ -11,7 +11,7 @@ module Hub
       @args = Args.new(args)
 
       # Hack to emulate git-style
-      @args[0] = 'help' if @args.empty?
+      @args.unshift 'help' if @args.grep(/^[^-]|version/).empty?
 
       if Commands.respond_to?(@args[0])
         Commands.send(@args[0], @args)
