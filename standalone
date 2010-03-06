@@ -12,7 +12,7 @@
 module Hub
   class Args < Array
     attr_accessor :executable
-    
+
     def initialize(*args)
       super
       @executable = ENV["GIT"] || "git"
@@ -26,9 +26,17 @@ module Hub
     def after?
       !!@after
     end
-    
+
     def to_exec
       [executable].concat self
+    end
+
+    def words
+      reject { |arg| arg =~ /^-/ }
+    end
+
+    def flags
+      self - words
     end
   end
 end
@@ -91,7 +99,7 @@ module Hub
       if args.last =~ /\b(\w+)\/(\w+)/
         user, repo = $1, $2
 
-        if args[-2] == args[1]
+        if args.words[-2] == args.words[1]
           args[-1] = user
         else
           args.replace args[0...-1]
@@ -219,10 +227,13 @@ module Hub
     alias_method "--version", :version
 
     def help(args)
-      if args[1] == 'hub'
+      command = args.grep(/^[^-]/)[1]
+
+      if command == 'hub'
         puts hub_manpage
         exit
-      elsif args.size == 1
+      elsif command.nil?
+        ENV['GIT_PAGER'] = '' if args.grep(/^-{1,2}p/).empty? # Use `cat`.
         puts improved_help_text
         exit
       end
@@ -352,7 +363,7 @@ module Hub
     def initialize(*args)
       @args = Args.new(args)
 
-      @args[0] = 'help' if @args.empty?
+      @args.unshift 'help' if @args.grep(/^[^-]|version/).empty?
 
       if Commands.respond_to?(@args[0])
         Commands.send(@args[0], @args)
@@ -391,7 +402,7 @@ module Hub
   end
 end
 module Hub
-  Version = '1.0.0'
+  Version = '1.0.1'
 end
 Hub::Runner.execute(*ARGV)
 __END__
