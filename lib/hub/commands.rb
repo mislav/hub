@@ -117,7 +117,7 @@ module Hub
         # user/repo
         user, repo = $1, $2
 
-        if args[-2] == args[1]
+        if args.words[-2] == args.words[1]
           # rtomayko/tilt => rtomayko
           args[-1] = user
         else
