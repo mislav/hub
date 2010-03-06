@@ -48,7 +48,7 @@ class Test::Unit::TestCase
   # Should in turn execute this:
   #   $ git clone git://github.com/git/hub.git
   def assert_command(input, expected)
-    assert_equal expected, Hub(input).command
+    assert_equal expected, Hub(input).command, "$ git #{input}"
   end
 
   # Asserts that `hub` will show a specific alias command for a
