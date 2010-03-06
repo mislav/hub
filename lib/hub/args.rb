@@ -7,7 +7,7 @@ module Hub
   # instance when instantiated.
   class Args < Array
     attr_accessor :executable
-    
+
     def initialize(*args)
       super
       @executable = ENV["GIT"] || "git"
@@ -39,11 +39,29 @@ module Hub
     def after?
       !!@after
     end
-    
+
     # Array of `executable` followed by all args suitable as arguments
     # for `exec` or `system` calls.
     def to_exec
       [executable].concat self
+    end
+
+    # All the words (as opposed to flags) contained in this argument
+    # list.
+    #
+    # args = Args.new([ 'remote', 'add', '-f', 'tekkub' ])
+    # args.words == [ 'remote', 'add', 'tekkub' ]
+    def words
+      reject { |arg| arg =~ /^-/ }
+    end
+
+    # All the flags (as opposed to words) contained in this argument
+    # list.
+    #
+    # args = Args.new([ 'remote', 'add', '-f', 'tekkub' ])
+    # args.flags == [ '-f' ]
+    def flags
+      self - words
     end
   end
 end
