@@ -1,3 +1,7 @@
+## 1.0.1 (2010-03-05)
+
+* Bugfix: `hub remote -f name`
+
 ## 1.0.0 (2010-03-03)
 
 * `hub browse` with no arguments uses the current repo.
