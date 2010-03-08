@@ -3,6 +3,9 @@ $LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 require 'hub'
 require 'hub/standalone'
 
+# We're looking for `open` in the tests.
+ENV['BROWSER'] = 'open'
+
 class Test::Unit::TestCase
   # Shortcut for creating a `Hub` instance. Pass it what you would
   # normally pass `hub` on the command line, e.g.
