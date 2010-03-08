@@ -1,3 +1,7 @@
+## 1.0.2 (2010-03-07)
+
+* Bugfix: `hub remote -f name` (for real this time)
+
 ## 1.0.1 (2010-03-05)
 
 * Bugfix: `hub remote -f name`

@@ -119,7 +119,9 @@ module Hub
 
         if args.words[-2] == args.words[1]
           # rtomayko/tilt => rtomayko
-          args[-1] = user
+          # Make sure you dance around flags.
+          idx = args.index( args.words[-1] )
+          args[idx] = user
         else
           # They're specifying the remote name manually (e.g.
           # git remote add blah rtomayko/tilt), so just drop the last
@@ -129,7 +131,7 @@ module Hub
 
         args << url % [ user, repo ]
       elsif args.last !~ /:|\//
-        if args[2] == 'origin' && args[3].nil?
+        if args.words[2] == 'origin' && args.words[3].nil?
           # Origin special case.
           user = github_user
         else
@@ -137,7 +139,7 @@ module Hub
           user = args.last
         end
 
-        if args[-2] != args[1]
+        if args.words[-2] != args.words[1]
           # They're specifying the remote name manually (e.g.
           # git remote add blah rtomayko), so just drop the last
           # argument.
