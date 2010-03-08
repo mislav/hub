@@ -24,7 +24,7 @@ class AliasTest < Test::Unit::TestCase
   end
 
   def test_alias_zsh
-    assert_alias_command "zsh", "function git(){hub $@}"
+    assert_alias_command "zsh", 'function git(){hub "$@"}'
   end
 
   def test_alias_csh

@@ -1,6 +1,7 @@
 ## 1.0.2 (2010-03-07)
 
 * Bugfix: `hub remote -f name` (for real this time)
+* Bugfix: zsh quoting [thommay]
 
 ## 1.0.1 (2010-03-05)
 
