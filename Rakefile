@@ -111,14 +111,14 @@ end
 desc "Publish to GitHub Pages"
 task :pages => [ :build_man, :check_dirty, :standalone ] do
   cp "man/hub.1.html", "html"
-  `git checkout gh-pages`
-  `mv hub standalone`
-  `git add standalone*`
-  `mv html hub.1.html`
-  `git add hub.1.html`
-  `git commit -m "update standalone"`
-  `git push origin gh-pages`
-  `git checkout master`
+  sh "git checkout gh-pages"
+  sh "mv hub standalone"
+  sh "git add standalone*"
+  sh "mv html hub.1.html"
+  sh "git add hub.1.html"
+  sh "git commit -m 'update standalone'"
+  sh "git push origin gh-pages"
+  sh "git checkout master"
   puts :done
 end
 
