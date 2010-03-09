@@ -24,12 +24,12 @@ task :standalone => :load_hub do
 end
 
 desc "Build hub manual"
-task :build_man do
+task "man:build" do
   sh "ron -br5 --organization=DEFUNKT --manual='Git Manual' man/*.ron"
 end
 
 desc "Show hub manual"
-task :man => :build_man do
+task :man => "man:build" do
   exec "man man/hub.1"
 end
 
@@ -109,7 +109,7 @@ task :publish => [ :test, :gemspec, :build ] do
 end
 
 desc "Publish to GitHub Pages"
-task :pages => [ :build_man, :check_dirty, :standalone ] do
+task :pages => [ "man:build", :check_dirty, :standalone ] do
   cp "man/hub.1.html", "html"
   sh "git checkout gh-pages"
   sh "mv hub standalone"
