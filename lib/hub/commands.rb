@@ -112,42 +112,27 @@ module Hub
 
       ssh = args.delete('-p')
       url = ssh ? PRIVATE : PUBLIC
+      
+      # user/repo
+      args.last =~ /\b(.+?)(?:\/(.+))?$/
+      user, repo = $1, $2 || REPO
 
-      if args.last =~ /\b(.*?)\/([^\/]+)$/
-        # user/repo
-        user, repo = $1, $2
-
-        if args.words[-2] == args.words[1]
-          # rtomayko/tilt => rtomayko
-          # Make sure you dance around flags.
-          idx = args.index( args.words[-1] )
-          args[idx] = user
-        else
-          # They're specifying the remote name manually (e.g.
-          # git remote add blah rtomayko/tilt), so just drop the last
-          # argument.
-          args.replace args[0...-1]
-        end
-
-        args << url % [ user, repo ]
-      elsif args.last !~ /:|\//
-        if args.words[2] == 'origin' && args.words[3].nil?
-          # Origin special case.
-          user = github_user
-        else
-          # Assume no : or / means GitHub user.
-          user = args.last
-        end
-
-        if args.words[-2] != args.words[1]
-          # They're specifying the remote name manually (e.g.
-          # git remote add blah rtomayko), so just drop the last
-          # argument.
-          args.replace args[0...-1]
-        end
-
-        args << url % [ user, REPO ]
+      if args.words[2] == 'origin' && args.words[3].nil?
+        # Origin special case.
+        user = github_user
+      elsif args.words[-2] == args.words[1]
+        # rtomayko/tilt => rtomayko
+        # Make sure you dance around flags.
+        idx = args.index( args.words[-1] )
+        args[idx] = user
+      else
+        # They're specifying the remote name manually (e.g.
+        # git remote add blah rtomayko/tilt), so just drop the last
+        # argument.
+        args.replace args[0...-1]
       end
+
+      args << url % [ user, repo ]
     end
 
     # $ hub init -g
