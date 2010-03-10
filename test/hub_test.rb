@@ -142,26 +142,26 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_private_remote_with_repo
-    input   = "remote add -p rtomayko/tilt"
-    command = "git remote add rtomayko git@github.com:rtomayko/tilt.git"
+    input   = "remote add -p jashkenas/coffee-script"
+    command = "git remote add jashkenas git@github.com:jashkenas/coffee-script.git"
     assert_command input, command
   end
 
   def test_public_remote_with_repo
-    input   = "remote add rtomayko/tilt"
-    command = "git remote add rtomayko git://github.com/rtomayko/tilt.git"
+    input   = "remote add jashkenas/coffee-script"
+    command = "git remote add jashkenas git://github.com/jashkenas/coffee-script.git"
     assert_command input, command
   end
 
   def test_public_remote_f_with_repo
-    input   = "remote add -f rtomayko/tilt"
-    command = "git remote add -f rtomayko git://github.com/rtomayko/tilt.git"
+    input   = "remote add -f jashkenas/coffee-script"
+    command = "git remote add -f jashkenas git://github.com/jashkenas/coffee-script.git"
     assert_command input, command
   end
 
   def test_named_private_remote_with_repo
-    input   = "remote add -p origin rtomayko/tilt"
-    command = "git remote add origin git@github.com:rtomayko/tilt.git"
+    input   = "remote add -p origin jashkenas/coffee-script"
+    command = "git remote add origin git@github.com:jashkenas/coffee-script.git"
     assert_command input, command
   end
 
