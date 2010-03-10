@@ -113,7 +113,7 @@ module Hub
       ssh = args.delete('-p')
       url = ssh ? PRIVATE : PUBLIC
 
-      if args.last =~ /\b(\w+)\/(\w+)/
+      if args.last =~ /\b(.*?)\/([^\/]+)$/
         # user/repo
         user, repo = $1, $2
 
