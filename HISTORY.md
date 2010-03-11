@@ -1,3 +1,7 @@
+## 1.0.3 (2010-03-10)
+
+* Bugfix: `hub remote` for repos with -, /, etc
+
 ## 1.0.2 (2010-03-07)
 
 * Bugfix: `hub remote -f name` (for real this time)
