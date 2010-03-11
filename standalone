@@ -91,34 +91,24 @@ module Hub
     end
 
     def remote(args)
-      return unless args[1] == 'add'
+      return if args[1] != 'add' or args.last =~ %r{.+?://|.+?@}
 
       ssh = args.delete('-p')
       url = ssh ? PRIVATE : PUBLIC
+      
+      args.last =~ /\b(.+?)(?:\/(.+))?$/
+      user, repo = $1, $2 || REPO
 
-      if args.last =~ /\b(\w+)\/(\w+)/
-        user, repo = $1, $2
-
-        if args.words[-2] == args.words[1]
-          args[-1] = user
-        else
-          args.replace args[0...-1]
-        end
-
-        args << url % [ user, repo ]
-      elsif args.last !~ /:|\//
-        if args[2] == 'origin' && args[3].nil?
-          user = github_user
-        else
-          user = args.last
-        end
-
-        if args[-2] != args[1]
-          args.replace args[0...-1]
-        end
-
-        args << url % [ user, REPO ]
+      if args.words[2] == 'origin' && args.words[3].nil?
+        user = github_user
+      elsif args.words[-2] == args.words[1]
+        idx = args.index( args.words[-1] )
+        args[idx] = user
+      else
+        args.replace args[0...-1]
       end
+
+      args << url % [ user, repo ]
     end
 
     def init(args)
@@ -180,7 +170,7 @@ module Hub
       shells = {
         'sh'   => 'alias git=hub',
         'bash' => 'alias git=hub',
-        'zsh'  => 'function git(){hub $@}',
+        'zsh'  => 'function git(){hub "$@"}',
         'csh'  => 'alias git hub',
         'fish' => 'alias git hub'
       }
@@ -402,12 +392,12 @@ module Hub
   end
 end
 module Hub
-  Version = '1.0.1'
+  Version = '1.0.3'
 end
 Hub::Runner.execute(*ARGV)
 __END__
-.\" generated with Ron/v0.3
-.\" http://github.com/rtomayko/ron/
+.\" generated with Ronn/v0.4.1
+.\" http://github.com/rtomayko/ronn/
 .
 .TH "HUB" "1" "March 2010" "DEFUNKT" "Git Manual"
 .
@@ -415,24 +405,24 @@ __END__
 \fBhub\fR \-\- git + hub = github
 .
 .SH "SYNOPSIS"
-\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR 
+\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
 .
 .br
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR 
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 .
 .br
 .
 .P
-\fBgit init \-g\fR \fIOPTIONS\fR 
+\fBgit init \-g\fR \fIOPTIONS\fR
 .
 .br
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR 
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
 .
 .br
-\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR] 
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
 .
 .br
-\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR 
+\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR
 .
 .br
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
@@ -442,20 +432,20 @@ __END__
 alias command displays information on configuring your environment:
 .
 .TP
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR 
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output. With the \fB\-s\fR option, the output of
-this command can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR 
+this command can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR
 .
 .P
 After configuring the alias, the following commands have superpowers:
 .
 .TP
-\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR 
+\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR
 Create a git repository as with git\-init(1) and add remote \fBorigin\fR at
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory's basename.
 .
 .TP
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR 
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR
 Clone repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-clone(1). When \fIUSER\fR/ is omitted, assumes
 your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
@@ -469,7 +459,7 @@ current working directory is used. With \fB\-p\fR, use private remote
 then uses your GitHub login.
 .
 .TP
-\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR 
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
 Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
 .
@@ -481,7 +471,7 @@ page with https. If the repository isn't specified, \fBbrowse\fR opens
 the page of the repository found in the current directory.
 .
 .TP
-\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR 
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
 Submodule repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-submodule(1). When \fIUSER\fR/ is omitted, assumes
 your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
@@ -496,8 +486,7 @@ Use git\-config(1) to display the currently configured GitHub username:
 .IP "" 4
 .
 .nf
-
-$ git config \-\-global github.user 
+$ git config \-\-global github.user
 .
 .fi
 .
@@ -509,8 +498,7 @@ Or, set the GitHub username with:
 .IP "" 4
 .
 .nf
-
-$ git config \-\-global github.user <username> 
+$ git config \-\-global github.user <username>
 .
 .fi
 .
@@ -527,8 +515,7 @@ cloning:
 .IP "" 4
 .
 .nf
-
-$ git config \-\-global \-\-add hub.http\-clone yes 
+$ git config \-\-global \-\-add hub.http\-clone yes
 .
 .fi
 .
@@ -539,15 +526,12 @@ $ git config \-\-global \-\-add hub.http\-clone yes
 .SS "git clone"
 .
 .nf
-
 $ git clone schacon/ticgit
-> git clone git://github.com/schacon/ticgit.git 
+> git clone git://github.com/schacon/ticgit.git
 $ git clone \-p schacon/ticgit
 > git clone git@github.com:schacon/ticgit.git
-
 $ git clone resque
 > git clone git://github.com/YOUR_USER/resque.git
-
 $ git clone \-p resque
 > git clone git@github.com:YOUR_USER/resque.git
 .
@@ -556,12 +540,10 @@ $ git clone \-p resque
 .SS "git remote add"
 .
 .nf
-
 $ git remote add rtomayko
-> git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git 
+> git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git
 $ git remote add \-p rtomayko
 > git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
-
 $ git remote add origin
 > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
 .
@@ -570,36 +552,31 @@ $ git remote add origin
 .SS "git init"
 .
 .nf
-
 $ git init \-g
 > git init
-> git remote add origin git@github.com:YOUR_USER/REPO.git 
+> git remote add origin git@github.com:YOUR_USER/REPO.git
 .
 .fi
 .
 .SS "git push"
 .
 .nf
-
 $ git push origin,staging,qa bert_timeout
 > git push origin bert_timeout
 > git push staging bert_timeout
-> git push qa bert_timeout 
+> git push qa bert_timeout
 .
 .fi
 .
 .SS "git browse"
 .
 .nf
-
 $ git browse schacon/ticgit
-> open http://github.com/schacon/ticgit 
+> open http://github.com/schacon/ticgit
 $ git browse \-p schacon/ticgit
 > open http://github.com/schacon/ticgit
-
 $ git browse resque
 > open http://github.com/YOUR_USER/resque
-
 $ git browse \-p resque
 > open https://github.com:YOUR_USER/resque
 .
@@ -608,11 +585,10 @@ $ git browse \-p resque
 .SS "git help"
 .
 .nf
-
 $ git help
 > (improved git help)
 $ git help hub
-> (hub man page) 
+> (hub man page)
 .
 .fi
 .
