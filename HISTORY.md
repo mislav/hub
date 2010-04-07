@@ -1,3 +1,7 @@
+## 1.1.0 (2010-04-07)
+
+* `hub fork` command - Thanks Mislav!
+
 ## 1.0.3 (2010-03-10)
 
 * Bugfix: `hub remote` for repos with -, /, etc
