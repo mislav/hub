@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv='content-type' value='text/html;charset=utf8'>
-  <meta name='generator' value='Ronn/v0.4.1'>
+  <meta name='generator' value='Ron/v0.3'>
   <title>hub(1) -- git + hub = github</title>
   <style type='text/css'>
     body {margin:0}
@@ -64,17 +64,17 @@
 
 <h2 id='NAME'>NAME</h2>
 <p><code>hub</code> -- git + hub = github</p>
-
 <h2>SYNOPSIS</h2>
 
-<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var> <br />
-<code>hub alias</code> [<code>-s</code>] <var>SHELL</var> <br />
-</p>
+<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var>
+<code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
-<p><code>git init -g</code> <var>OPTIONS</var> <br />
-<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var> <br />
-<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>] <br />
-<code>git browse</code> [<code>-p</code>] [<var>USER</var>/]<var>REPOSITORY</var> <br />
+<p><code>git init -g</code> <var>OPTIONS</var><br>
+<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br>
+<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br>
+<code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var><br>
+<code>git fork</code><br>
+<code>git browse</code> [<code>-p</code>] [<var>USER</var>/]<var>REPOSITORY</var><br>
 <code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></p>
 
 <h2>DESCRIPTION</h2>
@@ -83,39 +83,68 @@
 alias command displays information on configuring your environment:</p>
 
 <dl>
-<dt><code>hub alias</code> [<code>-s</code>] <var>SHELL</var></dt><dd>Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
+<dt>
+<code>hub alias</code> [<code>-s</code>] <var>SHELL</var>:<br>
+Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
 <code>csh</code>) to standard output. With the <code>-s</code> option, the output of
-this command can be evaluated directly within the shell:
-<code>eval $(hub alias -s bash)</code></dd>
-</dl>
-
-
-<p>After configuring the alias, the following commands have superpowers:</p>
-
-<dl>
-<dt><code>git init</code> <code>-g</code> <var>OPTIONS</var></dt><dd><p>Create a git repository as with git-init(1) and add remote <code>origin</code> at
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
-<var>REPOSITORY</var> is the current working directory's basename.</p></dd>
-<dt><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
+this command can be evaluated directly within the shell</dt>
+<dd><p><code>eval $(hub alias -s bash)</code></p></dd>
+<dt>
+<code>git init</code> <code>-g</code> <var>OPTIONS</var>:<br>
+ Create a git repository as with git-init(1) and add remote <code>origin</code> at
+ "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
+ <var>REPOSITORY</var> is the current working directory's basename.</dt>
+<dd><p></p></dd>
+<dt>
+<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br>
+Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with git-clone(1). When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]</dt><dd><p>Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</dt>
+<dd><p></p></dd>
+<dt>
+<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]:<br>
+Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
 git-remote(1). When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git". If <var>USER</var> is "origin"
-then uses your GitHub login.</p></dd>
-<dt><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var></dt><dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
-multiple <code>git push</code> commands.</p></dd>
-<dt><code>git browse</code> [<code>-p</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>]</dt><dd><p>Open repository's GitHub page in the system's default web browser
+then uses your GitHub login.</dt>
+<dd><p></p></dd>
+<dt>
+<code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var>:<br>
+Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
+multiple <code>git push</code> commands.</dt>
+<dd><p></p></dd>
+<dt>
+<code>git fork</code>:<br>
+Forks the original repo on GitHub and adds the new remote under your
+username. It requires your GitHub login and token to be present. See
+CONFIGURATION below.</dt>
+<dd><p></p></dd>
+<dt>
+<code>git browse</code> [<code>-p</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>]:<br>
+Open repository's GitHub page in the system's default web browser
 using <code>open(1)</code> or the <code>BROWSER</code> env variable. Use <code>-p</code> to open a
 page with https. If the repository isn't specified, <code>browse</code> opens
-the page of the repository found in the current directory.</p></dd>
-<dt><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
+the page of the repository found in the current directory.</dt>
+<dd><p></p></dd>
+<dt>
+<code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br>
+Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with git-submodule(1). When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git help</code></dt><dd><p>Display enhanced git-help(1).</p></dd>
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</dt>
+<dd><p></p></dd>
+<dt>
+<code>git fork</code> [<code>--no-remote</code>]:<br>
+Forks the original project (as specified in "origin" remote) on GitHub
+and adds a new remote named <var>USER</var> referencing the newly created repo.
+Requires <code>github.token</code> to be set (see CONFIGURATION).</dt>
+<dd><p></p></dd>
+<dt>
+<code>git help</code>:<br>
+Display enhanced git-help(1).</dt>
+<dd><p></p></dd>
 </dl>
 
 
@@ -126,9 +155,10 @@ your GitHub login. With <code>-p</code>, use private remote
 <pre><code>$ git config --global github.user
 </code></pre>
 
-<p>Or, set the GitHub username with:</p>
+<p>Or, set the GitHub username and token with:</p>
 
-<pre><code>$ git config --global github.user &lt;username>
+<pre><code>$ git config --global github.user &lt;username&gt;
+$ git config --global github.token &lt;token&gt;
 </code></pre>
 
 <p>See <a href="http://github.com/guides/local-github-config">http://github.com/guides/local-github-config</a> for more
@@ -167,6 +197,13 @@ $ git remote add -p rtomayko
 
 $ git remote add origin
 &gt; git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+</code></pre>
+
+<h3>git fork</h3>
+
+<pre><code>$ git fork
+... hardcore forking action ...
+&gt; git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 </code></pre>
 
 <h3>git init</h3>
@@ -221,10 +258,9 @@ $ git help hub
 <a href="http://github.com">http://github.com</a>,
 <a href="http://github.com/defunkt/hub">http://github.com/defunkt/hub</a></p>
 
-
 <ol class='foot man'>
   <li class='tl'>DEFUNKT</li>
-  <li class='tc'>March 2010</li>
+  <li class='tc'>April 2010</li>
   <li class='tr'>hub(1)</li>
 </ol>
 
