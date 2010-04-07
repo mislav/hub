@@ -4,7 +4,7 @@ require 'webmock/test_unit'
 
 class HubTest < Test::Unit::TestCase
   include WebMock
-  
+
   def setup
     Hub::Commands::REPO.replace("hub")
     Hub::Commands::USER.replace("tpw")
@@ -200,31 +200,34 @@ class HubTest < Test::Unit::TestCase
     assert_equal "git push origin cool-feature", h.command
     assert_equal "git push staging cool-feature; git push qa cool-feature", h.after
   end
-  
+
   def test_fork
-    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").to_return(:status => 404)
+    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").
+      to_return(:status => 404)
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|
       params = Hash[*req.body.split(/[&=]/)]
       params == { 'login'=>'tpw', 'token'=>'abc123' }
     }
-    
-    expected = "remote add tpw git@github.com:tpw/hub.git\n"
+
+    expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
   def test_fork_no_remote
-    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").to_return(:status => 404)
+    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").
+      to_return(:status => 404)
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub")
-    
+
     assert_equal "", hub("fork --no-remote") { ENV['GIT'] = 'echo' }
   end
 
   def test_fork_already_exists
-    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").to_return(:status => 200)
-    
+    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").
+      to_return(:status => 200)
+
     expected = "tpw/hub already exists on GitHub\n"
-    expected << "remote add tpw git@github.com:tpw/hub.git\n"
+    expected << "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
@@ -276,7 +279,8 @@ config
   end
 
   def test_hub_open_private
-    assert_command "browse -p bmizerany/sinatra", "open https://github.com/bmizerany/sinatra"
+    assert_command "browse -p bmizerany/sinatra",
+      "open https://github.com/bmizerany/sinatra"
   end
 
   def test_hub_open_self

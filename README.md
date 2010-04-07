@@ -129,10 +129,11 @@ superpowers:
 
     $ git fork
     ... hardcore forking action ...
-    > git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+    > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
-Forks the original repo on GitHub and adds the new remote under your username.
-It requires your GitHub token to be present; see "GitHub login" below for details.
+Forks the original repo on GitHub and adds the new remote under your
+username. It requires your GitHub token to be present; see "GitHub
+login" below for details.
 
 ### git init
 

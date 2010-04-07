@@ -115,7 +115,7 @@ module Hub
 
       ssh = args.delete('-p')
       url = ssh ? PRIVATE : PUBLIC
-      
+
       # user/repo
       args.last =~ /\b(.+?)(?:\/(.+))?$/
       user, repo = $1, $2 || REPO
@@ -149,23 +149,26 @@ module Hub
         args.after "git remote add origin #{url}"
       end
     end
-    
+
+    # $ hub fork
+    # ... hardcore forking action ...
+    # > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
     def fork(args)
       require 'net/http'
-      
+
       # can't do anything without token and original owner name
-      if github_user and github_token and !OWNER.empty?
+      if github_user && github_token && !OWNER.empty?
         if own_repo_exists?
           puts "#{github_user}/#{REPO} already exists on GitHub"
         else
           fork_repo
         end
-        
+
         if args.include?('--no-remote')
           exit
         else
           url = PRIVATE % [ github_user, REPO ]
-          args.replace %W"remote add #{github_user} #{url}"
+          args.replace %W"remote add -f #{github_user} #{url}"
           args.after { puts "new remote: #{github_user}" }
         end
       end
@@ -373,7 +376,7 @@ help
         USER
       end
     end
-    
+
     def github_token
       if TOKEN.empty?
         abort "** No GitHub token set. See #{LGHCONF}"
@@ -465,12 +468,19 @@ help
         write.close
       end
     end
-    
+
+    # Determines whether the current user (you) has a fork of the
+    # current repo on GitHub.
+    #
+    # Returns a Boolean.
     def own_repo_exists?
       url = API_REPO % [USER, REPO]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
     end
-    
+
+    # Forks the current repo using the GitHub API.
+    #
+    # Returns nothing.
     def fork_repo
       url = API_FORK % [OWNER, REPO]
       Net::HTTP.post_form(URI(url), 'login' => USER, 'token' => TOKEN)
