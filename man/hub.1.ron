@@ -3,68 +3,73 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <COMMAND> <OPTIONS>   
-`hub alias` [`-s`] <SHELL>   
+`hub` <COMMAND> <OPTIONS>
+`hub alias` [`-s`] <SHELL>
 
-`git init -g` <OPTIONS>   
-`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>   
-`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]   
-`git browse` [`-p`] [<USER>/]<REPOSITORY>   
-`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>
+`git init -g` <OPTIONS>  
+`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
+`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
+`git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>  
+`git fork`  
+`git browse` [`-p`] [<USER>/]<REPOSITORY>  
+`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 
 ## DESCRIPTION
 
 `hub` enhances various `git` commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:
 
-  * `hub alias` [`-s`] <SHELL>:
+  * `hub alias` [`-s`] <SHELL>:  
     Writes shell aliasing code for <SHELL> (`bash`, `sh`, `zsh`,
     `csh`) to standard output. With the `-s` option, the output of
     this command can be evaluated directly within the shell:
     `eval $(hub alias -s bash)`
 
-After configuring the alias, the following commands have superpowers:
-
-  * `git init` `-g` <OPTIONS>:
+ * `git init` `-g` <OPTIONS>:  
     Create a git repository as with git-init(1) and add remote `origin` at
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
     <REPOSITORY> is the current working directory's basename.
 
-  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:
+  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:  
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
     your GitHub login. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git".
 
-  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:
+  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:  
     Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
     git-remote(1). When /<REPOSITORY> is omitted, the basename of the
     current working directory is used. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git". If <USER> is "origin"
     then uses your GitHub login.
 
-  * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>:
+  * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>:  
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
     multiple `git push` commands.
 
-  * `git browse` [`-p`] [[<USER>`/`]<REPOSITORY>]:
+  * `git fork`:  
+    Forks the original repo on GitHub and adds the new remote under your
+    username. It requires your GitHub login and token to be present. See
+    CONFIGURATION below.
+
+  * `git browse` [`-p`] [[<USER>`/`]<REPOSITORY>]:  
     Open repository's GitHub page in the system's default web browser
     using `open(1)` or the `BROWSER` env variable. Use `-p` to open a
     page with https. If the repository isn't specified, `browse` opens
     the page of the repository found in the current directory.
 
-  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:
+  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:  
     Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-submodule(1). When <USER>/ is omitted, assumes
     your GitHub login. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git".
 
-  * `git fork` [`--no-remote`]:
+  * `git fork` [`--no-remote`]:  
     Forks the original project (as specified in "origin" remote) on GitHub
     and adds a new remote named <USER> referencing the newly created repo.
     Requires `github.token` to be set (see CONFIGURATION).
 
-  * `git help`:
+  * `git help`:  
     Display enhanced git-help(1).
 
 ## CONFIGURATION
