@@ -1,3 +1,7 @@
+## 1.2.0 (2010-04-11)
+
+* `hub compare` command - Thanks joshthecoder!
+
 ## 1.1.0 (2010-04-07)
 
 * `hub fork` command - Thanks Mislav!
