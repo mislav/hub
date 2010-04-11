@@ -274,6 +274,17 @@ config
     assert_equal Hub::Standalone.build, help_standalone
   end
 
+  def test_hub_compare
+    assert_command "compare refactor",
+      "open http://github.com/defunkt/hub/compare/refactor"
+
+    assert_command "compare 1.0...fix",
+      "open http://github.com/defunkt/hub/compare/1.0...fix"
+
+    assert_command "compare myfork feature",
+      "open http://github.com/myfork/hub/compare/feature"
+  end
+
   def test_hub_open
     assert_command "browse mojombo/bert", "open http://github.com/mojombo/bert"
   end

@@ -241,25 +241,25 @@ module Hub
     # $ hub compare -u 1.0...2.0
     # (Prints the URL for the compare view)
     def compare(args)
-        args.shift
-        urlOnly = args.delete('-u') ? true : false
-        range = args.pop
-        user = args.pop || OWNER
+      args.shift
+      url_only = args.delete('-u')
+      range = args.pop
+      user = args.pop || OWNER
 
-        if range and !OWNER.empty?
-            url = "http://github.com/#{user}/#{REPO}/compare/#{range}"
-        else
-            warn "Usage: hub compare [<START>...]<END>"
-            exit(1)
-        end
+      if range && !OWNER.empty?
+        url = "http://github.com/#{user}/#{REPO}/compare/#{range}"
+      else
+        warn "Usage: hub compare [<START>...]<END>"
+        exit(1)
+      end
 
-        if urlOnly
-            puts url
-            exit
-        else
-            args.executable = ENV['BROWSER'] || 'open'
-            args.push url
-        end
+      if url_only
+        puts url
+        exit
+      else
+        args.executable = ENV['BROWSER'] || 'open'
+        args.push url
+      end
     end
 
     # $ hub hub standalone

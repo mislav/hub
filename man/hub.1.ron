@@ -59,7 +59,7 @@ alias command displays information on configuring your environment:
     the page of the repository found in the current directory.
 
   * `git compare` [`-u`] [<USER>] [<START>...]<END>:  
-    Open a Github compare view page in the system's default web browser.
+    Open a GitHub compare view page in the system's default web browser.
     <START> to <END> are branch names, tag names, or commit SHA1s specifying
     the range of history to compare. If <START> is omitted,
     the repository's default branch is assumed.
