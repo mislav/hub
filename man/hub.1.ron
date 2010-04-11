@@ -58,6 +58,12 @@ alias command displays information on configuring your environment:
     page with https. If the repository isn't specified, `browse` opens
     the page of the repository found in the current directory.
 
+  * `git compare` [`-u`] [<USER>] [<START>...]<END>:  
+    Open a Github compare view page in the system's default web browser.
+    <START> to <END> are branch names, tag names, or commit SHA1s specifying
+    the range of history to compare. If <START> is omitted,
+    the repository's default branch is assumed.
+
   * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:  
     Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-submodule(1). When <USER>/ is omitted, assumes
@@ -150,6 +156,20 @@ cloning:
 
     $ git browse -p resque
     > open https://github.com:YOUR_USER/resque
+
+### git compare
+
+    $ git compare refactor
+    > open http://github.com/CURRENT_REPO/compare/refactor
+
+    $ git compare 1.0...1.1
+    > open http://github.com/CURRENT_REPO/compare/1.0...1.1
+
+    $ git compare -u fix
+    > (http://github.com/CURRENT_REPO/compare/fix)
+
+    $ git compare myfork patch
+    > open http://github.com/myfork/compare/patch
 
 ### git help
 

@@ -232,6 +232,36 @@ module Hub
       args.push "#{protocol}://github.com/#{user}/#{repo}"
     end
 
+    # $ hub compare 1.0...fix
+    # > open http://github.com/CURRENT_REPO/compare/1.0...fix
+    # $ hub compare refactor
+    # > open http://github.com/CURRENT_REPO/comapre/refactor
+    # $ hub compare myfork feature
+    # > open http://github.com/myfork/REPO/compare/feature
+    # $ hub compare -u 1.0...2.0
+    # (Prints the URL for the compare view)
+    def compare(args)
+        args.shift
+        urlOnly = args.delete('-u') ? true : false
+        range = args.pop
+        user = args.pop || OWNER
+
+        if range and !OWNER.empty?
+            url = "http://github.com/#{user}/#{REPO}/compare/#{range}"
+        else
+            warn "Usage: hub compare [<START>...]<END>"
+            exit(1)
+        end
+
+        if urlOnly
+            puts url
+            exit
+        else
+            args.executable = ENV['BROWSER'] || 'open'
+            args.push url
+        end
+    end
+
     # $ hub hub standalone
     # Prints the "standalone" version of hub for an easy, memorable
     # installation sequence:

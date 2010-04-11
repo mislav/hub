@@ -165,6 +165,20 @@ login" below for details.
     $ git browse -p resque
     > open https://github.com:YOUR_USER/resque
 
+### git compare
+
+    $ git compare refactor
+    > open http://github.com/CURRENT_REPO/compare/refactor
+
+    $ git compare 1.0...1.1
+    > open http://github.com/CURRENT_REPO/compare/1.0...1.1
+
+    $ git compare -u fix
+    > (http://github.com/CURRENT_REPO/compare/fix)
+
+    $ git compare myfork patch
+    > open http://github.com/myfork/compare/patch
+
 ### git help
 
     $ git help
