@@ -62,7 +62,7 @@ if command? :ronn
 
   desc "Build the manual"
   task "man:build" do
-    sh "ronn -br5 --organization=DEFUNKT --manual='Git Manual' man/*.ron"
+    sh "ronn -br5 --organization=DEFUNKT --manual='Git Manual' man/*.ronn"
   end
 end
 

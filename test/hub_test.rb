@@ -13,14 +13,14 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_private_clone
-    input   = "clone -p rtomayko/ron"
-    command = "git clone git@github.com:rtomayko/ron.git"
+    input   = "clone -p rtomayko/ronn"
+    command = "git clone git@github.com:rtomayko/ronn.git"
     assert_command input, command
   end
 
   def test_public_clone
-    input   = "clone rtomayko/ron"
-    command = "git clone git://github.com/rtomayko/ron.git"
+    input   = "clone rtomayko/ronn"
+    command = "git clone git://github.com/rtomayko/ronn.git"
     assert_command input, command
   end
 
@@ -59,20 +59,20 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_private_clone_left_alone
-    input   = "clone git@github.com:rtomayko/ron.git"
-    command = "git clone git@github.com:rtomayko/ron.git"
+    input   = "clone git@github.com:rtomayko/ronn.git"
+    command = "git clone git@github.com:rtomayko/ronn.git"
     assert_command input, command
   end
 
   def test_public_clone_left_alone
-    input   = "clone git://github.com/rtomayko/ron.git"
-    command = "git clone git://github.com/rtomayko/ron.git"
+    input   = "clone git://github.com/rtomayko/ronn.git"
+    command = "git clone git://github.com/rtomayko/ronn.git"
     assert_command input, command
   end
 
   def test_normal_public_clone_with_path
-    input   = "clone git://github.com/rtomayko/ron.git ron-dev"
-    command = "git clone git://github.com/rtomayko/ron.git ron-dev"
+    input   = "clone git://github.com/rtomayko/ronn.git ronn-dev"
+    command = "git clone git://github.com/rtomayko/ronn.git ronn-dev"
     assert_command input, command
   end
 
