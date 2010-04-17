@@ -95,7 +95,7 @@ information.
 You can also tell `hub` to use `http://` rather than `git://` when
 cloning:
 
-    $ git config --global --add hub.http-clone yes
+    $ git config --global --bool hub.http-clone true
 
 ## EXAMPLES
 

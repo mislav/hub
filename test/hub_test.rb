@@ -6,10 +6,23 @@ class HubTest < Test::Unit::TestCase
   include WebMock
 
   def setup
-    Hub::Commands::REPO.replace("hub")
-    Hub::Commands::USER.replace("tpw")
-    Hub::Commands::TOKEN.replace("abc123")
-    Hub::Commands::OWNER.replace("defunkt")
+    @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
+      raise ArgumentError, "`git #{k}` not stubbed"
+    }).update(
+      'config github.user' => 'tpw',
+      'config github.token' => 'abc123',
+      'config remote.origin.url' => 'git://github.com/defunkt/hub.git',
+      'config --bool hub.http-clone' => 'false'
+    )
+  end
+
+  def stub_github_user(name)
+    @git['config github.user'] = name
+  end
+
+  def stub_repo_url(value)
+    @git['config remote.origin.url'] = value
+    Hub::Context::REMOTES.clear
   end
 
   def test_private_clone
@@ -44,7 +57,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_your_private_clone_fails_without_config
     out = hub("clone -p mustache") do
-      Hub::Commands::USER.replace("")
+      stub_github_user(nil)
     end
 
     assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
@@ -52,7 +65,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_your_public_clone_fails_without_config
     out = hub("clone mustache") do
-      Hub::Commands::USER.replace("")
+      stub_github_user(nil)
     end
 
     assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
@@ -192,7 +205,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_init_no_login
     out = hub("init -g") do
-      Hub::Commands::USER.replace("")
+      stub_github_user(nil)
     end
 
     assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
@@ -243,7 +256,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_version
     out = hub('--version')
-    assert_includes "git version", out
+    assert_includes "git version 1.7.0.4", out
     assert_includes "hub version #{Hub::Version}", out
   end
 
@@ -286,42 +299,59 @@ config
   def test_hub_compare
     assert_command "compare refactor",
       "open http://github.com/defunkt/hub/compare/refactor"
+  end
 
+  def test_hub_compare_range
     assert_command "compare 1.0...fix",
       "open http://github.com/defunkt/hub/compare/1.0...fix"
+  end
 
+  def test_hub_compare_fork
     assert_command "compare myfork feature",
       "open http://github.com/myfork/hub/compare/feature"
   end
 
-  def test_hub_open
+  def test_hub_compare_private
+    assert_command "compare -p myfork topsecret",
+      "open https://github.com/myfork/hub/compare/topsecret"
+  end
+
+  def test_hub_compare_url
+    assert_command "compare -u 1.0...1.1",
+      "echo http://github.com/defunkt/hub/compare/1.0...1.1"
+  end
+
+  def test_hub_browse
     assert_command "browse mojombo/bert", "open http://github.com/mojombo/bert"
   end
 
-  def test_hub_open_private
+  def test_hub_browse_url
+    assert_command "browse -u mojombo/bert", "echo http://github.com/mojombo/bert"
+  end
+
+  def test_hub_browse_private
     assert_command "browse -p bmizerany/sinatra",
       "open https://github.com/bmizerany/sinatra"
   end
 
-  def test_hub_open_self
+  def test_hub_browse_self
     assert_command "browse resque", "open http://github.com/tpw/resque"
   end
 
-  def test_hub_open_self_private
+  def test_hub_browse_self_private
     assert_command "browse -p github", "open https://github.com/tpw/github"
   end
 
-  def test_hub_open_current
+  def test_hub_browse_current
     assert_command "browse", "open http://github.com/defunkt/hub"
   end
 
-  def test_hub_open_current_private
+  def test_hub_browse_current_private
     assert_command "browse -p", "open https://github.com/defunkt/hub"
   end
 
-  def test_hub_open_no_repo
-    Hub::Commands::OWNER.replace("")
-    input = "browse"
-    assert_equal "Usage: hub browse [<USER>/]<REPOSITORY>\n", hub(input)
+  def test_hub_browse_no_repo
+    stub_repo_url(nil)
+    assert_equal "Usage: hub browse [<USER>/]<REPOSITORY>\n", hub("browse")
   end
 end

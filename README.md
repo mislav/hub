@@ -220,13 +220,13 @@ Configuration
 -------------
 
 If you prefer `http://` clones to `git://` clones, you can set the
-`hub.http-clone` option using `git-config`.
+`hub.http-clone` option to true using `git-config`.
 
 For example:
 
     $ git clone defunkt/repl
     < git clone >
-    $ git config --global --add hub.http-clone yes
+    $ git config --global --bool hub.http-clone true
     $ git clone defunkt/repl
     < http clone >
 
