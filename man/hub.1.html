@@ -74,9 +74,10 @@
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var><br />
-<code>git fork</code><br />
-<code>git browse</code> [<code>-p</code>] [<var>USER</var>/]<var>REPOSITORY</var><br />
-<code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></p>
+<code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
+<code>git compare</code> [<code>-p</code>] [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
+<code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
+<code>git fork</code> [<code>--no-remote</code>]</p>
 
 <h2>DESCRIPTION</h2>
 
@@ -102,9 +103,6 @@ current working directory is used. With <code>-p</code>, use private remote
 then uses your GitHub login.</p></dd>
 <dt><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var></dt><dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></dd>
-<dt><code>git fork</code></dt><dd><p>Forks the original repo on GitHub and adds the new remote under your
-username. It requires your GitHub login and token to be present. See
-CONFIGURATION below.</p></dd>
 <dt><code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser
 using <code>open(1)</code> or the <code>BROWSER</code> env variable. Use <code>-p</code> to open a
 page with https. If the repository isn't specified, <code>browse</code> opens
@@ -119,9 +117,9 @@ compare against the base branch (the default is "master").</p></dd>
 <var>DIRECTORY</var> as with git-submodule(1). When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (as specified in "origin" remote) on GitHub
-and adds a new remote named <var>USER</var> referencing the newly created repo.
-Requires <code>github.token</code> to be set (see CONFIGURATION).</p></dd>
+<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
+adds a new remote for it under your username. Requires <code>github.token</code> to
+be set (see CONFIGURATION).</p></dd>
 <dt><code>git help</code></dt><dd><p>Display enhanced git-help(1).</p></dd>
 </dl>
 

@@ -25,13 +25,16 @@
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
 .
 .br
-\fBgit fork\fR
+\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
 .
 .br
-\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR
+\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
 .
 .br
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.
+.br
+\fBgit fork\fR [\fB\-\-no\-remote\fR]
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
@@ -70,12 +73,6 @@ Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
 .
 .TP
-\fBgit fork\fR
-Forks the original repo on GitHub and adds the new remote under your
-username. It requires your GitHub login and token to be present. See
-CONFIGURATION below.
-.
-.TP
 \fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
 Open repository's GitHub page in the system's default web browser
 using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
@@ -98,9 +95,9 @@ your GitHub login. With \fB\-p\fR, use private remote
 .
 .TP
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
-Forks the original project (as specified in "origin" remote) on GitHub
-and adds a new remote named \fIUSER\fR referencing the newly created repo.
-Requires \fBgithub.token\fR to be set (see CONFIGURATION).
+Forks the original project (referenced by "origin" remote) on GitHub and
+adds a new remote for it under your username. Requires \fBgithub.token\fR to
+be set (see CONFIGURATION).
 .
 .TP
 \fBgit help\fR

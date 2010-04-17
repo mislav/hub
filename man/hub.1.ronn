@@ -10,9 +10,10 @@ hub(1) -- git + hub = github
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>  
-`git fork`  
-`git browse` [`-p`] [<USER>/]<REPOSITORY>  
+`git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
+`git compare` [`-p`] [`-u`] [<USER>] [<START>...]<END>  
 `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
+`git fork` [`--no-remote`]  
 
 ## DESCRIPTION
 
@@ -47,11 +48,6 @@ alias command displays information on configuring your environment:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
     multiple `git push` commands.
 
-  * `git fork`:
-    Forks the original repo on GitHub and adds the new remote under your
-    username. It requires your GitHub login and token to be present. See
-    CONFIGURATION below.
-
   * `git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]:
     Open repository's GitHub page in the system's default web browser
     using `open(1)` or the `BROWSER` env variable. Use `-p` to open a
@@ -73,9 +69,9 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git".
 
   * `git fork` [`--no-remote`]:
-    Forks the original project (as specified in "origin" remote) on GitHub
-    and adds a new remote named <USER> referencing the newly created repo.
-    Requires `github.token` to be set (see CONFIGURATION).
+    Forks the original project (referenced by "origin" remote) on GitHub and
+    adds a new remote for it under your username. Requires `github.token` to
+    be set (see CONFIGURATION).
 
   * `git help`:
     Display enhanced git-help(1).
