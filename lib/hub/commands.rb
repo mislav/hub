@@ -193,6 +193,9 @@ module Hub
     # $ hub browse
     # > open http://github.com/CURRENT_REPO
     #
+    # $ hub browse -- issues
+    # > open http://github.com/CURRENT_REPO/issues
+    #
     # $ hub browse pjhyett/github-services
     # > open http://github.com/pjhyett/github-services
     #
@@ -202,13 +205,17 @@ module Hub
     # $ hub browse github-services
     # > open http://github.com/YOUR_LOGIN/github-services
     #
+    # $ hub browse github-services wiki
+    # > open http://wiki.github.com/YOUR_LOGIN/github-services
+    #
     # $ hub browse -p github-fi
     # > open https://github.com/YOUR_LOGIN/github-fi
     def browse(args)
       args.shift
       browse_command(args) do
         user = repo = nil
-        dest = args.pop
+        dest = args.shift
+        dest = nil if dest == '--'
 
         if dest
           # $ hub browse pjhyett/github-services
@@ -222,7 +229,23 @@ module Hub
           exit(1)
         end
 
-        { :user => user, :repo => repo }
+        params = { :user => user, :repo => repo }
+
+        # $ hub browse -- wiki
+        case subpage = args.shift
+        when 'wiki'
+          params[:web] = 'wiki'
+        when 'commits'
+          branch = (!dest && tracked_branch) || 'master'
+          params[:web] = "/commits/#{branch}"
+        when 'tree', NilClass
+          branch = !dest && tracked_branch
+          params[:web] = "/tree/#{branch}" if branch and branch != 'master'
+        else
+          params[:web] = "/#{subpage}"
+        end
+
+        params
       end
     end
 
@@ -235,17 +258,21 @@ module Hub
     # $ hub compare -p myfork topsecret
     # > open https://github.com/myfork/REPO/compare/topsecret
     # $ hub compare -u 1.0...2.0
-    # (Prints the URL for the compare view)
+    # prints "http://github.com/CURRENT_REPO/compare/1.0...2.0"
     def compare(args)
       args.shift
       browse_command(args) do
         if args.empty?
-          warn "Usage: hub compare [USER] [<START>...]<END>"
-          exit(1)
+          if branch = tracked_branch and branch != 'master'
+            range, user = branch, repo_user
+          else
+            warn "Usage: hub compare [USER] [<START>...]<END>"
+            exit(1)
+          end
+        else
+          range = args.pop
+          user = args.pop || repo_user
         end
-
-        range = args.pop
-        user = args.pop || repo_user
         { :user => user, :web => "/compare/#{range}" }
       end
     end

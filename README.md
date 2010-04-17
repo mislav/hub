@@ -153,6 +153,9 @@ login" below for details.
     $ git browse
     > open http://github.com/CURRENT_REPO
 
+    $ git browse -- issues
+    > open http://github.com/CURRENT_REPO/issues
+
     $ git browse schacon/ticgit
     > open http://github.com/schacon/ticgit
 
@@ -161,6 +164,9 @@ login" below for details.
 
     $ git browse resque
     > open http://github.com/YOUR_USER/resque
+
+    $ git browse resque network
+    > open http://github.com/YOUR_USER/resque/network
 
     $ git browse -p resque
     > open https://github.com:YOUR_USER/resque

@@ -20,20 +20,17 @@ class HubTest < Test::Unit::TestCase
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
       raise ArgumentError, "`git #{k}` not stubbed"
     }).update(
-      'config github.user' => 'tpw',
-      'config github.token' => 'abc123',
-      'config remote.origin.url' => 'git://github.com/defunkt/hub.git',
+      'symbolic-ref -q HEAD' => 'refs/heads/master',
+      'config github.user'   => 'tpw',
+      'config github.token'  => 'abc123',
+      'config remote.origin.url'     => 'git://github.com/defunkt/hub.git',
+      'config remote.mislav.url'     => 'git://github.com/mislav/hub.git',
+      'config branch.master.remote'  => 'origin',
+      'config branch.master.merge'   => 'refs/heads/master',
+      'config branch.feature.remote' => 'mislav',
+      'config branch.feature.merge'  => 'refs/heads/experimental',
       'config --bool hub.http-clone' => 'false'
     )
-  end
-
-  def stub_github_user(name)
-    @git['config github.user'] = name
-  end
-
-  def stub_repo_url(value)
-    @git['config remote.origin.url'] = value
-    Hub::Context::REMOTES.clear
   end
 
   def test_private_clone
@@ -307,6 +304,24 @@ config
       "open http://github.com/defunkt/hub/compare/refactor"
   end
 
+  def test_hub_compare_nothing
+    expected = "Usage: hub compare [USER] [<START>...]<END>\n"
+    assert_equal expected, hub("compare")
+  end
+
+  def test_hub_compare_tracking_nothing
+    stub_tracking_nothing
+    expected = "Usage: hub compare [USER] [<START>...]<END>\n"
+    assert_equal expected, hub("compare")
+  end
+
+  def test_hub_compare_tracking_branch
+    stub_branch('refs/heads/feature')
+
+    assert_command "compare",
+      "open http://github.com/mislav/hub/compare/experimental"
+  end
+
   def test_hub_compare_range
     assert_command "compare 1.0...fix",
       "open http://github.com/defunkt/hub/compare/1.0...fix"
@@ -331,6 +346,11 @@ config
     assert_command "browse mojombo/bert", "open http://github.com/mojombo/bert"
   end
 
+  def test_hub_browse_tracking_nothing
+    stub_tracking_nothing
+    assert_command "browse mojombo/bert", "open http://github.com/mojombo/bert"
+  end
+
   def test_hub_browse_url
     assert_command "browse -u mojombo/bert", "echo http://github.com/mojombo/bert"
   end
@@ -344,12 +364,44 @@ config
     assert_command "browse resque", "open http://github.com/tpw/resque"
   end
 
+  def test_hub_browse_subpage
+    assert_command "browse resque commits",
+      "open http://github.com/tpw/resque/commits/master"
+    assert_command "browse resque issues",
+      "open http://github.com/tpw/resque/issues"
+    assert_command "browse resque wiki",
+      "open http://wiki.github.com/tpw/resque/"
+  end
+
+  def test_hub_browse_on_branch
+    stub_branch('refs/heads/feature')
+
+    assert_command "browse resque", "open http://github.com/tpw/resque"
+    assert_command "browse resque commits",
+      "open http://github.com/tpw/resque/commits/master"
+
+    assert_command "browse",
+      "open http://github.com/mislav/hub/tree/experimental"
+    assert_command "browse -- tree",
+      "open http://github.com/mislav/hub/tree/experimental"
+    assert_command "browse -- commits",
+      "open http://github.com/mislav/hub/commits/experimental"
+  end
+
   def test_hub_browse_self_private
     assert_command "browse -p github", "open https://github.com/tpw/github"
   end
 
   def test_hub_browse_current
     assert_command "browse", "open http://github.com/defunkt/hub"
+    assert_command "browse --", "open http://github.com/defunkt/hub"
+  end
+
+  def test_hub_browse_current_subpage
+    assert_command "browse -- network",
+      "open http://github.com/defunkt/hub/network"
+    assert_command "browse -- anything/everything",
+      "open http://github.com/defunkt/hub/anything/everything"
   end
 
   def test_hub_browse_current_private
@@ -396,6 +448,24 @@ config
   end
 
   protected
+
+    def stub_github_user(name)
+      @git['config github.user'] = name
+    end
+
+    def stub_repo_url(value)
+      @git['config remote.origin.url'] = value
+      Hub::Context::REMOTES.clear
+    end
+
+    def stub_branch(value)
+      @git['symbolic-ref -q HEAD'] = value
+    end
+
+    def stub_tracking_nothing
+      @git['config branch.master.remote'] = nil
+      @git['config branch.master.merge'] = nil
+    end
 
     def stub_available_commands(*names)
       COMMANDS.replace names
