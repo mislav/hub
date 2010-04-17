@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "ERROR: open was called, but wasn't supposed to:" open $*
+exit 1

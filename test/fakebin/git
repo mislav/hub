@@ -1,0 +1,7 @@
+#!/bin/sh
+if [[ $1 == "--version" ]]; then
+  echo "git version 1.7.0.4"
+else
+  echo "ERROR: git was called, but wasn't supposed to:" git $*
+  exit 1
+fi

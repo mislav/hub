@@ -12,6 +12,10 @@ require 'hub/standalone'
 # We're looking for `open` in the tests.
 ENV['BROWSER'] = 'open'
 
+# Setup path with fake executables in case a test hits them
+fakebin_dir = File.expand_path('../fakebin', __FILE__)
+ENV['PATH'] = "#{fakebin_dir}:#{ENV['PATH']}"
+
 class Test::Unit::TestCase
   # Shortcut for creating a `Hub` instance. Pass it what you would
   # normally pass `hub` on the command line, e.g.
