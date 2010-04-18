@@ -177,6 +177,48 @@ module Hub
       end
     end
 
+    # $ git cherry-pick http://github.com/mislav/hub/commit/a319d88#comments
+    # > git remote add -f mislav git://github.com/mislav/hub.git
+    # > git cherry-pick a319d88
+    #
+    # $ git cherry-pick mislav@a319d88
+    # > git remote add -f mislav git://github.com/mislav/hub.git
+    # > git cherry-pick a319d88
+    #
+    # $ git cherry-pick mislav@SHA
+    # > git fetch mislav
+    # > git cherry-pick SHA
+    def cherry_pick(args)
+      unless args.include?('-m') or args.include?('--mainline')
+        case ref = args.words.last
+        when %r{^(https?:)//github.com/(.+?)/(.+?)/commit/([a-f1-9]{7,40})}
+          scheme, user, repo, sha = $1, $2, $3, $4
+          args[args.index(ref)] = sha
+        when /^(\w+)@([a-f1-9]{7,40})$/
+          scheme, user, repo, sha = nil, $1, nil, $2
+          args[args.index(ref)] = sha
+        else
+          user = nil
+        end
+
+        if user
+          # cherry-pick comes after the fetch
+          args.after args.to_exec.join(' ')
+
+          if user == repo_owner
+            # fetch from origin if the repo belongs to the user
+            args.replace ['fetch', default_remote]
+          elsif remotes.include?(user)
+            args.replace ['fetch', user]
+          else
+            secure = scheme == 'https:'
+            remote_url = github_url(:user => user, :repo => repo, :private => secure)
+            args.replace ['remote', 'add', '-f', user, remote_url]
+          end
+        end
+      end
+    end
+
     # $ hub init -g
     # > git init
     # > git remote add origin git@github.com:USER/REPO.git

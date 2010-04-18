@@ -74,6 +74,7 @@
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
+<code>git cherry-pick</code> <var>GITHUB-REF</var><br />
 <code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var><br />
 <code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-p</code>] [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
@@ -104,6 +105,10 @@ current working directory is used. With <code>-p</code>, use private remote
 then uses your GitHub login.</p></dd>
 <dt><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]</dt><dd><p>Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
 remotes are only added if they correspond to valid forks on GitHub.</p></dd>
+<dt><code>git cherry-pick</code> <var>GITHUB-REF</var></dt><dd><p>Cherry-pick a commit from a fork using either full URL to the commit
+or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
+doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
+prior to the cherry-pick attempt.</p></dd>
 <dt><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var></dt><dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></dd>
 <dt><code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser
@@ -188,6 +193,21 @@ $ git fetch mislav,xoebus
 &gt; git remote add mislav ...
 &gt; git remote add xoebus ...
 &gt; git fetch --multiple mislav xoebus
+</code></pre>
+
+<h3>git cherry-pick</h3>
+
+<pre><code>$ git cherry-pick http://github.com/mislav/REPO/commit/SHA
+&gt; git remote add -f mislav git://github.com/mislav/REPO.git
+&gt; git cherry-pick SHA
+
+$ git cherry-pick mislav@SHA
+&gt; git remote add -f mislav git://github.com/mislav/CURRENT_REPO.git
+&gt; git cherry-pick SHA
+
+$ git cherry-pick mislav@SHA
+&gt; git fetch mislav
+&gt; git cherry-pick SHA
 </code></pre>
 
 <h3>git fork</h3>

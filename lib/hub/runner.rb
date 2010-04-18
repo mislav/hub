@@ -13,9 +13,9 @@ module Hub
       # Hack to emulate git-style
       @args.unshift 'help' if @args.grep(/^[^-]|version/).empty?
 
-      if Commands.respond_to?(@args[0])
-        Commands.send(@args[0], @args)
-      end
+      # git commands can have dashes
+      cmd = @args[0].sub(/(\w)-/, '\1_')
+      Commands.send(cmd, @args) if Commands.respond_to?(cmd)
     end
 
     # Shortcut

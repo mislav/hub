@@ -88,11 +88,13 @@ class Test::Unit::TestCase
 
   # Asserts that `haystack` includes `needle`.
   def assert_includes(needle, haystack)
-    assert haystack.include?(needle)
+    assert haystack.include?(needle),
+      "expected #{needle.inspect} in #{haystack.inspect}"
   end
 
   # Asserts that `haystack` does not include `needle`.
   def assert_not_includes(needle, haystack)
-    assert !haystack.include?(needle)
+    assert !haystack.include?(needle),
+      "didn't expect #{needle.inspect} in #{haystack.inspect}"
   end
 end

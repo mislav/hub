@@ -10,6 +10,7 @@ hub(1) -- git + hub = github
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 `git fetch` <USER-1>,[<USER-2>,...]  
+`git cherry-pick` <GITHUB-REF>  
 `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>  
 `git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
 `git compare` [`-p`] [`-u`] [<USER>] [<START>...]<END>  
@@ -48,6 +49,12 @@ alias command displays information on configuring your environment:
   * `git fetch` <USER-1>,[<USER-2>,...]:
     Adds missing remote(s) with `git remote add` prior to fetching. New
     remotes are only added if they correspond to valid forks on GitHub.
+
+  * `git cherry-pick` <GITHUB-REF>:
+    Cherry-pick a commit from a fork using either full URL to the commit
+    or GitHub-flavored Markdown notation, which is `user@sha`. If the remote
+    doesn't yet exist, it will be added. A `git fetch <user>` is issued
+    prior to the cherry-pick attempt.
 
   * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
@@ -137,6 +144,20 @@ cloning:
     > git remote add mislav ...
     > git remote add xoebus ...
     > git fetch --multiple mislav xoebus
+
+### git cherry-pick
+
+    $ git cherry-pick http://github.com/mislav/REPO/commit/SHA
+    > git remote add -f mislav git://github.com/mislav/REPO.git
+    > git cherry-pick SHA
+
+    $ git cherry-pick mislav@SHA
+    > git remote add -f mislav git://github.com/mislav/CURRENT_REPO.git
+    > git cherry-pick SHA
+
+    $ git cherry-pick mislav@SHA
+    > git fetch mislav
+    > git cherry-pick SHA
 
 ### git fork
 

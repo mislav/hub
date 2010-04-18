@@ -287,6 +287,65 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, h.after
   end
 
+  def test_cherry_pick
+    h = Hub("cherry-pick a319d88")
+    assert_equal "git cherry-pick a319d88", h.command
+    assert !h.args.after?
+  end
+
+  def test_cherry_pick_url
+    url = 'http://github.com/mislav/hub/commit/a319d88#comments'
+    h = Hub("cherry-pick #{url}")
+    assert_equal "git fetch mislav", h.command
+    assert_equal "git cherry-pick a319d88", h.after
+  end
+
+  def test_cherry_pick_url_with_remote_add
+    url = 'http://github.com/xoebus/hub/commit/a319d88'
+    h = Hub("cherry-pick #{url}")
+    assert_equal "git remote add -f xoebus git://github.com/xoebus/hub.git", h.command
+    assert_equal "git cherry-pick a319d88", h.after
+  end
+
+  def test_cherry_pick_private_url_with_remote_add
+    url = 'https://github.com/xoebus/hub/commit/a319d88'
+    h = Hub("cherry-pick #{url}")
+    assert_equal "git remote add -f xoebus git@github.com:xoebus/hub.git", h.command
+    assert_equal "git cherry-pick a319d88", h.after
+  end
+
+  def test_cherry_pick_origin_url
+    url = 'https://github.com/defunkt/hub/commit/a319d88'
+    h = Hub("cherry-pick #{url}")
+    assert_equal "git fetch origin", h.command
+    assert_equal "git cherry-pick a319d88", h.after
+  end
+
+  def test_cherry_pick_github_user_notation
+    h = Hub("cherry-pick mislav@a319d88")
+    assert_equal "git fetch mislav", h.command
+    assert_equal "git cherry-pick a319d88", h.after
+  end
+
+  def test_cherry_pick_github_user_repo_notation
+    # not supported
+    h = Hub("cherry-pick mislav/hubbub@a319d88")
+    assert_equal "git cherry-pick mislav/hubbub@a319d88", h.command
+    assert !h.args.after?
+  end
+
+  def test_cherry_pick_github_notation_too_short
+    h = Hub("cherry-pick mislav@a319")
+    assert_equal "git cherry-pick mislav@a319", h.command
+    assert !h.args.after?
+  end
+
+  def test_cherry_pick_github_notation_with_remote_add
+    h = Hub("cherry-pick xoebus@a319d88")
+    assert_equal "git remote add -f xoebus git://github.com/xoebus/hub.git", h.command
+    assert_equal "git cherry-pick a319d88", h.after
+  end
+
   def test_init
     h = Hub("init -g")
     assert_equal "git init", h.command
