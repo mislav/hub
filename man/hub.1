@@ -22,6 +22,9 @@
 \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
 .
 .br
+\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
+.
+.br
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
 .
 .br
@@ -66,6 +69,11 @@ git\-remote(1). When /\fIREPOSITORY\fR is omitted, the basename of the
 current working directory is used. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git". If \fIUSER\fR is "origin"
 then uses your GitHub login.
+.
+.TP
+\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
+Adds missing remote(s) with \fBgit remote add\fR prior to fetching. New
+remotes are only added if they correspond to valid forks on GitHub.
 .
 .TP
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
@@ -180,6 +188,21 @@ $ git remote add \-p rtomayko
 
 $ git remote add origin
 > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+.
+.fi
+.
+.SS "git fetch"
+.
+.nf
+
+$ git fetch mislav
+> git remote add mislav git://github.com/mislav/REPO.git
+> git fetch mislav
+
+$ git fetch mislav,xoebus
+> git remote add mislav ...
+> git remote add xoebus ...
+> git fetch \-\-multiple mislav xoebus
 .
 .fi
 .

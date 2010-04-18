@@ -20,6 +20,7 @@ class HubTest < Test::Unit::TestCase
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
       raise ArgumentError, "`git #{k}` not stubbed"
     }).update(
+      'remote' => "mislav\norigin",
       'symbolic-ref -q HEAD' => 'refs/heads/master',
       'config github.user'   => 'tpw',
       'config github.token'  => 'abc123',
@@ -217,6 +218,75 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_fetch_existing_remote
+    assert_command "fetch mislav", "git fetch mislav"
+  end
+
+  def test_fetch_new_remote
+    stub_remotes_group('xoebus', nil)
+    stub_existing_fork('xoebus')
+
+    h = Hub("fetch xoebus")
+    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
+    assert_equal "git fetch xoebus", h.after
+  end
+
+  def test_fetch_new_remote_with_options
+    stub_remotes_group('xoebus', nil)
+    stub_existing_fork('xoebus')
+
+    h = Hub("fetch --depth=1 --prune xoebus")
+    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
+    assert_equal "git fetch --depth=1 --prune xoebus", h.after
+  end
+
+  def test_fetch_multiple_new_remotes
+    stub_remotes_group('xoebus', nil)
+    stub_remotes_group('rtomayko', nil)
+    stub_existing_fork('xoebus')
+    stub_existing_fork('rtomayko')
+
+    h = Hub("fetch --multiple xoebus rtomayko")
+
+    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
+    expected = ["git remote add rtomayko git://github.com/rtomayko/hub.git"] <<
+                "git fetch --multiple xoebus rtomayko"
+    assert_equal expected.join('; '), h.after
+  end
+
+  def test_fetch_multiple_comma_separated_remotes
+    stub_remotes_group('xoebus', nil)
+    stub_remotes_group('rtomayko', nil)
+    stub_existing_fork('xoebus')
+    stub_existing_fork('rtomayko')
+
+    h = Hub("fetch xoebus,rtomayko")
+
+    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
+    expected = ["git remote add rtomayko git://github.com/rtomayko/hub.git"] <<
+                "git fetch --multiple xoebus rtomayko"
+    assert_equal expected.join('; '), h.after
+  end
+
+  def test_fetch_multiple_new_remotes_with_filtering
+    stub_remotes_group('xoebus', nil)
+    stub_remotes_group('mygrp', 'one two')
+    stub_remotes_group('typo', nil)
+    stub_existing_fork('xoebus')
+    stub_nonexisting_fork('typo')
+
+    # mislav: existing remote; skipped
+    # xoebus: new remote, fork exists; added
+    # mygrp:  a remotes group; skipped
+    # URL:    can't be a username; skipped
+    # typo:   fork doesn't exist; skipped
+    h = Hub("fetch --multiple mislav xoebus mygrp git://example.com typo")
+
+    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
+    expected = "git fetch --multiple mislav xoebus mygrp git://example.com typo"
+    assert_equal expected, h.after
+  end
+
   def test_init
     h = Hub("init -g")
     assert_equal "git init", h.command
@@ -244,8 +314,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_fork
-    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").
-      to_return(:status => 404)
+    stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|
       params = Hash[*req.body.split(/[&=]/)]
       params == { 'login'=>'tpw', 'token'=>'abc123' }
@@ -257,16 +326,14 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_fork_no_remote
-    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").
-      to_return(:status => 404)
+    stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub")
 
     assert_equal "", hub("fork --no-remote") { ENV['GIT'] = 'echo' }
   end
 
   def test_fork_already_exists
-    stub_request(:get, "github.com/api/v2/yaml/repos/show/tpw/hub").
-      to_return(:status => 200)
+    stub_existing_fork('tpw')
 
     expected = "tpw/hub already exists on GitHub\n"
     expected << "remote add -f tpw git@github.com:tpw/hub.git\n"
@@ -477,6 +544,23 @@ config
     def stub_tracking_nothing
       @git['config branch.master.remote'] = nil
       @git['config branch.master.merge'] = nil
+    end
+
+    def stub_remotes_group(name, value)
+      @git["config remotes.#{name}"] = value
+    end
+
+    def stub_existing_fork(user)
+      stub_fork(user, 200)
+    end
+
+    def stub_nonexisting_fork(user)
+      stub_fork(user, 404)
+    end
+
+    def stub_fork(user, status)
+      stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/hub").
+        to_return(:status => status)
     end
 
     def stub_available_commands(*names)

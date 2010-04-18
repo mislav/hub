@@ -73,6 +73,7 @@
 <p><code>git init -g</code> <var>OPTIONS</var><br />
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
+<code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
 <code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var><br />
 <code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-p</code>] [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
@@ -101,6 +102,8 @@ git-remote(1). When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git". If <var>USER</var> is "origin"
 then uses your GitHub login.</p></dd>
+<dt><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]</dt><dd><p>Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
+remotes are only added if they correspond to valid forks on GitHub.</p></dd>
 <dt><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var></dt><dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></dd>
 <dt><code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser
@@ -173,6 +176,18 @@ $ git remote add -p rtomayko
 
 $ git remote add origin
 &gt; git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+</code></pre>
+
+<h3>git fetch</h3>
+
+<pre><code>$ git fetch mislav
+&gt; git remote add mislav git://github.com/mislav/REPO.git
+&gt; git fetch mislav
+
+$ git fetch mislav,xoebus
+&gt; git remote add mislav ...
+&gt; git remote add xoebus ...
+&gt; git fetch --multiple mislav xoebus
 </code></pre>
 
 <h3>git fork</h3>

@@ -52,7 +52,7 @@ module Hub
     # args = Args.new([ 'remote', 'add', '-f', 'tekkub' ])
     # args.words == [ 'remote', 'add', 'tekkub' ]
     def words
-      reject { |arg| arg =~ /^-/ }
+      reject { |arg| arg.index('-') == 0 }
     end
 
     # All the flags (as opposed to words) contained in this argument

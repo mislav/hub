@@ -60,12 +60,22 @@ module Hub
       normalize_branch(branch) if branch
     end
 
+    def remotes
+      list = GIT_CONFIG['remote'].split("\n")
+      main = list.delete('origin') and list.unshift(main)
+      list
+    end
+
+    def remotes_group(name)
+      GIT_CONFIG["config remotes.#{name}"]
+    end
+
     def current_remote
       (current_branch && remote_for(current_branch)) || default_remote
     end
 
     def default_remote
-      'origin'
+      remotes.first
     end
 
     def normalize_branch(branch)

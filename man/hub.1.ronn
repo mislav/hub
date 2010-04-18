@@ -9,6 +9,7 @@ hub(1) -- git + hub = github
 `git init -g` <OPTIONS>  
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
+`git fetch` <USER-1>,[<USER-2>,...]  
 `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>  
 `git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
 `git compare` [`-p`] [`-u`] [<USER>] [<START>...]<END>  
@@ -43,6 +44,10 @@ alias command displays information on configuring your environment:
     current working directory is used. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git". If <USER> is "origin"
     then uses your GitHub login.
+
+  * `git fetch` <USER-1>,[<USER-2>,...]:
+    Adds missing remote(s) with `git remote add` prior to fetching. New
+    remotes are only added if they correspond to valid forks on GitHub.
 
   * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
@@ -121,6 +126,17 @@ cloning:
 
     $ git remote add origin
     > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
+
+### git fetch
+
+    $ git fetch mislav
+    > git remote add mislav git://github.com/mislav/REPO.git
+    > git fetch mislav
+
+    $ git fetch mislav,xoebus
+    > git remote add mislav ...
+    > git remote add xoebus ...
+    > git fetch --multiple mislav xoebus
 
 ### git fork
 

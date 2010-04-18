@@ -135,6 +135,48 @@ module Hub
       args << github_url(:user => user, :repo => repo, :private => ssh)
     end
 
+    # $ hub fetch mislav
+    # > git remote add mislav git://github.com/mislav/REPO.git
+    # > git fetch mislav
+    #
+    # $ hub fetch --multiple mislav xoebus
+    # > git remote add mislav ...
+    # > git remote add xoebus ...
+    # > git fetch --multiple mislav xoebus
+    def fetch(args)
+      # $ hub fetch --multiple <name1>, <name2>, ...
+      if args.include?('--multiple')
+        names = args.words[1..-1]
+      # $ hub fetch <name>
+      elsif name = args.words[1]
+        # $ hub fetch <name1>,<name2>,...
+        if name =~ /^\w+(,\w+)+$/
+          index = args.index(name)
+          args.delete(name)
+          names = name.split(',')
+          args.insert(index, *names)
+          args.insert(index, '--multiple')
+        else
+          names = [name]
+        end
+      else
+        names = []
+      end
+
+      names.reject! { |name|
+        name =~ /\W/ or remotes.include?(name) or
+          remotes_group(name) or not repo_exists?(name)
+      }
+
+      if names.any?
+        commands = names.map { |name| "git remote add #{name} #{github_url(:user => name)}" }
+        commands << args.to_exec.join(' ')
+        args.replace commands.shift.split(' ')
+        args.shift # don't want "git"
+        args.after commands.join('; ')
+      end
+    end
+
     # $ hub init -g
     # > git init
     # > git remote add origin git@github.com:USER/REPO.git
@@ -151,11 +193,9 @@ module Hub
     # ... hardcore forking action ...
     # > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
     def fork(args)
-      require 'net/http'
-
       # can't do anything without token and original owner name
       if github_user && github_token && repo_owner
-        if own_repo_exists?
+        if repo_exists?(github_user)
           puts "#{github_user}/#{repo_name} already exists on GitHub"
         else
           fork_repo
@@ -530,12 +570,10 @@ help
       end
     end
 
-    # Determines whether the current user (you) has a fork of the
-    # current repo on GitHub.
-    #
-    # Returns a Boolean.
-    def own_repo_exists?
-      url = API_REPO % [github_user, repo_name]
+    # Determines whether a user has a fork of the current repo on GitHub.
+    def repo_exists?(user)
+      require 'net/http'
+      url = API_REPO % [user, repo_name]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
     end
 

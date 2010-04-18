@@ -131,6 +131,17 @@ superpowers:
     $ git remote add origin
     > git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
 
+### git fetch
+
+    $ git fetch mislav
+    > git remote add mislav git://github.com/mislav/REPO.git
+    > git fetch mislav
+
+    $ git fetch mislav,xoebus
+    > git remote add mislav ...
+    > git remote add xoebus ...
+    > git fetch --multiple mislav xoebus
+
 ### git fork
 
     $ git fork
