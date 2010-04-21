@@ -179,6 +179,17 @@ login" below for details.
     $ git compare myfork patch
     > open http://github.com/myfork/compare/patch
 
+### git submodule
+    $ hub submodule add wycats/bundler vendor/bundler
+    > git submodule add git://github.com/wycats/bundler.git vendor/bundler
+
+    $ hub submodule add -p wycats/bundler vendor/bundler
+    > git submodule add git@github.com:wycats/bundler.git vendor/bundler
+
+    $ hub submodule add -b ryppl ryppl/pip vendor/bundler
+    > git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
+
+
 ### git help
 
     $ git help
