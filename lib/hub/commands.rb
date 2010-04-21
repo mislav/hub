@@ -228,8 +228,7 @@ module Hub
         exit(1)
       end
 
-      args.executable = ENV['BROWSER'] || 'open'
-      args.push "#{protocol}://github.com/#{user}/#{repo}"
+      browser args, "#{protocol}://github.com/#{user}/#{repo}"
     end
 
     # $ hub compare 1.0...fix
@@ -257,8 +256,7 @@ module Hub
         puts url
         exit
       else
-        args.executable = ENV['BROWSER'] || 'open'
-        args.push url
+        browser args, url
       end
     end
 
@@ -396,6 +394,40 @@ help
     # Helper methods are private so they cannot be invoked
     # from the command line.
     #
+
+    # Checks whether a command exists on this system in the $PATH.
+    #
+    # name - The String name of the command to check for.
+    #
+    # Returns a Boolean.
+    def command?(name)
+      system "type #{name} > /dev/null 2>&1"
+    end
+
+    # Launches a given url in the user's browser, attempting to find
+    # one of a few known launcher commands before falling back to
+    # `$BROWSER`.
+    #
+    # args - The args for this command. We modify them in place.
+    # url  - The String URL to open in a browser.
+    #
+    # Returns nothing.
+    def browser(args, url)
+      if ENV['BROWSER']
+        cmd = ENV['BROWSER']
+      elsif RUBY_PLATFORM.include?('darwin')
+        cmd = "open"
+      elsif command?("xdg-open")
+        cmd = "xdg-open"
+      elsif command?("cygstart")
+        cmd = "cygstart"
+      else
+        abort "Please set $BROWSER to a web launcher to use this command."
+      end
+
+      args.executable = cmd
+      args.push url
+    end
 
     # Either returns the GitHub user as set by git-config(1) or aborts
     # with an error message.
