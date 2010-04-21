@@ -404,9 +404,9 @@ help
       system "type #{name} > /dev/null 2>&1"
     end
 
-    # Launches a given url in the user's browser, attempting to find
-    # one of a few known launcher commands before falling back to
-    # `$BROWSER`.
+    # Launches a given url in the user's browser, checking $BROWSER
+    # first then falling back to a few common launchers. Prints an
+    # error if it can't find anything appropriate.
     #
     # args - The args for this command. We modify them in place.
     # url  - The String URL to open in a browser.
