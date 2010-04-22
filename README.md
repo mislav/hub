@@ -74,7 +74,7 @@ You can also install from source:
 Aliasing
 --------
 
-hub works best when it wraps `git`. This is not dangerous - your
+`hub` works best when it wraps `git`. This is not dangerous - your
 normal git commands should all work. hub merely adds some sugar.
 
 Typing `hub alias <shell>` will display alias instructions for
@@ -157,7 +157,7 @@ login" below for details.
     > open http://github.com/schacon/ticgit
 
     $ git browse -p schacon/ticgit
-    > open http://github.com/schacon/ticgit
+    > open https://github.com/schacon/ticgit
 
     $ git browse resque
     > open http://github.com/YOUR_USER/resque
@@ -176,17 +176,18 @@ login" below for details.
     $ git compare -u fix
     > (http://github.com/CURRENT_REPO/compare/fix)
 
-    $ git compare myfork patch
-    > open http://github.com/myfork/compare/patch
+    $ git compare other-user patch
+    > open http://github.com/other-user/REPO/compare/patch
 
 ### git submodule
+
     $ hub submodule add wycats/bundler vendor/bundler
     > git submodule add git://github.com/wycats/bundler.git vendor/bundler
 
     $ hub submodule add -p wycats/bundler vendor/bundler
     > git submodule add git@github.com:wycats/bundler.git vendor/bundler
 
-    $ hub submodule add -b ryppl ryppl/pip vendor/bundler
+    $ hub submodule add -b ryppl ryppl/pip vendor/pip
     > git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
 
 
@@ -259,6 +260,16 @@ Once you've made your great commits:
 4. Create an [Issue][1] with a link to your branch
 5. That's it!
 
+### Development Gems
+You will need the following gems (and their dependencies) to
+contribute to `hub`:
+
+* `rake` (`gem install rake`)
+* `kicker` (`gem install kicker`)
+* `turn` (`gem install turn`)
+* `mg` (`gem install mg`)
+* `ronn` (`gem install ronn`)
+* `webhelper` (`gem install webhelper`)
 
 Meta
 ----

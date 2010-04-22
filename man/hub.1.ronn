@@ -149,7 +149,7 @@ cloning:
     > open http://github.com/schacon/ticgit
 
     $ git browse -p schacon/ticgit
-    > open http://github.com/schacon/ticgit
+    > open https://github.com/schacon/ticgit
 
     $ git browse resque
     > open http://github.com/YOUR_USER/resque
@@ -168,8 +168,8 @@ cloning:
     $ git compare -u fix
     > (http://github.com/CURRENT_REPO/compare/fix)
 
-    $ git compare myfork patch
-    > open http://github.com/myfork/compare/patch
+    $ git compare other-user patch
+    > open http://github.com/other-user/REPO/compare/patch
 
 ### git help
 
