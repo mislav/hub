@@ -5,7 +5,8 @@ require 'rake/testtask'
 #
 
 def command?(command)
-  system("type #{command} > /dev/null")
+  `type -t #{command}`
+  $?.success?
 end
 
 task :load_hub do

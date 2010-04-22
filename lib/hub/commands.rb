@@ -391,7 +391,8 @@ help
     #
     # Returns a Boolean.
     def command?(name)
-      system "type #{name} > /dev/null 2>&1"
+      `type -t #{command}`
+      $?.success?
     end
 
     # Detects commands to launch the user's browser, checking $BROWSER
@@ -428,7 +429,7 @@ help
     # Returns the terminal-formatted manpage, ready to be printed to
     # the screen.
     def hub_manpage
-      return "** Can't find groff(1)" unless groff?
+      return "** Can't find groff(1)" unless command?('groff')
 
       require 'open3'
       out = nil
@@ -438,12 +439,6 @@ help
         out = stdout.read.strip
       end
       out
-    end
-
-    # Returns true if groff is installed and in our path, false if
-    # not.
-    def groff?
-      system("which groff")
     end
 
     # The groff command complete with crazy arguments we need to run

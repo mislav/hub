@@ -5,7 +5,18 @@ require 'webmock/test_unit'
 class HubTest < Test::Unit::TestCase
   include WebMock
 
+  COMMANDS = []
+
+  Hub::Commands.class_eval do
+    remove_method :command?
+    define_method :command? do |name|
+      COMMANDS.include?(name)
+    end
+  end
+
   def setup
+    COMMANDS.replace %w[open groff]
+
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
       raise ArgumentError, "`git #{k}` not stubbed"
     }).update(
@@ -282,13 +293,8 @@ config
   end
 
   def test_help_hub_no_groff
-    help_manpage = hub("help hub") do
-      Hub::Commands.class_eval do
-        remove_method :groff?
-        def groff?; false end
-      end
-    end
-    assert_equal "** Can't find groff(1)\n", help_manpage
+    stub_available_commands()
+    assert_equal "** Can't find groff(1)\n", hub("help hub")
   end
 
   def test_hub_standalone
@@ -354,4 +360,66 @@ config
     stub_repo_url(nil)
     assert_equal "Usage: hub browse [<USER>/]<REPOSITORY>\n", hub("browse")
   end
+
+  def test_custom_browser
+    with_browser_env("custom") do
+      assert_browser("custom")
+    end
+  end
+
+  def test_linux_browser
+    stub_available_commands "open", "xdg-open", "cygstart"
+    with_browser_env(nil) do
+      with_ruby_platform("i686-linux") do
+        assert_browser("xdg-open")
+      end
+    end
+  end
+
+  def test_cygwin_browser
+    stub_available_commands "open", "cygstart"
+    with_browser_env(nil) do
+      with_ruby_platform("i686-linux") do
+        assert_browser("cygstart")
+      end
+    end
+  end
+
+  def test_no_browser
+    stub_available_commands()
+    expected = "Please set $BROWSER to a web launcher to use this command.\n"
+    with_browser_env(nil) do
+      with_ruby_platform("i686-linux") do
+        assert_equal expected, hub("browse")
+      end
+    end
+  end
+
+  protected
+
+    def stub_available_commands(*names)
+      COMMANDS.replace names
+    end
+
+    def with_browser_env(value)
+      browser, ENV['BROWSER'] = ENV['BROWSER'], value
+      yield
+    ensure
+      ENV['BROWSER'] = browser
+    end
+
+    def assert_browser(browser)
+      assert_command "browse", "#{browser} http://github.com/defunkt/hub"
+    end
+
+    def with_ruby_platform(value)
+      platform = RUBY_PLATFORM
+      Object.send(:remove_const, :RUBY_PLATFORM)
+      Object.const_set(:RUBY_PLATFORM, value)
+      yield
+    ensure
+      Object.send(:remove_const, :RUBY_PLATFORM)
+      Object.const_set(:RUBY_PLATFORM, platform)
+    end
+
 end
