@@ -100,6 +100,18 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_remote_from_rel_path
+    input = "remote add origin ./path"
+    command = "git remote add origin ./path"
+    assert_command input, command
+  end
+
+  def test_remote_from_abs_path
+    input = "remote add origin /path"
+    command = "git remote add origin /path"
+    assert_command input, command
+  end
+
   def test_private_remote_origin_as_normal
     input   = "remote add origin git@github.com:defunkt/resque.git"
     command = "git remote add origin git@github.com:defunkt/resque.git"

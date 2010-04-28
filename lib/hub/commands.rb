@@ -125,7 +125,7 @@ module Hub
     # $ hub remote add origin
     # > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
     def remote(args)
-      return if args[1] != 'add' or args.last =~ %r{.+?://|.+?@}
+      return if args[1] != 'add' or args.last =~ %r{.+?://|.+?@|^[./]}
 
       ssh = args.delete('-p')
       url = ssh ? PRIVATE : PUBLIC
