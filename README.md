@@ -36,12 +36,16 @@ Install
 Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
     $ hub version
-    git version 1.6.4.2
-    hub version 0.3.2
+    git version 1.7.0.4
+    hub version 1.1.0
 
 ### Homebrew
 
-    brew install hub
+    $ brew install hub
+    $ which hub
+    /usr/local/bin/hub
+    $ hub version
+    ...
 
 ### RubyGems
 
@@ -49,18 +53,20 @@ Though not recommended, `hub` can also be installed as a RubyGem:
 
     $ gem install git-hub
 
-(Yes, the gem name is `git-hub`.)
+Yes, the gem name is "git-hub".
 
-(It's not recommended because of the RubyGems startup time. See [this
-gist][speed] for information.)
+(It's not recommended for casual use because of the RubyGems startup
+time. See [this gist][speed] for information.)
 
 ### Standalone via RubyGems
 
-Yes, the gem name is still `git-hub`:
+Yes, the gem name is still "git-hub":
 
     $ gem install git-hub
     $ hub hub standalone > ~/bin/hub && chmod 755 ~/bin/hub
-    $ gem uninstall git-hub
+
+This installs a standalone version which doesn't require RubyGems to
+run.
 
 ### Source
 
@@ -153,6 +159,9 @@ login" below for details.
     $ git browse
     > open http://github.com/CURRENT_REPO
 
+    $ git browse -- issues
+    > open http://github.com/CURRENT_REPO/issues
+
     $ git browse schacon/ticgit
     > open http://github.com/schacon/ticgit
 
@@ -161,6 +170,9 @@ login" below for details.
 
     $ git browse resque
     > open http://github.com/YOUR_USER/resque
+
+    $ git browse resque network
+    > open http://github.com/YOUR_USER/resque/network
 
     $ git browse -p resque
     > open https://github.com:YOUR_USER/resque
@@ -221,13 +233,13 @@ Configuration
 -------------
 
 If you prefer `http://` clones to `git://` clones, you can set the
-`hub.http-clone` option using `git-config`.
+`hub.http-clone` option to true using `git-config`.
 
 For example:
 
     $ git clone defunkt/repl
     < git clone >
-    $ git config --global --add hub.http-clone yes
+    $ git config --global --bool hub.http-clone true
     $ git clone defunkt/repl
     < http clone >
 

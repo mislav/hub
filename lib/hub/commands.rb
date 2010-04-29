@@ -1,4 +1,7 @@
 module Hub
+  # See context.rb
+  module Context; end
+    
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
   # corresponding git command which either gets run before or after
@@ -31,25 +34,11 @@ module Hub
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
     extend self
 
-    # Templates and useful information.
-    USER       = `git config --global github.user`.chomp
-    TOKEN      = `git config --global github.token`.chomp
-    ORIGIN     = `git config remote.origin.url`.chomp
-    HTTP_CLONE = `git config --global hub.http-clone`.chomp == 'yes'
-    PUBLIC     = (HTTP_CLONE ? 'http' : 'git') + '://github.com/%s/%s.git'
-    PRIVATE    = 'git@github.com:%s/%s.git'
-    LGHCONF    = "http://github.com/guides/local-github-config"
-    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
+    # Provides `github_url` and various inspection methods
+    extend Context
 
-    # Set the repo name based on the current origin or, as a fallback,
-    # the cwd.
-    if ORIGIN =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
-      OWNER, REPO = $1, $2
-    else
-      REPO = File.basename(Dir.pwd)
-      OWNER = ''
-    end
+    API_REPO = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
@@ -76,15 +65,10 @@ module Hub
         if arg =~ %r{.+?://|.+?@} || File.directory?(arg)
           # Bail out early for URLs and local paths.
           break
-        elsif arg.scan('/').size == 1 && !arg.include?(':')
+        elsif arg.scan('/').size <= 1 && !arg.include?(':')
           # $ hub clone rtomayko/tilt
-          url = ssh ? PRIVATE : PUBLIC
-          args[args.index(arg)] = url % arg.split('/')
-          break
-        elsif arg !~ /:|\//
           # $ hub clone tilt
-          url = ssh ? PRIVATE : PUBLIC
-          args[args.index(arg)] = url % [ github_user, arg ]
+          args[args.index(arg)] = github_url(:repo => arg, :private => ssh)
           break
         end
       end
@@ -103,7 +87,7 @@ module Hub
       args.delete_at index
 
       branch = args.index('-b') || args.index('--branch')
-      if branch 
+      if branch
         args.delete_at branch
         branch_name = args.delete_at branch
       end
@@ -128,15 +112,14 @@ module Hub
       return if args[1] != 'add' or args.last =~ %r{.+?://|.+?@|^[./]}
 
       ssh = args.delete('-p')
-      url = ssh ? PRIVATE : PUBLIC
 
       # user/repo
       args.last =~ /\b(.+?)(?:\/(.+))?$/
-      user, repo = $1, $2 || REPO
+      user, repo = $1, $2
 
       if args.words[2] == 'origin' && args.words[3].nil?
-        # Origin special case.
-        user = github_user
+        # Origin special case triggers default user/repo
+        user = repo = nil
       elsif args.words[-2] == args.words[1]
         # rtomayko/tilt => rtomayko
         # Make sure you dance around flags.
@@ -149,7 +132,7 @@ module Hub
         args.replace args[0...-1]
       end
 
-      args << url % [ user, repo ]
+      args << github_url(:user => user, :repo => repo, :private => ssh)
     end
 
     # $ hub init -g
@@ -159,7 +142,7 @@ module Hub
       if args.delete('-g')
         # Can't do anything if we don't have a USER set.
 
-        url = PRIVATE % [ github_user, REPO ]
+        url = github_url(:private => true)
         args.after "git remote add origin #{url}"
       end
     end
@@ -171,9 +154,9 @@ module Hub
       require 'net/http'
 
       # can't do anything without token and original owner name
-      if github_user && github_token && !OWNER.empty?
+      if github_user && github_token && repo_owner
         if own_repo_exists?
-          puts "#{github_user}/#{REPO} already exists on GitHub"
+          puts "#{github_user}/#{repo_name} already exists on GitHub"
         else
           fork_repo
         end
@@ -181,7 +164,7 @@ module Hub
         if args.include?('--no-remote')
           exit
         else
-          url = PRIVATE % [ github_user, REPO ]
+          url = github_url(:private => true)
           args.replace %W"remote add -f #{github_user} #{url}"
           args.after { puts "new remote: #{github_user}" }
         end
@@ -210,6 +193,9 @@ module Hub
     # $ hub browse
     # > open http://github.com/CURRENT_REPO
     #
+    # $ hub browse -- issues
+    # > open http://github.com/CURRENT_REPO/issues
+    #
     # $ hub browse pjhyett/github-services
     # > open http://github.com/pjhyett/github-services
     #
@@ -219,58 +205,75 @@ module Hub
     # $ hub browse github-services
     # > open http://github.com/YOUR_LOGIN/github-services
     #
+    # $ hub browse github-services wiki
+    # > open http://wiki.github.com/YOUR_LOGIN/github-services
+    #
     # $ hub browse -p github-fi
     # > open https://github.com/YOUR_LOGIN/github-fi
     def browse(args)
       args.shift
-      protocol = args.delete('-p') ? 'https' : 'http'
-      dest = args.pop
+      browse_command(args) do
+        user = repo = nil
+        dest = args.shift
+        dest = nil if dest == '--'
 
-      if dest
-        if dest.include? '/'
+        if dest
           # $ hub browse pjhyett/github-services
-          user, repo = dest.split('/')
-        else
           # $ hub browse github-services
-          user, repo = github_user, dest
+          repo = dest
+        elsif repo_user
+          # $ hub browse
+          user = repo_user
+        else
+          warn "Usage: hub browse [<USER>/]<REPOSITORY>"
+          exit(1)
         end
-      elsif !OWNER.empty?
-        # $ hub browse
-        user, repo = OWNER, REPO
-      else
-        warn "Usage: hub browse [<USER>/]<REPOSITORY>"
-        exit(1)
-      end
 
-      browser args, "#{protocol}://github.com/#{user}/#{repo}"
+        params = { :user => user, :repo => repo }
+
+        # $ hub browse -- wiki
+        case subpage = args.shift
+        when 'wiki'
+          params[:web] = 'wiki'
+        when 'commits'
+          branch = (!dest && tracked_branch) || 'master'
+          params[:web] = "/commits/#{branch}"
+        when 'tree', NilClass
+          branch = !dest && tracked_branch
+          params[:web] = "/tree/#{branch}" if branch and branch != 'master'
+        else
+          params[:web] = "/#{subpage}"
+        end
+
+        params
+      end
     end
 
     # $ hub compare 1.0...fix
     # > open http://github.com/CURRENT_REPO/compare/1.0...fix
     # $ hub compare refactor
-    # > open http://github.com/CURRENT_REPO/comapre/refactor
+    # > open http://github.com/CURRENT_REPO/compare/refactor
     # $ hub compare myfork feature
     # > open http://github.com/myfork/REPO/compare/feature
+    # $ hub compare -p myfork topsecret
+    # > open https://github.com/myfork/REPO/compare/topsecret
     # $ hub compare -u 1.0...2.0
-    # (Prints the URL for the compare view)
+    # prints "http://github.com/CURRENT_REPO/compare/1.0...2.0"
     def compare(args)
       args.shift
-      url_only = args.delete('-u')
-      range = args.pop
-      user = args.pop || OWNER
-
-      if range && !OWNER.empty?
-        url = "http://github.com/#{user}/#{REPO}/compare/#{range}"
-      else
-        warn "Usage: hub compare [<START>...]<END>"
-        exit(1)
-      end
-
-      if url_only
-        puts url
-        exit
-      else
-        browser args, url
+      browse_command(args) do
+        if args.empty?
+          if branch = tracked_branch and branch != 'master'
+            range, user = branch, repo_user
+          else
+            warn "Usage: hub compare [USER] [<START>...]<END>"
+            exit(1)
+          end
+        else
+          range = args.pop
+          user = args.pop || repo_user
+        end
+        { :user => user, :web => "/compare/#{range}" }
       end
     end
 
@@ -415,56 +418,45 @@ help
     #
     # Returns a Boolean.
     def command?(name)
-      system "type #{name} > /dev/null 2>&1"
+      `type -t #{command}`
+      $?.success?
     end
 
-    # Launches a given url in the user's browser, checking $BROWSER
-    # first then falling back to a few common launchers. Prints an
-    # error if it can't find anything appropriate.
+    # Detects commands to launch the user's browser, checking $BROWSER
+    # first then falling back to a few common launchers. Aborts with
+    # an error if it can't find anything appropriate.
     #
-    # args - The args for this command. We modify them in place.
-    # url  - The String URL to open in a browser.
-    #
-    # Returns nothing.
-    def browser(args, url)
+    # Returns a launch command.
+    def browser_launcher
       if ENV['BROWSER']
-        cmd = ENV['BROWSER']
+        ENV['BROWSER']
       elsif RUBY_PLATFORM.include?('darwin')
-        cmd = "open"
+        "open"
       elsif command?("xdg-open")
-        cmd = "xdg-open"
+        "xdg-open"
       elsif command?("cygstart")
-        cmd = "cygstart"
+        "cygstart"
       else
         abort "Please set $BROWSER to a web launcher to use this command."
       end
-
-      args.executable = cmd
-      args.push url
     end
 
-    # Either returns the GitHub user as set by git-config(1) or aborts
-    # with an error message.
-    def github_user
-      if USER.empty?
-        abort "** No GitHub user set. See #{LGHCONF}"
-      else
-        USER
-      end
+    # Handles common functionality of browser commands like `browse`
+    # and `compare`. Yields a block that returns params for `github_url`.
+    def browse_command(args)
+      url_only = args.delete('-u')
+      secure = args.delete('-p')
+      params = yield
+
+      args.executable = url_only ? 'echo' : browser_launcher
+      args.push github_url({:web => true, :private => secure}.update(params))
     end
 
-    def github_token
-      if TOKEN.empty?
-        abort "** No GitHub token set. See #{LGHCONF}"
-      else
-        TOKEN
-      end
-    end
 
     # Returns the terminal-formatted manpage, ready to be printed to
     # the screen.
     def hub_manpage
-      return "** Can't find groff(1)" unless groff?
+      return "** Can't find groff(1)" unless command?('groff')
 
       require 'open3'
       out = nil
@@ -474,12 +466,6 @@ help
         out = stdout.read.strip
       end
       out
-    end
-
-    # Returns true if groff is installed and in our path, false if
-    # not.
-    def groff?
-      system("which groff")
     end
 
     # The groff command complete with crazy arguments we need to run
@@ -550,7 +536,7 @@ help
     #
     # Returns a Boolean.
     def own_repo_exists?
-      url = API_REPO % [USER, REPO]
+      url = API_REPO % [github_user, repo_name]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
     end
 
@@ -558,8 +544,8 @@ help
     #
     # Returns nothing.
     def fork_repo
-      url = API_FORK % [OWNER, REPO]
-      Net::HTTP.post_form(URI(url), 'login' => USER, 'token' => TOKEN)
+      url = API_FORK % [repo_owner, repo_name]
+      Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
     end
   end
 end

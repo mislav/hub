@@ -3,16 +3,17 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <COMMAND> <OPTIONS>
+`hub` <COMMAND> <OPTIONS>  
 `hub alias` [`-s`] <SHELL>
 
 `git init -g` <OPTIONS>  
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>  
-`git fork`  
-`git browse` [`-p`] [<USER>/]<REPOSITORY>  
+`git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
+`git compare` [`-p`] [`-u`] [<USER>] [<START>...]<END>  
 `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
+`git fork` [`--no-remote`]  
 
 ## DESCRIPTION
 
@@ -22,7 +23,7 @@ alias command displays information on configuring your environment:
   * `hub alias` [`-s`] <SHELL>:
     Writes shell aliasing code for <SHELL> (`bash`, `sh`, `zsh`,
     `csh`) to standard output. With the `-s` option, the output of
-    this command can be evaluated directly within the shell:
+    this command can be evaluated directly within the shell:  
     `eval $(hub alias -s bash)`
 
   * `git init` `-g` <OPTIONS>:
@@ -47,22 +48,19 @@ alias command displays information on configuring your environment:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
     multiple `git push` commands.
 
-  * `git fork`:
-    Forks the original repo on GitHub and adds the new remote under your
-    username. It requires your GitHub login and token to be present. See
-    CONFIGURATION below.
-
-  * `git browse` [`-p`] [[<USER>`/`]<REPOSITORY>]:
+  * `git browse` [`-p`] [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]:
     Open repository's GitHub page in the system's default web browser
     using `open(1)` or the `BROWSER` env variable. Use `-p` to open a
     page with https. If the repository isn't specified, `browse` opens
-    the page of the repository found in the current directory.
+    the page of the repository found in the current directory. If SUBPAGE
+    is specified, the browser will open on the specified subpage: one of
+    "wiki", "commits", "issues" or other (the default is "tree").
 
-  * `git compare` [`-u`] [<USER>] [<START>...]<END>:
+  * `git compare` [`-p`] [`-u`] [<USER>] [<START>...]<END>:
     Open a GitHub compare view page in the system's default web browser.
     <START> to <END> are branch names, tag names, or commit SHA1s specifying
-    the range of history to compare. If <START> is omitted,
-    the repository's default branch is assumed.
+    the range of history to compare. If <START> is omitted, GitHub will
+    compare against the base branch (the default is "master").
 
   * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:
     Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
@@ -71,9 +69,9 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git".
 
   * `git fork` [`--no-remote`]:
-    Forks the original project (as specified in "origin" remote) on GitHub
-    and adds a new remote named <USER> referencing the newly created repo.
-    Requires `github.token` to be set (see CONFIGURATION).
+    Forks the original project (referenced by "origin" remote) on GitHub and
+    adds a new remote for it under your username. Requires `github.token` to
+    be set (see CONFIGURATION).
 
   * `git help`:
     Display enhanced git-help(1).
@@ -95,7 +93,7 @@ information.
 You can also tell `hub` to use `http://` rather than `git://` when
 cloning:
 
-    $ git config --global --add hub.http-clone yes
+    $ git config --global --bool hub.http-clone true
 
 ## EXAMPLES
 
@@ -145,6 +143,12 @@ cloning:
 
 ### git browse
 
+    $ git browse
+    > open http://github.com/CURRENT_REPO
+
+    $ git browse -- issues
+    > open http://github.com/CURRENT_REPO/issues
+
     $ git browse schacon/ticgit
     > open http://github.com/schacon/ticgit
 
@@ -154,8 +158,11 @@ cloning:
     $ git browse resque
     > open http://github.com/YOUR_USER/resque
 
+    $ git browse resque network
+    > open http://github.com/YOUR_USER/resque/network
+
     $ git browse -p resque
-    > open https://github.com:YOUR_USER/resque
+    > open https://github.com/YOUR_USER/resque
 
 ### git compare
 

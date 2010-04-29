@@ -7,7 +7,10 @@
 \fBhub\fR \-\- git + hub = github
 .
 .SH "SYNOPSIS"
-\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
+.
+.br
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 .
 .P
 \fBgit init \-g\fR \fIOPTIONS\fR
@@ -22,13 +25,16 @@
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
 .
 .br
-\fBgit fork\fR
+\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
 .
 .br
-\fBgit browse\fR [\fB\-p\fR] [\fIUSER\fR/]\fIREPOSITORY\fR
+\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
 .
 .br
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.
+.br
+\fBgit fork\fR [\fB\-\-no\-remote\fR]
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
@@ -37,7 +43,10 @@ alias command displays information on configuring your environment:
 .TP
 \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output. With the \fB\-s\fR option, the output of
-this command can be evaluated directly within the shell: \fBeval $(hub alias \-s bash)\fR
+this command can be evaluated directly within the shell:
+.
+.br
+\fBeval $(hub alias \-s bash)\fR
 .
 .TP
 \fBgit init\fR \fB\-g\fR \fIOPTIONS\fR
@@ -64,23 +73,19 @@ Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
 .
 .TP
-\fBgit fork\fR
-Forks the original repo on GitHub and adds the new remote under your
-username. It requires your GitHub login and token to be present. See
-CONFIGURATION below.
-.
-.TP
-\fBgit browse\fR [\fB\-p\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR]
+\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
 Open repository's GitHub page in the system's default web browser
 using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
 page with https. If the repository isn't specified, \fBbrowse\fR opens
-the page of the repository found in the current directory.
+the page of the repository found in the current directory. If SUBPAGE
+is specified, the browser will open on the specified subpage: one of
+"wiki", "commits", "issues" or other (the default is "tree").
 .
 .TP
-\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
+\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
 Open a GitHub compare view page in the system's default web browser. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying
-the range of history to compare. If \fISTART\fR is omitted,
-the repository's default branch is assumed.
+the range of history to compare. If \fISTART\fR is omitted, GitHub will
+compare against the base branch (the default is "master").
 .
 .TP
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
@@ -90,9 +95,9 @@ your GitHub login. With \fB\-p\fR, use private remote
 .
 .TP
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
-Forks the original project (as specified in "origin" remote) on GitHub
-and adds a new remote named \fIUSER\fR referencing the newly created repo.
-Requires \fBgithub.token\fR to be set (see CONFIGURATION).
+Forks the original project (referenced by "origin" remote) on GitHub and
+adds a new remote for it under your username. Requires \fBgithub.token\fR to
+be set (see CONFIGURATION).
 .
 .TP
 \fBgit help\fR
@@ -137,7 +142,7 @@ cloning:
 .
 .nf
 
-$ git config \-\-global \-\-add hub.http\-clone yes
+$ git config \-\-global \-\-bool hub.http\-clone true
 .
 .fi
 .
@@ -213,6 +218,12 @@ $ git push origin,staging,qa bert_timeout
 .
 .nf
 
+$ git browse
+> open http://github.com/CURRENT_REPO
+
+$ git browse \-\- issues
+> open http://github.com/CURRENT_REPO/issues
+
 $ git browse schacon/ticgit
 > open http://github.com/schacon/ticgit
 
@@ -222,8 +233,11 @@ $ git browse \-p schacon/ticgit
 $ git browse resque
 > open http://github.com/YOUR_USER/resque
 
+$ git browse resque network
+> open http://github.com/YOUR_USER/resque/network
+
 $ git browse \-p resque
-> open https://github.com:YOUR_USER/resque
+> open https://github.com/YOUR_USER/resque
 .
 .fi
 .
