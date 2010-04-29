@@ -1,7 +1,7 @@
 module Hub
   # See context.rb
   module Context; end
-    
+
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
   # corresponding git command which either gets run before or after
@@ -109,7 +109,7 @@ module Hub
     # $ hub remote add origin
     # > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
     def remote(args)
-      return if args[1] != 'add' or args.last =~ %r{.+?://|.+?@|^[./]}
+      return if args[1] != 'add' || args.last =~ %r{.+?://|.+?@|^[./]}
 
       ssh = args.delete('-p')
 
@@ -225,8 +225,7 @@ module Hub
           # $ hub browse
           user = repo_user
         else
-          warn "Usage: hub browse [<USER>/]<REPOSITORY>"
-          exit(1)
+          abort "Usage: hub browse [<USER>/]<REPOSITORY>"
         end
 
         params = { :user => user, :repo => repo }
@@ -240,7 +239,7 @@ module Hub
           params[:web] = "/commits/#{branch}"
         when 'tree', NilClass
           branch = !dest && tracked_branch
-          params[:web] = "/tree/#{branch}" if branch and branch != 'master'
+          params[:web] = "/tree/#{branch}" if branch && branch != 'master'
         else
           params[:web] = "/#{subpage}"
         end
@@ -263,11 +262,11 @@ module Hub
       args.shift
       browse_command(args) do
         if args.empty?
-          if branch = tracked_branch and branch != 'master'
+          branch = tracked_branch
+          if branch && branch != 'master'
             range, user = branch, repo_user
           else
-            warn "Usage: hub compare [USER] [<START>...]<END>"
-            exit(1)
+            abort "Usage: hub compare [USER] [<START>...]<END>"
           end
         else
           range = args.pop

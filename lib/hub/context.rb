@@ -12,7 +12,7 @@ module Hub
     REMOTES = Hash.new do |cache, remote|
       url = GIT_CONFIG["config remote.#{remote}.url"]
 
-      if url and url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+      if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
         cache[remote] = { :user => $1, :repo => $2 }
       else
         cache[remote] = { }
@@ -20,8 +20,6 @@ module Hub
     end
 
     LGHCONF = "http://github.com/guides/local-github-config"
-
-    private
 
     def repo_owner
       REMOTES[default_remote][:user]
@@ -38,13 +36,19 @@ module Hub
     # Either returns the GitHub user as set by git-config(1) or aborts
     # with an error message.
     def github_user(fatal = true)
-      GIT_CONFIG['config github.user'] or
-        fatal ? abort("** No GitHub user set. See #{LGHCONF}") : nil
+      if user = GIT_CONFIG['config github.user']
+        user
+      elsif fatal
+        abort("** No GitHub user set. See #{LGHCONF}")
+      end
     end
 
     def github_token(fatal = true)
-      GIT_CONFIG['config github.token'] or
-        fatal ? abort("** No GitHub token set. See #{LGHCONF}") : nil
+      if token = GIT_CONFIG['config github.token']
+        token
+      elsif fatal
+        abort("** No GitHub token set. See #{LGHCONF}")
+      end
     end
 
     def current_branch
@@ -82,7 +86,7 @@ module Hub
 
     def github_url(options = {})
       repo = options[:repo]
-      user, repo = repo.split('/') if repo and repo.index('/')
+      user, repo = repo.split('/') if repo && repo.index('/')
       user ||= options[:user] || github_user
       repo ||= repo_name
       secure = options[:private]
