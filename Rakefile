@@ -103,7 +103,6 @@ task :publish => "gem:publish" do
   system "git tag v#{Hub::Version}"
   sh "git push origin v#{Hub::Version}"
   sh "git push origin master"
-  sh "gem push pkg/git-hub-#{Hub::Version}.gem"
   sh "git clean -fd"
   exec "rake pages"
 end
