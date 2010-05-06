@@ -380,6 +380,18 @@ class HubTest < Test::Unit::TestCase
     assert_equal "git push staging cool-feature; git push qa cool-feature", h.after
   end
 
+  def test_create
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' }
+    }
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: git@github.com:tpw/hub.git\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+  end
+
   def test_fork
     stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|

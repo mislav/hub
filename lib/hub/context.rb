@@ -10,10 +10,14 @@ module Hub
 
     # Parses URLs for git remotes and stores info
     REMOTES = Hash.new do |cache, remote|
-      url = GIT_CONFIG["config remote.#{remote}.url"]
-
-      if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
-        cache[remote] = { :user => $1, :repo => $2 }
+      if remote
+        url = GIT_CONFIG["config remote.#{remote}.url"]
+        
+        if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+          cache[remote] = { :user => $1, :repo => $2 }
+        else
+          cache[remote] = { }
+        end
       else
         cache[remote] = { }
       end
@@ -61,9 +65,14 @@ module Hub
     end
 
     def remotes
-      list = GIT_CONFIG['remote'].split("\n")
-      main = list.delete('origin') and list.unshift(main)
-      list
+      remote_string = GIT_CONFIG['remote']
+      if remote_string
+        list = remote_string.split("\n")
+        main = list.delete('origin') and list.unshift(main)
+        list
+      else
+        list = []
+      end
     end
 
     def remotes_group(name)

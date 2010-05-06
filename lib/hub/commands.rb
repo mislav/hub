@@ -37,8 +37,9 @@ module Hub
     # Provides `github_url` and various inspection methods
     extend Context
 
-    API_REPO = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
@@ -249,6 +250,18 @@ module Hub
           args.after { puts "new remote: #{github_user}" }
         end
       end
+    end
+
+    # $ hub create
+    # ... create repo on github ...
+    # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
+    def create(args)
+      unless repo_exists?(github_user)
+        create_repo
+      end
+      url = github_url(:private => true)
+      args.replace %W"remote add -f origin #{url}"
+      args.after { puts "created repository: #{url}" }
     end
 
     # $ hub push origin,staging cool-feature
@@ -624,5 +637,14 @@ help
       url = API_FORK % [repo_owner, repo_name]
       Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
     end
+    
+    # Creates a new repo using the GitHub API.
+    #
+    # Returns nothing.
+    def create_repo
+      url = API_CREATE
+      Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token, 'name' => repo_name)
+    end
+    
   end
 end
