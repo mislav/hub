@@ -32,6 +32,7 @@ class HubTest < Test::Unit::TestCase
       'config branch.feature.merge'  => 'refs/heads/experimental',
       'config --bool hub.http-clone' => 'false'
     )
+    super
   end
 
   def test_private_clone
@@ -392,13 +393,25 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
-  def test_fork
+  def test_create_private_repository
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
     stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'public' => '0' }
+    }
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: git@github.com:tpw/hub.git\n"
+    assert_equal expected, hub("create -p") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_fork
+    stub_nonexisting_fork('tpw')  
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|
       params = Hash[*req.body.split(/[&=]/)]
       params == { 'login'=>'tpw', 'token'=>'abc123' }
     }
-
+    
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }

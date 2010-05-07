@@ -256,9 +256,14 @@ module Hub
     # ... create repo on github ...
     # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
     def create(args)
+      args.shift
+      options = {}
+      options[:private] = true if args.delete('-p')
+
       unless repo_exists?(github_user)
-        create_repo
+        create_repo(options)
       end
+
       url = github_url(:private => true)
       args.replace %W"remote add -f origin #{url}"
       args.after { puts "created repository: #{url}" }
@@ -641,9 +646,12 @@ help
     # Creates a new repo using the GitHub API.
     #
     # Returns nothing.
-    def create_repo
+    def create_repo(options = {})
       url = API_CREATE
-      Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token, 'name' => repo_name)
+      params = {'login' => github_user, 'token' => github_token, 'name' => repo_name}
+      params['public'] = '0' if options[:private]
+
+      Net::HTTP.post_form(URI(url), params)
     end
     
   end
