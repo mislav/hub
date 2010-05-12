@@ -405,6 +405,28 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create -p") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_with_description_and_homepage
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'description' => 'description', 'homepage' => 'http%3a%2f%2fgithub.com%2ftpw%2fhub.git' }
+    }
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: git@github.com:tpw/hub.git\n"
+    assert_equal expected, hub("create -d description -h http://github.com/tpw/hub.git") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_with_existing_repository
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_existing_fork('tpw')
+
+    expected = "tpw/hub already exists on GitHub\n"
+    expected << "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "set remote origin: git@github.com:tpw/hub.git\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+  end
+
   def test_create_no_user
     out = hub("create") do
       stub_github_token(nil)

@@ -260,14 +260,30 @@ module Hub
         args.shift
         options = {}
         options[:private] = true if args.delete('-p')
-        
-        unless repo_exists?(github_user)
+
+        until args.empty?
+          case arg = args.shift
+          when '-d'
+            options[:description] = args.shift
+          when '-h'
+            options[:homepage] = args.shift
+          else
+            puts "unexpected argument: #{arg}"
+            return
+          end
+        end
+
+        action = "created repository"
+        if repo_exists?(github_user)
+          puts "#{github_user}/#{repo_name} already exists on GitHub"
+          action = "set remote origin"
+        else
           create_repo(options)
         end
         
         url = github_url(:private => true)
         args.replace %W"remote add -f origin #{url}"
-        args.after { puts "created repository: #{url}" }
+        args.after { puts "#{action}: #{url}" }
       end
     end
 
@@ -652,6 +668,8 @@ help
       url = API_CREATE
       params = {'login' => github_user, 'token' => github_token, 'name' => repo_name}
       params['public'] = '0' if options[:private]
+      params['description'] = options[:description] if options[:description]
+      params['homepage'] = options[:homepage] if options[:homepage]
 
       Net::HTTP.post_form(URI(url), params)
     end
