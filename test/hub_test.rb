@@ -405,6 +405,13 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create -p") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_no_user
+    out = hub("create") do
+      stub_github_token(nil)
+    end
+    assert_equal "** No GitHub token set. See http://github.com/guides/local-github-config\n", out
+  end
+
   def test_fork
     stub_nonexisting_fork('tpw')  
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|
@@ -622,6 +629,10 @@ config
 
     def stub_github_user(name)
       @git['config github.user'] = name
+    end
+
+    def stub_github_token(token)
+      @git['config github.token'] = token
     end
 
     def stub_repo_url(value)

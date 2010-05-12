@@ -256,17 +256,19 @@ module Hub
     # ... create repo on github ...
     # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
     def create(args)
-      args.shift
-      options = {}
-      options[:private] = true if args.delete('-p')
-
-      unless repo_exists?(github_user)
-        create_repo(options)
+      if github_user && github_token
+        args.shift
+        options = {}
+        options[:private] = true if args.delete('-p')
+        
+        unless repo_exists?(github_user)
+          create_repo(options)
+        end
+        
+        url = github_url(:private => true)
+        args.replace %W"remote add -f origin #{url}"
+        args.after { puts "created repository: #{url}" }
       end
-
-      url = github_url(:private => true)
-      args.replace %W"remote add -f origin #{url}"
-      args.after { puts "created repository: #{url}" }
     end
 
     # $ hub push origin,staging cool-feature
