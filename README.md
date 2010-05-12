@@ -166,6 +166,15 @@ Forks the original repo on GitHub and adds the new remote under your
 username. It requires your GitHub token to be present; see "GitHub
 login" below for details.
 
+### git create
+
+    $ git create
+    ... hardcore creating action ...
+    > git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+
+Creates a new public github repository and adds the remote `origin` at
+"git@github.com:<USER>/<REPOSITORY>.git"
+
 ### git init
 
     $ git init -g
