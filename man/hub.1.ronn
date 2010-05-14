@@ -7,7 +7,7 @@ hub(1) -- git + hub = github
 `hub alias` [`-s`] <SHELL>
 
 `git init -g` <OPTIONS>  
-`git create` [`p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]: 
+`git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]: 
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 `git fetch` <USER-1>,[<USER-2>,...]  
@@ -34,7 +34,7 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
     <REPOSITORY> is the current working directory's basename.
 
-  * `git create` [`p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]: 
+  * `git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]: 
     Create a new public github repository from the current git
     repository and add remote `origin` at
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub
