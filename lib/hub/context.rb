@@ -110,12 +110,14 @@ module Hub
         '%s//github.com/%s/%s%s' % [scheme, user, repo, path]
       else
         if secure
-          'git@github.com:%s/%s.git'
+          url = 'git@github.com:%s/%s.git'
         elsif http_clone?
-          'http://github.com/%s/%s.git'
+          url = 'http://github.com/%s/%s.git'
         else
-          'git://github.com/%s/%s.git'
-        end % [user, repo]
+          url = 'git://github.com/%s/%s.git'
+        end
+
+        url % [user, repo]
       end
     end
   end
