@@ -3,6 +3,5 @@
 # hub(1)
 # alias git=hub
 
-$LOAD_PATH.unshift File.dirname(File.readlink(__FILE__)) + '/../lib'
 require 'hub'
 Hub::Runner.execute(*ARGV)
