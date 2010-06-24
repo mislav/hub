@@ -499,7 +499,7 @@ help
     #
     # Returns a Boolean.
     def command?(name)
-      `type -t #{command}`
+      `type -t #{name}`
       $?.success?
     end
 
