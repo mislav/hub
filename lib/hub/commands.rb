@@ -256,34 +256,39 @@ module Hub
     # ... create repo on github ...
     # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
     def create(args)
-      if github_user && github_token
-        args.shift
-        options = {}
-        options[:private] = true if args.delete('-p')
+      if is_repo?
+        if github_user && github_token
+          args.shift
+          options = {}
+          options[:private] = true if args.delete('-p')
 
-        until args.empty?
-          case arg = args.shift
-          when '-d'
-            options[:description] = args.shift
-          when '-h'
-            options[:homepage] = args.shift
-          else
-            puts "unexpected argument: #{arg}"
-            return
+          until args.empty?
+            case arg = args.shift
+            when '-d'
+              options[:description] = args.shift
+            when '-h'
+              options[:homepage] = args.shift
+            else
+              puts "unexpected argument: #{arg}"
+              return
+            end
           end
-        end
 
-        action = "created repository"
-        if repo_exists?(github_user)
-          puts "#{github_user}/#{repo_name} already exists on GitHub"
-          action = "set remote origin"
-        else
-          create_repo(options)
+          action = "created repository"
+          if repo_exists?(github_user)
+            puts "#{github_user}/#{repo_name} already exists on GitHub"
+            action = "set remote origin"
+          else
+            create_repo(options)
+          end
+          
+          url = github_url(:private => true)
+          args.replace %W"remote add -f origin #{url}"
+          args.after { puts "#{action}: #{github_user}/#{repo_name}" }
         end
-        
-        url = github_url(:private => true)
-        args.replace %W"remote add -f origin #{url}"
-        args.after { puts "#{action}: #{url}" }
+      else
+        puts "'create' must be run from inside a git repository"
+        args.skip!
       end
     end
 

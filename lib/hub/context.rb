@@ -103,6 +103,14 @@ module Hub
       GIT_CONFIG['config --bool hub.http-clone'] == 'true'
     end
 
+    # Core.repositoryformatversion should exist for all git
+    # repositories, and be blank for all non-git repositories. If
+    # there's a better config setting to check here, this can be
+    # changed without breaking anything.
+    def is_repo?
+      GIT_CONFIG['config core.repositoryformatversion']
+    end
+
     def github_url(options = {})
       repo = options[:repo]
       user, repo = repo.split('/') if repo && repo.index('/')
