@@ -294,10 +294,17 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_cherry_pick_url
-    url = 'http://github.com/mislav/hub/commit/a319d88#comments'
+    url = 'http://github.com/mislav/hub/commit/a319d88'
     h = Hub("cherry-pick #{url}")
     assert_equal "git fetch mislav", h.command
     assert_equal "git cherry-pick a319d88", h.after
+  end
+
+  def test_cherry_pick_url_with_fragment
+    url = 'http://github.com/mislav/hub/commit/abcdef0123456789#comments'
+    h = Hub("cherry-pick #{url}")
+    assert_equal "git fetch mislav", h.command
+    assert_equal "git cherry-pick abcdef0123456789", h.after
   end
 
   def test_cherry_pick_url_with_remote_add

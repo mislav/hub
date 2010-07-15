@@ -191,7 +191,7 @@ module Hub
     def cherry_pick(args)
       unless args.include?('-m') or args.include?('--mainline')
         case ref = args.words.last
-        when %r{^(https?:)//github.com/(.+?)/(.+?)/commit/([a-f1-9]{7,40})}
+        when %r{^(https?:)//github.com/(.+?)/(.+?)/commit/([a-f0-9]{7,40})}
           scheme, user, repo, sha = $1, $2, $3, $4
           args[args.index(ref)] = sha
         when /^(\w+)@([a-f1-9]{7,40})$/
