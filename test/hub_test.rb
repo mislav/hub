@@ -354,9 +354,10 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_init
+    dirname = File.basename(Dir.pwd)
     h = Hub("init -g")
     assert_equal "git init", h.command
-    assert_equal "git remote add origin git@github.com:tpw/hub.git", h.after
+    assert_equal "git remote add origin git@github.com:tpw/#{dirname}.git", h.after
   end
 
   def test_init_no_login
