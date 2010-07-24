@@ -1,3 +1,9 @@
+## 1.3.2 (2010-07-24)
+
+* bugfix: cherry picking of commit URL
+* bugfix: git init -g
+
+## 1.3.1 (2010-04-29)
 ## 1.3.0 (2010-04-29)
 
 * Tracking branches awareness
