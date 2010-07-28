@@ -429,6 +429,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create_no_user
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
     out = hub("create") do
       stub_github_token(nil)
     end
@@ -441,6 +442,11 @@ class HubTest < Test::Unit::TestCase
       })
     
     assert_equal "'create' must be run from inside a git repository\n", hub("create")
+  end
+
+  def test_create_origin_already_exists
+    expected = ""
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
   
   def test_fork
