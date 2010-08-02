@@ -478,7 +478,7 @@ module Hub
       if command == 'hub'
         puts hub_manpage
         exit
-      elsif command.nil?
+      elsif command.nil? && args.grep(/^--?a/).empty?
         ENV['GIT_PAGER'] = '' if args.grep(/^-{1,2}p/).empty? # Use `cat`.
         puts improved_help_text
         exit
