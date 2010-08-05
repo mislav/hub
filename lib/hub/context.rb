@@ -65,14 +65,9 @@ module Hub
     end
 
     def remotes
-      remote_string = GIT_CONFIG['remote']
-      if remote_string
-        list = remote_string.split("\n")
-        main = list.delete('origin') and list.unshift(main)
-        list
-      else
-        list = []
-      end
+      list = GIT_CONFIG['remote'].to_s.split("\n")
+      main = list.delete('origin') and list.unshift(main)
+      list
     end
 
     def remotes_group(name)
