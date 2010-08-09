@@ -150,8 +150,10 @@
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
 <p><code>git init -g</code> <var>OPTIONS</var><br />
+<code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]:
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
+<code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
 <code>git cherry-pick</code> <var>GITHUB-REF</var><br />
 <code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var><br />
@@ -165,50 +167,72 @@
 <p><code>hub</code> enhances various <code>git</code> commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:</p>
 
-<dl>
-<dt><code>hub alias</code> [<code>-s</code>] <var>SHELL</var></dt><dd><p>Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
+<ul>
+<li><p><code>hub alias</code> [<code>-s</code>] <var>SHELL</var>:
+Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
 <code>csh</code>) to standard output. With the <code>-s</code> option, the output of
 this command can be evaluated directly within the shell:<br />
-<code>eval $(hub alias -s bash)</code></p></dd>
-<dt><code>git init</code> <code>-g</code> <var>OPTIONS</var></dt><dd><p>Create a git repository as with git-init(1) and add remote <code>origin</code> at
+<code>eval $(hub alias -s bash)</code></p></li>
+<li><p><code>git init</code> <code>-g</code> <var>OPTIONS</var>:
+Create a git repository as with git-init(1) and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
-<var>REPOSITORY</var> is the current working directory's basename.</p></dd>
-<dt><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
+<var>REPOSITORY</var> is the current working directory's basename.</p></li>
+<li><p><code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]:
+Create a new public github repository from the current git
+repository and add remote <code>origin</code> at
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub
+username and <var>REPOSITORY</var> is the current working directory's
+basename. With <code>-p</code>, create a private repository. <code>-d</code> and <code>-h</code>
+set the repository's description and homepage, respectively.</p></li>
+<li><p><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:
+Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with git-clone(1). When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]</dt><dd><p>Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></li>
+<li><p><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]:
+Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
 git-remote(1). When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git". If <var>USER</var> is "origin"
-then uses your GitHub login.</p></dd>
-<dt><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]</dt><dd><p>Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
-remotes are only added if they correspond to valid forks on GitHub.</p></dd>
-<dt><code>git cherry-pick</code> <var>GITHUB-REF</var></dt><dd><p>Cherry-pick a commit from a fork using either full URL to the commit
+then uses your GitHub login.</p></li>
+<li><p><code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
+Sets the url of remote <var>REMOTE-NAME</var> using the same rules as
+<code>git remote add</code>.</p></li>
+<li><p><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]:
+Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
+remotes are only added if they correspond to valid forks on GitHub.</p></li>
+<li><p><code>git cherry-pick</code> <var>GITHUB-REF</var>:
+Cherry-pick a commit from a fork using either full URL to the commit
 or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
 doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
-prior to the cherry-pick attempt.</p></dd>
-<dt><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var></dt><dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
-multiple <code>git push</code> commands.</p></dd>
-<dt><code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser
+prior to the cherry-pick attempt.</p></li>
+<li><p><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var>:
+Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
+multiple <code>git push</code> commands.</p></li>
+<li><p><code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]:
+Open repository's GitHub page in the system's default web browser
 using <code>open(1)</code> or the <code>BROWSER</code> env variable. Use <code>-p</code> to open a
 page with https. If the repository isn't specified, <code>browse</code> opens
 the page of the repository found in the current directory. If SUBPAGE
 is specified, the browser will open on the specified subpage: one of
-"wiki", "commits", "issues" or other (the default is "tree").</p></dd>
-<dt><code>git compare</code> [<code>-p</code>] [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var></dt><dd><p>Open a GitHub compare view page in the system's default web browser.
+"wiki", "commits", "issues" or other (the default is "tree").</p></li>
+<li><p><code>git compare</code> [<code>-p</code>] [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var>:
+Open a GitHub compare view page in the system's default web browser.
 <var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If <var>START</var> is omitted, GitHub will
-compare against the base branch (the default is "master").</p></dd>
-<dt><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
+compare against the base branch (the default is "master").</p></li>
+<li><p><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>:
+Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with git-submodule(1). When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></li>
+<li><p><code>git fork</code> [<code>--no-remote</code>]:
+Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username. Requires <code>github.token</code> to
-be set (see CONFIGURATION).</p></dd>
-<dt><code>git help</code></dt><dd><p>Display enhanced git-help(1).</p></dd>
-</dl>
+be set (see CONFIGURATION).</p></li>
+<li><p><code>git help</code>:
+Display enhanced git-help(1).</p></li>
+</ul>
 
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
@@ -303,6 +327,13 @@ $ git cherry-pick mislav@SHA
 &gt; git remote add origin git@github.com:YOUR_USER/REPO.git
 </code></pre>
 
+<h3 id="git-create">git create</h3>
+
+<pre><code>$ git create
+... hardcore creating action ...
+&gt; git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+</code></pre>
+
 <h3 id="git-push">git push</h3>
 
 <pre><code>$ git push origin,staging,qa bert_timeout
@@ -375,7 +406,7 @@ $ git help hub
 
   <ol class='man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>June 2010</li>
+    <li class='tc'>August 2010</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
