@@ -263,7 +263,7 @@ module Hub
         args.shift
         options = {}
         options[:private] = true if args.delete('-p')
-        
+
         until args.empty?
           case arg = args.shift
           when '-d'
@@ -283,7 +283,7 @@ module Hub
           action = "created repository"
           create_repo(options)
         end
-        
+
         url = github_url(:private => true)
 
         if remotes.first != 'origin'
@@ -669,7 +669,7 @@ help
       url = API_FORK % [repo_owner, repo_name]
       Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
     end
-    
+
     # Creates a new repo using the GitHub API.
     #
     # Returns nothing.
@@ -682,6 +682,6 @@ help
 
       Net::HTTP.post_form(URI(url), params)
     end
-    
+
   end
 end

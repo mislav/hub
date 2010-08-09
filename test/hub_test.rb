@@ -440,7 +440,7 @@ class HubTest < Test::Unit::TestCase
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
         nil
       })
-    
+
     assert_equal "'create' must be run from inside a git repository\n", hub("create")
   end
 
@@ -454,14 +454,14 @@ class HubTest < Test::Unit::TestCase
     expected = "remote -v\ncreated repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
-  
+
   def test_fork
-    stub_nonexisting_fork('tpw')  
+    stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|
       params = Hash[*req.body.split(/[&=]/)]
       params == { 'login'=>'tpw', 'token'=>'abc123' }
     }
-    
+
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
