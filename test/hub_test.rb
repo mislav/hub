@@ -445,7 +445,13 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create_origin_already_exists
-    expected = ""
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' }
+    }
+
+    expected = "remote -v\ncreated repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
   

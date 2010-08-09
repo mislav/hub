@@ -259,8 +259,6 @@ module Hub
       if !is_repo?
         puts "'create' must be run from inside a git repository"
         args.skip!
-      elsif remotes.first == 'origin'
-        args.skip!
       elsif github_user && github_token
         args.shift
         options = {}
@@ -277,17 +275,23 @@ module Hub
             return
           end
         end
-        
-        action = "created repository"
+
         if repo_exists?(github_user)
           puts "#{github_user}/#{repo_name} already exists on GitHub"
           action = "set remote origin"
         else
+          action = "created repository"
           create_repo(options)
         end
         
         url = github_url(:private => true)
-        args.replace %W"remote add -f origin #{url}"
+
+        if remotes.first != 'origin'
+          args.replace %W"remote add -f origin #{url}"
+        else
+          args.replace %W"remote -v"
+        end
+
         args.after { puts "#{action}: #{github_user}/#{repo_name}" }
       end
     end
