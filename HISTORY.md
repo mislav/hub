@@ -1,3 +1,4 @@
+## 1.4.1 (2010-08-08)
 ## 1.4.0 (2010-08-08)
 
 * Added new `hub create` command
