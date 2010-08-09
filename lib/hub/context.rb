@@ -12,7 +12,7 @@ module Hub
     REMOTES = Hash.new do |cache, remote|
       url = GIT_CONFIG["config remote.#{remote}.url"]
 
-      if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+      if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+?)(.git)?$}
         cache[remote] = { :user => $1, :repo => $2 }
       else
         cache[remote] = { }
