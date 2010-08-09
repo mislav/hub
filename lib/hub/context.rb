@@ -80,7 +80,13 @@ module Hub
     end
 
     def current_remote
-      (current_branch && remote_for(current_branch)) || default_remote
+      return if remotes.empty?
+
+      if current_branch
+        remote_for(current_branch)
+      else
+        default_remote
+      end
     end
 
     def default_remote
