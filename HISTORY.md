@@ -1,3 +1,10 @@
+## 1.4.0 (2010-08-08)
+
+* Added new `hub create` command
+* Added support for `remote set-url`
+* Bugfix: Don't try multiple git commands on a non-git dir when grabbing remote
+* Bugfix: Adding remotes when no remotes exist
+
 ## 1.3.2 (2010-07-24)
 
 * bugfix: cherry picking of commit URL
