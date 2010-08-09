@@ -542,7 +542,7 @@ help
     #
     # Returns a Boolean.
     def command?(name)
-      `type -t #{name}`
+      `which #{name} 2>/dev/null`
       $?.success?
     end
 
