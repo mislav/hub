@@ -30,8 +30,10 @@ class HubTest < Test::Unit::TestCase
       'config branch.master.merge'   => 'refs/heads/master',
       'config branch.feature.remote' => 'mislav',
       'config branch.feature.merge'  => 'refs/heads/experimental',
-      'config --bool hub.http-clone' => 'false'
+      'config --bool hub.http-clone' => 'false',
+      'config core.repositoryformatversion' => '0'
     )
+    super
   end
 
   def test_private_clone
@@ -380,6 +382,79 @@ class HubTest < Test::Unit::TestCase
     assert_equal "git push staging cool-feature; git push qa cool-feature", h.after
   end
 
+  def test_create
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' }
+    }
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: tpw/hub\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_private_repository
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'public' => '0' }
+    }
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: tpw/hub\n"
+    assert_equal expected, hub("create -p") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_with_description_and_homepage
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'description' => 'description', 'homepage' => 'http%3a%2f%2fgithub.com%2ftpw%2fhub.git' }
+    }
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: tpw/hub\n"
+    assert_equal expected, hub("create -d description -h http://github.com/tpw/hub.git") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_with_existing_repository
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_existing_fork('tpw')
+
+    expected = "tpw/hub already exists on GitHub\n"
+    expected << "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "set remote origin: tpw/hub\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_no_user
+    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    out = hub("create") do
+      stub_github_token(nil)
+    end
+    assert_equal "** No GitHub token set. See http://github.com/guides/local-github-config\n", out
+  end
+
+  def test_create_outside_git_repo
+    @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
+        nil
+      })
+
+    assert_equal "'create' must be run from inside a git repository\n", hub("create")
+  end
+
+  def test_create_origin_already_exists
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
+      params = Hash[*req.body.split(/[&=]/)]
+      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' }
+    }
+
+    expected = "remote -v\ncreated repository: tpw/hub\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+  end
+
   def test_fork
     stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|
@@ -597,6 +672,10 @@ config
 
     def stub_github_user(name)
       @git['config github.user'] = name
+    end
+
+    def stub_github_token(token)
+      @git['config github.token'] = token
     end
 
     def stub_repo_url(value)

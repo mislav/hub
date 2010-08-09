@@ -35,16 +35,26 @@ module Hub
     # A string representation of the git command we would run if
     # #execute were called.
     def command
-      args.to_exec.join(' ')
+      if args.skip?
+        ''
+      else
+        args.to_exec.join(' ')
+      end
     end
 
     # Runs the target git command with an optional callback. Replaces
-    # the current process.
+    # the current process. 
+    # 
+    # If `args` is empty, this will skip calling the git command. This
+    # allows commands to print an error message and cancel their own
+    # execution if they don't make sense.
     def execute
-      if args.after?
-        execute_with_after_callback
-      else
-        exec(*args.to_exec)
+      unless args.skip?
+        if args.after?
+          execute_with_after_callback
+        else
+          exec(*args.to_exec)
+        end
       end
     end
 

@@ -37,8 +37,9 @@ module Hub
     # Provides `github_url` and various inspection methods
     extend Context
 
-    API_REPO = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
@@ -248,6 +249,50 @@ module Hub
           args.replace %W"remote add -f #{github_user} #{url}"
           args.after { puts "new remote: #{github_user}" }
         end
+      end
+    end
+
+    # $ hub create
+    # ... create repo on github ...
+    # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
+    def create(args)
+      if !is_repo?
+        puts "'create' must be run from inside a git repository"
+        args.skip!
+      elsif github_user && github_token
+        args.shift
+        options = {}
+        options[:private] = true if args.delete('-p')
+
+        until args.empty?
+          case arg = args.shift
+          when '-d'
+            options[:description] = args.shift
+          when '-h'
+            options[:homepage] = args.shift
+          else
+            puts "unexpected argument: #{arg}"
+            return
+          end
+        end
+
+        if repo_exists?(github_user)
+          puts "#{github_user}/#{repo_name} already exists on GitHub"
+          action = "set remote origin"
+        else
+          action = "created repository"
+          create_repo(options)
+        end
+
+        url = github_url(:private => true)
+
+        if remotes.first != 'origin'
+          args.replace %W"remote add -f origin #{url}"
+        else
+          args.replace %W"remote -v"
+        end
+
+        args.after { puts "#{action}: #{github_user}/#{repo_name}" }
       end
     end
 
@@ -624,5 +669,19 @@ help
       url = API_FORK % [repo_owner, repo_name]
       Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
     end
+
+    # Creates a new repo using the GitHub API.
+    #
+    # Returns nothing.
+    def create_repo(options = {})
+      url = API_CREATE
+      params = {'login' => github_user, 'token' => github_token, 'name' => repo_name}
+      params['public'] = '0' if options[:private]
+      params['description'] = options[:description] if options[:description]
+      params['homepage'] = options[:homepage] if options[:homepage]
+
+      Net::HTTP.post_form(URI(url), params)
+    end
+
   end
 end
