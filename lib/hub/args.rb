@@ -12,6 +12,7 @@ module Hub
       super
       @executable = ENV["GIT"] || "git"
       @after = nil
+      @skip = false
     end
 
     # With no arguments, returns the `after` callback.
