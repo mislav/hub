@@ -35,6 +35,16 @@ module Hub
       @after ||= block ? block : command
     end
 
+    # Skip running this command.
+    def skip!
+      @skip ||= true
+    end
+    
+    # Boolean indicating whether this command will run.
+    def skip?
+      @skip
+    end
+
     # Boolean indicating whether an `after` callback has been set.
     def after?
       !!@after

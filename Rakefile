@@ -5,7 +5,7 @@ require 'rake/testtask'
 #
 
 def command?(command)
-  `type -t #{command}`
+  `which #{command} 2>/dev/null`
   $?.success?
 end
 
@@ -78,14 +78,6 @@ task :standalone => :load_hub do
   Hub::Standalone.save('hub')
 end
 
-begin
-  require 'mg'
-  MG.new('git-hub.gemspec')
-rescue LoadError
-  warn "mg not available."
-  warn "Install it with: gem install mg"
-end
-
 desc "Install standalone script and man pages"
 task :install => :standalone do
   prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
@@ -95,16 +87,6 @@ task :install => :standalone do
 
   FileUtils.mkdir_p "#{prefix}/share/man/man1"
   FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
-end
-
-desc "Push a new version."
-task :publish => "gem:publish" do
-  require 'hub/version'
-  system "git tag v#{Hub::Version}"
-  sh "git push origin v#{Hub::Version}"
-  sh "git push origin master"
-  sh "git clean -fd"
-  exec "rake pages"
 end
 
 desc "Publish to GitHub Pages"

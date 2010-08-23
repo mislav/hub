@@ -1,10 +1,10 @@
 .\" generated with Ronn/v0.5
 .\" http://github.com/rtomayko/ronn/
 .
-.TH "HUB" "1" "April 2010" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "August 2010" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
-\fBhub\fR \-\- git + hub = github
+\fBhub\fR \- git + hub = github
 .
 .SH "SYNOPSIS"
 \fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
@@ -16,10 +16,13 @@
 \fBgit init \-g\fR \fIOPTIONS\fR
 .
 .br
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]: \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
 .
 .br
 \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
+.
+.br
+\fBgit remote set\-url\fR [\fB\-p\fR] \fIOPTIONS\fR \fIREMOTE\-NAME\fR \fIUSER\fR[/\fIREPOSITORY\fR]
 .
 .br
 \fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
@@ -46,52 +49,67 @@
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:
 .
-.TP
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+.IP "\(bu" 4
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR:
 Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output. With the \fB\-s\fR option, the output of
 this command can be evaluated directly within the shell:
 .
 .br
 \fBeval $(hub alias \-s bash)\fR
 .
-.TP
-\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR
+.IP "\(bu" 4
+\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR:
 Create a git repository as with git\-init(1) and add remote \fBorigin\fR at
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory's basename.
 .
-.TP
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.IP "\(bu" 4
+\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]:
+Create a new public github repository from the current git
+repository and add remote \fBorigin\fR at
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git"; \fIUSER\fR is your GitHub
+username and \fIREPOSITORY\fR is the current working directory's
+basename. With \fB\-p\fR, create a private repository. \fB\-d\fR and \fB\-h\fR
+set the repository's description and homepage, respectively.
+.
+.IP "\(bu" 4
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR:
 Clone repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-clone(1). When \fIUSER\fR/ is omitted, assumes
 your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
-.TP
-\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]
+.IP "\(bu" 4
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]:
 Add remote "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" as with
 git\-remote(1). When /\fIREPOSITORY\fR is omitted, the basename of the
 current working directory is used. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git". If \fIUSER\fR is "origin"
 then uses your GitHub login.
 .
-.TP
-\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
+.IP "\(bu" 4
+\fBgit remote set\-url\fR [\fB\-p\fR] \fIOPTIONS\fR \fIREMOTE\-NAME\fR \fIUSER\fR[/\fIREPOSITORY\fR]
+.
+.br
+Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote add\fR.
+.
+.IP "\(bu" 4
+\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]:
 Adds missing remote(s) with \fBgit remote add\fR prior to fetching. New
 remotes are only added if they correspond to valid forks on GitHub.
 .
-.TP
-\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
+.IP "\(bu" 4
+\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR:
 Cherry\-pick a commit from a fork using either full URL to the commit
 or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR. If the remote
 doesn't yet exist, it will be added. A \fBgit fetch <user>\fR is issued
 prior to the cherry\-pick attempt.
 .
-.TP
-\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
+.IP "\(bu" 4
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR:
 Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
 .
-.TP
-\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
+.IP "\(bu" 4
+\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]:
 Open repository's GitHub page in the system's default web browser
 using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
 page with https. If the repository isn't specified, \fBbrowse\fR opens
@@ -99,27 +117,29 @@ the page of the repository found in the current directory. If SUBPAGE
 is specified, the browser will open on the specified subpage: one of
 "wiki", "commits", "issues" or other (the default is "tree").
 .
-.TP
-\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
+.IP "\(bu" 4
+\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR:
 Open a GitHub compare view page in the system's default web browser. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If \fISTART\fR is omitted, GitHub will
 compare against the base branch (the default is "master").
 .
-.TP
-\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.IP "\(bu" 4
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR:
 Submodule repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-submodule(1). When \fIUSER\fR/ is omitted, assumes
 your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
-.TP
-\fBgit fork\fR [\fB\-\-no\-remote\fR]
+.IP "\(bu" 4
+\fBgit fork\fR [\fB\-\-no\-remote\fR]:
 Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username. Requires \fBgithub.token\fR to
 be set (see CONFIGURATION).
 .
-.TP
-\fBgit help\fR
+.IP "\(bu" 4
+\fBgit help\fR:
 Display enhanced git\-help(1).
+.
+.IP "" 0
 .
 .SH "CONFIGURATION"
 Use git\-config(1) to display the currently configured GitHub username:
@@ -251,6 +271,16 @@ $ git fork
 $ git init \-g
 > git init
 > git remote add origin git@github.com:YOUR_USER/REPO.git
+.
+.fi
+.
+.SS "git create"
+.
+.nf
+
+$ git create
+... hardcore creating action ...
+> git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
 .
 .fi
 .

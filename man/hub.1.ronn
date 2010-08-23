@@ -7,8 +7,10 @@ hub(1) -- git + hub = github
 `hub alias` [`-s`] <SHELL>
 
 `git init -g` <OPTIONS>  
+`git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]: 
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
+`git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
 `git fetch` <USER-1>,[<USER-2>,...]  
 `git cherry-pick` <GITHUB-REF>  
 `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> <REF>  
@@ -33,6 +35,14 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
     <REPOSITORY> is the current working directory's basename.
 
+  * `git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]: 
+    Create a new public github repository from the current git
+    repository and add remote `origin` at
+    "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub
+    username and <REPOSITORY> is the current working directory's
+    basename. With `-p`, create a private repository. `-d` and `-h`
+    set the repository's description and homepage, respectively.
+
   * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
@@ -45,6 +55,10 @@ alias command displays information on configuring your environment:
     current working directory is used. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git". If <USER> is "origin"
     then uses your GitHub login.
+
+  * `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
+    Sets the url of remote <REMOTE-NAME> using the same rules as 
+    `git remote add`.
 
   * `git fetch` <USER-1>,[<USER-2>,...]:
     Adds missing remote(s) with `git remote add` prior to fetching. New
@@ -170,6 +184,12 @@ cloning:
     $ git init -g
     > git init
     > git remote add origin git@github.com:YOUR_USER/REPO.git
+
+### git create
+
+    $ git create
+    ... hardcore creating action ...
+    > git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
 
 ### git push
 
