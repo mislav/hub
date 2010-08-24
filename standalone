@@ -23,6 +23,14 @@ module Hub
       @after ||= block ? block : command
     end
 
+    def skip!
+      @skip ||= true
+    end
+    
+    def skip?
+      @skip
+    end
+
     def after?
       !!@after
     end
@@ -49,8 +57,9 @@ module Hub
 
     extend Context
 
-    API_REPO = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
 
     def clone(args)
       ssh = args.delete('-p')
@@ -90,7 +99,7 @@ module Hub
     end
 
     def remote(args)
-      return if args[1] != 'add' || args.last =~ %r{.+?://|.+?@|^[./]}
+      return unless ['add','set-url'].include?(args[1]) && args.last !~ %r{.+?://|.+?@|^[./]}
 
       ssh = args.delete('-p')
 
@@ -191,6 +200,47 @@ module Hub
           args.replace %W"remote add -f #{github_user} #{url}"
           args.after { puts "new remote: #{github_user}" }
         end
+      end
+    end
+
+    def create(args)
+      if !is_repo?
+        puts "'create' must be run from inside a git repository"
+        args.skip!
+      elsif github_user && github_token
+        args.shift
+        options = {}
+        options[:private] = true if args.delete('-p')
+
+        until args.empty?
+          case arg = args.shift
+          when '-d'
+            options[:description] = args.shift
+          when '-h'
+            options[:homepage] = args.shift
+          else
+            puts "unexpected argument: #{arg}"
+            return
+          end
+        end
+
+        if repo_exists?(github_user)
+          puts "#{github_user}/#{repo_name} already exists on GitHub"
+          action = "set remote origin"
+        else
+          action = "created repository"
+          create_repo(options)
+        end
+
+        url = github_url(:private => true)
+
+        if remotes.first != 'origin'
+          args.replace %W"remote add -f origin #{url}"
+        else
+          args.replace %W"remote -v"
+        end
+
+        args.after { puts "#{action}: #{github_user}/#{repo_name}" }
       end
     end
 
@@ -327,7 +377,7 @@ module Hub
       if command == 'hub'
         puts hub_manpage
         exit
-      elsif command.nil?
+      elsif command.nil? && args.grep(/^--?a/).empty?
         ENV['GIT_PAGER'] = '' if args.grep(/^-{1,2}p/).empty? # Use `cat`.
         puts improved_help_text
         exit
@@ -380,7 +430,7 @@ help
   private
 
     def command?(name)
-      `type -t #{name}`
+      `which #{name} 2>/dev/null`
       $?.success?
     end
 
@@ -477,6 +527,17 @@ help
       url = API_FORK % [repo_owner, repo_name]
       Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
     end
+
+    def create_repo(options = {})
+      url = API_CREATE
+      params = {'login' => github_user, 'token' => github_token, 'name' => repo_name}
+      params['public'] = '0' if options[:private]
+      params['description'] = options[:description] if options[:description]
+      params['homepage'] = options[:homepage] if options[:homepage]
+
+      Net::HTTP.post_form(URI(url), params)
+    end
+
   end
 end
 module Hub
@@ -487,10 +548,14 @@ module Hub
     end
 
     REMOTES = Hash.new do |cache, remote|
-      url = GIT_CONFIG["config remote.#{remote}.url"]
+      if remote
+        url = GIT_CONFIG["config remote.#{remote}.url"]
 
-      if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
-        cache[remote] = { :user => $1, :repo => $2 }
+        if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+          cache[remote] = { :user => $1, :repo => $2 }
+        else
+          cache[remote] = { }
+        end
       else
         cache[remote] = { }
       end
@@ -536,7 +601,7 @@ module Hub
     end
 
     def remotes
-      list = GIT_CONFIG['remote'].split("\n")
+      list = GIT_CONFIG['remote'].to_s.split("\n")
       main = list.delete('origin') and list.unshift(main)
       list
     end
@@ -546,7 +611,13 @@ module Hub
     end
 
     def current_remote
-      (current_branch && remote_for(current_branch)) || default_remote
+      return if remotes.empty?
+
+      if current_branch
+        remote_for(current_branch)
+      else
+        default_remote
+      end
     end
 
     def default_remote
@@ -567,6 +638,10 @@ module Hub
 
     def http_clone?
       GIT_CONFIG['config --bool hub.http-clone'] == 'true'
+    end
+
+    def is_repo?
+      GIT_CONFIG['config core.repositoryformatversion']
     end
 
     def github_url(options = {})
@@ -619,14 +694,20 @@ module Hub
     end
 
     def command
-      args.to_exec.join(' ')
+      if args.skip?
+        ''
+      else
+        args.to_exec.join(' ')
+      end
     end
 
     def execute
-      if args.after?
-        execute_with_after_callback
-      else
-        exec(*args.to_exec)
+      unless args.skip?
+        if args.after?
+          execute_with_after_callback
+        else
+          exec(*args.to_exec)
+        end
       end
     end
 
@@ -642,14 +723,14 @@ module Hub
   end
 end
 module Hub
-  Version = VERSION = '1.3.2'
+  Version = VERSION = '1.4.1'
 end
 Hub::Runner.execute(*ARGV)
 __END__
 .\" generated with Ronn/v0.5
 .\" http://github.com/rtomayko/ronn/
 .
-.TH "HUB" "1" "June 2010" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "August 2010" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -664,10 +745,13 @@ __END__
 \fBgit init \-g\fR \fIOPTIONS\fR
 .
 .br
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]: \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
 .
 .br
 \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[/\fIREPOSITORY\fR]
+.
+.br
+\fBgit remote set\-url\fR [\fB\-p\fR] \fIOPTIONS\fR \fIREMOTE\-NAME\fR \fIUSER\fR[/\fIREPOSITORY\fR]
 .
 .br
 \fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
@@ -694,52 +778,67 @@ __END__
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:
 .
-.TP
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+.IP "\(bu" 4
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR:
 Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output. With the \fB\-s\fR option, the output of
 this command can be evaluated directly within the shell:
 .
 .br
 \fBeval $(hub alias \-s bash)\fR
 .
-.TP
-\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR
+.IP "\(bu" 4
+\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR:
 Create a git repository as with git\-init(1) and add remote \fBorigin\fR at
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory's basename.
 .
-.TP
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.IP "\(bu" 4
+\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]:
+Create a new public github repository from the current git
+repository and add remote \fBorigin\fR at
+"git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git"; \fIUSER\fR is your GitHub
+username and \fIREPOSITORY\fR is the current working directory's
+basename. With \fB\-p\fR, create a private repository. \fB\-d\fR and \fB\-h\fR
+set the repository's description and homepage, respectively.
+.
+.IP "\(bu" 4
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR:
 Clone repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-clone(1). When \fIUSER\fR/ is omitted, assumes
 your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
-.TP
-\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]
+.IP "\(bu" 4
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]:
 Add remote "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" as with
 git\-remote(1). When /\fIREPOSITORY\fR is omitted, the basename of the
 current working directory is used. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git". If \fIUSER\fR is "origin"
 then uses your GitHub login.
 .
-.TP
-\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]
+.IP "\(bu" 4
+\fBgit remote set\-url\fR [\fB\-p\fR] \fIOPTIONS\fR \fIREMOTE\-NAME\fR \fIUSER\fR[/\fIREPOSITORY\fR]
+.
+.br
+Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote add\fR.
+.
+.IP "\(bu" 4
+\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,...]:
 Adds missing remote(s) with \fBgit remote add\fR prior to fetching. New
 remotes are only added if they correspond to valid forks on GitHub.
 .
-.TP
-\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
+.IP "\(bu" 4
+\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR:
 Cherry\-pick a commit from a fork using either full URL to the commit
 or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR. If the remote
 doesn't yet exist, it will be added. A \fBgit fetch <user>\fR is issued
 prior to the cherry\-pick attempt.
 .
-.TP
-\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR
+.IP "\(bu" 4
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,...,\fIREMOTE\-N\fR \fIREF\fR:
 Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing
 multiple \fBgit push\fR commands.
 .
-.TP
-\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
+.IP "\(bu" 4
+\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]:
 Open repository's GitHub page in the system's default web browser
 using \fBopen(1)\fR or the \fBBROWSER\fR env variable. Use \fB\-p\fR to open a
 page with https. If the repository isn't specified, \fBbrowse\fR opens
@@ -747,27 +846,29 @@ the page of the repository found in the current directory. If SUBPAGE
 is specified, the browser will open on the specified subpage: one of
 "wiki", "commits", "issues" or other (the default is "tree").
 .
-.TP
-\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR
+.IP "\(bu" 4
+\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR...]\fIEND\fR:
 Open a GitHub compare view page in the system's default web browser. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If \fISTART\fR is omitted, GitHub will
 compare against the base branch (the default is "master").
 .
-.TP
-\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.IP "\(bu" 4
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR:
 Submodule repository "git://github.com/\fIUSER\fR/\fIREPOSITORY\fR.git" into \fIDIRECTORY\fR as with git\-submodule(1). When \fIUSER\fR/ is omitted, assumes
 your GitHub login. With \fB\-p\fR, use private remote
 "git@github.com:\fIUSER\fR/\fIREPOSITORY\fR.git".
 .
-.TP
-\fBgit fork\fR [\fB\-\-no\-remote\fR]
+.IP "\(bu" 4
+\fBgit fork\fR [\fB\-\-no\-remote\fR]:
 Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username. Requires \fBgithub.token\fR to
 be set (see CONFIGURATION).
 .
-.TP
-\fBgit help\fR
+.IP "\(bu" 4
+\fBgit help\fR:
 Display enhanced git\-help(1).
+.
+.IP "" 0
 .
 .SH "CONFIGURATION"
 Use git\-config(1) to display the currently configured GitHub username:
@@ -899,6 +1000,16 @@ $ git fork
 $ git init \-g
 > git init
 > git remote add origin git@github.com:YOUR_USER/REPO.git
+.
+.fi
+.
+.SS "git create"
+.
+.nf
+
+$ git create
+... hardcore creating action ...
+> git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
 .
 .fi
 .
