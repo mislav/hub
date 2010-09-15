@@ -1,6 +1,10 @@
 #!/bin/sh
-if [[ $1 == "--version" ]]; then
+if [ "$1" = "--version" ]; then
   echo "git version 1.7.0.4"
+elif [ "$1" = "--exec-path" ]; then
+  echo "/usr/lib/git-core"
+elif [ "$1" = "--html-path" ]; then
+  echo "/usr/share/doc/git-doc"
 else
   echo "ERROR: git was called, but wasn't supposed to:" git $*
   exit 1
