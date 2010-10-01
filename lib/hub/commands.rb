@@ -232,7 +232,8 @@ module Hub
 
     # $ hub fork
     # ... hardcore forking action ...
-    # > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+    # > git config remote.origin.url git@github.com:YOUR_USER/CURRENT_REPO.git
+    # > git remote add -f upstream git@github.com:ORIGINAL_USER/CURRENT_REPO.git
     def fork(args)
       # can't do anything without token and original owner name
       if github_user && github_token && repo_owner
@@ -245,9 +246,11 @@ module Hub
         if args.include?('--no-remote')
           exit
         else
-          url = github_url(:private => true)
-          args.replace %W"remote add -f #{github_user} #{url}"
-          args.after { puts "new remote: #{github_user}" }
+          old_url = origin_url
+          new_url = github_url(:private => true)
+
+          args.replace %W"config remote.origin.url #{new_url}"
+          args.after "git remote add -f upstream #{old_url}"
         end
       end
     end

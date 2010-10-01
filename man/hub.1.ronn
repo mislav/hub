@@ -95,9 +95,10 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git".
 
   * `git fork` [`--no-remote`]:
-    Forks the original project (referenced by "origin" remote) on GitHub and
-    adds a new remote for it under your username. Requires `github.token` to
-    be set (see CONFIGURATION).
+    Forks the original project (referenced by "origin" remote) on GitHub,
+    changes "origin" to point at the fork and adds a new remote for the old
+    origin under "upstream". Requires `github.token` to be set (see
+    CONFIGURATION).
 
   * `git help`:
     Display enhanced git-help(1).

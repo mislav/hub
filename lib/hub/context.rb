@@ -138,5 +138,9 @@ module Hub
         url % [user, repo]
       end
     end
+
+    def origin_url
+      GIT_CONFIG['config remote.origin.url']
+    end
   end
 end
