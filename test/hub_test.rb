@@ -2,8 +2,18 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 require 'webmock/test_unit'
 
+WebMock::BodyPattern.class_eval do
+  undef normalize_hash
+  # override normalizing hash since it otherwise requires JSON
+  def normalize_hash(hash) hash end
+end
+
 class HubTest < Test::Unit::TestCase
-  include WebMock
+  if defined? WebMock::API
+    include WebMock::API
+  else
+    include WebMock
+  end
 
   COMMANDS = []
 
@@ -385,10 +395,9 @@ class HubTest < Test::Unit::TestCase
   def test_create
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
-      params = Hash[*req.body.split(/[&=]/)]
-      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' }
-    }
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
+
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
@@ -397,10 +406,9 @@ class HubTest < Test::Unit::TestCase
   def test_create_private_repository
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
-      params = Hash[*req.body.split(/[&=]/)]
-      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'public' => '0' }
-    }
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'public' => '0' })
+
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
     assert_equal expected, hub("create -p") { ENV['GIT'] = 'echo' }
@@ -409,13 +417,14 @@ class HubTest < Test::Unit::TestCase
   def test_create_with_description_and_homepage
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
-      params = Hash[*req.body.split(/[&=]/)]
-      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'description' => 'description', 'homepage' => 'http%3a%2f%2fgithub.com%2ftpw%2fhub.git' }
-    }
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").with(:body => {
+      'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub',
+      'description' => 'toyproject', 'homepage' => 'http://example.com'
+    })
+
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
-    assert_equal expected, hub("create -d description -h http://github.com/tpw/hub.git") { ENV['GIT'] = 'echo' }
+    assert_equal expected, hub("create -d toyproject -h http://example.com") { ENV['GIT'] = 'echo' }
   end
 
   def test_create_with_existing_repository
@@ -443,10 +452,8 @@ class HubTest < Test::Unit::TestCase
 
   def test_create_origin_already_exists
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
-      params = Hash[*req.body.split(/[&=]/)]
-      params == { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' }
-    }
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
 
     expected = "remote -v\ncreated repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
@@ -454,10 +461,8 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").with { |req|
-      params = Hash[*req.body.split(/[&=]/)]
-      params == { 'login'=>'tpw', 'token'=>'abc123' }
-    }
+    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
+      with(:body => { 'login'=>'tpw', 'token'=>'abc123' })
 
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
