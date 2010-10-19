@@ -34,7 +34,7 @@ module Hub
     end
 
     def repo_name
-      REMOTES[default_remote][:repo] || File.basename(Dir.pwd)
+      REMOTES[default_remote][:repo] || current_dirname
     end
 
     # Either returns the GitHub user as set by git-config(1) or aborts
@@ -137,6 +137,12 @@ module Hub
 
         url % [user, repo]
       end
+    end
+
+    DIRNAME = File.basename(Dir.pwd)
+
+    def current_dirname
+      DIRNAME
     end
   end
 end

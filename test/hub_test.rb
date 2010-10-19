@@ -16,6 +16,7 @@ class HubTest < Test::Unit::TestCase
 
   def setup
     COMMANDS.replace %w[open groff]
+    Hub::Context::DIRNAME.replace 'hub'
 
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
       raise ArgumentError, "`git #{k}` not stubbed"
@@ -356,10 +357,9 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_init
-    dirname = File.basename(Dir.pwd)
     h = Hub("init -g")
     assert_equal "git init", h.command
-    assert_equal "git remote add origin git@github.com:tpw/#{dirname}.git", h.after
+    assert_equal "git remote add origin git@github.com:tpw/hub.git", h.after
   end
 
   def test_init_no_login
