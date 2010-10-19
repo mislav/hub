@@ -383,7 +383,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create
-    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_no_remotes
     stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
       params = Hash[*req.body.split(/[&=]/)]
@@ -395,7 +395,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create_private_repository
-    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_no_remotes
     stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
       params = Hash[*req.body.split(/[&=]/)]
@@ -407,7 +407,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create_with_description_and_homepage
-    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_no_remotes
     stub_nonexisting_fork('tpw')
     stub_request(:post, "github.com/api/v2/yaml/repos/create").with { |req|
       params = Hash[*req.body.split(/[&=]/)]
@@ -419,7 +419,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create_with_existing_repository
-    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_no_remotes
     stub_existing_fork('tpw')
 
     expected = "tpw/hub already exists on GitHub\n"
@@ -429,7 +429,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create_no_user
-    Hub::Context::GIT_CONFIG['remote'] = nil # new repositories don't have remotes
+    stub_no_remotes
     out = hub("create") do
       stub_github_token(nil)
     end
@@ -437,10 +437,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_create_outside_git_repo
-    @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
-        nil
-      })
-
+    stub_no_git_repo
     assert_equal "'create' must be run from inside a git repository\n", hub("create")
   end
 
@@ -694,6 +691,14 @@ config
 
     def stub_remotes_group(name, value)
       @git["config remotes.#{name}"] = value
+    end
+
+    def stub_no_remotes
+      @git['remote'] = ''
+    end
+
+    def stub_no_git_repo
+      @git.replace({})
     end
 
     def stub_existing_fork(user)
