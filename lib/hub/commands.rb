@@ -149,16 +149,16 @@ module Hub
       if args.include?('--multiple')
         names = args.words[1..-1]
       # $ hub fetch <name>
-      elsif name = args.words[1]
+      elsif remote_name = args.words[1]
         # $ hub fetch <name1>,<name2>,...
-        if name =~ /^\w+(,\w+)+$/
-          index = args.index(name)
-          args.delete(name)
-          names = name.split(',')
+        if remote_name =~ /^\w+(,\w+)+$/
+          index = args.index(remote_name)
+          args.delete(remote_name)
+          names = remote_name.split(',')
           args.insert(index, *names)
           args.insert(index, '--multiple')
         else
-          names = [name]
+          names = [remote_name]
         end
       else
         names = []
