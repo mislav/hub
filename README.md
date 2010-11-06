@@ -30,7 +30,7 @@ Install
 
 `hub` is most easily installed as a standalone script:
 
-    curl -s http://chriswanstrath.com/hub/standalone > ~/bin/hub &&
+    curl http://chriswanstrath.com/hub/standalone -sLo ~/bin/hub &&
     chmod 755 ~/bin/hub
 
 Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
