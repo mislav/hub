@@ -2,6 +2,8 @@ module Hub
   # Provides methods for inspecting the environment, such as GitHub user/token
   # settings, repository info, and similar.
   module Context
+    private
+
     # Caches output when shelling out to git
     GIT_CONFIG = Hash.new do |cache, cmd|
       result = %x{git #{cmd}}.chomp

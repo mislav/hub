@@ -685,6 +685,10 @@ config
     end
   end
 
+  def test_context_method_doesnt_hijack_git_command
+    assert_command 'remotes', 'git remotes'
+  end
+
   protected
 
     def stub_github_user(name)
