@@ -11,7 +11,7 @@ module Hub
       @args = Args.new(args)
 
       # Hack to emulate git-style
-      @args.unshift 'help' if @args.grep(/^[^-]|version/).empty?
+      @args.unshift 'help' if @args.grep(/^[^-]|version|exec-path$|html-path/).empty?
 
       # git commands can have dashes
       cmd = @args[0].sub(/(\w)-/, '\1_')

@@ -491,6 +491,21 @@ class HubTest < Test::Unit::TestCase
     assert_includes "hub version #{Hub::Version}", out
   end
 
+  def test_exec_path
+    out = hub('--exec-path')
+    assert_equal "/usr/lib/git-core\n", out
+  end
+
+  def test_exec_path_arg
+    out = hub('--exec-path=/home/wombat/share/my-l33t-git-core')
+    assert_equal Hub::Commands.improved_help_text, hub("")
+  end
+
+  def test_html_path
+    out = hub('--html-path')
+    assert_equal "/usr/share/doc/git-doc\n", out
+  end
+
   def test_help
     assert_equal Hub::Commands.improved_help_text, hub("help")
   end
