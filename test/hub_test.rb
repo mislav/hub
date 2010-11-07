@@ -27,6 +27,7 @@ class HubTest < Test::Unit::TestCase
   def setup
     COMMANDS.replace %w[open groff]
     Hub::Context::DIRNAME.replace 'hub'
+    Hub::Context::REMOTES.clear
 
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
       raise ArgumentError, "`git #{k}` not stubbed"
@@ -35,8 +36,8 @@ class HubTest < Test::Unit::TestCase
       'symbolic-ref -q HEAD' => 'refs/heads/master',
       'config github.user'   => 'tpw',
       'config github.token'  => 'abc123',
-      'config remote.origin.url'     => 'git://github.com/defunkt/hub.git',
-      'config remote.mislav.url'     => 'git://github.com/mislav/hub.git',
+      'config --get-all remote.origin.url' => 'git://github.com/defunkt/hub.git',
+      'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
       'config branch.master.remote'  => 'origin',
       'config branch.master.merge'   => 'refs/heads/master',
       'config branch.feature.remote' => 'mislav',
@@ -689,6 +690,11 @@ config
     assert_command 'remotes', 'git remotes'
   end
 
+  def test_multiple_remote_urls
+    stub_repo_url("git://example.com/other.git\ngit://github.com/my/repo.git")
+    assert_command "browse", "open http://github.com/my/repo"
+  end
+
   protected
 
     def stub_github_user(name)
@@ -700,7 +706,7 @@ config
     end
 
     def stub_repo_url(value)
-      @git['config remote.origin.url'] = value
+      @git['config --get-all remote.origin.url'] = value
       Hub::Context::REMOTES.clear
     end
 

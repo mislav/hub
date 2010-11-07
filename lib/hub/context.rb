@@ -13,9 +13,9 @@ module Hub
     # Parses URLs for git remotes and stores info
     REMOTES = Hash.new do |cache, remote|
       if remote
-        url = GIT_CONFIG["config remote.#{remote}.url"]
+        urls = GIT_CONFIG["config --get-all remote.#{remote}.url"].to_s.split("\n")
 
-        if url && url.to_s =~ %r{\bgithub\.com[:/](.+)/(.+).git$}
+        if urls.find { |u| u =~ %r{\bgithub\.com[:/](.+)/(.+).git$} } 
           cache[remote] = { :user => $1, :repo => $2 }
         else
           cache[remote] = { }
