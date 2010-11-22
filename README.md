@@ -249,7 +249,7 @@ GitHub Login
 ------------
 
 To get the most out of `hub`, you'll want to ensure your GitHub login
-is stored locally in your Git config.
+is stored locally in your Git config or environment variables.
 
 To test it run this:
 
@@ -262,6 +262,12 @@ If you see nothing, you need to set the config setting:
 For commands that require write access to GitHub (such as `fork`), you'll want to
 setup "github.token" as well. See [local GitHub config guide][2] for more information.
 
+Want to use environment variables instead of a local gitconfig?
+
+* `GITHUB_USER`  - If set, this will be used instead of the `github.user` config
+                   value to determine your GitHub username.
+* `GITHUB_TOKEN` - If set, this will be used instead of the `github.token` config
+                   value to determine your GitHub API token.
 
 Configuration
 -------------

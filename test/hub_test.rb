@@ -404,6 +404,27 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_with_env_authentication
+    stub_no_remotes
+    stub_nonexisting_fork('mojombo')
+
+    old_user  = ENV['GITHUB_USER']
+    old_token = ENV['GITHUB_TOKEN']
+    ENV['GITHUB_USER']  = 'mojombo'
+    ENV['GITHUB_TOKEN'] = '123abc'
+
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+      with(:body => { 'login'=>'mojombo', 'token'=>'123abc', 'name' => 'hub' })
+
+    expected = "remote add -f origin git@github.com:mojombo/hub.git\n"
+    expected << "created repository: mojombo/hub\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+
+  ensure
+    ENV['GITHUB_USER']  = old_user
+    ENV['GITHUB_TOKEN'] = old_token
+  end
+
   def test_create_private_repository
     stub_no_remotes
     stub_nonexisting_fork('tpw')

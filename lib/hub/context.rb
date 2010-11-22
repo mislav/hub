@@ -42,7 +42,7 @@ module Hub
     # Either returns the GitHub user as set by git-config(1) or aborts
     # with an error message.
     def github_user(fatal = true)
-      if user = GIT_CONFIG['config github.user']
+      if user = ENV['GITHUB_USER'] || GIT_CONFIG['config github.user']
         user
       elsif fatal
         abort("** No GitHub user set. See #{LGHCONF}")
@@ -50,7 +50,7 @@ module Hub
     end
 
     def github_token(fatal = true)
-      if token = GIT_CONFIG['config github.token']
+      if token = ENV['GITHUB_TOKEN'] || GIT_CONFIG['config github.token']
         token
       elsif fatal
         abort("** No GitHub token set. See #{LGHCONF}")

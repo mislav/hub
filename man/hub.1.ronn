@@ -121,6 +121,14 @@ cloning:
 
     $ git config --global --bool hub.http-clone true
 
+Want to use environment variables instead of a local gitconfig for
+authentication?
+
+* `GITHUB_USER`  - If set, this will be used instead of the `github.user` config
+                   value to determine your GitHub username.
+* `GITHUB_TOKEN` - If set, this will be used instead of the `github.token`
+                   config value to determine your GitHub API token.
+
 ## EXAMPLES
 
 ### git clone
