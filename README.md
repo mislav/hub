@@ -315,7 +315,7 @@ contribute to `hub`:
 * `turn` (`gem install turn`)
 * `mg` (`gem install mg`)
 * `ronn` (`gem install ronn`)
-* `webhelper` (`gem install webhelper`)
+* `webmock` (`gem install webmock`)
 
 Meta
 ----
