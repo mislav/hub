@@ -246,9 +246,9 @@ cloning:
 
 <http://github.com/defunkt/hub/issues>
 
-## AUTHOR
+## AUTHORS
 
-Chris Wanstrath :: chris@ozmm.org :: @defunkt
+<https://github.com/defunkt/hub/contributors>
 
 ## SEE ALSO
 

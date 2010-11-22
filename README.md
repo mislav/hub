@@ -328,10 +328,10 @@ Meta
 * Gems: <http://gemcutter.org/gems/git-hub>
 
 
-Author
-------
+Authors
+-------
 
-Chris Wanstrath :: chris@ozmm.org :: @defunkt
+<https://github.com/defunkt/hub/contributors>
 
 [0]: http://help.github.com/forking/
 [1]: http://github.com/defunkt/hub/issues
