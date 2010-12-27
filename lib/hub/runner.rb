@@ -15,7 +15,7 @@ module Hub
 
       # git commands can have dashes
       cmd = @args[0].sub(/(\w)-/, '\1_')
-      Commands.send(cmd, @args) if Commands.respond_to?(cmd)
+      Commands.send(cmd, @args) if Commands.method_defined?(cmd)
     end
 
     # Shortcut

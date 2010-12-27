@@ -13,6 +13,7 @@ module Hub
       @executable = ENV["GIT"] || "git"
       @after = nil
       @skip = false
+      @original_args = args.first
     end
 
     # With no arguments, returns the `after` callback.
@@ -73,6 +74,11 @@ module Hub
     # args.flags == [ '-f' ]
     def flags
       self - words
+    end
+
+    # Tests if arguments were modified since instantiation
+    def changed?
+      self != @original_args
     end
   end
 end

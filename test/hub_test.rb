@@ -711,6 +711,11 @@ config
     assert_command 'remotes', 'git remotes'
   end
 
+  def test_not_choking_on_ruby_methods
+    assert_forwarded 'id'
+    assert_forwarded 'name'
+  end
+
   def test_multiple_remote_urls
     stub_repo_url("git://example.com/other.git\ngit://github.com/my/repo.git")
     assert_command "browse", "open http://github.com/my/repo"

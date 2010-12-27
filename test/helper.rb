@@ -70,6 +70,12 @@ class Test::Unit::TestCase
     assert_equal expected, Hub(input).command, "$ git #{input}"
   end
 
+  # Asserts that the command will be forwarded to git without changes
+  def assert_forwarded(input)
+    cmd = Hub(input)
+    assert !cmd.args.changed?, "arguments were not supposed to change: #{cmd.args.inspect}"
+  end
+
   # Asserts that `hub` will show a specific alias command for a
   # specific shell.
   #
