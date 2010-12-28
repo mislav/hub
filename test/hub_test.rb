@@ -642,8 +642,10 @@ config
       "open https://github.com/defunkt/hub/anything/everything"
   end
 
-  def test_hub_browse_current_private
-    assert_command "browse -p", "open https://github.com/defunkt/hub"
+  def test_hub_browse_deprecated_private
+    with_browser_env('echo') do
+      assert_includes "Warning: the `-p` flag has no effect anymore\n", hub("browse -p defunkt/hub")
+    end
   end
 
   def test_hub_browse_no_repo
