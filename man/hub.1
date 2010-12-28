@@ -40,10 +40,10 @@
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR \fIREF\fR
 .
 .br
-\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
+\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
 .
 .br
-\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR
+\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR
 .
 .br
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
@@ -100,10 +100,10 @@ Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote 
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR \fIREF\fR: Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing multiple \fBgit push\fR commands\.
 .
 .IP "\(bu" 4
-\fBgit browse\fR [\fB\-p\fR] [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]: Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. Use \fB\-p\fR to open a page with https\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\.
+\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]: Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\.
 .
 .IP "\(bu" 4
-\fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR: Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\.
+\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR: Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\.
 .
 .IP "\(bu" 4
 \fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR:
@@ -301,25 +301,19 @@ $ git push origin,staging,qa bert_timeout
 .nf
 
 $ git browse
-> open http://github\.com/CURRENT_REPO
+> open https://github\.com/CURRENT_REPO
 
 $ git browse \-\- issues
-> open http://github\.com/CURRENT_REPO/issues
+> open https://github\.com/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
-> open http://github\.com/schacon/ticgit
-
-$ git browse \-p schacon/ticgit
 > open https://github\.com/schacon/ticgit
 
 $ git browse resque
-> open http://github\.com/YOUR_USER/resque
+> open https://github\.com/YOUR_USER/resque
 
 $ git browse resque network
-> open http://github\.com/YOUR_USER/resque/network
-
-$ git browse \-p resque
-> open https://github\.com/YOUR_USER/resque
+> open https://github\.com/YOUR_USER/resque/network
 .
 .fi
 .
@@ -328,16 +322,16 @@ $ git browse \-p resque
 .nf
 
 $ git compare refactor
-> open http://github\.com/CURRENT_REPO/compare/refactor
+> open https://github\.com/CURRENT_REPO/compare/refactor
 
 $ git compare 1\.0\.\.\.1\.1
-> open http://github\.com/CURRENT_REPO/compare/1\.0\.\.\.1\.1
+> open https://github\.com/CURRENT_REPO/compare/1\.0\.\.\.1\.1
 
 $ git compare \-u fix
-> (http://github\.com/CURRENT_REPO/compare/fix)
+> (https://github\.com/CURRENT_REPO/compare/fix)
 
 $ git compare other\-user patch
-> open http://github\.com/other\-user/REPO/compare/patch
+> open https://github\.com/other\-user/REPO/compare/patch
 .
 .fi
 .

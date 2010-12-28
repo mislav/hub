@@ -121,10 +121,7 @@ module Hub
       repo ||= repo_name
       secure = options[:private]
 
-      if options[:web] == 'wiki'
-        scheme = secure ? 'https:' : 'http:'
-        '%s//wiki.github.com/%s/%s/' % [scheme, user, repo]
-      elsif options[:web]
+      if options[:web]
         scheme = secure ? 'https:' : 'http:'
         path = options[:web] == true ? '' : options[:web].to_s
         '%s//github.com/%s/%s%s' % [scheme, user, repo, path]

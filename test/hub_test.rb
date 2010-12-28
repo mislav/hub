@@ -310,15 +310,8 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_cherry_pick_url_with_remote_add
-    url = 'http://github.com/xoebus/hub/commit/a319d88'
-    assert_commands "git remote add -f xoebus git://github.com/xoebus/hub.git",
-                    "git cherry-pick a319d88",
-                    "cherry-pick #{url}"
-  end
-
-  def test_cherry_pick_private_url_with_remote_add
     url = 'https://github.com/xoebus/hub/commit/a319d88'
-    assert_commands "git remote add -f xoebus git@github.com:xoebus/hub.git",
+    assert_commands "git remote add -f xoebus git://github.com/xoebus/hub.git",
                     "git cherry-pick a319d88",
                     "cherry-pick #{url}"
   end
@@ -560,7 +553,7 @@ config
 
   def test_hub_compare
     assert_command "compare refactor",
-      "open http://github.com/defunkt/hub/compare/refactor"
+      "open https://github.com/defunkt/hub/compare/refactor"
   end
 
   def test_hub_compare_nothing
@@ -578,89 +571,75 @@ config
     stub_branch('refs/heads/feature')
 
     assert_command "compare",
-      "open http://github.com/mislav/hub/compare/experimental"
+      "open https://github.com/mislav/hub/compare/experimental"
   end
 
   def test_hub_compare_range
     assert_command "compare 1.0...fix",
-      "open http://github.com/defunkt/hub/compare/1.0...fix"
+      "open https://github.com/defunkt/hub/compare/1.0...fix"
   end
 
   def test_hub_compare_fork
     assert_command "compare myfork feature",
-      "open http://github.com/myfork/hub/compare/feature"
-  end
-
-  def test_hub_compare_private
-    assert_command "compare -p myfork topsecret",
-      "open https://github.com/myfork/hub/compare/topsecret"
+      "open https://github.com/myfork/hub/compare/feature"
   end
 
   def test_hub_compare_url
     assert_command "compare -u 1.0...1.1",
-      "echo http://github.com/defunkt/hub/compare/1.0...1.1"
+      "echo https://github.com/defunkt/hub/compare/1.0...1.1"
   end
 
   def test_hub_browse
-    assert_command "browse mojombo/bert", "open http://github.com/mojombo/bert"
+    assert_command "browse mojombo/bert", "open https://github.com/mojombo/bert"
   end
 
   def test_hub_browse_tracking_nothing
     stub_tracking_nothing
-    assert_command "browse mojombo/bert", "open http://github.com/mojombo/bert"
+    assert_command "browse mojombo/bert", "open https://github.com/mojombo/bert"
   end
 
   def test_hub_browse_url
-    assert_command "browse -u mojombo/bert", "echo http://github.com/mojombo/bert"
-  end
-
-  def test_hub_browse_private
-    assert_command "browse -p bmizerany/sinatra",
-      "open https://github.com/bmizerany/sinatra"
+    assert_command "browse -u mojombo/bert", "echo https://github.com/mojombo/bert"
   end
 
   def test_hub_browse_self
-    assert_command "browse resque", "open http://github.com/tpw/resque"
+    assert_command "browse resque", "open https://github.com/tpw/resque"
   end
 
   def test_hub_browse_subpage
     assert_command "browse resque commits",
-      "open http://github.com/tpw/resque/commits/master"
+      "open https://github.com/tpw/resque/commits/master"
     assert_command "browse resque issues",
-      "open http://github.com/tpw/resque/issues"
+      "open https://github.com/tpw/resque/issues"
     assert_command "browse resque wiki",
-      "open http://wiki.github.com/tpw/resque/"
+      "open https://github.com/tpw/resque/wiki"
   end
 
   def test_hub_browse_on_branch
     stub_branch('refs/heads/feature')
 
-    assert_command "browse resque", "open http://github.com/tpw/resque"
+    assert_command "browse resque", "open https://github.com/tpw/resque"
     assert_command "browse resque commits",
-      "open http://github.com/tpw/resque/commits/master"
+      "open https://github.com/tpw/resque/commits/master"
 
     assert_command "browse",
-      "open http://github.com/mislav/hub/tree/experimental"
+      "open https://github.com/mislav/hub/tree/experimental"
     assert_command "browse -- tree",
-      "open http://github.com/mislav/hub/tree/experimental"
+      "open https://github.com/mislav/hub/tree/experimental"
     assert_command "browse -- commits",
-      "open http://github.com/mislav/hub/commits/experimental"
-  end
-
-  def test_hub_browse_self_private
-    assert_command "browse -p github", "open https://github.com/tpw/github"
+      "open https://github.com/mislav/hub/commits/experimental"
   end
 
   def test_hub_browse_current
-    assert_command "browse", "open http://github.com/defunkt/hub"
-    assert_command "browse --", "open http://github.com/defunkt/hub"
+    assert_command "browse", "open https://github.com/defunkt/hub"
+    assert_command "browse --", "open https://github.com/defunkt/hub"
   end
 
   def test_hub_browse_current_subpage
     assert_command "browse -- network",
-      "open http://github.com/defunkt/hub/network"
+      "open https://github.com/defunkt/hub/network"
     assert_command "browse -- anything/everything",
-      "open http://github.com/defunkt/hub/anything/everything"
+      "open https://github.com/defunkt/hub/anything/everything"
   end
 
   def test_hub_browse_current_private
@@ -717,7 +696,7 @@ config
 
   def test_multiple_remote_urls
     stub_repo_url("git://example.com/other.git\ngit://github.com/my/repo.git")
-    assert_command "browse", "open http://github.com/my/repo"
+    assert_command "browse", "open https://github.com/my/repo"
   end
 
   protected
@@ -788,7 +767,7 @@ config
     end
 
     def assert_browser(browser)
-      assert_command "browse", "#{browser} http://github.com/defunkt/hub"
+      assert_command "browse", "#{browser} https://github.com/defunkt/hub"
     end
 
     def with_ruby_platform(value)

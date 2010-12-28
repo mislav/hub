@@ -191,39 +191,33 @@ Creates a new public github repository and adds the remote `origin` at
 ### git browse
 
     $ git browse
-    > open http://github.com/CURRENT_REPO
+    > open https://github.com/CURRENT_REPO
 
     $ git browse -- issues
-    > open http://github.com/CURRENT_REPO/issues
+    > open https://github.com/CURRENT_REPO/issues
 
     $ git browse schacon/ticgit
-    > open http://github.com/schacon/ticgit
-
-    $ git browse -p schacon/ticgit
     > open https://github.com/schacon/ticgit
 
     $ git browse resque
-    > open http://github.com/YOUR_USER/resque
+    > open https://github.com/YOUR_USER/resque
 
     $ git browse resque network
-    > open http://github.com/YOUR_USER/resque/network
-
-    $ git browse -p resque
-    > open https://github.com:YOUR_USER/resque
+    > open https://github.com/YOUR_USER/resque/network
 
 ### git compare
 
     $ git compare refactor
-    > open http://github.com/CURRENT_REPO/compare/refactor
+    > open https://github.com/CURRENT_REPO/compare/refactor
 
     $ git compare 1.0...1.1
-    > open http://github.com/CURRENT_REPO/compare/1.0...1.1
+    > open https://github.com/CURRENT_REPO/compare/1.0...1.1
 
     $ git compare -u fix
-    > (http://github.com/CURRENT_REPO/compare/fix)
+    > (https://github.com/CURRENT_REPO/compare/fix)
 
     $ git compare other-user patch
-    > open http://github.com/other-user/REPO/compare/patch
+    > open https://github.com/other-user/REPO/compare/patch
 
 ### git submodule
 
