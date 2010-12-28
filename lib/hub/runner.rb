@@ -35,7 +35,11 @@ module Hub
     # An array of all commands as strings.
     def commands
       args.commands.map do |cmd|
-        cmd.respond_to?(:join) ? cmd.join(' ') : cmd.to_s
+        if cmd.respond_to?(:join)
+          cmd.map { |c| c.index(' ') ? "'#{c}'" : c }.join(' ')
+        else
+          cmd.to_s
+        end
       end
     end
 

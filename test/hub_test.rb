@@ -347,6 +347,28 @@ class HubTest < Test::Unit::TestCase
                     "cherry-pick xoebus@a319d88"
   end
 
+  def test_am_untouched
+    assert_forwarded "am some.patch"
+  end
+
+  def test_am_pull_request
+    with_tmpdir('/tmp/') do
+      assert_commands "curl -#LA 'hub #{Hub::Version}' https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch",
+                      "git am --signoff /tmp/55.patch -p2",
+                      "am --signoff https://github.com/defunkt/hub/pull/55 -p2"
+    end
+  end
+
+  def test_am_commit_url
+    with_tmpdir('/tmp/') do
+      url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
+
+      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.patch -o /tmp/fdb9921.patch",
+                      "git am --signoff /tmp/fdb9921.patch -p2",
+                      "am --signoff #{url} -p2"
+    end
+  end
+
   def test_init
     assert_commands "git init", "git remote add origin git@github.com:tpw/hub.git", "init -g"
   end
@@ -757,6 +779,13 @@ config
       yield
     ensure
       ENV['BROWSER'] = browser
+    end
+
+    def with_tmpdir(value)
+      dir, ENV['TMPDIR'] = ENV['TMPDIR'], value
+      yield
+    ensure
+      ENV['TMPDIR'] = dir
     end
 
     def assert_browser(browser)

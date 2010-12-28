@@ -215,6 +215,19 @@ module Hub
       end
     end
 
+    # $ hub am https://github.com/defunkt/hub/pull/55
+    # > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    # > git am /tmp/55.patch
+    def am(args)
+      if url = args.find { |a| a =~ %r{^https?://github\.com/} }
+        idx = args.index(url)
+        url += '.patch' unless File.extname(url) == '.patch'
+        patch_file = File.join(ENV['TMPDIR'], File.basename(url))
+        args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
+        args[idx] = patch_file
+      end
+    end
+
     # $ hub init -g
     # > git init
     # > git remote add origin git@github.com:USER/REPO.git
