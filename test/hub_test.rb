@@ -240,18 +240,18 @@ class HubTest < Test::Unit::TestCase
     stub_remotes_group('xoebus', nil)
     stub_existing_fork('xoebus')
 
-    h = Hub("fetch xoebus")
-    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
-    assert_equal "git fetch xoebus", h.after
+    assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
+                    "git fetch xoebus",
+                    "fetch xoebus"
   end
 
   def test_fetch_new_remote_with_options
     stub_remotes_group('xoebus', nil)
     stub_existing_fork('xoebus')
 
-    h = Hub("fetch --depth=1 --prune xoebus")
-    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
-    assert_equal "git fetch --depth=1 --prune xoebus", h.after
+    assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
+                    "git fetch --depth=1 --prune xoebus",
+                    "fetch --depth=1 --prune xoebus"
   end
 
   def test_fetch_multiple_new_remotes
@@ -260,12 +260,10 @@ class HubTest < Test::Unit::TestCase
     stub_existing_fork('xoebus')
     stub_existing_fork('rtomayko')
 
-    h = Hub("fetch --multiple xoebus rtomayko")
-
-    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
-    expected = ["git remote add rtomayko git://github.com/rtomayko/hub.git"] <<
-                "git fetch --multiple xoebus rtomayko"
-    assert_equal expected.join('; '), h.after
+    assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
+                    "git remote add rtomayko git://github.com/rtomayko/hub.git",
+                    "git fetch --multiple xoebus rtomayko",
+                    "fetch --multiple xoebus rtomayko"
   end
 
   def test_fetch_multiple_comma_separated_remotes
@@ -274,12 +272,10 @@ class HubTest < Test::Unit::TestCase
     stub_existing_fork('xoebus')
     stub_existing_fork('rtomayko')
 
-    h = Hub("fetch xoebus,rtomayko")
-
-    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
-    expected = ["git remote add rtomayko git://github.com/rtomayko/hub.git"] <<
-                "git fetch --multiple xoebus rtomayko"
-    assert_equal expected.join('; '), h.after
+    assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
+                    "git remote add rtomayko git://github.com/rtomayko/hub.git",
+                    "git fetch --multiple xoebus rtomayko",
+                    "fetch xoebus,rtomayko"
   end
 
   def test_fetch_multiple_new_remotes_with_filtering
@@ -294,83 +290,65 @@ class HubTest < Test::Unit::TestCase
     # mygrp:  a remotes group; skipped
     # URL:    can't be a username; skipped
     # typo:   fork doesn't exist; skipped
-    h = Hub("fetch --multiple mislav xoebus mygrp git://example.com typo")
-
-    assert_equal "git remote add xoebus git://github.com/xoebus/hub.git", h.command
-    expected = "git fetch --multiple mislav xoebus mygrp git://example.com typo"
-    assert_equal expected, h.after
+    assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
+                    "git fetch --multiple mislav xoebus mygrp git://example.com typo",
+                    "fetch --multiple mislav xoebus mygrp git://example.com typo"
   end
 
   def test_cherry_pick
-    h = Hub("cherry-pick a319d88")
-    assert_equal "git cherry-pick a319d88", h.command
-    assert !h.args.after?
+    assert_forwarded "cherry-pick a319d88"
   end
 
   def test_cherry_pick_url
     url = 'http://github.com/mislav/hub/commit/a319d88'
-    h = Hub("cherry-pick #{url}")
-    assert_equal "git fetch mislav", h.command
-    assert_equal "git cherry-pick a319d88", h.after
+    assert_commands "git fetch mislav", "git cherry-pick a319d88", "cherry-pick #{url}"
   end
 
   def test_cherry_pick_url_with_fragment
     url = 'http://github.com/mislav/hub/commit/abcdef0123456789#comments'
-    h = Hub("cherry-pick #{url}")
-    assert_equal "git fetch mislav", h.command
-    assert_equal "git cherry-pick abcdef0123456789", h.after
+    assert_commands "git fetch mislav", "git cherry-pick abcdef0123456789", "cherry-pick #{url}"
   end
 
   def test_cherry_pick_url_with_remote_add
     url = 'http://github.com/xoebus/hub/commit/a319d88'
-    h = Hub("cherry-pick #{url}")
-    assert_equal "git remote add -f xoebus git://github.com/xoebus/hub.git", h.command
-    assert_equal "git cherry-pick a319d88", h.after
+    assert_commands "git remote add -f xoebus git://github.com/xoebus/hub.git",
+                    "git cherry-pick a319d88",
+                    "cherry-pick #{url}"
   end
 
   def test_cherry_pick_private_url_with_remote_add
     url = 'https://github.com/xoebus/hub/commit/a319d88'
-    h = Hub("cherry-pick #{url}")
-    assert_equal "git remote add -f xoebus git@github.com:xoebus/hub.git", h.command
-    assert_equal "git cherry-pick a319d88", h.after
+    assert_commands "git remote add -f xoebus git@github.com:xoebus/hub.git",
+                    "git cherry-pick a319d88",
+                    "cherry-pick #{url}"
   end
 
   def test_cherry_pick_origin_url
     url = 'https://github.com/defunkt/hub/commit/a319d88'
-    h = Hub("cherry-pick #{url}")
-    assert_equal "git fetch origin", h.command
-    assert_equal "git cherry-pick a319d88", h.after
+    assert_commands "git fetch origin", "git cherry-pick a319d88", "cherry-pick #{url}"
   end
 
   def test_cherry_pick_github_user_notation
-    h = Hub("cherry-pick mislav@a319d88")
-    assert_equal "git fetch mislav", h.command
-    assert_equal "git cherry-pick a319d88", h.after
+    assert_commands "git fetch mislav", "git cherry-pick a319d88", "cherry-pick mislav@a319d88"
   end
 
   def test_cherry_pick_github_user_repo_notation
     # not supported
-    h = Hub("cherry-pick mislav/hubbub@a319d88")
-    assert_equal "git cherry-pick mislav/hubbub@a319d88", h.command
-    assert !h.args.after?
+    assert_forwarded "cherry-pick mislav/hubbub@a319d88"
   end
 
   def test_cherry_pick_github_notation_too_short
-    h = Hub("cherry-pick mislav@a319")
-    assert_equal "git cherry-pick mislav@a319", h.command
-    assert !h.args.after?
+    assert_forwarded "cherry-pick mislav@a319"
   end
 
   def test_cherry_pick_github_notation_with_remote_add
-    h = Hub("cherry-pick xoebus@a319d88")
-    assert_equal "git remote add -f xoebus git://github.com/xoebus/hub.git", h.command
-    assert_equal "git cherry-pick a319d88", h.after
+    assert_commands "git remote add -f xoebus git://github.com/xoebus/hub.git",
+                    "git cherry-pick a319d88",
+                    "cherry-pick xoebus@a319d88"
   end
 
   def test_init
-    h = Hub("init -g")
-    assert_equal "git init", h.command
-    assert_equal "git remote add origin git@github.com:tpw/hub.git", h.after
+    assert_commands "git init", "git remote add origin git@github.com:tpw/hub.git", "init -g"
   end
 
   def test_init_no_login
@@ -382,15 +360,15 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_push_two
-    h = Hub("push origin,staging cool-feature")
-    assert_equal "git push origin cool-feature", h.command
-    assert_equal "git push staging cool-feature", h.after
+    assert_commands "git push origin cool-feature", "git push staging cool-feature",
+                    "push origin,staging cool-feature"
   end
 
   def test_push_more
-    h = Hub("push origin,staging,qa cool-feature")
-    assert_equal "git push origin cool-feature", h.command
-    assert_equal "git push staging cool-feature; git push qa cool-feature", h.after
+    assert_commands "git push origin cool-feature",
+                    "git push staging cool-feature",
+                    "git push qa cool-feature",
+                    "push origin,staging,qa cool-feature"
   end
 
   def test_create

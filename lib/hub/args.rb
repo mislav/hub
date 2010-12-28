@@ -14,27 +14,31 @@ module Hub
       @after = nil
       @skip = false
       @original_args = args.first
+      @chain = [nil]
     end
 
-    # With no arguments, returns the `after` callback.
-    #
-    # With a single argument, sets the `after` callback.
-    # Can be set to a string or a proc.
-    #
-    # If proc:
-    #   The proc is executed after the git command is executed. For
-    #   example, the `hub version` command sets the following proc to
-    #   print its information after running `git version`:
-    #
-    #     after { puts "hub version #{version_number}" }
-    #
-    # If string:
-    #   The string is assumed to be a command and executed after the
-    #   git command is executed:
-    #
-    #     after "echo 'hub version #{version_number}'"
-    def after(command = nil, &block)
-      @after ||= block ? block : command
+    # Adds an `after` callback.
+    # A callback can be a command or a proc.
+    def after(cmd_or_args = nil, args = nil, &block)
+      @chain.insert(-1, normalize_callback(cmd_or_args, args, block))
+    end
+
+    # Adds a `before` callback.
+    # A callback can be a command or a proc.
+    def before(cmd_or_args = nil, args = nil, &block)
+      @chain.insert(@chain.index(nil), normalize_callback(cmd_or_args, args, block))
+    end
+
+    # Tells if there are multiple (chained) commands or not.
+    def chained?
+      @chain.size > 1
+    end
+
+    # Returns an array of all commands.
+    def commands
+      chain = @chain.dup
+      chain[chain.index(nil)] = self.to_exec
+      chain
     end
 
     # Skip running this command.
@@ -47,15 +51,10 @@ module Hub
       @skip
     end
 
-    # Boolean indicating whether an `after` callback has been set.
-    def after?
-      !!@after
-    end
-
     # Array of `executable` followed by all args suitable as arguments
     # for `exec` or `system` calls.
-    def to_exec
-      [executable].concat self
+    def to_exec(args = self)
+      [executable].concat args
     end
 
     # All the words (as opposed to flags) contained in this argument
@@ -78,7 +77,23 @@ module Hub
 
     # Tests if arguments were modified since instantiation
     def changed?
-      self != @original_args
+      chained? or self != @original_args
+    end
+
+    private
+
+    def normalize_callback(cmd_or_args, args, block)
+      if block
+        block
+      elsif args
+        [cmd_or_args].concat args
+      elsif Array === cmd_or_args
+        self.to_exec cmd_or_args
+      elsif cmd_or_args
+        cmd_or_args
+      else
+        raise ArgumentError, "command or block required"
+      end
     end
   end
 end

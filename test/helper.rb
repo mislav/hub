@@ -70,6 +70,11 @@ class Test::Unit::TestCase
     assert_equal expected, Hub(input).command, "$ git #{input}"
   end
 
+  def assert_commands(*expected)
+    input = expected.pop
+    assert_equal expected, Hub(input).commands
+  end
+
   # Asserts that the command will be forwarded to git without changes
   def assert_forwarded(input)
     cmd = Hub(input)

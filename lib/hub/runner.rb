@@ -23,22 +23,19 @@ module Hub
       new(*args).execute
     end
 
-    # Returns the current after callback, which (if set) is run after
-    # the target git command.
-    #
-    # See the `Hub::Args` class for more information on the `after`
-    # callback.
-    def after
-      args.after.to_s
-    end
-
-    # A string representation of the git command we would run if
-    # #execute were called.
+    # A string representation of the command that would run.
     def command
       if args.skip?
         ''
       else
-        args.to_exec.join(' ')
+        commands.join('; ')
+      end
+    end
+
+    # An array of all commands as strings.
+    def commands
+      args.commands.map do |cmd|
+        cmd.respond_to?(:join) ? cmd.join(' ') : cmd.to_s
       end
     end
 
@@ -50,25 +47,25 @@ module Hub
     # execution if they don't make sense.
     def execute
       unless args.skip?
-        if args.after?
-          execute_with_after_callback
+        if args.chained?
+          execute_command_chain
         else
           exec(*args.to_exec)
         end
       end
     end
 
-    # Runs the target git command then executes the `after` callback.
-    #
-    # See the `Hub::Args` class for more information on the `after`
-    # callback.
-    def execute_with_after_callback
-      after = args.after
-      if system(*args.to_exec)
-        after.respond_to?(:call) ? after.call : exec(after)
-        exit
-      else
-        exit 1
+    # Runs multiple commands in succession; exits at first failure.
+    def execute_command_chain
+      commands = args.commands
+      commands.each_with_index do |cmd, i|
+        if cmd.respond_to?(:call) then cmd.call
+        elsif i == commands.length - 1
+          # last command in chain
+          exec(*cmd)
+        else
+          exit($?.exitstatus) unless system(*cmd)
+        end
       end
     end
   end

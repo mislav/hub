@@ -170,11 +170,9 @@ module Hub
       }
 
       if names.any?
-        commands = names.map { |name| "git remote add #{name} #{github_url(:user => name)}" }
-        commands << args.to_exec.join(' ')
-        args.replace commands.shift.split(' ')
-        args.shift # don't want "git"
-        args.after commands.join('; ')
+        names.each do |name|
+          args.before ['remote', 'add', name, github_url(:user => name)]
+        end
       end
     end
 
@@ -203,18 +201,15 @@ module Hub
         end
 
         if user
-          # cherry-pick comes after the fetch
-          args.after args.to_exec.join(' ')
-
           if user == repo_owner
             # fetch from origin if the repo belongs to the user
-            args.replace ['fetch', default_remote]
+            args.before ['fetch', default_remote]
           elsif remotes.include?(user)
-            args.replace ['fetch', user]
+            args.before ['fetch', user]
           else
             secure = scheme == 'https:'
             remote_url = github_url(:user => user, :repo => repo, :private => secure)
-            args.replace ['remote', 'add', '-f', user, remote_url]
+            args.before ['remote', 'add', '-f', user, remote_url]
           end
         end
       end
@@ -306,13 +301,9 @@ module Hub
       remotes = args[1].split(',')
       args[1] = remotes.shift
 
-      after = "git push #{remotes.shift} #{branch}"
-
-      while remotes.length > 0
-        after += "; git push #{remotes.shift} #{branch}"
+      remotes.each do |name|
+        args.after ['push', name, branch]
       end
-
-      args.after after
     end
 
     # $ hub browse
