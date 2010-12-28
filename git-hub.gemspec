@@ -1,4 +1,4 @@
-$LOAD_PATH.unshift 'lib'
+$LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
 require 'hub/version'
 
 Gem::Specification.new do |s|
