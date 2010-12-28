@@ -36,7 +36,7 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
     <REPOSITORY> is the current working directory's basename.
 
-  * `git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]: 
+  * `git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]:  
     Create a new public github repository from the current git
     repository and add remote `origin` at
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub
@@ -44,13 +44,13 @@ alias command displays information on configuring your environment:
     basename. With `-p`, create a private repository. `-d` and `-h`
     set the repository's description and homepage, respectively.
 
-  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:
+  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:  
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
     your GitHub login. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git".
 
-  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:
+  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:  
     Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
     git-remote(1). When /<REPOSITORY> is omitted, the basename of the
     current working directory is used. With `-p`, use private remote
@@ -94,7 +94,7 @@ alias command displays information on configuring your environment:
     the range of history to compare. If <START> is omitted, GitHub will
     compare against the base branch (the default is "master").
 
-  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:
+  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:  
     Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-submodule(1). When <USER>/ is omitted, assumes
     your GitHub login. With `-p`, use private remote

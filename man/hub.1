@@ -64,13 +64,22 @@
 \fBgit init\fR \fB\-g\fR \fIOPTIONS\fR: Create a git repository as with git\-init(1) and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\.
 .
 .IP "\(bu" 4
-\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]: Create a new public github repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\. With \fB\-p\fR, create a private repository\. \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage, respectively\.
+\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]:
+.
+.br
+Create a new public github repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\. With \fB\-p\fR, create a private repository\. \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage, respectively\.
 .
 .IP "\(bu" 4
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR: Clone repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-clone(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\.
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR:
+.
+.br
+Clone repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-clone(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\.
 .
 .IP "\(bu" 4
-\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]: Add remote "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" as with git\-remote(1)\. When /\fIREPOSITORY\fR is omitted, the basename of the current working directory is used\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\. If \fIUSER\fR is "origin" then uses your GitHub login\.
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]:
+.
+.br
+Add remote "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" as with git\-remote(1)\. When /\fIREPOSITORY\fR is omitted, the basename of the current working directory is used\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\. If \fIUSER\fR is "origin" then uses your GitHub login\.
 .
 .IP "\(bu" 4
 \fBgit remote set\-url\fR [\fB\-p\fR] \fIOPTIONS\fR \fIREMOTE\-NAME\fR \fIUSER\fR[/\fIREPOSITORY\fR]
@@ -97,7 +106,10 @@ Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote 
 \fBgit compare\fR [\fB\-p\fR] [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR: Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\.
 .
 .IP "\(bu" 4
-\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR: Submodule repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-submodule(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\.
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR:
+.
+.br
+Submodule repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-submodule(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\.
 .
 .IP "\(bu" 4
 \fBgit fork\fR [\fB\-\-no\-remote\fR]: Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\. Requires \fBgithub\.token\fR to be set (see CONFIGURATION)\.

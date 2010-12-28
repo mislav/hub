@@ -108,19 +108,19 @@ this command can be evaluated directly within the shell:<br />
 Create a git repository as with <span class="man-ref">git-init<span class="s">(1)</span></span> and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
 <var>REPOSITORY</var> is the current working directory's basename.</p></li>
-<li><p><code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]:
+<li><p><code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]:<br />
 Create a new public github repository from the current git
 repository and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub
 username and <var>REPOSITORY</var> is the current working directory's
 basename. With <code>-p</code>, create a private repository. <code>-d</code> and <code>-h</code>
 set the repository's description and homepage, respectively.</p></li>
-<li><p><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:
+<li><p><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
 Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></li>
-<li><p><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]:
+<li><p><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]:<br />
 Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
 <span class="man-ref">git-remote<span class="s">(1)</span></span>. When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
@@ -156,7 +156,7 @@ Open a GitHub compare view page in the system's default web browser.
 <var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If <var>START</var> is omitted, GitHub will
 compare against the base branch (the default is "master").</p></li>
-<li><p><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>:
+<li><p><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
 Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-submodule<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
