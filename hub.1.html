@@ -2,147 +2,77 @@
 <html>
 <head>
   <meta http-equiv='content-type' value='text/html;charset=utf8'>
-  <meta name='generator' value='Ronn/v0.5 (http://github.com/rtomayko/ronn)'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
   <title>hub(1) - git + hub = github</title>
   <style type='text/css' media='all'>
-  /* STRUCTURE, INDENT, MARGINS */
-  
-  body                                { margin:0}
-  #man                                { max-width:92ex; padding:0 2ex 1ex 2ex}
-  
-  #man p, #man pre,
-  #man ul, #man ol, #man dl           { margin:0 0 20px 0}
-  #man h2                             { margin:10px 0 0 0}
-  
-  #man > p, #man > pre,
-  #man > ul, #man > ol, #man > dl     { margin-left:8ex}
-  #man h3                             { margin:0 0 0 4ex}
-  
-  #man dt                             { margin:0; clear:left}
-  #man dt.flush                       { float:left; width:8ex}
-  #man dd                             { margin:0 0 0 9ex}
-  #man h1, #man h2, #man h3, #man h4  { clear:left}
-  
-  #man pre                            { margin-bottom:20px}
-  #man pre+h2, #man pre+h3            { margin-top:22px}
-  #man h2+pre, #man h3+pre            { margin-top:5px}
-  
-  #man img                            { display:block;margin:auto}
-  #man h1.man-title                   { display:none}
-  
-  /* FONTS */
-  
-  #man, #man code, #man pre,
-  #man tt, #man kbd, #man samp,
-  #man h3, #man h4 {
-      font-family:monospace;
-      font-size:14px;
-      line-height:1.42857142857143;
-  }
-  #man h2, #man ol.man, #man .man-navigation a {
-    font-size:16px;
-    line-height:1.25
-  }
-  #man h1 {
-    font-size:20px;
-    line-height:2;
-  }
-  
-  /* TEXT STYLES */
-  
-  #man {
-    text-align:justify;
-    background:#fff;
-  }
-  #man, #man code, #man pre, #man pre code,
-  #man tt, #man kbd, #man samp            { color:#131211}
-  #man h1, #man h2, #man h3, #man h4      { color:#030201}
-  #man ol.man, #man ol.man li             { color:#636261}
-  
-  #man code, #man strong, #man b {
-      font-weight:bold;
-      color:#131211;
-  }
-  
-  #man em, #man var, #man u {
-      font-style:italic;
-      color:#434241;
-      text-decoration:none;
-  }
-  
-  #man pre {
-      background:#edeceb;
-      padding:5px 1ex;
-      border-left:1ex solid #ddd;
-  }
-  #man pre code {
-      font-weight:normal;
-      background:inherit;
-  }
-  
-  /* DOCUMENT HEADER AND FOOTER AREAS */
-  
-  #man ol.man, #man ol.man li {
-      margin:3px 0 10px 0;
-      padding:0;
-      float:left;
-      width:33%;
-      list-style-type:none;
-      text-transform:uppercase;
-      color:#999;
-      letter-spacing:1px;
-  }
-  #man ol.man                  { width:100%}
-  #man ol.man li.tl            { text-align:left}
-  #man ol.man li.tc            { text-align:center; letter-spacing:4px}
-  #man ol.man li.tr            { text-align:right; float:right}
-  
-  /* SECTION TOC NAVIGATION */
-  
-  #man div.man-navigation {
-      position:fixed;
-      top:0;
-      left:106ex;
-      height:100%;
-      width:100%;
-      padding:1ex 0 0 2ex;
-      border-left:0.25ex solid #DCDCDC;
-      background-color: #F5F5F5;
-  }
-  #man div.man-navigation a { display:block; margin-bottom:1.5ex}
-  </style>
-  <style type='text/css' media='print'>
-  #man { max-width:none}
-  #man div.man-navigation { display:none}
-  #man a[href]:not([href^="#"]):not([data-bare-link]):after {
-    content:" " attr(href);
-  }
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
   </style>
 </head>
-<body id='manpage'>
-  <div id='man'>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
 
-  <div class='man-navigation'>
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
     <a href="#NAME">NAME</a>
     <a href="#SYNOPSIS">SYNOPSIS</a>
     <a href="#DESCRIPTION">DESCRIPTION</a>
     <a href="#CONFIGURATION">CONFIGURATION</a>
     <a href="#EXAMPLES">EXAMPLES</a>
     <a href="#BUGS">BUGS</a>
-    <a href="#AUTHOR">AUTHOR</a>
+    <a href="#AUTHORS">AUTHORS</a>
     <a href="#SEE-ALSO">SEE ALSO</a>
     </div>
 
-  <h1 class='man-title'>hub(1)</h1>
-
-  <ol class='man head'>
+  <ol class='man-decor man-head man head'>
     <li class='tl'>hub(1)</li>
     <li class='tc'>Git Manual</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
-  <h2 id='NAME'>NAME</h2>
-<p><code>hub</code> - git + hub = github</p>
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>hub</code> - <span class="man-whatis">git + hub = github</span>
+</p>
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
@@ -150,13 +80,16 @@
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
 <p><code>git init -g</code> <var>OPTIONS</var><br />
+<code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]<br />
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
+<code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
 <code>git cherry-pick</code> <var>GITHUB-REF</var><br />
+<code>git am</code> <var>GITHUB-URL</var><br />
 <code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var><br />
-<code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
-<code>git compare</code> [<code>-p</code>] [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
+<code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
+<code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
 <code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git fork</code> [<code>--no-remote</code>]</p>
 
@@ -165,55 +98,81 @@
 <p><code>hub</code> enhances various <code>git</code> commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:</p>
 
-<dl>
-<dt><code>hub alias</code> [<code>-s</code>] <var>SHELL</var></dt><dd><p>Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
+<ul>
+<li><p><code>hub alias</code> [<code>-s</code>] <var>SHELL</var>:
+Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
 <code>csh</code>) to standard output. With the <code>-s</code> option, the output of
 this command can be evaluated directly within the shell:<br />
-<code>eval $(hub alias -s bash)</code></p></dd>
-<dt><code>git init</code> <code>-g</code> <var>OPTIONS</var></dt><dd><p>Create a git repository as with git-init(1) and add remote <code>origin</code> at
+<code>eval $(hub alias -s bash)</code></p></li>
+<li><p><code>git init</code> <code>-g</code> <var>OPTIONS</var>:
+Create a git repository as with <span class="man-ref">git-init<span class="s">(1)</span></span> and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
-<var>REPOSITORY</var> is the current working directory's basename.</p></dd>
-<dt><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
-<var>DIRECTORY</var> as with git-clone(1). When <var>USER</var>/ is omitted, assumes
+<var>REPOSITORY</var> is the current working directory's basename.</p></li>
+<li><p><code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]:<br />
+Create a new public github repository from the current git
+repository and add remote <code>origin</code> at
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub
+username and <var>REPOSITORY</var> is the current working directory's
+basename. With <code>-p</code>, create a private repository. <code>-d</code> and <code>-h</code>
+set the repository's description and homepage, respectively.</p></li>
+<li><p><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
+Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
+<var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]</dt><dd><p>Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
-git-remote(1). When /<var>REPOSITORY</var> is omitted, the basename of the
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></li>
+<li><p><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]:<br />
+Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
+<span class="man-ref">git-remote<span class="s">(1)</span></span>. When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git". If <var>USER</var> is "origin"
-then uses your GitHub login.</p></dd>
-<dt><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]</dt><dd><p>Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
-remotes are only added if they correspond to valid forks on GitHub.</p></dd>
-<dt><code>git cherry-pick</code> <var>GITHUB-REF</var></dt><dd><p>Cherry-pick a commit from a fork using either full URL to the commit
+then uses your GitHub login.</p></li>
+<li><p><code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
+Sets the url of remote <var>REMOTE-NAME</var> using the same rules as
+<code>git remote add</code>.</p></li>
+<li><p><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]:
+Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
+remotes are only added if they correspond to valid forks on GitHub.</p></li>
+<li><p><code>git cherry-pick</code> <var>GITHUB-REF</var>:
+Cherry-pick a commit from a fork using either full URL to the commit
 or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
 doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
-prior to the cherry-pick attempt.</p></dd>
-<dt><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var></dt><dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
-multiple <code>git push</code> commands.</p></dd>
-<dt><code>git browse</code> [<code>-p</code>] [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser
-using <code>open(1)</code> or the <code>BROWSER</code> env variable. Use <code>-p</code> to open a
-page with https. If the repository isn't specified, <code>browse</code> opens
-the page of the repository found in the current directory. If SUBPAGE
-is specified, the browser will open on the specified subpage: one of
-"wiki", "commits", "issues" or other (the default is "tree").</p></dd>
-<dt><code>git compare</code> [<code>-p</code>] [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var></dt><dd><p>Open a GitHub compare view page in the system's default web browser.
+prior to the cherry-pick attempt.</p></li>
+<li><p><code>git am</code> <var>GITHUB-URL</var>:
+Downloads the patch file for the pull request or commit at the URL and
+applies that patch from disk with <code>git am</code>. Similar to <code>cherry-pick</code>, but
+doesn't add new remotes.</p></li>
+<li><p><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> <var>REF</var>:
+Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
+multiple <code>git push</code> commands.</p></li>
+<li><p><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]:
+Open repository's GitHub page in the system's default web browser using
+<code>open(1)</code> or the <code>BROWSER</code> env variable. If the repository isn't
+specified, <code>browse</code> opens the page of the repository found in the current
+directory. If SUBPAGE is specified, the browser will open on the specified
+subpage: one of "wiki", "commits", "issues" or other (the default is
+"tree").</p></li>
+<li><p><code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var>:
+Open a GitHub compare view page in the system's default web browser.
 <var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If <var>START</var> is omitted, GitHub will
-compare against the base branch (the default is "master").</p></dd>
-<dt><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
-<var>DIRECTORY</var> as with git-submodule(1). When <var>USER</var>/ is omitted, assumes
+compare against the base branch (the default is "master").</p></li>
+<li><p><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
+Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
+<var>DIRECTORY</var> as with <span class="man-ref">git-submodule<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
 your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
+"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></li>
+<li><p><code>git fork</code> [<code>--no-remote</code>]:
+Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username. Requires <code>github.token</code> to
-be set (see CONFIGURATION).</p></dd>
-<dt><code>git help</code></dt><dd><p>Display enhanced git-help(1).</p></dd>
-</dl>
+be set (see CONFIGURATION).</p></li>
+<li><p><code>git help</code>:
+Display enhanced <span class="man-ref">git-help<span class="s">(1)</span></span>.</p></li>
+</ul>
 
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
 
-<p>Use git-config(1) to display the currently configured GitHub username:</p>
+<p>Use <span class="man-ref">git-config<span class="s">(1)</span></span> to display the currently configured GitHub username:</p>
 
 <pre><code>$ git config --global github.user
 </code></pre>
@@ -232,6 +191,21 @@ cloning:</p>
 
 <pre><code>$ git config --global --bool hub.http-clone true
 </code></pre>
+
+<p>Want to use environment variables instead of a local gitconfig for
+authentication?</p>
+
+<ul>
+<li><code>GITHUB_USER</code>  - If set, this will be used instead of the <code>github.user</code> config
+
+<pre><code>             value to determine your GitHub username.
+</code></pre></li>
+<li><code>GITHUB_TOKEN</code> - If set, this will be used instead of the <code>github.token</code>
+
+<pre><code>             config value to determine your GitHub API token.
+</code></pre></li>
+</ul>
+
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
@@ -289,6 +263,17 @@ $ git cherry-pick mislav@SHA
 &gt; git cherry-pick SHA
 </code></pre>
 
+<h3 id="git-am">git am</h3>
+
+<pre><code>$ git am https://github.com/defunkt/hub/pull/55
+&gt; curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+&gt; git am /tmp/55.patch
+
+$ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
+&gt; curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+&gt; git am --ignore-whitespace /tmp/fdb9921.patch
+</code></pre>
+
 <h3 id="git-fork">git fork</h3>
 
 <pre><code>$ git fork
@@ -303,6 +288,13 @@ $ git cherry-pick mislav@SHA
 &gt; git remote add origin git@github.com:YOUR_USER/REPO.git
 </code></pre>
 
+<h3 id="git-create">git create</h3>
+
+<pre><code>$ git create
+... hardcore creating action ...
+&gt; git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+</code></pre>
+
 <h3 id="git-push">git push</h3>
 
 <pre><code>$ git push origin,staging,qa bert_timeout
@@ -314,40 +306,34 @@ $ git cherry-pick mislav@SHA
 <h3 id="git-browse">git browse</h3>
 
 <pre><code>$ git browse
-&gt; open http://github.com/CURRENT_REPO
+&gt; open https://github.com/CURRENT_REPO
 
 $ git browse -- issues
-&gt; open http://github.com/CURRENT_REPO/issues
+&gt; open https://github.com/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
-&gt; open http://github.com/schacon/ticgit
-
-$ git browse -p schacon/ticgit
 &gt; open https://github.com/schacon/ticgit
 
 $ git browse resque
-&gt; open http://github.com/YOUR_USER/resque
+&gt; open https://github.com/YOUR_USER/resque
 
 $ git browse resque network
-&gt; open http://github.com/YOUR_USER/resque/network
-
-$ git browse -p resque
-&gt; open https://github.com/YOUR_USER/resque
+&gt; open https://github.com/YOUR_USER/resque/network
 </code></pre>
 
 <h3 id="git-compare">git compare</h3>
 
 <pre><code>$ git compare refactor
-&gt; open http://github.com/CURRENT_REPO/compare/refactor
+&gt; open https://github.com/CURRENT_REPO/compare/refactor
 
 $ git compare 1.0...1.1
-&gt; open http://github.com/CURRENT_REPO/compare/1.0...1.1
+&gt; open https://github.com/CURRENT_REPO/compare/1.0...1.1
 
 $ git compare -u fix
-&gt; (http://github.com/CURRENT_REPO/compare/fix)
+&gt; (https://github.com/CURRENT_REPO/compare/fix)
 
 $ git compare other-user patch
-&gt; open http://github.com/other-user/REPO/compare/patch
+&gt; open https://github.com/other-user/REPO/compare/patch
 </code></pre>
 
 <h3 id="git-help">git help</h3>
@@ -362,20 +348,20 @@ $ git help hub
 
 <p><a href="http://github.com/defunkt/hub/issues" data-bare-link="true">http://github.com/defunkt/hub/issues</a></p>
 
-<h2 id="AUTHOR">AUTHOR</h2>
+<h2 id="AUTHORS">AUTHORS</h2>
 
-<p>Chris Wanstrath :: chris@ozmm.org :: @defunkt</p>
+<p><a href="https://github.com/defunkt/hub/contributors" data-bare-link="true">https://github.com/defunkt/hub/contributors</a></p>
 
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
-<p>git(1), git-clone(1), git-remote(1), git-init(1),
+<p><span class="man-ref">git<span class="s">(1)</span></span>, <span class="man-ref">git-clone<span class="s">(1)</span></span>, <span class="man-ref">git-remote<span class="s">(1)</span></span>, <span class="man-ref">git-init<span class="s">(1)</span></span>,
 <a href="http://github.com" data-bare-link="true">http://github.com</a>,
 <a href="http://github.com/defunkt/hub" data-bare-link="true">http://github.com/defunkt/hub</a></p>
 
 
-  <ol class='man foot'>
+  <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>June 2010</li>
+    <li class='tc'>December 2010</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
