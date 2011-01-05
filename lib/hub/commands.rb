@@ -66,9 +66,13 @@ module Hub
         if arg =~ %r{.+?://|.+?@} || File.directory?(arg)
           # Bail out early for URLs and local paths.
           break
-        elsif arg.scan('/').size <= 1 && !arg.include?(':')
+        elsif github_repo_path?(arg)
           # $ hub clone rtomayko/tilt
           # $ hub clone tilt
+
+          # Always use SSH for cloning the user's own repos.
+          ssh ||= repo_belongs_to_user?(arg)
+
           args[args.index(arg)] = github_url(:repo => arg, :private => ssh)
           break
         end
@@ -653,6 +657,22 @@ help
       require 'net/http'
       url = API_REPO % [user, repo_name]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
+    end
+
+    # Determines whether a path is a GitHub repo path ("rtomayko/tilt", "tilt")
+    def github_repo_path?(path)
+      path.scan('/').size <= 1 && !path.include?(':')
+    end
+
+    # Determines whether a repo belongs to the current GitHub user
+    def repo_belongs_to_user?(repo)
+      return false unless github_repo_path?(repo)
+      if repo.index('/')
+        username = repo.split('/').first
+        username == github_user(false)
+      else
+        true
+      end
     end
 
     # Forks the current repo using the GitHub API.

@@ -68,13 +68,13 @@ class HubTest < Test::Unit::TestCase
 
   def test_your_public_clone
     input   = "clone resque"
-    command = "git clone git://github.com/tpw/resque.git"
+    command = "git clone git@github.com:tpw/resque.git"
     assert_command input, command
   end
 
   def test_clone_with_arguments_and_path
     input   = "clone --bare -o master -- resque"
-    command = "git clone --bare -o master -- git://github.com/tpw/resque.git"
+    command = "git clone --bare -o master -- git@github.com:tpw/resque.git"
     assert_command input, command
   end
 
@@ -174,7 +174,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_submodule_with_args
     input   = "submodule -q add --bare -- grit grit"
-    command = "git submodule -q add --bare -- git://github.com/tpw/grit.git grit"
+    command = "git submodule -q add --bare -- git@github.com:tpw/grit.git grit"
     assert_command input, command
   end
 
