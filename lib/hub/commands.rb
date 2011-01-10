@@ -54,16 +54,14 @@ module Hub
     # > git clone git@github.com:YOUR_LOGIN/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
-
-      last_args = args[1..-1].reject { |arg| arg == "--" }.last(3)
-      last_args.each do |arg|
-        if arg =~ /^-/
-          # Skip mandatory arguments.
-          last_args.shift if arg =~ /^(--(ref|o|br|u|t|d)[^=]+|-(o|b|u|d))$/
-          next
-        end
-
-        if arg =~ %r{.+?://|.+?@} || File.directory?(arg)
+      has_values = /^(--(upload-pack|template|depth|origin|branch|reference)|-[ubo])$/
+      
+      idx = 1
+      while idx < args.length
+        arg = args[idx]
+        if arg.index('-') == 0
+          idx += 1 if arg =~ has_values
+        elsif arg.index('://') or arg.index('@') or File.directory?(arg)
           # Bail out early for URLs and local paths.
           break
         elsif arg.scan('/').size <= 1 && !arg.include?(':')
@@ -72,6 +70,7 @@ module Hub
           args[args.index(arg)] = github_url(:repo => arg, :private => ssh)
           break
         end
+        idx += 1
       end
     end
 
