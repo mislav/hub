@@ -95,27 +95,19 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_private_clone_left_alone
-    input   = "clone git@github.com:rtomayko/ronn.git"
-    command = "git clone git@github.com:rtomayko/ronn.git"
-    assert_command input, command
+    assert_forwarded "clone git@github.com:rtomayko/ronn.git"
   end
 
   def test_public_clone_left_alone
-    input   = "clone git://github.com/rtomayko/ronn.git"
-    command = "git clone git://github.com/rtomayko/ronn.git"
-    assert_command input, command
+    assert_forwarded "clone git://github.com/rtomayko/ronn.git"
   end
 
   def test_normal_public_clone_with_path
-    input   = "clone git://github.com/rtomayko/ronn.git ronn-dev"
-    command = "git clone git://github.com/rtomayko/ronn.git ronn-dev"
-    assert_command input, command
+    assert_forwarded "clone git://github.com/rtomayko/ronn.git ronn-dev"
   end
 
   def test_normal_clone_from_path
-    input   = "clone ./test"
-    command = "git clone ./test"
-    assert_command input, command
+    assert_forwarded "clone ./test"
   end
 
   def test_remote_origin
@@ -137,21 +129,15 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_remote_from_rel_path
-    input = "remote add origin ./path"
-    command = "git remote add origin ./path"
-    assert_command input, command
+    assert_forwarded "remote add origin ./path"
   end
 
   def test_remote_from_abs_path
-    input = "remote add origin /path"
-    command = "git remote add origin /path"
-    assert_command input, command
+    assert_forwarded "remote add origin /path"
   end
 
   def test_private_remote_origin_as_normal
-    input   = "remote add origin git@github.com:defunkt/resque.git"
-    command = "git remote add origin git@github.com:defunkt/resque.git"
-    assert_command input, command
+    assert_forwarded "remote add origin git@github.com:defunkt/resque.git"
   end
 
   def test_public_submodule
@@ -233,7 +219,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_fetch_existing_remote
-    assert_command "fetch mislav", "git fetch mislav"
+    assert_forwarded "fetch mislav"
   end
 
   def test_fetch_new_remote
@@ -688,7 +674,7 @@ config
   end
 
   def test_context_method_doesnt_hijack_git_command
-    assert_command 'remotes', 'git remotes'
+    assert_forwarded 'remotes'
   end
 
   def test_not_choking_on_ruby_methods
