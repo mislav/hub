@@ -37,9 +37,9 @@ module Hub
     # Provides `github_url` and various inspection methods
     extend Context
 
-    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
-    API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
+    API_REPO   = 'https://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK   = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE = 'https://github.com/api/v2/yaml/repos/create'
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.

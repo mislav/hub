@@ -127,8 +127,8 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_public_remote_origin_as_normal
-    input   = "remote add origin http://github.com/defunkt/resque.git"
-    command = "git remote add origin http://github.com/defunkt/resque.git"
+    input   = "remote add origin https://github.com/defunkt/resque.git"
+    command = "git remote add origin https://github.com/defunkt/resque.git"
     assert_command input, command
   end
 
@@ -290,12 +290,12 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_cherry_pick_url
-    url = 'http://github.com/mislav/hub/commit/a319d88'
+    url = 'https://github.com/mislav/hub/commit/a319d88'
     assert_commands "git fetch mislav", "git cherry-pick a319d88", "cherry-pick #{url}"
   end
 
   def test_cherry_pick_url_with_fragment
-    url = 'http://github.com/mislav/hub/commit/abcdef0123456789#comments'
+    url = 'https://github.com/mislav/hub/commit/abcdef0123456789#comments'
     assert_commands "git fetch mislav", "git cherry-pick abcdef0123456789", "cherry-pick #{url}"
   end
 
@@ -379,7 +379,7 @@ class HubTest < Test::Unit::TestCase
   def test_create
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+    stub_request(:post, "github.com:443/api/v2/yaml/repos/create").
       with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
@@ -396,7 +396,7 @@ class HubTest < Test::Unit::TestCase
     ENV['GITHUB_USER']  = 'mojombo'
     ENV['GITHUB_TOKEN'] = '123abc'
 
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+    stub_request(:post, "github.com:443/api/v2/yaml/repos/create").
       with(:body => { 'login'=>'mojombo', 'token'=>'123abc', 'name' => 'hub' })
 
     expected = "remote add -f origin git@github.com:mojombo/hub.git\n"
@@ -411,7 +411,7 @@ class HubTest < Test::Unit::TestCase
   def test_create_private_repository
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+    stub_request(:post, "github.com:443/api/v2/yaml/repos/create").
       with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'public' => '0' })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
@@ -422,7 +422,7 @@ class HubTest < Test::Unit::TestCase
   def test_create_with_description_and_homepage
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").with(:body => {
+    stub_request(:post, "github.com:443/api/v2/yaml/repos/create").with(:body => {
       'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub',
       'description' => 'toyproject', 'homepage' => 'http://example.com'
     })
@@ -457,7 +457,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_create_origin_already_exists
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+    stub_request(:post, "github.com:443/api/v2/yaml/repos/create").
       with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
 
     expected = "remote -v\ncreated repository: tpw/hub\n"
@@ -466,7 +466,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
+    stub_request(:post, "github.com:443/api/v2/yaml/repos/fork/defunkt/hub").
       with(:body => { 'login'=>'tpw', 'token'=>'abc123' })
 
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
@@ -476,7 +476,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork_no_remote
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub")
+    stub_request(:post, "github.com:443/api/v2/yaml/repos/fork/defunkt/hub")
 
     assert_equal "", hub("fork --no-remote") { ENV['GIT'] = 'echo' }
   end
@@ -736,7 +736,7 @@ config
     end
 
     def stub_fork(user, status)
-      stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/hub").
+      stub_request(:get, "github.com:443/api/v2/yaml/repos/show/#{user}/hub").
         to_return(:status => status)
     end
 
