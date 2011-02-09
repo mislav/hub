@@ -352,6 +352,16 @@ class HubTest < Test::Unit::TestCase
     end
   end
 
+  def test_am_gist
+    with_tmpdir('/tmp/') do
+      url = 'https://gist.github.com/8da7fb575debd88c54cf'
+
+      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.txt -o /tmp/gist-8da7fb575debd88c54cf.txt",
+                      "git am --signoff /tmp/gist-8da7fb575debd88c54cf.txt -p2",
+                      "am --signoff #{url} -p2"
+    end
+  end
+
   def test_init
     assert_commands "git init", "git remote add origin git@github.com:tpw/hub.git", "init -g"
   end
