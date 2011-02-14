@@ -258,6 +258,10 @@ module Hub
           args.after { puts "new remote: #{github_user}" }
         end
       end
+    rescue Net::HTTPExceptions
+      response = $!.response
+      warn "error creating fork: #{response.message} (HTTP #{response.code})"
+      exit 1
     end
 
     # $ hub create
@@ -302,6 +306,10 @@ module Hub
 
         args.after { puts "#{action}: #{github_user}/#{repo_name}" }
       end
+    rescue Net::HTTPExceptions
+      response = $!.response
+      warn "error creating repository: #{response.message} (HTTP #{response.code})"
+      exit 1
     end
 
     # $ hub push origin,staging cool-feature
@@ -661,7 +669,8 @@ help
     # Returns nothing.
     def fork_repo
       url = API_FORK % [repo_owner, repo_name]
-      Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
+      response = Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
+      response.error! unless Net::HTTPSuccess === response
     end
 
     # Creates a new repo using the GitHub API.
@@ -674,7 +683,8 @@ help
       params['description'] = options[:description] if options[:description]
       params['homepage'] = options[:homepage] if options[:homepage]
 
-      Net::HTTP.post_form(URI(url), params)
+      response = Net::HTTP.post_form(URI(url), params)
+      response.error! unless Net::HTTPSuccess === response
     end
 
   end

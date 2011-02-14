@@ -397,6 +397,16 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_failed
+    stub_no_remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+      to_return(:status => [401, "Your token is fail"])
+
+    expected = "error creating repository: Your token is fail (HTTP 401)\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+  end
+
   def test_create_with_env_authentication
     stub_no_remotes
     stub_nonexisting_fork('mojombo')
@@ -481,6 +491,15 @@ class HubTest < Test::Unit::TestCase
 
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
+    assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_fork_failed
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
+      to_return(:status => [500, "Your fork is fail"])
+
+    expected = "error creating fork: Your fork is fail (HTTP 500)\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
