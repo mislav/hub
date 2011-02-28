@@ -191,10 +191,10 @@ Creates a new public github repository and adds the remote `origin` at
 ### git browse
 
     $ git browse
-    > open https://github.com/CURRENT_REPO
+    > open https://github.com/YOUR_USER/CURRENT_REPO
 
     $ git browse -- issues
-    > open https://github.com/CURRENT_REPO/issues
+    > open https://github.com/YOUR_USER/CURRENT_REPO/issues
 
     $ git browse schacon/ticgit
     > open https://github.com/schacon/ticgit
