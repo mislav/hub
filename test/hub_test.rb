@@ -598,6 +598,12 @@ config
       "open https://github.com/defunkt/hub/compare/1.0...fix"
   end
 
+  def test_hub_compare_on_wiki
+    stub_repo_url 'git://github.com/defunkt/hub.wiki.git'
+    assert_command "compare 1.0...fix",
+      "open https://github.com/defunkt/hub/wiki/_compare/1.0...fix"
+  end
+
   def test_hub_compare_fork
     assert_command "compare myfork feature",
       "open https://github.com/myfork/hub/compare/feature"
@@ -652,6 +658,15 @@ config
   def test_hub_browse_current
     assert_command "browse", "open https://github.com/defunkt/hub"
     assert_command "browse --", "open https://github.com/defunkt/hub"
+  end
+
+  def test_hub_browse_current_wiki
+    stub_repo_url 'git://github.com/defunkt/hub.wiki.git'
+
+    assert_command "browse", "open https://github.com/defunkt/hub/wiki"
+    assert_command "browse -- wiki", "open https://github.com/defunkt/hub/wiki"
+    assert_command "browse -- commits", "open https://github.com/defunkt/hub/wiki/_history"
+    assert_command "browse -- pages", "open https://github.com/defunkt/hub/wiki/_pages"
   end
 
   def test_hub_browse_current_subpage

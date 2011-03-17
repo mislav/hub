@@ -124,6 +124,14 @@ module Hub
       if options[:web]
         scheme = secure ? 'https:' : 'http:'
         path = options[:web] == true ? '' : options[:web].to_s
+        if repo =~ /\.wiki$/
+          repo = repo.sub(/\.wiki$/, '')
+          unless '/wiki' == path
+            path = '/wiki%s' % if path =~ %r{^/commits/} then '/_history'
+              else path.sub(/\w+/, '_\0')
+              end
+          end
+        end
         '%s//github.com/%s/%s%s' % [scheme, user, repo, path]
       else
         if secure
