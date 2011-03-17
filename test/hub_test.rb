@@ -30,7 +30,9 @@ class HubTest < Test::Unit::TestCase
     Hub::Context::REMOTES.clear
 
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
-      raise ArgumentError, "`git #{k}` not stubbed"
+      unless k.index('config alias.') == 0
+        raise ArgumentError, "`git #{k}` not stubbed"
+      end
     }).update(
       'remote' => "mislav\norigin",
       'symbolic-ref -q HEAD' => 'refs/heads/master',
@@ -112,6 +114,25 @@ class HubTest < Test::Unit::TestCase
 
   def test_normal_clone_from_path
     assert_forwarded "clone ./test"
+  end
+
+  def test_alias_expand
+    stub_alias 'c', 'clone --bare'
+    input   = "c rtomayko/ronn"
+    command = "git clone --bare git://github.com/rtomayko/ronn.git"
+    assert_command input, command
+  end
+
+  def test_alias_expand_advanced
+    stub_alias 'c', 'clone --template="white space"'
+    input   = "c rtomayko/ronn"
+    command = "git clone '--template=white space' git://github.com/rtomayko/ronn.git"
+    assert_command input, command
+  end
+
+  def test_alias_doesnt_expand_for_unknown_commands
+    stub_alias 'c', 'compute --fast'
+    assert_forwarded "c rtomayko/ronn"
   end
 
   def test_remote_origin
@@ -769,6 +790,10 @@ config
 
     def stub_no_git_repo
       @git.replace({})
+    end
+
+    def stub_alias(name, value)
+      @git["config alias.#{name}"] = value
     end
 
     def stub_existing_fork(user)

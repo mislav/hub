@@ -106,6 +106,10 @@ module Hub
       GIT_CONFIG['config --bool hub.http-clone'] == 'true'
     end
 
+    def git_alias_for(name)
+      GIT_CONFIG["config alias.#{name}"]
+    end
+
     # Core.repositoryformatversion should exist for all git
     # repositories, and be blank for all non-git repositories. If
     # there's a better config setting to check here, this can be

@@ -41,6 +41,22 @@ module Hub
     API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
 
+    def run(args)
+      # Hack to emulate git-style
+      args.unshift 'help' if args.grep(/^[^-]|version|exec-path$|html-path/).empty?
+
+      cmd = args[0]
+      expanded_args = expand_alias(cmd)
+      cmd = expanded_args[0] if expanded_args
+
+      # git commands can have dashes
+      cmd = cmd.sub(/(\w)-/, '\1_')
+      if method_defined?(cmd) and cmd != 'run'
+        args[0, 1] = expanded_args if expanded_args
+        send(cmd, args)
+      end
+    end
+
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
     #
@@ -685,6 +701,15 @@ help
 
       response = Net::HTTP.post_form(URI(url), params)
       response.error! unless Net::HTTPSuccess === response
+    end
+
+    def expand_alias(cmd)
+      if expanded = git_alias_for(cmd)
+        if expanded.index('!') != 0
+          require 'shellwords' unless expanded.respond_to? :shellsplit
+          expanded.shellsplit
+        end
+      end
     end
 
   end

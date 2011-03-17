@@ -9,13 +9,7 @@ module Hub
     
     def initialize(*args)
       @args = Args.new(args)
-
-      # Hack to emulate git-style
-      @args.unshift 'help' if @args.grep(/^[^-]|version|exec-path$|html-path/).empty?
-
-      # git commands can have dashes
-      cmd = @args[0].sub(/(\w)-/, '\1_')
-      Commands.send(cmd, @args) if Commands.method_defined?(cmd)
+      Commands.run(@args)
     end
 
     # Shortcut
@@ -36,7 +30,8 @@ module Hub
     def commands
       args.commands.map do |cmd|
         if cmd.respond_to?(:join)
-          cmd.map { |c| c.index(' ') ? "'#{c}'" : c }.join(' ')
+          # a simplified `Shellwords.join` but it's OK since this is only used to inspect
+          cmd.map { |c| (c.index(' ') || c.empty?) ? "'#{c}'" : c }.join(' ')
         else
           cmd.to_s
         end
