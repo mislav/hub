@@ -236,6 +236,8 @@ module Hub
       if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
         idx = args.index(url)
         gist = $1 == 'gist.'
+        # strip extra path from "pull/42/files", "pull/42/commits"
+        url = url.sub(%r{(/pull/\d+)/\w*$}, '\1') unless gist
         ext = gist ? '.txt' : '.patch'
         url += ext unless File.extname(url) == ext
         patch_file = File.join(ENV['TMPDIR'], "#{gist ? 'gist-' : ''}#{File.basename(url)}")

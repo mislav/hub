@@ -360,6 +360,9 @@ class HubTest < Test::Unit::TestCase
       assert_commands "curl -#LA 'hub #{Hub::Version}' https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch",
                       "git am --signoff /tmp/55.patch -p2",
                       "am --signoff https://github.com/defunkt/hub/pull/55 -p2"
+
+      cmd = Hub("am https://github.com/defunkt/hub/pull/55/files").command
+      assert_includes '/pull/55.patch', cmd
     end
   end
 
