@@ -94,22 +94,36 @@ module Hub
     API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
 
+    def run(args)
+      args.unshift 'help' if args.grep(/^[^-]|version|exec-path$|html-path/).empty?
+
+      cmd = args[0]
+      expanded_args = expand_alias(cmd)
+      cmd = expanded_args[0] if expanded_args
+
+      cmd = cmd.sub(/(\w)-/, '\1_')
+      if method_defined?(cmd) and cmd != 'run'
+        args[0, 1] = expanded_args if expanded_args
+        send(cmd, args)
+      end
+    end
+
     def clone(args)
       ssh = args.delete('-p')
-
-      last_args = args[1..-1].reject { |arg| arg == "--" }.last(3)
-      last_args.each do |arg|
-        if arg =~ /^-/
-          last_args.shift if arg =~ /^(--(ref|o|br|u|t|d)[^=]+|-(o|b|u|d))$/
-          next
-        end
-
-        if arg =~ %r{.+?://|.+?@} || File.directory?(arg)
+      has_values = /^(--(upload-pack|template|depth|origin|branch|reference)|-[ubo])$/
+      
+      idx = 1
+      while idx < args.length
+        arg = args[idx]
+        if arg.index('-') == 0
+          idx += 1 if arg =~ has_values
+        elsif arg.index('://') or arg.index('@') or File.directory?(arg)
           break
         elsif arg.scan('/').size <= 1 && !arg.include?(':')
           args[args.index(arg)] = github_url(:repo => arg, :private => ssh)
           break
         end
+        idx += 1
       end
     end
 
@@ -207,10 +221,12 @@ module Hub
     end
 
     def am(args)
-      if url = args.find { |a| a =~ %r{^https?://github\.com/} }
+      if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
         idx = args.index(url)
-        url += '.patch' unless File.extname(url) == '.patch'
-        patch_file = File.join(ENV['TMPDIR'], File.basename(url))
+        gist = $1 == 'gist.'
+        ext = gist ? '.txt' : '.patch'
+        url += ext unless File.extname(url) == ext
+        patch_file = File.join(ENV['TMPDIR'], "#{gist ? 'gist-' : ''}#{File.basename(url)}")
         args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
         args[idx] = patch_file
       end
@@ -239,6 +255,10 @@ module Hub
           args.after { puts "new remote: #{github_user}" }
         end
       end
+    rescue Net::HTTPExceptions
+      response = $!.response
+      warn "error creating fork: #{response.message} (HTTP #{response.code})"
+      exit 1
     end
 
     def create(args)
@@ -280,6 +300,10 @@ module Hub
 
         args.after { puts "#{action}: #{github_user}/#{repo_name}" }
       end
+    rescue Net::HTTPExceptions
+      response = $!.response
+      warn "error creating repository: #{response.message} (HTTP #{response.code})"
+      exit 1
     end
 
     def push(args)
@@ -557,7 +581,8 @@ help
 
     def fork_repo
       url = API_FORK % [repo_owner, repo_name]
-      Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
+      response = Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
+      response.error! unless Net::HTTPSuccess === response
     end
 
     def create_repo(options = {})
@@ -567,7 +592,17 @@ help
       params['description'] = options[:description] if options[:description]
       params['homepage'] = options[:homepage] if options[:homepage]
 
-      Net::HTTP.post_form(URI(url), params)
+      response = Net::HTTP.post_form(URI(url), params)
+      response.error! unless Net::HTTPSuccess === response
+    end
+
+    def expand_alias(cmd)
+      if expanded = git_alias_for(cmd)
+        if expanded.index('!') != 0
+          require 'shellwords' unless expanded.respond_to? :shellsplit
+          expanded.shellsplit
+        end
+      end
     end
 
   end
@@ -674,6 +709,10 @@ module Hub
       GIT_CONFIG['config --bool hub.http-clone'] == 'true'
     end
 
+    def git_alias_for(name)
+      GIT_CONFIG["config alias.#{name}"]
+    end
+
     def is_repo?
       GIT_CONFIG['config core.repositoryformatversion']
     end
@@ -688,6 +727,14 @@ module Hub
       if options[:web]
         scheme = secure ? 'https:' : 'http:'
         path = options[:web] == true ? '' : options[:web].to_s
+        if repo =~ /\.wiki$/
+          repo = repo.sub(/\.wiki$/, '')
+          unless '/wiki' == path
+            path = '/wiki%s' % if path =~ %r{^/commits/} then '/_history'
+              else path.sub(/\w+/, '_\0')
+              end
+          end
+        end
         '%s//github.com/%s/%s%s' % [scheme, user, repo, path]
       else
         if secure
@@ -715,11 +762,7 @@ module Hub
     
     def initialize(*args)
       @args = Args.new(args)
-
-      @args.unshift 'help' if @args.grep(/^[^-]|version|exec-path$|html-path/).empty?
-
-      cmd = @args[0].sub(/(\w)-/, '\1_')
-      Commands.send(cmd, @args) if Commands.method_defined?(cmd)
+      Commands.run(@args)
     end
 
     def self.execute(*args)
@@ -737,7 +780,7 @@ module Hub
     def commands
       args.commands.map do |cmd|
         if cmd.respond_to?(:join)
-          cmd.map { |c| c.index(' ') ? "'#{c}'" : c }.join(' ')
+          cmd.map { |c| (c.index(' ') || c.empty?) ? "'#{c}'" : c }.join(' ')
         else
           cmd.to_s
         end
@@ -768,7 +811,7 @@ module Hub
   end
 end
 module Hub
-  Version = VERSION = '1.5.0'
+  Version = VERSION = '1.5.1'
 end
 Hub::Runner.execute(*ARGV)
 __END__
