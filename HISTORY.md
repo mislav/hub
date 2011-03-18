@@ -1,3 +1,21 @@
+## 1.5.1 (2011-03-18)
+
+* support git aliases
+* Bugfix: `browse/compare` for wiki repos
+* gracefully handle HTTP errors in `create` and `fork`
+* `hub am` supports Gist URLs
+* Bugfix: `clone` command doesn't get confused by mixed arguments
+
+## 1.5.0 (2010-12-28)
+
+* compensate for GitHub switch to HTTPS
+* `hub am`: cherry-pick pull request and commit URLs
+* support multiple URLs for a single remote
+* Bugfix: ensure that internal ruby methods can't pretend to be git commands
+* Bugfix: don't show help when `--exec-path` or `--html-path` flags are used
+* Support for `GITHUB_USER` and `GITHUB_TOKEN` env variables
+* Eliminate some ruby warnings
+
 ## 1.4.1 (2010-08-08)
 ## 1.4.0 (2010-08-08)
 
