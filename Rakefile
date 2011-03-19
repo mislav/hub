@@ -83,7 +83,7 @@ task :install => :standalone do
   prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
   FileUtils.mkdir_p "#{prefix}/bin"
-  FileUtils.cp "hub", "#{prefix}/bin"
+  FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
 
   FileUtils.mkdir_p "#{prefix}/share/man/man1"
   FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
