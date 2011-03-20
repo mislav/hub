@@ -83,11 +83,11 @@ Is your prompt slow? It may be hub.
 1. Check that it's **not** installed using RubyGems.
 2. Check that RUBYOPT isn't loading anything shady:
 
-    $ echo $RUBYOPT
+    `$ echo $RUBYOPT`
 
 3. Check that your system Ruby is speedy:
 
-    $ time /usr/bin/env ruby -e0
+    `$ time /usr/bin/env ruby -e0`
 
 If #3 is slow, it may be your [GC settings][gc].
 
