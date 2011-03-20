@@ -76,6 +76,21 @@ You can also install from source:
     $ cd hub
     $ rake install prefix=/usr/local
 
+### Help! It's Slow!
+
+Is your prompt slow? It may be hub.
+
+1. Check that it's **not** installed using RubyGems.
+2. Check that RUBYOPT isn't loading anything shady:
+
+    $ echo $RUBYOPT
+
+3. Check that your system Ruby is speedy:
+
+    $ time /usr/bin/env ruby -e0
+
+If #3 is slow, it may be your [GC settings][gc].
+
 
 Aliasing
 --------
@@ -337,3 +352,4 @@ Authors
 [1]: http://github.com/defunkt/hub/issues
 [speed]: http://gist.github.com/284823
 [2]: http://github.com/guides/local-github-config
+[gc]: https://twitter.com/brynary/status/49560668994674688
