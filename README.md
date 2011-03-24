@@ -51,18 +51,14 @@ Assuming `~/bin/` is in your `$PATH`, you're ready to roll:
 
 Though not recommended, `hub` can also be installed as a RubyGem:
 
-    $ gem install git-hub
-
-Yes, the gem name is "git-hub".
+    $ gem install hub
 
 (It's not recommended for casual use because of the RubyGems startup
 time. See [this gist][speed] for information.)
 
 ### Standalone via RubyGems
 
-Yes, the gem name is still "git-hub":
-
-    $ gem install git-hub
+    $ gem install hub
     $ hub hub standalone > ~/bin/hub && chmod 755 ~/bin/hub
 
 This installs a standalone version which doesn't require RubyGems to
@@ -340,7 +336,7 @@ Meta
 * Bugs: <http://github.com/defunkt/hub/issues>
 * List: <http://groups.google.com/group/github>
 * Test: <http://runcoderun.com/defunkt/hub>
-* Gems: <http://gemcutter.org/gems/git-hub>
+* Gems: <http://gemcutter.org/gems/hub>
 
 
 Authors

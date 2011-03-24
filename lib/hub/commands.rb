@@ -71,7 +71,7 @@ module Hub
     def clone(args)
       ssh = args.delete('-p')
       has_values = /^(--(upload-pack|template|depth|origin|branch|reference)|-[ubo])$/
-      
+
       idx = 1
       while idx < args.length
         arg = args[idx]
@@ -425,9 +425,9 @@ module Hub
     # Prints the "standalone" version of hub for an easy, memorable
     # installation sequence:
     #
-    # $ gem install git-hub
+    # $ gem install hub
     # $ hub hub standalone > ~/bin/hub && chmod 755 ~/bin/hub
-    # $ gem uninstall git-hub
+    # $ gem uninstall hub
     def hub(args)
       return help(args) unless args[1] == 'standalone'
       require 'hub/standalone'
