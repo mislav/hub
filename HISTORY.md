@@ -1,3 +1,9 @@
+## 1.6.0 (2011-03-24)
+
+* `am` strips extra path from pull reqs URLs such as "pull/42/files"
+* Fixed permissions on `hub(1)` when installing
+* gem renamed from `git-hub` to `hub`!
+
 ## 1.5.1 (2011-03-18)
 
 * support git aliases
