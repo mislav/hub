@@ -45,8 +45,6 @@ class HubTest < Test::Unit::TestCase
       'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
       'config branch.master.remote'  => 'origin',
       'config branch.master.merge'   => 'refs/heads/master',
-      'config branch.feature.remote' => 'mislav',
-      'config branch.feature.merge'  => 'refs/heads/experimental',
       'config --bool hub.http-clone' => 'false',
       'config core.repositoryformatversion' => '0'
     )
@@ -615,6 +613,7 @@ config
 
   def test_hub_compare_tracking_branch
     stub_branch('refs/heads/feature')
+    stub_tracking('feature', 'mislav', 'refs/heads/experimental')
 
     assert_command "compare",
       "open https://github.com/mislav/hub/compare/experimental"
@@ -669,6 +668,7 @@ config
 
   def test_hub_browse_on_branch
     stub_branch('refs/heads/feature')
+    stub_tracking('feature', 'mislav', 'refs/heads/experimental')
 
     assert_command "browse resque", "open https://github.com/tpw/resque"
     assert_command "browse resque commits",
@@ -685,6 +685,17 @@ config
   def test_hub_browse_current
     assert_command "browse", "open https://github.com/defunkt/hub"
     assert_command "browse --", "open https://github.com/defunkt/hub"
+  end
+
+  def test_hub_browse_no_tracking
+    stub_tracking_nothing
+    assert_command "browse", "open https://github.com/defunkt/hub"
+  end
+
+  def test_hub_browse_no_tracking_on_branch
+    stub_branch('refs/heads/feature')
+    stub_tracking('feature', nil, nil)
+    assert_command "browse", "open https://github.com/defunkt/hub"
   end
 
   def test_hub_browse_current_wiki
@@ -787,9 +798,13 @@ config
       @git['symbolic-ref -q HEAD'] = value
     end
 
+    def stub_tracking(from, remote_name, remote_branch)
+      @git["config branch.#{from}.remote"] = remote_name
+      @git["config branch.#{from}.merge"] = remote_branch
+    end
+
     def stub_tracking_nothing
-      @git['config branch.master.remote'] = nil
-      @git['config branch.master.merge'] = nil
+      stub_tracking('master', nil, nil)
     end
 
     def stub_remotes_group(name, value)

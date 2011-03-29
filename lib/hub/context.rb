@@ -94,12 +94,7 @@ module Hub
 
     def current_remote
       return if remotes.empty?
-
-      if current_branch
-        remote_for(current_branch)
-      else
-        default_remote
-      end
+      (current_branch && remote_for(current_branch)) || default_remote
     end
 
     def default_remote
