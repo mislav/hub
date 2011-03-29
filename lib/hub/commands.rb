@@ -42,8 +42,10 @@ module Hub
     API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
 
     def run(args)
+      slurp_global_flags(args)
+
       # Hack to emulate git-style
-      args.unshift 'help' if args.grep(/^[^-]|version|exec-path$|html-path/).empty?
+      args.unshift 'help' if args.empty?
 
       cmd = args[0]
       expanded_args = expand_alias(cmd)
@@ -493,13 +495,13 @@ module Hub
     # $ hub help
     # (print improved help text)
     def help(args)
-      command = args.grep(/^[^-]/)[1]
+      command = args.words[1]
 
       if command == 'hub'
         puts hub_manpage
         exit
-      elsif command.nil? && args.grep(/^--?a/).empty?
-        ENV['GIT_PAGER'] = '' if args.grep(/^-{1,2}p/).empty? # Use `cat`.
+      elsif command.nil? && !args.has_flag?('-a', '--all')
+        ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
         puts improved_help_text
         exit
       end
@@ -555,6 +557,50 @@ help
     # Helper methods are private so they cannot be invoked
     # from the command line.
     #
+
+    # Extract global flags from the front of the arguments list.
+    # Makes sure important ones are supplied for calls to subcommands.
+    #
+    # Known flags are:
+    #   --version --exec-path=<path> --html-path
+    #   -p|--paginate|--no-pager --no-replace-objects
+    #   --bare --git-dir=<path> --work-tree=<path>
+    #   -c name=value --help
+    #
+    # Special: `--version`, `--help` are replaced with "version" and "help".
+    # Ignored: `--exec-path`, `--html-path` are kept in args list untouched.
+    def slurp_global_flags(args)
+      flags = %w[ -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
+      flags2 = %w[ --exec-path= --git-dir= --work-tree= ]
+
+      # flags that should be present in subcommands, too
+      globals = []
+      # flags that apply only to main command
+      locals = []
+
+      while args[0] && (flags.include?(args[0]) || flags2.any? {|f| args[0].index(f) == 0 })
+        flag = args.shift
+        case flag
+        when '--version', '--help'
+          args.unshift flag.sub('--', '')
+        when '-c'
+          # slurp one additional argument
+          config_pair = args.shift
+          # add configuration to our local cache
+          key, value = config_pair.split('=', 2)
+          Context::GIT_CONFIG["config #{key}"] = value.to_s
+
+          globals << flag << config_pair
+        when '-p', '--paginate', '--no-pager'
+          locals << flag
+        else
+          globals << flag
+        end
+      end
+
+      Context::GIT_CONFIG.executable = Array(Context::GIT_CONFIG.executable).concat(globals)
+      args.executable = Array(args.executable).concat(globals).concat(locals)
+    end
 
     # Handles common functionality of browser commands like `browse`
     # and `compare`. Yields a block that returns params for `github_url`.

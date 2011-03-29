@@ -54,7 +54,7 @@ module Hub
     # Array of `executable` followed by all args suitable as arguments
     # for `exec` or `system` calls.
     def to_exec(args = self)
-      [*executable].concat args
+      Array(executable) + args
     end
 
     # All the words (as opposed to flags) contained in this argument
@@ -78,6 +78,11 @@ module Hub
     # Tests if arguments were modified since instantiation
     def changed?
       chained? or self != @original_args
+    end
+
+    def has_flag?(*flags)
+      pattern = flags.flatten.map { |f| Regexp.escape(f) }.join('|')
+      !grep(/^#{pattern}(?:=|$)/).empty?
     end
 
     private

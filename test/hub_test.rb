@@ -30,6 +30,8 @@ class HubTest < Test::Unit::TestCase
     Hub::Context::DIRNAME.replace 'hub'
     Hub::Context::REMOTES.clear
 
+    Hub::Context::GIT_CONFIG.executable = 'git'
+
     @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
       unless k.index('config alias.') == 0
         raise ArgumentError, "`git #{k}` not stubbed"
@@ -557,7 +559,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_exec_path_arg
     out = hub('--exec-path=/home/wombat/share/my-l33t-git-core')
-    assert_equal Hub::Commands.improved_help_text, hub("")
+    assert_equal Hub::Commands.improved_help_text, out
   end
 
   def test_html_path
@@ -758,6 +760,12 @@ config
   def test_multiple_remote_urls
     stub_repo_url("git://example.com/other.git\ngit://github.com/my/repo.git")
     assert_command "browse", "open https://github.com/my/repo"
+  end
+
+  def test_global_flags_preserved
+    cmd = '--no-pager --bare -c core.awesome=true -c name=value --git-dir=/srv/www perform'
+    assert_command cmd, 'git --bare -c core.awesome=true -c name=value --git-dir=/srv/www --no-pager perform'
+    assert_equal %w[git --bare -c core.awesome=true -c name=value --git-dir=/srv/www], @git.executable
   end
 
   protected

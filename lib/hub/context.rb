@@ -1,12 +1,28 @@
+require 'shellwords'
+
 module Hub
   # Provides methods for inspecting the environment, such as GitHub user/token
   # settings, repository info, and similar.
   module Context
     private
 
+    class ShellOutCache < Hash
+      attr_accessor :executable
+
+      def initialize(executable = nil, &block)
+        super(&block)
+        @executable = executable
+      end
+
+      def to_exec(args)
+        args = args.shellsplit if args.respond_to? :shellsplit
+        Array(executable) + Array(args)
+      end
+    end
+
     # Caches output when shelling out to git
-    GIT_CONFIG = Hash.new do |cache, cmd|
-      result = %x{git #{cmd}}.chomp
+    GIT_CONFIG = ShellOutCache.new(ENV['GIT'] || 'git') do |cache, cmd|
+      result = %x{#{cache.to_exec(cmd).shelljoin}}.chomp
       cache[cmd] = $?.success? && !result.empty? ? result : nil
     end
 
