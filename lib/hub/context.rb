@@ -25,7 +25,7 @@ module Hub
       end
     end
 
-    LGHCONF = "http://github.com/guides/local-github-config"
+    LGHCONF = "http://help.github.com/git-email-settings/"
 
     def repo_owner
       REMOTES[default_remote][:user]

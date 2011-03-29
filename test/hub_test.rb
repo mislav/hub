@@ -89,7 +89,7 @@ class HubTest < Test::Unit::TestCase
       stub_github_user(nil)
     end
 
-    assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
+    assert_equal "** No GitHub user set. See http://help.github.com/git-email-settings/\n", out
   end
 
   def test_your_public_clone_fails_without_config
@@ -97,7 +97,7 @@ class HubTest < Test::Unit::TestCase
       stub_github_user(nil)
     end
 
-    assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
+    assert_equal "** No GitHub user set. See http://help.github.com/git-email-settings/\n", out
   end
 
   def test_private_clone_left_alone
@@ -395,7 +395,7 @@ class HubTest < Test::Unit::TestCase
       stub_github_user(nil)
     end
 
-    assert_equal "** No GitHub user set. See http://github.com/guides/local-github-config\n", out
+    assert_equal "** No GitHub user set. See http://help.github.com/git-email-settings/\n", out
   end
 
   def test_push_two
@@ -491,7 +491,7 @@ class HubTest < Test::Unit::TestCase
     out = hub("create") do
       stub_github_token(nil)
     end
-    assert_equal "** No GitHub token set. See http://github.com/guides/local-github-config\n", out
+    assert_equal "** No GitHub token set. See http://help.github.com/git-email-settings/\n", out
   end
 
   def test_create_outside_git_repo
