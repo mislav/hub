@@ -556,35 +556,6 @@ help
     # from the command line.
     #
 
-    # Checks whether a command exists on this system in the $PATH.
-    #
-    # name - The String name of the command to check for.
-    #
-    # Returns a Boolean.
-    def command?(name)
-      `which #{name} 2>/dev/null`
-      $?.success?
-    end
-
-    # Detects commands to launch the user's browser, checking $BROWSER
-    # first then falling back to a few common launchers. Aborts with
-    # an error if it can't find anything appropriate.
-    #
-    # Returns a launch command.
-    def browser_launcher
-      if ENV['BROWSER']
-        ENV['BROWSER']
-      elsif RUBY_PLATFORM.include?('darwin')
-        "open"
-      elsif command?("xdg-open")
-        "xdg-open"
-      elsif command?("cygstart")
-        "cygstart"
-      else
-        abort "Please set $BROWSER to a web launcher to use this command."
-      end
-    end
-
     # Handles common functionality of browser commands like `browse`
     # and `compare`. Yields a block that returns params for `github_url`.
     def browse_command(args)
@@ -595,7 +566,6 @@ help
       args.executable = url_only ? 'echo' : browser_launcher
       args.push github_url({:web => true, :private => true}.update(params))
     end
-
 
     # Returns the terminal-formatted manpage, ready to be printed to
     # the screen.

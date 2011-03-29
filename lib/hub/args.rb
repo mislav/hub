@@ -54,7 +54,7 @@ module Hub
     # Array of `executable` followed by all args suitable as arguments
     # for `exec` or `system` calls.
     def to_exec(args = self)
-      [executable].concat args
+      [*executable].concat args
     end
 
     # All the words (as opposed to flags) contained in this argument

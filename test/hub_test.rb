@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 require 'webmock/test_unit'
+require 'rbconfig'
 
 WebMock::BodyPattern.class_eval do
   undef normalize_hash
@@ -17,10 +18,10 @@ class HubTest < Test::Unit::TestCase
 
   COMMANDS = []
 
-  Hub::Commands.class_eval do
-    remove_method :command?
-    define_method :command? do |name|
-      COMMANDS.include?(name)
+  Hub::Context.class_eval do
+    remove_method :which
+    define_method :which do |name|
+      COMMANDS.include?(name) ? "/usr/bin/#{name}" : nil
     end
   end
 
@@ -720,7 +721,7 @@ config
   def test_linux_browser
     stub_available_commands "open", "xdg-open", "cygstart"
     with_browser_env(nil) do
-      with_ruby_platform("i686-linux") do
+      with_host_os("i686-linux") do
         assert_browser("xdg-open")
       end
     end
@@ -729,7 +730,7 @@ config
   def test_cygwin_browser
     stub_available_commands "open", "cygstart"
     with_browser_env(nil) do
-      with_ruby_platform("i686-linux") do
+      with_host_os("i686-linux") do
         assert_browser("cygstart")
       end
     end
@@ -739,7 +740,7 @@ config
     stub_available_commands()
     expected = "Please set $BROWSER to a web launcher to use this command.\n"
     with_browser_env(nil) do
-      with_ruby_platform("i686-linux") do
+      with_host_os("i686-linux") do
         assert_equal expected, hub("browse")
       end
     end
@@ -834,14 +835,14 @@ config
       assert_command "browse", "#{browser} https://github.com/defunkt/hub"
     end
 
-    def with_ruby_platform(value)
-      platform = RUBY_PLATFORM
-      Object.send(:remove_const, :RUBY_PLATFORM)
-      Object.const_set(:RUBY_PLATFORM, value)
-      yield
-    ensure
-      Object.send(:remove_const, :RUBY_PLATFORM)
-      Object.const_set(:RUBY_PLATFORM, platform)
+    def with_host_os(value)
+      host_os = RbConfig::CONFIG['host_os']
+      RbConfig::CONFIG['host_os'] = value
+      begin
+        yield
+      ensure
+        RbConfig::CONFIG['host_os'] = host_os
+      end
     end
 
 end

@@ -155,5 +155,42 @@ module Hub
     def current_dirname
       DIRNAME
     end
+
+    # Cross-platform web browser command; respects the value set in $BROWSER.
+    # 
+    # Returns an array, e.g.: ['open']
+    def browser_launcher
+      require 'rbconfig'
+      browser = ENV['BROWSER'] ||
+        (RbConfig::CONFIG['host_os'].include?('darwin') && 'open') ||
+        (RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/ && 'start') ||
+        %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
+
+      abort "Please set $BROWSER to a web launcher to use this command." unless browser
+      Array(browser)
+    end
+
+    # Cross-platform way of finding an executable in the $PATH.
+    #
+    #   which('ruby') #=> /usr/bin/ruby
+    def which(cmd)
+      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+      ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+        exts.each { |ext|
+          exe = "#{path}/#{cmd}#{ext}"
+          return exe if File.executable? exe
+        }
+      end
+      return nil
+    end
+
+    # Checks whether a command exists on this system in the $PATH.
+    #
+    # name - The String name of the command to check for.
+    #
+    # Returns a Boolean.
+    def command?(name)
+      !which(name).nil?
+    end
   end
 end
