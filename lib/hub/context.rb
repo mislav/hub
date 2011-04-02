@@ -23,6 +23,11 @@ module Hub
     # Caches output when shelling out to git
     GIT_CONFIG = ShellOutCache.new(ENV['GIT'] || 'git') do |cache, cmd|
       result = %x{#{cache.to_exec(cmd).shelljoin}}.chomp
+      # If the value starts with a bang, it is a command to be executed
+      if result[0,1] == '!'
+        cmd = result[1, result.length]
+        result = %x{#{cmd}}.chomp
+      end
       cache[cmd] = $?.success? && !result.empty? ? result : nil
     end
 
