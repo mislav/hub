@@ -399,9 +399,19 @@ class HubTest < Test::Unit::TestCase
     assert_equal "** No GitHub user set. See http://help.github.com/git-email-settings/\n", out
   end
 
+  def test_push_untouched
+    assert_forwarded "push"
+  end
+
   def test_push_two
     assert_commands "git push origin cool-feature", "git push staging cool-feature",
                     "push origin,staging cool-feature"
+  end
+
+  def test_push_current_branch
+    stub_branch('refs/heads/cool-feature')
+    assert_commands "git push origin cool-feature", "git push staging cool-feature",
+                    "push origin,staging"
   end
 
   def test_push_more
