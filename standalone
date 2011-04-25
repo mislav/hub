@@ -111,7 +111,7 @@ module Hub
     def clone(args)
       ssh = args.delete('-p')
       has_values = /^(--(upload-pack|template|depth|origin|branch|reference)|-[ubo])$/
-      
+
       idx = 1
       while idx < args.length
         arg = args[idx]
@@ -224,6 +224,7 @@ module Hub
       if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
         idx = args.index(url)
         gist = $1 == 'gist.'
+        url = url.sub(%r{(/pull/\d+)/\w*$}, '\1') unless gist
         ext = gist ? '.txt' : '.patch'
         url += ext unless File.extname(url) == ext
         patch_file = File.join(ENV['TMPDIR'], "#{gist ? 'gist-' : ''}#{File.basename(url)}")
@@ -811,7 +812,7 @@ module Hub
   end
 end
 module Hub
-  Version = VERSION = '1.5.1'
+  Version = VERSION = '1.6.0'
 end
 Hub::Runner.execute(*ARGV)
 __END__
@@ -1118,10 +1119,10 @@ $ git push origin,staging,qa bert_timeout
 .nf
 
 $ git browse
-> open https://github\.com/CURRENT_REPO
+> open https://github\.com/YOUR_USER/CURRENT_REPO
 
 $ git browse \-\- issues
-> open https://github\.com/CURRENT_REPO/issues
+> open https://github\.com/YOUR_USER/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
 > open https://github\.com/schacon/ticgit
