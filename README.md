@@ -3,7 +3,7 @@ hub: git + hub = github
 
 `hub` is a command line utility which adds GitHub knowledge to `git`.
 
-It can used on its own or as a `git` wrapper.
+It can be used on its own or as a `git` wrapper.
 
 Normal:
 
