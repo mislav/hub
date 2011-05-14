@@ -1,3 +1,10 @@
+## 1.6.1 (2011-05-13)
+
+* `git push remote1,remote2` without branch name pushes the current branch
+* fix `browse` command for current repo with no tracking setup
+* preserve global flags to git such as `--bare` and `--git-dir=/some/path`
+* true cross-platform command detection and browser launcher
+
 ## 1.6.0 (2011-03-24)
 
 * `am` strips extra path from pull reqs URLs such as "pull/42/files"
