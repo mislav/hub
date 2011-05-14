@@ -9,7 +9,6 @@ Gem::Specification.new do |s|
   s.homepage          = "http://github.com/defunkt/hub"
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath" ]
-  s.has_rdoc          = false
 
   s.files             = %w( README.md Rakefile LICENSE )
   s.files            += Dir.glob("lib/**/*")
