@@ -867,14 +867,14 @@ module Hub
   end
 end
 module Hub
-  Version = VERSION = '1.6.0'
+  Version = VERSION = '1.6.1'
 end
 Hub::Runner.execute(*ARGV)
 __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "April 2011" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "May 2011" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
