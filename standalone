@@ -49,7 +49,7 @@ module Hub
     end
 
     def to_exec(args = self)
-      [executable].concat args
+      Array(executable) + args
     end
 
     def words
@@ -62,6 +62,11 @@ module Hub
 
     def changed?
       chained? or self != @original_args
+    end
+
+    def has_flag?(*flags)
+      pattern = flags.flatten.map { |f| Regexp.escape(f) }.join('|')
+      !grep(/^#{pattern}(?:=|$)/).empty?
     end
 
     private
@@ -95,7 +100,9 @@ module Hub
     API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
 
     def run(args)
-      args.unshift 'help' if args.grep(/^[^-]|version|exec-path$|html-path/).empty?
+      slurp_global_flags(args)
+
+      args.unshift 'help' if args.empty?
 
       cmd = args[0]
       expanded_args = expand_alias(cmd)
@@ -308,9 +315,9 @@ module Hub
     end
 
     def push(args)
-      return unless args[1] =~ /,/
+      return if args[1].nil? || !args[1].index(',')
 
-      branch  = args[2]
+      branch  = (args[2] ||= normalize_branch(current_branch))
       remotes = args[1].split(',')
       args[1] = remotes.shift
 
@@ -429,13 +436,13 @@ module Hub
     alias_method "--version", :version
 
     def help(args)
-      command = args.grep(/^[^-]/)[1]
+      command = args.words[1]
 
       if command == 'hub'
         puts hub_manpage
         exit
-      elsif command.nil? && args.grep(/^--?a/).empty?
-        ENV['GIT_PAGER'] = '' if args.grep(/^-{1,2}p/).empty? # Use `cat`.
+      elsif command.nil? && !args.has_flag?('-a', '--all')
+        ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
         puts improved_help_text
         exit
       end
@@ -486,23 +493,33 @@ help
 
   private
 
-    def command?(name)
-      `which #{name} 2>/dev/null`
-      $?.success?
-    end
+    def slurp_global_flags(args)
+      flags = %w[ -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
+      flags2 = %w[ --exec-path= --git-dir= --work-tree= ]
 
-    def browser_launcher
-      if ENV['BROWSER']
-        ENV['BROWSER']
-      elsif RUBY_PLATFORM.include?('darwin')
-        "open"
-      elsif command?("xdg-open")
-        "xdg-open"
-      elsif command?("cygstart")
-        "cygstart"
-      else
-        abort "Please set $BROWSER to a web launcher to use this command."
+      globals = []
+      locals = []
+
+      while args[0] && (flags.include?(args[0]) || flags2.any? {|f| args[0].index(f) == 0 })
+        flag = args.shift
+        case flag
+        when '--version', '--help'
+          args.unshift flag.sub('--', '')
+        when '-c'
+          config_pair = args.shift
+          key, value = config_pair.split('=', 2)
+          Context::GIT_CONFIG["config #{key}"] = value.to_s
+
+          globals << flag << config_pair
+        when '-p', '--paginate', '--no-pager'
+          locals << flag
+        else
+          globals << flag
+        end
       end
+
+      Context::GIT_CONFIG.executable = Array(Context::GIT_CONFIG.executable).concat(globals)
+      args.executable = Array(args.executable).concat(globals).concat(locals)
     end
 
     def browse_command(args)
@@ -513,7 +530,6 @@ help
       args.executable = url_only ? 'echo' : browser_launcher
       args.push github_url({:web => true, :private => true}.update(params))
     end
-
 
     def hub_manpage
       return "** Can't find groff(1)" unless command?('groff')
@@ -600,20 +616,38 @@ help
     def expand_alias(cmd)
       if expanded = git_alias_for(cmd)
         if expanded.index('!') != 0
-          require 'shellwords' unless expanded.respond_to? :shellsplit
-          expanded.shellsplit
+          require 'shellwords' unless defined?(::Shellwords)
+          Shellwords.shellwords(expanded)
         end
       end
     end
 
   end
 end
+require 'shellwords'
+
 module Hub
   module Context
     private
 
-    GIT_CONFIG = Hash.new do |cache, cmd|
-      result = %x{git #{cmd}}.chomp
+    class ShellOutCache < Hash
+      attr_accessor :executable
+
+      def initialize(executable = nil, &block)
+        super(&block)
+        @executable = executable
+      end
+
+      def to_exec(args)
+        args = Shellwords.shellwords(args) if args.respond_to? :to_str
+        Array(executable) + Array(args)
+      end
+    end
+
+    GIT_CONFIG = ShellOutCache.new(ENV['GIT'] || 'git') do |cache, cmd|
+      full_cmd = cache.to_exec(cmd)
+      cmd_string = full_cmd.respond_to?(:shelljoin) ? full_cmd.shelljoin : full_cmd.join(' ')
+      result = %x{#{cmd_string}}.chomp
       cache[cmd] = $?.success? && !result.empty? ? result : nil
     end
 
@@ -631,7 +665,7 @@ module Hub
       end
     end
 
-    LGHCONF = "http://github.com/guides/local-github-config"
+    LGHCONF = "http://help.github.com/git-email-settings/"
 
     def repo_owner
       REMOTES[default_remote][:user]
@@ -682,12 +716,7 @@ module Hub
 
     def current_remote
       return if remotes.empty?
-
-      if current_branch
-        remote_for(current_branch)
-      else
-        default_remote
-      end
+      (current_branch && remote_for(current_branch)) || default_remote
     end
 
     def default_remote
@@ -755,6 +784,32 @@ module Hub
     def current_dirname
       DIRNAME
     end
+
+    def browser_launcher
+      require 'rbconfig'
+      browser = ENV['BROWSER'] ||
+        (RbConfig::CONFIG['host_os'].include?('darwin') && 'open') ||
+        (RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/ && 'start') ||
+        %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
+
+      abort "Please set $BROWSER to a web launcher to use this command." unless browser
+      Array(browser)
+    end
+
+    def which(cmd)
+      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+      ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+        exts.each { |ext|
+          exe = "#{path}/#{cmd}#{ext}"
+          return exe if File.executable? exe
+        }
+      end
+      return nil
+    end
+
+    def command?(name)
+      !which(name).nil?
+    end
   end
 end
 module Hub
@@ -819,7 +874,7 @@ __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "December 2010" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "April 2011" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -855,7 +910,7 @@ __END__
 \fBgit am\fR \fIGITHUB\-URL\fR
 .
 .br
-\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR \fIREF\fR
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]
 .
 .br
 \fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
@@ -915,7 +970,7 @@ Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote 
 \fBgit am\fR \fIGITHUB\-URL\fR: Downloads the patch file for the pull request or commit at the URL and applies that patch from disk with \fBgit am\fR\. Similar to \fBcherry\-pick\fR, but doesn\'t add new remotes\.
 .
 .IP "\(bu" 4
-\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR \fIREF\fR: Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing multiple \fBgit push\fR commands\.
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]: Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing multiple \fBgit push\fR commands\.
 .
 .IP "\(bu" 4
 \fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]: Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\.
