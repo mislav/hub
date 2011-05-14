@@ -724,8 +724,8 @@ help
     def expand_alias(cmd)
       if expanded = git_alias_for(cmd)
         if expanded.index('!') != 0
-          require 'shellwords' unless expanded.respond_to? :shellsplit
-          expanded.shellsplit
+          require 'shellwords' unless defined?(::Shellwords)
+          Shellwords.shellwords(expanded)
         end
       end
     end

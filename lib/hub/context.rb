@@ -15,14 +15,16 @@ module Hub
       end
 
       def to_exec(args)
-        args = args.shellsplit if args.respond_to? :shellsplit
+        args = Shellwords.shellwords(args) if args.respond_to? :to_str
         Array(executable) + Array(args)
       end
     end
 
     # Caches output when shelling out to git
     GIT_CONFIG = ShellOutCache.new(ENV['GIT'] || 'git') do |cache, cmd|
-      result = %x{#{cache.to_exec(cmd).shelljoin}}.chomp
+      full_cmd = cache.to_exec(cmd)
+      cmd_string = full_cmd.respond_to?(:shelljoin) ? full_cmd.shelljoin : full_cmd.join(' ')
+      result = %x{#{cmd_string}}.chomp
       cache[cmd] = $?.success? && !result.empty? ? result : nil
     end
 
