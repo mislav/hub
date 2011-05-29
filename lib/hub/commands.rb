@@ -417,6 +417,7 @@ module Hub
           end
         else
           range = args.pop
+          range.sub!('..', '...') if range =~ /[0-9a-f]{6}\.\.[0-9a-f]{6}/
           user = args.pop || repo_user
         end
         { :user => user, :web => "/compare/#{range}" }
