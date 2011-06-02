@@ -254,6 +254,11 @@ module Hub
       end
     end
 
+    # $ hub apply https://github.com/defunkt/hub/pull/55
+    # > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    # > git apply /tmp/55.patch
+    alias_method :apply, :am
+
     # $ hub init -g
     # > git init
     # > git remote add origin git@github.com:USER/REPO.git
