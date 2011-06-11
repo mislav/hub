@@ -92,7 +92,9 @@ alias command displays information on configuring your environment:
     Open a GitHub compare view page in the system's default web browser.
     <START> to <END> are branch names, tag names, or commit SHA1s specifying
     the range of history to compare. If <START> is omitted, GitHub will
-    compare against the base branch (the default is "master").
+    compare against the base branch (the default is "master"). You can also
+    copy the notification from the `git pull`- and `git push`-output and it
+    will format it for github.
 
   * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:  
     Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
@@ -246,6 +248,9 @@ authentication?
 
     $ git compare 1.0...1.1
     > open https://github.com/CURRENT_REPO/compare/1.0...1.1
+
+    $ git compare 7a50012..ed17344
+    > open https://github.com/CURRENT_REPO/compare/7a50012...ed17344
 
     $ git compare -u fix
     > (https://github.com/CURRENT_REPO/compare/fix)

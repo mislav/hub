@@ -634,6 +634,11 @@ config
       "open https://github.com/defunkt/hub/compare/1.0...fix"
   end
 
+  def test_hub_compare_range_from_git_push
+    assert_command "compare 7a50012..ed17344",
+      "open https://github.com/defunkt/hub/compare/7a50012...ed17344"
+  end
+
   def test_hub_compare_on_wiki
     stub_repo_url 'git://github.com/defunkt/hub.wiki.git'
     assert_command "compare 1.0...fix",
