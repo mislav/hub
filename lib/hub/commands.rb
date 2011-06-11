@@ -57,6 +57,12 @@ module Hub
         args[0, 1] = expanded_args if expanded_args
         send(cmd, args)
       end
+    rescue Errno::ENOENT
+      if $!.message.include? "No such file or directory - git"
+        abort "Error: `git` command not found"
+      else
+        raise
+      end
     end
 
     # $ hub clone rtomayko/tilt
