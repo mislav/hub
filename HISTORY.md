@@ -1,3 +1,8 @@
+## master
+
+* replace two dots (`sha1..sha2`) with three for ranges in `compare`
+* avoid ugly error & stack trace when git is not found on the system
+
 ## 1.6.1 (2011-05-13)
 
 * `git push remote1,remote2` without branch name pushes the current branch

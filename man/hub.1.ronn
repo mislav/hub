@@ -91,8 +91,9 @@ alias command displays information on configuring your environment:
   * `git compare` [`-u`] [<USER>] [<START>...]<END>:
     Open a GitHub compare view page in the system's default web browser.
     <START> to <END> are branch names, tag names, or commit SHA1s specifying
-    the range of history to compare. If <START> is omitted, GitHub will
-    compare against the base branch (the default is "master").
+    the range of history to compare. If a range with two dots (`a..b`) is given,
+    it will be transformed into one with three dots. If <START> is omitted,
+    GitHub will compare against the base branch (the default is "master").
 
   * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:  
     Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
@@ -244,7 +245,7 @@ authentication?
     $ git compare refactor
     > open https://github.com/CURRENT_REPO/compare/refactor
 
-    $ git compare 1.0...1.1
+    $ git compare 1.0..1.1
     > open https://github.com/CURRENT_REPO/compare/1.0...1.1
 
     $ git compare -u fix

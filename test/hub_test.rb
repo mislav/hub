@@ -634,6 +634,21 @@ config
       "open https://github.com/defunkt/hub/compare/1.0...fix"
   end
 
+  def test_hub_compare_range_fixes_two_dots_for_tags
+    assert_command "compare 1.0..fix",
+      "open https://github.com/defunkt/hub/compare/1.0...fix"
+  end
+
+  def test_hub_compare_range_fixes_two_dots_for_shas
+    assert_command "compare 1234abc..3456cde",
+      "open https://github.com/defunkt/hub/compare/1234abc...3456cde"
+  end
+
+  def test_hub_compare_range_ignores_two_dots_for_complex_ranges
+    assert_command "compare @{a..b}..@{c..d}",
+      "open https://github.com/defunkt/hub/compare/@{a..b}..@{c..d}"
+  end
+
   def test_hub_compare_on_wiki
     stub_repo_url 'git://github.com/defunkt/hub.wiki.git'
     assert_command "compare 1.0...fix",

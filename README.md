@@ -221,7 +221,7 @@ Creates a new public github repository and adds the remote `origin` at
     $ git compare refactor
     > open https://github.com/CURRENT_REPO/compare/refactor
 
-    $ git compare 1.0...1.1
+    $ git compare 1.0..1.1
     > open https://github.com/CURRENT_REPO/compare/1.0...1.1
 
     $ git compare -u fix

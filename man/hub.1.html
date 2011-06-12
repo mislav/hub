@@ -154,8 +154,9 @@ subpage: one of "wiki", "commits", "issues" or other (the default is
 <li><p><code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var>:
 Open a GitHub compare view page in the system's default web browser.
 <var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
-the range of history to compare. If <var>START</var> is omitted, GitHub will
-compare against the base branch (the default is "master").</p></li>
+the range of history to compare. If a range with two dots (<code>a..b</code>) is given,
+it will be transformed into one with three dots. If <var>START</var> is omitted,
+GitHub will compare against the base branch (the default is "master").</p></li>
 <li><p><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
 Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-submodule<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
@@ -326,7 +327,7 @@ $ git browse resque network
 <pre><code>$ git compare refactor
 &gt; open https://github.com/CURRENT_REPO/compare/refactor
 
-$ git compare 1.0...1.1
+$ git compare 1.0..1.1
 &gt; open https://github.com/CURRENT_REPO/compare/1.0...1.1
 
 $ git compare -u fix
@@ -361,7 +362,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>May 2011</li>
+    <li class='tc'>June 2011</li>
     <li class='tr'>hub(1)</li>
   </ol>
 

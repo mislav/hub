@@ -403,7 +403,7 @@ module Hub
       end
     end
 
-    # $ hub compare 1.0...fix
+    # $ hub compare 1.0..fix
     # > open https://github.com/CURRENT_REPO/compare/1.0...fix
     # $ hub compare refactor
     # > open https://github.com/CURRENT_REPO/compare/refactor
@@ -422,7 +422,9 @@ module Hub
             abort "Usage: hub compare [USER] [<START>...]<END>"
           end
         else
-          range = args.pop
+          sha_or_tag = /(\w{1,2}|\w[\w.-]+\w)/
+          # replaces two dots with three: "sha1...sha2"
+          range = args.pop.sub(/^#{sha_or_tag}\.\.#{sha_or_tag}$/, '\1...\2')
           user = args.pop || repo_user
         end
         { :user => user, :web => "/compare/#{range}" }
