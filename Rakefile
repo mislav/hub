@@ -27,7 +27,8 @@ end
 
 task :default => :test
 
-if command? :turn
+if false # command? :turn
+  # commented out since turn 0.8.2 seems to be broken with minitest
   desc "Run tests"
   task :test do
     suffix = "-n #{ENV['TEST']}" if ENV['TEST']
