@@ -438,7 +438,8 @@ class HubTest < Test::Unit::TestCase
     stub_request(:post, "github.com/api/v2/yaml/repos/create").
       to_return(:status => [401, "Your token is fail"])
 
-    expected = "error creating repository: Your token is fail (HTTP 401)\n"
+    expected = "Error creating repository: Your token is fail (HTTP 401)\n"
+    expected << "Check your token configuration (`git config github.token`)\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
@@ -534,7 +535,7 @@ class HubTest < Test::Unit::TestCase
     stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
       to_return(:status => [500, "Your fork is fail"])
 
-    expected = "error creating fork: Your fork is fail (HTTP 500)\n"
+    expected = "Error creating fork: Your fork is fail (HTTP 500)\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 

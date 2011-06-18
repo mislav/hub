@@ -285,8 +285,7 @@ module Hub
         end
       end
     rescue Net::HTTPExceptions
-      response = $!.response
-      warn "error creating fork: #{response.message} (HTTP #{response.code})"
+      display_http_exception("creating fork", $!.response)
       exit 1
     end
 
@@ -333,8 +332,7 @@ module Hub
         args.after { puts "#{action}: #{github_user}/#{repo_name}" }
       end
     rescue Net::HTTPExceptions
-      response = $!.response
-      warn "error creating repository: #{response.message} (HTTP #{response.code})"
+      display_http_exception("creating repository", $!.response)
       exit 1
     end
 
@@ -736,6 +734,11 @@ help
           Shellwords.shellwords(expanded)
         end
       end
+    end
+
+    def display_http_exception(action, response)
+      warn "Error #{action}: #{response.message} (HTTP #{response.code})"
+      warn "Check your token configuration (`git config github.token`)" if response.code.to_i == 401
     end
 
   end
