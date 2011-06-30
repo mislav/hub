@@ -8,6 +8,12 @@ module Hub
     attr_reader :args
     
     def initialize(*args)
+
+      # $ hub ["clone", "rtomayko", "/", "tilt"] => hub ["clone", "rtomayko/tilt"]
+      if args[0] == "clone" and args[2] = "/" and args.length == 4
+        args = ["clone", args[1..3].join]
+      end
+
       @args = Args.new(args)
       Commands.run(@args)
     end
