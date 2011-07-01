@@ -9,10 +9,24 @@ module Hub
     
     def initialize(*args)
 
-      # $ hub ["clone", "rtomayko", "/", "tilt"] => hub ["clone", "rtomayko/tilt"]
-      if args[0] == "clone" and args[2] = "/" and args.length == 4
-        args = ["clone", args[1..3].join]
+      # pre-process:
+      #  go thru entire list of args searching for ["a","/","b"]
+      #  and transforming them all by collapsing into ["a/b"]
+      idx, result = 0, []
+      while idx < args.length do
+        current_item = args[idx]
+        if idx <= args.length - 3
+          next_item      = args[idx + 1]
+          if next_item == "/"
+            result.push args[idx..(idx+2)].join
+            idx += 3
+            next
+          end
+        end
+        result.push current_item
+        idx += 1
       end
+      args = result
 
       @args = Args.new(args)
       Commands.run(@args)
