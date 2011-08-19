@@ -228,11 +228,17 @@ authentication?
     $ git browse
     > open https://github.com/YOUR_USER/CURRENT_REPO
 
+    $ git browse -- commit/SHA
+    > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
+
     $ git browse -- issues
     > open https://github.com/YOUR_USER/CURRENT_REPO/issues
 
     $ git browse schacon/ticgit
     > open https://github.com/schacon/ticgit
+
+    $ git browse schacon/ticgit commit/SHA
+    > open https://github.com/schacon/ticgit/commit/SHA
 
     $ git browse resque
     > open https://github.com/YOUR_USER/resque
