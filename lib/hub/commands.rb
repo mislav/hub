@@ -40,6 +40,7 @@ module Hub
     API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
     API_FORK   = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE = 'https://github.com/api/v2/yaml/repos/create'
+    API_PULLR  = 'http://github.com/api/v2/json/pulls/%s'
 
     def run(args)
       slurp_global_flags(args)
@@ -62,6 +63,46 @@ module Hub
         abort "Error: `git` command not found"
       else
         raise
+      end
+    end
+
+    def pullreq(args)
+      args.skip!
+      if !is_repo?
+        puts "'pullreq' must be run from inside a git repository"
+        return
+      end
+      if !github_user
+        puts "Github user and token required in .gitconfig."
+        return
+      end
+      branch = `git name-rev --name-only HEAD`.strip
+      # Remove 'pullreq'
+      args.shift
+
+      options = {}
+      until args.length == 1
+        case arg = args.shift
+        when '-t'
+          options[:title] = args.shift
+        when '-y'
+          options[:body] = args.shift
+        when '-b'
+          options[:base] = args.shift
+        when '-p'
+          system('git', 'push')
+        else
+          puts "unexpected argument: #{arg}"
+          return
+        end
+      end
+      if options[:title].nil?
+        puts "-t must be specified!"
+        args.ski
+        return
+      end
+      if branch
+        create_pullreq(args.shift, "#{github_user}:#{branch}", options)
       end
     end
 
@@ -735,6 +776,19 @@ help
 
       load_net_http
       response = http_post(API_CREATE, params)
+      response.error! unless Net::HTTPSuccess === response
+    end
+
+    def create_pullreq(repo, head, options)
+      require 'net/http'
+      url = API_PULLR
+      params = {'login' => github_user, 'token' => github_token}
+      params['pull[title]'] = options[:title] if options[:title]
+      params['pull[body]'] = options[:body] if options[:body]
+      params['pull[base]'] = options[:base] ? options[:base] : 'master'
+      params['pull[head]'] = head
+
+      response = Net::HTTP.post_form(URI(url % repo), params)
       response.error! unless Net::HTTPSuccess === response
     end
 
