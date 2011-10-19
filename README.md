@@ -114,7 +114,7 @@ The alias command can also be eval'd directly using the `-s` flag:
 Commands
 --------
 
-Assuming you've aliased `hub` to `git` the following commands now have
+Assuming you've aliased `hub` to `git`, the following commands now have
 superpowers:
 
 ### git clone
@@ -167,15 +167,21 @@ superpowers:
     > git fetch mislav
     > git cherry-pick SHA
 
+### git am
+
+    $ git am https://github.com/defunkt/hub/pull/55
+    > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    > git am /tmp/55.patch
+
+    $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
+    > curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+    > git am --ignore-whitespace /tmp/fdb9921.patch
+
 ### git fork
 
     $ git fork
     [ repo forked on GitHub ]
     > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
-
-Forks the original repo on GitHub and adds the new remote under your
-username. It requires your GitHub token to be present; see "GitHub
-login" below for details.
 
 ### git create
 
@@ -193,9 +199,6 @@ login" below for details.
     $ git create sinatra/recipes
     [ repo created in GitHub organization ]
     > git remote add origin git@github.com:sinatra/recipes.git
-
-Creates a new public github repository and adds the remote `origin` at
-"git@github.com:<USER>/<REPOSITORY>.git"
 
 ### git init
 

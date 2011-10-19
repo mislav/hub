@@ -261,17 +261,7 @@ $ git am \-\-ignore\-whitespace https://github\.com/davidbalbert/hub/commit/fdb9
 
 $ git fork
 [ repo forked on GitHub ]
-> git remote add YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
-.
-.fi
-.
-.SS "git init"
-.
-.nf
-
-$ git init \-g
-> git init
-> git remote add origin git@github\.com:YOUR_USER/REPO\.git
+> git remote add \-f YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
 .
 .fi
 .
@@ -293,6 +283,16 @@ $ git create recipes
 $ git create sinatra/recipes
 [ repo created in GitHub organization ]
 > git remote add origin git@github\.com:sinatra/recipes\.git
+.
+.fi
+.
+.SS "git init"
+.
+.nf
+
+$ git init \-g
+> git init
+> git remote add origin git@github\.com:YOUR_USER/REPO\.git
 .
 .fi
 .
@@ -349,6 +349,21 @@ $ git compare \-u fix
 
 $ git compare other\-user patch
 > open https://github\.com/other\-user/REPO/compare/patch
+.
+.fi
+.
+.SS "git submodule"
+.
+.nf
+
+$ hub submodule add wycats/bundler vendor/bundler
+> git submodule add git://github\.com/wycats/bundler\.git vendor/bundler
+
+$ hub submodule add \-p wycats/bundler vendor/bundler
+> git submodule add git@github\.com:wycats/bundler\.git vendor/bundler
+
+$ hub submodule add \-b ryppl ryppl/pip vendor/pip
+> git submodule add \-b ryppl git://github\.com/ryppl/pip\.git vendor/pip
 .
 .fi
 .
