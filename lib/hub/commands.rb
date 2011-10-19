@@ -612,7 +612,7 @@ help
     # and `compare`. Yields a block that returns params for `github_url`.
     def browse_command(args)
       url_only = args.delete('-u')
-      $stderr.puts "Warning: the `-p` flag has no effect anymore" if args.delete('-p')
+      warn "Warning: the `-p` flag has no effect anymore" if args.delete('-p')
       params = yield
 
       args.executable = url_only ? 'echo' : browser_launcher
