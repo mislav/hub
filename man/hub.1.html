@@ -309,11 +309,17 @@ $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
 <pre><code>$ git browse
 &gt; open https://github.com/YOUR_USER/CURRENT_REPO
 
+$ git browse -- commit/FULL_OR_PARTIAL_SHA
+&gt; open https://github.com/YOUR_USER/CURRENT_REPO/commit/FULL_OR_PARTIAL_SHA
+
 $ git browse -- issues
 &gt; open https://github.com/YOUR_USER/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
 &gt; open https://github.com/schacon/ticgit
+
+$ git browse schacon/ticgit commit/FULL_OR_PARTIAL_SHA
+&gt; open https://github.com/schacon/ticgit/commit/FULL_OR_PARTIAL_SHA
 
 $ git browse resque
 &gt; open https://github.com/YOUR_USER/resque
@@ -362,7 +368,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>June 2011</li>
+    <li class='tc'>August 2011</li>
     <li class='tr'>hub(1)</li>
   </ol>
 

@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "June 2011" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "August 2011" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -303,11 +303,17 @@ $ git push origin,staging,qa bert_timeout
 $ git browse
 > open https://github\.com/YOUR_USER/CURRENT_REPO
 
+$ git browse \-\- commit/FULL_OR_PARTIAL_SHA
+> open https://github\.com/YOUR_USER/CURRENT_REPO/commit/FULL_OR_PARTIAL_SHA
+
 $ git browse \-\- issues
 > open https://github\.com/YOUR_USER/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
 > open https://github\.com/schacon/ticgit
+
+$ git browse schacon/ticgit commit/FULL_OR_PARTIAL_SHA
+> open https://github\.com/schacon/ticgit/commit/FULL_OR_PARTIAL_SHA
 
 $ git browse resque
 > open https://github\.com/YOUR_USER/resque

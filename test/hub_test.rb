@@ -670,6 +670,10 @@ config
     assert_command "browse mojombo/bert", "open https://github.com/mojombo/bert"
   end
 
+  def test_hub_browse_and_commit
+    assert_command "browse mojombo/bert commit/5d5582", "open https://github.com/mojombo/bert/commit/5d5582"
+  end
+
   def test_hub_browse_tracking_nothing
     stub_tracking_nothing
     assert_command "browse mojombo/bert", "open https://github.com/mojombo/bert"
@@ -711,6 +715,10 @@ config
   def test_hub_browse_current
     assert_command "browse", "open https://github.com/defunkt/hub"
     assert_command "browse --", "open https://github.com/defunkt/hub"
+  end
+
+  def test_hub_browse_current_and_commit
+    assert_command "browse -- commit/6616e4", "open https://github.com/defunkt/hub/commit/6616e4"
   end
 
   def test_hub_browse_no_tracking
