@@ -296,10 +296,11 @@ module Hub
       if !is_repo?
         puts "'create' must be run from inside a git repository"
         args.skip!
-      elsif github_user && github_token
+      elsif owner = github_user and github_token
         args.shift
         options = {}
         options[:private] = true if args.delete('-p')
+        new_repo_name = nil
 
         until args.empty?
           case arg = args.shift
@@ -308,20 +309,26 @@ module Hub
           when '-h'
             options[:homepage] = args.shift
           else
-            puts "unexpected argument: #{arg}"
-            return
+            if arg =~ /^[^-]/ and new_repo_name.nil?
+              new_repo_name = arg
+              owner, new_repo_name = new_repo_name.split('/', 2) if new_repo_name.index('/')
+            else
+              abort "invalid argument: #{arg}"
+            end
           end
         end
+        new_repo_name ||= repo_name
+        repo_with_owner = "#{owner}/#{new_repo_name}"
 
-        if repo_exists?(github_user)
-          puts "#{github_user}/#{repo_name} already exists on GitHub"
+        if repo_exists?(owner, new_repo_name)
+          puts "#{repo_with_owner} already exists on GitHub"
           action = "set remote origin"
         else
           action = "created repository"
-          create_repo(options)
+          create_repo(repo_with_owner, options)
         end
 
-        url = github_url(:private => true)
+        url = github_url(:repo => new_repo_name, :user => owner, :private => true)
 
         if remotes.first != 'origin'
           args.replace %W"remote add -f origin #{url}"
@@ -329,7 +336,7 @@ module Hub
           args.replace %W"remote -v"
         end
 
-        args.after { puts "#{action}: #{github_user}/#{repo_name}" }
+        args.after { puts "#{action}: #{repo_with_owner}" }
       end
     rescue HTTPExceptions
       display_http_exception("creating repository", $!.response)
@@ -698,9 +705,9 @@ help
     end
 
     # Determines whether a user has a fork of the current repo on GitHub.
-    def repo_exists?(user)
+    def repo_exists?(user, repo = repo_name)
       load_net_http
-      url = API_REPO % [user, repo_name]
+      url = API_REPO % [user, repo]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
     end
 
@@ -716,8 +723,8 @@ help
     # Creates a new repo using the GitHub API.
     #
     # Returns nothing.
-    def create_repo(options = {})
-      params = {'name' => repo_name}
+    def create_repo(name, options = {})
+      params = {'name' => name.sub(/^#{github_user}\//, '')}
       params['public'] = '0' if options[:private]
       params['description'] = options[:description] if options[:description]
       params['homepage'] = options[:homepage] if options[:homepage]

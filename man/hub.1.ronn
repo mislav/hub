@@ -7,7 +7,7 @@ hub(1) -- git + hub = github
 `hub alias` [`-s`] <SHELL>
 
 `git init -g` <OPTIONS>  
-`git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]  
+`git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]  
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
@@ -36,13 +36,15 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
     <REPOSITORY> is the current working directory's basename.
 
-  * `git create` [`-p`] [`-d <DESCRIPTION>`] [`-h <HOMEPAGE>`]:  
-    Create a new public github repository from the current git
+  * `git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]:  
+    Create a new public GitHub repository from the current git
     repository and add remote `origin` at
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub
-    username and <REPOSITORY> is the current working directory's
-    basename. With `-p`, create a private repository. `-d` and `-h`
-    set the repository's description and homepage, respectively.
+    username and <REPOSITORY> is the current working directory name.
+    To explicitly name the new repository, pass in <NAME>, optionally in
+    <ORGANIZATION>/<NAME> form to create under an organization you're a
+    member of. With `-p`, create a private repository, and with `-d` and `-h`
+    set the repository's description and homepage URL, respectively.
 
   * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:  
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
@@ -201,7 +203,7 @@ authentication?
 ### git fork
 
     $ git fork
-    ... hardcore forking action ...
+    [ repo forked on GitHub ]
     > git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
 ### git init
@@ -213,8 +215,19 @@ authentication?
 ### git create
 
     $ git create
-    ... hardcore creating action ...
+    [ repo created on GitHub ]
     > git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+
+    # with description:
+    $ git create -d 'It shall be mine, all mine!'
+
+    $ git create recipes
+    [ repo created on GitHub ]
+    > git remote add origin git@github.com:YOUR_USER/recipes.git
+
+    $ git create sinatra/recipes
+    [ repo created in GitHub organization ]
+    > git remote add origin git@github.com:sinatra/recipes.git
 
 ### git push
 

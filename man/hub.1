@@ -16,7 +16,7 @@
 \fBgit init \-g\fR \fIOPTIONS\fR
 .
 .br
-\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]
+\fBgit create\fR [\fINAME\fR] [\fB\-p\fR] [\fB\-d\fR \fIDESCRIPTION\fR] [\fB\-h\fR \fIHOMEPAGE\fR]
 .
 .br
 \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
@@ -64,10 +64,10 @@
 \fBgit init\fR \fB\-g\fR \fIOPTIONS\fR: Create a git repository as with git\-init(1) and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\.
 .
 .IP "\(bu" 4
-\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]:
+\fBgit create\fR [\fINAME\fR] [\fB\-p\fR] [\fB\-d\fR \fIDESCRIPTION\fR] [\fB\-h\fR \fIHOMEPAGE\fR]:
 .
 .br
-Create a new public github repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\. With \fB\-p\fR, create a private repository\. \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage, respectively\.
+Create a new public GitHub repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory name\. To explicitly name the new repository, pass in \fINAME\fR, optionally in \fIORGANIZATION\fR/\fINAME\fR form to create under an organization you\'re a member of\. With \fB\-p\fR, create a private repository, and with \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage URL, respectively\.
 .
 .IP "\(bu" 4
 \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR:
@@ -260,7 +260,7 @@ $ git am \-\-ignore\-whitespace https://github\.com/davidbalbert/hub/commit/fdb9
 .nf
 
 $ git fork
-\.\.\. hardcore forking action \.\.\.
+[ repo forked on GitHub ]
 > git remote add YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
 .
 .fi
@@ -280,8 +280,19 @@ $ git init \-g
 .nf
 
 $ git create
-\.\.\. hardcore creating action \.\.\.
+[ repo created on GitHub ]
 > git remote add origin git@github\.com:YOUR_USER/CURRENT_REPO\.git
+
+# with description:
+$ git create \-d \'It shall be mine, all mine!\'
+
+$ git create recipes
+[ repo created on GitHub ]
+> git remote add origin git@github\.com:YOUR_USER/recipes\.git
+
+$ git create sinatra/recipes
+[ repo created in GitHub organization ]
+> git remote add origin git@github\.com:sinatra/recipes\.git
 .
 .fi
 .

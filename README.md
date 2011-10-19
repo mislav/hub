@@ -170,7 +170,7 @@ superpowers:
 ### git fork
 
     $ git fork
-    ... hardcore forking action ...
+    [ repo forked on GitHub ]
     > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
 Forks the original repo on GitHub and adds the new remote under your
@@ -180,8 +180,19 @@ login" below for details.
 ### git create
 
     $ git create
-    ... hardcore creating action ...
+    [ repo created on GitHub ]
     > git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+
+    # with description:
+    $ git create -d 'It shall be mine, all mine!'
+
+    $ git create recipes
+    [ repo created on GitHub ]
+    > git remote add origin git@github.com:YOUR_USER/recipes.git
+
+    $ git create sinatra/recipes
+    [ repo created in GitHub organization ]
+    > git remote add origin git@github.com:sinatra/recipes.git
 
 Creates a new public github repository and adds the remote `origin` at
 "git@github.com:<USER>/<REPOSITORY>.git"

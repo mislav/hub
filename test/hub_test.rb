@@ -432,6 +432,28 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_custom_name
+    stub_no_remotes
+    stub_nonexisting_fork('tpw', 'hubbub')
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hubbub' })
+
+    expected = "remote add -f origin git@github.com:tpw/hubbub.git\n"
+    expected << "created repository: tpw/hubbub\n"
+    assert_equal expected, hub("create hubbub") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_in_organization
+    stub_no_remotes
+    stub_nonexisting_fork('acme', 'hubbub')
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'acme/hubbub' })
+
+    expected = "remote add -f origin git@github.com:acme/hubbub.git\n"
+    expected << "created repository: acme/hubbub\n"
+    assert_equal expected, hub("create acme/hubbub") { ENV['GIT'] = 'echo' }
+  end
+
   def test_create_no_openssl
     stub_no_remotes
     stub_nonexisting_fork('tpw')
@@ -501,6 +523,11 @@ class HubTest < Test::Unit::TestCase
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
     assert_equal expected, hub("create -d toyproject -h http://example.com") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_with_invalid_arguments
+    assert_equal "invalid argument: -a\n",   hub("create -a blah")   { ENV['GIT'] = 'echo' }
+    assert_equal "invalid argument: bleh\n", hub("create blah bleh") { ENV['GIT'] = 'echo' }
   end
 
   def test_create_with_existing_repository
@@ -871,16 +898,16 @@ config
       @git["config alias.#{name}"] = value
     end
 
-    def stub_existing_fork(user)
-      stub_fork(user, 200)
+    def stub_existing_fork(user, repo = 'hub')
+      stub_fork(user, repo, 200)
     end
 
-    def stub_nonexisting_fork(user)
-      stub_fork(user, 404)
+    def stub_nonexisting_fork(user, repo = 'hub')
+      stub_fork(user, repo, 404)
     end
 
-    def stub_fork(user, status)
-      stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/hub").
+    def stub_fork(user, repo, status)
+      stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
         to_return(:status => status)
     end
 

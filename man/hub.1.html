@@ -80,7 +80,7 @@
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
 <p><code>git init -g</code> <var>OPTIONS</var><br />
-<code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]<br />
+<code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]<br />
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
@@ -108,13 +108,15 @@ this command can be evaluated directly within the shell:<br />
 Create a git repository as with <span class="man-ref">git-init<span class="s">(1)</span></span> and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
 <var>REPOSITORY</var> is the current working directory's basename.</p></li>
-<li><p><code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]:<br />
-Create a new public github repository from the current git
+<li><p><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]:<br />
+Create a new public GitHub repository from the current git
 repository and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub
-username and <var>REPOSITORY</var> is the current working directory's
-basename. With <code>-p</code>, create a private repository. <code>-d</code> and <code>-h</code>
-set the repository's description and homepage, respectively.</p></li>
+username and <var>REPOSITORY</var> is the current working directory name.
+To explicitly name the new repository, pass in <var>NAME</var>, optionally in
+<var>ORGANIZATION</var>/<var>NAME</var> form to create under an organization you're a
+member of. With <code>-p</code>, create a private repository, and with <code>-d</code> and <code>-h</code>
+set the repository's description and homepage URL, respectively.</p></li>
 <li><p><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
 Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
@@ -278,7 +280,7 @@ $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
 <h3 id="git-fork">git fork</h3>
 
 <pre><code>$ git fork
-... hardcore forking action ...
+[ repo forked on GitHub ]
 &gt; git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 </code></pre>
 
@@ -292,8 +294,19 @@ $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
 <h3 id="git-create">git create</h3>
 
 <pre><code>$ git create
-... hardcore creating action ...
+[ repo created on GitHub ]
 &gt; git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+
+# with description:
+$ git create -d 'It shall be mine, all mine!'
+
+$ git create recipes
+[ repo created on GitHub ]
+&gt; git remote add origin git@github.com:YOUR_USER/recipes.git
+
+$ git create sinatra/recipes
+[ repo created in GitHub organization ]
+&gt; git remote add origin git@github.com:sinatra/recipes.git
 </code></pre>
 
 <h3 id="git-push">git push</h3>
