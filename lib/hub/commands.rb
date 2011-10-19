@@ -284,7 +284,7 @@ module Hub
           args.after { puts "new remote: #{github_user}" }
         end
       end
-    rescue Net::HTTPExceptions
+    rescue HTTPExceptions
       display_http_exception("creating fork", $!.response)
       exit 1
     end
@@ -331,7 +331,7 @@ module Hub
 
         args.after { puts "#{action}: #{github_user}/#{repo_name}" }
       end
-    rescue Net::HTTPExceptions
+    rescue HTTPExceptions
       display_http_exception("creating repository", $!.response)
       exit 1
     end
@@ -765,6 +765,14 @@ help
 
     def use_ssl?
       defined? ::OpenSSL
+    end
+
+    # Fake exception type for net/http exception handling.
+    # Necessary because net/http may or may not be loaded at the time.
+    module HTTPExceptions
+      def self.===(exception)
+        exception.class.ancestors.map {|a| a.to_s }.include? 'Net::HTTPExceptions'
+      end
     end
 
     def display_http_exception(action, response)
