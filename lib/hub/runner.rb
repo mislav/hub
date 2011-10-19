@@ -8,6 +8,26 @@ module Hub
     attr_reader :args
     
     def initialize(*args)
+
+      # pre-process:
+      #  go thru entire list of args searching for ["a","/","b"]
+      #  and transforming them all by collapsing into ["a/b"]
+      idx, result = 0, []
+      while idx < args.length do
+        current_item = args[idx]
+        if idx <= args.length - 3
+          next_item      = args[idx + 1]
+          if next_item == "/"
+            result.push args[idx..(idx+2)].join
+            idx += 3
+            next
+          end
+        end
+        result.push current_item
+        idx += 1
+      end
+      args = result
+
       @args = Args.new(args)
       Commands.run(@args)
     end
