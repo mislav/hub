@@ -424,18 +424,34 @@ class HubTest < Test::Unit::TestCase
   def test_create
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_no_openssl
+    stub_no_remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "http://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
+
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: tpw/hub\n"
+
+    assert_equal expected, hub("create") {
+      ENV['GIT'] = 'echo'
+      require 'net/https'
+      Object.send :remove_const, :OpenSSL
+    }
+  end
+
   def test_create_failed
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
       to_return(:status => [401, "Your token is fail"])
 
     expected = "Error creating repository: Your token is fail (HTTP 401)\n"
@@ -452,8 +468,8 @@ class HubTest < Test::Unit::TestCase
     ENV['GITHUB_USER']  = 'mojombo'
     ENV['GITHUB_TOKEN'] = '123abc'
 
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'mojombo', 'token'=>'123abc', 'name' => 'hub' })
+    stub_request(:post, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
 
     expected = "remote add -f origin git@github.com:mojombo/hub.git\n"
     expected << "created repository: mojombo/hub\n"
@@ -467,8 +483,8 @@ class HubTest < Test::Unit::TestCase
   def test_create_private_repository
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'public' => '0' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub', 'public' => '0' })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
@@ -478,9 +494,8 @@ class HubTest < Test::Unit::TestCase
   def test_create_with_description_and_homepage
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").with(:body => {
-      'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub',
-      'description' => 'toyproject', 'homepage' => 'http://example.com'
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").with(:body => {
+      'name' => 'hub', 'description' => 'toyproject', 'homepage' => 'http://example.com'
     })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
@@ -513,8 +528,8 @@ class HubTest < Test::Unit::TestCase
 
   def test_create_origin_already_exists
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
 
     expected = "remote -v\ncreated repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
@@ -522,8 +537,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub")
 
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
@@ -532,7 +546,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork_failed
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub").
       to_return(:status => [500, "Your fork is fail"])
 
     expected = "Error creating fork: Your fork is fail (HTTP 500)\n"
@@ -541,7 +555,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork_no_remote
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub")
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub")
 
     assert_equal "", hub("fork --no-remote") { ENV['GIT'] = 'echo' }
   end
@@ -892,6 +906,10 @@ config
       ensure
         RbConfig::CONFIG['host_os'] = host_os
       end
+    end
+
+    def auth(user = @git['config github.user'], password = @git['config github.token'])
+      "#{user}%2Ftoken:#{password}@"
     end
 
 end

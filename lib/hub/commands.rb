@@ -38,8 +38,8 @@ module Hub
     extend Context
 
     API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
-    API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
+    API_FORK   = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE = 'https://github.com/api/v2/yaml/repos/create'
 
     def run(args)
       slurp_global_flags(args)
@@ -699,7 +699,7 @@ help
 
     # Determines whether a user has a fork of the current repo on GitHub.
     def repo_exists?(user)
-      require 'net/http'
+      load_net_http
       url = API_REPO % [user, repo_name]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
     end
@@ -708,8 +708,8 @@ help
     #
     # Returns nothing.
     def fork_repo
-      url = API_FORK % [repo_owner, repo_name]
-      response = Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
+      load_net_http
+      response = http_post API_FORK % [repo_owner, repo_name]
       response.error! unless Net::HTTPSuccess === response
     end
 
@@ -717,13 +717,13 @@ help
     #
     # Returns nothing.
     def create_repo(options = {})
-      url = API_CREATE
-      params = {'login' => github_user, 'token' => github_token, 'name' => repo_name}
+      params = {'name' => repo_name}
       params['public'] = '0' if options[:private]
       params['description'] = options[:description] if options[:description]
       params['homepage'] = options[:homepage] if options[:homepage]
 
-      response = Net::HTTP.post_form(URI(url), params)
+      load_net_http
+      response = http_post(API_CREATE, params)
       response.error! unless Net::HTTPSuccess === response
     end
 
@@ -734,6 +734,37 @@ help
           Shellwords.shellwords(expanded)
         end
       end
+    end
+
+    def http_post(url, params = nil)
+      url = URI(url)
+      post = Net::HTTP::Post.new(url.request_uri)
+      post.basic_auth "#{github_user}/token", github_token
+      post.set_form_data params if params
+
+      port = url.port
+      if use_ssl = 'https' == url.scheme and not use_ssl?
+        # ruby compiled without openssl
+        use_ssl = false
+        port = 80
+      end
+
+      http = Net::HTTP.new(url.hostname, port)
+      if http.use_ssl = use_ssl
+        # TODO: SSL peer verification
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      http.start { http.request(post) }
+    end
+
+    def load_net_http
+      require 'net/https'
+    rescue LoadError
+      require 'net/http'
+    end
+
+    def use_ssl?
+      defined? ::OpenSSL
     end
 
     def display_http_exception(action, response)
