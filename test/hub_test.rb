@@ -632,7 +632,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_no_args_error
-    expected = "Please specify either -t (title) or -n (existing issue number).\n"
+    expected = "Please specify either -t (title) or -i (existing issue number).\n"
     assert_equal expected, hub("pullrequest") { ENV['GIT'] = 'echo' }
   end
 
@@ -647,7 +647,7 @@ class HubTest < Test::Unit::TestCase
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => {'pull' => {'issue'=>"123", 'base'=>"master", 'head'=>"tpw:master"}})
     expected = ""
-    assert_equal expected, hub('pullrequest -n 123') { ENV['GIT'] = 'echo' }
+    assert_equal expected, hub('pullrequest -i 123') { ENV['GIT'] = 'echo' }
   end
 
   def test_version
