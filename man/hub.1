@@ -37,6 +37,9 @@
 \fBgit am\fR \fIGITHUB\-URL\fR
 .
 .br
+\fBgit apply\fR \fIGITHUB\-URL\fR
+.
+.br
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]
 .
 .br
@@ -94,7 +97,7 @@ Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote 
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR: Cherry\-pick a commit from a fork using either full URL to the commit or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR\. If the remote doesn\'t yet exist, it will be added\. A \fBgit fetch <user>\fR is issued prior to the cherry\-pick attempt\.
 .
 .IP "\(bu" 4
-\fBgit am\fR \fIGITHUB\-URL\fR: Downloads the patch file for the pull request or commit at the URL and applies that patch from disk with \fBgit am\fR\. Similar to \fBcherry\-pick\fR, but doesn\'t add new remotes\.
+\fBgit [am|apply]\fR \fIGITHUB\-URL\fR: Downloads the patch file for the pull request or commit at the URL and applies that patch from disk with \fBgit am\fR or \fBgit apply\fR\. Similar to \fBcherry\-pick\fR, but doesn\'t add new remotes\. \fBgit am\fR creates commits while preserving authorship info while \fBapply\fR only applies the patch to the working copy\.
 .
 .IP "\(bu" 4
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]: Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing multiple \fBgit push\fR commands\.
@@ -241,7 +244,7 @@ $ git cherry\-pick mislav@SHA
 .
 .fi
 .
-.SS "git am"
+.SS "git am, git apply"
 .
 .nf
 
@@ -252,6 +255,10 @@ $ git am https://github\.com/defunkt/hub/pull/55
 $ git am \-\-ignore\-whitespace https://github\.com/davidbalbert/hub/commit/fdb9921
 > curl https://github\.com/davidbalbert/hub/commit/fdb9921\.patch \-o /tmp/fdb9921\.patch
 > git am \-\-ignore\-whitespace /tmp/fdb9921\.patch
+
+$ git apply https://gist\.github\.com/8da7fb575debd88c54cf
+> curl https://gist\.github\.com/8da7fb575debd88c54cf\.txt \-o /tmp/gist\-8da7fb575debd88c54cf\.txt
+> git apply /tmp/gist\-8da7fb575debd88c54cf\.txt
 .
 .fi
 .

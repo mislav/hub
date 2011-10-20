@@ -87,6 +87,7 @@
 <code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
 <code>git cherry-pick</code> <var>GITHUB-REF</var><br />
 <code>git am</code> <var>GITHUB-URL</var><br />
+<code>git apply</code> <var>GITHUB-URL</var><br />
 <code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> [<var>REF</var>]<br />
 <code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
@@ -139,10 +140,12 @@ Cherry-pick a commit from a fork using either full URL to the commit
 or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
 doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
 prior to the cherry-pick attempt.</p></li>
-<li><p><code>git am</code> <var>GITHUB-URL</var>:
+<li><p><code>git [am|apply]</code> <var>GITHUB-URL</var>:
 Downloads the patch file for the pull request or commit at the URL and
-applies that patch from disk with <code>git am</code>. Similar to <code>cherry-pick</code>, but
-doesn't add new remotes.</p></li>
+applies that patch from disk with <code>git am</code> or <code>git apply</code>. Similar to
+<code>cherry-pick</code>, but doesn't add new remotes. <code>git am</code> creates commits while
+preserving authorship info while <code>apply</code> only applies the patch to the
+working copy.</p></li>
 <li><p><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> [<var>REF</var>]:
 Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></li>
@@ -266,7 +269,7 @@ $ git cherry-pick mislav@SHA
 &gt; git cherry-pick SHA
 </code></pre>
 
-<h3 id="git-am">git am</h3>
+<h3 id="git-am-git-apply">git am, git apply</h3>
 
 <pre><code>$ git am https://github.com/defunkt/hub/pull/55
 &gt; curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
@@ -275,6 +278,10 @@ $ git cherry-pick mislav@SHA
 $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
 &gt; curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
 &gt; git am --ignore-whitespace /tmp/fdb9921.patch
+
+$ git apply https://gist.github.com/8da7fb575debd88c54cf
+&gt; curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+&gt; git apply /tmp/gist-8da7fb575debd88c54cf.txt
 </code></pre>
 
 <h3 id="git-fork">git fork</h3>

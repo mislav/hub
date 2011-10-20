@@ -14,6 +14,7 @@ hub(1) -- git + hub = github
 `git fetch` <USER-1>,[<USER-2>,...]  
 `git cherry-pick` <GITHUB-REF>  
 `git am` <GITHUB-URL>  
+`git apply` <GITHUB-URL>  
 `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> [<REF>]  
 `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
@@ -73,10 +74,12 @@ alias command displays information on configuring your environment:
     doesn't yet exist, it will be added. A `git fetch <user>` is issued
     prior to the cherry-pick attempt.
 
-  * `git am` <GITHUB-URL>:
+  * `git [am|apply]` <GITHUB-URL>:
     Downloads the patch file for the pull request or commit at the URL and
-    applies that patch from disk with `git am`. Similar to `cherry-pick`, but
-    doesn't add new remotes.
+    applies that patch from disk with `git am` or `git apply`. Similar to
+    `cherry-pick`, but doesn't add new remotes. `git am` creates commits while
+    preserving authorship info while `apply` only applies the patch to the
+    working copy.
 
   * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> [<REF>]:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
