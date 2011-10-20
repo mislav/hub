@@ -334,7 +334,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_cherry_pick_github_user_notation
-    assert_commands "git fetch mislav", "git cherry-pick a319d88", "cherry-pick mislav@a319d88"
+    assert_commands "git fetch mislav", "git cherry-pick 368af20", "cherry-pick mislav@368af20"
   end
 
   def test_cherry_pick_github_user_repo_notation

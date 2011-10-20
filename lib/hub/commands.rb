@@ -216,7 +216,7 @@ module Hub
         when %r{^(?:https?:)//github.com/(.+?)/(.+?)/commit/([a-f0-9]{7,40})}
           user, repo, sha = $1, $2, $3
           args[args.index(ref)] = sha
-        when /^(\w+)@([a-f1-9]{7,40})$/
+        when /^(\w+)@([a-f0-9]{7,40})$/
           user, repo, sha = $1, nil, $2
           args[args.index(ref)] = sha
         else
