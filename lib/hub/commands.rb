@@ -265,7 +265,7 @@ module Hub
     def init(args)
       if args.delete('-g')
         url = github_url(:private => true, :repo => current_dirname)
-        args.after "git remote add origin #{url}"
+        args.after ['remote', 'add', 'origin', url]
       end
     end
 
@@ -286,7 +286,7 @@ module Hub
         else
           url = github_url(:private => true)
           args.replace %W"remote add -f #{github_user} #{url}"
-          args.after { puts "new remote: #{github_user}" }
+          args.after 'echo', ['new remote:', github_user]
         end
       end
     rescue HTTPExceptions
@@ -341,7 +341,7 @@ module Hub
           args.replace %W"remote -v"
         end
 
-        args.after { puts "#{action}: #{repo_with_owner}" }
+        args.after 'echo', ["#{action}:", repo_with_owner]
       end
     rescue HTTPExceptions
       display_http_exception("creating repository", $!.response)
@@ -504,9 +504,7 @@ module Hub
     # > git version
     # (print hub version)
     def version(args)
-      args.after do
-        puts "hub version %s" % Version
-      end
+      args.after 'echo', ['hub version', Version]
     end
     alias_method "--version", :version
 
