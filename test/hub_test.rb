@@ -631,16 +631,16 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
-  def test_pullreq_no_title_error
+  def test_pullrequest_no_title_error
     expected = "-t must be specified!\n"
-    assert_equal expected, hub("pullreq") { ENV['GIT'] = 'echo' }
+    assert_equal expected, hub("pullrequest") { ENV['GIT'] = 'echo' }
   end
 
-  def test_pullreq_title_only
+  def test_pullrequest_title_only
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"master", 'head'=>"tpw:master"}})
     expected = ""
-    assert_equal expected, hub('pullreq -t issue_name') { ENV['GIT'] = 'echo' }
+    assert_equal expected, hub('pullrequest -t issue_name') { ENV['GIT'] = 'echo' }
   end
 
   def test_version

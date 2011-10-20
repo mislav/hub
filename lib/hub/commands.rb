@@ -37,10 +37,10 @@ module Hub
     # Provides `github_url` and various inspection methods
     extend Context
 
-    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK   = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
-    API_CREATE = 'https://github.com/api/v2/yaml/repos/create'
-    API_PULLR  = 'https://github.com/api/v2/json/pulls/%s/%s'
+    API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
+    API_PULLREQUEST = 'https://github.com/api/v2/json/pulls/%s/%s'
 
     def run(args)
       slurp_global_flags(args)
@@ -66,17 +66,17 @@ module Hub
       end
     end
 
-    def pullreq(args)
+    def pullrequest(args)
       args.skip!
       if !is_repo?
-        puts "'pullreq' must be run from inside a git repository"
+        puts "'pullrequest' must be run from inside a git repository"
         return
       end
       if !github_user
         puts "Github user and token required in .gitconfig."
         return
       end
-      # Remove 'pullreq'
+      # Remove 'pullrequest'
       args.shift
 
       options = {}
@@ -102,7 +102,7 @@ module Hub
       end
       branch = normalize_branch(current_branch)
       if branch
-        create_pullreq(args.shift, "#{github_user}:#{branch}", options)
+        create_pullrequest(args.shift, "#{github_user}:#{branch}", options)
       end
     end
 
@@ -779,14 +779,14 @@ help
       response.error! unless Net::HTTPSuccess === response
     end
 
-    def create_pullreq(repo, head, options)
+    def create_pullrequest(repo, head, options)
       require 'net/http'
       params = {}
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
       params['pull[base]'] = options[:base] ? options[:base] : 'master'
       params['pull[head]'] = head
-      response = http_post(API_PULLR % [repo_owner, repo_name], params)
+      response = http_post(API_PULLREQUEST % [repo_owner, repo_name], params)
       response.error! unless Net::HTTPSuccess === response
     end
 
