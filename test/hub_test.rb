@@ -636,6 +636,13 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("pullreq") { ENV['GIT'] = 'echo' }
   end
 
+  def test_pullreq
+    stub_nonexisting_fork('tpw', 'hubbub')
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/123")
+    expected = "STUB"
+    assert_equal expected, hub('pullreq -t "issue 123"') { ENV['GIT'] = 'echo' }
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out

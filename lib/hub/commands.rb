@@ -781,14 +781,13 @@ help
 
     def create_pullreq(repo, head, options)
       require 'net/http'
-      url = API_PULLR
-      params = {'login' => github_user, 'token' => github_token}
+      params = {}
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
       params['pull[base]'] = options[:base] ? options[:base] : 'master'
       params['pull[head]'] = head
 
-      response = Net::HTTP.post_form(URI(url % repo), params)
+      response = http_post(API_PULLR % repo, params)
       response.error! unless Net::HTTPSuccess === response
     end
 
