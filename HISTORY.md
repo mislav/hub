@@ -1,5 +1,8 @@
 ## master
 
+* `hub create <name>` to explicitly name a repository
+* switch API communication to HTTPS
+* better handling of API HTTP exceptions
 * replace two dots (`sha1..sha2`) with three for ranges in `compare`
 * avoid ugly error & stack trace when git is not found on the system
 

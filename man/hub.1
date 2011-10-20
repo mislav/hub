@@ -1,13 +1,13 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "June 2011" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "October 2011" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
 .
 .SH "SYNOPSIS"
-\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
+\fBhub\fR [\fB\-\-noop\fR] \fICOMMAND\fR \fIOPTIONS\fR
 .
 .br
 \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
@@ -16,7 +16,7 @@
 \fBgit init \-g\fR \fIOPTIONS\fR
 .
 .br
-\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]
+\fBgit create\fR [\fINAME\fR] [\fB\-p\fR] [\fB\-d\fR \fIDESCRIPTION\fR] [\fB\-h\fR \fIHOMEPAGE\fR]
 .
 .br
 \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
@@ -37,6 +37,9 @@
 \fBgit am\fR \fIGITHUB\-URL\fR
 .
 .br
+\fBgit apply\fR \fIGITHUB\-URL\fR
+.
+.br
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]
 .
 .br
@@ -55,6 +58,9 @@
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion\. The alias command displays information on configuring your environment:
 .
 .IP "\(bu" 4
+\fBhub \-\-noop\fR \fICOMMAND\fR: Shows which command(s) would be run as a result of the current command\. Doesn\'t perform anything\.
+.
+.IP "\(bu" 4
 \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR: Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output\. With the \fB\-s\fR option, the output of this command can be evaluated directly within the shell:
 .
 .br
@@ -64,10 +70,10 @@
 \fBgit init\fR \fB\-g\fR \fIOPTIONS\fR: Create a git repository as with git\-init(1) and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\.
 .
 .IP "\(bu" 4
-\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]:
+\fBgit create\fR [\fINAME\fR] [\fB\-p\fR] [\fB\-d\fR \fIDESCRIPTION\fR] [\fB\-h\fR \fIHOMEPAGE\fR]:
 .
 .br
-Create a new public github repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\. With \fB\-p\fR, create a private repository\. \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage, respectively\.
+Create a new public GitHub repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory name\. To explicitly name the new repository, pass in \fINAME\fR, optionally in \fIORGANIZATION\fR/\fINAME\fR form to create under an organization you\'re a member of\. With \fB\-p\fR, create a private repository, and with \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage URL, respectively\.
 .
 .IP "\(bu" 4
 \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR:
@@ -94,7 +100,7 @@ Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote 
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR: Cherry\-pick a commit from a fork using either full URL to the commit or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR\. If the remote doesn\'t yet exist, it will be added\. A \fBgit fetch <user>\fR is issued prior to the cherry\-pick attempt\.
 .
 .IP "\(bu" 4
-\fBgit am\fR \fIGITHUB\-URL\fR: Downloads the patch file for the pull request or commit at the URL and applies that patch from disk with \fBgit am\fR\. Similar to \fBcherry\-pick\fR, but doesn\'t add new remotes\.
+\fBgit [am|apply]\fR \fIGITHUB\-URL\fR: Downloads the patch file for the pull request or commit at the URL and applies that patch from disk with \fBgit am\fR or \fBgit apply\fR\. Similar to \fBcherry\-pick\fR, but doesn\'t add new remotes\. \fBgit am\fR creates commits while preserving authorship info while \fBapply\fR only applies the patch to the working copy\.
 .
 .IP "\(bu" 4
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]: Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing multiple \fBgit push\fR commands\.
@@ -241,7 +247,7 @@ $ git cherry\-pick mislav@SHA
 .
 .fi
 .
-.SS "git am"
+.SS "git am, git apply"
 .
 .nf
 
@@ -252,6 +258,10 @@ $ git am https://github\.com/defunkt/hub/pull/55
 $ git am \-\-ignore\-whitespace https://github\.com/davidbalbert/hub/commit/fdb9921
 > curl https://github\.com/davidbalbert/hub/commit/fdb9921\.patch \-o /tmp/fdb9921\.patch
 > git am \-\-ignore\-whitespace /tmp/fdb9921\.patch
+
+$ git apply https://gist\.github\.com/8da7fb575debd88c54cf
+> curl https://gist\.github\.com/8da7fb575debd88c54cf\.txt \-o /tmp/gist\-8da7fb575debd88c54cf\.txt
+> git apply /tmp/gist\-8da7fb575debd88c54cf\.txt
 .
 .fi
 .
@@ -260,8 +270,29 @@ $ git am \-\-ignore\-whitespace https://github\.com/davidbalbert/hub/commit/fdb9
 .nf
 
 $ git fork
-\.\.\. hardcore forking action \.\.\.
-> git remote add YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
+[ repo forked on GitHub ]
+> git remote add \-f YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
+.
+.fi
+.
+.SS "git create"
+.
+.nf
+
+$ git create
+[ repo created on GitHub ]
+> git remote add origin git@github\.com:YOUR_USER/CURRENT_REPO\.git
+
+# with description:
+$ git create \-d \'It shall be mine, all mine!\'
+
+$ git create recipes
+[ repo created on GitHub ]
+> git remote add origin git@github\.com:YOUR_USER/recipes\.git
+
+$ git create sinatra/recipes
+[ repo created in GitHub organization ]
+> git remote add origin git@github\.com:sinatra/recipes\.git
 .
 .fi
 .
@@ -272,16 +303,6 @@ $ git fork
 $ git init \-g
 > git init
 > git remote add origin git@github\.com:YOUR_USER/REPO\.git
-.
-.fi
-.
-.SS "git create"
-.
-.nf
-
-$ git create
-\.\.\. hardcore creating action \.\.\.
-> git remote add origin git@github\.com:YOUR_USER/CURRENT_REPO\.git
 .
 .fi
 .
@@ -303,11 +324,17 @@ $ git push origin,staging,qa bert_timeout
 $ git browse
 > open https://github\.com/YOUR_USER/CURRENT_REPO
 
+$ git browse \-\- commit/SHA
+> open https://github\.com/YOUR_USER/CURRENT_REPO/commit/SHA
+
 $ git browse \-\- issues
 > open https://github\.com/YOUR_USER/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
 > open https://github\.com/schacon/ticgit
+
+$ git browse schacon/ticgit commit/SHA
+> open https://github\.com/schacon/ticgit/commit/SHA
 
 $ git browse resque
 > open https://github\.com/YOUR_USER/resque
@@ -332,6 +359,21 @@ $ git compare \-u fix
 
 $ git compare other\-user patch
 > open https://github\.com/other\-user/REPO/compare/patch
+.
+.fi
+.
+.SS "git submodule"
+.
+.nf
+
+$ hub submodule add wycats/bundler vendor/bundler
+> git submodule add git://github\.com/wycats/bundler\.git vendor/bundler
+
+$ hub submodule add \-p wycats/bundler vendor/bundler
+> git submodule add git@github\.com:wycats/bundler\.git vendor/bundler
+
+$ hub submodule add \-b ryppl ryppl/pip vendor/pip
+> git submodule add \-b ryppl git://github\.com/ryppl/pip\.git vendor/pip
 .
 .fi
 .

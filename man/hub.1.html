@@ -76,17 +76,18 @@
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
-<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var><br />
+<p><code>hub</code> [<code>--noop</code>] <var>COMMAND</var> <var>OPTIONS</var><br />
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
 <p><code>git init -g</code> <var>OPTIONS</var><br />
-<code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]<br />
+<code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]<br />
 <code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
 <code>git cherry-pick</code> <var>GITHUB-REF</var><br />
 <code>git am</code> <var>GITHUB-URL</var><br />
+<code>git apply</code> <var>GITHUB-URL</var><br />
 <code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> [<var>REF</var>]<br />
 <code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
@@ -99,6 +100,9 @@
 alias command displays information on configuring your environment:</p>
 
 <ul>
+<li><p><code>hub --noop</code> <var>COMMAND</var>:
+Shows which command(s) would be run as a result of the current command.
+Doesn't perform anything.</p></li>
 <li><p><code>hub alias</code> [<code>-s</code>] <var>SHELL</var>:
 Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
 <code>csh</code>) to standard output. With the <code>-s</code> option, the output of
@@ -108,13 +112,15 @@ this command can be evaluated directly within the shell:<br />
 Create a git repository as with <span class="man-ref">git-init<span class="s">(1)</span></span> and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
 <var>REPOSITORY</var> is the current working directory's basename.</p></li>
-<li><p><code>git create</code> [<code>-p</code>] [<code>-d &lt;DESCRIPTION></code>] [<code>-h &lt;HOMEPAGE></code>]:<br />
-Create a new public github repository from the current git
+<li><p><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]:<br />
+Create a new public GitHub repository from the current git
 repository and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub
-username and <var>REPOSITORY</var> is the current working directory's
-basename. With <code>-p</code>, create a private repository. <code>-d</code> and <code>-h</code>
-set the repository's description and homepage, respectively.</p></li>
+username and <var>REPOSITORY</var> is the current working directory name.
+To explicitly name the new repository, pass in <var>NAME</var>, optionally in
+<var>ORGANIZATION</var>/<var>NAME</var> form to create under an organization you're a
+member of. With <code>-p</code>, create a private repository, and with <code>-d</code> and <code>-h</code>
+set the repository's description and homepage URL, respectively.</p></li>
 <li><p><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
 Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
@@ -137,10 +143,12 @@ Cherry-pick a commit from a fork using either full URL to the commit
 or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
 doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
 prior to the cherry-pick attempt.</p></li>
-<li><p><code>git am</code> <var>GITHUB-URL</var>:
+<li><p><code>git [am|apply]</code> <var>GITHUB-URL</var>:
 Downloads the patch file for the pull request or commit at the URL and
-applies that patch from disk with <code>git am</code>. Similar to <code>cherry-pick</code>, but
-doesn't add new remotes.</p></li>
+applies that patch from disk with <code>git am</code> or <code>git apply</code>. Similar to
+<code>cherry-pick</code>, but doesn't add new remotes. <code>git am</code> creates commits while
+preserving authorship info while <code>apply</code> only applies the patch to the
+working copy.</p></li>
 <li><p><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> [<var>REF</var>]:
 Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
 multiple <code>git push</code> commands.</p></li>
@@ -264,7 +272,7 @@ $ git cherry-pick mislav@SHA
 &gt; git cherry-pick SHA
 </code></pre>
 
-<h3 id="git-am">git am</h3>
+<h3 id="git-am-git-apply">git am, git apply</h3>
 
 <pre><code>$ git am https://github.com/defunkt/hub/pull/55
 &gt; curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
@@ -273,13 +281,35 @@ $ git cherry-pick mislav@SHA
 $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
 &gt; curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
 &gt; git am --ignore-whitespace /tmp/fdb9921.patch
+
+$ git apply https://gist.github.com/8da7fb575debd88c54cf
+&gt; curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+&gt; git apply /tmp/gist-8da7fb575debd88c54cf.txt
 </code></pre>
 
 <h3 id="git-fork">git fork</h3>
 
 <pre><code>$ git fork
-... hardcore forking action ...
-&gt; git remote add YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+[ repo forked on GitHub ]
+&gt; git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+</code></pre>
+
+<h3 id="git-create">git create</h3>
+
+<pre><code>$ git create
+[ repo created on GitHub ]
+&gt; git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+
+# with description:
+$ git create -d 'It shall be mine, all mine!'
+
+$ git create recipes
+[ repo created on GitHub ]
+&gt; git remote add origin git@github.com:YOUR_USER/recipes.git
+
+$ git create sinatra/recipes
+[ repo created in GitHub organization ]
+&gt; git remote add origin git@github.com:sinatra/recipes.git
 </code></pre>
 
 <h3 id="git-init">git init</h3>
@@ -287,13 +317,6 @@ $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
 <pre><code>$ git init -g
 &gt; git init
 &gt; git remote add origin git@github.com:YOUR_USER/REPO.git
-</code></pre>
-
-<h3 id="git-create">git create</h3>
-
-<pre><code>$ git create
-... hardcore creating action ...
-&gt; git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
 </code></pre>
 
 <h3 id="git-push">git push</h3>
@@ -309,11 +332,17 @@ $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
 <pre><code>$ git browse
 &gt; open https://github.com/YOUR_USER/CURRENT_REPO
 
+$ git browse -- commit/SHA
+&gt; open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
+
 $ git browse -- issues
 &gt; open https://github.com/YOUR_USER/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
 &gt; open https://github.com/schacon/ticgit
+
+$ git browse schacon/ticgit commit/SHA
+&gt; open https://github.com/schacon/ticgit/commit/SHA
 
 $ git browse resque
 &gt; open https://github.com/YOUR_USER/resque
@@ -335,6 +364,18 @@ $ git compare -u fix
 
 $ git compare other-user patch
 &gt; open https://github.com/other-user/REPO/compare/patch
+</code></pre>
+
+<h3 id="git-submodule">git submodule</h3>
+
+<pre><code>$ hub submodule add wycats/bundler vendor/bundler
+&gt; git submodule add git://github.com/wycats/bundler.git vendor/bundler
+
+$ hub submodule add -p wycats/bundler vendor/bundler
+&gt; git submodule add git@github.com:wycats/bundler.git vendor/bundler
+
+$ hub submodule add -b ryppl ryppl/pip vendor/pip
+&gt; git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
 </code></pre>
 
 <h3 id="git-help">git help</h3>
@@ -362,7 +403,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>June 2011</li>
+    <li class='tc'>October 2011</li>
     <li class='tr'>hub(1)</li>
   </ol>
 

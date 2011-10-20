@@ -334,7 +334,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_cherry_pick_github_user_notation
-    assert_commands "git fetch mislav", "git cherry-pick a319d88", "cherry-pick mislav@a319d88"
+    assert_commands "git fetch mislav", "git cherry-pick 368af20", "cherry-pick mislav@368af20"
   end
 
   def test_cherry_pick_github_user_repo_notation
@@ -387,6 +387,41 @@ class HubTest < Test::Unit::TestCase
     end
   end
 
+  def test_apply_untouched
+    assert_forwarded "apply some.patch"
+  end
+
+  def test_apply_pull_request
+    with_tmpdir('/tmp/') do
+      assert_commands "curl -#LA 'hub #{Hub::Version}' https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch",
+                      "git apply /tmp/55.patch -p2",
+                      "apply https://github.com/defunkt/hub/pull/55 -p2"
+
+      cmd = Hub("apply https://github.com/defunkt/hub/pull/55/files").command
+      assert_includes '/pull/55.patch', cmd
+    end
+  end
+
+  def test_apply_commit_url
+    with_tmpdir('/tmp/') do
+      url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
+
+      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.patch -o /tmp/fdb9921.patch",
+                      "git apply /tmp/fdb9921.patch -p2",
+                      "apply #{url} -p2"
+    end
+  end
+
+  def test_apply_gist
+    with_tmpdir('/tmp/') do
+      url = 'https://gist.github.com/8da7fb575debd88c54cf'
+
+      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.txt -o /tmp/gist-8da7fb575debd88c54cf.txt",
+                      "git apply /tmp/gist-8da7fb575debd88c54cf.txt -p2",
+                      "apply #{url} -p2"
+    end
+  end
+
   def test_init
     assert_commands "git init", "git remote add origin git@github.com:tpw/hub.git", "init -g"
   end
@@ -424,18 +459,56 @@ class HubTest < Test::Unit::TestCase
   def test_create
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_custom_name
+    stub_no_remotes
+    stub_nonexisting_fork('tpw', 'hubbub')
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hubbub' })
+
+    expected = "remote add -f origin git@github.com:tpw/hubbub.git\n"
+    expected << "created repository: tpw/hubbub\n"
+    assert_equal expected, hub("create hubbub") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_in_organization
+    stub_no_remotes
+    stub_nonexisting_fork('acme', 'hubbub')
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'acme/hubbub' })
+
+    expected = "remote add -f origin git@github.com:acme/hubbub.git\n"
+    expected << "created repository: acme/hubbub\n"
+    assert_equal expected, hub("create acme/hubbub") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_no_openssl
+    stub_no_remotes
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "http://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
+
+    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
+    expected << "created repository: tpw/hub\n"
+
+    assert_equal expected, hub("create") {
+      ENV['GIT'] = 'echo'
+      require 'net/https'
+      Object.send :remove_const, :OpenSSL
+    }
+  end
+
   def test_create_failed
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
       to_return(:status => [401, "Your token is fail"])
 
     expected = "Error creating repository: Your token is fail (HTTP 401)\n"
@@ -452,8 +525,8 @@ class HubTest < Test::Unit::TestCase
     ENV['GITHUB_USER']  = 'mojombo'
     ENV['GITHUB_TOKEN'] = '123abc'
 
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'mojombo', 'token'=>'123abc', 'name' => 'hub' })
+    stub_request(:post, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
 
     expected = "remote add -f origin git@github.com:mojombo/hub.git\n"
     expected << "created repository: mojombo/hub\n"
@@ -467,8 +540,8 @@ class HubTest < Test::Unit::TestCase
   def test_create_private_repository
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub', 'public' => '0' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub', 'public' => '0' })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
@@ -478,14 +551,18 @@ class HubTest < Test::Unit::TestCase
   def test_create_with_description_and_homepage
     stub_no_remotes
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").with(:body => {
-      'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub',
-      'description' => 'toyproject', 'homepage' => 'http://example.com'
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").with(:body => {
+      'name' => 'hub', 'description' => 'toyproject', 'homepage' => 'http://example.com'
     })
 
     expected = "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "created repository: tpw/hub\n"
     assert_equal expected, hub("create -d toyproject -h http://example.com") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_create_with_invalid_arguments
+    assert_equal "invalid argument: -a\n",   hub("create -a blah")   { ENV['GIT'] = 'echo' }
+    assert_equal "invalid argument: bleh\n", hub("create blah bleh") { ENV['GIT'] = 'echo' }
   end
 
   def test_create_with_existing_repository
@@ -513,8 +590,8 @@ class HubTest < Test::Unit::TestCase
 
   def test_create_origin_already_exists
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/create").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123', 'name' => 'hub' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/create").
+      with(:body => { 'name' => 'hub' })
 
     expected = "remote -v\ncreated repository: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
@@ -522,8 +599,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
-      with(:body => { 'login'=>'tpw', 'token'=>'abc123' })
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub")
 
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
@@ -532,7 +608,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork_failed
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub").
       to_return(:status => [500, "Your fork is fail"])
 
     expected = "Error creating fork: Your fork is fail (HTTP 500)\n"
@@ -541,7 +617,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork_no_remote
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "github.com/api/v2/yaml/repos/fork/defunkt/hub")
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub")
 
     assert_equal "", hub("fork --no-remote") { ENV['GIT'] = 'echo' }
   end
@@ -670,6 +746,10 @@ config
     assert_command "browse mojombo/bert", "open https://github.com/mojombo/bert"
   end
 
+  def test_hub_browse_commit
+    assert_command "browse mojombo/bert commit/5d5582", "open https://github.com/mojombo/bert/commit/5d5582"
+  end
+
   def test_hub_browse_tracking_nothing
     stub_tracking_nothing
     assert_command "browse mojombo/bert", "open https://github.com/mojombo/bert"
@@ -711,6 +791,10 @@ config
   def test_hub_browse_current
     assert_command "browse", "open https://github.com/defunkt/hub"
     assert_command "browse --", "open https://github.com/defunkt/hub"
+  end
+
+  def test_hub_browse_commit_from_current
+    assert_command "browse -- commit/6616e4", "open https://github.com/defunkt/hub/commit/6616e4"
   end
 
   def test_hub_browse_no_tracking
@@ -849,16 +933,16 @@ config
       @git["config alias.#{name}"] = value
     end
 
-    def stub_existing_fork(user)
-      stub_fork(user, 200)
+    def stub_existing_fork(user, repo = 'hub')
+      stub_fork(user, repo, 200)
     end
 
-    def stub_nonexisting_fork(user)
-      stub_fork(user, 404)
+    def stub_nonexisting_fork(user, repo = 'hub')
+      stub_fork(user, repo, 404)
     end
 
-    def stub_fork(user, status)
-      stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/hub").
+    def stub_fork(user, repo, status)
+      stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
         to_return(:status => status)
     end
 
@@ -892,6 +976,10 @@ config
       ensure
         RbConfig::CONFIG['host_os'] = host_os
       end
+    end
+
+    def auth(user = @git['config github.user'], password = @git['config github.token'])
+      "#{user}%2Ftoken:#{password}@"
     end
 
 end

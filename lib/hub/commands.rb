@@ -38,9 +38,9 @@ module Hub
     extend Context
 
     API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
-    API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
-    API_PULLR  = 'http://github.com/api/v2/json/pulls/%s'
+    API_FORK   = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE = 'https://github.com/api/v2/yaml/repos/create'
+    API_PULLR  = 'https://github.com/api/v2/json/pulls/%s'
 
     def run(args)
       slurp_global_flags(args)
@@ -257,7 +257,7 @@ module Hub
         when %r{^(?:https?:)//github.com/(.+?)/(.+?)/commit/([a-f0-9]{7,40})}
           user, repo, sha = $1, $2, $3
           args[args.index(ref)] = sha
-        when /^(\w+)@([a-f1-9]{7,40})$/
+        when /^(\w+)@([a-f0-9]{7,40})$/
           user, repo, sha = $1, nil, $2
           args[args.index(ref)] = sha
         else
@@ -295,13 +295,18 @@ module Hub
       end
     end
 
+    # $ hub apply https://github.com/defunkt/hub/pull/55
+    # > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    # > git apply /tmp/55.patch
+    alias_method :apply, :am
+
     # $ hub init -g
     # > git init
     # > git remote add origin git@github.com:USER/REPO.git
     def init(args)
       if args.delete('-g')
         url = github_url(:private => true, :repo => current_dirname)
-        args.after "git remote add origin #{url}"
+        args.after ['remote', 'add', 'origin', url]
       end
     end
 
@@ -322,10 +327,10 @@ module Hub
         else
           url = github_url(:private => true)
           args.replace %W"remote add -f #{github_user} #{url}"
-          args.after { puts "new remote: #{github_user}" }
+          args.after 'echo', ['new remote:', github_user]
         end
       end
-    rescue Net::HTTPExceptions
+    rescue HTTPExceptions
       display_http_exception("creating fork", $!.response)
       exit 1
     end
@@ -335,12 +340,12 @@ module Hub
     # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
     def create(args)
       if !is_repo?
-        puts "'create' must be run from inside a git repository"
-        args.skip!
-      elsif github_user && github_token
+        abort "'create' must be run from inside a git repository"
+      elsif owner = github_user and github_token
         args.shift
         options = {}
         options[:private] = true if args.delete('-p')
+        new_repo_name = nil
 
         until args.empty?
           case arg = args.shift
@@ -349,20 +354,26 @@ module Hub
           when '-h'
             options[:homepage] = args.shift
           else
-            puts "unexpected argument: #{arg}"
-            return
+            if arg =~ /^[^-]/ and new_repo_name.nil?
+              new_repo_name = arg
+              owner, new_repo_name = new_repo_name.split('/', 2) if new_repo_name.index('/')
+            else
+              abort "invalid argument: #{arg}"
+            end
           end
         end
+        new_repo_name ||= repo_name
+        repo_with_owner = "#{owner}/#{new_repo_name}"
 
-        if repo_exists?(github_user)
-          puts "#{github_user}/#{repo_name} already exists on GitHub"
+        if repo_exists?(owner, new_repo_name)
+          puts "#{repo_with_owner} already exists on GitHub"
           action = "set remote origin"
         else
           action = "created repository"
-          create_repo(options)
+          create_repo(repo_with_owner, options)
         end
 
-        url = github_url(:private => true)
+        url = github_url(:repo => new_repo_name, :user => owner, :private => true)
 
         if remotes.first != 'origin'
           args.replace %W"remote add -f origin #{url}"
@@ -370,9 +381,9 @@ module Hub
           args.replace %W"remote -v"
         end
 
-        args.after { puts "#{action}: #{github_user}/#{repo_name}" }
+        args.after 'echo', ["#{action}:", repo_with_owner]
       end
-    rescue Net::HTTPExceptions
+    rescue HTTPExceptions
       display_http_exception("creating repository", $!.response)
       exit 1
     end
@@ -533,9 +544,7 @@ module Hub
     # > git version
     # (print hub version)
     def version(args)
-      args.after do
-        puts "hub version %s" % Version
-      end
+      args.after 'echo', ['hub version', Version]
     end
     alias_method "--version", :version
 
@@ -617,7 +626,7 @@ help
     # Special: `--version`, `--help` are replaced with "version" and "help".
     # Ignored: `--exec-path`, `--html-path` are kept in args list untouched.
     def slurp_global_flags(args)
-      flags = %w[ -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
+      flags = %w[ --noop -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
       flags2 = %w[ --exec-path= --git-dir= --work-tree= ]
 
       # flags that should be present in subcommands, too
@@ -628,6 +637,8 @@ help
       while args[0] && (flags.include?(args[0]) || flags2.any? {|f| args[0].index(f) == 0 })
         flag = args.shift
         case flag
+        when '--noop'
+          args.noop!
         when '--version', '--help'
           args.unshift flag.sub('--', '')
         when '-c'
@@ -653,7 +664,7 @@ help
     # and `compare`. Yields a block that returns params for `github_url`.
     def browse_command(args)
       url_only = args.delete('-u')
-      $stderr.puts "Warning: the `-p` flag has no effect anymore" if args.delete('-p')
+      warn "Warning: the `-p` flag has no effect anymore" if args.delete('-p')
       params = yield
 
       args.executable = url_only ? 'echo' : browser_launcher
@@ -739,9 +750,9 @@ help
     end
 
     # Determines whether a user has a fork of the current repo on GitHub.
-    def repo_exists?(user)
-      require 'net/http'
-      url = API_REPO % [user, repo_name]
+    def repo_exists?(user, repo = repo_name)
+      load_net_http
+      url = API_REPO % [user, repo]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
     end
 
@@ -749,22 +760,22 @@ help
     #
     # Returns nothing.
     def fork_repo
-      url = API_FORK % [repo_owner, repo_name]
-      response = Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
+      load_net_http
+      response = http_post API_FORK % [repo_owner, repo_name]
       response.error! unless Net::HTTPSuccess === response
     end
 
     # Creates a new repo using the GitHub API.
     #
     # Returns nothing.
-    def create_repo(options = {})
-      url = API_CREATE
-      params = {'login' => github_user, 'token' => github_token, 'name' => repo_name}
+    def create_repo(name, options = {})
+      params = {'name' => name.sub(/^#{github_user}\//, '')}
       params['public'] = '0' if options[:private]
       params['description'] = options[:description] if options[:description]
       params['homepage'] = options[:homepage] if options[:homepage]
 
-      response = Net::HTTP.post_form(URI(url), params)
+      load_net_http
+      response = http_post(API_CREATE, params)
       response.error! unless Net::HTTPSuccess === response
     end
 
@@ -790,8 +801,47 @@ help
       end
     end
 
+    def http_post(url, params = nil)
+      url = URI(url)
+      post = Net::HTTP::Post.new(url.request_uri)
+      post.basic_auth "#{github_user}/token", github_token
+      post.set_form_data params if params
+
+      port = url.port
+      if use_ssl = 'https' == url.scheme and not use_ssl?
+        # ruby compiled without openssl
+        use_ssl = false
+        port = 80
+      end
+
+      http = Net::HTTP.new(url.host, port)
+      if http.use_ssl = use_ssl
+        # TODO: SSL peer verification
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      http.start { http.request(post) }
+    end
+
+    def load_net_http
+      require 'net/https'
+    rescue LoadError
+      require 'net/http'
+    end
+
+    def use_ssl?
+      defined? ::OpenSSL
+    end
+
+    # Fake exception type for net/http exception handling.
+    # Necessary because net/http may or may not be loaded at the time.
+    module HTTPExceptions
+      def self.===(exception)
+        exception.class.ancestors.map {|a| a.to_s }.include? 'Net::HTTPExceptions'
+      end
+    end
+
     def display_http_exception(action, response)
-      warn "Error #{action}: #{response.message} (HTTP #{response.code})"
+      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.code})"
       warn "Check your token configuration (`git config github.token`)" if response.code.to_i == 401
     end
 

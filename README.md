@@ -114,7 +114,7 @@ The alias command can also be eval'd directly using the `-s` flag:
 Commands
 --------
 
-Assuming you've aliased `hub` to `git` the following commands now have
+Assuming you've aliased `hub` to `git`, the following commands now have
 superpowers:
 
 ### git clone
@@ -167,24 +167,42 @@ superpowers:
     > git fetch mislav
     > git cherry-pick SHA
 
+### git am, git apply
+
+    $ git am https://github.com/defunkt/hub/pull/55
+    > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    > git am /tmp/55.patch
+
+    $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
+    > curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+    > git am --ignore-whitespace /tmp/fdb9921.patch
+
+    $ git apply https://gist.github.com/8da7fb575debd88c54cf
+    > curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+    > git apply /tmp/gist-8da7fb575debd88c54cf.txt
+
 ### git fork
 
     $ git fork
-    ... hardcore forking action ...
+    [ repo forked on GitHub ]
     > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
-
-Forks the original repo on GitHub and adds the new remote under your
-username. It requires your GitHub token to be present; see "GitHub
-login" below for details.
 
 ### git create
 
     $ git create
-    ... hardcore creating action ...
+    [ repo created on GitHub ]
     > git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
 
-Creates a new public github repository and adds the remote `origin` at
-"git@github.com:<USER>/<REPOSITORY>.git"
+    # with description:
+    $ git create -d 'It shall be mine, all mine!'
+
+    $ git create recipes
+    [ repo created on GitHub ]
+    > git remote add origin git@github.com:YOUR_USER/recipes.git
+
+    $ git create sinatra/recipes
+    [ repo created in GitHub organization ]
+    > git remote add origin git@github.com:sinatra/recipes.git
 
 ### git init
 
@@ -204,11 +222,17 @@ Creates a new public github repository and adds the remote `origin` at
     $ git browse
     > open https://github.com/YOUR_USER/CURRENT_REPO
 
+    $ git browse -- commit/SHA
+    > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
+
     $ git browse -- issues
     > open https://github.com/YOUR_USER/CURRENT_REPO/issues
 
     $ git browse schacon/ticgit
     > open https://github.com/schacon/ticgit
+
+    $ git browse schacon/ticgit commit/SHA
+    > open https://github.com/schacon/ticgit/commit/SHA
 
     $ git browse resque
     > open https://github.com/YOUR_USER/resque
