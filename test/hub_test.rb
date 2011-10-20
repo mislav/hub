@@ -630,6 +630,33 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
+  def test_pullrequest_no_args_error
+    expected = "Please specify either -t (title) or -i (existing issue number).\n"
+    assert_equal expected, hub("pull-request") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_pullrequest_title_only
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/tpw/hub").
+      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"master", 'head'=>"defunkt:master"}})
+    expected = ""
+    assert_equal expected, hub('pull-request -b tpw:master -t issue_name') { ENV['GIT'] = 'echo' }
+  end
+
+  def test_pullrequest_existing_issue
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/tpw/hub").
+      with(:body => {'pull' => {'issue'=>"123", 'base'=>"master", 'head'=>"defunkt:master"}})
+    expected = ""
+    assert_equal expected, hub('pull-request -b tpw:master -i 123') { ENV['GIT'] = 'echo' }
+  end
+
+  def test_pullrequest_same_repo
+    stub_branch('refs/heads/feature')
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
+      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"master", 'head'=>"defunkt:feature"}})
+    expected = ""
+    assert_equal expected, hub('pull-request -t issue_name') { ENV['GIT'] = 'echo' }
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out

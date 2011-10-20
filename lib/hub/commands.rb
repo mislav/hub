@@ -37,10 +37,10 @@ module Hub
     # Provides `github_url` and various inspection methods
     extend Context
 
-    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK   = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
-    API_CREATE = 'https://github.com/api/v2/yaml/repos/create'
-    API_PULLR  = 'http://github.com/api/v2/json/pulls/%s'
+    API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
+    API_PULLREQUEST = 'https://github.com/api/v2/json/pulls/%s/%s'
 
     def run(args)
       slurp_global_flags(args)
@@ -66,23 +66,24 @@ module Hub
       end
     end
 
-    def pullreq(args)
+    def pull_request(args)
       args.skip!
       if !is_repo?
-        puts "'pullreq' must be run from inside a git repository"
+        puts "'pullrequest' must be run from inside a git repository"
         return
       end
       if !github_user
         puts "Github user and token required in .gitconfig."
         return
       end
-      branch = `git name-rev --name-only HEAD`.strip
-      # Remove 'pullreq'
+      # Remove 'pullrequest'
       args.shift
 
       options = {}
-      until args.length == 1
+      until args.length <= 1
         case arg = args.shift
+        when '-i'
+          options[:issue] = args.shift
         when '-t'
           options[:title] = args.shift
         when '-y'
@@ -96,14 +97,12 @@ module Hub
           return
         end
       end
-      if options[:title].nil?
-        puts "-t must be specified!"
-        args.ski
+      if options[:title].nil? and options[:issue].nil?
+        puts "Please specify either -t (title) or -i (existing issue number)."
+        args.skip!
         return
       end
-      if branch
-        create_pullreq(args.shift, "#{github_user}:#{branch}", options)
-      end
+      create_pullrequest(args.shift, options)
     end
 
     # $ hub clone rtomayko/tilt
@@ -779,16 +778,21 @@ help
       response.error! unless Net::HTTPSuccess === response
     end
 
-    def create_pullreq(repo, head, options)
+    def create_pullrequest(head, options)
       require 'net/http'
-      url = API_PULLR
-      params = {'login' => github_user, 'token' => github_token}
+      params = {}
+      params['pull[issue]'] = options[:issue] if options[:issue]
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
-      params['pull[base]'] = options[:base] ? options[:base] : 'master'
-      params['pull[head]'] = head
-
-      response = Net::HTTP.post_form(URI(url % repo), params)
+      # We are sending the pull request on the base repo, so construct the url accordingly.
+      base = options[:base] ? options[:base] : "#{repo_owner}:master"
+      base_owner, base_branch = base.split(':')
+      params['pull[base]'] = base_branch
+      url = API_PULLREQUEST % [base_owner, repo_name]
+      # Pull from the current branch by default.
+      branch = normalize_branch(current_branch)
+      params['pull[head]'] = head ? head : "#{repo_owner}:#{branch}"
+      response = http_post(url, params)
       response.error! unless Net::HTTPSuccess === response
     end
 

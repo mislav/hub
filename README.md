@@ -187,6 +187,19 @@ superpowers:
     [ repo forked on GitHub ]
     > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
+### git pull-request
+
+    [ in a branch called my_branch on CURRENT_REPO ]
+    $ git pull-request -t "Issue Title" -y "Issue description."
+    [ pull request sent on GitHub, into CURRENT_REPO:master from CURRENT_REPO:my_branch  ]
+
+    [ on a fork of mislav:CURRENT_REPO ]
+    $ git pull-request -t "Issue Title" -y "Issue description." -b mislav:master
+    [ pull request sent on GitHub, into mislav/CURRENT_REPO:master from YOUR_USER/CURRENT_REPO:master ]
+
+    $ git pull-request -i 123
+    [ existing issue #123 turned into a pull request from the current branch ]
+
 ### git create
 
     $ git create
