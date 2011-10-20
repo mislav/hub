@@ -81,7 +81,7 @@ module Hub
       args.shift
 
       options = {}
-      until args.length == 1
+      until args.length <= 1
         case arg = args.shift
         when '-t'
           options[:title] = args.shift
@@ -98,7 +98,7 @@ module Hub
       end
       if options[:title].nil?
         puts "-t must be specified!"
-        args.ski
+        args.skip!
         return
       end
       if branch

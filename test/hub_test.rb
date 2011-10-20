@@ -631,6 +631,11 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
+  def test_pullreq_no_title_error
+    expected = "-t must be specified!\n"
+    assert_equal expected, hub("pullreq") { ENV['GIT'] = 'echo' }
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out
