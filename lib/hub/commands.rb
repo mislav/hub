@@ -76,7 +76,6 @@ module Hub
         puts "Github user and token required in .gitconfig."
         return
       end
-      branch = `git name-rev --name-only HEAD`.strip
       # Remove 'pullreq'
       args.shift
 
@@ -101,6 +100,7 @@ module Hub
         args.skip!
         return
       end
+      branch = normalize_branch(current_branch)
       if branch
         create_pullreq(args.shift, "#{github_user}:#{branch}", options)
       end

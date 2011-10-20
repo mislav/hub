@@ -636,9 +636,9 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("pullreq") { ENV['GIT'] = 'echo' }
   end
 
-  def test_pullreq
-    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub")
-      #with(:body => {"pull[title]"=>"issue_name", "pull[base]"=>"master", "pull[head]"=>""})
+  def test_pullreq_title_only
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
+      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"master", 'head'=>"tpw:master"}})
     expected = ""
     assert_equal expected, hub('pullreq -t issue_name') { ENV['GIT'] = 'echo' }
   end
