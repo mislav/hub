@@ -784,12 +784,15 @@ help
       params['pull[issue]'] = options[:issue] if options[:issue]
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
-      params['pull[base]'] = options[:base] ? options[:base] : "#{repo_owner}:master"
+      # We are sending the pull request on the base repo, so construct the url accordingly.
+      base = options[:base] ? options[:base] : "#{repo_owner}:master"
+      base_owner, base_branch = base.split(':')
+      params['pull[base]'] = base_branch
+      url = API_PULLREQUEST % [base_owner, repo_name]
+      # Pull from the current branch by default.
       branch = normalize_branch(current_branch)
       params['pull[head]'] = head ? head : "#{repo_owner}:#{branch}"
-      # We are sending the pull request on the base repo, so construct the url accordingly.
-      base_owner, base_branch = params['pull[base]'].split(':')
-      response = http_post(API_PULLREQUEST % [base_owner, repo_name], params)
+      response = http_post(url, params)
       response.error! unless Net::HTTPSuccess === response
     end
 
