@@ -3,7 +3,7 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` <COMMAND> <OPTIONS>  
+`hub` [`--noop`] <COMMAND> <OPTIONS>  
 `hub alias` [`-s`] <SHELL>
 
 `git init -g` <OPTIONS>  
@@ -25,6 +25,10 @@ hub(1) -- git + hub = github
 
 `hub` enhances various `git` commands with GitHub remote expansion. The
 alias command displays information on configuring your environment:
+
+  * `hub --noop` <COMMAND>:
+    Shows which command(s) would be run as a result of the current command.
+    Doesn't perform anything.
 
   * `hub alias` [`-s`] <SHELL>:
     Writes shell aliasing code for <SHELL> (`bash`, `sh`, `zsh`,

@@ -76,7 +76,7 @@
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
-<p><code>hub</code> <var>COMMAND</var> <var>OPTIONS</var><br />
+<p><code>hub</code> [<code>--noop</code>] <var>COMMAND</var> <var>OPTIONS</var><br />
 <code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
 
 <p><code>git init -g</code> <var>OPTIONS</var><br />
@@ -100,6 +100,9 @@
 alias command displays information on configuring your environment:</p>
 
 <ul>
+<li><p><code>hub --noop</code> <var>COMMAND</var>:
+Shows which command(s) would be run as a result of the current command.
+Doesn't perform anything.</p></li>
 <li><p><code>hub alias</code> [<code>-s</code>] <var>SHELL</var>:
 Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
 <code>csh</code>) to standard output. With the <code>-s</code> option, the output of

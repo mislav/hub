@@ -45,7 +45,9 @@ module Hub
     # allows commands to print an error message and cancel their own
     # execution if they don't make sense.
     def execute
-      unless args.skip?
+      if args.noop?
+        puts commands
+      elsif not args.skip?
         if args.chained?
           execute_command_chain
         else

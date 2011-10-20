@@ -586,7 +586,7 @@ help
     # Special: `--version`, `--help` are replaced with "version" and "help".
     # Ignored: `--exec-path`, `--html-path` are kept in args list untouched.
     def slurp_global_flags(args)
-      flags = %w[ -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
+      flags = %w[ --noop -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
       flags2 = %w[ --exec-path= --git-dir= --work-tree= ]
 
       # flags that should be present in subcommands, too
@@ -597,6 +597,8 @@ help
       while args[0] && (flags.include?(args[0]) || flags2.any? {|f| args[0].index(f) == 0 })
         flag = args.shift
         case flag
+        when '--noop'
+          args.noop!
         when '--version', '--help'
           args.unshift flag.sub('--', '')
         when '-c'
