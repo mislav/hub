@@ -82,6 +82,8 @@ module Hub
       options = {}
       until args.length <= 1
         case arg = args.shift
+        when '-i'
+          options[:issue] = args.shift
         when '-t'
           options[:title] = args.shift
         when '-y'
@@ -95,8 +97,8 @@ module Hub
           return
         end
       end
-      if options[:title].nil?
-        puts "-t must be specified!"
+      if options[:title].nil? and options[:issue].nil?
+        puts "Please specify either -t (title) or -i (existing issue number)."
         args.skip!
         return
       end
@@ -782,6 +784,7 @@ help
     def create_pullrequest(repo, head, options)
       require 'net/http'
       params = {}
+      params['pull[issue]'] = options[:issue] if options[:issue]
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
       params['pull[base]'] = options[:base] ? options[:base] : 'master'
