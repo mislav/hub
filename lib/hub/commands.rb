@@ -102,10 +102,7 @@ module Hub
         args.skip!
         return
       end
-      branch = normalize_branch(current_branch)
-      if branch
-        create_pullrequest(args.shift, "#{github_user}:#{branch}", options)
-      end
+      create_pullrequest(args.shift, options)
     end
 
     # $ hub clone rtomayko/tilt
@@ -781,15 +778,18 @@ help
       response.error! unless Net::HTTPSuccess === response
     end
 
-    def create_pullrequest(repo, head, options)
+    def create_pullrequest(head, options)
       require 'net/http'
       params = {}
       params['pull[issue]'] = options[:issue] if options[:issue]
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
-      params['pull[base]'] = options[:base] ? options[:base] : 'master'
-      params['pull[head]'] = head
-      response = http_post(API_PULLREQUEST % [repo_owner, repo_name], params)
+      params['pull[base]'] = options[:base] ? options[:base] : "#{repo_owner}:master"
+      branch = normalize_branch(current_branch)
+      params['pull[head]'] = head ? head : "#{repo_owner}:#{branch}"
+      # We are sending the pull request on the base repo, so construct the url accordingly.
+      base_owner, base_branch = params['pull[base]'].split(':')
+      response = http_post(API_PULLREQUEST % [base_owner, repo_name], params)
       response.error! unless Net::HTTPSuccess === response
     end
 

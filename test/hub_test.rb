@@ -637,17 +637,25 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_title_only
-    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
-      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"master", 'head'=>"tpw:master"}})
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/tpw/hub").
+      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"tpw:master", 'head'=>"defunkt:master"}})
     expected = ""
-    assert_equal expected, hub('pullrequest -t issue_name') { ENV['GIT'] = 'echo' }
+    assert_equal expected, hub('pullrequest -b tpw:master -t issue_name') { ENV['GIT'] = 'echo' }
   end
 
   def test_pullrequest_existing_issue
-    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
-      with(:body => {'pull' => {'issue'=>"123", 'base'=>"master", 'head'=>"tpw:master"}})
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/tpw/hub").
+      with(:body => {'pull' => {'issue'=>"123", 'base'=>"tpw:master", 'head'=>"defunkt:master"}})
     expected = ""
-    assert_equal expected, hub('pullrequest -i 123') { ENV['GIT'] = 'echo' }
+    assert_equal expected, hub('pullrequest -b tpw:master -i 123') { ENV['GIT'] = 'echo' }
+  end
+
+  def test_pullrequest_same_repo
+    stub_branch('refs/heads/feature')
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
+      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"defunkt:master", 'head'=>"defunkt:feature"}})
+    expected = ""
+    assert_equal expected, hub('pullrequest -t issue_name') { ENV['GIT'] = 'echo' }
   end
 
   def test_version
