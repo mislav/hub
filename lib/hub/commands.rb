@@ -760,7 +760,7 @@ help
         port = 80
       end
 
-      http = Net::HTTP.new(url.hostname, port)
+      http = Net::HTTP.new(url.host, port)
       if http.use_ssl = use_ssl
         # TODO: SSL peer verification
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
