@@ -299,8 +299,7 @@ module Hub
     # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
     def create(args)
       if !is_repo?
-        puts "'create' must be run from inside a git repository"
-        args.skip!
+        abort "'create' must be run from inside a git repository"
       elsif owner = github_user and github_token
         args.shift
         options = {}
@@ -788,7 +787,7 @@ help
     end
 
     def display_http_exception(action, response)
-      warn "Error #{action}: #{response.message} (HTTP #{response.code})"
+      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.code})"
       warn "Check your token configuration (`git config github.token`)" if response.code.to_i == 401
     end
 
