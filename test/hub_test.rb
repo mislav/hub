@@ -637,10 +637,10 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullreq
-    stub_nonexisting_fork('tpw', 'hubbub')
-    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/123")
-    expected = "STUB"
-    assert_equal expected, hub('pullreq -t "issue 123"') { ENV['GIT'] = 'echo' }
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub")
+      #with(:body => {"pull[title]"=>"issue_name", "pull[base]"=>"master", "pull[head]"=>""})
+    expected = ""
+    assert_equal expected, hub('pullreq -t issue_name') { ENV['GIT'] = 'echo' }
   end
 
   def test_version

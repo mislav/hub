@@ -40,7 +40,7 @@ module Hub
     API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
     API_FORK   = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE = 'https://github.com/api/v2/yaml/repos/create'
-    API_PULLR  = 'https://github.com/api/v2/json/pulls/%s'
+    API_PULLR  = 'https://github.com/api/v2/json/pulls/%s/%s'
 
     def run(args)
       slurp_global_flags(args)
@@ -786,8 +786,7 @@ help
       params['pull[body]'] = options[:body] if options[:body]
       params['pull[base]'] = options[:base] ? options[:base] : 'master'
       params['pull[head]'] = head
-
-      response = http_post(API_PULLR % repo, params)
+      response = http_post(API_PULLR % [repo_owner, repo_name], params)
       response.error! unless Net::HTTPSuccess === response
     end
 
