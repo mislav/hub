@@ -20,11 +20,13 @@ module Hub
       end
     end
 
+    NULL = defined?(File::NULL) ? File::NULL : File.exist?('/dev/null') ? '/dev/null' : 'NUL'
+
     # Caches output when shelling out to git
     GIT_CONFIG = ShellOutCache.new(ENV['GIT'] || 'git') do |cache, cmd|
       full_cmd = cache.to_exec(cmd)
       cmd_string = full_cmd.respond_to?(:shelljoin) ? full_cmd.shelljoin : full_cmd.join(' ')
-      result = %x{#{cmd_string}}.chomp
+      result = %x{#{cmd_string} 2>#{NULL}}.chomp
       cache[cmd] = $?.success? && !result.empty? ? result : nil
     end
 
