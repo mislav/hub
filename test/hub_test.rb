@@ -43,8 +43,7 @@ class HubTest < Test::Unit::TestCase
       'config github.token'  => 'abc123',
       'config --get-all remote.origin.url' => 'git://github.com/defunkt/hub.git',
       'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
-      'config branch.master.remote'  => 'origin',
-      'config branch.master.merge'   => 'refs/heads/master',
+      "name-rev refs/heads/master@{upstream} --name-only --refs='refs/remotes/*' --no-undefined" => 'remotes/origin/master',
       'config --bool hub.http-clone' => 'false',
       'rev-parse --git-dir' => '.git'
     )
@@ -700,7 +699,7 @@ config
 
   def test_hub_compare_tracking_branch
     stub_branch('refs/heads/feature')
-    stub_tracking('feature', 'mislav', 'refs/heads/experimental')
+    stub_tracking('feature', 'mislav', 'experimental')
 
     assert_command "compare",
       "open https://github.com/mislav/hub/compare/experimental"
@@ -774,7 +773,7 @@ config
 
   def test_hub_browse_on_branch
     stub_branch('refs/heads/feature')
-    stub_tracking('feature', 'mislav', 'refs/heads/experimental')
+    stub_tracking('feature', 'mislav', 'experimental')
 
     assert_command "browse resque", "open https://github.com/tpw/resque"
     assert_command "browse resque commits",
@@ -804,7 +803,7 @@ config
 
   def test_hub_browse_no_tracking_on_branch
     stub_branch('refs/heads/feature')
-    stub_tracking('feature', nil, nil)
+    stub_tracking_nothing('feature')
     assert_command "browse", "open https://github.com/defunkt/hub"
   end
 
@@ -909,8 +908,8 @@ config
     end
 
     def stub_tracking(from, remote_name, remote_branch)
-      @git["config branch.#{from}.remote"] = remote_name
-      @git["config branch.#{from}.merge"] = remote_branch
+      value = remote_branch ? "remotes/#{remote_name}/#{remote_branch}" : nil
+      @git["name-rev refs/heads/#{from}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"] = value
     end
 
     def stub_tracking_nothing

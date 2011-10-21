@@ -81,9 +81,17 @@ module Hub
       GIT_CONFIG['symbolic-ref -q HEAD']
     end
 
+    def upstream_ref(branch)
+      GIT_CONFIG["name-rev #{branch}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"]
+    end
+
+    def upstream_remote(branch)
+      upstream_ref(branch) =~ %r{^remotes/(.+?)/} and $1
+    end
+
     def tracked_branch
-      branch = current_branch && tracked_for(current_branch)
-      normalize_branch(branch) if branch
+      branch = current_branch && upstream_ref(current_branch)
+      branch.sub(%r{^remotes/(.+?)/}, '') if branch
     end
 
     def remotes
@@ -98,7 +106,7 @@ module Hub
 
     def current_remote
       return if remotes.empty?
-      (current_branch && remote_for(current_branch)) || default_remote
+      (current_branch && upstream_remote(current_branch)) || default_remote
     end
 
     def default_remote
@@ -107,14 +115,6 @@ module Hub
 
     def normalize_branch(branch)
       branch.sub('refs/heads/', '')
-    end
-
-    def remote_for(branch)
-      GIT_CONFIG['config branch.%s.remote' % normalize_branch(branch)]
-    end
-
-    def tracked_for(branch)
-      GIT_CONFIG['config branch.%s.merge' % normalize_branch(branch)]
     end
 
     def http_clone?
