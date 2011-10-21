@@ -108,4 +108,11 @@ class Test::Unit::TestCase
     assert !haystack.include?(needle),
       "didn't expect #{needle.inspect} in #{haystack.inspect}"
   end
+
+  # Version of assert_equal tailored for big output
+  def assert_output(expected, command)
+    output = hub(command) { ENV['GIT'] = 'echo' }
+    assert expected == output,
+      "expected:\n#{expected}\ngot:\n#{output}"
+  end
 end

@@ -2,6 +2,7 @@ $LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 require 'webmock/test_unit'
 require 'rbconfig'
+require 'yaml'
 
 WebMock::BodyPattern.class_eval do
   undef normalize_hash
@@ -29,6 +30,7 @@ class HubTest < Test::Unit::TestCase
     COMMANDS.replace %w[open groff]
     Hub::Context::DIRNAME.replace 'hub'
     Hub::Context::REMOTES.clear
+    Hub::Context::Remote.clear!
 
     Hub::Context::GIT_CONFIG.executable = 'git'
 
@@ -630,31 +632,98 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
-  def test_pullrequest_no_args_error
-    expected = "Please specify either -t (title) or -i (existing issue number).\n"
-    assert_equal expected, hub("pull-request") { ENV['GIT'] = 'echo' }
+  def test_pullrequest
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:master", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo"
   end
 
-  def test_pullrequest_title_only
-    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/tpw/hub").
-      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"master", 'head'=>"defunkt:master"}})
-    expected = ""
-    assert_equal expected, hub('pull-request -b tpw:master -t issue_name') { ENV['GIT'] = 'echo' }
+  def test_pullrequest_from_branch
+    stub_branch('refs/heads/feature')
+    stub_tracking_nothing('feature')
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo"
+  end
+
+  def test_pullrequest_from_tracking_branch
+    stub_branch('refs/heads/feature')
+    stub_tracking('feature', 'tpw', 'yay-feature')
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:yay-feature", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo"
+  end
+
+  def test_pullrequest_explicit_head
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:yay-feature", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo -h yay-feature"
+  end
+
+  def test_pullrequest_explicit_head_with_owner
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "mojombo:feature", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo -h mojombo:feature"
+  end
+
+  def test_pullrequest_explicit_base
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "feature", 'head' => "tpw:master", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo -b feature"
+  end
+
+  def test_pullrequest_explicit_base_with_owner
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hub").
+      with(:body => { 'pull' => {'base' => "feature", 'head' => "tpw:master", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo -b mojombo:feature"
+  end
+
+  def test_pullrequest_explicit_base_with_repo
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hubbub").
+      with(:body => { 'pull' => {'base' => "feature", 'head' => "tpw:master", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo -b mojombo/hubbub:feature"
   end
 
   def test_pullrequest_existing_issue
-    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/tpw/hub").
-      with(:body => {'pull' => {'issue'=>"123", 'base'=>"master", 'head'=>"defunkt:master"}})
-    expected = ""
-    assert_equal expected, hub('pull-request -b tpw:master -i 123') { ENV['GIT'] = 'echo' }
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:master", 'issue' => '92'} }).
+      to_return(:body => mock_pullreq_response(92))
+
+    expected = "https://github.com/defunkt/hub/pull/92\n"
+    assert_output expected, "pull-request #92"
   end
 
-  def test_pullrequest_same_repo
-    stub_branch('refs/heads/feature')
-    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
-      with(:body => {'pull' => {'title'=>"issue_name", 'base'=>"master", 'head'=>"defunkt:feature"}})
-    expected = ""
-    assert_equal expected, hub('pull-request -t issue_name') { ENV['GIT'] = 'echo' }
+  def test_pullrequest_existing_issue_url
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:master", 'issue' => '92'} }).
+      to_return(:body => mock_pullreq_response(92, 'mojombo/hub'))
+
+    expected = "https://github.com/mojombo/hub/pull/92\n"
+    assert_output expected, "pull-request https://github.com/mojombo/hub/issues/92#comment_4"
   end
 
   def test_version
@@ -939,8 +1008,8 @@ config
       @git["name-rev refs/heads/#{from}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"] = value
     end
 
-    def stub_tracking_nothing
-      stub_tracking('master', nil, nil)
+    def stub_tracking_nothing(from = 'master')
+      stub_tracking(from, nil, nil)
     end
 
     def stub_remotes_group(name, value)
@@ -1006,6 +1075,12 @@ config
 
     def auth(user = @git['config github.user'], password = @git['config github.token'])
       "#{user}%2Ftoken:#{password}@"
+    end
+
+    def mock_pullreq_response(id, name_with_owner = 'defunkt/hub')
+      YAML.dump('pull' => {
+        'html_url' => "https://github.com/#{name_with_owner}/pull/#{id}"
+      })
     end
 
 end

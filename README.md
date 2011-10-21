@@ -189,16 +189,15 @@ superpowers:
 
 ### git pull-request
 
-    [ in a branch called my_branch on CURRENT_REPO ]
-    $ git pull-request -t "Issue Title" -y "Issue description."
-    [ pull request sent on GitHub, into CURRENT_REPO:master from CURRENT_REPO:my_branch  ]
+    # while on a topic branch called "feature":
+    $ git pull-request "I've implemented feature X"
+    [ opened pull request on GitHub for "YOUR_USER:feature" ]
 
-    [ on a fork of mislav:CURRENT_REPO ]
-    $ git pull-request -t "Issue Title" -y "Issue description." -b mislav:master
-    [ pull request sent on GitHub, into mislav/CURRENT_REPO:master from YOUR_USER/CURRENT_REPO:master ]
+    # explicit pull base & head:
+    $ git pull-request -b defunkt:master -h mislav:feature
 
-    $ git pull-request -i 123
-    [ existing issue #123 turned into a pull request from the current branch ]
+    $ git pull-request #123
+    [ attached pull request to issue #123 ]
 
 ### git create
 

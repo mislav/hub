@@ -92,7 +92,8 @@
 <code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
 <code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
-<code>git fork</code> [<code>--no-remote</code>]</p>
+<code>git fork</code> [<code>--no-remote</code>]<br />
+<code>git pull-request</code> [<var>TITLE</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</p>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
@@ -174,6 +175,15 @@ your GitHub login. With <code>-p</code>, use private remote
 Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username. Requires <code>github.token</code> to
 be set (see CONFIGURATION).</p></li>
+<li><p><code>git pull-request</code> [<var>TITLE</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]:<br />
+Opens a pull request on GitHub for the project that the "origin" remote
+points to. The default head of the pull request is the current branch.
+Both base and head of the pull request can be explicitly given in one of
+the following formats: "branch", "owner:branch", "owner/repo:branch".</p>
+
+<p>If instead of normal <var>TITLE</var> a string in "#<var>NUMBER</var>" format is given,
+the pull request will be attached to an existing GitHub issue whose ID
+corresponds to <var>NUMBER</var>.</p></li>
 <li><p><code>git help</code>:
 Display enhanced <span class="man-ref">git-help<span class="s">(1)</span></span>.</p></li>
 </ul>
@@ -292,6 +302,19 @@ $ git apply https://gist.github.com/8da7fb575debd88c54cf
 <pre><code>$ git fork
 [ repo forked on GitHub ]
 &gt; git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+</code></pre>
+
+<h3 id="git-pull-request">git pull-request</h3>
+
+<pre><code># while on a topic branch called "feature":
+$ git pull-request "I've implemented feature X"
+[ opened pull request on GitHub for "YOUR_USER:feature" ]
+
+# explicit pull base &amp; head:
+$ git pull-request -b defunkt:master -h mislav:feature
+
+$ git pull-request #123
+[ attached pull request to issue #123 ]
 </code></pre>
 
 <h3 id="git-create">git create</h3>

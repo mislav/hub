@@ -40,7 +40,7 @@ module Hub
     API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
     API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
-    API_PULLREQUEST = 'https://github.com/api/v2/json/pulls/%s/%s'
+    API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
 
     def run(args)
       slurp_global_flags(args)
@@ -66,43 +66,52 @@ module Hub
       end
     end
 
+    # $ hub pull-request
+    # $ hub pull-request "My humble contribution"
+    # $ hub pull-request #92
+    # $ hub pull-request https://github.com/rtomayko/tilt/issues/92
     def pull_request(args)
-      args.skip!
-      if !is_repo?
-        puts "'pullrequest' must be run from inside a git repository"
-        return
-      end
-      if !github_user
-        puts "Github user and token required in .gitconfig."
-        return
-      end
-      # Remove 'pullrequest'
       args.shift
+      options = { }
+      explicit_owner = false
+      base_repo = origin_repo
 
-      options = {}
-      until args.length <= 1
-        case arg = args.shift
-        when '-i'
-          options[:issue] = args.shift
-        when '-t'
-          options[:title] = args.shift
-        when '-y'
-          options[:body] = args.shift
+      while arg = args.shift
+        case arg
         when '-b'
-          options[:base] = args.shift
-        when '-p'
-          system('git', 'push')
+          options[:base] = Context::Ref.from_github_ref(args.shift, origin_repo)
+        when '-h'
+          head = args.shift
+          explicit_owner = !!head.index(':')
+          options[:head] = Context::Ref.from_github_ref(head, current_repo)
+        when %r{^https?://github.com/([^/]+/[^/]+)/issues/(\d+)}
+          options[:issue] = $2
+          base_repo = Context::Repo.from_string($1)
+        when %r{^#(\d+)$}
+          options[:issue] = $1
         else
-          puts "unexpected argument: #{arg}"
-          return
+          if !options[:title] then options[:title] = arg
+          else
+            abort "invalid argument: #{arg}"
+          end
         end
       end
-      if options[:title].nil? and options[:issue].nil?
-        puts "Please specify either -t (title) or -i (existing issue number)."
-        args.skip!
-        return
+
+      options[:base] ||= base_repo.ref_for('master')
+      options[:head] ||= upstream_ref(current_branch, current_repo) ||
+        current_repo.ref_for(normalize_branch(current_branch))
+
+      if head_repo = options[:head].repo and head_repo.owner != github_user and not explicit_owner
+        options[:head].repo = head_repo.from_owner(github_user)
       end
-      create_pullrequest(args.shift, options)
+
+      pull = create_pullrequest(options)
+
+      args.executable = 'echo'
+      args.replace [pull['html_url']]
+    rescue HTTPExceptions
+      display_http_exception("creating pull request", $!.response)
+      exit 1
     end
 
     # $ hub clone rtomayko/tilt
@@ -778,22 +787,22 @@ help
       response.error! unless Net::HTTPSuccess === response
     end
 
-    def create_pullrequest(head, options)
-      require 'net/http'
-      params = {}
+    # Returns parsed data from the new pull request.
+    def create_pullrequest(options)
+      base_repo = options.fetch(:base).repo
+      params = {
+        'pull[base]' => options[:base].branch,
+        'pull[head]' => options.fetch(:head).to_github_ref
+      }
       params['pull[issue]'] = options[:issue] if options[:issue]
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
-      # We are sending the pull request on the base repo, so construct the url accordingly.
-      base = options[:base] ? options[:base] : "#{repo_owner}:master"
-      base_owner, base_branch = base.split(':')
-      params['pull[base]'] = base_branch
-      url = API_PULLREQUEST % [base_owner, repo_name]
-      # Pull from the current branch by default.
-      branch = normalize_branch(current_branch)
-      params['pull[head]'] = head ? head : "#{repo_owner}:#{branch}"
-      response = http_post(url, params)
+
+      load_net_http
+      response = http_post(API_PULLREQUEST % [base_repo.owner, base_repo.name], params)
       response.error! unless Net::HTTPSuccess === response
+      require 'yaml'
+      YAML.load(response.body)['pull']
     end
 
     def expand_alias(cmd)

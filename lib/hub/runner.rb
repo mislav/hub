@@ -31,7 +31,7 @@ module Hub
       args.commands.map do |cmd|
         if cmd.respond_to?(:join)
           # a simplified `Shellwords.join` but it's OK since this is only used to inspect
-          cmd.map { |c| (c.index(' ') || c.empty?) ? "'#{c}'" : c }.join(' ')
+          cmd.map { |arg| arg = arg.to_s; (arg.index(' ') || arg.empty?) ? "'#{arg}'" : arg }.join(' ')
         else
           cmd.to_s
         end

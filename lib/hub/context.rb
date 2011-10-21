@@ -48,15 +48,130 @@ module Hub
     LGHCONF = "http://help.github.com/git-email-settings/"
 
     def repo_owner
-      REMOTES[default_remote][:user]
+      if repo = origin_repo
+        repo.owner
+      end
     end
 
     def repo_user
-      REMOTES[current_remote][:user]
+      if repo = current_repo
+        repo.owner
+      end
     end
 
     def repo_name
-      REMOTES[default_remote][:repo] || current_dirname
+      if repo = origin_repo
+        repo.name
+      else
+        current_dirname
+      end
+    end
+
+    def origin_repo
+      if remote = default_remote
+        remote.repo
+      end
+    end
+
+    def current_repo
+      if remote = current_remote
+        remote.repo
+      end
+    end
+
+    class Remote < Struct.new(:name)
+      def self.all
+        @remotes ||= begin
+          list = GIT_CONFIG['remote'].to_s.split("\n")
+          main = list.delete('origin') and list.unshift(main)
+          list.map { |name| new(name) }
+        end
+      end
+
+      def self.clear!
+        remove_instance_variable '@remotes' if defined? @remotes
+      end
+
+      def self.origin
+        all.first
+      end
+
+      def self.by_name(remote_name)
+        all.find {|r| r.name == remote_name }
+      end
+
+      def self.for_repo(repo)
+        all.find {|r| r.repo == repo }
+      end
+
+      alias to_s name
+
+      def ==(other)
+        other.respond_to?(:to_str) ? name == other.to_str : super
+      end
+
+      def repo
+        return @repo if defined? @repo
+        @repo = if urls.find { |u| u =~ %r{\bgithub\.com[:/](.+)/(.+).git$} } 
+          Repo.new($1, $2)
+        end
+      end
+
+      def urls
+        @urls ||= GIT_CONFIG["config --get-all remote.#{name}.url"].to_s.split("\n")
+      end
+    end
+
+    class Repo < Struct.new(:owner, :name)
+      def self.from_string(str, context_repo = nil)
+        if str.index('/')
+          new(*str.split('/', 2))
+        else
+          new(str, context_repo.name)
+        end
+      end
+
+      def from_owner(another_owner, another_name = nil)
+        self.class.new(another_owner, another_name || self.name)
+      end
+
+      def ref_for(branch)
+        Ref.new(self, branch)
+      end
+    end
+
+    class Ref < Struct.new(:repo, :branch, :remote)
+      def self.from_github_ref(branch, context_repo)
+        if branch.index(':')
+          owner_with_name, branch = branch.split(':', 2)
+          context_repo = context_repo.from_owner(*owner_with_name.split('/', 2))
+        end
+        new(context_repo, branch)
+      end
+
+      def self.upstream_for(branch, repo = nil)
+        if GIT_CONFIG["name-rev #{branch}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"] =~ %r{^remotes/(.+)}
+          remote_name, branch = $1.split('/', 2)
+          new(repo, branch, Remote.by_name(remote_name))
+        end
+      end
+
+      def initialize(*args)
+        super
+        if remote.nil?
+          self.remote = Remote.for_repo(repo)
+        elsif repo.nil?
+          self.repo = remote.repo
+        end
+      end
+
+      def to_local_ref
+        "#{remote}/#{branch}"
+      end
+
+      def to_github_ref
+        "#{repo.owner}:#{branch}"
+      end
     end
 
     # Either returns the GitHub user as set by git-config(1) or aborts
@@ -81,23 +196,16 @@ module Hub
       GIT_CONFIG['symbolic-ref -q HEAD']
     end
 
-    def upstream_ref(branch)
-      GIT_CONFIG["name-rev #{branch}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"]
-    end
-
-    def upstream_remote(branch)
-      upstream_ref(branch) =~ %r{^remotes/(.+?)/} and $1
+    def upstream_ref(branch, repo = nil)
+      Ref.upstream_for(normalize_branch(branch), repo)
     end
 
     def tracked_branch
-      branch = current_branch && upstream_ref(current_branch)
-      branch.sub(%r{^remotes/(.+?)/}, '') if branch
+      current_branch and ref = upstream_ref(current_branch) and ref.branch
     end
 
     def remotes
-      list = GIT_CONFIG['remote'].to_s.split("\n")
-      main = list.delete('origin') and list.unshift(main)
-      list
+      Remote.all
     end
 
     def remotes_group(name)
@@ -106,11 +214,11 @@ module Hub
 
     def current_remote
       return if remotes.empty?
-      (current_branch && upstream_remote(current_branch)) || default_remote
+      (ref = current_branch && upstream_ref(current_branch)) and ref.remote or default_remote
     end
 
     def default_remote
-      remotes.first
+      Remote.origin
     end
 
     def normalize_branch(branch)
