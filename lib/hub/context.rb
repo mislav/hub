@@ -123,14 +123,6 @@ module Hub
       GIT_CONFIG["config alias.#{name}"]
     end
 
-    # Core.repositoryformatversion should exist for all git
-    # repositories, and be blank for all non-git repositories. If
-    # there's a better config setting to check here, this can be
-    # changed without breaking anything.
-    def is_repo?
-      GIT_CONFIG['config core.repositoryformatversion']
-    end
-
     def github_url(options = {})
       repo = options[:repo]
       user, repo = repo.split('/') if repo && repo.index('/')
@@ -167,6 +159,14 @@ module Hub
 
     def current_dirname
       DIRNAME
+    end
+
+    def git_dir
+      GIT_CONFIG['rev-parse --git-dir']
+    end
+
+    def is_repo?
+      !!git_dir
     end
 
     # Cross-platform web browser command; respects the value set in $BROWSER.

@@ -46,7 +46,7 @@ class HubTest < Test::Unit::TestCase
       'config branch.master.remote'  => 'origin',
       'config branch.master.merge'   => 'refs/heads/master',
       'config --bool hub.http-clone' => 'false',
-      'config core.repositoryformatversion' => '0'
+      'rev-parse --git-dir' => '.git'
     )
     super
   end
