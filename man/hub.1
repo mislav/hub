@@ -55,7 +55,7 @@
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
 .
 .br
-\fBgit pull\-request\fR [\fITITLE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
+\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
 .
 .SH "DESCRIPTION"
 \fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion\. The alias command displays information on configuring your environment:
@@ -124,10 +124,13 @@ Submodule repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \
 \fBgit fork\fR [\fB\-\-no\-remote\fR]: Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\. Requires \fBgithub\.token\fR to be set (see CONFIGURATION)\.
 .
 .IP "\(bu" 4
-\fBgit pull\-request\fR [\fITITLE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]:
+\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]:
 .
 .br
-Opens a pull request on GitHub for the project that the "origin" remote points to\. The default head of the pull request is the current branch\. Both base and head of the pull request can be explicitly given in one of the following formats: "branch", "owner:branch", "owner/repo:branch"\.
+Opens a pull request on GitHub for the project that the "origin" remote points to\. The default head of the pull request is the current branch\. Both base and head of the pull request can be explicitly given in one of the following formats: "branch", "owner:branch", "owner/repo:branch"\. This command will abort operation if it detects that the current topic branch has local commits that are not yet pushed to its upstream branch on the remote\. To skip this check, use \fB\-f\fR\.
+.
+.IP
+If \fITITLE\fR is omitted, a text editor will open in which title and body of the pull request can be entered in the same manner as git commit message\.
 .
 .IP
 If instead of normal \fITITLE\fR a string in "#\fINUMBER\fR" format is given, the pull request will be attached to an existing GitHub issue whose ID corresponds to \fINUMBER\fR\.
@@ -292,11 +295,12 @@ $ git fork
 .nf
 
 # while on a topic branch called "feature":
-$ git pull\-request "I\'ve implemented feature X"
+$ git pull\-request
+[ opens text editor to edit title & body for the request ]
 [ opened pull request on GitHub for "YOUR_USER:feature" ]
 
-# explicit pull base & head:
-$ git pull\-request \-b defunkt:master \-h mislav:feature
+# explicit title, pull base & head:
+$ git pull\-request "I\'ve implemented feature X" \-b defunkt:master \-h mislav:feature
 
 $ git pull\-request #123
 [ attached pull request to issue #123 ]

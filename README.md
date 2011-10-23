@@ -190,11 +190,12 @@ superpowers:
 ### git pull-request
 
     # while on a topic branch called "feature":
-    $ git pull-request "I've implemented feature X"
+    $ git pull-request
+    [ opens text editor to edit title & body for the request ]
     [ opened pull request on GitHub for "YOUR_USER:feature" ]
 
-    # explicit pull base & head:
-    $ git pull-request -b defunkt:master -h mislav:feature
+    # explicit title, pull base & head:
+    $ git pull-request "I've implemented feature X" -b defunkt:master -h mislav:feature
 
     $ git pull-request #123
     [ attached pull request to issue #123 ]

@@ -73,11 +73,13 @@ module Hub
     def pull_request(args)
       args.shift
       options = { }
-      explicit_owner = false
+      force = explicit_owner = false
       base_repo = origin_repo
 
       while arg = args.shift
         case arg
+        when '-f'
+          force = true
         when '-b'
           options[:base] = Context::Ref.from_github_ref(args.shift, origin_repo)
         when '-h'
@@ -103,6 +105,21 @@ module Hub
 
       if head_repo = options[:head].repo and head_repo.owner != github_user and not explicit_owner
         options[:head].repo = head_repo.from_owner(github_user)
+      end
+
+      if not force and not explicit_owner and local_commits = Context::GIT_CONFIG["rev-list --cherry #{options[:head].to_local_ref}..."]
+        $stderr.puts "Aborted: #{local_commits.split("\n").size} commits are not yet pushed to #{options[:head].to_local_ref}"
+        warn "(use `-f` to force submit a pull request anyway)"
+        abort
+      end
+
+      unless options[:title] or options[:issue]
+        changes = Context::GIT_CONFIG["log --no-color --pretty=medium --cherry %s...%s" %
+          [options[:base].to_local_ref, options[:head].to_local_ref]]
+
+        options[:title], options[:body] = pullrequest_editmsg(changes) { |msg|
+          msg.puts "# You're requesting a pull to #{options[:base].to_github_ref} from #{options[:head].to_github_ref}"
+        }
       end
 
       pull = create_pullrequest(options)
@@ -803,6 +820,39 @@ help
       response.error! unless Net::HTTPSuccess === response
       require 'yaml'
       YAML.load(response.body)['pull']
+    end
+
+    def pullrequest_editmsg(changes)
+      message_file = File.join(git_dir, 'PULLREQ_EDITMSG')
+      File.open(message_file, 'w') { |msg|
+        msg.puts
+        yield msg
+        if changes
+          msg.puts "#\n# Changes:\n#"
+          msg.puts changes.gsub(/^/, '# ')
+        end
+      }
+      edit_cmd = Array(git_editor).dup << message_file
+      system(*edit_cmd)
+      abort "can't open text editor for pull request message" unless $?.success?
+      title, body = read_editmsg(message_file)
+      abort "Aborting due to empty pull request title" unless title
+      [title, body]
+    end
+
+    def read_editmsg(file)
+      title, body = '', ''
+      File.open(file, 'r') { |msg|
+        msg.each_line do |line|
+          next if line.index('#') == 0
+          ((body.empty? and line =~ /\S/) ? title : body) << line
+        end
+      }
+      title.tr!("\n", ' ')
+      title.strip!
+      body.strip!
+      
+      [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
     end
 
     def expand_alias(cmd)

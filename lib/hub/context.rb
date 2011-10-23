@@ -279,6 +279,14 @@ module Hub
       !!git_dir
     end
 
+    def git_editor
+      # possible: ~/bin/vi, $SOME_ENVIRONMENT_VARIABLE, "C:\Program Files\Vim\gvim.exe" --nofork
+      editor = GIT_CONFIG['var GIT_EDITOR']
+      editor = ENV[$1] if editor =~ /^\$(\w+)$/
+      editor = File.expand_path editor if (editor =~ /^[~.]/ or editor.index('/')) and editor !~ /["']/
+      editor.shellsplit
+    end
+
     # Cross-platform web browser command; respects the value set in $BROWSER.
     # 
     # Returns an array, e.g.: ['open']
