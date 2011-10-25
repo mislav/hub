@@ -693,7 +693,7 @@ help
       params = yield
 
       args.executable = url_only ? 'echo' : browser_launcher
-      args.push github_url({:web => true, :private => true}.update(params))
+      args.push github_url({:web => true}.update(params))
     end
 
     # Returns the terminal-formatted manpage, ready to be printed to

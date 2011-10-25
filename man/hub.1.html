@@ -208,29 +208,19 @@ Display enhanced <span class="man-ref">git-help<span class="s">(1)</span></span>
 $ git config --global github.token &lt;token>
 </code></pre>
 
+<p>You can override these values with <var>GITHUB_USER</var> and <var>GITHUB_TOKEN</var>
+environment variables.</p>
+
 <p>See <a href="http://github.com/guides/local-github-config" data-bare-link="true">http://github.com/guides/local-github-config</a> for more
 information.</p>
 
-<p>You can also tell <code>hub</code> to use <code>http://</code> rather than <code>git://</code> when
-cloning:</p>
+<p>If you prefer the HTTPS protocol for GitHub repositories, you can set
+"hub.protocol" to "https". This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code>
+and other operations that expand references to GitHub repositories as full
+URLs that otherwise use git and ssh protocols.</p>
 
-<pre><code>$ git config --global --bool hub.http-clone true
+<pre><code>$ git config --global hub.protocol https
 </code></pre>
-
-<p>Want to use environment variables instead of a local gitconfig for
-authentication?</p>
-
-<ul>
-<li><code>GITHUB_USER</code>  - If set, this will be used instead of the <code>github.user</code> config
-
-<pre><code>             value to determine your GitHub username.
-</code></pre></li>
-<li><code>GITHUB_TOKEN</code> - If set, this will be used instead of the <code>github.token</code>
-
-<pre><code>             config value to determine your GitHub API token.
-</code></pre></li>
-</ul>
-
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 

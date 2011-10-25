@@ -47,6 +47,7 @@ class HubTest < Test::Unit::TestCase
       'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
       "name-rev master@{upstream} --name-only --refs='refs/remotes/*' --no-undefined" => 'remotes/origin/master',
       'config --bool hub.http-clone' => 'false',
+      'config hub.protocol' => nil,
       'rev-parse --git-dir' => '.git'
     )
     super
@@ -55,6 +56,13 @@ class HubTest < Test::Unit::TestCase
   def test_private_clone
     input   = "clone -p rtomayko/ronn"
     command = "git clone git@github.com:rtomayko/ronn.git"
+    assert_command input, command
+  end
+
+  def test_https_clone
+    stub_https_is_preferred
+    input   = "clone rtomayko/ronn"
+    command = "git clone https://github.com/rtomayko/ronn.git"
     assert_command input, command
   end
 
@@ -194,6 +202,13 @@ class HubTest < Test::Unit::TestCase
   def test_private_remote
     input   = "remote add -p rtomayko"
     command = "git remote add rtomayko git@github.com:rtomayko/hub.git"
+    assert_command input, command
+  end
+
+  def test_https_protocol_remote
+    stub_https_is_preferred
+    input   = "remote add rtomayko"
+    command = "git remote add rtomayko https://github.com/rtomayko/hub.git"
     assert_command input, command
   end
 
@@ -576,6 +591,17 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
+  def test_create_https_protocol
+    stub_no_remotes
+    stub_existing_fork('tpw')
+    stub_https_is_preferred
+
+    expected = "tpw/hub already exists on GitHub\n"
+    expected << "remote add -f origin https://github.com/tpw/hub.git\n"
+    expected << "set remote origin: tpw/hub\n"
+    assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
+  end
+
   def test_create_no_user
     stub_no_remotes
     out = hub("create") do
@@ -628,6 +654,16 @@ class HubTest < Test::Unit::TestCase
 
     expected = "tpw/hub already exists on GitHub\n"
     expected << "remote add -f tpw git@github.com:tpw/hub.git\n"
+    expected << "new remote: tpw\n"
+    assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
+  end
+
+  def test_fork_https_protocol
+    stub_existing_fork('tpw')
+    stub_https_is_preferred
+
+    expected = "tpw/hub already exists on GitHub\n"
+    expected << "remote add -f tpw https://github.com/tpw/hub.git\n"
     expected << "new remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
@@ -1051,6 +1087,10 @@ config
 
     def stub_available_commands(*names)
       COMMANDS.replace names
+    end
+
+    def stub_https_is_preferred
+      @git['config hub.protocol'] = 'https'
     end
 
     def with_browser_env(value)

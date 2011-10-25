@@ -304,33 +304,23 @@ If you see nothing, you need to set the config setting:
 For commands that require write access to GitHub (such as `fork`), you'll want to
 setup "github.token" as well. See [local GitHub config guide][2] for more information.
 
-Want to use environment variables instead of a local gitconfig?
-
-* `GITHUB_USER`  - If set, this will be used instead of the `github.user` config
-                   value to determine your GitHub username.
-* `GITHUB_TOKEN` - If set, this will be used instead of the `github.token` config
-                   value to determine your GitHub API token.
+If present, environment variables `GITHUB_USER` and `GITHUB_TOKEN` override the
+values of "github.user" and "github.token".
 
 Configuration
 -------------
 
-If you prefer `http://` clones to `git://` clones, you can set the
-`hub.http-clone` option to true using `git-config`.
+If you prefer using the HTTPS protocol for GitHub repositories instead of the git
+protocol for read and ssh for write, you can set "hub.protocol" to "https".
 
 For example:
 
     $ git clone defunkt/repl
     < git clone >
-    $ git config --global --bool hub.http-clone true
+    
+    $ git config --global hub.protocol https
     $ git clone defunkt/repl
-    < http clone >
-
-Or you can enter this manually into your `~/.gitconfig` file:
-
-    $ cat ~/.gitconfig
-    [hub]
-      http-clone = yes
-
+    < https clone >
 
 Prior Art
 ---------

@@ -225,8 +225,13 @@ module Hub
       branch.sub('refs/heads/', '')
     end
 
+    # legacy setting
     def http_clone?
       GIT_CONFIG['config --bool hub.http-clone'] == 'true'
+    end
+
+    def https_protocol?
+      GIT_CONFIG['config hub.protocol'] == 'https' or http_clone?
     end
 
     def git_alias_for(name)
@@ -238,10 +243,8 @@ module Hub
       user, repo = repo.split('/') if repo && repo.index('/')
       user ||= options[:user] || github_user
       repo ||= repo_name
-      secure = options[:private]
 
       if options[:web]
-        scheme = secure ? 'https:' : 'http:'
         path = options[:web] == true ? '' : options[:web].to_s
         if repo =~ /\.wiki$/
           repo = repo.sub(/\.wiki$/, '')
@@ -251,12 +254,12 @@ module Hub
               end
           end
         end
-        '%s//github.com/%s/%s%s' % [scheme, user, repo, path]
+        'https://github.com/%s/%s%s' % [user, repo, path]
       else
-        if secure
+        if https_protocol?
+          url = 'https://github.com/%s/%s.git'
+        elsif options[:private]
           url = 'git@github.com:%s/%s.git'
-        elsif http_clone?
-          url = 'http://github.com/%s/%s.git'
         else
           url = 'git://github.com/%s/%s.git'
         end

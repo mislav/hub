@@ -168,29 +168,21 @@ $ git config \-\-global github\.token <token>
 .IP "" 0
 .
 .P
+You can override these values with \fIGITHUB_USER\fR and \fIGITHUB_TOKEN\fR environment variables\.
+.
+.P
 See \fIhttp://github\.com/guides/local\-github\-config\fR for more information\.
 .
 .P
-You can also tell \fBhub\fR to use \fBhttp://\fR rather than \fBgit://\fR when cloning:
+If you prefer the HTTPS protocol for GitHub repositories, you can set "hub\.protocol" to "https"\. This will affect \fBclone\fR, \fBfork\fR, \fBremote add\fR and other operations that expand references to GitHub repositories as full URLs that otherwise use git and ssh protocols\.
 .
 .IP "" 4
 .
 .nf
 
-$ git config \-\-global \-\-bool hub\.http\-clone true
+$ git config \-\-global hub\.protocol https
 .
 .fi
-.
-.IP "" 0
-.
-.P
-Want to use environment variables instead of a local gitconfig for authentication?
-.
-.IP "\(bu" 4
-\fBGITHUB_USER\fR \- If set, this will be used instead of the \fBgithub\.user\fR config
-.
-.IP "\(bu" 4
-\fBGITHUB_TOKEN\fR \- If set, this will be used instead of the \fBgithub\.token\fR
 .
 .IP "" 0
 .
