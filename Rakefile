@@ -5,7 +5,7 @@ require 'rake/testtask'
 #
 
 def command?(command)
-  `which #{command} 2>/dev/null`
+  `which #{command} 2>/dev/null 2> NUL`
   $?.success?
 end
 
