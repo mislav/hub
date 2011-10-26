@@ -743,6 +743,7 @@ help
     # http://nex-3.com/posts/73-git-style-automatic-paging-in-ruby
     def page_stdout
       return unless $stdout.tty?
+      return RUBY_PLATFORM.downcase =~ /mswin(?!ce)|mingw|bccwin/
 
       read, write = IO.pipe
 

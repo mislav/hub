@@ -5,7 +5,8 @@ require 'rake/testtask'
 #
 
 def command?(command)
-  `which #{command} 2>/dev/null`
+  RUBY_PLATFORM.downcase =~ /mswin(?!ce)|mingw|bccwin/ ?
+    `which #{command} 2>NUL` : `which #{command} 2>/dev/null`
   $?.success?
 end
 
