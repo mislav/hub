@@ -342,7 +342,7 @@ module Hub
       # can't do anything without token and original owner name
       if github_user && github_token && repo_owner
         if repo_exists?(github_user)
-          puts "#{github_user}/#{repo_name} already exists on GitHub"
+          warn "#{github_user}/#{repo_name} already exists on GitHub"
         else
           fork_repo
         end
@@ -391,7 +391,7 @@ module Hub
         repo_with_owner = "#{owner}/#{new_repo_name}"
 
         if repo_exists?(owner, new_repo_name)
-          puts "#{repo_with_owner} already exists on GitHub"
+          warn "#{repo_with_owner} already exists on GitHub"
           action = "set remote origin"
         else
           action = "created repository"
@@ -516,7 +516,7 @@ module Hub
     def hub(args)
       return help(args) unless args[1] == 'standalone'
       require 'hub/standalone'
-      puts Hub::Standalone.build
+      $stdout.puts Hub::Standalone.build
       exit
     rescue LoadError
       abort "hub is running in standalone mode."
@@ -699,7 +699,7 @@ help
     # Returns the terminal-formatted manpage, ready to be printed to
     # the screen.
     def hub_manpage
-      return "** Can't find groff(1)" unless command?('groff')
+      abort "** Can't find groff(1)" unless command?('groff')
 
       require 'open3'
       out = nil
