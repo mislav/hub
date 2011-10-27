@@ -1,4 +1,3 @@
-$LOAD_PATH.unshift File.dirname(__FILE__)
 require 'helper'
 require 'webmock/test_unit'
 require 'rbconfig'

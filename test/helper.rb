@@ -1,15 +1,8 @@
 require 'test/unit'
-
-begin
-  require 'redgreen'
-rescue LoadError
-end
-
-$LOAD_PATH.unshift File.dirname(__FILE__) + '/../lib'
 require 'hub'
 require 'hub/standalone'
 
-# We're looking for `open` in the tests.
+# We're checking for `open` in our tests
 ENV['BROWSER'] = 'open'
 
 # Setup path with fake executables in case a test hits them

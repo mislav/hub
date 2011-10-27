@@ -27,20 +27,11 @@ end
 
 task :default => :test
 
-if false # command? :turn
-  # commented out since turn 0.8.2 seems to be broken with minitest
-  desc "Run tests"
-  task :test do
-    suffix = "-n #{ENV['TEST']}" if ENV['TEST']
-    sh "turn test/*.rb #{suffix}"
-  end
-else
-  Rake::TestTask.new do |t|
-    t.libs << 'lib'
-    t.ruby_opts << '-rubygems'
-    t.pattern = 'test/**/*_test.rb'
-    t.verbose = false
-  end
+Rake::TestTask.new do |t|
+  t.libs << 'test'
+  t.ruby_opts << '-rubygems'
+  t.pattern = 'test/**/*_test.rb'
+  t.verbose = false
 end
 
 if command? :kicker
