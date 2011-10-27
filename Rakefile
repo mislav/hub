@@ -4,19 +4,21 @@ require 'rake/testtask'
 # Helpers
 #
 
-def command?(command)
-  `which #{command} 2>/dev/null`
-  $?.success?
+def command?(util)
+  Rake::Task[:load_path].invoke
+  context = Object.new
+  require 'hub/context'
+  context.extend Hub::Context
+  context.send(:command?, util)
 end
 
-task :load_hub do
-  $LOAD_PATH.unshift 'lib'
-  require 'hub'
+task :load_path do
+  $LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
 end
 
 task :check_dirty do
-  if !`git status`.include?('nothing to commit')
-    abort "dirty index - not publishing!"
+  unless system 'git', 'diff', '--quiet', 'HEAD'
+    abort "Aborted: you have uncommitted changes"
   end
 end
 
@@ -44,16 +46,16 @@ end
 
 
 #
-# Ron
+# Manual
 #
 
 if command? :ronn
-  desc "Show the manual"
+  desc "Show man page"
   task :man => "man:build" do
     exec "man man/hub.1"
   end
 
-  desc "Build the manual"
+  desc "Build man pages"
   task "man:build" => ["man/hub.1", "man/hub.1.html"]
 
   extract_examples = lambda { |readme_file|
@@ -95,17 +97,20 @@ end
 
 
 #
-# Gems
+# Build
 #
 
-desc "Build standalone script"
-task :standalone => :load_hub do
+file "hub" => FileList.new("lib/hub/*.rb", "man/hub.1") do |task|
+  Rake::Task[:load_path].invoke
   require 'hub/standalone'
-  Hub::Standalone.save('hub')
+  Hub::Standalone.save(task.name)
 end
 
+desc "Build standalone script"
+task :standalone => "hub"
+
 desc "Install standalone script and man pages"
-task :install => :standalone do
+task :install => "hub" do
   prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
   FileUtils.mkdir_p "#{prefix}/bin"
@@ -115,16 +120,19 @@ task :install => :standalone do
   FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
 end
 
-desc "Publish to GitHub Pages"
-task :pages => [ "man:build", :check_dirty, :standalone ] do
+desc "Copy files to gh-pages branch, but don't publish"
+task :gh_pages => [:check_dirty, "hub", "man/hub.1.html"] do
   cp "man/hub.1.html", "html"
   sh "git checkout gh-pages"
   sh "mv hub standalone"
-  sh "git add standalone*"
   sh "mv html hub.1.html"
-  sh "git add hub.1.html"
+  sh "git add standalone hub.1.html"
   sh "git commit -m 'update standalone'"
+end
+
+desc "Publish to GitHub Pages"
+task :pages => :gh_pages do
   sh "git push origin gh-pages"
   sh "git checkout master"
-  puts :done
+  puts "Done."
 end
