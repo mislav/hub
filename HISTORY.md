@@ -1,5 +1,10 @@
 ## master
 
+* opt in for HTTPS: `git config hub.protocol https`
+* add `hub pull-request`
+* improve detecting upstream configuration ("tracking" branches)
+* introduce `hub --noop`
+* `hub apply` now downloads GitHub patches same as `hub am`
 * `hub create <name>` to explicitly name a repository
 * switch API communication to HTTPS
 * better handling of API HTTP exceptions

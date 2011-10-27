@@ -336,34 +336,38 @@ GitHub simpler:
 Contributing
 ------------
 
-Once you've made your great commits:
+These instructions assume that you already have `hub` installed and that
+you've set it up so it wraps `git` (see "Aliasing").
 
-1. [Fork][0] hub
-2. Create a topic branch - `git checkout -b my_branch`
-3. Push to your branch - `git push origin my_branch`
-4. Create an [Issue][1] with a link to your branch
-5. That's it!
+1. Clone hub:  
+    `git clone defunkt/hub`
+2. Verify that existing tests pass (see "Development dependencies"):  
+    `rake test`
+3. Create a topic branch:  
+    `git checkout -b my_branch`
+4. Make your changes – it helps a lot if you write tests first
+5. Verify that tests still pass:  
+    `rake test`
+6. Fork hub on GitHub (adds a remote named "YOUR_USER"):  
+    `git fork`
+7. Push to your fork:  
+    `git push -u YOUR_USER my_branch`
+8. Open a pull request describing your changes:  
+    `git pull-request`
 
-### Development Gems
-You will need the following gems (and their dependencies) to
-contribute to `hub`:
+### Development dependencies
 
-* `rake` (`gem install rake`)
-* `kicker` (`gem install kicker`)
-* `turn` (`gem install turn`)
-* `mg` (`gem install mg`)
-* `ronn` (`gem install ronn`)
-* `webmock` (`gem install webmock`)
+You will need the following libraries for development:
+
+* [ronn](https://github.com/rtomayko/ronn)
+* [webmock](https://github.com/bblimke/webmock)
 
 Meta
 ----
 
-* Code: `git clone git://github.com/defunkt/hub.git`
-* Home: <http://github.com/defunkt/hub>
-* Bugs: <http://github.com/defunkt/hub/issues>
-* List: <http://groups.google.com/group/github>
-* Test: <http://runcoderun.com/defunkt/hub>
-* Gems: <http://gemcutter.org/gems/hub>
+* Home: <https://github.com/defunkt/hub>
+* Bugs: <https://github.com/defunkt/hub/issues>
+* Gem: <https://rubygems.org/gems/hub>
 
 
 Authors
@@ -371,8 +375,6 @@ Authors
 
 <https://github.com/defunkt/hub/contributors>
 
-[0]: http://help.github.com/forking/
-[1]: http://github.com/defunkt/hub/issues
 [speed]: http://gist.github.com/284823
 [2]: http://github.com/guides/local-github-config
 [gc]: https://twitter.com/brynary/status/49560668994674688
