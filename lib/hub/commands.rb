@@ -742,7 +742,7 @@ help
 
     # http://nex-3.com/posts/73-git-style-automatic-paging-in-ruby
     def page_stdout
-      return unless $stdout.tty?
+      return if not $stdout.tty? or windows?
 
       read, write = IO.pipe
 

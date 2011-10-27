@@ -294,14 +294,23 @@ module Hub
     # 
     # Returns an array, e.g.: ['open']
     def browser_launcher
-      require 'rbconfig'
-      browser = ENV['BROWSER'] ||
-        (RbConfig::CONFIG['host_os'].include?('darwin') && 'open') ||
-        (RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/ && 'start') ||
+      browser = ENV['BROWSER'] || (
+        osx? ? 'open' : windows? ? 'start' :
         %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
+      )
 
       abort "Please set $BROWSER to a web launcher to use this command." unless browser
       Array(browser)
+    end
+
+    def osx?
+      require 'rbconfig'
+      RbConfig::CONFIG['host_os'].to_s.include?('darwin')
+    end
+
+    def windows?
+      require 'rbconfig'
+      RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/
     end
 
     # Cross-platform way of finding an executable in the $PATH.
