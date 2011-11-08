@@ -40,7 +40,7 @@ module Hub
     API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
     API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
-    API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
+    API_PULLREQUEST = 'https://github.com/api/v2/json/pulls/%s/%s'
 
     def run(args)
       slurp_global_flags(args)
@@ -818,8 +818,12 @@ help
       load_net_http
       response = http_post(API_PULLREQUEST % [base_repo.owner, base_repo.name], params)
       response.error! unless Net::HTTPSuccess === response
-      require 'yaml'
-      YAML.load(response.body)['pull']
+      begin
+        require 'json'
+        pull = JSON.parse(response.body)['pull']
+      rescue LoadError
+        pull = { "html_url" => response.body.match(/"html_url":"([^"]+)"/)[1] }
+      end
     end
 
     def pullrequest_editmsg(changes)
