@@ -818,8 +818,12 @@ help
       load_net_http
       response = http_post(API_PULLREQUEST % [base_repo.owner, base_repo.name], params)
       response.error! unless Net::HTTPSuccess === response
-      require 'JSON'
-      JSON.parse(response.body)['pull']
+      begin
+        require 'json'
+        pull = JSON.parse(response.body)['pull']
+      rescue LoadError
+        pull = { "html_url" => response.body.match(/"html_url":"([^"]+)"/)[1] }
+      end
     end
 
     def pullrequest_editmsg(changes)
