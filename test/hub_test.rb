@@ -44,7 +44,7 @@ class HubTest < Test::Unit::TestCase
       'config github.token'  => 'abc123',
       'config --get-all remote.origin.url' => 'git://github.com/defunkt/hub.git',
       'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
-      "name-rev master@{upstream} --name-only --refs='refs/remotes/*' --no-undefined" => 'remotes/origin/master',
+      'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
       'config --bool hub.http-clone' => 'false',
       'config hub.protocol' => nil,
       'rev-parse --git-dir' => '.git'
@@ -1047,8 +1047,8 @@ config
     end
 
     def stub_tracking(from, remote_name, remote_branch)
-      value = remote_branch ? "remotes/#{remote_name}/#{remote_branch}" : nil
-      @git["name-rev #{from}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"] = value
+      value = remote_branch ? "refs/remotes/#{remote_name}/#{remote_branch}" : nil
+      @git["rev-parse --symbolic-full-name #{from}@{upstream}"] = value
     end
 
     def stub_tracking_nothing(from = 'master')

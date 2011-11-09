@@ -150,7 +150,7 @@ module Hub
       end
 
       def self.upstream_for(branch, repo = nil)
-        if GIT_CONFIG["name-rev #{branch}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"] =~ %r{^remotes/(.+)}
+        if GIT_CONFIG["rev-parse --symbolic-full-name #{branch}@{upstream}"] =~ %r{^refs/remotes/(.+)}
           remote_name, branch = $1.split('/', 2)
           new(repo, branch, Remote.by_name(remote_name))
         end
