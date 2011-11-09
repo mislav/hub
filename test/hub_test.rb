@@ -1064,7 +1064,7 @@ config
     end
 
     def stub_no_git_repo
-      @git.replace({})
+      @git['rev-parse --git-dir'] = nil
     end
 
     def stub_alias(name, value)
