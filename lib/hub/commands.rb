@@ -52,8 +52,8 @@ module Hub
       expanded_args = expand_alias(cmd)
       cmd = expanded_args[0] if expanded_args
 
-      # git commands can have dashes
-      cmd = cmd.sub(/(\w)-/, '\1_')
+      # git commands can't have underscores, ruby methods can't have dashes
+      cmd = cmd.gsub('-', '_')
       if method_defined?(cmd) and cmd != 'run'
         args[0, 1] = expanded_args if expanded_args
         send(cmd, args)
