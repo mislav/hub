@@ -177,6 +177,10 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded "remote add origin /path"
   end
 
+  def test_remote_from_ssh_config
+    assert_forwarded "remote add origin server:/git/repo.git"
+  end
+
   def test_private_remote_origin_as_normal
     assert_forwarded "remote add origin git@github.com:defunkt/resque.git"
   end
