@@ -1,5 +1,6 @@
 ## master
 
+* don't try to use command output pager on Windows
 * opt in for HTTPS: `git config hub.protocol https`
 * add `hub pull-request`
 * improve detecting upstream configuration ("tracking" branches)
