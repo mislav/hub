@@ -20,7 +20,7 @@ hub(1) -- git + hub = github
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
 `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git fork` [`--no-remote`]  
-`git pull-request` [`-f`] [<TITLE>] [`-b` <BASE>] [`-h` <HEAD>]  
+`git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]:  
 
 ## DESCRIPTION
 
@@ -116,7 +116,8 @@ alias command displays information on configuring your environment:
     adds a new remote for it under your username. Requires `github.token` to
     be set (see CONFIGURATION).
 
-  * `git pull-request` [`-f`] [<TITLE>] [`-b` <BASE>] [`-h` <HEAD>]:  
+  * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]:  
+    `git pull-request` [`-f`] <ISSUE-URL> [`-h` <HEAD>]:  
     Opens a pull request on GitHub for the project that the "origin" remote
     points to. The default head of the pull request is the current branch.
     Both base and head of the pull request can be explicitly given in one of
@@ -128,9 +129,9 @@ alias command displays information on configuring your environment:
     If <TITLE> is omitted, a text editor will open in which title and body of
     the pull request can be entered in the same manner as git commit message.
 
-    If instead of normal <TITLE> a string in "#<NUMBER>" format is given,
-    the pull request will be attached to an existing GitHub issue whose ID
-    corresponds to <NUMBER>.
+    If instead of normal <TITLE> an issue number is given with `-i`, the pull
+    request will be attached to an existing GitHub issue. Alternatively, instead
+    of title you can paste a full URL to an issue on GitHub.
 
   * `git help`:
     Display enhanced git-help(1).

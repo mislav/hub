@@ -683,18 +683,16 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
-      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:master", 'title' => "hereyougo"} }).
-      to_return(:body => mock_pullreq_response(1))
-
-    expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -f"
+    expected = "Aborted: head branch is the same as base (\"master\")\n" <<
+      "(use `-h <branch>` to specify an explicit pull request head)\n"
+    assert_output expected, "pull-request hereyougo"
   end
 
-  def test_pullrequest_with_checks
-    stub_command_output "rev-list --cherry origin/master...", "+abcd1234\n+bcde2345"
+  def test_pullrequest_with_unpushed_commits
+    stub_tracking('master', 'mislav', 'master')
+    stub_command_output "rev-list --cherry mislav/master...", "+abcd1234\n+bcde2345"
 
-    expected = "Aborted: 2 commits are not yet pushed to origin/master\n" <<
+    expected = "Aborted: 2 commits are not yet pushed to mislav/master\n" <<
       "(use `-f` to force submit a pull request anyway)\n"
     assert_output expected, "pull-request hereyougo"
   end
@@ -702,6 +700,7 @@ class HubTest < Test::Unit::TestCase
   def test_pullrequest_from_branch
     stub_branch('refs/heads/feature')
     stub_tracking_nothing('feature')
+
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
@@ -712,12 +711,11 @@ class HubTest < Test::Unit::TestCase
 
   def test_pullrequest_from_tracking_branch
     stub_branch('refs/heads/feature')
-    stub_tracking('feature', 'tpw', 'yay-feature')
-    stub_command_output 'remote', "origin\ntpw"
-    stub_config_value 'remote.tpw.url', 'git://github.com/tpw/hub.git', '--get-all'
+    stub_tracking('feature', 'mislav', 'yay-feature')
+    stub_command_output "rev-list --cherry mislav/master...", nil
 
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
-      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:yay-feature", 'title' => "hereyougo"} }).
+      with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:yay-feature", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
@@ -744,7 +742,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_pullrequest_explicit_base
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
-      with(:body => { 'pull' => {'base' => "feature", 'head' => "tpw:master", 'title' => "hereyougo"} }).
+      with(:body => { 'pull' => {'base' => "feature", 'head' => "defunkt:master", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
@@ -753,7 +751,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_pullrequest_explicit_base_with_owner
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hub").
-      with(:body => { 'pull' => {'base' => "feature", 'head' => "tpw:master", 'title' => "hereyougo"} }).
+      with(:body => { 'pull' => {'base' => "feature", 'head' => "defunkt:master", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
@@ -762,7 +760,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_pullrequest_explicit_base_with_repo
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hubbub").
-      with(:body => { 'pull' => {'base' => "feature", 'head' => "tpw:master", 'title' => "hereyougo"} }).
+      with(:body => { 'pull' => {'base' => "feature", 'head' => "defunkt:master", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
@@ -770,21 +768,29 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_existing_issue
+    stub_branch('refs/heads/myfix')
+    stub_tracking('myfix', 'mislav', 'awesomefix')
+    stub_command_output "rev-list --cherry mislav/awesomefix...", nil
+
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
-      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:master", 'issue' => '92'} }).
+      with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:awesomefix", 'issue' => '92'} }).
       to_return(:body => mock_pullreq_response(92))
 
     expected = "https://github.com/defunkt/hub/pull/92\n"
-    assert_output expected, "pull-request #92 -f"
+    assert_output expected, "pull-request -i 92"
   end
 
   def test_pullrequest_existing_issue_url
+    stub_branch('refs/heads/myfix')
+    stub_tracking('myfix', 'mislav', 'awesomefix')
+    stub_command_output "rev-list --cherry mislav/awesomefix...", nil
+
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hub").
-      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:master", 'issue' => '92'} }).
+      with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:awesomefix", 'issue' => '92'} }).
       to_return(:body => mock_pullreq_response(92, 'mojombo/hub'))
 
     expected = "https://github.com/mojombo/hub/pull/92\n"
-    assert_output expected, "pull-request https://github.com/mojombo/hub/issues/92#comment_4 -f"
+    assert_output expected, "pull-request https://github.com/mojombo/hub/issues/92#comment_4"
   end
 
   def test_version
@@ -1055,8 +1061,8 @@ config
       stub_config_value 'github.token', token
     end
 
-    def stub_repo_url(value)
-      stub_config_value 'remote.origin.url', value, '--get-all'
+    def stub_repo_url(value, remote_name = 'origin')
+      stub_config_value "remote.#{remote_name}.url", value, '--get-all'
     end
 
     def stub_branch(value)

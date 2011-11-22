@@ -197,7 +197,7 @@ superpowers:
     # explicit title, pull base & head:
     $ git pull-request "I've implemented feature X" -b defunkt:master -h mislav:feature
 
-    $ git pull-request #123
+    $ git pull-request -i 123
     [ attached pull request to issue #123 ]
 
 ### git create

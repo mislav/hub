@@ -67,7 +67,7 @@ module Hub
 
     # $ hub pull-request
     # $ hub pull-request "My humble contribution"
-    # $ hub pull-request #92
+    # $ hub pull-request -i 92
     # $ hub pull-request https://github.com/rtomayko/tilt/issues/92
     def pull_request(args)
       args.shift
@@ -79,10 +79,9 @@ module Hub
       from_github_ref = lambda do |ref, context_project|
         if ref.index(':')
           owner, ref = ref.split(':', 2)
-          [github_project(context_project.name, owner), ref]
-        else
-          [context_project, ref]
+          project = github_project(context_project.name, owner)
         end
+        [project || context_project, ref]
       end
 
       while arg = args.shift
@@ -95,11 +94,11 @@ module Hub
           head = args.shift
           explicit_owner = !!head.index(':')
           head_project, options[:head] = from_github_ref.call(head, head_project)
+        when '-i'
+          options[:issue] = args.shift
         when %r{^https?://github.com/([^/]+/[^/]+)/issues/(\d+)}
           options[:issue] = $2
           base_project = github_project($1)
-        when %r{^#(\d+)$}
-          options[:issue] = $1
         else
           if !options[:title] then options[:title] = arg
           else
@@ -110,17 +109,24 @@ module Hub
 
       options[:project] = base_project
       options[:base] ||= master_branch.short_name
-      options[:head] ||= (current_branch.upstream || current_branch).short_name
 
-      remote_branch = "#{head_project.remote}/#{options[:head]}"
+      if tracked_branch = options[:head].nil? && current_branch.upstream
+        if base_project == head_project and tracked_branch.short_name == options[:base]
+          $stderr.puts "Aborted: head branch is the same as base (#{options[:base].inspect})"
+          warn "(use `-h <branch>` to specify an explicit pull request head)"
+          abort
+        end
+      end
+      options[:head] ||= (tracked_branch || current_branch).short_name
 
-      if head_project.owner != github_user and not explicit_owner
+      if head_project.owner != github_user and !tracked_branch and !explicit_owner
         head_project = github_project(head_project.name, github_user)
       end
 
+      remote_branch = "#{head_project.remote}/#{options[:head]}"
       options[:head] = "#{head_project.owner}:#{options[:head]}"
 
-      if not force and not explicit_owner and local_commits = git_command("rev-list --cherry #{remote_branch}...")
+      if !force and tracked_branch and local_commits = git_command("rev-list --cherry #{remote_branch}...")
         $stderr.puts "Aborted: #{local_commits.split("\n").size} commits are not yet pushed to #{remote_branch}"
         warn "(use `-f` to force submit a pull request anyway)"
         abort
@@ -132,7 +138,10 @@ module Hub
           [base_branch, remote_branch]
 
         options[:title], options[:body] = pullrequest_editmsg(changes) { |msg|
-          msg.puts "# You're requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.puts "#"
+          msg.puts "# Write a message for this pull request. The first block"
+          msg.puts "# of text is the title and the rest is description."
         }
       end
 
@@ -841,7 +850,7 @@ help
         yield msg
         if changes
           msg.puts "#\n# Changes:\n#"
-          msg.puts changes.gsub(/^/, '# ')
+          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
         end
       }
       edit_cmd = Array(git_editor).dup << message_file
