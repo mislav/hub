@@ -5,7 +5,7 @@ module Hub
     RUBY_BIN = if File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
                else
                  require 'rbconfig'
-                 File.join RbConfig::CONFIG['bindir'], 'ruby'
+                 File.join RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']
                end
 
     PREAMBLE = <<-preamble
