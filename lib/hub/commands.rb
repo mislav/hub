@@ -839,8 +839,13 @@ help
       load_net_http
       response = http_post(API_PULLREQUEST % [project.owner, project.name], params)
       response.error! unless Net::HTTPSuccess === response
-      require 'yaml'
-      YAML.load(response.body)['pull']
+      # GitHub bug: although we request YAML, it returns JSON
+      if response['Content-type'].to_s.include? 'application/json'
+        { "html_url" => response.body.match(/"html_url":\s*"(.+?)"/)[1] }
+      else
+        require 'yaml'
+        YAML.load(response.body)['pull']
+      end
     end
 
     def pullrequest_editmsg(changes)
