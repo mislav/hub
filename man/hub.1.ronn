@@ -12,6 +12,7 @@ hub(1) -- git + hub = github
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
 `git fetch` <USER-1>,[<USER-2>,...]  
+`git checkout` <PULLREQ-URL> [<BRANCH>]  
 `git cherry-pick` <GITHUB-REF>  
 `git am` <GITHUB-URL>  
 `git apply` <GITHUB-URL>  
@@ -72,6 +73,12 @@ alias command displays information on configuring your environment:
   * `git fetch` <USER-1>,[<USER-2>,...]:
     Adds missing remote(s) with `git remote add` prior to fetching. New
     remotes are only added if they correspond to valid forks on GitHub.
+
+  * `git checkout` <PULLREQ-URL> [<BRANCH>]:
+    Checks out the head of the pull request as a local branch, to allow for
+    reviewing, rebasing and otherwise cleaning up the commits in the pull
+    request before merging. The name of the local branch can explicitly be
+    set with <BRANCH>.
 
   * `git cherry-pick` <GITHUB-REF>:
     Cherry-pick a commit from a fork using either full URL to the commit

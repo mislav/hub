@@ -200,6 +200,14 @@ superpowers:
     $ git pull-request -i 123
     [ attached pull request to issue #123 ]
 
+### git checkout
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73
+    # > git remote add -f -t feature git://github:com/mislav/hub.git
+    # > git checkout -b mislav-feature mislav/feature
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
+
 ### git create
 
     $ git create

@@ -3,6 +3,7 @@ require 'webmock/test_unit'
 require 'rbconfig'
 require 'yaml'
 require 'forwardable'
+require 'json'
 
 WebMock::BodyPattern.class_eval do
   undef normalize_hash
@@ -793,6 +794,40 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "pull-request https://github.com/mojombo/hub/issues/92#comment_4"
   end
 
+  def test_checkout_no_changes
+    assert_forwarded "checkout master"
+  end
+
+  def test_checkout_pullrequest
+    stub_request(:get, "http://github.com/api/v2/json/pulls/defunkt/hub/73").
+      to_return(:body => mock_pull_response('blueyed:feature'))
+
+    assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
+      'git checkout -b blueyed-feature blueyed/feature',
+      "checkout https://github.com/defunkt/hub/pull/73/files"
+  end
+
+  def test_checkout_pullrequest_custom_branch
+    stub_request(:get, "http://github.com/api/v2/json/pulls/defunkt/hub/73").
+      to_return(:body => mock_pull_response('blueyed:feature'))
+
+    assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
+      'git checkout -b review blueyed/feature',
+      "checkout https://github.com/defunkt/hub/pull/73/files review"
+  end
+
+  def test_checkout_pullrequest_existing_remote
+    stub_command_output 'remote', "origin\nblueyed"
+
+    stub_request(:get, "http://github.com/api/v2/json/pulls/defunkt/hub/73").
+      to_return(:body => mock_pull_response('blueyed:feature'))
+
+    assert_commands 'git remote set-branches --add blueyed feature',
+      'git fetch blueyed +refs/heads/feature:refs/remotes/blueyed/feature',
+      'git checkout -b blueyed-feature blueyed/feature',
+      "checkout https://github.com/defunkt/hub/pull/73/files"
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out
@@ -1151,6 +1186,10 @@ config
       YAML.dump('pull' => {
         'html_url' => "https://github.com/#{name_with_owner}/pull/#{id}"
       })
+    end
+
+    def mock_pull_response(label)
+      JSON.generate('pull' => { 'head' => {'label' => label} })
     end
 
     def improved_help_text

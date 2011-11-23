@@ -37,6 +37,7 @@ module Hub
     API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
     API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
+    API_PULL        = 'http://github.com/api/v2/json/pulls/%s'
     API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
 
     NAME_WITH_OWNER_RE = /^([\w-]+)(?:\/([\w-]+))?$/
@@ -282,6 +283,29 @@ module Hub
         names.each do |name|
           args.before ['remote', 'add', name, git_url(name)]
         end
+      end
+    end
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73
+    # > git remote add -f -t feature git://github:com/mislav/hub.git
+    # > git checkout -b mislav-feature mislav/feature
+    def checkout(args)
+      if (2..3) === args.length and args[1] =~ %r{https?://github.com/(.+?)/(.+?)/pull/(\d+)}
+        owner, repo, pull_id = $1, $2, $3
+
+        load_net_http
+        pull_body = Net::HTTP.get URI(API_PULL % File.join(owner, repo, pull_id))
+
+        user, branch = pull_body.match(/"label":\s*"(.+?)"/)[1].split(':', 2)
+        new_branch_name = args[2] || "#{user}-#{branch}"
+
+        if remotes.include? user
+          args.before ['remote', 'set-branches', '--add', user, branch]
+          args.before ['fetch', user, "+refs/heads/#{branch}:refs/remotes/#{user}/#{branch}"]
+        else
+          args.before ['remote', 'add', '-f', '-t', branch, user, github_project(repo, user).git_url]
+        end
+        args[1..-1] = ['-b', new_branch_name, "#{user}/#{branch}"]
       end
     end
 
