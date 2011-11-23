@@ -34,13 +34,13 @@ preamble
       standalone = ''
       standalone << PREAMBLE
 
-      Dir["#{root}/*.rb"].each do |file|
-        # skip standalone.rb
-        next if file == __FILE__
+      files = Dir["#{root}/*.rb"].sort - [__FILE__]
+      # ensure context.rb appears before others
+      ctx = files.find {|f| f['context.rb'] } and files.unshift(files.delete(ctx))
 
+      files.each do |file|
         File.readlines(file).each do |line|
-          next if line =~ /^\s*#/
-          standalone << line
+          standalone << line if line !~ /^\s*#/
         end
       end
 

@@ -1,7 +1,4 @@
 module Hub
-  # See context.rb
-  module Context; end
-
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
   # corresponding git command which either gets run before or after
