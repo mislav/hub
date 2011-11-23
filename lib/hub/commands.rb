@@ -178,7 +178,11 @@ module Hub
         else
           # $ hub clone rtomayko/tilt
           # $ hub clone tilt
-          args[idx] = git_url(nil, arg, :private => ssh) if arg =~ NAME_WITH_OWNER_RE
+          if arg =~ NAME_WITH_OWNER_RE
+            project = github_project(arg)
+            ssh ||= args[0] != 'submodule' && project.owner == github_user(false)
+            args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
+          end
           break
         end
         idx += 1

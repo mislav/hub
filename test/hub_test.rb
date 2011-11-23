@@ -85,15 +85,15 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
-  def test_your_public_clone
+  def test_your_clone_is_always_private
     input   = "clone resque"
-    command = "git clone git://github.com/tpw/resque.git"
+    command = "git clone git@github.com:tpw/resque.git"
     assert_command input, command
   end
 
   def test_clone_with_arguments
     input   = "clone --bare -o master resque"
-    command = "git clone --bare -o master git://github.com/tpw/resque.git"
+    command = "git clone --bare -o master git@github.com:tpw/resque.git"
     assert_command input, command
   end
 
