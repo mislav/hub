@@ -1,5 +1,6 @@
 ## master
 
+* lock down standalone script to system ruby
 * don't try to use command output pager on Windows
 * opt in for HTTPS: `git config hub.protocol https`
 * add `hub pull-request`

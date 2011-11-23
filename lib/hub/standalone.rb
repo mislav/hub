@@ -2,8 +2,14 @@ module Hub
   module Standalone
     extend self
 
+    RUBY_BIN = if File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
+               else
+                 require 'rbconfig'
+                 File.join RbConfig::CONFIG['bindir'], 'ruby'
+               end
+
     PREAMBLE = <<-preamble
-#!/usr/bin/env ruby
+#!#{RUBY_BIN}
 #
 # This file, hub, is generated code.
 # Please DO NOT EDIT or send patches for it.
