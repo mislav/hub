@@ -647,9 +647,11 @@ module Hub
     # for the convenience of the author.
     def improved_help_text
       <<-help
-usage: git [--version] [--exec-path[=GIT_EXEC_PATH]] [--html-path]
-    [-p|--paginate|--no-pager] [--bare] [--git-dir=GIT_DIR]
-    [--work-tree=GIT_WORK_TREE] [--help] COMMAND [ARGS]
+usage: git [--version] [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p|--paginate|--no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           [-c name=value] [--help]
+           <command> [<args>]
 
 Basic Commands:
    init       Create an empty git repository or reinitialize an existing one
@@ -683,7 +685,7 @@ Advanced commands:
    bisect     Find by binary search the change that introduced a bug
    grep       Print files with lines matching a pattern in your codebase
 
-See 'git help COMMAND' for more information on a specific command.
+See 'git help <command>' for more information on a specific command.
 help
     end
 
