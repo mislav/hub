@@ -800,7 +800,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_exec_path_arg
     out = hub('--exec-path=/home/wombat/share/my-l33t-git-core')
-    assert_equal Hub::Commands.improved_help_text, out
+    assert_equal improved_help_text, out
   end
 
   def test_html_path
@@ -809,15 +809,15 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_help
-    assert_equal Hub::Commands.improved_help_text, hub("help")
+    assert_equal improved_help_text, hub("help")
   end
 
   def test_help_by_default
-    assert_equal Hub::Commands.improved_help_text, hub("")
+    assert_equal improved_help_text, hub("")
   end
 
   def test_help_with_pager
-    assert_equal Hub::Commands.improved_help_text, hub("-p")
+    assert_equal improved_help_text, hub("-p")
   end
 
   def test_help_hub
@@ -1145,6 +1145,10 @@ config
       YAML.dump('pull' => {
         'html_url' => "https://github.com/#{name_with_owner}/pull/#{id}"
       })
+    end
+
+    def improved_help_text
+      Hub::Commands.send :improved_help_text
     end
 
 end

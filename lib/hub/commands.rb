@@ -600,6 +600,12 @@ module Hub
     end
     alias_method "--help", :help
 
+  private
+    #
+    # Helper methods are private so they cannot be invoked
+    # from the command line.
+    #
+
     # The text print when `hub help` is run, kept in its own method
     # for the convenience of the author.
     def improved_help_text
@@ -643,12 +649,6 @@ Advanced commands:
 See 'git help COMMAND' for more information on a specific command.
 help
     end
-
-  private
-    #
-    # Helper methods are private so they cannot be invoked
-    # from the command line.
-    #
 
     # Extract global flags from the front of the arguments list.
     # Makes sure important ones are supplied for calls to subcommands.
