@@ -31,6 +31,9 @@
 \fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,\.\.\.]
 .
 .br
+\fBgit checkout\fR \fIPULLREQ\-URL\fR [\fIBRANCH\fR]
+.
+.br
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
 .
 .br
@@ -82,7 +85,7 @@ Create a new public GitHub repository from the current git repository and add re
 \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR:
 .
 .br
-Clone repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-clone(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\.
+Clone repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-clone(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, clone private repositories over SSH\. For repositories under your GitHub login, \fB\-p\fR is implicit\.
 .
 .IP "\(bu" 4
 \fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]:
@@ -98,6 +101,9 @@ Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote 
 .
 .IP "\(bu" 4
 \fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,\.\.\.]: Adds missing remote(s) with \fBgit remote add\fR prior to fetching\. New remotes are only added if they correspond to valid forks on GitHub\.
+.
+.IP "\(bu" 4
+\fBgit checkout\fR \fIPULLREQ\-URL\fR [\fIBRANCH\fR]: Checks out the head of the pull request as a local branch, to allow for reviewing, rebasing and otherwise cleaning up the commits in the pull request before merging\. The name of the local branch can explicitly be set with \fIBRANCH\fR\.
 .
 .IP "\(bu" 4
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR: Cherry\-pick a commit from a fork using either full URL to the commit or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR\. If the remote doesn\'t yet exist, it will be added\. A \fBgit fetch <user>\fR is issued prior to the cherry\-pick attempt\.
@@ -202,10 +208,7 @@ $ git clone \-p schacon/ticgit
 > git clone git@github\.com:schacon/ticgit\.git
 
 $ git clone resque
-> git clone git://github\.com/YOUR_USER/resque\.git
-
-$ git clone \-p resque
-> git clone git@github\.com:YOUR_USER/resque\.git
+> git clone git@github\.com/YOUR_USER/resque\.git
 .
 .fi
 .
@@ -299,6 +302,18 @@ $ git pull\-request "I\'ve implemented feature X" \-b defunkt:master \-h mislav:
 
 $ git pull\-request \-i 123
 [ attached pull request to issue #123 ]
+.
+.fi
+.
+.SS "git checkout"
+.
+.nf
+
+# $ git checkout https://github\.com/defunkt/hub/pull/73
+# > git remote add \-f \-t feature git://github:com/mislav/hub\.git
+# > git checkout \-b mislav\-feature mislav/feature
+
+# $ git checkout https://github\.com/defunkt/hub/pull/73 custom\-branch\-name
 .
 .fi
 .

@@ -85,6 +85,7 @@
 <code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
+<code>git checkout</code> <var>PULLREQ-URL</var> [<var>BRANCH</var>]<br />
 <code>git cherry-pick</code> <var>GITHUB-REF</var><br />
 <code>git am</code> <var>GITHUB-URL</var><br />
 <code>git apply</code> <var>GITHUB-URL</var><br />
@@ -125,8 +126,8 @@ set the repository's description and homepage URL, respectively.</p></li>
 <li><p><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var>:<br />
 Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
-your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></li>
+your GitHub login. With <code>-p</code>, clone private repositories over SSH.
+For repositories under your GitHub login, <code>-p</code> is implicit.</p></li>
 <li><p><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]:<br />
 Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
 <span class="man-ref">git-remote<span class="s">(1)</span></span>. When /<var>REPOSITORY</var> is omitted, the basename of the
@@ -139,6 +140,11 @@ Sets the url of remote <var>REMOTE-NAME</var> using the same rules as
 <li><p><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]:
 Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
 remotes are only added if they correspond to valid forks on GitHub.</p></li>
+<li><p><code>git checkout</code> <var>PULLREQ-URL</var> [<var>BRANCH</var>]:
+Checks out the head of the pull request as a local branch, to allow for
+reviewing, rebasing and otherwise cleaning up the commits in the pull
+request before merging. The name of the local branch can explicitly be
+set with <var>BRANCH</var>.</p></li>
 <li><p><code>git cherry-pick</code> <var>GITHUB-REF</var>:
 Cherry-pick a commit from a fork using either full URL to the commit
 or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
@@ -234,10 +240,7 @@ $ git clone -p schacon/ticgit
 &gt; git clone git@github.com:schacon/ticgit.git
 
 $ git clone resque
-&gt; git clone git://github.com/YOUR_USER/resque.git
-
-$ git clone -p resque
-&gt; git clone git@github.com:YOUR_USER/resque.git
+&gt; git clone git@github.com/YOUR_USER/resque.git
 </code></pre>
 
 <h3 id="git-remote-add">git remote add</h3>
@@ -313,6 +316,15 @@ $ git pull-request "I've implemented feature X" -b defunkt:master -h mislav:feat
 
 $ git pull-request -i 123
 [ attached pull request to issue #123 ]
+</code></pre>
+
+<h3 id="git-checkout">git checkout</h3>
+
+<pre><code># $ git checkout https://github.com/defunkt/hub/pull/73
+# &gt; git remote add -f -t feature git://github:com/mislav/hub.git
+# &gt; git checkout -b mislav-feature mislav/feature
+
+# $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
 </code></pre>
 
 <h3 id="git-create">git create</h3>

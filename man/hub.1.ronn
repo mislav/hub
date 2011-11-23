@@ -56,8 +56,8 @@ alias command displays information on configuring your environment:
   * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:  
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
-    your GitHub login. With `-p`, use private remote
-    "git@github.com:<USER>/<REPOSITORY>.git".
+    your GitHub login. With `-p`, clone private repositories over SSH.
+    For repositories under your GitHub login, `-p` is implicit.
 
   * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:  
     Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
