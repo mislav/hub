@@ -39,6 +39,8 @@ module Hub
     API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
     API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
 
+    NAME_WITH_OWNER_RE = /^([\w-]+)(?:\/([\w-]+))?$/
+
     def run(args)
       slurp_global_flags(args)
 
@@ -163,13 +165,10 @@ module Hub
         arg = args[idx]
         if arg.index('-') == 0
           idx += 1 if arg =~ has_values
-        elsif arg.index('://') or arg.index('@') or File.directory?(arg)
-          # Bail out early for URLs and local paths.
-          break
-        elsif arg.scan('/').size <= 1 && !arg.include?(':')
+        else
           # $ hub clone rtomayko/tilt
           # $ hub clone tilt
-          args[idx] = git_url(nil, arg, :private => ssh)
+          args[idx] = git_url(nil, arg, :private => ssh) if arg =~ NAME_WITH_OWNER_RE
           break
         end
         idx += 1
@@ -211,13 +210,13 @@ module Hub
     # $ hub remote add origin
     # > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
     def remote(args)
-      return unless ['add','set-url'].include?(args[1]) && args.last !~ %r{.+?://|.+?@|^[./]}
+      if %w[add set-url].include?(args[1]) && args.last =~ NAME_WITH_OWNER_RE
+        user, repo = $1, $2 || repo_name
+      else
+        return # do not touch arguments
+      end
 
       ssh = args.delete('-p')
-
-      # user/repo
-      args.last =~ /\b(.+?)(?:\/(.+))?$/
-      user, repo = $1, $2 || repo_name
 
       if args.words[2] == 'origin' && args.words[3].nil?
         # Origin special case triggers default user/repo

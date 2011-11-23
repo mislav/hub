@@ -132,6 +132,10 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded "clone ./test"
   end
 
+  def test_clone_with_host_alias
+    assert_forwarded "clone server:git/repo.git"
+  end
+
   def test_alias_expand
     stub_alias 'c', 'clone --bare'
     input   = "c rtomayko/ronn"
@@ -177,7 +181,7 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded "remote add origin /path"
   end
 
-  def test_remote_from_ssh_config
+  def test_remote_with_host_alias
     assert_forwarded "remote add origin server:/git/repo.git"
   end
 
