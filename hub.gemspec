@@ -1,14 +1,13 @@
-$LOAD_PATH.unshift File.expand_path('../lib', __FILE__)
-require 'hub/version'
+# encoding: utf-8
+Kernel.load File.expand_path('../lib/hub/version.rb', __FILE__)
 
 Gem::Specification.new do |s|
   s.name              = "hub"
   s.version           = Hub::VERSION
-  s.date              = Time.now.strftime('%Y-%m-%d')
-  s.summary           = "hub introduces git to GitHub"
+  s.summary           = "Command-line wrapper for git and GitHub"
   s.homepage          = "https://github.com/defunkt/hub"
   s.email             = "chris@ozmm.org"
-  s.authors           = [ "Chris Wanstrath" ]
+  s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
 
   s.files             = %w( README.md Rakefile LICENSE )
   s.files            += Dir.glob("lib/**/*")
