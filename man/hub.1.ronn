@@ -6,8 +6,9 @@ hub(1) -- git + hub = github
 `hub` [`--noop`] <COMMAND> <OPTIONS>  
 `hub alias` [`-s`] <SHELL>
 
+### Expanded git commands:
+
 `git init -g` <OPTIONS>  
-`git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]  
 `git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
 `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
@@ -17,16 +18,19 @@ hub(1) -- git + hub = github
 `git am` <GITHUB-URL>  
 `git apply` <GITHUB-URL>  
 `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> [<REF>]  
+`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
+
+### Custom git commands:
+
+`git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]  
 `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
-`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
 `git fork` [`--no-remote`]  
 `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]:  
 
 ## DESCRIPTION
 
-`hub` enhances various `git` commands with GitHub remote expansion. The
-alias command displays information on configuring your environment:
+hub enhances various git commands to ease most common workflows with GitHub.
 
   * `hub --noop` <COMMAND>:
     Shows which command(s) would be run as a result of the current command.
@@ -43,30 +47,20 @@ alias command displays information on configuring your environment:
     "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
     <REPOSITORY> is the current working directory's basename.
 
-  * `git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]:  
-    Create a new public GitHub repository from the current git
-    repository and add remote `origin` at
-    "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub
-    username and <REPOSITORY> is the current working directory name.
-    To explicitly name the new repository, pass in <NAME>, optionally in
-    <ORGANIZATION>/<NAME> form to create under an organization you're a
-    member of. With `-p`, create a private repository, and with `-d` and `-h`
-    set the repository's description and homepage URL, respectively.
-
-  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:  
+  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
     your GitHub login. With `-p`, clone private repositories over SSH.
     For repositories under your GitHub login, `-p` is implicit.
 
-  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:  
+  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:
     Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
     git-remote(1). When /<REPOSITORY> is omitted, the basename of the
     current working directory is used. With `-p`, use private remote
     "git@github.com:<USER>/<REPOSITORY>.git". If <USER> is "origin"
     then uses your GitHub login.
 
-  * `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
+  * `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]:
     Sets the url of remote <REMOTE-NAME> using the same rules as 
     `git remote add`.
 
@@ -97,6 +91,27 @@ alias command displays information on configuring your environment:
     Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
     multiple `git push` commands.
 
+  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:
+    Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
+    <DIRECTORY> as with git-submodule(1). When <USER>/ is omitted, assumes
+    your GitHub login. With `-p`, use private remote
+    "git@github.com:<USER>/<REPOSITORY>.git".
+
+  * `git help`:
+    Display enhanced git-help(1).
+
+hub also adds some custom commands that are otherwise not present in git:
+
+  * `git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]:
+    Create a new public GitHub repository from the current git
+    repository and add remote `origin` at
+    "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub
+    username and <REPOSITORY> is the current working directory name.
+    To explicitly name the new repository, pass in <NAME>, optionally in
+    <ORGANIZATION>/<NAME> form to create under an organization you're a
+    member of. With `-p`, create a private repository, and with `-d` and `-h`
+    set the repository's description and homepage URL, respectively.
+
   * `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]:
     Open repository's GitHub page in the system's default web browser using
     `open(1)` or the `BROWSER` env variable. If the repository isn't
@@ -112,19 +127,13 @@ alias command displays information on configuring your environment:
     it will be transformed into one with three dots. If <START> is omitted,
     GitHub will compare against the base branch (the default is "master").
 
-  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:  
-    Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
-    <DIRECTORY> as with git-submodule(1). When <USER>/ is omitted, assumes
-    your GitHub login. With `-p`, use private remote
-    "git@github.com:<USER>/<REPOSITORY>.git".
-
   * `git fork` [`--no-remote`]:
     Forks the original project (referenced by "origin" remote) on GitHub and
     adds a new remote for it under your username. Requires `github.token` to
     be set (see CONFIGURATION).
 
-  * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]:  
-    `git pull-request` [`-f`] <ISSUE-URL> [`-h` <HEAD>]:  
+  * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]:
+    `git pull-request` [`-f`] <ISSUE-URL> [`-h` <HEAD>]
     Opens a pull request on GitHub for the project that the "origin" remote
     points to. The default head of the pull request is the current branch.
     Both base and head of the pull request can be explicitly given in one of
@@ -139,9 +148,6 @@ alias command displays information on configuring your environment:
     If instead of normal <TITLE> an issue number is given with `-i`, the pull
     request will be attached to an existing GitHub issue. Alternatively, instead
     of title you can paste a full URL to an issue on GitHub.
-
-  * `git help`:
-    Display enhanced git-help(1).
 
 ## CONFIGURATION
 
