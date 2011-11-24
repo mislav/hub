@@ -133,6 +133,11 @@ module Hub
         abort
       end
 
+      if args.noop?
+        puts "Would reqest a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+        exit
+      end
+
       unless options[:title] or options[:issue]
         base_branch = "#{base_project.remote}/#{options[:base]}"
         changes = git_command "log --no-color --pretty=medium --cherry %s...%s" %
@@ -391,7 +396,7 @@ module Hub
         if repo_exists?(github_user)
           warn "#{github_user}/#{repo_name} already exists on GitHub"
         else
-          fork_repo
+          fork_repo unless args.noop?
         end
 
         if args.include?('--no-remote')
@@ -442,7 +447,7 @@ module Hub
           action = "set remote origin"
         else
           action = "created repository"
-          create_repo(repo_with_owner, options)
+          create_repo(repo_with_owner, options) unless args.noop?
         end
 
         url = git_url(owner, new_repo_name, :private => true)

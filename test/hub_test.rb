@@ -66,6 +66,12 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_private_clone_noop
+    input   = "--noop clone -p rtomayko/ronn"
+    command = "git clone git@github.com:rtomayko/ronn.git\n"
+    assert_output command, hub(input)
+  end
+
   def test_https_clone
     stub_https_is_preferred
     input   = "clone rtomayko/ronn"
