@@ -4,11 +4,356 @@
 # Please DO NOT EDIT or send patches for it.
 #
 # Please take a look at the source from
-# http://github.com/defunkt/hub
+# https://github.com/defunkt/hub
 # and submit patches against the individual files
 # that build hub.
 #
 
+require 'shellwords'
+require 'forwardable'
+
+module Hub
+  module Context
+    extend Forwardable
+
+    NULL = defined?(File::NULL) ? File::NULL : File.exist?('/dev/null') ? '/dev/null' : 'NUL'
+
+    class GitReader
+      attr_reader :executable
+
+      def initialize(executable = nil, &read_proc)
+        @executable = executable || 'git'
+        read_proc ||= lambda { |cache, cmd|
+          result = %x{#{command_to_string(cmd)} 2>#{NULL}}.chomp
+          cache[cmd] = $?.success? && !result.empty? ? result : nil
+        }
+        @cache = Hash.new(&read_proc)
+      end
+
+      def add_exec_flags(flags)
+        @executable = Array(executable).concat(flags)
+      end
+
+      def read_config(cmd, all = false)
+        config_cmd = ['config', (all ? '--get-all' : '--get'), *cmd]
+        config_cmd = config_cmd.join(' ') unless cmd.respond_to? :join
+        read config_cmd
+      end
+
+      def read(cmd)
+        @cache[cmd]
+      end
+
+      def stub_config_value(key, value, get = '--get')
+        stub_command_output "config #{get} #{key}", value
+      end
+
+      def stub_command_output(cmd, value)
+        @cache[cmd] = value.nil? ? nil : value.to_s
+      end
+
+      def stub!(values)
+        @cache.update values
+      end
+
+      private
+
+      def to_exec(args)
+        args = Shellwords.shellwords(args) if args.respond_to? :to_str
+        Array(executable) + Array(args)
+      end
+
+      def command_to_string(cmd)
+        full_cmd = to_exec(cmd)
+        full_cmd.respond_to?(:shelljoin) ? full_cmd.shelljoin : full_cmd.join(' ')
+      end
+    end
+
+    module GitReaderMethods
+      extend Forwardable
+
+      def_delegator :git_reader, :read_config, :git_config
+      def_delegator :git_reader, :read, :git_command
+
+      def self.extended(base)
+        base.extend Forwardable
+        base.def_delegators :'self.class', :git_config, :git_command
+      end
+    end
+
+    private
+
+    def git_reader
+      @git_reader ||= GitReader.new ENV['GIT']
+    end
+
+    include GitReaderMethods
+    private :git_config, :git_command
+
+    def local_repo
+      @local_repo ||= begin
+        LocalRepo.new git_reader, current_dir if is_repo?
+      end
+    end
+
+    repo_methods = [
+      :current_branch, :master_branch,
+      :current_project, :upstream_project,
+      :repo_owner,
+      :remotes, :remotes_group, :origin_remote
+    ]
+    def_delegator :local_repo, :name, :repo_name
+    def_delegators :local_repo, *repo_methods
+    private :repo_name, *repo_methods
+
+    class LocalRepo < Struct.new(:git_reader, :dir)
+      include GitReaderMethods
+
+      def name
+        if project = main_project
+          project.name
+        else
+          File.basename(dir)
+        end
+      end
+
+      def repo_owner
+        if project = main_project
+          project.owner
+        end
+      end
+
+      def main_project
+        remote = origin_remote and remote.project
+      end
+
+      def upstream_project
+        if upstream = current_branch.upstream
+          remote = remote_by_name upstream.remote_name
+          remote.project
+        end
+      end
+
+      def current_project
+        upstream_project || main_project
+      end
+
+      def current_branch
+        if branch = git_command('symbolic-ref -q HEAD')
+          Branch.new self, branch
+        end
+      end
+
+      def master_branch
+        Branch.new self, 'refs/heads/master'
+      end
+
+      def remotes
+        @remotes ||= begin
+          list = git_command('remote').to_s.split("\n")
+          main = list.delete('origin') and list.unshift(main)
+          list.map { |name| Remote.new self, name }
+        end
+      end
+
+      def remotes_group(name)
+        git_config "remotes.#{name}"
+      end
+
+      def origin_remote
+        remotes.first
+      end
+
+      def remote_by_name(remote_name)
+        remotes.find {|r| r.name == remote_name }
+      end
+    end
+
+    class GithubProject < Struct.new(:local_repo, :owner, :name)
+      def name_with_owner
+        "#{owner}/#{name}"
+      end
+
+      def ==(other)
+        name_with_owner == other.name_with_owner
+      end
+
+      def remote
+        local_repo.remotes.find { |r| r.project == self }
+      end
+
+      def web_url(path = nil)
+        project_name = name_with_owner
+        if project_name.sub!(/\.wiki$/, '')
+          unless '/wiki' == path
+            path = if path =~ %r{^/commits/} then '/_history'
+                   else path.to_s.sub(/\w+/, '_\0')
+                   end
+            path = '/wiki' + path
+          end
+        end
+        'https://github.com/' + project_name + path.to_s
+      end
+
+      def git_url(options = {})
+        if options[:https] then 'https://github.com/'
+        elsif options[:private] then 'git@github.com:'
+        else 'git://github.com/'
+        end + name_with_owner + '.git'
+      end
+    end
+
+    class Branch < Struct.new(:local_repo, :name)
+      alias to_s name
+
+      def short_name
+        name.split('/').last
+      end
+
+      def master?
+        short_name == 'master'
+      end
+
+      def upstream
+        if branch = local_repo.git_command("rev-parse --symbolic-full-name #{short_name}@{upstream}")
+          Branch.new local_repo, branch
+        end
+      end
+
+      def remote?
+        name.index('refs/remotes/') == 0
+      end
+
+      def remote_name
+        name =~ %r{^refs/remotes/([^/]+)} and $1 or
+          raise "can't get remote name from #{name.inspect}"
+      end
+    end
+
+    class Remote < Struct.new(:local_repo, :name)
+      alias to_s name
+
+      def ==(other)
+        other.respond_to?(:to_str) ? name == other.to_str : super
+      end
+
+      def project
+        if urls.find { |u| u =~ %r{\bgithub\.com[:/](.+)/(.+).git$} }
+          GithubProject.new local_repo, $1, $2
+        end
+      end
+
+      def urls
+        @urls ||= local_repo.git_config("remote.#{name}.url", :all).to_s.split("\n")
+      end
+    end
+
+
+    def github_project(name, owner = nil)
+      if owner and owner.index('/')
+        owner, name = owner.split('/', 2)
+      elsif name and name.index('/')
+        owner, name = name.split('/', 2)
+      else
+        name ||= repo_name
+        owner ||= github_user
+      end
+
+      GithubProject.new local_repo, owner, name
+    end
+
+    def git_url(owner = nil, name = nil, options = {})
+      project = github_project(name, owner)
+      project.git_url({:https => https_protocol?}.update(options))
+    end
+
+    LGHCONF = "http://help.github.com/set-your-user-name-email-and-github-token/"
+
+    def github_user(fatal = true)
+      if user = ENV['GITHUB_USER'] || git_config('github.user')
+        user
+      elsif fatal
+        abort("** No GitHub user set. See #{LGHCONF}")
+      end
+    end
+
+    def github_token(fatal = true)
+      if token = ENV['GITHUB_TOKEN'] || git_config('github.token')
+        token
+      elsif fatal
+        abort("** No GitHub token set. See #{LGHCONF}")
+      end
+    end
+
+    def http_clone?
+      git_config('--bool hub.http-clone') == 'true'
+    end
+
+    def https_protocol?
+      git_config('hub.protocol') == 'https' or http_clone?
+    end
+
+    def git_alias_for(name)
+      git_config "alias.#{name}"
+    end
+
+    PWD = Dir.pwd
+
+    def current_dir
+      PWD
+    end
+
+    def git_dir
+      git_command 'rev-parse -q --git-dir'
+    end
+
+    def is_repo?
+      !!git_dir
+    end
+
+    def git_editor
+      editor = git_command 'var GIT_EDITOR'
+      editor = ENV[$1] if editor =~ /^\$(\w+)$/
+      editor = File.expand_path editor if (editor =~ /^[~.]/ or editor.index('/')) and editor !~ /["']/
+      editor.shellsplit
+    end
+
+    def browser_launcher
+      browser = ENV['BROWSER'] || (
+        osx? ? 'open' : windows? ? 'start' :
+        %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
+      )
+
+      abort "Please set $BROWSER to a web launcher to use this command." unless browser
+      Array(browser)
+    end
+
+    def osx?
+      require 'rbconfig'
+      RbConfig::CONFIG['host_os'].to_s.include?('darwin')
+    end
+
+    def windows?
+      require 'rbconfig'
+      RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/
+    end
+
+    def which(cmd)
+      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+      ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+        exts.each { |ext|
+          exe = "#{path}/#{cmd}#{ext}"
+          return exe if File.executable? exe
+        }
+      end
+      return nil
+    end
+
+    def command?(name)
+      !which(name).nil?
+    end
+  end
+end
 module Hub
   class Args < Array
     attr_accessor :executable
@@ -17,7 +362,7 @@ module Hub
       super
       @executable = ENV["GIT"] || "git"
       @after = nil
-      @skip = false
+      @skip = @noop = false
       @original_args = args.first
       @chain = [nil]
     end
@@ -41,15 +386,27 @@ module Hub
     end
 
     def skip!
-      @skip ||= true
+      @skip = true
     end
-    
+
     def skip?
       @skip
     end
 
+    def noop!
+      @noop = true
+    end
+
+    def noop?
+      @noop
+    end
+
     def to_exec(args = self)
       Array(executable) + args
+    end
+
+    def add_exec_flags(flags)
+      self.executable = Array(executable).concat(flags)
     end
 
     def words
@@ -87,17 +444,19 @@ module Hub
   end
 end
 module Hub
-  module Context; end
-
   module Commands
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
     extend self
 
     extend Context
 
-    API_REPO   = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
-    API_FORK   = 'http://github.com/api/v2/yaml/repos/fork/%s/%s'
-    API_CREATE = 'http://github.com/api/v2/yaml/repos/create'
+    API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
+    API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
+    API_PULL        = 'http://github.com/api/v2/json/pulls/%s'
+    API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
+
+    NAME_WITH_OWNER_RE = /^([\w-]+)(?:\/([\w-]+))?$/
 
     def run(args)
       slurp_global_flags(args)
@@ -113,6 +472,102 @@ module Hub
         args[0, 1] = expanded_args if expanded_args
         send(cmd, args)
       end
+    rescue Errno::ENOENT
+      if $!.message.include? "No such file or directory - git"
+        abort "Error: `git` command not found"
+      else
+        raise
+      end
+    end
+
+    def pull_request(args)
+      args.shift
+      options = { }
+      force = explicit_owner = false
+      base_project = local_repo.main_project
+      head_project = local_repo.current_project
+
+      from_github_ref = lambda do |ref, context_project|
+        if ref.index(':')
+          owner, ref = ref.split(':', 2)
+          project = github_project(context_project.name, owner)
+        end
+        [project || context_project, ref]
+      end
+
+      while arg = args.shift
+        case arg
+        when '-f'
+          force = true
+        when '-b'
+          base_project, options[:base] = from_github_ref.call(args.shift, base_project)
+        when '-h'
+          head = args.shift
+          explicit_owner = !!head.index(':')
+          head_project, options[:head] = from_github_ref.call(head, head_project)
+        when '-i'
+          options[:issue] = args.shift
+        when %r{^https?://github.com/([^/]+/[^/]+)/issues/(\d+)}
+          options[:issue] = $2
+          base_project = github_project($1)
+        else
+          if !options[:title] then options[:title] = arg
+          else
+            abort "invalid argument: #{arg}"
+          end
+        end
+      end
+
+      options[:project] = base_project
+      options[:base] ||= master_branch.short_name
+
+      if tracked_branch = options[:head].nil? && current_branch.upstream
+        if base_project == head_project and tracked_branch.short_name == options[:base]
+          $stderr.puts "Aborted: head branch is the same as base (#{options[:base].inspect})"
+          warn "(use `-h <branch>` to specify an explicit pull request head)"
+          abort
+        end
+      end
+      options[:head] ||= (tracked_branch || current_branch).short_name
+
+      if head_project.owner != github_user and !tracked_branch and !explicit_owner
+        head_project = github_project(head_project.name, github_user)
+      end
+
+      remote_branch = "#{head_project.remote}/#{options[:head]}"
+      options[:head] = "#{head_project.owner}:#{options[:head]}"
+
+      if !force and tracked_branch and local_commits = git_command("rev-list --cherry #{remote_branch}...")
+        $stderr.puts "Aborted: #{local_commits.split("\n").size} commits are not yet pushed to #{remote_branch}"
+        warn "(use `-f` to force submit a pull request anyway)"
+        abort
+      end
+
+      if args.noop?
+        puts "Would reqest a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+        exit
+      end
+
+      unless options[:title] or options[:issue]
+        base_branch = "#{base_project.remote}/#{options[:base]}"
+        changes = git_command "log --no-color --pretty=medium --cherry %s...%s" %
+          [base_branch, remote_branch]
+
+        options[:title], options[:body] = pullrequest_editmsg(changes) { |msg|
+          msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.puts "#"
+          msg.puts "# Write a message for this pull request. The first block"
+          msg.puts "# of text is the title and the rest is description."
+        }
+      end
+
+      pull = create_pullrequest(options)
+
+      args.executable = 'echo'
+      args.replace [pull['html_url']]
+    rescue HTTPExceptions
+      display_http_exception("creating pull request", $!.response)
+      exit 1
     end
 
     def clone(args)
@@ -124,10 +579,12 @@ module Hub
         arg = args[idx]
         if arg.index('-') == 0
           idx += 1 if arg =~ has_values
-        elsif arg.index('://') or arg.index('@') or File.directory?(arg)
-          break
-        elsif arg.scan('/').size <= 1 && !arg.include?(':')
-          args[args.index(arg)] = github_url(:repo => arg, :private => ssh)
+        else
+          if arg =~ NAME_WITH_OWNER_RE
+            project = github_project(arg)
+            ssh ||= args[0] != 'submodule' && project.owner == github_user(false)
+            args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
+          end
           break
         end
         idx += 1
@@ -153,23 +610,24 @@ module Hub
     end
 
     def remote(args)
-      return unless ['add','set-url'].include?(args[1]) && args.last !~ %r{.+?://|.+?@|^[./]}
+      if %w[add set-url].include?(args[1]) && args.last =~ NAME_WITH_OWNER_RE
+        user, repo = $1, $2 || repo_name
+      else
+        return # do not touch arguments
+      end
 
       ssh = args.delete('-p')
 
-      args.last =~ /\b(.+?)(?:\/(.+))?$/
-      user, repo = $1, $2
-
       if args.words[2] == 'origin' && args.words[3].nil?
-        user = repo = nil
+        user, repo = github_user, repo_name
       elsif args.words[-2] == args.words[1]
         idx = args.index( args.words[-1] )
         args[idx] = user
       else
-        args.replace args[0...-1]
+        args.pop
       end
 
-      args << github_url(:user => user, :repo => repo, :private => ssh)
+      args << git_url(user, repo, :private => ssh)
     end
 
     def fetch(args)
@@ -196,8 +654,28 @@ module Hub
 
       if names.any?
         names.each do |name|
-          args.before ['remote', 'add', name, github_url(:user => name)]
+          args.before ['remote', 'add', name, git_url(name)]
         end
+      end
+    end
+
+    def checkout(args)
+      if (2..3) === args.length and args[1] =~ %r{https?://github.com/(.+?)/(.+?)/pull/(\d+)}
+        owner, repo, pull_id = $1, $2, $3
+
+        load_net_http
+        pull_body = Net::HTTP.get URI(API_PULL % File.join(owner, repo, pull_id))
+
+        user, branch = pull_body.match(/"label":\s*"(.+?)"/)[1].split(':', 2)
+        new_branch_name = args[2] || "#{user}-#{branch}"
+
+        if remotes.include? user
+          args.before ['remote', 'set-branches', '--add', user, branch]
+          args.before ['fetch', user, "+refs/heads/#{branch}:refs/remotes/#{user}/#{branch}"]
+        else
+          args.before ['remote', 'add', '-f', '-t', branch, user, github_project(repo, user).git_url]
+        end
+        args[1..-1] = ['-b', new_branch_name, "#{user}/#{branch}"]
       end
     end
 
@@ -207,7 +685,7 @@ module Hub
         when %r{^(?:https?:)//github.com/(.+?)/(.+?)/commit/([a-f0-9]{7,40})}
           user, repo, sha = $1, $2, $3
           args[args.index(ref)] = sha
-        when /^(\w+)@([a-f1-9]{7,40})$/
+        when /^(\w+)@([a-f0-9]{7,40})$/
           user, repo, sha = $1, nil, $2
           args[args.index(ref)] = sha
         else
@@ -216,12 +694,11 @@ module Hub
 
         if user
           if user == repo_owner
-            args.before ['fetch', default_remote]
+            args.before ['fetch', origin_remote]
           elsif remotes.include?(user)
             args.before ['fetch', user]
           else
-            remote_url = github_url(:user => user, :repo => repo, :private => false)
-            args.before ['remote', 'add', '-f', user, remote_url]
+            args.before ['remote', 'add', '-f', user, git_url(user, repo)]
           end
         end
       end
@@ -240,43 +717,44 @@ module Hub
       end
     end
 
+    alias_method :apply, :am
+
     def init(args)
       if args.delete('-g')
-        url = github_url(:private => true, :repo => current_dirname)
-        args.after "git remote add origin #{url}"
+        url = git_url(github_user, repo_name, :private => true)
+        args.after ['remote', 'add', 'origin', url]
       end
     end
 
     def fork(args)
       if github_user && github_token && repo_owner
         if repo_exists?(github_user)
-          puts "#{github_user}/#{repo_name} already exists on GitHub"
+          warn "#{github_user}/#{repo_name} already exists on GitHub"
         else
-          fork_repo
+          fork_repo unless args.noop?
         end
 
         if args.include?('--no-remote')
           exit
         else
-          url = github_url(:private => true)
+          url = git_url(github_user, repo_name, :private => true)
           args.replace %W"remote add -f #{github_user} #{url}"
-          args.after { puts "new remote: #{github_user}" }
+          args.after 'echo', ['new remote:', github_user]
         end
       end
-    rescue Net::HTTPExceptions
-      response = $!.response
-      warn "error creating fork: #{response.message} (HTTP #{response.code})"
+    rescue HTTPExceptions
+      display_http_exception("creating fork", $!.response)
       exit 1
     end
 
     def create(args)
       if !is_repo?
-        puts "'create' must be run from inside a git repository"
-        args.skip!
-      elsif github_user && github_token
+        abort "'create' must be run from inside a git repository"
+      elsif owner = github_user and github_token
         args.shift
         options = {}
         options[:private] = true if args.delete('-p')
+        new_repo_name = nil
 
         until args.empty?
           case arg = args.shift
@@ -285,20 +763,26 @@ module Hub
           when '-h'
             options[:homepage] = args.shift
           else
-            puts "unexpected argument: #{arg}"
-            return
+            if arg =~ /^[^-]/ and new_repo_name.nil?
+              new_repo_name = arg
+              owner, new_repo_name = new_repo_name.split('/', 2) if new_repo_name.index('/')
+            else
+              abort "invalid argument: #{arg}"
+            end
           end
         end
+        new_repo_name ||= repo_name
+        repo_with_owner = "#{owner}/#{new_repo_name}"
 
-        if repo_exists?(github_user)
-          puts "#{github_user}/#{repo_name} already exists on GitHub"
+        if repo_exists?(owner, new_repo_name)
+          warn "#{repo_with_owner} already exists on GitHub"
           action = "set remote origin"
         else
           action = "created repository"
-          create_repo(options)
+          create_repo(repo_with_owner, options) unless args.noop?
         end
 
-        url = github_url(:private => true)
+        url = git_url(owner, new_repo_name, :private => true)
 
         if remotes.first != 'origin'
           args.replace %W"remote add -f origin #{url}"
@@ -306,18 +790,17 @@ module Hub
           args.replace %W"remote -v"
         end
 
-        args.after { puts "#{action}: #{github_user}/#{repo_name}" }
+        args.after 'echo', ["#{action}:", repo_with_owner]
       end
-    rescue Net::HTTPExceptions
-      response = $!.response
-      warn "error creating repository: #{response.message} (HTTP #{response.code})"
+    rescue HTTPExceptions
+      display_http_exception("creating repository", $!.response)
       exit 1
     end
 
     def push(args)
       return if args[1].nil? || !args[1].index(',')
 
-      branch  = (args[2] ||= normalize_branch(current_branch))
+      branch  = (args[2] ||= current_branch.short_name)
       remotes = args[1].split(',')
       args[1] = remotes.shift
 
@@ -329,32 +812,29 @@ module Hub
     def browse(args)
       args.shift
       browse_command(args) do
-        user = repo = nil
         dest = args.shift
         dest = nil if dest == '--'
 
         if dest
-          repo = dest
-        elsif repo_user
-          user = repo_user
+          project = github_project dest
         else
-          abort "Usage: hub browse [<USER>/]<REPOSITORY>"
+          project = current_project
         end
 
-        params = { :user => user, :repo => repo }
+        abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
 
-        case subpage = args.shift
+        path = case subpage = args.shift
         when 'commits'
-          branch = (!dest && tracked_branch) || 'master'
-          params[:web] = "/commits/#{branch}"
+          branch = (!dest && current_branch.upstream) || master_branch
+          "/commits/#{branch.short_name}"
         when 'tree', NilClass
-          branch = !dest && tracked_branch
-          params[:web] = "/tree/#{branch}" if branch && branch != 'master'
+          branch = !dest && current_branch.upstream
+          "/tree/#{branch.short_name}" if branch and !branch.master?
         else
-          params[:web] = "/#{subpage}"
+          "/#{subpage}"
         end
 
-        params
+        project.web_url(path)
       end
     end
 
@@ -362,24 +842,29 @@ module Hub
       args.shift
       browse_command(args) do
         if args.empty?
-          branch = tracked_branch
-          if branch && branch != 'master'
-            range, user = branch, repo_user
+          branch = current_branch.upstream
+          if branch and not branch.master?
+            range = branch.short_name
+            project = current_project
           else
             abort "Usage: hub compare [USER] [<START>...]<END>"
           end
         else
-          range = args.pop
-          user = args.pop || repo_user
+          sha_or_tag = /(\w{1,2}|\w[\w.-]+\w)/
+          range = args.pop.sub(/^#{sha_or_tag}\.\.#{sha_or_tag}$/, '\1...\2')
+          project = if owner = args.pop then github_project(nil, owner)
+                    else current_project
+                    end
         end
-        { :user => user, :web => "/compare/#{range}" }
+
+        project.web_url "/compare/#{range}"
       end
     end
 
     def hub(args)
       return help(args) unless args[1] == 'standalone'
       require 'hub/standalone'
-      puts Hub::Standalone.build
+      $stdout.puts Hub::Standalone.build
       exit
     rescue LoadError
       abort "hub is running in standalone mode."
@@ -429,9 +914,7 @@ module Hub
     end
 
     def version(args)
-      args.after do
-        puts "hub version %s" % Version
-      end
+      args.after 'echo', ['hub version', Version]
     end
     alias_method "--version", :version
 
@@ -449,11 +932,15 @@ module Hub
     end
     alias_method "--help", :help
 
+  private
+
     def improved_help_text
       <<-help
-usage: git [--version] [--exec-path[=GIT_EXEC_PATH]] [--html-path]
-    [-p|--paginate|--no-pager] [--bare] [--git-dir=GIT_DIR]
-    [--work-tree=GIT_WORK_TREE] [--help] COMMAND [ARGS]
+usage: git [--version] [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p|--paginate|--no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           [-c name=value] [--help]
+           <command> [<args>]
 
 Basic Commands:
    init       Create an empty git repository or reinitialize an existing one
@@ -487,14 +974,12 @@ Advanced commands:
    bisect     Find by binary search the change that introduced a bug
    grep       Print files with lines matching a pattern in your codebase
 
-See 'git help COMMAND' for more information on a specific command.
+See 'git help <command>' for more information on a specific command.
 help
     end
 
-  private
-
     def slurp_global_flags(args)
-      flags = %w[ -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
+      flags = %w[ --noop -c -p --paginate --no-pager --no-replace-objects --bare --version --help ]
       flags2 = %w[ --exec-path= --git-dir= --work-tree= ]
 
       globals = []
@@ -503,12 +988,14 @@ help
       while args[0] && (flags.include?(args[0]) || flags2.any? {|f| args[0].index(f) == 0 })
         flag = args.shift
         case flag
+        when '--noop'
+          args.noop!
         when '--version', '--help'
           args.unshift flag.sub('--', '')
         when '-c'
           config_pair = args.shift
           key, value = config_pair.split('=', 2)
-          Context::GIT_CONFIG["config #{key}"] = value.to_s
+          git_reader.stub_config_value(key, value)
 
           globals << flag << config_pair
         when '-p', '--paginate', '--no-pager'
@@ -518,21 +1005,22 @@ help
         end
       end
 
-      Context::GIT_CONFIG.executable = Array(Context::GIT_CONFIG.executable).concat(globals)
-      args.executable = Array(args.executable).concat(globals).concat(locals)
+      git_reader.add_exec_flags(globals)
+      args.add_exec_flags(globals)
+      args.add_exec_flags(locals)
     end
 
     def browse_command(args)
       url_only = args.delete('-u')
-      $stderr.puts "Warning: the `-p` flag has no effect anymore" if args.delete('-p')
-      params = yield
+      warn "Warning: the `-p` flag has no effect anymore" if args.delete('-p')
+      url = yield
 
       args.executable = url_only ? 'echo' : browser_launcher
-      args.push github_url({:web => true, :private => true}.update(params))
+      args.push url
     end
 
     def hub_manpage
-      return "** Can't find groff(1)" unless command?('groff')
+      abort "** Can't find groff(1)" unless command?('groff')
 
       require 'open3'
       out = nil
@@ -562,7 +1050,7 @@ help
     end
 
     def page_stdout
-      return unless $stdout.tty?
+      return if not $stdout.tty? or windows?
 
       read, write = IO.pipe
 
@@ -590,27 +1078,81 @@ help
       end
     end
 
-    def repo_exists?(user)
-      require 'net/http'
-      url = API_REPO % [user, repo_name]
+    def repo_exists?(user, repo = repo_name)
+      load_net_http
+      url = API_REPO % [user, repo]
       Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
     end
 
     def fork_repo
-      url = API_FORK % [repo_owner, repo_name]
-      response = Net::HTTP.post_form(URI(url), 'login' => github_user, 'token' => github_token)
+      load_net_http
+      response = http_post API_FORK % [repo_owner, repo_name]
       response.error! unless Net::HTTPSuccess === response
     end
 
-    def create_repo(options = {})
-      url = API_CREATE
-      params = {'login' => github_user, 'token' => github_token, 'name' => repo_name}
+    def create_repo(name, options = {})
+      params = {'name' => name.sub(/^#{github_user}\//, '')}
       params['public'] = '0' if options[:private]
       params['description'] = options[:description] if options[:description]
       params['homepage'] = options[:homepage] if options[:homepage]
 
-      response = Net::HTTP.post_form(URI(url), params)
+      load_net_http
+      response = http_post(API_CREATE, params)
       response.error! unless Net::HTTPSuccess === response
+    end
+
+    def create_pullrequest(options)
+      project = options.fetch(:project)
+      params = {
+        'pull[base]' => options.fetch(:base),
+        'pull[head]' => options.fetch(:head)
+      }
+      params['pull[issue]'] = options[:issue] if options[:issue]
+      params['pull[title]'] = options[:title] if options[:title]
+      params['pull[body]'] = options[:body] if options[:body]
+
+      load_net_http
+      response = http_post(API_PULLREQUEST % [project.owner, project.name], params)
+      response.error! unless Net::HTTPSuccess === response
+      if response['Content-type'].to_s.include? 'application/json'
+        { "html_url" => response.body.match(/"html_url":\s*"(.+?)"/)[1] }
+      else
+        require 'yaml'
+        YAML.load(response.body)['pull']
+      end
+    end
+
+    def pullrequest_editmsg(changes)
+      message_file = File.join(git_dir, 'PULLREQ_EDITMSG')
+      File.open(message_file, 'w') { |msg|
+        msg.puts
+        yield msg
+        if changes
+          msg.puts "#\n# Changes:\n#"
+          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
+        end
+      }
+      edit_cmd = Array(git_editor).dup << message_file
+      system(*edit_cmd)
+      abort "can't open text editor for pull request message" unless $?.success?
+      title, body = read_editmsg(message_file)
+      abort "Aborting due to empty pull request title" unless title
+      [title, body]
+    end
+
+    def read_editmsg(file)
+      title, body = '', ''
+      File.open(file, 'r') { |msg|
+        msg.each_line do |line|
+          next if line.index('#') == 0
+          ((body.empty? and line =~ /\S/) ? title : body) << line
+        end
+      }
+      title.tr!("\n", ' ')
+      title.strip!
+      body.strip!
+      
+      [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
     end
 
     def expand_alias(cmd)
@@ -622,194 +1164,46 @@ help
       end
     end
 
-  end
-end
-require 'shellwords'
+    def http_post(url, params = nil)
+      url = URI(url)
+      post = Net::HTTP::Post.new(url.request_uri)
+      post.basic_auth "#{github_user}/token", github_token
+      post.set_form_data params if params
 
-module Hub
-  module Context
-    private
-
-    class ShellOutCache < Hash
-      attr_accessor :executable
-
-      def initialize(executable = nil, &block)
-        super(&block)
-        @executable = executable
+      port = url.port
+      if use_ssl = 'https' == url.scheme and not use_ssl?
+        use_ssl = false
+        port = 80
       end
 
-      def to_exec(args)
-        args = Shellwords.shellwords(args) if args.respond_to? :to_str
-        Array(executable) + Array(args)
+      http = Net::HTTP.new(url.host, port)
+      if http.use_ssl = use_ssl
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
+      http.start { http.request(post) }
     end
 
-    GIT_CONFIG = ShellOutCache.new(ENV['GIT'] || 'git') do |cache, cmd|
-      full_cmd = cache.to_exec(cmd)
-      cmd_string = full_cmd.respond_to?(:shelljoin) ? full_cmd.shelljoin : full_cmd.join(' ')
-      result = %x{#{cmd_string}}.chomp
-      cache[cmd] = $?.success? && !result.empty? ? result : nil
+    def load_net_http
+      require 'net/https'
+    rescue LoadError
+      require 'net/http'
     end
 
-    REMOTES = Hash.new do |cache, remote|
-      if remote
-        urls = GIT_CONFIG["config --get-all remote.#{remote}.url"].to_s.split("\n")
+    def use_ssl?
+      defined? ::OpenSSL
+    end
 
-        if urls.find { |u| u =~ %r{\bgithub\.com[:/](.+)/(.+).git$} } 
-          cache[remote] = { :user => $1, :repo => $2 }
-        else
-          cache[remote] = { }
-        end
-      else
-        cache[remote] = { }
+    module HTTPExceptions
+      def self.===(exception)
+        exception.class.ancestors.map {|a| a.to_s }.include? 'Net::HTTPExceptions'
       end
     end
 
-    LGHCONF = "http://help.github.com/git-email-settings/"
-
-    def repo_owner
-      REMOTES[default_remote][:user]
+    def display_http_exception(action, response)
+      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.code})"
+      warn "Check your token configuration (`git config github.token`)" if response.code.to_i == 401
     end
 
-    def repo_user
-      REMOTES[current_remote][:user]
-    end
-
-    def repo_name
-      REMOTES[default_remote][:repo] || current_dirname
-    end
-
-    def github_user(fatal = true)
-      if user = ENV['GITHUB_USER'] || GIT_CONFIG['config github.user']
-        user
-      elsif fatal
-        abort("** No GitHub user set. See #{LGHCONF}")
-      end
-    end
-
-    def github_token(fatal = true)
-      if token = ENV['GITHUB_TOKEN'] || GIT_CONFIG['config github.token']
-        token
-      elsif fatal
-        abort("** No GitHub token set. See #{LGHCONF}")
-      end
-    end
-
-    def current_branch
-      GIT_CONFIG['symbolic-ref -q HEAD']
-    end
-
-    def tracked_branch
-      branch = current_branch && tracked_for(current_branch)
-      normalize_branch(branch) if branch
-    end
-
-    def remotes
-      list = GIT_CONFIG['remote'].to_s.split("\n")
-      main = list.delete('origin') and list.unshift(main)
-      list
-    end
-
-    def remotes_group(name)
-      GIT_CONFIG["config remotes.#{name}"]
-    end
-
-    def current_remote
-      return if remotes.empty?
-      (current_branch && remote_for(current_branch)) || default_remote
-    end
-
-    def default_remote
-      remotes.first
-    end
-
-    def normalize_branch(branch)
-      branch.sub('refs/heads/', '')
-    end
-
-    def remote_for(branch)
-      GIT_CONFIG['config branch.%s.remote' % normalize_branch(branch)]
-    end
-
-    def tracked_for(branch)
-      GIT_CONFIG['config branch.%s.merge' % normalize_branch(branch)]
-    end
-
-    def http_clone?
-      GIT_CONFIG['config --bool hub.http-clone'] == 'true'
-    end
-
-    def git_alias_for(name)
-      GIT_CONFIG["config alias.#{name}"]
-    end
-
-    def is_repo?
-      GIT_CONFIG['config core.repositoryformatversion']
-    end
-
-    def github_url(options = {})
-      repo = options[:repo]
-      user, repo = repo.split('/') if repo && repo.index('/')
-      user ||= options[:user] || github_user
-      repo ||= repo_name
-      secure = options[:private]
-
-      if options[:web]
-        scheme = secure ? 'https:' : 'http:'
-        path = options[:web] == true ? '' : options[:web].to_s
-        if repo =~ /\.wiki$/
-          repo = repo.sub(/\.wiki$/, '')
-          unless '/wiki' == path
-            path = '/wiki%s' % if path =~ %r{^/commits/} then '/_history'
-              else path.sub(/\w+/, '_\0')
-              end
-          end
-        end
-        '%s//github.com/%s/%s%s' % [scheme, user, repo, path]
-      else
-        if secure
-          url = 'git@github.com:%s/%s.git'
-        elsif http_clone?
-          url = 'http://github.com/%s/%s.git'
-        else
-          url = 'git://github.com/%s/%s.git'
-        end
-
-        url % [user, repo]
-      end
-    end
-
-    DIRNAME = File.basename(Dir.pwd)
-
-    def current_dirname
-      DIRNAME
-    end
-
-    def browser_launcher
-      require 'rbconfig'
-      browser = ENV['BROWSER'] ||
-        (RbConfig::CONFIG['host_os'].include?('darwin') && 'open') ||
-        (RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/ && 'start') ||
-        %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
-
-      abort "Please set $BROWSER to a web launcher to use this command." unless browser
-      Array(browser)
-    end
-
-    def which(cmd)
-      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
-      ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
-        exts.each { |ext|
-          exe = "#{path}/#{cmd}#{ext}"
-          return exe if File.executable? exe
-        }
-      end
-      return nil
-    end
-
-    def command?(name)
-      !which(name).nil?
-    end
   end
 end
 module Hub
@@ -836,7 +1230,7 @@ module Hub
     def commands
       args.commands.map do |cmd|
         if cmd.respond_to?(:join)
-          cmd.map { |c| (c.index(' ') || c.empty?) ? "'#{c}'" : c }.join(' ')
+          cmd.map { |arg| arg = arg.to_s; (arg.index(' ') || arg.empty?) ? "'#{arg}'" : arg }.join(' ')
         else
           cmd.to_s
         end
@@ -844,7 +1238,9 @@ module Hub
     end
 
     def execute
-      unless args.skip?
+      if args.noop?
+        puts commands
+      elsif not args.skip?
         if args.chained?
           execute_command_chain
         else
@@ -867,29 +1263,26 @@ module Hub
   end
 end
 module Hub
-  Version = VERSION = '1.6.1'
+  Version = VERSION = '1.7.0'
 end
 Hub::Runner.execute(*ARGV)
 __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "May 2011" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "November 2011" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
 .
 .SH "SYNOPSIS"
-\fBhub\fR \fICOMMAND\fR \fIOPTIONS\fR
+\fBhub\fR [\fB\-\-noop\fR] \fICOMMAND\fR \fIOPTIONS\fR
 .
 .br
 \fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
 .
-.P
+.SS "Expanded git commands:"
 \fBgit init \-g\fR \fIOPTIONS\fR
-.
-.br
-\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]
 .
 .br
 \fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
@@ -904,13 +1297,25 @@ __END__
 \fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,\.\.\.]
 .
 .br
+\fBgit checkout\fR \fIPULLREQ\-URL\fR [\fIBRANCH\fR]
+.
+.br
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
 .
 .br
 \fBgit am\fR \fIGITHUB\-URL\fR
 .
 .br
+\fBgit apply\fR \fIGITHUB\-URL\fR
+.
+.br
 \fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]
+.
+.br
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
+.
+.SS "Custom git commands:"
+\fBgit create\fR [\fINAME\fR] [\fB\-p\fR] [\fB\-d\fR \fIDESCRIPTION\fR] [\fB\-h\fR \fIHOMEPAGE\fR]
 .
 .br
 \fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
@@ -919,78 +1324,97 @@ __END__
 \fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR
 .
 .br
-\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
-.
-.br
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
 .
-.SH "DESCRIPTION"
-\fBhub\fR enhances various \fBgit\fR commands with GitHub remote expansion\. The alias command displays information on configuring your environment:
+.br
+\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]:
 .
-.IP "\(bu" 4
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR: Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output\. With the \fB\-s\fR option, the output of this command can be evaluated directly within the shell:
+.SH "DESCRIPTION"
+hub enhances various git commands to ease most common workflows with GitHub\.
+.
+.TP
+\fBhub \-\-noop\fR \fICOMMAND\fR
+Shows which command(s) would be run as a result of the current command\. Doesn\'t perform anything\.
+.
+.TP
+\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output\. With the \fB\-s\fR option, the output of this command can be evaluated directly within the shell:
 .
 .br
 \fBeval $(hub alias \-s bash)\fR
 .
-.IP "\(bu" 4
-\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR: Create a git repository as with git\-init(1) and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\.
+.TP
+\fBgit init\fR \fB\-g\fR \fIOPTIONS\fR
+Create a git repository as with git\-init(1) and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\.
 .
-.IP "\(bu" 4
-\fBgit create\fR [\fB\-p\fR] [\fB\-d <DESCRIPTION>\fR] [\fB\-h <HOMEPAGE>\fR]:
+.TP
+\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR
+Clone repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-clone(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, clone private repositories over SSH\. For repositories under your GitHub login, \fB\-p\fR is implicit\.
 .
-.br
-Create a new public github repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory\'s basename\. With \fB\-p\fR, create a private repository\. \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage, respectively\.
-.
-.IP "\(bu" 4
-\fBgit clone\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR \fIDIRECTORY\fR:
-.
-.br
-Clone repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-clone(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\.
-.
-.IP "\(bu" 4
-\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]:
-.
-.br
+.TP
+\fBgit remote add\fR [\fB\-p\fR] \fIOPTIONS\fR \fIUSER\fR[\fB/\fR\fIREPOSITORY\fR]
 Add remote "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" as with git\-remote(1)\. When /\fIREPOSITORY\fR is omitted, the basename of the current working directory is used\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\. If \fIUSER\fR is "origin" then uses your GitHub login\.
 .
-.IP "\(bu" 4
+.TP
 \fBgit remote set\-url\fR [\fB\-p\fR] \fIOPTIONS\fR \fIREMOTE\-NAME\fR \fIUSER\fR[/\fIREPOSITORY\fR]
-.
-.br
 Sets the url of remote \fIREMOTE\-NAME\fR using the same rules as \fBgit remote add\fR\.
 .
-.IP "\(bu" 4
-\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,\.\.\.]: Adds missing remote(s) with \fBgit remote add\fR prior to fetching\. New remotes are only added if they correspond to valid forks on GitHub\.
+.TP
+\fBgit fetch\fR \fIUSER\-1\fR,[\fIUSER\-2\fR,\.\.\.]
+Adds missing remote(s) with \fBgit remote add\fR prior to fetching\. New remotes are only added if they correspond to valid forks on GitHub\.
 .
-.IP "\(bu" 4
-\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR: Cherry\-pick a commit from a fork using either full URL to the commit or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR\. If the remote doesn\'t yet exist, it will be added\. A \fBgit fetch <user>\fR is issued prior to the cherry\-pick attempt\.
+.TP
+\fBgit checkout\fR \fIPULLREQ\-URL\fR [\fIBRANCH\fR]
+Checks out the head of the pull request as a local branch, to allow for reviewing, rebasing and otherwise cleaning up the commits in the pull request before merging\. The name of the local branch can explicitly be set with \fIBRANCH\fR\.
 .
-.IP "\(bu" 4
-\fBgit am\fR \fIGITHUB\-URL\fR: Downloads the patch file for the pull request or commit at the URL and applies that patch from disk with \fBgit am\fR\. Similar to \fBcherry\-pick\fR, but doesn\'t add new remotes\.
+.TP
+\fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
+Cherry\-pick a commit from a fork using either full URL to the commit or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR\. If the remote doesn\'t yet exist, it will be added\. A \fBgit fetch <user>\fR is issued prior to the cherry\-pick attempt\.
 .
-.IP "\(bu" 4
-\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]: Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing multiple \fBgit push\fR commands\.
+.TP
+\fBgit [am|apply]\fR \fIGITHUB\-URL\fR
+Downloads the patch file for the pull request or commit at the URL and applies that patch from disk with \fBgit am\fR or \fBgit apply\fR\. Similar to \fBcherry\-pick\fR, but doesn\'t add new remotes\. \fBgit am\fR creates commits while preserving authorship info while \fBapply\fR only applies the patch to the working copy\.
 .
-.IP "\(bu" 4
-\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]: Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\.
+.TP
+\fBgit push\fR \fIREMOTE\-1\fR,\fIREMOTE\-2\fR,\.\.\.,\fIREMOTE\-N\fR [\fIREF\fR]
+Push \fIREF\fR to each of \fIREMOTE\-1\fR through \fIREMOTE\-N\fR by executing multiple \fBgit push\fR commands\.
 .
-.IP "\(bu" 4
-\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR: Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\.
-.
-.IP "\(bu" 4
-\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR:
-.
-.br
+.TP
+\fBgit submodule add\fR [\fB\-p\fR] \fIOPTIONS\fR [\fIUSER\fR/]\fIREPOSITORY\fR \fIDIRECTORY\fR
 Submodule repository "git://github\.com/\fIUSER\fR/\fIREPOSITORY\fR\.git" into \fIDIRECTORY\fR as with git\-submodule(1)\. When \fIUSER\fR/ is omitted, assumes your GitHub login\. With \fB\-p\fR, use private remote "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"\.
 .
-.IP "\(bu" 4
-\fBgit fork\fR [\fB\-\-no\-remote\fR]: Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\. Requires \fBgithub\.token\fR to be set (see CONFIGURATION)\.
+.TP
+\fBgit help\fR
+Display enhanced git\-help(1)\.
 .
-.IP "\(bu" 4
-\fBgit help\fR: Display enhanced git\-help(1)\.
+.P
+hub also adds some custom commands that are otherwise not present in git:
 .
-.IP "" 0
+.TP
+\fBgit create\fR [\fINAME\fR] [\fB\-p\fR] [\fB\-d\fR \fIDESCRIPTION\fR] [\fB\-h\fR \fIHOMEPAGE\fR]
+Create a new public GitHub repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory name\. To explicitly name the new repository, pass in \fINAME\fR, optionally in \fIORGANIZATION\fR/\fINAME\fR form to create under an organization you\'re a member of\. With \fB\-p\fR, create a private repository, and with \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage URL, respectively\.
+.
+.TP
+\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
+Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\.
+.
+.TP
+\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR
+Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If a range with two dots (\fBa\.\.b\fR) is given, it will be transformed into one with three dots\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\.
+.
+.TP
+\fBgit fork\fR [\fB\-\-no\-remote\fR]
+Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\. Requires \fBgithub\.token\fR to be set (see CONFIGURATION)\.
+.
+.TP
+\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
+\fBgit pull\-request\fR [\fB\-f\fR] \fIISSUE\-URL\fR [\fB\-h\fR \fIHEAD\fR] Opens a pull request on GitHub for the project that the "origin" remote points to\. The default head of the pull request is the current branch\. Both base and head of the pull request can be explicitly given in one of the following formats: "branch", "owner:branch", "owner/repo:branch"\. This command will abort operation if it detects that the current topic branch has local commits that are not yet pushed to its upstream branch on the remote\. To skip this check, use \fB\-f\fR\.
+.
+.IP
+If \fITITLE\fR is omitted, a text editor will open in which title and body of the pull request can be entered in the same manner as git commit message\.
+.
+.IP
+If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
 .
 .SH "CONFIGURATION"
 Use git\-config(1) to display the currently configured GitHub username:
@@ -1020,29 +1444,21 @@ $ git config \-\-global github\.token <token>
 .IP "" 0
 .
 .P
-See \fIhttp://github\.com/guides/local\-github\-config\fR for more information\.
+You can override these values with \fIGITHUB_USER\fR and \fIGITHUB_TOKEN\fR environment variables\.
 .
 .P
-You can also tell \fBhub\fR to use \fBhttp://\fR rather than \fBgit://\fR when cloning:
+See \fIhttp://help\.github\.com/set\-your\-user\-name\-email\-and\-github\-token/\fR for more information\.
+.
+.P
+If you prefer the HTTPS protocol for GitHub repositories, you can set "hub\.protocol" to "https"\. This will affect \fBclone\fR, \fBfork\fR, \fBremote add\fR and other operations that expand references to GitHub repositories as full URLs that otherwise use git and ssh protocols\.
 .
 .IP "" 4
 .
 .nf
 
-$ git config \-\-global \-\-bool hub\.http\-clone true
+$ git config \-\-global hub\.protocol https
 .
 .fi
-.
-.IP "" 0
-.
-.P
-Want to use environment variables instead of a local gitconfig for authentication?
-.
-.IP "\(bu" 4
-\fBGITHUB_USER\fR \- If set, this will be used instead of the \fBgithub\.user\fR config
-.
-.IP "\(bu" 4
-\fBGITHUB_TOKEN\fR \- If set, this will be used instead of the \fBgithub\.token\fR
 .
 .IP "" 0
 .
@@ -1059,10 +1475,7 @@ $ git clone \-p schacon/ticgit
 > git clone git@github\.com:schacon/ticgit\.git
 
 $ git clone resque
-> git clone git://github\.com/YOUR_USER/resque\.git
-
-$ git clone \-p resque
-> git clone git@github\.com:YOUR_USER/resque\.git
+> git clone git@github\.com/YOUR_USER/resque\.git
 .
 .fi
 .
@@ -1114,7 +1527,7 @@ $ git cherry\-pick mislav@SHA
 .
 .fi
 .
-.SS "git am"
+.SS "git am, git apply"
 .
 .nf
 
@@ -1125,6 +1538,10 @@ $ git am https://github\.com/defunkt/hub/pull/55
 $ git am \-\-ignore\-whitespace https://github\.com/davidbalbert/hub/commit/fdb9921
 > curl https://github\.com/davidbalbert/hub/commit/fdb9921\.patch \-o /tmp/fdb9921\.patch
 > git am \-\-ignore\-whitespace /tmp/fdb9921\.patch
+
+$ git apply https://gist\.github\.com/8da7fb575debd88c54cf
+> curl https://gist\.github\.com/8da7fb575debd88c54cf\.txt \-o /tmp/gist\-8da7fb575debd88c54cf\.txt
+> git apply /tmp/gist\-8da7fb575debd88c54cf\.txt
 .
 .fi
 .
@@ -1133,8 +1550,58 @@ $ git am \-\-ignore\-whitespace https://github\.com/davidbalbert/hub/commit/fdb9
 .nf
 
 $ git fork
-\.\.\. hardcore forking action \.\.\.
-> git remote add YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
+[ repo forked on GitHub ]
+> git remote add \-f YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
+.
+.fi
+.
+.SS "git pull\-request"
+.
+.nf
+
+# while on a topic branch called "feature":
+$ git pull\-request
+[ opens text editor to edit title & body for the request ]
+[ opened pull request on GitHub for "YOUR_USER:feature" ]
+
+# explicit title, pull base & head:
+$ git pull\-request "I\'ve implemented feature X" \-b defunkt:master \-h mislav:feature
+
+$ git pull\-request \-i 123
+[ attached pull request to issue #123 ]
+.
+.fi
+.
+.SS "git checkout"
+.
+.nf
+
+# $ git checkout https://github\.com/defunkt/hub/pull/73
+# > git remote add \-f \-t feature git://github:com/mislav/hub\.git
+# > git checkout \-b mislav\-feature mislav/feature
+
+# $ git checkout https://github\.com/defunkt/hub/pull/73 custom\-branch\-name
+.
+.fi
+.
+.SS "git create"
+.
+.nf
+
+$ git create
+[ repo created on GitHub ]
+> git remote add origin git@github\.com:YOUR_USER/CURRENT_REPO\.git
+
+# with description:
+$ git create \-d \'It shall be mine, all mine!\'
+
+$ git create recipes
+[ repo created on GitHub ]
+> git remote add origin git@github\.com:YOUR_USER/recipes\.git
+
+$ git create sinatra/recipes
+[ repo created in GitHub organization ]
+> git remote add origin git@github\.com:sinatra/recipes\.git
 .
 .fi
 .
@@ -1145,16 +1612,6 @@ $ git fork
 $ git init \-g
 > git init
 > git remote add origin git@github\.com:YOUR_USER/REPO\.git
-.
-.fi
-.
-.SS "git create"
-.
-.nf
-
-$ git create
-\.\.\. hardcore creating action \.\.\.
-> git remote add origin git@github\.com:YOUR_USER/CURRENT_REPO\.git
 .
 .fi
 .
@@ -1176,11 +1633,17 @@ $ git push origin,staging,qa bert_timeout
 $ git browse
 > open https://github\.com/YOUR_USER/CURRENT_REPO
 
+$ git browse \-\- commit/SHA
+> open https://github\.com/YOUR_USER/CURRENT_REPO/commit/SHA
+
 $ git browse \-\- issues
 > open https://github\.com/YOUR_USER/CURRENT_REPO/issues
 
 $ git browse schacon/ticgit
 > open https://github\.com/schacon/ticgit
+
+$ git browse schacon/ticgit commit/SHA
+> open https://github\.com/schacon/ticgit/commit/SHA
 
 $ git browse resque
 > open https://github\.com/YOUR_USER/resque
@@ -1197,7 +1660,7 @@ $ git browse resque network
 $ git compare refactor
 > open https://github\.com/CURRENT_REPO/compare/refactor
 
-$ git compare 1\.0\.\.\.1\.1
+$ git compare 1\.0\.\.1\.1
 > open https://github\.com/CURRENT_REPO/compare/1\.0\.\.\.1\.1
 
 $ git compare \-u fix
@@ -1205,6 +1668,21 @@ $ git compare \-u fix
 
 $ git compare other\-user patch
 > open https://github\.com/other\-user/REPO/compare/patch
+.
+.fi
+.
+.SS "git submodule"
+.
+.nf
+
+$ hub submodule add wycats/bundler vendor/bundler
+> git submodule add git://github\.com/wycats/bundler\.git vendor/bundler
+
+$ hub submodule add \-p wycats/bundler vendor/bundler
+> git submodule add git@github\.com:wycats/bundler\.git vendor/bundler
+
+$ hub submodule add \-b ryppl ryppl/pip vendor/pip
+> git submodule add \-b ryppl git://github\.com/ryppl/pip\.git vendor/pip
 .
 .fi
 .
@@ -1220,10 +1698,10 @@ $ git help hub
 .fi
 .
 .SH "BUGS"
-\fIhttp://github\.com/defunkt/hub/issues\fR
+\fIhttps://github\.com/defunkt/hub/issues\fR
 .
 .SH "AUTHORS"
 \fIhttps://github\.com/defunkt/hub/contributors\fR
 .
 .SH "SEE ALSO"
-git(1), git\-clone(1), git\-remote(1), git\-init(1), \fIhttp://github\.com\fR, \fIhttp://github\.com/defunkt/hub\fR
+git(1), git\-clone(1), git\-remote(1), git\-init(1), \fIhttp://github\.com\fR, \fIhttps://github\.com/defunkt/hub\fR
