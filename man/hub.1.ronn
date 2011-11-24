@@ -163,7 +163,7 @@ Or, set the GitHub username and token with:
 You can override these values with <GITHUB_USER> and <GITHUB_TOKEN>
 environment variables.
 
-See <http://github.com/guides/local-github-config> for more
+See <http://help.github.com/set-your-user-name-email-and-github-token/> for more
 information.
 
 If you prefer the HTTPS protocol for GitHub repositories, you can set
@@ -179,7 +179,7 @@ URLs that otherwise use git and ssh protocols.
 
 ## BUGS
 
-<http://github.com/defunkt/hub/issues>
+<https://github.com/defunkt/hub/issues>
 
 ## AUTHORS
 
@@ -189,4 +189,4 @@ URLs that otherwise use git and ssh protocols.
 
 git(1), git-clone(1), git-remote(1), git-init(1),
 <http://github.com>,
-<http://github.com/defunkt/hub>
+<https://github.com/defunkt/hub>

@@ -15,7 +15,7 @@ module Hub
 # Please DO NOT EDIT or send patches for it.
 #
 # Please take a look at the source from
-# http://github.com/defunkt/hub
+# https://github.com/defunkt/hub
 # and submit patches against the individual files
 # that build hub.
 #

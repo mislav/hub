@@ -263,7 +263,7 @@ module Hub
       project.git_url({:https => https_protocol?}.update(options))
     end
 
-    LGHCONF = "http://help.github.com/git-email-settings/"
+    LGHCONF = "http://help.github.com/set-your-user-name-email-and-github-token/"
 
     # Either returns the GitHub user as set by git-config(1) or aborts
     # with an error message.
