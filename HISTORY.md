@@ -1,4 +1,4 @@
-## master
+## 1.7.0 (2011-11-24)
 
 * lock down standalone script to system ruby
 * don't try to use command output pager on Windows
