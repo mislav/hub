@@ -1,5 +1,7 @@
 ## master
 
+## 1.7.0 (2011-11-23)
+
 * lock down standalone script to system ruby
 * don't try to use command output pager on Windows
 * opt in for HTTPS: `git config hub.protocol https`
