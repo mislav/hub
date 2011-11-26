@@ -404,6 +404,13 @@ class HubTest < Test::Unit::TestCase
     end
   end
 
+  def test_am_no_tmpdir
+    with_tmpdir(nil) do
+      cmd = Hub("am https://github.com/defunkt/hub/pull/55").command
+      assert_includes '/tmp/55.patch', cmd
+    end
+  end
+
   def test_am_commit_url
     with_tmpdir('/tmp/') do
       url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
