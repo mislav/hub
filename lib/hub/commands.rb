@@ -40,7 +40,9 @@ module Hub
     API_PULL        = 'http://github.com/api/v2/json/pulls/%s'
     API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
 
-    NAME_WITH_OWNER_RE = /^([\w-]+)(?:\/([\w-]+))?$/
+    NAME_RE = /[\w.-]+/
+    OWNER_RE = /[a-zA-Z0-9-]+/
+    NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
     def run(args)
       slurp_global_flags(args)
@@ -229,11 +231,13 @@ module Hub
     # $ hub remote add origin
     # > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
     def remote(args)
-      if %w[add set-url].include?(args[1]) && args.last =~ NAME_WITH_OWNER_RE
-        user, repo = $1, $2 || repo_name
-      else
-        return # do not touch arguments
+      if %w[add set-url].include?(args[1])
+        name = args.last
+        if name =~ /^(#{OWNER_RE})$/ || name =~ /^(#{OWNER_RE})\/(#{NAME_RE})$/
+          user, repo = $1, $2 || repo_name
+        end
       end
+      return unless user # do not touch arguments
 
       ssh = args.delete('-p')
 

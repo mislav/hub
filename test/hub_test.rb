@@ -97,6 +97,12 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_clone_repo_with_period
+    input   = "clone hookio/hook.js"
+    command = "git clone git://github.com/hookio/hook.js.git"
+    assert_command input, command
+  end
+
   def test_clone_with_arguments
     input   = "clone --bare -o master resque"
     command = "git clone --bare -o master git@github.com:tpw/resque.git"
@@ -165,6 +171,12 @@ class HubTest < Test::Unit::TestCase
   def test_remote_origin
     input   = "remote add origin"
     command = "git remote add origin git://github.com/tpw/hub.git"
+    assert_command input, command
+  end
+
+  def test_remote_add_with_name
+    input   = "remote add another hookio/hub.js"
+    command = "git remote add another git://github.com/hookio/hub.js.git"
     assert_command input, command
   end
 
