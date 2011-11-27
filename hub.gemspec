@@ -1,5 +1,5 @@
 # encoding: utf-8
-Kernel.load File.expand_path('../lib/hub/version.rb', __FILE__)
+require File.expand_path('../lib/hub/version', __FILE__)
 
 Gem::Specification.new do |s|
   s.name              = "hub"
