@@ -1,3 +1,8 @@
+## master
+
+* ensure periods are allowed in repository names
+* fix am/apply commands if TMPDIR environment variable isn't set
+
 ## 1.7.0 (2011-11-24)
 
 * lock down standalone script to system ruby
