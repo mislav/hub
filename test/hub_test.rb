@@ -306,6 +306,16 @@ class HubTest < Test::Unit::TestCase
                     "fetch xoebus"
   end
 
+  def test_fetch_new_remote_https_protocol
+    stub_remotes_group('xoebus', nil)
+    stub_existing_fork('xoebus')
+    stub_https_is_preferred
+
+    assert_commands "git remote add xoebus https://github.com/xoebus/hub.git",
+                    "git fetch xoebus",
+                    "fetch xoebus"
+  end
+
   def test_fetch_new_remote_with_options
     stub_remotes_group('xoebus', nil)
     stub_existing_fork('xoebus')
