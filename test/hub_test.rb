@@ -316,6 +316,19 @@ class HubTest < Test::Unit::TestCase
                     "fetch xoebus"
   end
 
+  def test_fetch_no_auth
+    stub_github_user nil
+    stub_github_token nil
+    stub_remotes_group('xoebus', nil)
+    # stub_existing_fork('xoebus')
+    stub_request(:get, "https://github.com/api/v2/yaml/repos/show/xoebus/hub").
+      to_return(:status => 200)
+
+    assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
+                    "git fetch xoebus",
+                    "fetch xoebus"
+  end
+
   def test_fetch_new_remote_with_options
     stub_remotes_group('xoebus', nil)
     stub_existing_fork('xoebus')
@@ -557,7 +570,10 @@ class HubTest < Test::Unit::TestCase
 
   def test_create_no_openssl
     stub_no_remotes
-    stub_nonexisting_fork('tpw')
+    # stub_nonexisting_fork('tpw')
+    stub_request(:get, "http://#{auth}github.com/api/v2/yaml/repos/show/tpw/hub").
+      to_return(:status => 404)
+
     stub_request(:post, "http://#{auth}github.com/api/v2/yaml/repos/create").
       with(:body => { 'name' => 'hub' })
 
@@ -584,12 +600,14 @@ class HubTest < Test::Unit::TestCase
 
   def test_create_with_env_authentication
     stub_no_remotes
-    stub_nonexisting_fork('mojombo')
-
     old_user  = ENV['GITHUB_USER']
     old_token = ENV['GITHUB_TOKEN']
     ENV['GITHUB_USER']  = 'mojombo'
     ENV['GITHUB_TOKEN'] = '123abc'
+
+    # stub_nonexisting_fork('mojombo')
+    stub_request(:get, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/show/mojombo/hub").
+      to_return(:status => 404)
 
     stub_request(:post, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/create").
       with(:body => { 'name' => 'hub' })
@@ -834,7 +852,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_checkout_pullrequest
-    stub_request(:get, "http://github.com/api/v2/json/pulls/defunkt/hub/73").
+    stub_request(:get, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub/73").
       to_return(:body => mock_pull_response('blueyed:feature'))
 
     assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
@@ -843,7 +861,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_checkout_pullrequest_custom_branch
-    stub_request(:get, "http://github.com/api/v2/json/pulls/defunkt/hub/73").
+    stub_request(:get, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub/73").
       to_return(:body => mock_pull_response('blueyed:feature'))
 
     assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
@@ -854,7 +872,7 @@ class HubTest < Test::Unit::TestCase
   def test_checkout_pullrequest_existing_remote
     stub_command_output 'remote', "origin\nblueyed"
 
-    stub_request(:get, "http://github.com/api/v2/json/pulls/defunkt/hub/73").
+    stub_request(:get, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub/73").
       to_return(:body => mock_pull_response('blueyed:feature'))
 
     assert_commands 'git remote set-branches --add blueyed feature',
@@ -1173,7 +1191,7 @@ config
     end
 
     def stub_fork(user, repo, status)
-      stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
+      stub_request(:get, "https://#{auth}github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
         to_return(:status => status)
     end
 

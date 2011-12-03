@@ -34,10 +34,10 @@ module Hub
     # provides git interrogation methods
     extend Context
 
-    API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_REPO        = 'https://github.com/api/v2/yaml/repos/show/%s/%s'
     API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
-    API_PULL        = 'http://github.com/api/v2/json/pulls/%s'
+    API_PULL        = 'https://github.com/api/v2/json/pulls/%s'
     API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
 
     NAME_RE = /[\w.-]+/
@@ -307,7 +307,8 @@ module Hub
         owner, repo, pull_id = $1, $2, $3
 
         load_net_http
-        pull_body = Net::HTTP.get URI(API_PULL % File.join(owner, repo, pull_id))
+        response = http_request(API_PULL % File.join(owner, repo, pull_id))
+        pull_body = response.body
 
         user, branch = pull_body.match(/"label":\s*"(.+?)"/)[1].split(':', 2)
         new_branch_name = args[2] || "#{user}-#{branch}"
@@ -837,8 +838,7 @@ help
     # Determines whether a user has a fork of the current repo on GitHub.
     def repo_exists?(user, repo = repo_name)
       load_net_http
-      url = API_REPO % [user, repo]
-      Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
+      Net::HTTPSuccess === http_request(API_REPO % [user, repo])
     end
 
     # Forks the current repo using the GitHub API.
@@ -929,11 +929,12 @@ help
       end
     end
 
-    def http_post(url, params = nil)
+    def http_request(url, type = :Get)
       url = URI(url)
-      post = Net::HTTP::Post.new(url.request_uri)
-      post.basic_auth "#{github_user}/token", github_token
-      post.set_form_data params if params
+      user, token = github_user(type != :Get), github_token(type != :Get)
+
+      req = Net::HTTP.const_get(type).new(url.request_uri)
+      req.basic_auth "#{user}/token", token if user and token
 
       port = url.port
       if use_ssl = 'https' == url.scheme and not use_ssl?
@@ -947,7 +948,15 @@ help
         # TODO: SSL peer verification
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
-      http.start { http.request(post) }
+
+      yield req if block_given?
+      http.start { http.request(req) }
+    end
+
+    def http_post(url, params = nil)
+      http_request(url, :Post) do |req|
+        req.set_form_data params if params
+      end
     end
 
     def load_net_http
