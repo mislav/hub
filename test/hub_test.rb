@@ -502,6 +502,8 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_init
+    stub_no_remotes
+    stub_no_git_repo
     assert_commands "git init", "git remote add origin git@github.com:tpw/hub.git", "init -g"
   end
 

@@ -387,7 +387,7 @@ module Hub
     # > git remote add origin git@github.com:USER/REPO.git
     def init(args)
       if args.delete('-g')
-        url = git_url(github_user, repo_name, :private => true)
+        url = git_url(github_user, File.basename(current_dir), :private => true)
         args.after ['remote', 'add', 'origin', url]
       end
     end
