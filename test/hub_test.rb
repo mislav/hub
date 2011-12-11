@@ -1084,6 +1084,14 @@ config
       "open https://github.com/mislav/hub/commits/experimental"
   end
 
+  def test_hub_browse_on_complex_branch
+    stub_branch('refs/heads/feature/foo')
+    stub_tracking('feature/foo', 'mislav', 'feature/bar')
+
+    assert_command 'browse',
+      'open https://github.com/mislav/hub/tree/feature/bar'
+  end
+
   def test_hub_browse_current
     assert_command "browse", "open https://github.com/defunkt/hub"
     assert_command "browse --", "open https://github.com/defunkt/hub"
