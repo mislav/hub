@@ -233,8 +233,9 @@ module Hub
       end
 
       def project
-        if urls.find { |u| u =~ %r{\bgithub\.com[:/](.+)/(.+).git$} }
-          GithubProject.new local_repo, $1, $2
+        if urls.find { |u| u =~ %r{\bgithub\.com[:/](.+)/(.+)\z} }
+          owner = $1
+          GithubProject.new local_repo, owner, $2.sub(/\.git$/, '')
         end
       end
 
