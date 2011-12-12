@@ -9,6 +9,9 @@ Gem::Specification.new do |s|
   s.email             = "chris@ozmm.org"
   s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
 
+  s.add_development_dependency 'rake'
+  s.add_development_dependency 'webmock'
+
   s.files             = %w( README.md Rakefile LICENSE )
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
