@@ -1,3 +1,4 @@
 *.swp
 *~
 /hub
+Gemfile.lock
