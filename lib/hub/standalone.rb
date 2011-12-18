@@ -2,14 +2,20 @@ module Hub
   module Standalone
     extend self
 
+    RUBY_BIN = if File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
+               else
+                 require 'rbconfig'
+                 File.join RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']
+               end
+
     PREAMBLE = <<-preamble
-#!/usr/bin/env ruby
+#!#{RUBY_BIN}
 #
 # This file, hub, is generated code.
 # Please DO NOT EDIT or send patches for it.
 #
 # Please take a look at the source from
-# http://github.com/defunkt/hub
+# https://github.com/defunkt/hub
 # and submit patches against the individual files
 # that build hub.
 #
@@ -34,13 +40,13 @@ preamble
       standalone = ''
       standalone << PREAMBLE
 
-      Dir["#{root}/*.rb"].each do |file|
-        # skip standalone.rb
-        next if file == __FILE__
+      files = Dir["#{root}/*.rb"].sort - [__FILE__]
+      # ensure context.rb appears before others
+      ctx = files.find {|f| f['context.rb'] } and files.unshift(files.delete(ctx))
 
+      files.each do |file|
         File.readlines(file).each do |line|
-          next if line =~ /^\s*#/
-          standalone << line
+          standalone << line if line !~ /^\s*#/
         end
       end
 

@@ -14,6 +14,30 @@ class FetchTest < Test::Unit::TestCase
                     "fetch xoebus"
   end
 
+  def test_fetch_new_remote_https_protocol
+    stub_remotes_group('xoebus', nil)
+    stub_existing_fork('xoebus')
+    stub_https_is_preferred
+
+    assert_commands "git remote add xoebus https://github.com/xoebus/hub.git",
+      "git fetch xoebus",
+      "fetch xoebus"
+  end
+
+  def test_fetch_no_auth
+    stub_github_user nil
+    stub_github_token nil
+    stub_remotes_group('xoebus', nil)
+    # stub_existing_fork('xoebus')
+    stub_request(:get, "https://github.com/api/v2/yaml/repos/show/xoebus/hub").
+      to_return(:status => 200)
+
+    assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
+      "git fetch xoebus",
+      "fetch xoebus"
+
+  end
+
   def test_fetch_new_remote_with_options
     stub_remotes_group('xoebus', nil)
     stub_existing_fork('xoebus')

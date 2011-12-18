@@ -36,7 +36,10 @@ class CreateTest < Test::Unit::TestCase
 
   def test_create_no_openssl
     stub_no_remotes
-    stub_nonexisting_fork('tpw')
+    # stub_nonexisting_fork('tpw')
+    stub_request(:get, "http://#{auth}github.com/api/v2/yaml/repos/show/tpw/hub").
+      to_return(:status => 404)
+
     stub_request(:post, "http://#{auth}github.com/api/v2/yaml/repos/create").
       with(:body => { 'name' => 'hub' })
 
@@ -63,12 +66,15 @@ class CreateTest < Test::Unit::TestCase
 
   def test_create_with_env_authentication
     stub_no_remotes
-    stub_nonexisting_fork('mojombo')
 
     old_user  = ENV['GITHUB_USER']
     old_token = ENV['GITHUB_TOKEN']
     ENV['GITHUB_USER']  = 'mojombo'
     ENV['GITHUB_TOKEN'] = '123abc'
+
+    # stub_nonexisting_fork('mojombo')
+    stub_request(:get, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/show/mojombo/hub").
+      to_return(:status => 404)
 
     stub_request(:post, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/create").
       with(:body => { 'name' => 'hub' })
@@ -136,7 +142,7 @@ class CreateTest < Test::Unit::TestCase
     out = hub("create") do
       stub_github_token(nil)
     end
-    assert_equal "** No GitHub token set. See http://help.github.com/git-email-settings/\n", out
+    assert_equal "** No GitHub token set. See http://help.github.com/set-your-user-name-email-and-github-token/\n", out
   end
 
   def test_create_outside_git_repo

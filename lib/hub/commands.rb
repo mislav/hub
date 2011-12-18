@@ -1,7 +1,4 @@
 module Hub
-  # See context.rb
-  module Context; end
-
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
   # corresponding git command which either gets run before or after
@@ -34,13 +31,18 @@ module Hub
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
     extend self
 
-    # Provides `github_url` and various inspection methods
+    # provides git interrogation methods
     extend Context
 
-    API_REPO        = 'http://github.com/api/v2/yaml/repos/show/%s/%s'
+    API_REPO        = 'https://github.com/api/v2/yaml/repos/show/%s/%s'
     API_FORK        = 'https://github.com/api/v2/yaml/repos/fork/%s/%s'
     API_CREATE      = 'https://github.com/api/v2/yaml/repos/create'
+    API_PULL        = 'https://github.com/api/v2/json/pulls/%s'
     API_PULLREQUEST = 'https://github.com/api/v2/yaml/pulls/%s/%s'
+
+    NAME_RE = /[\w.-]+/
+    OWNER_RE = /[a-zA-Z0-9-]+/
+    NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
     def run(args)
       slurp_global_flags(args)
@@ -68,29 +70,38 @@ module Hub
 
     # $ hub pull-request
     # $ hub pull-request "My humble contribution"
-    # $ hub pull-request #92
+    # $ hub pull-request -i 92
     # $ hub pull-request https://github.com/rtomayko/tilt/issues/92
     def pull_request(args)
       args.shift
       options = { }
       force = explicit_owner = false
-      base_repo = origin_repo
+      base_project = local_repo.main_project
+      head_project = local_repo.current_project
+
+      from_github_ref = lambda do |ref, context_project|
+        if ref.index(':')
+          owner, ref = ref.split(':', 2)
+          project = github_project(context_project.name, owner)
+        end
+        [project || context_project, ref]
+      end
 
       while arg = args.shift
         case arg
         when '-f'
           force = true
         when '-b'
-          options[:base] = Context::Ref.from_github_ref(args.shift, origin_repo)
+          base_project, options[:base] = from_github_ref.call(args.shift, base_project)
         when '-h'
           head = args.shift
           explicit_owner = !!head.index(':')
-          options[:head] = Context::Ref.from_github_ref(head, current_repo)
+          head_project, options[:head] = from_github_ref.call(head, head_project)
+        when '-i'
+          options[:issue] = args.shift
         when %r{^https?://github.com/([^/]+/[^/]+)/issues/(\d+)}
           options[:issue] = $2
-          base_repo = Context::Repo.from_string($1)
-        when %r{^#(\d+)$}
-          options[:issue] = $1
+          base_project = github_project($1)
         else
           if !options[:title] then options[:title] = arg
           else
@@ -99,26 +110,46 @@ module Hub
         end
       end
 
-      options[:base] ||= base_repo.ref_for('master')
-      options[:head] ||= upstream_ref(current_branch, current_repo) ||
-        current_repo.ref_for(normalize_branch(current_branch))
+      options[:project] = base_project
+      options[:base] ||= master_branch.short_name
 
-      if head_repo = options[:head].repo and head_repo.owner != github_user and not explicit_owner
-        options[:head].repo = head_repo.from_owner(github_user)
+      if tracked_branch = options[:head].nil? && current_branch.upstream
+        if base_project == head_project and tracked_branch.short_name == options[:base]
+          $stderr.puts "Aborted: head branch is the same as base (#{options[:base].inspect})"
+          warn "(use `-h <branch>` to specify an explicit pull request head)"
+          abort
+        end
+      end
+      options[:head] ||= (tracked_branch || current_branch).short_name
+
+      if head_project.owner != github_user and !tracked_branch and !explicit_owner
+        head_project = github_project(head_project.name, github_user)
       end
 
-      if not force and not explicit_owner and local_commits = Context::GIT_CONFIG["rev-list --cherry #{options[:head].to_local_ref}..."]
-        $stderr.puts "Aborted: #{local_commits.split("\n").size} commits are not yet pushed to #{options[:head].to_local_ref}"
+      remote_branch = "#{head_project.remote}/#{options[:head]}"
+      options[:head] = "#{head_project.owner}:#{options[:head]}"
+
+      if !force and tracked_branch and local_commits = git_command("rev-list --cherry #{remote_branch}...")
+        $stderr.puts "Aborted: #{local_commits.split("\n").size} commits are not yet pushed to #{remote_branch}"
         warn "(use `-f` to force submit a pull request anyway)"
         abort
       end
 
+      if args.noop?
+        puts "Would reqest a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+        exit
+      end
+
       unless options[:title] or options[:issue]
-        changes = Context::GIT_CONFIG["log --no-color --pretty=medium --cherry %s...%s" %
-          [options[:base].to_local_ref, options[:head].to_local_ref]]
+        base_branch = "#{base_project.remote}/#{options[:base]}"
+        changes = git_command "log --no-color --pretty=medium --cherry %s...%s" %
+          [base_branch, remote_branch]
 
         options[:title], options[:body] = pullrequest_editmsg(changes) { |msg|
-          msg.puts "# You're requesting a pull to #{options[:base].to_github_ref} from #{options[:head].to_github_ref}"
+          msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.puts "#"
+          msg.puts "# Write a message for this pull request. The first block"
+          msg.puts "# of text is the title and the rest is description."
         }
       end
 
@@ -151,13 +182,14 @@ module Hub
         arg = args[idx]
         if arg.index('-') == 0
           idx += 1 if arg =~ has_values
-        elsif arg.index('://') or arg.index('@') or File.directory?(arg)
-          # Bail out early for URLs and local paths.
-          break
-        elsif arg.scan('/').size <= 1 && !arg.include?(':')
+        else
           # $ hub clone rtomayko/tilt
           # $ hub clone tilt
-          args[args.index(arg)] = github_url(:repo => arg, :private => ssh)
+          if arg =~ NAME_WITH_OWNER_RE
+            project = github_project(arg)
+            ssh ||= args[0] != 'submodule' && project.owner == github_user(false)
+            args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
+          end
           break
         end
         idx += 1
@@ -199,17 +231,19 @@ module Hub
     # $ hub remote add origin
     # > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
     def remote(args)
-      return unless ['add','set-url'].include?(args[1]) && args.last !~ %r{.+?://|.+?@|^[./]}
+      if %w[add set-url].include?(args[1])
+        name = args.last
+        if name =~ /^(#{OWNER_RE})$/ || name =~ /^(#{OWNER_RE})\/(#{NAME_RE})$/
+          user, repo = $1, $2 || repo_name
+        end
+      end
+      return unless user # do not touch arguments
 
       ssh = args.delete('-p')
 
-      # user/repo
-      args.last =~ /\b(.+?)(?:\/(.+))?$/
-      user, repo = $1, $2
-
       if args.words[2] == 'origin' && args.words[3].nil?
         # Origin special case triggers default user/repo
-        user = repo = nil
+        user, repo = github_user, repo_name
       elsif args.words[-2] == args.words[1]
         # rtomayko/tilt => rtomayko
         # Make sure you dance around flags.
@@ -219,10 +253,10 @@ module Hub
         # They're specifying the remote name manually (e.g.
         # git remote add blah rtomayko/tilt), so just drop the last
         # argument.
-        args.replace args[0...-1]
+        args.pop
       end
 
-      args << github_url(:user => user, :repo => repo, :private => ssh)
+      args << git_url(user, repo, :private => ssh)
     end
 
     # $ hub fetch mislav
@@ -260,8 +294,32 @@ module Hub
 
       if names.any?
         names.each do |name|
-          args.before ['remote', 'add', name, github_url(:user => name)]
+          args.before ['remote', 'add', name, git_url(name)]
         end
+      end
+    end
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73
+    # > git remote add -f -t feature git://github:com/mislav/hub.git
+    # > git checkout -b mislav-feature mislav/feature
+    def checkout(args)
+      if (2..3) === args.length and args[1] =~ %r{https?://github.com/(.+?)/(.+?)/pull/(\d+)}
+        owner, repo, pull_id = $1, $2, $3
+
+        load_net_http
+        response = http_request(API_PULL % File.join(owner, repo, pull_id))
+        pull_body = response.body
+
+        user, branch = pull_body.match(/"label":\s*"(.+?)"/)[1].split(':', 2)
+        new_branch_name = args[2] || "#{user}-#{branch}"
+
+        if remotes.include? user
+          args.before ['remote', 'set-branches', '--add', user, branch]
+          args.before ['fetch', user, "+refs/heads/#{branch}:refs/remotes/#{user}/#{branch}"]
+        else
+          args.before ['remote', 'add', '-f', '-t', branch, user, github_project(repo, user).git_url]
+        end
+        args[1..-1] = ['-b', new_branch_name, "#{user}/#{branch}"]
       end
     end
 
@@ -292,12 +350,11 @@ module Hub
         if user
           if user == repo_owner
             # fetch from origin if the repo belongs to the user
-            args.before ['fetch', default_remote]
+            args.before ['fetch', origin_remote]
           elsif remotes.include?(user)
             args.before ['fetch', user]
           else
-            remote_url = github_url(:user => user, :repo => repo, :private => false)
-            args.before ['remote', 'add', '-f', user, remote_url]
+            args.before ['remote', 'add', '-f', user, git_url(user, repo)]
           end
         end
       end
@@ -314,7 +371,7 @@ module Hub
         url = url.sub(%r{(/pull/\d+)/\w*$}, '\1') unless gist
         ext = gist ? '.txt' : '.patch'
         url += ext unless File.extname(url) == ext
-        patch_file = File.join(ENV['TMPDIR'], "#{gist ? 'gist-' : ''}#{File.basename(url)}")
+        patch_file = File.join(ENV['TMPDIR'] || '/tmp', "#{gist ? 'gist-' : ''}#{File.basename(url)}")
         args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
         args[idx] = patch_file
       end
@@ -330,7 +387,7 @@ module Hub
     # > git remote add origin git@github.com:USER/REPO.git
     def init(args)
       if args.delete('-g')
-        url = github_url(:private => true, :repo => current_dirname)
+        url = git_url(github_user, File.basename(current_dir), :private => true)
         args.after ['remote', 'add', 'origin', url]
       end
     end
@@ -344,13 +401,13 @@ module Hub
         if repo_exists?(github_user)
           warn "#{github_user}/#{repo_name} already exists on GitHub"
         else
-          fork_repo
+          fork_repo unless args.noop?
         end
 
         if args.include?('--no-remote')
           exit
         else
-          url = github_url(:private => true)
+          url = git_url(github_user, repo_name, :private => true)
           args.replace %W"remote add -f #{github_user} #{url}"
           args.after 'echo', ['new remote:', github_user]
         end
@@ -395,10 +452,10 @@ module Hub
           action = "set remote origin"
         else
           action = "created repository"
-          create_repo(repo_with_owner, options)
+          create_repo(repo_with_owner, options) unless args.noop?
         end
 
-        url = github_url(:repo => new_repo_name, :user => owner, :private => true)
+        url = git_url(owner, new_repo_name, :private => true)
 
         if remotes.first != 'origin'
           args.replace %W"remote add -f origin #{url}"
@@ -419,7 +476,7 @@ module Hub
     def push(args)
       return if args[1].nil? || !args[1].index(',')
 
-      branch  = (args[2] ||= normalize_branch(current_branch))
+      branch  = (args[2] ||= current_branch.short_name)
       remotes = args[1].split(',')
       args[1] = remotes.shift
 
@@ -445,36 +502,33 @@ module Hub
     def browse(args)
       args.shift
       browse_command(args) do
-        user = repo = nil
         dest = args.shift
         dest = nil if dest == '--'
 
         if dest
           # $ hub browse pjhyett/github-services
           # $ hub browse github-services
-          repo = dest
-        elsif repo_user
-          # $ hub browse
-          user = repo_user
+          project = github_project dest
         else
-          abort "Usage: hub browse [<USER>/]<REPOSITORY>"
+          # $ hub browse
+          project = current_project
         end
 
-        params = { :user => user, :repo => repo }
+        abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
 
         # $ hub browse -- wiki
-        case subpage = args.shift
+        path = case subpage = args.shift
         when 'commits'
-          branch = (!dest && tracked_branch) || 'master'
-          params[:web] = "/commits/#{branch}"
+          branch = (!dest && current_branch.upstream) || master_branch
+          "/commits/#{branch.short_name}"
         when 'tree', NilClass
-          branch = !dest && tracked_branch
-          params[:web] = "/tree/#{branch}" if branch && branch != 'master'
+          branch = !dest && current_branch.upstream
+          "/tree/#{branch.short_name}" if branch and !branch.master?
         else
-          params[:web] = "/#{subpage}"
+          "/#{subpage}"
         end
 
-        params
+        project.web_url(path)
       end
     end
 
@@ -490,9 +544,10 @@ module Hub
       args.shift
       browse_command(args) do
         if args.empty?
-          branch = tracked_branch
-          if branch && branch != 'master'
-            range, user = branch, repo_user
+          branch = current_branch.upstream
+          if branch and not branch.master?
+            range = branch.short_name
+            project = current_project
           else
             abort "Usage: hub compare [USER] [<START>...]<END>"
           end
@@ -500,9 +555,12 @@ module Hub
           sha_or_tag = /(\w{1,2}|\w[\w.-]+\w)/
           # replaces two dots with three: "sha1...sha2"
           range = args.pop.sub(/^#{sha_or_tag}\.\.#{sha_or_tag}$/, '\1...\2')
-          user = args.pop || repo_user
+          project = if owner = args.pop then github_project(nil, owner)
+                    else current_project
+                    end
         end
-        { :user => user, :web => "/compare/#{range}" }
+
+        project.web_url "/compare/#{range}"
       end
     end
 
@@ -589,13 +647,21 @@ module Hub
     end
     alias_method "--help", :help
 
+  private
+    #
+    # Helper methods are private so they cannot be invoked
+    # from the command line.
+    #
+
     # The text print when `hub help` is run, kept in its own method
     # for the convenience of the author.
     def improved_help_text
       <<-help
-usage: git [--version] [--exec-path[=GIT_EXEC_PATH]] [--html-path]
-    [-p|--paginate|--no-pager] [--bare] [--git-dir=GIT_DIR]
-    [--work-tree=GIT_WORK_TREE] [--help] COMMAND [ARGS]
+usage: git [--version] [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
+           [-p|--paginate|--no-pager] [--no-replace-objects] [--bare]
+           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
+           [-c name=value] [--help]
+           <command> [<args>]
 
 Basic Commands:
    init       Create an empty git repository or reinitialize an existing one
@@ -629,15 +695,9 @@ Advanced commands:
    bisect     Find by binary search the change that introduced a bug
    grep       Print files with lines matching a pattern in your codebase
 
-See 'git help COMMAND' for more information on a specific command.
+See 'git help <command>' for more information on a specific command.
 help
     end
-
-  private
-    #
-    # Helper methods are private so they cannot be invoked
-    # from the command line.
-    #
 
     # Extract global flags from the front of the arguments list.
     # Makes sure important ones are supplied for calls to subcommands.
@@ -671,7 +731,7 @@ help
           config_pair = args.shift
           # add configuration to our local cache
           key, value = config_pair.split('=', 2)
-          Context::GIT_CONFIG["config #{key}"] = value.to_s
+          git_reader.stub_config_value(key, value)
 
           globals << flag << config_pair
         when '-p', '--paginate', '--no-pager'
@@ -681,8 +741,9 @@ help
         end
       end
 
-      Context::GIT_CONFIG.executable = Array(Context::GIT_CONFIG.executable).concat(globals)
-      args.executable = Array(args.executable).concat(globals).concat(locals)
+      git_reader.add_exec_flags(globals)
+      args.add_exec_flags(globals)
+      args.add_exec_flags(locals)
     end
 
     # Handles common functionality of browser commands like `browse`
@@ -690,10 +751,10 @@ help
     def browse_command(args)
       url_only = args.delete('-u')
       warn "Warning: the `-p` flag has no effect anymore" if args.delete('-p')
-      params = yield
+      url = yield
 
       args.executable = url_only ? 'echo' : browser_launcher
-      args.push github_url({:web => true}.update(params))
+      args.push url
     end
 
     # Returns the terminal-formatted manpage, ready to be printed to
@@ -777,8 +838,7 @@ help
     # Determines whether a user has a fork of the current repo on GitHub.
     def repo_exists?(user, repo = repo_name)
       load_net_http
-      url = API_REPO % [user, repo]
-      Net::HTTPSuccess === Net::HTTP.get_response(URI(url))
+      Net::HTTPSuccess === http_request(API_REPO % [user, repo])
     end
 
     # Forks the current repo using the GitHub API.
@@ -806,20 +866,25 @@ help
 
     # Returns parsed data from the new pull request.
     def create_pullrequest(options)
-      base_repo = options.fetch(:base).repo
+      project = options.fetch(:project)
       params = {
-        'pull[base]' => options[:base].branch,
-        'pull[head]' => options.fetch(:head).to_github_ref
+        'pull[base]' => options.fetch(:base),
+        'pull[head]' => options.fetch(:head)
       }
       params['pull[issue]'] = options[:issue] if options[:issue]
       params['pull[title]'] = options[:title] if options[:title]
       params['pull[body]'] = options[:body] if options[:body]
 
       load_net_http
-      response = http_post(API_PULLREQUEST % [base_repo.owner, base_repo.name], params)
+      response = http_post(API_PULLREQUEST % [project.owner, project.name], params)
       response.error! unless Net::HTTPSuccess === response
-      require 'yaml'
-      YAML.load(response.body)['pull']
+      # GitHub bug: although we request YAML, it returns JSON
+      if response['Content-type'].to_s.include? 'application/json'
+        { "html_url" => response.body.match(/"html_url":\s*"(.+?)"/)[1] }
+      else
+        require 'yaml'
+        YAML.load(response.body)['pull']
+      end
     end
 
     def pullrequest_editmsg(changes)
@@ -829,7 +894,7 @@ help
         yield msg
         if changes
           msg.puts "#\n# Changes:\n#"
-          msg.puts changes.gsub(/^/, '# ')
+          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
         end
       }
       edit_cmd = Array(git_editor).dup << message_file
@@ -864,11 +929,12 @@ help
       end
     end
 
-    def http_post(url, params = nil)
+    def http_request(url, type = :Get)
       url = URI(url)
-      post = Net::HTTP::Post.new(url.request_uri)
-      post.basic_auth "#{github_user}/token", github_token
-      post.set_form_data params if params
+      user, token = github_user(type != :Get), github_token(type != :Get)
+
+      req = Net::HTTP.const_get(type).new(url.request_uri)
+      req.basic_auth "#{user}/token", token if user and token
 
       port = url.port
       if use_ssl = 'https' == url.scheme and not use_ssl?
@@ -882,7 +948,15 @@ help
         # TODO: SSL peer verification
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
       end
-      http.start { http.request(post) }
+
+      yield req if block_given?
+      http.start { http.request(req) }
+    end
+
+    def http_post(url, params = nil)
+      http_request(url, :Post) do |req|
+        req.set_form_data params if params
+      end
     end
 
     def load_net_http

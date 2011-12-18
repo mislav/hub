@@ -7,10 +7,20 @@ class RemoteTest < Test::Unit::TestCase
     assert_command input, command
   end
 
+  def test_remote_add_with_name
+    input   = "remote add another hookio/hub.js"
+    command = "git remote add another git://github.com/hookio/hub.js.git"
+    assert_command input, command
+  end
+
   def test_private_remote_origin
     input   = "remote add -p origin"
     command = "git remote add origin git@github.com:tpw/hub.git"
     assert_command input, command
+  end
+
+  def test_remote_with_host_alias
+    assert_forwarded "remote add origin server:/git/repo.git"
   end
 
   def test_public_remote_origin_as_normal

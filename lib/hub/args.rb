@@ -66,6 +66,10 @@ module Hub
       Array(executable) + args
     end
 
+    def add_exec_flags(flags)
+      self.executable = Array(executable).concat(flags)
+    end
+
     # All the words (as opposed to flags) contained in this argument
     # list.
     #

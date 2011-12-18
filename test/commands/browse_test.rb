@@ -52,6 +52,11 @@ class BrowseTest < Test::Unit::TestCase
     assert_command "browse --", "open https://github.com/defunkt/hub"
   end
 
+  def test_hub_browse_current_https_uri
+    stub_repo_url "https://github.com/defunkt/hub"
+    assert_command "browse", "open https://github.com/defunkt/hub"
+  end
+
   def test_hub_browse_commit_from_current
     assert_command "browse -- commit/6616e4", "open https://github.com/defunkt/hub/commit/6616e4"
   end

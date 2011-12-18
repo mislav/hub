@@ -6,6 +6,8 @@ require 'hub/standalone'
 require 'webmock/test_unit'
 require 'rbconfig'
 require 'yaml'
+require 'forwardable'
+require 'json'
 
 # We're checking for `open` in our tests
 ENV['BROWSER'] = 'open'
@@ -21,9 +23,14 @@ WebMock::BodyPattern.class_eval do
 end
 
 class Test::Unit::TestCase
+  extend Forwardable
 
   # Stubbing commands and git configuration
   COMMANDS = []
+
+  attr_reader :git_reader
+  include Hub::Context::GitReaderMethods
+  def_delegators :git_reader, :stub_config_value, :stub_command_output
 
   def setup
     Hub::Context.class_eval do
@@ -34,50 +41,49 @@ class Test::Unit::TestCase
     end
 
     COMMANDS.replace %w[open groff]
-    Hub::Context::DIRNAME.replace 'hub'
-    Hub::Context::REMOTES.clear
-    Hub::Context::Remote.clear!
+    Hub::Context::PWD.replace '/path/to/hub'
 
-    Hub::Context::GIT_CONFIG.executable = 'git'
-
-    @git = Hub::Context::GIT_CONFIG.replace(Hash.new { |h, k|
-      unless k.index('config alias.') == 0
-        raise ArgumentError, "`git #{k}` not stubbed"
+    @git_reader = Hub::Context::GitReader.new 'git' do |cache, cmd|
+      unless cmd.index('config --get alias.') == 0
+        raise ArgumentError, "`git #{cmd}` not stubbed"
       end
-    }).update(
+    end
+
+    Hub::Commands.instance_variable_set :@git_reader, @git_reader
+    Hub::Commands.instance_variable_set :@local_repo, nil
+
+    @git_reader.stub! \
       'remote' => "mislav\norigin",
       'symbolic-ref -q HEAD' => 'refs/heads/master',
-      'config github.user'   => 'tpw',
-      'config github.token'  => 'abc123',
+      'config --get github.user'   => 'tpw',
+      'config --get github.token'  => 'abc123',
       'config --get-all remote.origin.url' => 'git://github.com/defunkt/hub.git',
       'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
-      "name-rev master@{upstream} --name-only --refs='refs/remotes/*' --no-undefined" => 'remotes/origin/master',
-      'config --bool hub.http-clone' => 'false',
-      'config hub.protocol' => nil,
-      'rev-parse --git-dir' => '.git'
-    )
+      'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
+      'config --get --bool hub.http-clone' => 'false',
+      'config --get hub.protocol' => nil,
+      'rev-parse -q --git-dir' => '.git'
   end
 
   def stub_available_commands(*names)
     COMMANDS.replace names
   end
 
-  def auth(user = @git['config github.user'], password = @git['config github.token'])
+  def auth(user = git_config('github.user'), password = git_config('github.token'))
     "#{user}%2Ftoken:#{password}@"
   end
 
-  def stub_repo_url(value)
-    @git['config --get-all remote.origin.url'] = value
-    Hub::Context::REMOTES.clear
+  def stub_repo_url(value, remote_name = 'origin')
+    stub_config_value "remote.#{remote_name}.url", value, '--get-all'
   end
 
   def stub_branch(value)
-    @git['symbolic-ref -q HEAD'] = value
+    stub_command_output 'symbolic-ref -q HEAD', value
   end
 
   def stub_tracking(from, remote_name, remote_branch)
-    value = remote_branch ? "remotes/#{remote_name}/#{remote_branch}" : nil
-    @git["name-rev #{from}@{upstream} --name-only --refs='refs/remotes/*' --no-undefined"] = value
+    stub_command_output "rev-parse --symbolic-full-name #{from}@{upstream}",
+      remote_branch ? "refs/remotes/#{remote_name}/#{remote_branch}" : nil
   end
 
   def stub_tracking_nothing(from = 'master')
@@ -85,28 +91,28 @@ class Test::Unit::TestCase
   end
 
   def stub_alias(name, value)
-    @git["config alias.#{name}"] = value
+    stub_config_value "alias.#{name}", value
   end
 
   def stub_https_is_preferred
-    @git['config hub.protocol'] = 'https'
+    stub_config_value 'hub.protocol', 'https'
   end
 
   def stub_github_user(name)
-    @git['config github.user'] = name
+    stub_config_value 'github.user', name
   end
 
   def stub_github_token(token)
-    @git['config github.token'] = token
+    stub_config_value 'github.token', token
   end
 
   def stub_no_git_repo
-    @git.replace({})
+    stub_command_output 'rev-parse -q --git-dir', nil
   end
 
   def stub_fork(user, repo, status)
-    stub_request(:get, "github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
-    to_return(:status => status)
+    stub_request(:get, "https://#{auth}github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
+      to_return(:status => status)
   end
 
   def stub_existing_fork(user, repo = 'hub')
@@ -118,11 +124,15 @@ class Test::Unit::TestCase
   end
 
   def stub_no_remotes
-    @git['remote'] = ''
+    stub_command_output 'remote', nil
   end
 
   def stub_remotes_group(name, value)
-    @git["config remotes.#{name}"] = value
+    stub_config_value "remotes.#{name}", value
+  end
+
+  def improved_help_text
+    Hub::Commands.send :improved_help_text
   end
 
   # Mock responses
@@ -131,6 +141,10 @@ class Test::Unit::TestCase
     YAML.dump('pull' => {
       'html_url' => "https://github.com/#{name_with_owner}/pull/#{id}"
     })
+  end
+
+  def mock_pull_response(label)
+    JSON.generate('pull' => { 'head' => {'label' => label} })
   end
 
   #

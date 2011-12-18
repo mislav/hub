@@ -126,10 +126,7 @@ superpowers:
     > git clone git@github.com:schacon/ticgit.git
 
     $ git clone resque
-    > git clone git://github.com/YOUR_USER/resque.git
-
-    $ git clone -p resque
-    > git clone git@github.com:YOUR_USER/resque.git
+    > git clone git@github.com/YOUR_USER/resque.git
 
 ### git remote add
 
@@ -197,8 +194,16 @@ superpowers:
     # explicit title, pull base & head:
     $ git pull-request "I've implemented feature X" -b defunkt:master -h mislav:feature
 
-    $ git pull-request #123
+    $ git pull-request -i 123
     [ attached pull request to issue #123 ]
+
+### git checkout
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73
+    # > git remote add -f -t feature git://github:com/mislav/hub.git
+    # > git checkout -b mislav-feature mislav/feature
+
+    # $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
 
 ### git create
 
@@ -302,7 +307,7 @@ If you see nothing, you need to set the config setting:
     $ git config --global github.user YOUR_USER
 
 For commands that require write access to GitHub (such as `fork`), you'll want to
-setup "github.token" as well. See [local GitHub config guide][2] for more information.
+setup "github.token" as well. See [GitHub config guide][2] for more information.
 
 If present, environment variables `GITHUB_USER` and `GITHUB_TOKEN` override the
 values of "github.user" and "github.token".
@@ -329,8 +334,7 @@ These projects also aim to either improve git or make interacting with
 GitHub simpler:
 
 * [eg](http://www.gnome.org/~newren/eg/)
-* [github-gem](http://github.com/defunkt/github-gem)
-* [gh](http://github.com/visionmedia/gh)
+* [github-gem](https://github.com/defunkt/github-gem)
 
 
 Contributing
@@ -359,8 +363,9 @@ you've set it up so it wraps `git` (see "Aliasing").
 
 You will need the following libraries for development:
 
-* [ronn](https://github.com/rtomayko/ronn)
+* [ronn](https://github.com/rtomayko/ronn) (building man pages)
 * [webmock](https://github.com/bblimke/webmock)
+* [json](http://flori.github.com/json/) (ruby 1.8 only)
 
 Meta
 ----
@@ -376,5 +381,5 @@ Authors
 <https://github.com/defunkt/hub/contributors>
 
 [speed]: http://gist.github.com/284823
-[2]: http://github.com/guides/local-github-config
+[2]: http://help.github.com/set-your-user-name-email-and-github-token/
 [gc]: https://twitter.com/brynary/status/49560668994674688

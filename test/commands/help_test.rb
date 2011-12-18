@@ -2,15 +2,15 @@ require 'test_helper'
 
 class HelpTest < Test::Unit::TestCase
   def test_help
-    assert_equal Hub::Commands.improved_help_text, hub("help")
+    assert_equal improved_help_text, hub("help")
   end
 
   def test_help_by_default
-    assert_equal Hub::Commands.improved_help_text, hub("")
+    assert_equal improved_help_text, hub("")
   end
 
   def test_help_with_pager
-    assert_equal Hub::Commands.improved_help_text, hub("-p")
+    assert_equal improved_help_text, hub("-p")
   end
 
   def test_help_hub

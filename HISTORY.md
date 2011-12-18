@@ -1,5 +1,12 @@
 ## master
 
+* ensure periods are allowed in repository names
+* fix am/apply commands if TMPDIR environment variable isn't set
+
+## 1.7.0 (2011-11-24)
+
+* lock down standalone script to system ruby
+* don't try to use command output pager on Windows
 * opt in for HTTPS: `git config hub.protocol https`
 * add `hub pull-request`
 * improve detecting upstream configuration ("tracking" branches)

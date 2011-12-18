@@ -124,8 +124,10 @@ desc "Copy files to gh-pages branch, but don't publish"
 task :gh_pages => [:check_dirty, "hub", "man/hub.1.html"] do
   cp "man/hub.1.html", "html"
   sh "git checkout gh-pages"
-  sh "mv hub standalone"
-  sh "mv html hub.1.html"
+  # replace the specific shebang with a generic ruby one
+  sh "echo '#!/usr/bin/env' ruby > standalone"
+  sh "sed 1d hub >> standalone"
+  mv "html", "hub.1.html"
   sh "git add standalone hub.1.html"
   sh "git commit -m 'update standalone'"
 end

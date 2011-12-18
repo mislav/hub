@@ -14,7 +14,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_exec_path_arg
     out = hub('--exec-path=/home/wombat/share/my-l33t-git-core')
-    assert_equal Hub::Commands.improved_help_text, out
+    assert_equal improved_help_text, out
   end
 
   def test_html_path
@@ -39,6 +39,6 @@ class HubTest < Test::Unit::TestCase
   def test_global_flags_preserved
     cmd = '--no-pager --bare -c core.awesome=true -c name=value --git-dir=/srv/www perform'
     assert_command cmd, 'git --bare -c core.awesome=true -c name=value --git-dir=/srv/www --no-pager perform'
-    assert_equal %w[git --bare -c core.awesome=true -c name=value --git-dir=/srv/www], @git.executable
+    assert_equal %w[git --bare -c core.awesome=true -c name=value --git-dir=/srv/www], git_reader.executable
   end
 end
