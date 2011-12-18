@@ -1,4 +1,4 @@
-require 'helper'
+require 'test_helper'
 require 'fileutils'
 
 class StandaloneTest < Test::Unit::TestCase
