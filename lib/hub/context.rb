@@ -297,7 +297,7 @@ module Hub
       alias to_s name
 
       def short_name
-        name.split('/').last
+        name.sub(%r{^refs/(remotes/)?.+?/}, '')
       end
 
       def master?
