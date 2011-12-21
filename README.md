@@ -365,7 +365,6 @@ You will need the following libraries for development:
 
 * [ronn](https://github.com/rtomayko/ronn) (building man pages)
 * [webmock](https://github.com/bblimke/webmock)
-* [json](http://flori.github.com/json/) (ruby 1.8 only)
 
 Meta
 ----

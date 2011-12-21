@@ -3,7 +3,6 @@ require 'webmock/test_unit'
 require 'rbconfig'
 require 'yaml'
 require 'forwardable'
-require 'json'
 
 WebMock::BodyPattern.class_eval do
   undef normalize_hash
@@ -791,7 +790,7 @@ class HubTest < Test::Unit::TestCase
     stub_branch('refs/heads/feature')
     stub_tracking_nothing('feature')
 
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
@@ -804,7 +803,7 @@ class HubTest < Test::Unit::TestCase
     stub_tracking('feature', 'mislav', 'yay-feature')
     stub_command_output "rev-list --cherry mislav/master...", nil
 
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:yay-feature", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
@@ -813,7 +812,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_explicit_head
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:yay-feature", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
@@ -822,7 +821,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_explicit_head_with_owner
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mojombo:feature", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
@@ -831,7 +830,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_explicit_base
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "feature", 'head' => "defunkt:master", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
@@ -840,7 +839,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_explicit_base_with_owner
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/mojombo/hub").
       with(:body => { 'pull' => {'base' => "feature", 'head' => "defunkt:master", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
@@ -849,7 +848,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_pullrequest_explicit_base_with_repo
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hubbub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/mojombo/hubbub").
       with(:body => { 'pull' => {'base' => "feature", 'head' => "defunkt:master", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
@@ -862,7 +861,7 @@ class HubTest < Test::Unit::TestCase
     stub_tracking('myfix', 'mislav', 'awesomefix')
     stub_command_output "rev-list --cherry mislav/awesomefix...", nil
 
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/defunkt/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:awesomefix", 'issue' => '92'} }).
       to_return(:body => mock_pullreq_response(92))
 
@@ -875,7 +874,7 @@ class HubTest < Test::Unit::TestCase
     stub_tracking('myfix', 'mislav', 'awesomefix')
     stub_command_output "rev-list --cherry mislav/awesomefix...", nil
 
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/pulls/mojombo/hub").
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/mojombo/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:awesomefix", 'issue' => '92'} }).
       to_return(:body => mock_pullreq_response(92, 'mojombo/hub'))
 
@@ -1290,13 +1289,11 @@ config
     end
 
     def mock_pullreq_response(id, name_with_owner = 'defunkt/hub')
-      YAML.dump('pull' => {
-        'html_url' => "https://github.com/#{name_with_owner}/pull/#{id}"
-      })
+      %({"pull": { "html_url": "https://github.com/#{name_with_owner}/pull/#{id}" }})
     end
 
     def mock_pull_response(label)
-      JSON.generate('pull' => { 'head' => {'label' => label} })
+      %({"pull": { "head": { "label": "#{label}" }}})
     end
 
     def improved_help_text

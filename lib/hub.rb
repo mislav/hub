@@ -1,5 +1,6 @@
 require 'hub/version'
 require 'hub/args'
 require 'hub/context'
+require 'hub/json'
 require 'hub/commands'
 require 'hub/runner'

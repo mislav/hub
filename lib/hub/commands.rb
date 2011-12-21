@@ -304,9 +304,9 @@ module Hub
 
         load_net_http
         response = http_request(url.project.api_pullrequest_url(pull_id, 'json'))
-        pull_body = response.body
+        pull_data = JSON.parse(response.body)['pull']
 
-        user, branch = pull_body.match(/"label":\s*"(.+?)"/)[1].split(':', 2)
+        user, branch = pull_data['head']['label'].split(':', 2)
         new_branch_name = args[2] || "#{user}-#{branch}"
 
         if remotes.include? user
@@ -873,15 +873,9 @@ help
       params['pull[body]'] = options[:body] if options[:body]
 
       load_net_http
-      response = http_post(project.api_create_pullrequest_url('yaml'), params)
+      response = http_post(project.api_create_pullrequest_url('json'), params)
       response.error! unless Net::HTTPSuccess === response
-      # GitHub bug: although we request YAML, it returns JSON
-      if response['Content-type'].to_s.include? 'application/json'
-        { "html_url" => response.body.match(/"html_url":\s*"(.+?)"/)[1] }
-      else
-        require 'yaml'
-        YAML.load(response.body)['pull']
-      end
+      JSON.parse(response.body)['pull']
     end
 
     def pullrequest_editmsg(changes)
