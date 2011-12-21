@@ -1,5 +1,11 @@
 ## master
 
+* support branches with slashes in their name
+* display server errors when creating pullrequest fails
+* support GitHub Enterprise via multiple whitelisted host names
+* GitHub remote urls don't have to necessarily end in ".git"
+* fix `git init -g`
+* authenticate all API requests, helps dealing with private repos
 * ensure periods are allowed in repository names
 * fix am/apply commands if TMPDIR environment variable isn't set
 
