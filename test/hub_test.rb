@@ -61,18 +61,21 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_private_clone
+    stub_no_git_repo
     input   = "clone -p rtomayko/ronn"
     command = "git clone git@github.com:rtomayko/ronn.git"
     assert_command input, command
   end
 
   def test_private_clone_noop
+    stub_no_git_repo
     input   = "--noop clone -p rtomayko/ronn"
     command = "git clone git@github.com:rtomayko/ronn.git\n"
     assert_output command, hub(input)
   end
 
   def test_https_clone
+    stub_no_git_repo
     stub_https_is_preferred
     input   = "clone rtomayko/ronn"
     command = "git clone https://github.com/rtomayko/ronn.git"
@@ -80,40 +83,47 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_public_clone
+    stub_no_git_repo
     input   = "clone rtomayko/ronn"
     command = "git clone git://github.com/rtomayko/ronn.git"
     assert_command input, command
   end
 
   def test_your_private_clone
+    stub_no_git_repo
     input   = "clone -p resque"
     command = "git clone git@github.com:tpw/resque.git"
     assert_command input, command
   end
 
   def test_your_clone_is_always_private
+    stub_no_git_repo
     input   = "clone resque"
     command = "git clone git@github.com:tpw/resque.git"
     assert_command input, command
   end
 
   def test_clone_repo_with_period
+    stub_no_git_repo
     input   = "clone hookio/hook.js"
     command = "git clone git://github.com/hookio/hook.js.git"
     assert_command input, command
   end
 
   def test_clone_with_arguments
+    stub_no_git_repo
     input   = "clone --bare -o master resque"
     command = "git clone --bare -o master git@github.com:tpw/resque.git"
     assert_command input, command
   end
 
   def test_clone_with_arguments_and_destination
+    stub_no_git_repo
     assert_forwarded "clone --template=one/two git://github.com/tpw/resque.git --origin master resquetastic"
   end
 
   def test_your_private_clone_fails_without_config
+    stub_no_git_repo
     out = hub("clone -p mustache") do
       stub_github_user(nil)
     end
@@ -122,6 +132,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_your_public_clone_fails_without_config
+    stub_no_git_repo
     out = hub("clone mustache") do
       stub_github_user(nil)
     end
@@ -130,26 +141,32 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_private_clone_left_alone
+    stub_no_git_repo
     assert_forwarded "clone git@github.com:rtomayko/ronn.git"
   end
 
   def test_public_clone_left_alone
+    stub_no_git_repo
     assert_forwarded "clone git://github.com/rtomayko/ronn.git"
   end
 
   def test_normal_public_clone_with_path
+    stub_no_git_repo
     assert_forwarded "clone git://github.com/rtomayko/ronn.git ronn-dev"
   end
 
   def test_normal_clone_from_path
+    stub_no_git_repo
     assert_forwarded "clone ./test"
   end
 
   def test_clone_with_host_alias
+    stub_no_git_repo
     assert_forwarded "clone server:git/repo.git"
   end
 
   def test_enterprise_clone
+    stub_no_git_repo
     stub_github_user('myfiname', 'git.my.org')
     with_host_env('git.my.org') do
       assert_command "clone myrepo", "git clone git@git.my.org:myfiname/myrepo.git"
@@ -517,6 +534,15 @@ class HubTest < Test::Unit::TestCase
     stub_no_remotes
     stub_no_git_repo
     assert_commands "git init", "git remote add origin git@github.com:tpw/hub.git", "init -g"
+  end
+
+  def test_init_enterprise
+    stub_no_remotes
+    stub_no_git_repo
+    stub_github_user('myfiname', 'git.my.org')
+    with_host_env('git.my.org') do
+      assert_commands "git init", "git remote add origin git@git.my.org:myfiname/hub.git", "init -g"
+    end
   end
 
   def test_init_no_login

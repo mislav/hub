@@ -180,8 +180,12 @@ module Hub
           # $ hub clone rtomayko/tilt
           # $ hub clone tilt
           if arg =~ NAME_WITH_OWNER_RE
-            project = github_project(arg)
-            ssh ||= args[0] != 'submodule' && project.owner == github_user(false)
+            # FIXME: this logic shouldn't be duplicated here!
+            name, owner = arg, nil
+            owner, name = name.split('/', 2) if name.index('/')
+            host = ENV['GITHUB_HOST']
+            project = Context::GithubProject.new(nil, owner || github_user(true, host), name, host || 'github.com')
+            ssh ||= args[0] != 'submodule' && project.owner == github_user(false, host) || host
             args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
           end
           break
@@ -383,7 +387,9 @@ module Hub
     def init(args)
       if args.delete('-g')
         # can't use default_host because there is no local_repo yet
-        project = Context::GithubProject.new(nil, github_user, File.basename(current_dir), 'github.com')
+        # FIXME: this shouldn't be here!
+        host = ENV['GITHUB_HOST']
+        project = Context::GithubProject.new(nil, github_user(true, host), File.basename(current_dir), host || 'github.com')
         url = project.git_url(:private => true, :https => https_protocol?)
         args.after ['remote', 'add', 'origin', url]
       end
