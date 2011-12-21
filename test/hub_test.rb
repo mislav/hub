@@ -716,6 +716,12 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
+  def test_fork_not_in_repo
+    stub_no_git_repo
+    expected = "fatal: Not a git repository\n"
+    assert_output expected, "fork"
+  end
+
   def test_fork_enterprise
     stub_hub_host('git.my.org')
     stub_repo_url('git@git.my.org:defunkt/hub.git')

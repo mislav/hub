@@ -84,9 +84,13 @@ module Hub
     include GitReaderMethods
     private :git_config, :git_command
 
-    def local_repo
+    def local_repo(fatal = true)
       @local_repo ||= begin
-        LocalRepo.new git_reader, current_dir if is_repo?
+        if is_repo?
+          LocalRepo.new git_reader, current_dir
+        elsif fatal
+          abort "fatal: Not a git repository"
+        end
       end
     end
 
@@ -357,7 +361,7 @@ module Hub
         owner ||= github_user
       end
 
-      if local_repo and main_project = local_repo.main_project
+      if local_repo(false) and main_project = local_repo.main_project
         project = main_project.dup
         project.owner = owner
         project.name = name
@@ -381,7 +385,7 @@ module Hub
     # Either returns the GitHub user as set by git-config(1) or aborts
     # with an error message.
     def github_user(fatal = true, host = nil)
-      if local = local_repo
+      if local = local_repo(false)
         host ||= local.default_host
         host = nil if host == local.main_host
       end
@@ -398,7 +402,7 @@ module Hub
     end
 
     def github_token(fatal = true, host = nil)
-      if local = local_repo
+      if local = local_repo(false)
         host ||= local.default_host
         host = nil if host == local.main_host
       end
