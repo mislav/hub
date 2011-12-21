@@ -57,6 +57,7 @@ class HubTest < Test::Unit::TestCase
       'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
       'config --get --bool hub.http-clone' => 'false',
       'config --get hub.protocol' => nil,
+      'config --get-all hub.host' => nil,
       'rev-parse -q --git-dir' => '.git'
   end
 
@@ -149,6 +150,14 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded "clone server:git/repo.git"
   end
 
+  def test_enterprise_clone
+    stub_github_user('myfiname', 'git.my.org')
+    with_host_env('git.my.org') do
+      assert_command "clone myrepo", "git clone git@git.my.org:myfiname/myrepo.git"
+      assert_command "clone another/repo", "git clone git@git.my.org:another/repo.git"
+    end
+  end
+
   def test_alias_expand
     stub_alias 'c', 'clone --bare'
     input   = "c rtomayko/ronn"
@@ -186,10 +195,12 @@ class HubTest < Test::Unit::TestCase
     assert_command input, command
   end
 
-  def test_public_remote_origin_as_normal
-    input   = "remote add origin http://github.com/defunkt/resque.git"
-    command = "git remote add origin http://github.com/defunkt/resque.git"
-    assert_command input, command
+  def test_public_remote_url_untouched
+    assert_forwarded "remote add origin http://github.com/defunkt/resque.git"
+  end
+
+  def test_private_remote_url_untouched
+    assert_forwarded "remote add origin git@github.com:defunkt/resque.git"
   end
 
   def test_remote_from_rel_path
@@ -204,8 +215,10 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded "remote add origin server:/git/repo.git"
   end
 
-  def test_private_remote_origin_as_normal
-    assert_forwarded "remote add origin git@github.com:defunkt/resque.git"
+  def test_remote_add_enterprise
+    stub_hub_host('git.my.org')
+    stub_repo_url('git@git.my.org:defunkt/hub.git')
+    assert_command "remote add another", "git remote add another git@git.my.org:another/hub.git"
   end
 
   def test_public_submodule
@@ -655,7 +668,7 @@ class HubTest < Test::Unit::TestCase
     stub_no_remotes
     stub_existing_fork('tpw')
 
-    expected = "tpw/hub already exists on GitHub\n"
+    expected = "tpw/hub already exists on github.com\n"
     expected << "remote add -f origin git@github.com:tpw/hub.git\n"
     expected << "set remote origin: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
@@ -666,7 +679,7 @@ class HubTest < Test::Unit::TestCase
     stub_existing_fork('tpw')
     stub_https_is_preferred
 
-    expected = "tpw/hub already exists on GitHub\n"
+    expected = "tpw/hub already exists on github.com\n"
     expected << "remote add -f origin https://github.com/tpw/hub.git\n"
     expected << "set remote origin: tpw/hub\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
@@ -703,6 +716,21 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
+  def test_fork_enterprise
+    stub_hub_host('git.my.org')
+    stub_repo_url('git@git.my.org:defunkt/hub.git')
+    stub_github_user('myfiname', 'git.my.org')
+    stub_github_token('789xyz', 'git.my.org')
+
+    stub_request(:get, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/yaml/repos/show/myfiname/hub").
+      to_return(:status => 404)
+    stub_request(:post, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/yaml/repos/fork/defunkt/hub")
+
+    expected = "remote add -f myfiname git@git.my.org:myfiname/hub.git\n"
+    expected << "new remote: myfiname\n"
+    assert_output expected, "fork"
+  end
+
   def test_fork_failed
     stub_nonexisting_fork('tpw')
     stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub").
@@ -722,7 +750,7 @@ class HubTest < Test::Unit::TestCase
   def test_fork_already_exists
     stub_existing_fork('tpw')
 
-    expected = "tpw/hub already exists on GitHub\n"
+    expected = "tpw/hub already exists on github.com\n"
     expected << "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
@@ -732,7 +760,7 @@ class HubTest < Test::Unit::TestCase
     stub_existing_fork('tpw')
     stub_https_is_preferred
 
-    expected = "tpw/hub already exists on GitHub\n"
+    expected = "tpw/hub already exists on github.com\n"
     expected << "remote add -f tpw https://github.com/tpw/hub.git\n"
     expected << "new remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
@@ -1146,14 +1174,16 @@ config
     assert_equal %w[git --bare -c core.awesome=true -c name=value --git-dir=/srv/www], git_reader.executable
   end
 
-  protected
+  private
 
-    def stub_github_user(name)
-      stub_config_value 'github.user', name
+    def stub_github_user(name, host = '')
+      host = %(."#{host}") unless host.empty?
+      stub_config_value "github#{host}.user", name
     end
 
-    def stub_github_token(token)
-      stub_config_value 'github.token', token
+    def stub_github_token(token, host = '')
+      host = %(."#{host}") unless host.empty?
+      stub_config_value "github#{host}.token", token
     end
 
     def stub_repo_url(value, remote_name = 'origin')
@@ -1210,6 +1240,10 @@ config
       stub_config_value 'hub.protocol', 'https'
     end
 
+    def stub_hub_host(names)
+      stub_config_value "hub.host", Array(names).join("\n"), '--get-all'
+    end
+
     def with_browser_env(value)
       browser, ENV['BROWSER'] = ENV['BROWSER'], value
       yield
@@ -1222,6 +1256,13 @@ config
       yield
     ensure
       ENV['TMPDIR'] = dir
+    end
+
+    def with_host_env(value)
+      host, ENV['GITHUB_HOST'] = ENV['GITHUB_HOST'], value
+      yield
+    ensure
+      ENV['GITHUB_HOST'] = host
     end
 
     def assert_browser(browser)

@@ -1,5 +1,6 @@
 require 'shellwords'
 require 'forwardable'
+require 'uri'
 
 module Hub
   # Provides methods for inspecting the environment, such as GitHub user/token
@@ -92,7 +93,7 @@ module Hub
     repo_methods = [
       :current_branch, :master_branch,
       :current_project, :upstream_project,
-      :repo_owner,
+      :repo_owner, :repo_host,
       :remotes, :remotes_group, :origin_remote
     ]
     def_delegator :local_repo, :name, :repo_name
@@ -114,6 +115,10 @@ module Hub
         if project = main_project
           project.owner
         end
+      end
+
+      def repo_host
+        project = main_project and project.host
       end
 
       def main_project
@@ -162,9 +167,43 @@ module Hub
       def remote_by_name(remote_name)
         remotes.find {|r| r.name == remote_name }
       end
+
+      def known_hosts
+        git_config('hub.host', :all).to_s.split("\n") + [default_host]
+      end
+
+      def default_host
+        ENV['GITHUB_HOST'] || main_host
+      end
+
+      def main_host
+        'github.com'
+      end
     end
 
-    class GithubProject < Struct.new(:local_repo, :owner, :name)
+    class GithubProject < Struct.new(:local_repo, :owner, :name, :host)
+      def self.from_url(url, local_repo)
+        if local_repo.known_hosts.include? url.host
+          _, owner, name = url.path.split('/', 4)
+          GithubProject.new(local_repo, owner, name.sub(/\.git$/, ''), url.host)
+        end
+      end
+
+      def initialize(*args)
+        super
+        self.host ||= local_repo.default_host
+      end
+
+      def private?
+        local_repo and host != local_repo.main_host
+      end
+
+      def owned_by(new_owner)
+        new_project = dup
+        new_project.owner = new_owner
+        new_project
+      end
+
       def name_with_owner
         "#{owner}/#{name}"
       end
@@ -187,14 +226,66 @@ module Hub
             path = '/wiki' + path
           end
         end
-        'https://github.com/' + project_name + path.to_s
+        "https://#{host}/" + project_name + path.to_s
       end
 
       def git_url(options = {})
-        if options[:https] then 'https://github.com/'
-        elsif options[:private] then 'git@github.com:'
-        else 'git://github.com/'
+        if options[:https] then "https://#{host}/"
+        elsif options[:private] or private? then "git@#{host}:"
+        else "git://#{host}/"
         end + name_with_owner + '.git'
+      end
+
+      def api_url(type, resource, action)
+        URI("https://#{host}/api/v2/#{type}/#{resource}/#{action}")
+      end
+
+      def api_show_url(type)
+        api_url(type, 'repos', "show/#{owner}/#{name}")
+      end
+
+      def api_fork_url(type)
+        api_url(type, 'repos', "fork/#{owner}/#{name}")
+      end
+
+      def api_create_url(type)
+        api_url(type, 'repos', 'create')
+      end
+
+      def api_pullrequest_url(id, type)
+        api_url(type, 'pulls', "#{owner}/#{name}/#{id}")
+      end
+
+      def api_create_pullrequest_url(type)
+        api_url(type, 'pulls', "#{owner}/#{name}")
+      end
+    end
+
+    class GithubURL < URI::HTTPS
+      extend Forwardable
+
+      attr_reader :project
+      def_delegator :project, :name, :project_name
+      def_delegator :project, :owner, :project_owner
+
+      def self.resolve(url, local_repo)
+        u = URI(url)
+        if %[http https].include? u.scheme and project = GithubProject.from_url(u, local_repo)
+          self.new(u.scheme, u.userinfo, u.host, u.port, u.registry,
+                   u.path, u.opaque, u.query, u.fragment, project)
+        end
+      rescue URI::InvalidURIError
+        nil
+      end
+
+      def initialize(*args)
+        @project = args.pop
+        super(*args)
+      end
+
+      # segment of path after the project owner and name
+      def project_path
+        path.split('/', 4)[3]
       end
     end
 
@@ -233,14 +324,24 @@ module Hub
       end
 
       def project
-        if urls.find { |u| u =~ %r{\bgithub\.com[:/](.+)/(.+)\z} }
-          owner = $1
-          GithubProject.new local_repo, owner, $2.sub(/\.git$/, '')
-        end
+        urls.each { |url|
+          if valid = GithubProject.from_url(url, local_repo)
+            return valid
+          end
+        }
+        nil
       end
 
       def urls
-        @urls ||= local_repo.git_config("remote.#{name}.url", :all).to_s.split("\n")
+        @urls ||= local_repo.git_config("remote.#{name}.url", :all).to_s.split("\n").map { |uri|
+          begin
+            if uri =~ %r{^[\w-]+://}    then URI(uri)
+            elsif uri =~ %r{^([^/]+?):} then URI("ssh://#{$1}/#{$'}")  # scp-like syntax
+            end
+          rescue URI::InvalidURIError
+            nil
+          end
+        }.compact
       end
     end
 
@@ -256,7 +357,14 @@ module Hub
         owner ||= github_user
       end
 
-      GithubProject.new local_repo, owner, name
+      if local_repo and main_project = local_repo.main_project
+        project = main_project.dup
+        project.owner = owner
+        project.name = name
+        project
+      else
+        GithubProject.new(local_repo, owner, name)
+      end
     end
 
     def git_url(owner = nil, name = nil, options = {})
@@ -264,23 +372,45 @@ module Hub
       project.git_url({:https => https_protocol?}.update(options))
     end
 
+    def resolve_github_url(url)
+      GithubURL.resolve(url, local_repo) if url =~ /^https?:/
+    end
+
     LGHCONF = "http://help.github.com/set-your-user-name-email-and-github-token/"
 
     # Either returns the GitHub user as set by git-config(1) or aborts
     # with an error message.
-    def github_user(fatal = true)
-      if user = ENV['GITHUB_USER'] || git_config('github.user')
+    def github_user(fatal = true, host = nil)
+      if local = local_repo
+        host ||= local.default_host
+        host = nil if host == local.main_host
+      end
+      host = %(."#{host}") if host
+      if user = ENV['GITHUB_USER'] || git_config("github#{host}.user")
         user
       elsif fatal
-        abort("** No GitHub user set. See #{LGHCONF}")
+        if host.nil?
+          abort("** No GitHub user set. See #{LGHCONF}")
+        else
+          abort("** No user set for github#{host}")
+        end
       end
     end
 
-    def github_token(fatal = true)
-      if token = ENV['GITHUB_TOKEN'] || git_config('github.token')
+    def github_token(fatal = true, host = nil)
+      if local = local_repo
+        host ||= local.default_host
+        host = nil if host == local.main_host
+      end
+      host = %(."#{host}") if host
+      if token = ENV['GITHUB_TOKEN'] || git_config("github#{host}.token")
         token
       elsif fatal
-        abort("** No GitHub token set. See #{LGHCONF}")
+        if host.nil?
+          abort("** No GitHub token set. See #{LGHCONF}")
+        else
+          abort("** No token set for github#{host}")
+        end
       end
     end
 
