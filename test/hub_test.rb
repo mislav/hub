@@ -906,6 +906,15 @@ class HubTest < Test::Unit::TestCase
       "checkout https://github.com/defunkt/hub/pull/73/files"
   end
 
+  def test_checkout_private_pullrequest
+    stub_request(:get, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub/73").
+      to_return(:body => mock_pull_response('blueyed:feature', :private))
+
+    assert_commands 'git remote add -f -t feature blueyed git@github.com:blueyed/hub.git',
+      'git checkout -b blueyed-feature blueyed/feature',
+      "checkout https://github.com/defunkt/hub/pull/73/files"
+  end
+
   def test_checkout_pullrequest_custom_branch
     stub_request(:get, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub/73").
       to_return(:body => mock_pull_response('blueyed:feature'))
@@ -1311,8 +1320,8 @@ config
       %({"pull": { "html_url": "https://github.com/#{name_with_owner}/pull/#{id}" }})
     end
 
-    def mock_pull_response(label)
-      %({"pull": { "head": { "label": "#{label}" }}})
+    def mock_pull_response(label, priv = false)
+      %({"pull": { "head": { "label": "#{label}", "repository": {"private":#{!!priv}} }}})
     end
 
     def improved_help_text

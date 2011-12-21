@@ -1,5 +1,6 @@
 ## master
 
+* handle pull requests from private repos
 * support branches with slashes in their name
 * display server errors when creating pullrequest fails
 * support GitHub Enterprise via multiple whitelisted host names

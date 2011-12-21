@@ -313,7 +313,9 @@ module Hub
           args.before ['remote', 'set-branches', '--add', user, branch]
           args.before ['fetch', user, "+refs/heads/#{branch}:refs/remotes/#{user}/#{branch}"]
         else
-          args.before ['remote', 'add', '-f', '-t', branch, user, github_project(url.project_name, user).git_url]
+          url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repository']['private'],
+                                                               :https => https_protocol?)
+          args.before ['remote', 'add', '-f', '-t', branch, user, url]
         end
         args[1..-1] = ['-b', new_branch_name, "#{user}/#{branch}"]
       end
