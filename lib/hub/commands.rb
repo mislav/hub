@@ -929,7 +929,7 @@ help
     end
 
     def http_request(url, type = :Get)
-      url = URI(url)
+      url = URI(url) unless url.respond_to? :host
       user, token = github_user(type != :Get, url.host), github_token(type != :Get, url.host)
 
       req = Net::HTTP.const_get(type).new(url.request_uri)
