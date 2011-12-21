@@ -970,7 +970,13 @@ help
 
     def display_http_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.code})"
-      warn "Check your token configuration (`git config github.token`)" if response.code.to_i == 401
+      case response.code.to_i
+      when 401 then warn "Check your token configuration (`git config github.token`)"
+      when 422
+        if response.content_type =~ /\bjson\b/ and data = JSON.parse(response.body) and data["error"]
+          $stderr.puts data["error"]
+        end
+      end
     end
 
   end

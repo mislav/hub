@@ -882,6 +882,17 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "pull-request https://github.com/mojombo/hub/issues/92#comment_4"
   end
 
+  def test_pullrequest_fails
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
+      to_return(:status => [422, "Unprocessable Entity"],
+                :headers => {"Content-type" => "application/json"},
+                :body => %({"error":["oh no!", "it failed."]}))
+
+    expected = "Error creating pull request: Unprocessable Entity (HTTP 422)\n"
+    expected << "oh no!\nit failed.\n"
+    assert_output expected, "pull-request hereyougo -b feature -f"
+  end
+
   def test_checkout_no_changes
     assert_forwarded "checkout master"
   end
