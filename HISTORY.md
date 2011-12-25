@@ -1,5 +1,6 @@
 ## master
 
+* ensure Content-Length for POST requests
 * handle pull requests from private repos
 * support branches with slashes in their name
 * display server errors when creating pullrequest fails

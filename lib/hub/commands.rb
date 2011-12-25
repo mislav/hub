@@ -955,6 +955,7 @@ help
     def http_post(url, params = nil)
       http_request(url, :Post) do |req|
         req.set_form_data params if params
+        req['Content-Length'] = req.body ? req.body.length : 0
       end
     end
 

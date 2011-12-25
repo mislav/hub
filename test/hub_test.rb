@@ -734,11 +734,12 @@ class HubTest < Test::Unit::TestCase
 
   def test_fork
     stub_nonexisting_fork('tpw')
-    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub")
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub").
+      with { |req| req.headers['Content-Length'] == 0 }
 
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
     expected << "new remote: tpw\n"
-    assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
+    assert_output expected, "fork"
   end
 
   def test_fork_not_in_repo
@@ -817,8 +818,9 @@ class HubTest < Test::Unit::TestCase
     stub_tracking_nothing('feature')
 
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
-      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo"} }).
-      to_return(:body => mock_pullreq_response(1))
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo"} }) { |req|
+        req.headers['Content-Length'] == 76
+      }.to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
     assert_output expected, "pull-request hereyougo -f"
