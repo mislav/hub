@@ -116,8 +116,10 @@ module Hub
       end
       options[:head] ||= (tracked_branch || current_branch).short_name
 
-      if head_project.owner != github_user and !tracked_branch and !explicit_owner
-        head_project = github_project(head_project.name, github_user)
+      # when no tracking, assume remote branch is published under active user's fork
+      user = github_user(true, head_project.host)
+      if head_project.owner != user and !tracked_branch and !explicit_owner
+        head_project = head_project.owned_by(user)
       end
 
       remote_branch = "#{head_project.remote}/#{options[:head]}"

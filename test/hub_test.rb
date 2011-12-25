@@ -839,6 +839,23 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "pull-request hereyougo -f"
   end
 
+  def test_pullrequest_enterprise_no_tracking
+    stub_hub_host('git.my.org')
+    stub_repo_url('git@git.my.org:defunkt/hub.git')
+    stub_github_user('myfiname', 'git.my.org')
+    stub_github_token('789xyz', 'git.my.org')
+    stub_branch('refs/heads/feature')
+    stub_tracking_nothing('feature')
+    stub_command_output "rev-list --cherry origin/feature...", nil
+
+    stub_request(:post, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/json/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "myfiname:feature", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1, 'defunkt/hub', 'git.my.org'))
+
+    expected = "https://git.my.org/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo -f"
+  end
+
   def test_pullrequest_explicit_head
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:yay-feature", 'title' => "hereyougo"} }).
@@ -1344,8 +1361,8 @@ config
       "#{user}%2Ftoken:#{password}@"
     end
 
-    def mock_pullreq_response(id, name_with_owner = 'defunkt/hub')
-      %({"pull": { "html_url": "https://github.com/#{name_with_owner}/pull/#{id}" }})
+    def mock_pullreq_response(id, name_with_owner = 'defunkt/hub', host = 'github.com')
+      %({"pull": { "html_url": "https://#{host}/#{name_with_owner}/pull/#{id}" }})
     end
 
     def mock_pull_response(label, priv = false)
