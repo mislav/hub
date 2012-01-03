@@ -1,4 +1,4 @@
-## master
+## 1.8.0 (2012-01-03)
 
 * fix `pull-request` on GH Enterprise project branch without upstream
 * ensure Content-Length for POST requests
