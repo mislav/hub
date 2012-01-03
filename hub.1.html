@@ -176,8 +176,7 @@ GitHub will compare against the base branch (the default is "master").</p></dd>
 <dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username. Requires <code>github.token</code> to
 be set (see CONFIGURATION).</p></dd>
-<dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p><code>git pull-request</code> [<code>-f</code>] <var>ISSUE-URL</var> [<code>-h</code> <var>HEAD</var>]
-Opens a pull request on GitHub for the project that the "origin" remote
+<dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of
 the following formats: "branch", "owner:branch", "owner/repo:branch".
@@ -219,6 +218,28 @@ and other operations that expand references to GitHub repositories as full
 URLs that otherwise use git and ssh protocols.</p>
 
 <pre><code>$ git config --global hub.protocol https
+</code></pre>
+
+<h3 id="GitHub-Enterprise">GitHub Enterprise</h3>
+
+<p>By default, hub will only work with repositories that have remotes which
+point to github.com. GitHub Enterprise hosts need to be whitelisted to
+configure hub to treat such remotes same as github.com:</p>
+
+<pre><code>$ git config --global --add hub.host my.git.org
+</code></pre>
+
+<p>API username and token need also be configured for each Enterprise host:</p>
+
+<pre><code>$ git config --global github."my.git.org".user &lt;username>
+$ git config --global github."my.git.org".token &lt;token>
+</code></pre>
+
+<p>The default host for commands like <code>init</code> and <code>clone</code> is still
+github.com, but this can be affected with the <var>GITHUB_HOST</var> environment
+variable:</p>
+
+<pre><code>$ GITHUB_HOST=my.git.org git clone myproject
 </code></pre>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
@@ -428,7 +449,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>November 2011</li>
+    <li class='tc'>January 2012</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
