@@ -138,8 +138,8 @@ Open a GitHub compare view page in the system\'s default web browser\. \fISTART\
 Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\. Requires \fBgithub\.token\fR to be set (see CONFIGURATION)\.
 .
 .TP
-\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
-\fBgit pull\-request\fR [\fB\-f\fR] \fIISSUE\-URL\fR [\fB\-h\fR \fIHEAD\fR] Opens a pull request on GitHub for the project that the "origin" remote points to\. The default head of the pull request is the current branch\. Both base and head of the pull request can be explicitly given in one of the following formats: "branch", "owner:branch", "owner/repo:branch"\. This command will abort operation if it detects that the current topic branch has local commits that are not yet pushed to its upstream branch on the remote\. To skip this check, use \fB\-f\fR\.
+\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
+Opens a pull request on GitHub for the project that the "origin" remote points to\. The default head of the pull request is the current branch\. Both base and head of the pull request can be explicitly given in one of the following formats: "branch", "owner:branch", "owner/repo:branch"\. This command will abort operation if it detects that the current topic branch has local commits that are not yet pushed to its upstream branch on the remote\. To skip this check, use \fB\-f\fR\.
 .
 .IP
 If \fITITLE\fR is omitted, a text editor will open in which title and body of the pull request can be entered in the same manner as git commit message\.

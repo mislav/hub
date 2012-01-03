@@ -176,8 +176,7 @@ GitHub will compare against the base branch (the default is "master").</p></dd>
 <dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username. Requires <code>github.token</code> to
 be set (see CONFIGURATION).</p></dd>
-<dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p><code>git pull-request</code> [<code>-f</code>] <var>ISSUE-URL</var> [<code>-h</code> <var>HEAD</var>]
-Opens a pull request on GitHub for the project that the "origin" remote
+<dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of
 the following formats: "branch", "owner:branch", "owner/repo:branch".

@@ -132,8 +132,7 @@ hub also adds some custom commands that are otherwise not present in git:
     adds a new remote for it under your username. Requires `github.token` to
     be set (see CONFIGURATION).
 
-  * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]:
-    `git pull-request` [`-f`] <ISSUE-URL> [`-h` <HEAD>]
+  * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]:
     Opens a pull request on GitHub for the project that the "origin" remote
     points to. The default head of the pull request is the current branch.
     Both base and head of the pull request can be explicitly given in one of
