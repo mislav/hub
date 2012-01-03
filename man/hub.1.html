@@ -221,6 +221,28 @@ URLs that otherwise use git and ssh protocols.</p>
 <pre><code>$ git config --global hub.protocol https
 </code></pre>
 
+<h3 id="GitHub-Enterprise">GitHub Enterprise</h3>
+
+<p>By default, hub will only work with repositories that have remotes which
+point to github.com. GitHub Enterprise hosts need to be whitelisted to
+configure hub to treat such remotes same as github.com:</p>
+
+<pre><code>$ git config --global --add hub.host my.git.org
+</code></pre>
+
+<p>API username and token need also be configured for each Enterprise host:</p>
+
+<pre><code>$ git config --global github."my.git.org".user &lt;username>
+$ git config --global github."my.git.org".token &lt;token>
+</code></pre>
+
+<p>The default host for commands like <code>init</code> and <code>clone</code> is still
+github.com, but this can be affected with the <var>GITHUB_HOST</var> environment
+variable:</p>
+
+<pre><code>$ GITHUB_HOST=my.git.org git clone myproject
+</code></pre>
+
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
 <h3 id="git-clone">git clone</h3>
@@ -428,7 +450,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>November 2011</li>
+    <li class='tc'>January 2012</li>
     <li class='tr'>hub(1)</li>
   </ol>
 

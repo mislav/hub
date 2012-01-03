@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "November 2011" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "January 2012" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -188,6 +188,46 @@ If you prefer the HTTPS protocol for GitHub repositories, you can set "hub\.prot
 .nf
 
 $ git config \-\-global hub\.protocol https
+.
+.fi
+.
+.IP "" 0
+.
+.SS "GitHub Enterprise"
+By default, hub will only work with repositories that have remotes which point to github\.com\. GitHub Enterprise hosts need to be whitelisted to configure hub to treat such remotes same as github\.com:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global \-\-add hub\.host my\.git\.org
+.
+.fi
+.
+.IP "" 0
+.
+.P
+API username and token need also be configured for each Enterprise host:
+.
+.IP "" 4
+.
+.nf
+
+$ git config \-\-global github\."my\.git\.org"\.user <username>
+$ git config \-\-global github\."my\.git\.org"\.token <token>
+.
+.fi
+.
+.IP "" 0
+.
+.P
+The default host for commands like \fBinit\fR and \fBclone\fR is still github\.com, but this can be affected with the \fIGITHUB_HOST\fR environment variable:
+.
+.IP "" 4
+.
+.nf
+
+$ GITHUB_HOST=my\.git\.org git clone myproject
 .
 .fi
 .

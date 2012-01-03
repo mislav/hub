@@ -173,6 +173,25 @@ URLs that otherwise use git and ssh protocols.
 
     $ git config --global hub.protocol https
 
+### GitHub Enterprise
+
+By default, hub will only work with repositories that have remotes which
+point to github.com. GitHub Enterprise hosts need to be whitelisted to
+configure hub to treat such remotes same as github.com:
+
+    $ git config --global --add hub.host my.git.org
+
+API username and token need also be configured for each Enterprise host:
+
+    $ git config --global github."my.git.org".user <username>
+    $ git config --global github."my.git.org".token <token>
+
+The default host for commands like `init` and `clone` is still
+github.com, but this can be affected with the <GITHUB_HOST> environment
+variable:
+
+    $ GITHUB_HOST=my.git.org git clone myproject
+
 ## EXAMPLES
 
 {{README}}
