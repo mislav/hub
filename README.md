@@ -197,6 +197,11 @@ superpowers:
     $ git pull-request -i 123
     [ attached pull request to issue #123 ]
 
+    # while on a topic branch called "feature"
+    # and while the base project's user is "defunkt"
+    $ git pull-request -s
+    [ opened pull request on GitHub for "defunkt:feature"]
+
 ### git checkout
 
     # $ git checkout https://github.com/defunkt/hub/pull/73

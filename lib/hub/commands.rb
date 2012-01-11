@@ -69,7 +69,7 @@ module Hub
     def pull_request(args)
       args.shift
       options = { }
-      force = explicit_owner = false
+      force = explicit_owner = single_project = false
       base_project = local_repo.main_project
       head_project = local_repo.current_project
 
@@ -85,6 +85,8 @@ module Hub
         case arg
         when '-f'
           force = true
+        when '-s'
+          single_project = true
         when '-b'
           base_project, options[:base] = from_github_ref.call(args.shift, base_project)
         when '-h'
@@ -119,7 +121,11 @@ module Hub
       # when no tracking, assume remote branch is published under active user's fork
       user = github_user(true, head_project.host)
       if head_project.owner != user and !tracked_branch and !explicit_owner
-        head_project = head_project.owned_by(user)
+        if single_project
+          head_project = head_project.owned_by(base_project.owner)
+        else
+          head_project = head_project.owned_by(user)
+        end
       end
 
       remote_branch = "#{head_project.remote}/#{options[:head]}"
