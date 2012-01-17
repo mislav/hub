@@ -937,37 +937,7 @@ help
       req = Net::HTTP.const_get(type).new(url.request_uri)
       req.basic_auth "#{user}/token", token if user and token
 
-      port = url.port
-      if use_ssl = 'https' == url.scheme and not use_ssl?
-        # ruby compiled without openssl
-        use_ssl = false
-        port = 80
-      end
-
-      # sniff out proxy settings
-      if use_ssl
-        proxy = ENV['HTTPS_PROXY'] || ENV['https_proxy']
-      else
-        proxy = ENV['HTTP_PROXY'] || ENV['http_proxy']
-      end
-
-      if proxy
-        # use an HTTP(S) proxy
-
-        unless /^[^:]+:\/\// =~ proxy
-          proxy = "http://#{proxy}"
-        end
-
-        proxy = URI.parse(proxy)
-        http = Net::HTTP.new(url.host, port, proxy.host, proxy.port, proxy.user, proxy.password)
-      else
-        http = Net::HTTP.new(url.host, port)
-      end
-
-      if http.use_ssl = use_ssl
-        # TODO: SSL peer verification
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
+      http = setup_http(url)
 
       yield req if block_given?
       http.start { http.request(req) }
@@ -980,6 +950,28 @@ help
       end
     end
 
+    def setup_http(url)
+      port = url.port
+      if use_ssl = 'https' == url.scheme and not use_ssl?
+        # ruby compiled without openssl
+        use_ssl = false
+        port = 80
+      end
+
+      http_args = [url.host, port]
+      if proxy = proxy_url(use_ssl)
+        http_args.concat proxy.select(:host, :port, :user, :password)
+      end
+
+      http = Net::HTTP.new(*http_args)
+
+      if http.use_ssl = use_ssl
+        # TODO: SSL peer verification
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      return http
+    end
+
     def load_net_http
       require 'net/https'
     rescue LoadError
@@ -988,6 +980,14 @@ help
 
     def use_ssl?
       defined? ::OpenSSL
+    end
+
+    def proxy_url(use_ssl)
+      env_name = "HTTP#{use_ssl ? 'S' : ''}_PROXY"
+      if proxy = ENV[env_name] || ENV[env_name.downcase]
+        proxy = "http://#{proxy}" unless proxy.include? '://'
+        URI.parse(proxy)
+      end
     end
 
     # Fake exception type for net/http exception handling.
