@@ -944,7 +944,26 @@ help
         port = 80
       end
 
-      http = Net::HTTP.new(url.host, port)
+      # sniff out proxy settings
+      if use_ssl
+        proxy = ENV['HTTPS_PROXY'] || ENV['https_proxy']
+      else
+        proxy = ENV['HTTP_PROXY'] || ENV['http_proxy']
+      end
+
+      if proxy
+        # use an HTTP(S) proxy
+
+        unless /^[^:]+:\/\// =~ proxy
+          proxy = "http://#{proxy}"
+        end
+
+        proxy = URI.parse(proxy)
+        http = Net::HTTP.new(url.host, port, proxy.host, proxy.port, proxy.user, proxy.password)
+      else
+        http = Net::HTTP.new(url.host, port)
+      end
+
       if http.use_ssl = use_ssl
         # TODO: SSL peer verification
         http.verify_mode = OpenSSL::SSL::VERIFY_NONE
