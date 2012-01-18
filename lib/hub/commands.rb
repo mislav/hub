@@ -960,7 +960,10 @@ help
 
       http_args = [url.host, port]
       if proxy = proxy_url(use_ssl)
-        http_args.concat proxy.select(:host, :port, :user, :password)
+        http_args.concat proxy.select(:host, :port)
+        # URI uses userinfo but Net::HTTP expects user, password as separate
+        # args
+        http_args.concat proxy.select(:userinfo).first.split(":")
       end
 
       http = Net::HTTP.new(*http_args)
