@@ -960,7 +960,11 @@ help
 
       http_args = [url.host, port]
       if proxy = proxy_url(use_ssl)
-        http_args.concat proxy.select(:host, :port, :user, :password)
+        http_args.concat proxy.select(:host, :port)
+        if proxy.userinfo
+          require 'cgi'
+          http_args.concat proxy.userinfo.split(':', 2).map {|a| CGI.unescape a }
+        end
       end
 
       http = Net::HTTP.new(*http_args)
