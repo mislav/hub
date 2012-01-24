@@ -1309,16 +1309,7 @@ help
       req = Net::HTTP.const_get(type).new(url.request_uri)
       req.basic_auth "#{user}/token", token if user and token
 
-      port = url.port
-      if use_ssl = 'https' == url.scheme and not use_ssl?
-        use_ssl = false
-        port = 80
-      end
-
-      http = Net::HTTP.new(url.host, port)
-      if http.use_ssl = use_ssl
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
+      http = setup_http(url)
 
       yield req if block_given?
       http.start { http.request(req) }
@@ -1331,6 +1322,30 @@ help
       end
     end
 
+    def setup_http(url)
+      port = url.port
+      if use_ssl = 'https' == url.scheme and not use_ssl?
+        use_ssl = false
+        port = 80
+      end
+
+      http_args = [url.host, port]
+      if proxy = proxy_url(use_ssl)
+        http_args.concat proxy.select(:host, :port)
+        if proxy.userinfo
+          require 'cgi'
+          http_args.concat proxy.userinfo.split(':', 2).map {|a| CGI.unescape a }
+        end
+      end
+
+      http = Net::HTTP.new(*http_args)
+
+      if http.use_ssl = use_ssl
+        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+      end
+      return http
+    end
+
     def load_net_http
       require 'net/https'
     rescue LoadError
@@ -1339,6 +1354,14 @@ help
 
     def use_ssl?
       defined? ::OpenSSL
+    end
+
+    def proxy_url(use_ssl)
+      env_name = "HTTP#{use_ssl ? 'S' : ''}_PROXY"
+      if proxy = ENV[env_name] || ENV[env_name.downcase]
+        proxy = "http://#{proxy}" unless proxy.include? '://'
+        URI.parse(proxy)
+      end
     end
 
     module HTTPExceptions
@@ -1364,29 +1387,23 @@ require 'strscan'
 require 'forwardable'
 
 class Hub::JSON
+  def self.parse(data) new(data).parse end
+
   WSP = /\s+/
-  OBJ = /[{\[]/
-  NUM = /-?\d+(\.\d+)?([eE][+-]?\d+)?/
-  BOL = /(?:true|false)\b/
-  NUL = /null\b/
+  OBJ = /[{\[]/;    HEN = /\}/;  AEN = /\]/
+  COL = /\s*:\s*/;  KEY = /\s*,\s*/
+  NUM = /-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/
+  BOL = /true|false/;  NUL = /null/
 
   extend Forwardable
 
   attr_reader :scanner
   alias_method :s, :scanner
-  private :s
   def_delegators :scanner, :scan, :matched
-
-  def self.parse(str)
-    self.new(str).parse
-  end
+  private :s, :scan, :matched
 
   def initialize data
     @scanner = StringScanner.new data.to_s
-  end
-
-  def space
-    scan WSP
   end
 
   def parse
@@ -1394,45 +1411,71 @@ class Hub::JSON
     object
   end
 
+  private
+
+  def space() scan WSP end
+
+  def endkey() scan(KEY) or space end
+
   def object
-    case scan(OBJ)
-    when '{' then hash
-    when '[' then array
-    end
+    matched == '{' ? hash : array if scan(OBJ)
   end
 
   def value
     object or string or
-      (scan(NUM) || scan(BOL)) ? eval(matched) :
-      scan(NUL) && nil
+      scan(NUL) ? nil :
+      scan(BOL) ? matched.size == 4:
+      scan(NUM) ? eval(matched) :
+      error
   end
 
   def hash
-    current = {}
+    obj = {}
     space
-    until scan(/\}/)
-      key = string
-      scan(/\s*:\s*/)
-      current[key] = value
-      scan(/\s*,\s*/) or space
-    end
-    current
+    repeat_until(HEN) { k = string; scan(COL); obj[k] = value; endkey }
+    obj
   end
 
   def array
-    current = []
+    ary = []
     space
-    until scan(/\]/)
-      current << value
-      scan(/\s*,\s*/) or space
-    end
-    current
+    repeat_until(AEN) { ary << value; endkey }
+    ary
   end
 
+  SPEC = {'b' => "\b", 'f' => "\f", 'n' => "\n", 'r' => "\r", 't' => "\t"}
+  UNI = 'u'; CODE = /[a-fA-F0-9]{4}/
+  STR = /"/; STE = '"'
+  ESC = '\\'
+
   def string
-    if str = scan(/"/)
-      begin; str << s.scan_until(/"/); end while s.pre_match[-1,1] == '\\'
-      eval str
+    if scan(STR)
+      str, esc = '', false
+      while c = s.getch
+        if esc
+          str << (c == UNI ? (s.scan(CODE) || error).to_i(16).chr : SPEC[c] || c)
+          esc = false
+        else
+          case c
+          when ESC then esc = true
+          when STE then break
+          else str << c
+          end
+        end
+      end
+      str
+    end
+  end
+
+  def error
+    raise "parse error at: #{scan(/.{1,10}/m).inspect}"
+  end
+
+  def repeat_until reg
+    until scan(reg)
+      pos = s.pos
+      yield
+      error unless s.pos > pos
     end
   end
 end
@@ -1493,7 +1536,7 @@ module Hub
   end
 end
 module Hub
-  Version = VERSION = '1.8.0'
+  Version = VERSION = '1.8.1'
 end
 Hub::Runner.execute(*ARGV)
 __END__
