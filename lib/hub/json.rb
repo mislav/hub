@@ -1,30 +1,25 @@
 require 'strscan'
 require 'forwardable'
 
+# Stupid pure Ruby JSON parser.
 class Hub::JSON
+  def self.parse(data) new(data).parse end
+
   WSP = /\s+/
-  OBJ = /[{\[]/
-  NUM = /-?\d+(\.\d+)?([eE][+-]?\d+)?/
-  BOL = /(?:true|false)\b/
-  NUL = /null\b/
+  OBJ = /[{\[]/;    HEN = /\}/;  AEN = /\]/
+  COL = /\s*:\s*/;  KEY = /\s*,\s*/
+  NUM = /-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/
+  BOL = /true|false/;  NUL = /null/
 
   extend Forwardable
 
   attr_reader :scanner
   alias_method :s, :scanner
-  private :s
   def_delegators :scanner, :scan, :matched
-
-  def self.parse(str)
-    self.new(str).parse
-  end
+  private :s, :scan, :matched
 
   def initialize data
     @scanner = StringScanner.new data.to_s
-  end
-
-  def space
-    scan WSP
   end
 
   def parse
@@ -32,45 +27,71 @@ class Hub::JSON
     object
   end
 
+  private
+
+  def space() scan WSP end
+
+  def endkey() scan(KEY) or space end
+
   def object
-    case scan(OBJ)
-    when '{' then hash
-    when '[' then array
-    end
+    matched == '{' ? hash : array if scan(OBJ)
   end
 
   def value
     object or string or
-      (scan(NUM) || scan(BOL)) ? eval(matched) :
-      scan(NUL) && nil
+      scan(NUL) ? nil :
+      scan(BOL) ? matched.size == 4:
+      scan(NUM) ? eval(matched) :
+      error
   end
 
   def hash
-    current = {}
+    obj = {}
     space
-    until scan(/\}/)
-      key = string
-      scan(/\s*:\s*/)
-      current[key] = value
-      scan(/\s*,\s*/) or space
-    end
-    current
+    repeat_until(HEN) { k = string; scan(COL); obj[k] = value; endkey }
+    obj
   end
 
   def array
-    current = []
+    ary = []
     space
-    until scan(/\]/)
-      current << value
-      scan(/\s*,\s*/) or space
-    end
-    current
+    repeat_until(AEN) { ary << value; endkey }
+    ary
   end
 
+  SPEC = {'b' => "\b", 'f' => "\f", 'n' => "\n", 'r' => "\r", 't' => "\t"}
+  UNI = 'u'; CODE = /[a-fA-F0-9]{4}/
+  STR = /"/; STE = '"'
+  ESC = '\\'
+
   def string
-    if str = scan(/"/)
-      begin; str << s.scan_until(/"/); end while s.pre_match[-1,1] == '\\'
-      eval str
+    if scan(STR)
+      str, esc = '', false
+      while c = s.getch
+        if esc
+          str << (c == UNI ? (s.scan(CODE) || error).to_i(16).chr : SPEC[c] || c)
+          esc = false
+        else
+          case c
+          when ESC then esc = true
+          when STE then break
+          else str << c
+          end
+        end
+      end
+      str
+    end
+  end
+
+  def error
+    raise "parse error at: #{scan(/.{1,10}/m).inspect}"
+  end
+
+  def repeat_until reg
+    until scan(reg)
+      pos = s.pos
+      yield
+      error unless s.pos > pos
     end
   end
 end
