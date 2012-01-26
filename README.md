@@ -111,6 +111,14 @@ The alias command can also be eval'd directly using the `-s` flag:
     $ eval `hub alias -s bash`
 
 
+Tab Completion
+--------------
+
+Install bash tab completion for the extra `hub` commands:
+
+    sudo curl https://raw.github.com/defunkt/hub/master/etc/bash_completion.d/hub -sLo /etc/bash_completion.d/hub
+
+
 Commands
 --------
 
