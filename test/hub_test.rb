@@ -947,8 +947,8 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pull_response('blueyed:feature'))
 
     assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
-      'git checkout -b blueyed-feature blueyed/feature',
-      "checkout https://github.com/defunkt/hub/pull/73/files"
+      'git checkout -f --track -B blueyed-feature blueyed/feature -q',
+      "checkout -f https://github.com/defunkt/hub/pull/73/files -q"
   end
 
   def test_checkout_private_pullrequest
@@ -956,7 +956,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pull_response('blueyed:feature', :private))
 
     assert_commands 'git remote add -f -t feature blueyed git@github.com:blueyed/hub.git',
-      'git checkout -b blueyed-feature blueyed/feature',
+      'git checkout --track -B blueyed-feature blueyed/feature',
       "checkout https://github.com/defunkt/hub/pull/73/files"
   end
 
@@ -965,7 +965,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pull_response('blueyed:feature'))
 
     assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
-      'git checkout -b review blueyed/feature',
+      'git checkout --track -B review blueyed/feature',
       "checkout https://github.com/defunkt/hub/pull/73/files review"
   end
 
@@ -977,7 +977,7 @@ class HubTest < Test::Unit::TestCase
 
     assert_commands 'git remote set-branches --add blueyed feature',
       'git fetch blueyed +refs/heads/feature:refs/remotes/blueyed/feature',
-      'git checkout -b blueyed-feature blueyed/feature',
+      'git checkout --track -B blueyed-feature blueyed/feature',
       "checkout https://github.com/defunkt/hub/pull/73/files"
   end
 
