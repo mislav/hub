@@ -16,7 +16,7 @@ class Test::Unit::TestCase
   # shell: hub clone rtomayko/tilt
   #  test: Hub("clone rtomayko/tilt")
   def Hub(args)
-    Hub::Runner.new(*args.split(' '))
+    Hub::Runner.new(*args.split(' ').map {|a| a.freeze })
   end
 
   # Shortcut for running the `hub` command in a subprocess. Returns
