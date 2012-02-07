@@ -431,6 +431,10 @@ module Hub
       git_config "alias.#{name}"
     end
 
+    def rev_list(a, b)
+      git_command("rev-list --cherry-pick --right-only --no-merges #{a}...#{b}")
+    end
+
     PWD = Dir.pwd
 
     def current_dir

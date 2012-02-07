@@ -816,7 +816,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_pullrequest_with_unpushed_commits
     stub_tracking('master', 'mislav', 'master')
-    stub_command_output "rev-list --cherry mislav/master...", "+abcd1234\n+bcde2345"
+    stub_command_output "rev-list --cherry-pick --right-only --no-merges mislav/master...", "+abcd1234\n+bcde2345"
 
     expected = "Aborted: 2 commits are not yet pushed to mislav/master\n" <<
       "(use `-f` to force submit a pull request anyway)\n"
@@ -839,7 +839,7 @@ class HubTest < Test::Unit::TestCase
   def test_pullrequest_from_tracking_branch
     stub_branch('refs/heads/feature')
     stub_tracking('feature', 'mislav', 'yay-feature')
-    stub_command_output "rev-list --cherry mislav/master...", nil
+    stub_command_output "rev-list --cherry-pick --right-only --no-merges mislav/master...", nil
 
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:yay-feature", 'title' => "hereyougo"} }).
@@ -856,7 +856,7 @@ class HubTest < Test::Unit::TestCase
     stub_github_token('789xyz', 'git.my.org')
     stub_branch('refs/heads/feature')
     stub_tracking_nothing('feature')
-    stub_command_output "rev-list --cherry origin/feature...", nil
+    stub_command_output "rev-list --cherry-pick --right-only --no-merges origin/feature...", nil
 
     stub_request(:post, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "myfiname:feature", 'title' => "hereyougo"} }).
@@ -914,7 +914,7 @@ class HubTest < Test::Unit::TestCase
   def test_pullrequest_existing_issue
     stub_branch('refs/heads/myfix')
     stub_tracking('myfix', 'mislav', 'awesomefix')
-    stub_command_output "rev-list --cherry mislav/awesomefix...", nil
+    stub_command_output "rev-list --cherry-pick --right-only --no-merges mislav/awesomefix...", nil
 
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:awesomefix", 'issue' => '92'} }).
@@ -927,7 +927,7 @@ class HubTest < Test::Unit::TestCase
   def test_pullrequest_existing_issue_url
     stub_branch('refs/heads/myfix')
     stub_tracking('myfix', 'mislav', 'awesomefix')
-    stub_command_output "rev-list --cherry mislav/awesomefix...", nil
+    stub_command_output "rev-list --cherry-pick --right-only --no-merges mislav/awesomefix...", nil
 
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/mojombo/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:awesomefix", 'issue' => '92'} }).

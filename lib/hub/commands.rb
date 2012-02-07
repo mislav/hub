@@ -125,7 +125,7 @@ module Hub
       remote_branch = "#{head_project.remote}/#{options[:head]}"
       options[:head] = "#{head_project.owner}:#{options[:head]}"
 
-      if !force and tracked_branch and local_commits = git_command("rev-list --cherry #{remote_branch}...")
+      if !force and tracked_branch and local_commits = rev_list(remote_branch, nil)
         $stderr.puts "Aborted: #{local_commits.split("\n").size} commits are not yet pushed to #{remote_branch}"
         warn "(use `-f` to force submit a pull request anyway)"
         abort
@@ -138,10 +138,25 @@ module Hub
 
       unless options[:title] or options[:issue]
         base_branch = "#{base_project.remote}/#{options[:base]}"
-        changes = git_command "log --no-color --pretty=medium --cherry %s...%s" %
-          [base_branch, remote_branch]
+        commits = rev_list(base_branch, remote_branch).to_s.split("\n")
 
-        options[:title], options[:body] = pullrequest_editmsg(changes) { |msg|
+        case commits.size
+        when 0
+          default_message = commit_summary = nil
+        when 1
+          format = '%w(78,0,0)%s%n%+b'
+          default_message = git_command "show -s --format='#{format}' #{commits.first}"
+          commit_summary = nil
+        else
+          format = '%h (%aN, %ar)%n%w(78,3,3)%s%n%+b'
+          default_message = nil
+          commit_summary = git_command "log --no-color --format='%s' --cherry %s...%s" %
+            [format, base_branch, remote_branch]
+        end
+
+        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg|
+          msg.puts default_message if default_message
+          msg.puts ""
           msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
           msg.puts "#"
           msg.puts "# Write a message for this pull request. The first block"
@@ -898,7 +913,6 @@ help
     def pullrequest_editmsg(changes)
       message_file = File.join(git_dir, 'PULLREQ_EDITMSG')
       File.open(message_file, 'w') { |msg|
-        msg.puts
         yield msg
         if changes
           msg.puts "#\n# Changes:\n#"
