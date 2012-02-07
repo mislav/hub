@@ -919,7 +919,9 @@ help
           msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
         end
       }
-      edit_cmd = Array(git_editor).dup << message_file
+      edit_cmd = Array(git_editor).dup
+      edit_cmd << '-c' << 'set ft=gitcommit' if edit_cmd[0] =~ /^[mg]?vim$/
+      edit_cmd << message_file
       system(*edit_cmd)
       abort "can't open text editor for pull request message" unless $?.success?
       title, body = read_editmsg(message_file)
