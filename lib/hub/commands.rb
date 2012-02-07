@@ -34,7 +34,7 @@ module Hub
     # provides git interrogation methods
     extend Context
 
-    NAME_RE = /[\w.-]+/
+    NAME_RE = /\w[\w.-]*/
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
@@ -181,7 +181,7 @@ module Hub
         else
           # $ hub clone rtomayko/tilt
           # $ hub clone tilt
-          if arg =~ NAME_WITH_OWNER_RE
+          if arg =~ NAME_WITH_OWNER_RE and !File.directory?(arg)
             # FIXME: this logic shouldn't be duplicated here!
             name, owner = arg, nil
             owner, name = name.split('/', 2) if name.index('/')

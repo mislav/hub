@@ -160,6 +160,16 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded "clone ./test"
   end
 
+  def test_unchanged_clone_from_existing_directory
+    stub_no_git_repo
+    assert_forwarded "clone test"
+  end
+
+  def test_local_clone_with_destination
+    stub_no_git_repo
+    assert_forwarded "clone -l . ../copy"
+  end
+
   def test_clone_with_host_alias
     stub_no_git_repo
     assert_forwarded "clone server:git/repo.git"
