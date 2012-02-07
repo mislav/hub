@@ -16,7 +16,13 @@ class Test::Unit::TestCase
   # shell: hub clone rtomayko/tilt
   #  test: Hub("clone rtomayko/tilt")
   def Hub(args)
-    Hub::Runner.new(*args.split(' ').map {|a| a.freeze })
+    runner = Hub::Runner.new(*args.split(' ').map {|a| a.freeze })
+    runner.args.commands.each do |cmd|
+      if Array === cmd and invalid = cmd.find {|c| !c.respond_to? :to_str }
+        raise "#{invalid.inspect} is not a string (in #{cmd.join(' ').inspect})"
+      end
+    end
+    runner
   end
 
   # Shortcut for running the `hub` command in a subprocess. Returns

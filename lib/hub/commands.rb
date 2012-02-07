@@ -358,7 +358,7 @@ module Hub
           args[args.index(ref)] = sha
 
           if remote = project.remote and remotes.include? remote
-            args.before ['fetch', remote]
+            args.before ['fetch', remote.to_s]
           else
             args.before ['remote', 'add', '-f', project.owner, project.git_url(:https => https_protocol?)]
           end
