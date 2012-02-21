@@ -183,6 +183,7 @@ superpowers:
     $ git fork
     [ repo forked on GitHub ]
     > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+    > git config branch.master.remote YOUR_USER
 
 ### git pull-request
 

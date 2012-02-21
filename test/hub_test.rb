@@ -748,7 +748,8 @@ class HubTest < Test::Unit::TestCase
       with { |req| req.headers['Content-Length'] == 0 }
 
     expected = "remote add -f tpw git@github.com:tpw/hub.git\n"
-    expected << "new remote: tpw\n"
+    expected << "config branch.master.remote tpw\n"
+    expected << "new default remote: tpw\n"
     assert_output expected, "fork"
   end
 
@@ -769,7 +770,8 @@ class HubTest < Test::Unit::TestCase
     stub_request(:post, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/yaml/repos/fork/defunkt/hub")
 
     expected = "remote add -f myfiname git@git.my.org:myfiname/hub.git\n"
-    expected << "new remote: myfiname\n"
+    expected << "config branch.master.remote myfiname\n"
+    expected << "new default remote: myfiname\n"
     assert_output expected, "fork"
   end
 
@@ -794,7 +796,8 @@ class HubTest < Test::Unit::TestCase
 
     expected = "tpw/hub already exists on github.com\n"
     expected << "remote add -f tpw git@github.com:tpw/hub.git\n"
-    expected << "new remote: tpw\n"
+    expected << "config branch.master.remote tpw\n"
+    expected << "new default remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
@@ -804,7 +807,8 @@ class HubTest < Test::Unit::TestCase
 
     expected = "tpw/hub already exists on github.com\n"
     expected << "remote add -f tpw https://github.com/tpw/hub.git\n"
-    expected << "new remote: tpw\n"
+    expected << "config branch.master.remote tpw\n"
+    expected << "new default remote: tpw\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
