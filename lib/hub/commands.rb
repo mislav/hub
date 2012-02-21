@@ -438,7 +438,8 @@ module Hub
       else
         url = forked_project.git_url(:private => true, :https => https_protocol?)
         args.replace %W"remote add -f #{forked_project.owner} #{url}"
-        args.after 'echo', ['new remote:', forked_project.owner]
+        args.after ['config', 'branch.master.remote', forked_project.owner]
+        args.after 'echo', ['new default remote:', forked_project.owner]
       end
     rescue HTTPExceptions
       display_http_exception("creating fork", $!.response)
