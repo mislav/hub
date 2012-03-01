@@ -537,9 +537,11 @@ module Hub
           # $ hub browse pjhyett/github-services
           # $ hub browse github-services
           project = github_project dest
+          branch = master_branch
         else
           # $ hub browse
           project = current_project
+          branch = current_branch && current_branch.upstream || master_branch
         end
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
@@ -547,10 +549,8 @@ module Hub
         # $ hub browse -- wiki
         path = case subpage = args.shift
         when 'commits'
-          branch = (!dest && current_branch.upstream) || master_branch
           "/commits/#{branch.short_name}"
         when 'tree', NilClass
-          branch = !dest && current_branch.upstream
           "/tree/#{branch.short_name}" if branch and !branch.master?
         else
           "/#{subpage}"

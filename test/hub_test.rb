@@ -1156,6 +1156,11 @@ config
       'open https://github.com/mislav/hub/tree/feature/bar'
   end
 
+  def test_hub_browse_no_branch
+    stub_branch(nil)
+    assert_command 'browse', 'open https://github.com/defunkt/hub'
+  end
+
   def test_hub_browse_current
     assert_command "browse", "open https://github.com/defunkt/hub"
     assert_command "browse --", "open https://github.com/defunkt/hub"

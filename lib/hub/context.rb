@@ -130,7 +130,7 @@ module Hub
       end
 
       def upstream_project
-        if upstream = current_branch.upstream
+        if branch = current_branch and upstream = branch.upstream
           remote = remote_by_name upstream.remote_name
           remote.project
         end
