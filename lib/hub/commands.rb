@@ -108,7 +108,11 @@ module Hub
       options[:base] ||= master_branch.short_name
 
       if tracked_branch = options[:head].nil? && current_branch.upstream
-        if base_project == head_project and tracked_branch.short_name == options[:base]
+        if !tracked_branch.remote?
+          # The current branch is tracking another local branch. Pretend there is
+          # no upstream configuration at all.
+          tracked_branch = nil
+        elsif base_project == head_project and tracked_branch.short_name == options[:base]
           $stderr.puts "Aborted: head branch is the same as base (#{options[:base].inspect})"
           warn "(use `-h <branch>` to specify an explicit pull request head)"
           abort

@@ -839,10 +839,21 @@ class HubTest < Test::Unit::TestCase
   def test_pullrequest_from_tracking_branch
     stub_branch('refs/heads/feature')
     stub_tracking('feature', 'mislav', 'yay-feature')
-    stub_command_output "rev-list --cherry-pick --right-only --no-merges mislav/master...", nil
 
     stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
       with(:body => { 'pull' => {'base' => "master", 'head' => "mislav:yay-feature", 'title' => "hereyougo"} }).
+      to_return(:body => mock_pullreq_response(1))
+
+    expected = "https://github.com/defunkt/hub/pull/1\n"
+    assert_output expected, "pull-request hereyougo -f"
+  end
+
+  def test_pullrequest_from_branch_tracking_local
+    stub_branch('refs/heads/feature')
+    stub_tracking('feature', 'refs/heads/master')
+
+    stub_request(:post, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub").
+      with(:body => { 'pull' => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo"} }).
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
@@ -1287,13 +1298,13 @@ config
       stub_command_output 'symbolic-ref -q HEAD', value
     end
 
-    def stub_tracking(from, remote_name, remote_branch)
+    def stub_tracking(from, upstream, remote_branch = nil)
       stub_command_output "rev-parse --symbolic-full-name #{from}@{upstream}",
-        remote_branch ? "refs/remotes/#{remote_name}/#{remote_branch}" : nil
+        remote_branch ? "refs/remotes/#{upstream}/#{remote_branch}" : upstream
     end
 
     def stub_tracking_nothing(from = 'master')
-      stub_tracking(from, nil, nil)
+      stub_tracking(from, nil)
     end
 
     def stub_remotes_group(name, value)
