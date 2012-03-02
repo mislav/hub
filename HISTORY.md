@@ -1,3 +1,23 @@
+## master
+
+* fix `pull-request` from branch tracking another local branch
+* fix `browse` command when not on any branch
+
+## 1.8.2 (2012-02-07)
+
+* if `pull-request` editor is vim, set appropriate filetype
+* `pull-request` editor message defaults to single commit message
+* fix cherry-picking from an existing remote
+* fix `clone` from local repository
+* `checkout` command forwards flags to internal checkout command,
+  force-resets the existing local branch by default
+* fix `am` command when given URLs that include the fragment
+
+## 1.8.1 (2012-01-24)
+
+* fix JSON parsing error while using GitHub API
+* HTTP(S) proxy support
+
 ## 1.8.0 (2012-01-03)
 
 * fix `pull-request` on GH Enterprise project branch without upstream
