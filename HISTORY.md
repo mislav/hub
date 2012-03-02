@@ -1,4 +1,4 @@
-## master
+## 1.8.3 (2012-03-02)
 
 * fix `pull-request` from branch tracking another local branch
 * fix `browse` command when not on any branch
