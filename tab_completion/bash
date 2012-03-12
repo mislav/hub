@@ -14,13 +14,13 @@ if declare -F _git > /dev/null; then
 
   # Wrap the 'list_all_commands' function with extra hub commands
   __git_list_all_commands() {
-    echo "
-    pull-request
-    fork
-    create
-    browse
-    compare
-    "
+    cat <<-EOF
+pull-request
+fork
+create
+browse
+compare
+EOF
     __git_list_all_commands_without_hub
   }
 fi
