@@ -1,9 +1,8 @@
-#!bash
 #
-# Save this file to /etc/bash_completion.d/hub
+# Source this file from your ~/.bashrc
 #
 # bash completion support for hub.
-# Adds hub commands to __git_list_all_commands function.
+#   Adds hub commands to __git_list_all_commands function.
 # -------------------------------------------------------------
 
 # Check that git tab completion is available

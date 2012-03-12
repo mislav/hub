@@ -114,9 +114,21 @@ The alias command can also be eval'd directly using the `-s` flag:
 Tab Completion
 --------------
 
-Install bash tab completion for the extra `hub` commands:
+Install tab completion for the extra `hub` commands:
 
-    sudo curl https://raw.github.com/defunkt/hub/master/etc/bash_completion.d/hub -sLo /etc/bash_completion.d/hub
+#### Bash
+
+    # Download completion override
+    curl https://raw.github.com/defunkt/hub/master/tab_completion/bash -sLo $HOME/.hub.bash_completion &&
+    # Source from ~/.bashrc
+    echo "source $HOME/.hub.bash_completion" >> $HOME/.bashrc
+
+#### Zsh
+
+    # Download completion override
+    curl https://raw.github.com/defunkt/hub/master/tab_completion/zsh -sLo $HOME/.hub.zsh_completion &&
+    # Source from ~/.zshrc
+    echo "source $HOME/.hub.zsh_completion" >> $HOME/.zshrc
 
 
 Commands
