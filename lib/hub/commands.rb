@@ -136,7 +136,7 @@ module Hub
       end
 
       if args.noop?
-        puts "Would reqest a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+        puts "Would request a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
         exit
       end
 
