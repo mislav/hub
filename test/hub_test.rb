@@ -36,6 +36,7 @@ class HubTest < Test::Unit::TestCase
     super
     COMMANDS.replace %w[open groff]
     Hub::Context::PWD.replace '/path/to/hub'
+    Hub::Context::SshConfig::CONFIG_FILES.replace []
 
     @git_reader = Hub::Context::GitReader.new 'git' do |cache, cmd|
       unless cmd.index('config --get alias.') == 0
@@ -1224,6 +1225,13 @@ config
     assert_equal "Usage: hub browse [<USER>/]<REPOSITORY>\n", hub("browse")
   end
 
+  def test_hub_browse_ssh_alias
+    with_ssh_config do
+      stub_repo_url "gh:singingwolfboy/sekrit.git"
+      assert_command "browse", "open https://github.com/singingwolfboy/sekrit"
+    end
+  end
+
   def test_custom_browser
     with_browser_env("custom") do
       assert_browser("custom")
@@ -1397,6 +1405,12 @@ config
 
     def improved_help_text
       Hub::Commands.send :improved_help_text
+    end
+
+    def with_ssh_config
+      config_file = File.expand_path '../ssh_config', __FILE__
+      Hub::Context::SshConfig::CONFIG_FILES.replace [config_file]
+      yield
     end
 
 end

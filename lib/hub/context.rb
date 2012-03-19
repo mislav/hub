@@ -183,6 +183,10 @@ module Hub
       def main_host
         'github.com'
       end
+
+      def ssh_config
+        @ssh_config ||= SshConfig.new
+      end
     end
 
     class GithubProject < Struct.new(:local_repo, :owner, :name, :host)
@@ -339,13 +343,20 @@ module Hub
       def urls
         @urls ||= local_repo.git_config("remote.#{name}.url", :all).to_s.split("\n").map { |uri|
           begin
-            if uri =~ %r{^[\w-]+://}    then URI(uri)
-            elsif uri =~ %r{^([^/]+?):} then URI("ssh://#{$1}/#{$'}")  # scp-like syntax
+            if uri =~ %r{^[\w-]+://}    then uri_parse(uri)
+            elsif uri =~ %r{^([^/]+?):} then uri_parse("ssh://#{$1}/#{$'}")  # scp-like syntax
             end
           rescue URI::InvalidURIError
             nil
           end
         }.compact
+      end
+
+      def uri_parse uri
+        uri = URI.parse uri
+        uri.host = local_repo.ssh_config.get_value(uri.host, 'hostname') { uri.host }
+        uri.user = local_repo.ssh_config.get_value(uri.host, 'user') { uri.user }
+        uri
       end
     end
 
@@ -501,6 +512,92 @@ module Hub
     # Returns a Boolean.
     def command?(name)
       !which(name).nil?
+    end
+
+    class SshConfig
+      CONFIG_FILES = %w(~/.ssh/config /etc/ssh_config /etc/ssh/ssh_config)
+
+      def initialize files = nil
+        @settings = Hash.new {|h,k| h[k] = {} }
+        Array(files || CONFIG_FILES).each do |path|
+          file = File.expand_path path
+          parse_file file if File.exist? file
+        end
+      end
+
+      # yields if not found
+      def get_value hostname, key
+        key = key.to_s.downcase
+        @settings.each do |pattern, settings|
+          if pattern.match? hostname and found = settings[key]
+            return found
+          end
+        end
+        yield
+      end
+
+      class HostPattern
+        def initialize pattern
+          @pattern = pattern.to_s.downcase
+        end
+
+        def to_s() @pattern end
+        def ==(other) other.to_s == self.to_s end
+
+        def matcher
+          @matcher ||=
+            if '*' == @pattern
+              Proc.new { true }
+            elsif @pattern !~ /[?*]/
+              lambda { |hostname| hostname.to_s.downcase == @pattern }
+            else
+              re = self.class.pattern_to_regexp @pattern
+              lambda { |hostname| re =~ hostname }
+            end
+        end
+
+        def match? hostname
+          matcher.call hostname
+        end
+
+        def self.pattern_to_regexp pattern
+          escaped = Regexp.escape(pattern)
+          escaped.gsub!('\*', '.*')
+          escaped.gsub!('\?', '.')
+          /^#{escaped}$/i
+        end
+      end
+
+      def parse_file file
+        host_patterns = [HostPattern.new('*')]
+
+        IO.foreach(file) do |line|
+          case line
+          when /^\s*(#|$)/ then next
+          when /^\s*(\S+)\s*=/
+            key, value = $1, $'
+          else
+            key, value = line.strip.split(/\s+/, 2)
+          end
+
+          next if value.nil?
+          key.downcase!
+          value = $1 if value =~ /^"(.*)"$/
+          value.chomp!
+
+          if 'host' == key
+            host_patterns = value.split(/\s+/).map {|p| HostPattern.new p }
+          else
+            record_setting key, value, host_patterns
+          end
+        end
+      end
+
+      def record_setting key, value, patterns
+        patterns.each do |pattern|
+          @settings[pattern][key] ||= value
+        end
+      end
     end
   end
 end
