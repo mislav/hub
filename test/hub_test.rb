@@ -861,6 +861,15 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "pull-request hereyougo -f"
   end
 
+  def test_pullrequest_invalid_remote
+    stub_repo_url('gh:singingwolfboy/sekrit.git')
+    stub_branch('refs/heads/feature')
+    stub_tracking('feature', 'origin', 'feature')
+
+    expected = "Aborted: the origin remote doesn't point to a GitHub repository.\n"
+    assert_output expected, "pull-request hereyougo"
+  end
+
   def test_pullrequest_enterprise_no_tracking
     stub_hub_host('git.my.org')
     stub_repo_url('git@git.my.org:defunkt/hub.git')

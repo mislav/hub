@@ -73,6 +73,10 @@ module Hub
       base_project = local_repo.main_project
       head_project = local_repo.current_project
 
+      unless base_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
       from_github_ref = lambda do |ref, context_project|
         if ref.index(':')
           owner, ref = ref.split(':', 2)
