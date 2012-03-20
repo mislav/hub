@@ -188,6 +188,10 @@ module Hub
       def main_host
         'github.com'
       end
+
+      def ssh_config
+        @ssh_config ||= SshConfig.new
+      end
     end
 
     class GithubProject < Struct.new(:local_repo, :owner, :name, :host)
@@ -343,13 +347,20 @@ module Hub
       def urls
         @urls ||= local_repo.git_config("remote.#{name}.url", :all).to_s.split("\n").map { |uri|
           begin
-            if uri =~ %r{^[\w-]+://}    then URI(uri)
-            elsif uri =~ %r{^([^/]+?):} then URI("ssh://#{$1}/#{$'}")  # scp-like syntax
+            if uri =~ %r{^[\w-]+://}    then uri_parse(uri)
+            elsif uri =~ %r{^([^/]+?):} then uri_parse("ssh://#{$1}/#{$'}")  # scp-like syntax
             end
           rescue URI::InvalidURIError
             nil
           end
         }.compact
+      end
+
+      def uri_parse uri
+        uri = URI.parse uri
+        uri.host = local_repo.ssh_config.get_value(uri.host, 'hostname') { uri.host }
+        uri.user = local_repo.ssh_config.get_value(uri.host, 'user') { uri.user }
+        uri
       end
     end
 
@@ -490,6 +501,91 @@ module Hub
     def command?(name)
       !which(name).nil?
     end
+
+    class SshConfig
+      CONFIG_FILES = %w(~/.ssh/config /etc/ssh_config /etc/ssh/ssh_config)
+
+      def initialize files = nil
+        @settings = Hash.new {|h,k| h[k] = {} }
+        Array(files || CONFIG_FILES).each do |path|
+          file = File.expand_path path
+          parse_file file if File.exist? file
+        end
+      end
+
+      def get_value hostname, key
+        key = key.to_s.downcase
+        @settings.each do |pattern, settings|
+          if pattern.match? hostname and found = settings[key]
+            return found
+          end
+        end
+        yield
+      end
+
+      class HostPattern
+        def initialize pattern
+          @pattern = pattern.to_s.downcase
+        end
+
+        def to_s() @pattern end
+        def ==(other) other.to_s == self.to_s end
+
+        def matcher
+          @matcher ||=
+            if '*' == @pattern
+              Proc.new { true }
+            elsif @pattern !~ /[?*]/
+              lambda { |hostname| hostname.to_s.downcase == @pattern }
+            else
+              re = self.class.pattern_to_regexp @pattern
+              lambda { |hostname| re =~ hostname }
+            end
+        end
+
+        def match? hostname
+          matcher.call hostname
+        end
+
+        def self.pattern_to_regexp pattern
+          escaped = Regexp.escape(pattern)
+          escaped.gsub!('\*', '.*')
+          escaped.gsub!('\?', '.')
+          /^#{escaped}$/i
+        end
+      end
+
+      def parse_file file
+        host_patterns = [HostPattern.new('*')]
+
+        IO.foreach(file) do |line|
+          case line
+          when /^\s*(#|$)/ then next
+          when /^\s*(\S+)\s*=/
+            key, value = $1, $'
+          else
+            key, value = line.strip.split(/\s+/, 2)
+          end
+
+          next if value.nil?
+          key.downcase!
+          value = $1 if value =~ /^"(.*)"$/
+          value.chomp!
+
+          if 'host' == key
+            host_patterns = value.split(/\s+/).map {|p| HostPattern.new p }
+          else
+            record_setting key, value, host_patterns
+          end
+        end
+      end
+
+      def record_setting key, value, patterns
+        patterns.each do |pattern|
+          @settings[pattern][key] ||= value
+        end
+      end
+    end
   end
 end
 module Hub
@@ -592,18 +688,24 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+
     def run(args)
       slurp_global_flags(args)
 
       args.unshift 'help' if args.empty?
 
       cmd = args[0]
-      expanded_args = expand_alias(cmd)
-      cmd = expanded_args[0] if expanded_args
+      if expanded_args = expand_alias(cmd)
+        cmd = expanded_args[0]
+        expanded_args.concat args[1..-1]
+      end
+
+      respect_help_flags(expanded_args || args) if custom_command? cmd
 
       cmd = cmd.sub(/(\w)-/, '\1_')
       if method_defined?(cmd) and cmd != 'run'
-        args[0, 1] = expanded_args if expanded_args
+        args.replace expanded_args if expanded_args
         send(cmd, args)
       end
     rescue Errno::ENOENT
@@ -620,6 +722,10 @@ module Hub
       force = explicit_owner = false
       base_project = local_repo.main_project
       head_project = local_repo.current_project
+
+      unless base_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
 
       from_github_ref = lambda do |ref, context_project|
         if ref.index(':')
@@ -681,7 +787,7 @@ module Hub
       end
 
       if args.noop?
-        puts "Would reqest a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+        puts "Would request a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
         exit
       end
 
@@ -899,8 +1005,10 @@ module Hub
         abort "Error: repository under 'origin' remote is not a GitHub project"
       end
       forked_project = project.owned_by(github_user(true, project.host))
+
       if repo_exists?(forked_project)
-        warn "#{forked_project.name_with_owner} already exists on #{forked_project.host}"
+        abort "Error creating fork: %s already exists on %s" %
+          [ forked_project.name_with_owner, forked_project.host ]
       else
         fork_repo(project) unless args.noop?
       end
@@ -1041,43 +1149,38 @@ module Hub
     end
 
     def alias(args)
-      shells = {
-        'sh'   => 'alias git=hub',
-        'bash' => 'alias git=hub',
-        'zsh'  => 'function git(){hub "$@"}',
-        'csh'  => 'alias git hub',
-        'fish' => 'alias git hub'
-      }
+      shells = %w[bash zsh sh ksh csh fish]
 
-      silent = args.delete('-s')
+      script = !!args.delete('-s')
+      shell = args[1] || ENV['SHELL']
+      abort "hub alias: unknown shell" if shell.nil? or shell.empty?
+      shell = File.basename shell
 
-      if shell = args[1]
-        if silent.nil?
-          puts "Run this in your shell to start using `hub` as `git`:"
-          print "  "
-        end
-      else
-        puts "usage: hub alias [-s] SHELL", ""
-        puts "You already have hub installed and available in your PATH,"
-        puts "but to get the full experience you'll want to alias it to"
-        puts "`git`.", ""
-        puts "To see how to accomplish this for your shell, run the alias"
-        puts "command again with the name of your shell.", ""
-        puts "Known shells:"
-        shells.map { |key, _| key }.sort.each do |key|
-          puts "  " + key
-        end
-        puts "", "Options:"
-        puts "  -s   Silent. Useful when using the output with eval, e.g."
-        puts "       $ eval `hub alias -s bash`"
-
-        exit
+      unless shells.include? shell
+        $stderr.puts "hub alias: unsupported shell"
+        warn "supported shells: #{shells.join(' ')}"
+        abort
       end
 
-      if shells[shell]
-        puts shells[shell]
+      if script
+        puts "alias git=hub"
+        if 'zsh' == shell
+          puts "if type compdef >/dev/null; then"
+          puts "   compdef hub=git"
+          puts "fi"
+        end
       else
-        abort "fatal: never heard of `#{shell}'"
+        profile = case shell
+          when 'bash' then '~/.bash_profile'
+          when 'zsh'  then '~/.zshrc'
+          when 'ksh'  then '~/.profile'
+          else
+            'your profile'
+          end
+
+        puts "# Wrap git automatically by adding the following to #{profile}:"
+        puts
+        puts 'eval "$(hub alias -s)"'
       end
 
       exit
@@ -1103,6 +1206,29 @@ module Hub
     alias_method "--help", :help
 
   private
+
+    def custom_command? cmd
+      CUSTOM_COMMANDS.include? cmd
+    end
+
+    def respect_help_flags args
+      return if args.size > 2
+      case args[1]
+      when '-h'
+        pattern = /(git|hub) #{Regexp.escape args[0].gsub('-', '\-')}/
+        hub_raw_manpage.each_line { |line|
+          if line =~ pattern
+            $stderr.print "Usage: "
+            $stderr.puts line.gsub(/\\f./, '').gsub('\-', '-')
+            abort
+          end
+        }
+        abort "Error: couldn't find usage help for #{args[0]}"
+      when '--help'
+        puts hub_manpage
+        exit
+      end
+    end
 
     def improved_help_text
       <<-help
@@ -1267,7 +1393,7 @@ help
       params['homepage'] = options[:homepage] if options[:homepage]
 
       load_net_http
-      response = http_post(project.api_create_url('yaml'), params)
+      response = http_post(project.api_create_url('json'), params)
       response.error! unless Net::HTTPSuccess === response
     end
 
@@ -1564,7 +1690,7 @@ module Hub
   end
 end
 module Hub
-  Version = VERSION = '1.8.3'
+  Version = VERSION = '1.8.4'
 end
 Hub::Runner.execute(*ARGV)
 __END__
@@ -1580,7 +1706,7 @@ __END__
 \fBhub\fR [\fB\-\-noop\fR] \fICOMMAND\fR \fIOPTIONS\fR
 .
 .br
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+\fBhub alias\fR [\fB\-s\fR] [\fISHELL\fR]
 .
 .SS "Expanded git commands:"
 \fBgit init \-g\fR \fIOPTIONS\fR
@@ -1628,7 +1754,7 @@ __END__
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
 .
 .br
-\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]:
+\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
 .
 .SH "DESCRIPTION"
 hub enhances various git commands to ease most common workflows with GitHub\.
@@ -1638,11 +1764,8 @@ hub enhances various git commands to ease most common workflows with GitHub\.
 Shows which command(s) would be run as a result of the current command\. Doesn\'t perform anything\.
 .
 .TP
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
-Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output\. With the \fB\-s\fR option, the output of this command can be evaluated directly within the shell:
-.
-.br
-\fBeval $(hub alias \-s bash)\fR
+\fBhub alias\fR [\fB\-s\fR] [\fISHELL\fR]
+Shows shell instructions for wrapping git\. If given, \fISHELL\fR specifies the type of shell; otherwise defaults to the value of SHELL environment variable\. With \fB\-s\fR, outputs shell script suitable for \fBeval\fR\.
 .
 .TP
 \fBgit init\fR \fB\-g\fR \fIOPTIONS\fR
