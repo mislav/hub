@@ -1,4 +1,4 @@
-## master
+## 1.8.4 (2012-03-20)
 
 * add bash, zsh completion
 * improve `hub alias` command
