@@ -1,7 +1,7 @@
 <!doctype html>
 <head>
-<title>hub</title>
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>hub · the command-line wrapper for git</title>
+<meta charset="utf-8">
 
 <style>
   body {
@@ -11,10 +11,10 @@
     margin: 2em auto;
   }
   a:link, a:visited, a:active {
-    text-decoration: none; color: rgb(65, 131, 196);
+    color: rgb(65, 131, 196);
     -webkit-transition: color .2s ease-out;
   }
-  a:hover { text-decoration: underline; color: rgb(35, 101, 166); }
+  a:hover { color: rgb(35, 101, 166); }
   h1 {
     font: 900 1.3em "Futura", "Lucida Grande", Helvetica, Arial, sans-serif;
     text-transform: uppercase;
@@ -26,6 +26,7 @@
     width: 75%;
   }
   h1 a {
+    text-decoration: none;
     font-size: 4.5em;
     letter-spacing: -.1em;
     margin-right: .1em;
@@ -53,93 +54,183 @@
   h2, .man, .footer { text-shadow: rgba(255,255,255,.8) 0 1px 0; }
   h2 { margin: 1em 0 0em 0; color: #444; }
   p code, .man a, pre { font: 15px Monaco, Courier, monospace; }
-  pre {
+  section {
     clear: both;
     background: white;
     color: #444;
     padding: 1em;
-    margin: .5em 0 0 0;
+    margin: 12px 0 0 0;
     -webkit-border-radius: 6px;
     -moz-border-radius: 6px;
     -webkit-box-shadow: rgba(0,0,0,.4) 1px 1px 4px;
     -moz-box-shadow: rgba(0,0,0,.4) 1px 1px 4px;
     line-height: 1.5;
   }
+  section > *:first-child { margin-top: 0 }
+  section p { font-size: 1.1em; }
+  section p em {
+    font-style: normal; background: #FCF4C1; padding: 1px 4px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+  }
+  pre {
+    margin: .5em 0 0 0;
+    border-top: 1px dotted silver;
+    padding-top: 1em;
+    line-height: 1.5;
+  }
   pre .comment {
     color: #999;
     font: italic 1.2em "Hoefler Text", "Times New Roman", "Georgia", serif;
-    line-height: 1.6;
   }
   pre .result { color: #777; font-style: italic; }
+  pre strong { color: #894400; font-weight: normal }
   .footer { text-align: right; margin-top: 15px; color: #444; }
 </style>
 
 <body>
-<h1><a href="http://github.com/defunkt/hub#readme">hub</a> teaches git about GitHub</h1>
+<h1><a href="http://github.com/defunkt/hub#readme">hub</a> makes git better with GitHub</h1>
 
-<p class="man">Full docs: <a href="hub.1.html">man hub</a></p>
+<p class="man">Documentation: <a href="hub.1.html">man hub</a></p>
 
-<pre><span class="comment"># on a Mac</span>
+<section id=install>
+<p>
+<strong>hub</strong> is a command-line wrapper for git that makes you
+<em>better at GitHub</em>.
+</p>
+
+<pre><span class="comment"># install on OS X</span>
 $ <a href="http://mxcl.github.com/homebrew/">brew</a> install hub
 
-<span class="comment"># otherwise</span>
+<span class="comment"># other systems</span>
 $ curl http://defunkt.io/hub/standalone -sLo <strong>~/bin/hub</strong>
 $ chmod +x <strong>~/bin/hub</strong>
 
-<span class="comment"># wrapping git</span>
+<span class="comment"># alias it as git</span>
 $ alias git=hub
+
+$ git version
+git version 1.7.9
+hub version 1.8.4 <span class="comment"># ← it works!</span>
 </pre>
+</section>
 
-<h2>Apprentice</h2>
+<section id=contributor>
+<h2>As a contributor to open-source</h2>
+<p>
+Whether you are beginner or an experienced contributor to open-source, hub
+makes it easier to <em>fetch repositories</em>, <em>navigate project pages</em>,
+<em>fork repos</em> and even <em>submit pull&nbsp;requests</em>, all from the
+command-line.
+</p>
 
-<pre>$ git clone dotfiles
+<pre>
+<span class="comment"># clone your own project</span>
+$ git <strong>clone dotfiles</strong>
 <span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
-$ git clone defunkt/hub
+
+<span class="comment"># clone another project</span>
+$ git <strong>clone defunkt/hub</strong>
 <span class="result">→ git clone git://github.com/defunkt/hub.git</span>
 
-<span class="comment"># see the current project's wiki</span>
-$ git browse -- wiki
+<span class="comment"># see the current project's issues</span>
+$ git <strong>browse -- issues</strong>
+<span class="result">→ open https://github.com/defunkt/hub/issues</span>
 
-$ git browse mojombo/jekyll network
-<span class="result">→ open http://github.com/mojombo/jekyll/network</span>
-
-<span class="comment"># import a repo as a submodule</span>
-$ git submodule add technoweenie/permalink_fu vendor/plugins/permalink_fu</pre>
-
-<h2>Seasoned</h2>
-
-<pre>$ git init -g
-<span class="result">→ git init</span>
-<span class="result">→ git remote add origin git@github.com:YOUR_USER/REPO.git</span>
-
-<span class="comment"># fetch from multiple forks</span>
-$ git fetch mislav,cehoffman
-<span class="result">→ git remote add mislav git://github.com/mislav/REPO.git</span>
-<span class="result">→ git remote add cehoffman git://github.com/cehoffman/REPO.git</span>
-<span class="result">→ git fetch --multiple mislav cehoffman</span>
-
-<span class="comment"># push to multiple remotes</span>
-$ git push production,staging master
+<span class="comment"># open another project's wiki</span>
+$ git <strong>browse mojombo/jekyll wiki</strong>
+<span class="result">→ open https://github.com/mojombo/jekyll/wiki</span>
 </pre>
 
-<h2>Gizard</h2>
+<pre>
+<span class="comment"># Example workflow for contributing to a project:</span>
+$ git clone defunkt/hub
+$ cd hub
+<span class="comment"># create a topic branch</span>
+$ git checkout -b feature
+  ( making changes ... )
+$ git commit -m "done with feature"
 
-<pre><span class="comment"># fork the current repo ("defunkt/hub")</span>
-$ git fork
-<span class="result">→ (hardcore forking action...)</span>
+<span class="comment"># It's time to fork the repo!</span>
+$ git <strong>fork</strong>
+<span class="result">→ (forking repo on GitHub...)</span>
 <span class="result">→ git remote add YOUR_USER git://github.com/YOUR_USER/hub.git</span>
 
-<span class="comment"># cherry-pick from web urls</span>
-$ git cherry-pick http://github.com/xoebus/hub/commit/177eeb8
+<span class="comment"># push the changes to your new remote</span>
+$ git push -u YOUR_USER feature
+<span class="comment"># open a pull request for the topic branch you've just pushed</span>
+$ git <strong>pull-request</strong>
+<span class="result">→ (opens a text editor for your pull request message)</span>
+</pre>
+</section>
+
+<section id=maintainer>
+<h2>As an open-source project maintainer</h2>
+<p>
+Maintaining a project is easier when you can <em>easily fetch from other forks</em>,
+<em>review pull requests</em> and <em>cherry-pick URLs</em>. You can even
+<em>create a new repo</em> for your next thing.
+</p>
+
+<pre>
+<span class="comment"># fetch from multiple trusted forks, even if they don't yet exist as remotes</span>
+$ git <strong>fetch mislav,cehoffman</strong>
+<span class="result">→ git remote add mislav git://github.com/mislav/hub.git</span>
+<span class="result">→ git remote add cehoffman git://github.com/cehoffman/hub.git</span>
+<span class="result">→ git fetch --multiple mislav cehoffman</span>
+
+<span class="comment"># check out a pull request for review</span>
+$ git <strong>checkout https://github.com/defunkt/hub/pull/134</strong>
+<span class="result">→ (creates a new branch with the contents of the pull request)</span>
+
+<span class="comment"># directly apply all commits from a pull request to the current branch</span>
+$ git <strong>am -3</strong> https://github.com/defunkt/hub/pull/134
+
+<span class="comment"># cherry-pick a GitHub URL</span>
+$ git <strong>cherry-pick http://github.com/xoebus/hub/commit/177eeb8</strong>
 <span class="result">→ git remote add xoebus git://github.com/xoebus/hub.git</span>
 <span class="result">→ git fetch xoebus</span>
 <span class="result">→ git cherry-pick 177eeb8</span>
 
-<span class="comment"># copy the compare url for a feature branch to clipboard</span>
-$ git compare -u feature | pbcopy
-<span class="result">→ "http://github.com/OWNER/REPO/compare/feature"</span>
-</pre>
+<span class="comment"># `am` can be better than cherry-pick since it doesn't create a remote</span>
+$ git <strong>am</strong> http://github.com/xoebus/hub/commit/177eeb8
 
-<div class="footer">
-  Site by <a href="http://github.com/mislav">mislav</a>.
-</div>
+<span class="comment"># open the GitHub compare view between two releases</span>
+$ git <strong>compare v0.9..v1.0</strong>
+
+<span class="comment"># put compare URL for a topic branch to clipboard</span>
+$ git <strong>compare -u feature | pbcopy</strong>
+
+<span class="comment"># create a repo for a new project</span>
+$ git init
+$ git add . &amp;&amp; git commit -m "It begins."
+$ git <strong>create -d "My new thing"</strong>
+<span class="result">→ (creates a new project on GitHub with the name of current directory)</span>
+$ git push -u origin master
+</pre>
+</section>
+
+<section id=work>
+<h2>As someone who uses GitHub for work</h2>
+<p>
+Save time at work by opening <em>pull requests for code reviews</em> and
+pushing to <em>multiple remotes at once</em>. Even <em>GitHub Enterprise</em>
+is supported.
+</p>
+
+<pre>
+<span class="comment"># whitelist your GitHub Enterprise hostname</span>
+$ git config --global --add hub.host <strong>my.example.org</strong>
+<span class="comment"># add your username and token for the new host</span>
+$ git config --global github."my.example.org".user  <strong>USERNAME</strong>
+$ git config --global github."my.example.org".token <strong>TOKEN</strong>
+
+<span class="comment"># open a pull request for a branch, put its URL to the clipboard</span>
+$ git push -u origin feature
+$ git <strong>pull-request | pbcopy</strong>
+<span class="result">→ (URL ready for pasting in a chat room)</span>
+
+<span class="comment"># push to multiple remotes</span>
+$ git <strong>push production,staging</strong>
+</pre>
+</section>
