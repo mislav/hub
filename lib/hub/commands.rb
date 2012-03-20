@@ -441,8 +441,10 @@ module Hub
         abort "Error: repository under 'origin' remote is not a GitHub project"
       end
       forked_project = project.owned_by(github_user(true, project.host))
+
       if repo_exists?(forked_project)
-        warn "#{forked_project.name_with_owner} already exists on #{forked_project.host}"
+        abort "Error creating fork: %s already exists on %s" %
+          [ forked_project.name_with_owner, forked_project.host ]
       else
         fork_repo(project) unless args.noop?
       end

@@ -753,6 +753,16 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "fork"
   end
 
+  def test_fork_https_protocol
+    stub_https_is_preferred
+    stub_nonexisting_fork('tpw')
+    stub_request(:post, "https://#{auth}github.com/api/v2/yaml/repos/fork/defunkt/hub")
+
+    expected = "remote add -f tpw https://github.com/tpw/hub.git\n"
+    expected << "new remote: tpw\n"
+    assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
+  end
+
   def test_fork_not_in_repo
     stub_no_git_repo
     expected = "fatal: Not a git repository\n"
@@ -793,19 +803,7 @@ class HubTest < Test::Unit::TestCase
   def test_fork_already_exists
     stub_existing_fork('tpw')
 
-    expected = "tpw/hub already exists on github.com\n"
-    expected << "remote add -f tpw git@github.com:tpw/hub.git\n"
-    expected << "new remote: tpw\n"
-    assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
-  end
-
-  def test_fork_https_protocol
-    stub_existing_fork('tpw')
-    stub_https_is_preferred
-
-    expected = "tpw/hub already exists on github.com\n"
-    expected << "remote add -f tpw https://github.com/tpw/hub.git\n"
-    expected << "new remote: tpw\n"
+    expected = "Error creating fork: tpw/hub already exists on github.com\n"
     assert_equal expected, hub("fork") { ENV['GIT'] = 'echo' }
   end
 
