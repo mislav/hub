@@ -5,8 +5,8 @@ Gem::Specification.new do |s|
   s.name              = "hub"
   s.version           = Hub::VERSION
   s.summary           = "Command-line wrapper for git and GitHub"
-  s.homepage          = "https://github.com/defunkt/hub"
-  s.email             = "chris@ozmm.org"
+  s.homepage          = "http://defunkt.io/hub/"
+  s.email             = "mislav.marohnic@gmail.com"
   s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
 
   s.add_development_dependency 'rake'
