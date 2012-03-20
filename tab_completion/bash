@@ -9,7 +9,7 @@
 if declare -F _git > /dev/null; then
   # Duplicate and rename the 'list_all_commands' function
   eval "$(declare -f __git_list_all_commands | \
-        sed 's/__git_list_all_commands/__git_list_all_commands_without_hub/')"
+        sed 's/__git_list_all_commands/__git_list_all_commands_original/')"
 
   # Wrap the 'list_all_commands' function with extra hub commands
   __git_list_all_commands() {
@@ -20,6 +20,6 @@ create
 browse
 compare
 EOF
-    __git_list_all_commands_without_hub
+    __git_list_all_commands_original
   }
 fi
