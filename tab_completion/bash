@@ -22,4 +22,7 @@ compare
 EOF
     __git_list_all_commands_original
   }
+  
+  # Ensure cached commands are cleared
+  __git_all_commands=""
 fi
