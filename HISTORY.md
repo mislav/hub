@@ -1,3 +1,10 @@
+## master
+
+* change `git fork` so it fails when repo already exists under user
+* teach custom commands to respect `-h` & `--help` flags
+* `pull-request`: better error message for invalid remotes/URLs
+* respect local SSH aliases for host names
+
 ## 1.8.3 (2012-03-02)
 
 * fix `pull-request` from branch tracking another local branch
