@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rake'
   s.add_development_dependency 'webmock'
 
-  s.files             = %w( README.md Rakefile LICENSE )
+  s.files             = %w( README.md Rakefile LICENSE HISTORY.md )
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
