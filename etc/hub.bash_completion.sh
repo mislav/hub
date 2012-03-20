@@ -1,9 +1,5 @@
-#
-# Source this file from your ~/.bashrc
-#
-# bash completion support for hub.
-#   Adds hub commands to __git_list_all_commands function.
-# -------------------------------------------------------------
+# hub tab-completion script for bash.
+# This script complements the completion script that ships with git.
 
 # Check that git tab completion is available
 if declare -F _git > /dev/null; then
@@ -14,6 +10,7 @@ if declare -F _git > /dev/null; then
   # Wrap the 'list_all_commands' function with extra hub commands
   __git_list_all_commands() {
     cat <<-EOF
+alias
 pull-request
 fork
 create

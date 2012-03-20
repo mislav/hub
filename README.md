@@ -109,6 +109,14 @@ You should place this command in your `.bash_profile` or other startup script:
 eval "$(hub alias -s)"
 ~~~
 
+### Shell tab-completion
+
+hub repository contains tab-completion scripts for bash and zsh. These scripts
+complement existing completion scripts that ship with git.
+
+* [hub bash completion](https://github.com/defunkt/hub/blob/master/etc/hub.bash_completion.sh)
+* [hub zsh completion](https://github.com/defunkt/hub/blob/master/etc/hub.zsh_completion)
+
 
 Commands
 --------
