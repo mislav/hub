@@ -1053,6 +1053,22 @@ Use git-config(1) to display the currently configured GitHub username:
 config
   end
 
+  def test_help_flag_on_command
+    help_manpage = hub("browse --help")
+    assert_includes "git + hub = github", help_manpage
+    assert_includes "git browse", help_manpage
+  end
+
+  def test_help_short_flag_on_command
+    usage_help = hub("create -h")
+    expected = "Usage: git create [NAME] [-p] [-d DESCRIPTION] [-h HOMEPAGE]\n"
+    assert_equal expected, usage_help
+
+    usage_help = hub("pull-request -h")
+    expected = "Usage: git pull-request [-f] [TITLE|-i ISSUE] [-b BASE] [-h HEAD]\n"
+    assert_equal expected, usage_help
+  end
+
   def test_help_hub_no_groff
     stub_available_commands()
     assert_equal "** Can't find groff(1)\n", hub("help hub")

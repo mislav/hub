@@ -38,6 +38,8 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+
     def run(args)
       slurp_global_flags(args)
 
@@ -45,13 +47,17 @@ module Hub
       args.unshift 'help' if args.empty?
 
       cmd = args[0]
-      expanded_args = expand_alias(cmd)
-      cmd = expanded_args[0] if expanded_args
+      if expanded_args = expand_alias(cmd)
+        cmd = expanded_args[0]
+        expanded_args.concat args[1..-1]
+      end
+
+      respect_help_flags(expanded_args || args) if custom_command? cmd
 
       # git commands can have dashes
       cmd = cmd.sub(/(\w)-/, '\1_')
       if method_defined?(cmd) and cmd != 'run'
-        args[0, 1] = expanded_args if expanded_args
+        args.replace expanded_args if expanded_args
         send(cmd, args)
       end
     rescue Errno::ENOENT
@@ -688,6 +694,30 @@ module Hub
     # Helper methods are private so they cannot be invoked
     # from the command line.
     #
+
+    def custom_command? cmd
+      CUSTOM_COMMANDS.include? cmd
+    end
+
+    # Show short usage help for `-h` flag, and open man page for `--help`
+    def respect_help_flags args
+      return if args.size > 2
+      case args[1]
+      when '-h'
+        pattern = /(git|hub) #{Regexp.escape args[0].gsub('-', '\-')}/
+        hub_raw_manpage.each_line { |line|
+          if line =~ pattern
+            $stderr.print "Usage: "
+            $stderr.puts line.gsub(/\\f./, '').gsub('\-', '-')
+            abort
+          end
+        }
+        abort "Error: couldn't find usage help for #{args[0]}"
+      when '--help'
+        puts hub_manpage
+        exit
+      end
+    end
 
     # The text print when `hub help` is run, kept in its own method
     # for the convenience of the author.
