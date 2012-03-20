@@ -118,6 +118,26 @@ complement existing completion scripts that ship with git.
 * [hub zsh completion](https://github.com/defunkt/hub/blob/master/etc/hub.zsh_completion)
 
 
+Tab Completion
+--------------
+
+Install tab completion for the extra `hub` commands:
+
+#### Bash
+
+    # Download completion override
+    curl https://raw.github.com/defunkt/hub/master/tab_completion/bash -sLo $HOME/.hub.bash_completion &&
+    # Source from ~/.bashrc
+    echo "source $HOME/.hub.bash_completion" >> $HOME/.bashrc
+
+#### Zsh
+
+    # Download completion override
+    curl https://raw.github.com/defunkt/hub/master/tab_completion/zsh -sLo $HOME/.hub.zsh_completion &&
+    # Source from ~/.zshrc
+    echo "source $HOME/.hub.zsh_completion" >> $HOME/.zshrc
+
+
 Commands
 --------
 
