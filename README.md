@@ -100,22 +100,13 @@ Aliasing
 Using hub feels best when it's aliased as `git`. This is not dangerous; your
 _normal git commands will all work_. hub merely adds some sugar.
 
-`hub alias <shell>` displays alias instructions for the given shell. `hub alias`
-alone will show the known shells.
+`hub alias` displays instructions for the current shell. With the `-s` flag, it
+outputs a script suitable for `eval`.
 
-~~~
-$ hub alias bash
-Run this in your shell to start using `hub` as `git`:
-  alias git=hub
-~~~
-
-You should place this command in your `.bash_profile` or other startup
-script to ensure runs on login.
-
-The alias command can also be eval'd directly using the `-s` flag:
+You should place this command in your `.bash_profile` or other startup script:
 
 ~~~ sh
-$ eval `hub alias -s bash`
+eval "$(hub alias -s)"
 ~~~
 
 

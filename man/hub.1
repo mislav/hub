@@ -10,7 +10,7 @@
 \fBhub\fR [\fB\-\-noop\fR] \fICOMMAND\fR \fIOPTIONS\fR
 .
 .br
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
+\fBhub alias\fR [\fB\-s\fR] [\fISHELL\fR]
 .
 .SS "Expanded git commands:"
 \fBgit init \-g\fR \fIOPTIONS\fR
@@ -68,11 +68,8 @@ hub enhances various git commands to ease most common workflows with GitHub\.
 Shows which command(s) would be run as a result of the current command\. Doesn\'t perform anything\.
 .
 .TP
-\fBhub alias\fR [\fB\-s\fR] \fISHELL\fR
-Writes shell aliasing code for \fISHELL\fR (\fBbash\fR, \fBsh\fR, \fBzsh\fR, \fBcsh\fR) to standard output\. With the \fB\-s\fR option, the output of this command can be evaluated directly within the shell:
-.
-.br
-\fBeval $(hub alias \-s bash)\fR
+\fBhub alias\fR [\fB\-s\fR] [\fISHELL\fR]
+Shows shell instructions for wrapping git\. If given, \fISHELL\fR specifies the type of shell; otherwise defaults to the value of SHELL environment variable\. With \fB\-s\fR, outputs shell script suitable for \fBeval\fR\.
 .
 .TP
 \fBgit init\fR \fB\-g\fR \fIOPTIONS\fR

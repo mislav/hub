@@ -625,43 +625,38 @@ module Hub
     end
 
     def alias(args)
-      shells = {
-        'sh'   => 'alias git=hub',
-        'bash' => 'alias git=hub',
-        'zsh'  => 'function git(){hub "$@"}',
-        'csh'  => 'alias git hub',
-        'fish' => 'alias git hub'
-      }
+      shells = %w[bash zsh sh ksh csh fish]
 
-      silent = args.delete('-s')
+      script = !!args.delete('-s')
+      shell = args[1] || ENV['SHELL']
+      abort "hub alias: unknown shell" if shell.nil? or shell.empty?
+      shell = File.basename shell
 
-      if shell = args[1]
-        if silent.nil?
-          puts "Run this in your shell to start using `hub` as `git`:"
-          print "  "
-        end
-      else
-        puts "usage: hub alias [-s] SHELL", ""
-        puts "You already have hub installed and available in your PATH,"
-        puts "but to get the full experience you'll want to alias it to"
-        puts "`git`.", ""
-        puts "To see how to accomplish this for your shell, run the alias"
-        puts "command again with the name of your shell.", ""
-        puts "Known shells:"
-        shells.map { |key, _| key }.sort.each do |key|
-          puts "  " + key
-        end
-        puts "", "Options:"
-        puts "  -s   Silent. Useful when using the output with eval, e.g."
-        puts "       $ eval `hub alias -s bash`"
-
-        exit
+      unless shells.include? shell
+        $stderr.puts "hub alias: unsupported shell"
+        warn "supported shells: #{shells.join(' ')}"
+        abort
       end
 
-      if shells[shell]
-        puts shells[shell]
+      if script
+        puts "alias git=hub"
+        if 'zsh' == shell
+          puts "if type compdef >/dev/null; then"
+          puts "   compdef hub=git"
+          puts "fi"
+        end
       else
-        abort "fatal: never heard of `#{shell}'"
+        profile = case shell
+          when 'bash' then '~/.bash_profile'
+          when 'zsh'  then '~/.zshrc'
+          when 'ksh'  then '~/.profile'
+          else
+            'your profile'
+          end
+
+        puts "# Wrap git automatically by adding the following to #{profile}:"
+        puts
+        puts 'eval "$(hub alias -s)"'
       end
 
       exit

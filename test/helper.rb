@@ -80,22 +80,6 @@ class Test::Unit::TestCase
     assert !cmd.args.changed?, "arguments were not supposed to change: #{cmd.args.inspect}"
   end
 
-  # Asserts that `hub` will show a specific alias command for a
-  # specific shell.
-  #
-  # e.g.
-  #  assert_alias_command "sh", "alias git=hub"
-  #
-  # Here we are saying that this:
-  #   $ hub alias sh
-  # Should display this:
-  #   Run this in your shell to start using `hub` as `git`:
-  #     alias git=hub
-  def assert_alias_command(shell, command)
-    expected = "Run this in your shell to start using `hub` as `git`:\n  %s\n"
-    assert_equal(expected % command, hub("alias #{shell}"))
-  end
-
   # Asserts that `haystack` includes `needle`.
   def assert_includes(needle, haystack)
     assert haystack.include?(needle),

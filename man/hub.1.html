@@ -77,7 +77,7 @@
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
 <p><code>hub</code> [<code>--noop</code>] <var>COMMAND</var> <var>OPTIONS</var><br />
-<code>hub alias</code> [<code>-s</code>] <var>SHELL</var></p>
+<code>hub alias</code> [<code>-s</code>] [<var>SHELL</var>]</p>
 
 <h3 id="Expanded-git-commands-">Expanded git commands:</h3>
 
@@ -108,10 +108,9 @@
 <dl>
 <dt><code>hub --noop</code> <var>COMMAND</var></dt><dd><p>Shows which command(s) would be run as a result of the current command.
 Doesn't perform anything.</p></dd>
-<dt><code>hub alias</code> [<code>-s</code>] <var>SHELL</var></dt><dd><p>Writes shell aliasing code for <var>SHELL</var> (<code>bash</code>, <code>sh</code>, <code>zsh</code>,
-<code>csh</code>) to standard output. With the <code>-s</code> option, the output of
-this command can be evaluated directly within the shell:<br />
-<code>eval $(hub alias -s bash)</code></p></dd>
+<dt><code>hub alias</code> [<code>-s</code>] [<var>SHELL</var>]</dt><dd><p>Shows shell instructions for wrapping git. If given, <var>SHELL</var> specifies the
+type of shell; otherwise defaults to the value of SHELL environment
+variable.  With <code>-s</code>, outputs shell script suitable for <code>eval</code>.</p></dd>
 <dt><code>git init</code> <code>-g</code> <var>OPTIONS</var></dt><dd><p>Create a git repository as with <span class="man-ref">git-init<span class="s">(1)</span></span> and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
 <var>REPOSITORY</var> is the current working directory's basename.</p></dd>

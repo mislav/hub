@@ -1,5 +1,6 @@
 ## master
 
+* improve `hub alias` command
 * change `git fork` so it fails when repo already exists under user
 * teach custom commands to respect `-h` & `--help` flags
 * `pull-request`: better error message for invalid remotes/URLs
