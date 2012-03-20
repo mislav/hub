@@ -924,7 +924,7 @@ help
       params['homepage'] = options[:homepage] if options[:homepage]
 
       load_net_http
-      response = http_post(project.api_create_url('yaml'), params)
+      response = http_post(project.api_create_url('json'), params)
       response.error! unless Net::HTTPSuccess === response
     end
 
