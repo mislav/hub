@@ -752,7 +752,7 @@ Remote Commands:
    push       Upload data, tags and branches to a remote repository
    remote     View and manage a set of remote repositories
 
-Advanced commands:
+Advanced Commands:
    reset      Reset your staging area or working directory to another point
    rebase     Re-apply a series of patches in one branch onto another
    bisect     Find by binary search the change that introduced a bug
