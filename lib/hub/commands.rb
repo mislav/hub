@@ -792,11 +792,18 @@ Remote Commands:
    push       Upload data, tags and branches to a remote repository
    remote     View and manage a set of remote repositories
 
-Advanced commands:
+Advanced Commands:
    reset      Reset your staging area or working directory to another point
    rebase     Re-apply a series of patches in one branch onto another
    bisect     Find by binary search the change that introduced a bug
    grep       Print files with lines matching a pattern in your codebase
+
+GitHub Commands:
+   pull-request   Open a pull request on GitHub
+   fork           Make a fork of a remote repository on GitHub and add as remote
+   create         Create this repository on GitHub and add GitHub as origin
+   browse         Open a GitHub page in the default browser
+   compare        Open a compare page on GitHub
 
 See 'git help <command>' for more information on a specific command.
 help
