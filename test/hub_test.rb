@@ -993,6 +993,21 @@ class HubTest < Test::Unit::TestCase
       "checkout -f https://github.com/defunkt/hub/pull/73/files -q"
   end
 
+  def test_checkout_pullrequest_enterprise_http
+    stub_hub_host('git.my.org')
+    stub_repo_url('git@git.my.org:defunkt/hub.git')
+    stub_github_user('myfiname', 'git.my.org')
+    stub_github_token('789xyz', 'git.my.org')
+    stub_http_is_preferred
+
+    stub_request(:get, "http://#{auth('myfiname', '789xyz')}git.my.org/api/v2/json/pulls/defunkt/hub/73").
+      to_return(:body => mock_pull_response('blueyed:feature'))
+
+    assert_commands 'git remote add -f -t feature blueyed git@git.my.org:blueyed/hub.git',
+      'git checkout -f --track -B blueyed-feature blueyed/feature -q',
+      "checkout -f http://git.my.org/defunkt/hub/pull/73/files -q"
+  end
+
   def test_checkout_private_pullrequest
     stub_request(:get, "https://#{auth}github.com/api/v2/json/pulls/defunkt/hub/73").
       to_return(:body => mock_pull_response('blueyed:feature', :private))
@@ -1386,6 +1401,10 @@ config
 
     def stub_https_is_preferred
       stub_config_value 'hub.protocol', 'https'
+    end
+
+    def stub_http_is_preferred
+      stub_config_value 'hub.protocol', 'http'
     end
 
     def stub_hub_host(names)

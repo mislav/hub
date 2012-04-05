@@ -189,7 +189,7 @@ module Hub
       end
     end
 
-    class GithubProject < Struct.new(:local_repo, :owner, :name, :host)
+    class GithubProject < Struct.new(:local_repo, :owner, :name, :host, :scheme)
       def self.from_url(url, local_repo)
         if local_repo.known_hosts.include? url.host
           _, owner, name = url.path.split('/', 4)
@@ -199,6 +199,7 @@ module Hub
 
       def initialize(*args)
         super
+        self.scheme = (local_repo && local_repo.git_config('hub.protocol')) || 'https'
         self.host ||= local_repo.default_host
       end
 
@@ -234,7 +235,7 @@ module Hub
             path = '/wiki' + path
           end
         end
-        "https://#{host}/" + project_name + path.to_s
+        "#{scheme}://#{host}/" + project_name + path.to_s
       end
 
       def git_url(options = {})
@@ -245,7 +246,7 @@ module Hub
       end
 
       def api_url(type, resource, action)
-        URI("https://#{host}/api/v2/#{type}/#{resource}/#{action}")
+        URI("#{scheme}://#{host}/api/v2/#{type}/#{resource}/#{action}")
       end
 
       def api_show_url(type)
