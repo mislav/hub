@@ -36,7 +36,7 @@ class HubTest < Test::Unit::TestCase
     super
     COMMANDS.replace %w[open groff]
     Hub::Context::PWD.replace '/path/to/hub'
-    Hub::Context::SshConfig::CONFIG_FILES.replace []
+    Hub::SshConfig::CONFIG_FILES.replace []
 
     @git_reader = Hub::Context::GitReader.new 'git' do |cache, cmd|
       unless cmd.index('config --get alias.') == 0
@@ -1444,7 +1444,7 @@ config
 
     def with_ssh_config
       config_file = File.expand_path '../ssh_config', __FILE__
-      Hub::Context::SshConfig::CONFIG_FILES.replace [config_file]
+      Hub::SshConfig::CONFIG_FILES.replace [config_file]
       yield
     end
 
