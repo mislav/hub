@@ -94,4 +94,40 @@ class Hub::JSON
       error unless s.pos > pos
     end
   end
+
+  module Generator
+    def generate(obj)
+      raise ArgumentError unless obj.is_a? Array or obj.is_a? Hash
+      generate_type(obj)
+    end
+    alias dump generate
+
+    private
+
+    def generate_type(obj)
+      type = obj.is_a?(Numeric) ? :Numeric : obj.class.name
+      begin send(:"generate_#{type}", obj)
+      rescue NoMethodError; raise ArgumentError, "can't serialize #{type}"
+      end
+    end
+
+    def generate_String(str) str.inspect end
+    alias generate_Numeric generate_String
+    alias generate_TrueClass generate_String
+    alias generate_FalseClass generate_String
+
+    def generate_Symbol(sym) generate_String(sym.to_s) end
+
+    def generate_NilClass(*) 'null' end
+
+    def generate_Array(ary) '[%s]' % ary.map {|o| generate_type(o) }.join(', ') end
+
+    def generate_Hash(hash)
+      '{%s}' % hash.map { |key, value|
+        "#{generate_String(key.to_s)}: #{generate_type(value)}"
+      }.join(', ')
+    end
+  end
+
+  extend Generator
 end
