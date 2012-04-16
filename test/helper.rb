@@ -1,6 +1,5 @@
 require 'test/unit'
 require 'hub'
-require 'hub/standalone'
 
 # We're checking for `open` in our tests
 ENV['BROWSER'] = 'open'

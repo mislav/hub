@@ -2,57 +2,58 @@ module Hub
   module Standalone
     extend self
 
-    RUBY_BIN = if File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
-               else
-                 require 'rbconfig'
-                 File.join RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']
-               end
+    HUB_ROOT = File.expand_path('../../..', __FILE__)
 
     PREAMBLE = <<-preamble
-#!#{RUBY_BIN}
 #
-# This file, hub, is generated code.
-# Please DO NOT EDIT or send patches for it.
+# This file is generated code. DO NOT send patches for it.
 #
-# Please take a look at the source from
+# Original source files with comments are at:
 # https://github.com/defunkt/hub
-# and submit patches against the individual files
-# that build hub.
 #
 
 preamble
 
-    POSTAMBLE = "Hub::Runner.execute(*ARGV)\n"
-    __DIR__   = File.dirname(__FILE__)
-    MANPAGE   = "__END__\n#{File.read(__DIR__ + '/../../man/hub.1')}"
-
     def save(filename, path = '.')
       target = File.join(File.expand_path(path), filename)
       File.open(target, 'w') do |f|
-        f.puts build
+        build f
         f.chmod 0755
       end
     end
 
-    def build
-      root = File.dirname(__FILE__)
+    def build io
+      io.puts "#!#{ruby_executable}"
+      io << PREAMBLE
 
-      standalone = ''
-      standalone << PREAMBLE
-
-      files = Dir["#{root}/*.rb"].sort - [__FILE__]
-      # ensure context.rb appears before others
-      ctx = files.find {|f| f['context.rb'] } and files.unshift(files.delete(ctx))
-
-      files.each do |file|
-        File.readlines(file).each do |line|
-          standalone << line if line !~ /^\s*#/
+      each_source_file do |filename|
+        File.open(filename, 'r') do |source|
+          source.each_line {|line| io << line if line !~ /^\s*#/ }
         end
+        io.puts ''
       end
 
-      standalone << POSTAMBLE
-      standalone << MANPAGE
-      standalone
+      io.puts "Hub::Runner.execute(*ARGV)"
+      io.puts "\n__END__"
+      io << File.read(File.join(HUB_ROOT, 'man/hub.1'))
+    end
+
+    def each_source_file
+      File.open(File.join(HUB_ROOT, 'lib/hub.rb'), 'r') do |main|
+        main.each_line do |req|
+          if req =~ /^require\s+["'](.+)["']/
+            yield File.join(HUB_ROOT, 'lib', "#{$1}.rb")
+          end
+        end
+      end
+    end
+
+    def ruby_executable
+      if File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
+      else
+        require 'rbconfig'
+        File.join RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']
+      end
     end
   end
 end

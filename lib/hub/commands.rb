@@ -618,10 +618,12 @@ module Hub
     def hub(args)
       return help(args) unless args[1] == 'standalone'
       require 'hub/standalone'
-      $stdout.puts Hub::Standalone.build
+      Hub::Standalone.build $stdout
       exit
     rescue LoadError
-      abort "hub is running in standalone mode."
+      abort "hub is already running in standalone mode."
+    rescue Errno::EPIPE
+      exit # ignore broken pipe
     end
 
     def alias(args)

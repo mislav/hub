@@ -1,5 +1,7 @@
 require 'helper'
+require 'hub/standalone'
 require 'fileutils'
+require 'stringio'
 
 class StandaloneTest < Test::Unit::TestCase
   include FileUtils
@@ -17,8 +19,11 @@ class StandaloneTest < Test::Unit::TestCase
   end
 
   def test_standalone
-    standalone = Hub::Standalone.build
-    assert_includes "This file, hub, is generated code", standalone
+    io = StringIO.new
+    Hub::Standalone.build io
+    standalone = io.string
+
+    assert_includes "This file is generated code", standalone
     assert_includes "Runner", standalone
     assert_includes "Args", standalone
     assert_includes "Commands", standalone
@@ -31,7 +36,7 @@ class StandaloneTest < Test::Unit::TestCase
 
   def test_standalone_save
     Hub::Standalone.save("hub")
-    assert_equal Hub::Standalone.build, File.read('./hub')
+    assert File.size('./hub') > 100
   end
 
   def test_standalone_save_permission_denied

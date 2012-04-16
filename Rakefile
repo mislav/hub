@@ -91,7 +91,7 @@ end
 # Build
 #
 
-file "hub" => FileList.new("lib/hub/*.rb", "man/hub.1") do |task|
+file "hub" => FileList.new("lib/hub.rb", "lib/hub/*.rb", "man/hub.1") do |task|
   Rake::Task[:load_path].invoke
   require 'hub/standalone'
   Hub::Standalone.save(task.name)

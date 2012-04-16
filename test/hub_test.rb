@@ -1086,8 +1086,7 @@ config
   end
 
   def test_hub_standalone
-    help_standalone = hub("hub standalone")
-    assert_equal Hub::Standalone.build, help_standalone
+    assert_includes 'This file is generated code', hub("hub standalone")
   end
 
   def test_hub_compare
