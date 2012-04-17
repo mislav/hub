@@ -17,6 +17,8 @@ module Hub
     # - config: an object that implements:
     #   - username(host)
     #   - api_token(host, user)
+    #   - password(host, user)
+    #   - oauth_token(host, user)
     def initialize config
       @config = config
     end
@@ -157,9 +159,39 @@ module Hub
       end
 
       def apply_authentication req, url
-        user = config.username(url.host)
-        token = config.api_token(url.host, user)
-        req.basic_auth "#{user}/token", token
+        user = url.user || config.username(url.host)
+
+        if req.path.index('/api/v2/') == 0
+          token = config.api_token(url.host, user)
+          req.basic_auth "#{user}/token", token
+        elsif req.path.index('/authorizations') == 0
+          pass = config.password(url.host, user)
+          req.basic_auth user, pass
+        else
+          token = config.oauth_token(url.host, user) {
+            obtain_oauth_token url.host, user
+          }
+          req['Authorization'] = "token #{token}"
+        end
+      end
+
+      # FIXME: move this elsewhere
+      def oauth_app_url() 'http://defunkt.io/hub/' end
+
+      def obtain_oauth_token host, user
+        # first try to fetch existing authorization
+        res = get "https://#{user}@#{host}/authorizations"
+        res.error! unless res.success?
+
+        if found = res.data.find {|auth| auth['app']['url'] == oauth_app_url }
+          found['token']
+        else
+          # create a new authorization
+          res = post "https://#{user}@#{host}/authorizations",
+            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url
+          res.error! unless res.success?
+          res.data['token']
+        end
       end
 
       def create_connection url
@@ -236,7 +268,8 @@ module Hub
       end
     end
 
-    # Provides authentication info per GitHub host such as username and token.
+    # Provides authentication info per GitHub host such as username, password,
+    # and API/OAuth tokens.
     class Configuration
       def initialize store
         @data = store
@@ -267,9 +300,43 @@ module Hub
         end
       end
 
+      def password host, user
+        host = normalize_host host
+        @password_cache["#{user}@#{host}"] ||= prompt_password host, user
+      end
+
+      def oauth_token host, user, &block
+        @data.fetch_value normalize_host(host), user, :oauth_token, &block
+      end
+
       def prompt what
         print "#{what}: "
         $stdin.gets.chomp
+      end
+
+      # special prompt that has hidden input
+      def prompt_password host, user
+        print "#{host} password for #{user} (never stored): "
+        password = askpass
+        puts ''
+        password
+      end
+
+      # FIXME: probably not cross-platform
+      def askpass
+        tty_state = `stty -g`
+        system 'stty raw -echo -icanon isig' if $?.success?
+        pass = ''
+        while char = $stdin.getbyte and not (char == 13 or char == 10)
+          if char == 127 or char == 8
+            pass[-1,1] = '' unless pass.empty?
+          else
+            pass << char.chr
+          end
+        end
+        pass
+      ensure
+        system "stty #{tty_state}" unless tty_state.empty?
       end
 
       def proxy_uri(with_ssl)

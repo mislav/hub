@@ -39,8 +39,19 @@ class HubTest < Test::Unit::TestCase
     Hub::Context::PWD.replace '/path/to/hub'
     Hub::SshConfig::CONFIG_FILES.replace []
 
+    @prompt_stubs = prompt_stubs = []
+    @password_prompt_stubs = password_prompt_stubs = []
+
     Hub::GitHubAPI::Configuration.class_eval do
-      undef prompt if method_defined? :prompt
+      undef prompt
+      undef prompt_password
+
+      define_method :prompt do |what|
+        prompt_stubs.shift.call(what)
+      end
+      define_method :prompt_password do |host, user|
+        password_prompt_stubs.shift.call(what)
+      end
     end
 
     @git_reader = Hub::Context::GitReader.new 'git' do |cache, cmd|
