@@ -128,8 +128,7 @@ hub also adds some custom commands that are otherwise not present in git:
 
   * `git fork` [`--no-remote`]:
     Forks the original project (referenced by "origin" remote) on GitHub and
-    adds a new remote for it under your username. Requires `github.token` to
-    be set (see CONFIGURATION).
+    adds a new remote for it under your username.
 
   * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]:
     Opens a pull request on GitHub for the project that the "origin" remote
@@ -149,20 +148,8 @@ hub also adds some custom commands that are otherwise not present in git:
 
 ## CONFIGURATION
 
-Use git-config(1) to display the currently configured GitHub username:
-
-    $ git config --global github.user
-
-Or, set the GitHub username and token with:
-
-    $ git config --global github.user <username>
-    $ git config --global github.token <token>
-
-You can override these values with <GITHUB_USER> and <GITHUB_TOKEN>
-environment variables.
-
-See <http://help.github.com/set-your-user-name-email-and-github-token/> for more
-information.
+Hub will prompt for GitHub username & password the first time it needs to access
+the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 
 If you prefer the HTTPS protocol for GitHub repositories, you can set
 "hub.protocol" to "https". This will affect `clone`, `fork`, `remote add`
@@ -178,11 +165,6 @@ point to github.com. GitHub Enterprise hosts need to be whitelisted to
 configure hub to treat such remotes same as github.com:
 
     $ git config --global --add hub.host my.git.org
-
-API username and token need also be configured for each Enterprise host:
-
-    $ git config --global github."my.git.org".user <username>
-    $ git config --global github."my.git.org".token <token>
 
 The default host for commands like `init` and `clone` is still
 github.com, but this can be affected with the <GITHUB_HOST> environment
