@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "March 2012" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "April 2012" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -132,7 +132,7 @@ Open a GitHub compare view page in the system\'s default web browser\. \fISTART\
 .
 .TP
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
-Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\. Requires \fBgithub\.token\fR to be set (see CONFIGURATION)\.
+Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\.
 .
 .TP
 \fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
@@ -145,37 +145,7 @@ If \fITITLE\fR is omitted, a text editor will open in which title and body of th
 If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
 .
 .SH "CONFIGURATION"
-Use git\-config(1) to display the currently configured GitHub username:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\.user
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Or, set the GitHub username and token with:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\.user <username>
-$ git config \-\-global github\.token <token>
-.
-.fi
-.
-.IP "" 0
-.
-.P
-You can override these values with \fIGITHUB_USER\fR and \fIGITHUB_TOKEN\fR environment variables\.
-.
-.P
-See \fIhttp://help\.github\.com/set\-your\-user\-name\-email\-and\-github\-token/\fR for more information\.
+Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.
 .
 .P
 If you prefer the HTTPS protocol for GitHub repositories, you can set "hub\.protocol" to "https"\. This will affect \fBclone\fR, \fBfork\fR, \fBremote add\fR and other operations that expand references to GitHub repositories as full URLs that otherwise use git and ssh protocols\.
@@ -198,20 +168,6 @@ By default, hub will only work with repositories that have remotes which point t
 .nf
 
 $ git config \-\-global \-\-add hub\.host my\.git\.org
-.
-.fi
-.
-.IP "" 0
-.
-.P
-API username and token need also be configured for each Enterprise host:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\."my\.git\.org"\.user <username>
-$ git config \-\-global github\."my\.git\.org"\.token <token>
 .
 .fi
 .

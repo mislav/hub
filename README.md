@@ -302,24 +302,10 @@ superpowers:
 Configuration
 -------------
 
-### GitHub username & token
+### GitHub OAuth authentication
 
-To get the most out of hub, you'll want to ensure your GitHub login
-is stored locally in your Git config or environment variables.
-
-To test it run this:
-
-    $ git config --global github.user
-
-If you see nothing, you need to set the config setting:
-
-    $ git config --global github.user YOUR_USER
-
-For commands that require write access to GitHub (such as `fork`), you'll want to
-setup "github.token" as well. See [GitHub config guide][2] for more information.
-
-If present, environment variables `GITHUB_USER` and `GITHUB_TOKEN` override the
-values of "github.user" and "github.token".
+Hub will prompt for GitHub username & password the first time it needs to access
+the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 
 ### HTTPS insted of git protocol
 
@@ -381,5 +367,4 @@ GitHub simpler:
 
 
 [speed]: http://gist.github.com/284823
-[2]: http://help.github.com/set-your-user-name-email-and-github-token/
 [gc]: https://twitter.com/brynary/status/49560668994674688

@@ -8,6 +8,9 @@ ENV['BROWSER'] = 'open'
 fakebin_dir = File.expand_path('../fakebin', __FILE__)
 ENV['PATH'] = "#{fakebin_dir}:#{ENV['PATH']}"
 
+# Use an isolated config file in testing
+ENV['HUB_CONFIG'] = File.join(ENV['TMPDIR'] || '/tmp', 'hub-test-config')
+
 class Test::Unit::TestCase
   # Shortcut for creating a `Hub` instance. Pass it what you would
   # normally pass `hub` on the command line, e.g.
@@ -96,5 +99,16 @@ class Test::Unit::TestCase
     output = hub(command) { ENV['GIT'] = 'echo' }
     assert expected == output,
       "expected:\n#{expected}\ngot:\n#{output}"
+  end
+
+  def edit_hub_config
+    config = ENV['HUB_CONFIG']
+    if File.exist? config
+      data = YAML.load File.read(config)
+    else
+      data = {}
+    end
+    yield data
+    File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
   end
 end
