@@ -3,6 +3,7 @@ require 'webmock/test_unit'
 require 'rbconfig'
 require 'yaml'
 require 'forwardable'
+require 'fileutils'
 
 WebMock::BodyPattern.class_eval do
   undef normalize_hash
@@ -38,6 +39,10 @@ class HubTest < Test::Unit::TestCase
     Hub::Context::PWD.replace '/path/to/hub'
     Hub::SshConfig::CONFIG_FILES.replace []
 
+    Hub::GitHubAPI::Configuration.class_eval do
+      undef prompt if method_defined? :prompt
+    end
+
     @git_reader = Hub::Context::GitReader.new 'git' do |cache, cmd|
       unless cmd.index('config --get alias.') == 0
         raise ArgumentError, "`git #{cmd}` not stubbed"
@@ -46,6 +51,9 @@ class HubTest < Test::Unit::TestCase
 
     Hub::Commands.instance_variable_set :@git_reader, @git_reader
     Hub::Commands.instance_variable_set :@local_repo, nil
+    Hub::Commands.instance_variable_set :@api_client, nil
+
+    FileUtils.rm_rf ENV['HUB_CONFIG']
 
     @git_reader.stub! \
       'remote' => "mislav\norigin",
@@ -123,7 +131,7 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded "clone --template=one/two git://github.com/tpw/resque.git --origin master resquetastic"
   end
 
-  def test_your_private_clone_fails_without_config
+  def xtest_your_private_clone_fails_without_config
     stub_no_git_repo
     out = hub("clone -p mustache") do
       stub_github_user(nil)
@@ -132,7 +140,7 @@ class HubTest < Test::Unit::TestCase
     assert_equal "** No GitHub user set. See http://help.github.com/set-your-user-name-email-and-github-token/\n", out
   end
 
-  def test_your_public_clone_fails_without_config
+  def xtest_your_public_clone_fails_without_config
     stub_no_git_repo
     out = hub("clone mustache") do
       stub_github_user(nil)
@@ -356,7 +364,7 @@ class HubTest < Test::Unit::TestCase
                     "fetch xoebus"
   end
 
-  def test_fetch_no_auth
+  def xtest_fetch_no_auth
     stub_github_user nil
     stub_github_token nil
     stub_remotes_group('xoebus', nil)
@@ -556,7 +564,7 @@ class HubTest < Test::Unit::TestCase
     end
   end
 
-  def test_init_no_login
+  def xtest_init_no_login
     out = hub("init -g") do
       stub_github_user(nil)
     end
@@ -619,25 +627,6 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create acme/hubbub") { ENV['GIT'] = 'echo' }
   end
 
-  def test_create_no_openssl
-    stub_no_remotes
-    # stub_nonexisting_fork('tpw')
-    stub_request(:get, "http://#{auth}github.com/api/v2/yaml/repos/show/tpw/hub").
-      to_return(:status => 404)
-
-    stub_request(:post, "http://#{auth}github.com/api/v2/json/repos/create").
-      with(:body => { 'name' => 'hub' })
-
-    expected = "remote add -f origin git@github.com:tpw/hub.git\n"
-    expected << "created repository: tpw/hub\n"
-
-    assert_equal expected, hub("create") {
-      ENV['GIT'] = 'echo'
-      require 'net/https'
-      Object.send :remove_const, :OpenSSL
-    }
-  end
-
   def test_create_failed
     stub_no_remotes
     stub_nonexisting_fork('tpw')
@@ -645,7 +634,6 @@ class HubTest < Test::Unit::TestCase
       to_return(:status => [401, "Your token is fail"])
 
     expected = "Error creating repository: Your token is fail (HTTP 401)\n"
-    expected << "Check your token configuration (`git config github.token`)\n"
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
@@ -734,7 +722,7 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, hub("create") { ENV['GIT'] = 'echo' }
   end
 
-  def test_create_no_user
+  def xtest_create_no_user
     stub_no_remotes
     out = hub("create") do
       stub_github_token(nil)
