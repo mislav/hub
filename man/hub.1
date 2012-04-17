@@ -96,6 +96,10 @@ Adds missing remote(s) with \fBgit remote add\fR prior to fetching\. New remotes
 Checks out the head of the pull request as a local branch, to allow for reviewing, rebasing and otherwise cleaning up the commits in the pull request before merging\. The name of the local branch can explicitly be set with \fIBRANCH\fR\.
 .
 .TP
+\fBgit merge\fR \fIPULLREQ\-URL\fR
+Merge the pull request with a nice commit message that includes the pull request ID and title\. Adds a remote but not a local branch\.
+.
+.TP
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
 Cherry\-pick a commit from a fork using either full URL to the commit or GitHub\-flavored Markdown notation, which is \fBuser@sha\fR\. If the remote doesn\'t yet exist, it will be added\. A \fBgit fetch <user>\fR is issued prior to the cherry\-pick attempt\.
 .

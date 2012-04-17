@@ -707,6 +707,49 @@ class HubTest < Test::Unit::TestCase
       "checkout https://github.com/defunkt/hub/pull/73/files"
   end
 
+  def test_merge_no_changes
+    assert_forwarded "merge master"
+  end
+
+  def test_merge_pullrequest
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
+      to_return(:body => mock_pull_response('blueyed:feature'))
+
+    assert_commands "git remote add -f -t feature blueyed git://github.com/blueyed/hub.git",
+      "git merge blueyed/feature --no-ff -m 'Merge pull request #73 from blueyed/feature\n\nMake eyes blue'",
+      "merge https://github.com/defunkt/hub/pull/73/files"
+  end
+
+  def test_merge_private_pullrequest
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
+      to_return(:body => mock_pull_response('blueyed:feature', :private))
+
+    assert_commands "git remote add -f -t feature blueyed git@github.com:blueyed/hub.git",
+      "git merge blueyed/feature --no-ff -m 'Merge pull request #73 from blueyed/feature\n\nMake eyes blue'",
+      "merge https://github.com/defunkt/hub/pull/73/files"
+  end
+
+  def test_merge_pullrequest_custom_branch
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
+      to_return(:body => mock_pull_response('blueyed:feature'))
+
+    assert_commands "git remote add -f -t feature blueyed git://github.com/blueyed/hub.git",
+      "git merge blueyed/feature --no-ff -m 'Merge pull request #73 from blueyed/feature\n\nMake eyes blue'",
+      "merge https://github.com/defunkt/hub/pull/73/files review"
+  end
+
+  def test_merge_pullrequest_existing_remote
+    stub_command_output 'remote', "origin\nblueyed"
+
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
+      to_return(:body => mock_pull_response('blueyed:feature'))
+
+    assert_commands "git remote set-branches --add blueyed feature",
+      "git fetch blueyed +refs/heads/feature:refs/remotes/blueyed/feature",
+      "git merge blueyed/feature --no-ff -m 'Merge pull request #73 from blueyed/feature\n\nMake eyes blue'",
+      "merge https://github.com/defunkt/hub/pull/73/files"
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out
@@ -1106,7 +1149,7 @@ class HubTest < Test::Unit::TestCase
       Hub::JSON.generate :head => {
         :label => label,
         :repo => {:private => !!priv}
-      }
+      }, :title => "Make eyes blue"
     end
 
     def improved_help_text
