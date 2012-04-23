@@ -346,6 +346,15 @@ class HubTest < Test::Unit::TestCase
                     "fetch xoebus"
   end
 
+  def test_fetch_new_private_remote
+    stub_remotes_group('xoebus', nil)
+    stub_existing_private_fork('xoebus')
+
+    assert_commands "git remote add xoebus git@github.com:xoebus/hub.git",
+                    "git fetch xoebus",
+                    "fetch xoebus"
+  end
+
   def test_fetch_new_remote_https_protocol
     stub_remotes_group('xoebus', nil)
     stub_existing_fork('xoebus')
@@ -1368,13 +1377,44 @@ config
       stub_fork(user, repo, 200)
     end
 
+    def stub_existing_private_fork(user, repo = 'hub')
+      stub_fork(user, repo, 200, true)
+    end
+
     def stub_nonexisting_fork(user, repo = 'hub')
       stub_fork(user, repo, 404)
     end
 
-    def stub_fork(user, repo, status)
+    def stub_fork(user, repo, status, private_repo=false)
+      response = <<-EOF
+        {
+          "repository": {
+            "description": "Some description",
+            "source": "#{user}/#{repo}",
+            "watchers": 1,
+            "has_downloads": false,
+            "parent": "other_user/#{repo}",
+            "homepage": "http://example.org/#{repo}/",
+            "fork": true,
+            "has_issues": false,
+            "has_wiki": false,
+            "forks": 0,
+            "size": 304,
+            "private": #{private_repo},
+            "language": "Ruby",
+            "name": "#{repo}",
+            "owner": "#{user}",
+            "open_issues": 0,
+            "created_at": "2012/04/23 07:35:42 -0700",
+            "url": "https://github.com/#{user}/#{repo}",
+            "pushed_at": "2012/04/17 03:34:04 -0700"
+          }
+        }
+      EOF
       stub_request(:get, "https://#{auth}github.com/api/v2/json/repos/show/#{user}/#{repo}").
-        to_return(:status => status)
+        to_return(:status => status,
+                  :headers => {"Content-type" => "application/json"},
+                  :body => response)
     end
 
     def stub_available_commands(*names)

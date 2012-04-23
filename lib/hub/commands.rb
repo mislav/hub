@@ -325,7 +325,7 @@ module Hub
 
       if projects.any?
         projects.each do |project|
-          args.before ['remote', 'add', project.owner, project.git_url(:https => https_protocol?)]
+          args.before ['remote', 'add', project.owner, project.git_url(:private => private_repo?(project), :https => https_protocol?)]
         end
       end
     end
@@ -904,6 +904,14 @@ help
     def repo_exists?(project)
       load_net_http
       Net::HTTPSuccess === http_request(project.api_show_url('json'))
+    end
+
+    # Determines whether a user has a fork of the current repo on GitHub.
+    def private_repo?(project)
+      load_net_http
+      response = http_request(project.api_show_url('json'))
+      response.error! unless Net::HTTPSuccess === response
+      JSON.parse(response.body)["repository"]["private"]
     end
 
     # Forks the current repo using the GitHub API.
