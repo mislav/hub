@@ -346,6 +346,15 @@ class HubTest < Test::Unit::TestCase
                     "fetch xoebus"
   end
 
+  def test_fetch_new_private_remote
+    stub_remotes_group('xoebus', nil)
+    stub_existing_private_fork('xoebus')
+
+    assert_commands "git remote add xoebus git@github.com:xoebus/hub.git",
+                    "git fetch xoebus",
+                    "fetch xoebus"
+  end
+
   def test_fetch_new_remote_https_protocol
     stub_remotes_group('xoebus', nil)
     stub_existing_fork('xoebus')
@@ -360,9 +369,7 @@ class HubTest < Test::Unit::TestCase
     stub_github_user nil
     stub_github_token nil
     stub_remotes_group('xoebus', nil)
-    # stub_existing_fork('xoebus')
-    stub_request(:get, "https://github.com/api/v2/yaml/repos/show/xoebus/hub").
-      to_return(:status => 200)
+    stub_existing_fork('xoebus')
 
     assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
                     "git fetch xoebus",
@@ -622,7 +629,7 @@ class HubTest < Test::Unit::TestCase
   def test_create_no_openssl
     stub_no_remotes
     # stub_nonexisting_fork('tpw')
-    stub_request(:get, "http://#{auth}github.com/api/v2/yaml/repos/show/tpw/hub").
+    stub_request(:get, "http://#{auth}github.com/api/v2/json/repos/show/tpw/hub").
       to_return(:status => 404)
 
     stub_request(:post, "http://#{auth}github.com/api/v2/json/repos/create").
@@ -657,7 +664,7 @@ class HubTest < Test::Unit::TestCase
     ENV['GITHUB_TOKEN'] = '123abc'
 
     # stub_nonexisting_fork('mojombo')
-    stub_request(:get, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/show/mojombo/hub").
+    stub_request(:get, "https://#{auth('mojombo', '123abc')}github.com/api/v2/json/repos/show/mojombo/hub").
       to_return(:status => 404)
 
     stub_request(:post, "https://#{auth('mojombo', '123abc')}github.com/api/v2/json/repos/create").
@@ -788,7 +795,7 @@ class HubTest < Test::Unit::TestCase
     stub_github_user('myfiname', 'git.my.org')
     stub_github_token('789xyz', 'git.my.org')
 
-    stub_request(:get, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/yaml/repos/show/myfiname/hub").
+    stub_request(:get, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/json/repos/show/myfiname/hub").
       to_return(:status => 404)
     stub_request(:post, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/yaml/repos/fork/defunkt/hub")
 
@@ -1370,13 +1377,44 @@ config
       stub_fork(user, repo, 200)
     end
 
+    def stub_existing_private_fork(user, repo = 'hub')
+      stub_fork(user, repo, 200, true)
+    end
+
     def stub_nonexisting_fork(user, repo = 'hub')
       stub_fork(user, repo, 404)
     end
 
-    def stub_fork(user, repo, status)
-      stub_request(:get, "https://#{auth}github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
-        to_return(:status => status)
+    def stub_fork(user, repo, status, private_repo=false)
+      response = <<-EOF
+        {
+          "repository": {
+            "description": "Some description",
+            "source": "#{user}/#{repo}",
+            "watchers": 1,
+            "has_downloads": false,
+            "parent": "other_user/#{repo}",
+            "homepage": "http://example.org/#{repo}/",
+            "fork": true,
+            "has_issues": false,
+            "has_wiki": false,
+            "forks": 0,
+            "size": 304,
+            "private": #{private_repo},
+            "language": "Ruby",
+            "name": "#{repo}",
+            "owner": "#{user}",
+            "open_issues": 0,
+            "created_at": "2012/04/23 07:35:42 -0700",
+            "url": "https://github.com/#{user}/#{repo}",
+            "pushed_at": "2012/04/17 03:34:04 -0700"
+          }
+        }
+      EOF
+      stub_request(:get, "https://#{auth}github.com/api/v2/json/repos/show/#{user}/#{repo}").
+        to_return(:status => status,
+                  :headers => {"Content-type" => "application/json"},
+                  :body => response)
     end
 
     def stub_available_commands(*names)
@@ -1427,7 +1465,11 @@ config
     end
 
     def auth(user = git_config('github.user'), password = git_config('github.token'))
-      "#{user}%2Ftoken:#{password}@"
+      if user && password
+        "#{user}%2Ftoken:#{password}@"
+      else
+        ""
+      end
     end
 
     def mock_pullreq_response(id, name_with_owner = 'defunkt/hub', host = 'github.com')
