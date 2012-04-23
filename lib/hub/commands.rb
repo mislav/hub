@@ -327,7 +327,7 @@ module Hub
 
       if projects.any?
         projects.each do |project|
-          args.before ['remote', 'add', project.owner, project.git_url(:https => https_protocol?)]
+          args.before ['remote', 'add', project.owner, project.git_url(:private => api_client.private_repo?(project), :https => https_protocol?)]
         end
       end
     end

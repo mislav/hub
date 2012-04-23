@@ -31,10 +31,8 @@ module Hub
       end
     end
 
-    def api_v2? host
-      return true # TODO
-      host = host.host if host.respond_to? :host
-      host !~ /(^|\.)github\.com$/i
+    def api_v2? project
+      project.host.downcase != 'github.com'
     end
 
     # Public: Determine whether a specific repo already exists.
@@ -44,7 +42,24 @@ module Hub
           [project.host, project.owner, project.name]
         res.success?
       else
-        raise NotImplementedError
+        res = get "https://api.%s/repos/%s/%s" %
+          [project.host, project.owner, project.name]
+        res.success?
+      end
+    end
+
+    # Determines whether a project is private or not
+    def private_repo?(project)
+      if api_v2? project
+        res = get "https://%s/api/v2/json/repos/show/%s/%s" %
+          [project.host, project.owner, project.name]
+        res.data["repository"]["private"]
+      else
+        res = get "https://api.%s/repos/%s/%s" %
+          [project.host, project.owner, project.name]
+        require 'pp'
+        pp res.data
+        res.data["private"]
       end
     end
 
@@ -55,23 +70,34 @@ module Hub
           [project.host, project.owner, project.name]
         res.error! unless res.success?
       else
-        raise NotImplementedError
+        res = post "https://api.%s/repos/%s/%s/forks" %
+          [project.host, project.owner, project.name]
+        res.error! unless res.success?
       end
     end
 
     # Public: Create a new project.
     def create_repo project, options = {}
+      is_org = project.owner != config.username(project.host)
+      params = { :name => project.name }
+      params[:description] = options[:description] if options[:description]
+      params[:homepage]    = options[:homepage]    if options[:homepage]
+
       if api_v2? project
-        is_org = project.owner != config.username(project.host)
-        params = {'name' => is_org ? project.name_with_owner : project.name}
-        params['public'] = '0' if options[:private]
-        params['description'] = options[:description] if options[:description]
-        params['homepage'] = options[:homepage] if options[:homepage]
+        params[:name] = project.name_with_owner if is_org
+        params[:public] = '0' if options[:private]
 
         res = post_form "https://%s/api/v2/json/repos/create" % project.host, params
         res.error! unless res.success?
       else
-        raise NotImplementedError
+        params[:private] = !!options[:private]
+
+        if is_org
+          res = post "https://api.%s/orgs/%s/repos" % [project.host, project.owner], params
+        else
+          res = post "https://api.%s/user/repos" % project.host, params
+        end
+        res.error! unless res.success?
       end
     end
 
@@ -83,7 +109,10 @@ module Hub
         res.error! unless res.success?
         res.data['pull']
       else
-        raise NotImplementedError
+        res = get "https://api.%s/repos/%s/%s/pulls/%d" %
+          [project.host, project.owner, project.name, pull_id]
+        res.error! unless res.success?
+        res.data
       end
     end
 
@@ -105,7 +134,21 @@ module Hub
         res.error! unless res.success?
         res.data['pull']
       else
-        raise NotImplementedError
+        params = {
+          :base => options.fetch(:base),
+          :head => options.fetch(:head)
+        }
+        if options[:issue]
+          params[:issue] = options[:issue]
+        else
+          params[:title] = options[:title] if options[:title]
+          params[:body]  = options[:body]  if options[:body]
+        end
+
+        res = post "https://api.%s/repos/%s/%s/pulls" %
+          [project.host, project.owner, project.name], params
+        res.error! unless res.success?
+        res.data
       end
     end
 
