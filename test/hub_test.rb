@@ -361,7 +361,7 @@ class HubTest < Test::Unit::TestCase
     stub_github_token nil
     stub_remotes_group('xoebus', nil)
     # stub_existing_fork('xoebus')
-    stub_request(:get, "https://github.com/api/v2/yaml/repos/show/xoebus/hub").
+    stub_request(:get, "https://github.com/api/v2/json/repos/show/xoebus/hub").
       to_return(:status => 200)
 
     assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
@@ -622,7 +622,7 @@ class HubTest < Test::Unit::TestCase
   def test_create_no_openssl
     stub_no_remotes
     # stub_nonexisting_fork('tpw')
-    stub_request(:get, "http://#{auth}github.com/api/v2/yaml/repos/show/tpw/hub").
+    stub_request(:get, "http://#{auth}github.com/api/v2/json/repos/show/tpw/hub").
       to_return(:status => 404)
 
     stub_request(:post, "http://#{auth}github.com/api/v2/json/repos/create").
@@ -657,7 +657,7 @@ class HubTest < Test::Unit::TestCase
     ENV['GITHUB_TOKEN'] = '123abc'
 
     # stub_nonexisting_fork('mojombo')
-    stub_request(:get, "https://#{auth('mojombo', '123abc')}github.com/api/v2/yaml/repos/show/mojombo/hub").
+    stub_request(:get, "https://#{auth('mojombo', '123abc')}github.com/api/v2/json/repos/show/mojombo/hub").
       to_return(:status => 404)
 
     stub_request(:post, "https://#{auth('mojombo', '123abc')}github.com/api/v2/json/repos/create").
@@ -788,7 +788,7 @@ class HubTest < Test::Unit::TestCase
     stub_github_user('myfiname', 'git.my.org')
     stub_github_token('789xyz', 'git.my.org')
 
-    stub_request(:get, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/yaml/repos/show/myfiname/hub").
+    stub_request(:get, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/json/repos/show/myfiname/hub").
       to_return(:status => 404)
     stub_request(:post, "https://#{auth('myfiname', '789xyz')}git.my.org/api/v2/yaml/repos/fork/defunkt/hub")
 
@@ -1375,7 +1375,7 @@ config
     end
 
     def stub_fork(user, repo, status)
-      stub_request(:get, "https://#{auth}github.com/api/v2/yaml/repos/show/#{user}/#{repo}").
+      stub_request(:get, "https://#{auth}github.com/api/v2/json/repos/show/#{user}/#{repo}").
         to_return(:status => status)
     end
 

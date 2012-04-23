@@ -903,7 +903,7 @@ help
     # Determines whether a user has a fork of the current repo on GitHub.
     def repo_exists?(project)
       load_net_http
-      Net::HTTPSuccess === http_request(project.api_show_url('yaml'))
+      Net::HTTPSuccess === http_request(project.api_show_url('json'))
     end
 
     # Forks the current repo using the GitHub API.
