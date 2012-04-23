@@ -360,9 +360,7 @@ class HubTest < Test::Unit::TestCase
     stub_github_user nil
     stub_github_token nil
     stub_remotes_group('xoebus', nil)
-    # stub_existing_fork('xoebus')
-    stub_request(:get, "https://github.com/api/v2/json/repos/show/xoebus/hub").
-      to_return(:status => 200)
+    stub_existing_fork('xoebus')
 
     assert_commands "git remote add xoebus git://github.com/xoebus/hub.git",
                     "git fetch xoebus",
@@ -1427,7 +1425,11 @@ config
     end
 
     def auth(user = git_config('github.user'), password = git_config('github.token'))
-      "#{user}%2Ftoken:#{password}@"
+      if user && password
+        "#{user}%2Ftoken:#{password}@"
+      else
+        ""
+      end
     end
 
     def mock_pullreq_response(id, name_with_owner = 'defunkt/hub', host = 'github.com')
