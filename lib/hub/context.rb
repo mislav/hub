@@ -3,8 +3,8 @@ require 'forwardable'
 require 'uri'
 
 module Hub
-  # Provides methods for inspecting the environment, such as GitHub user/token
-  # settings, repository info, and similar.
+  # Methods for inspecting the environment, such as reading git config,
+  # repository info, and other.
   module Context
     extend Forwardable
 
@@ -75,6 +75,9 @@ module Hub
       end
     end
 
+    class Error < RuntimeError; end
+    class FatalError < Error; end
+
     private
 
     def git_reader
@@ -89,7 +92,7 @@ module Hub
         if is_repo?
           LocalRepo.new git_reader, current_dir
         elsif fatal
-          abort "fatal: Not a git repository"
+          raise FatalError, "Not a git repository"
         end
       end
     end
@@ -243,30 +246,6 @@ module Hub
         else "git://#{host}/"
         end + name_with_owner + '.git'
       end
-
-      def api_url(type, resource, action)
-        URI("https://#{host}/api/v2/#{type}/#{resource}/#{action}")
-      end
-
-      def api_show_url(type)
-        api_url(type, 'repos', "show/#{owner}/#{name}")
-      end
-
-      def api_fork_url(type)
-        api_url(type, 'repos', "fork/#{owner}/#{name}")
-      end
-
-      def api_create_url(type)
-        api_url(type, 'repos', 'create')
-      end
-
-      def api_pullrequest_url(id, type)
-        api_url(type, 'pulls', "#{owner}/#{name}/#{id}")
-      end
-
-      def api_create_pullrequest_url(type)
-        api_url(type, 'pulls', "#{owner}/#{name}")
-      end
     end
 
     class GithubURL < URI::HTTPS
@@ -320,7 +299,7 @@ module Hub
 
       def remote_name
         name =~ %r{^refs/remotes/([^/]+)} and $1 or
-          raise "can't get remote name from #{name.inspect}"
+          raise Error, "can't get remote name from #{name.inspect}"
       end
     end
 
@@ -389,44 +368,6 @@ module Hub
 
     def resolve_github_url(url)
       GithubURL.resolve(url, local_repo) if url =~ /^https?:/
-    end
-
-    LGHCONF = "http://help.github.com/set-your-user-name-email-and-github-token/"
-
-    # Either returns the GitHub user as set by git-config(1) or aborts
-    # with an error message.
-    def github_user(fatal = true, host = nil)
-      if local = local_repo(false)
-        host ||= local.default_host
-        host = nil if host == local.main_host
-      end
-      host = %(."#{host}") if host
-      if user = ENV['GITHUB_USER'] || git_config("github#{host}.user")
-        user
-      elsif fatal
-        if host.nil?
-          abort("** No GitHub user set. See #{LGHCONF}")
-        else
-          abort("** No user set for github#{host}")
-        end
-      end
-    end
-
-    def github_token(fatal = true, host = nil)
-      if local = local_repo(false)
-        host ||= local.default_host
-        host = nil if host == local.main_host
-      end
-      host = %(."#{host}") if host
-      if token = ENV['GITHUB_TOKEN'] || git_config("github#{host}.token")
-        token
-      elsif fatal
-        if host.nil?
-          abort("** No GitHub token set. See #{LGHCONF}")
-        else
-          abort("** No token set for github#{host}")
-        end
-      end
     end
 
     # legacy setting
