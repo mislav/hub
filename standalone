@@ -1,13 +1,508 @@
 #!/usr/bin/env ruby
 #
-# This file, hub, is generated code.
-# Please DO NOT EDIT or send patches for it.
+# This file is generated code. DO NOT send patches for it.
 #
-# Please take a look at the source from
+# Original source files with comments are at:
 # https://github.com/defunkt/hub
-# and submit patches against the individual files
-# that build hub.
 #
+
+module Hub
+  Version = VERSION = '1.9.0'
+end
+
+module Hub
+  class Args < Array
+    attr_accessor :executable
+
+    def initialize(*args)
+      super
+      @executable = ENV["GIT"] || "git"
+      @after = nil
+      @skip = @noop = false
+      @original_args = args.first
+      @chain = [nil]
+    end
+
+    def after(cmd_or_args = nil, args = nil, &block)
+      @chain.insert(-1, normalize_callback(cmd_or_args, args, block))
+    end
+
+    def before(cmd_or_args = nil, args = nil, &block)
+      @chain.insert(@chain.index(nil), normalize_callback(cmd_or_args, args, block))
+    end
+
+    def chained?
+      @chain.size > 1
+    end
+
+    def commands
+      chain = @chain.dup
+      chain[chain.index(nil)] = self.to_exec
+      chain
+    end
+
+    def skip!
+      @skip = true
+    end
+
+    def skip?
+      @skip
+    end
+
+    def noop!
+      @noop = true
+    end
+
+    def noop?
+      @noop
+    end
+
+    def to_exec(args = self)
+      Array(executable) + args
+    end
+
+    def add_exec_flags(flags)
+      self.executable = Array(executable).concat(flags)
+    end
+
+    def words
+      reject { |arg| arg.index('-') == 0 }
+    end
+
+    def flags
+      self - words
+    end
+
+    def changed?
+      chained? or self != @original_args
+    end
+
+    def has_flag?(*flags)
+      pattern = flags.flatten.map { |f| Regexp.escape(f) }.join('|')
+      !grep(/^#{pattern}(?:=|$)/).empty?
+    end
+
+    private
+
+    def normalize_callback(cmd_or_args, args, block)
+      if block
+        block
+      elsif args
+        [cmd_or_args].concat args
+      elsif Array === cmd_or_args
+        self.to_exec cmd_or_args
+      elsif cmd_or_args
+        cmd_or_args
+      else
+        raise ArgumentError, "command or block required"
+      end
+    end
+  end
+end
+
+module Hub
+  class SshConfig
+    CONFIG_FILES = %w(~/.ssh/config /etc/ssh_config /etc/ssh/ssh_config)
+
+    def initialize files = nil
+      @settings = Hash.new {|h,k| h[k] = {} }
+      Array(files || CONFIG_FILES).each do |path|
+        file = File.expand_path path
+        parse_file file if File.exist? file
+      end
+    end
+
+    def get_value hostname, key
+      key = key.to_s.downcase
+      @settings.each do |pattern, settings|
+        if pattern.match? hostname and found = settings[key]
+          return found
+        end
+      end
+      yield
+    end
+
+    class HostPattern
+      def initialize pattern
+        @pattern = pattern.to_s.downcase
+      end
+
+      def to_s() @pattern end
+      def ==(other) other.to_s == self.to_s end
+
+      def matcher
+        @matcher ||=
+          if '*' == @pattern
+            Proc.new { true }
+          elsif @pattern !~ /[?*]/
+            lambda { |hostname| hostname.to_s.downcase == @pattern }
+          else
+            re = self.class.pattern_to_regexp @pattern
+            lambda { |hostname| re =~ hostname }
+          end
+      end
+
+      def match? hostname
+        matcher.call hostname
+      end
+
+      def self.pattern_to_regexp pattern
+        escaped = Regexp.escape(pattern)
+        escaped.gsub!('\*', '.*')
+        escaped.gsub!('\?', '.')
+        /^#{escaped}$/i
+      end
+    end
+
+    def parse_file file
+      host_patterns = [HostPattern.new('*')]
+
+      IO.foreach(file) do |line|
+        case line
+        when /^\s*(#|$)/ then next
+        when /^\s*(\S+)\s*=/
+          key, value = $1, $'
+        else
+          key, value = line.strip.split(/\s+/, 2)
+        end
+
+        next if value.nil?
+        key.downcase!
+        value = $1 if value =~ /^"(.*)"$/
+        value.chomp!
+
+        if 'host' == key
+          host_patterns = value.split(/\s+/).map {|p| HostPattern.new p }
+        else
+          record_setting key, value, host_patterns
+        end
+      end
+    end
+
+    def record_setting key, value, patterns
+      patterns.each do |pattern|
+        @settings[pattern][key] ||= value
+      end
+    end
+  end
+end
+
+require 'uri'
+require 'yaml'
+require 'forwardable'
+require 'fileutils'
+
+module Hub
+  class GitHubAPI
+    attr_reader :config, :oauth_app_url
+
+    def initialize config, options
+      @config = config
+      @oauth_app_url = options.fetch(:app_url)
+    end
+
+    module Exceptions
+      def self.===(exception)
+        exception.class.ancestors.map {|a| a.to_s }.include? 'Net::HTTPExceptions'
+      end
+    end
+
+    def api_host host
+      host = host.downcase
+      'github.com' == host ? 'api.github.com' : host
+    end
+
+    def repo_exists? project
+      res = get "https://%s/repos/%s/%s" %
+        [api_host(project.host), project.owner, project.name]
+      res.success?
+    end
+
+    def fork_repo project
+      res = post "https://%s/repos/%s/%s/forks" %
+        [api_host(project.host), project.owner, project.name]
+      res.error! unless res.success?
+    end
+
+    def create_repo project, options = {}
+      is_org = project.owner != config.username(api_host(project.host))
+      params = { :name => project.name, :private => !!options[:private] }
+      params[:description] = options[:description] if options[:description]
+      params[:homepage]    = options[:homepage]    if options[:homepage]
+
+      if is_org
+        res = post "https://%s/orgs/%s/repos" % [api_host(project.host), project.owner], params
+      else
+        res = post "https://%s/user/repos" % api_host(project.host), params
+      end
+      res.error! unless res.success?
+    end
+
+    def pullrequest_info project, pull_id
+      res = get "https://%s/repos/%s/%s/pulls/%d" %
+        [api_host(project.host), project.owner, project.name, pull_id]
+      res.error! unless res.success?
+      res.data
+    end
+
+    def create_pullrequest options
+      project = options.fetch(:project)
+      params = {
+        :base => options.fetch(:base),
+        :head => options.fetch(:head)
+      }
+
+      if options[:issue]
+        params[:issue] = options[:issue]
+      else
+        params[:title] = options[:title] if options[:title]
+        params[:body]  = options[:body]  if options[:body]
+      end
+
+      res = post "https://%s/repos/%s/%s/pulls" %
+        [api_host(project.host), project.owner, project.name], params
+
+      res.error! unless res.success?
+      res.data
+    end
+
+    module HttpMethods
+      module ResponseMethods
+        def status() code.to_i end
+        def data?() content_type =~ /\bjson\b/ end
+        def data() @data ||= JSON.parse(body) end
+        def error_message?() data? and data['errors'] || data['message'] end
+        def error_message() error_sentences || data['message'] end
+        def success?() Net::HTTPSuccess === self end
+        def error_sentences
+          data['errors'].map do |err|
+            case err['code']
+            when 'custom'        then err['message']
+            when 'missing_field' then "field '%s' is missing" % err['field']
+            end
+          end.compact if data['errors']
+        end
+      end
+
+      def get url, &block
+        perform_request url, :Get, &block
+      end
+
+      def post url, params = nil
+        perform_request url, :Post do |req|
+          if params
+            req.body = JSON.dump params
+            req['Content-Type'] = 'application/json'
+          end
+          yield req if block_given?
+          req['Content-Length'] = req.body ? req.body.length : 0
+        end
+      end
+
+      def post_form url, params
+        post(url) {|req| req.set_form_data params }
+      end
+
+      def perform_request url, type
+        url = URI.parse url unless url.respond_to? :hostname
+
+        require 'net/https'
+        req = Net::HTTP.const_get(type).new(url.request_uri)
+        http = create_connection(url)
+
+        apply_authentication(req, url)
+        yield req if block_given?
+        res = http.start { http.request(req) }
+        res.extend ResponseMethods
+        res
+      rescue SocketError => err
+        raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+      end
+
+      def apply_authentication req, url
+        user = url.user || config.username(url.host)
+        pass = config.password(url.host, user)
+        req.basic_auth user, pass
+      end
+
+      def create_connection url
+        use_ssl = 'https' == url.scheme
+
+        proxy_args = []
+        if proxy = config.proxy_uri(use_ssl)
+          proxy_args << proxy.host << proxy.port
+          if proxy.userinfo
+            require 'cgi'
+            proxy_args.concat proxy.userinfo.split(':', 2).map {|a| CGI.unescape a }
+          end
+        end
+
+        http = Net::HTTP.new(url.host, url.port, *proxy_args)
+
+        if http.use_ssl = use_ssl
+          http.verify_mode = OpenSSL::SSL::VERIFY_NONE
+        end
+        return http
+      end
+    end
+
+    module OAuth
+      def apply_authentication req, url
+        if req.path.index('/authorizations') == 0
+          super
+        else
+          user = url.user || config.username(url.host)
+          token = config.oauth_token(url.host, user) {
+            obtain_oauth_token url.host, user
+          }
+          req['Authorization'] = "token #{token}"
+        end
+      end
+
+      def obtain_oauth_token host, user
+        res = get "https://#{user}@#{host}/authorizations"
+        res.error! unless res.success?
+
+        if found = res.data.find {|auth| auth['app']['url'] == oauth_app_url }
+          found['token']
+        else
+          res = post "https://#{user}@#{host}/authorizations",
+            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url
+          res.error! unless res.success?
+          res.data['token']
+        end
+      end
+    end
+
+    include HttpMethods
+    include OAuth
+
+    class FileStore
+      extend Forwardable
+      def_delegator :@data, :[], :get
+      def_delegator :@data, :[]=, :set
+
+      def initialize filename
+        @filename = filename
+        @data = Hash.new {|d, host| d[host] = [] }
+        load if File.exist? filename
+      end
+
+      def fetch_user host
+        unless entry = get(host).first
+          user = yield
+          return nil if user.nil? or user.empty?
+          entry = entry_for_user(host, user)
+        end
+        entry['user']
+      end
+
+      def fetch_value host, user, key
+        entry = entry_for_user host, user
+        entry[key.to_s] || begin
+          value = yield
+          if value and !value.empty?
+            entry[key.to_s] = value
+            save
+            value
+          else
+            raise "no value"
+          end
+        end
+      end
+
+      def entry_for_user host, username
+        entries = get(host)
+        entries.find {|e| e['user'] == username } or
+          (entries << {'user' => username}).last
+      end
+
+      def load
+        @data.update YAML.load(File.read(@filename))
+      end
+
+      def save
+        FileUtils.mkdir_p File.dirname(@filename)
+        File.open(@filename, 'w') {|f| f << YAML.dump(@data) }
+      end
+    end
+
+    class Configuration
+      def initialize store
+        @data = store
+        @password_cache = {}
+      end
+
+      def normalize_host host
+        host = host.downcase
+        'api.github.com' == host ? 'github.com' : host
+      end
+
+      def username host
+        host = normalize_host host
+        @data.fetch_user host do
+          if block_given? then yield
+          else prompt "#{host} username"
+          end
+        end
+      end
+
+      def api_token host, user
+        host = normalize_host host
+        @data.fetch_value host, user, :api_token do
+          if block_given? then yield
+          else prompt "#{host} API token for #{user}"
+          end
+        end
+      end
+
+      def password host, user
+        host = normalize_host host
+        @password_cache["#{user}@#{host}"] ||= prompt_password host, user
+      end
+
+      def oauth_token host, user, &block
+        @data.fetch_value normalize_host(host), user, :oauth_token, &block
+      end
+
+      def prompt what
+        print "#{what}: "
+        $stdin.gets.chomp
+      end
+
+      def prompt_password host, user
+        print "#{host} password for #{user} (never stored): "
+        password = askpass
+        puts ''
+        password
+      end
+
+      def askpass
+        tty_state = `stty -g`
+        system 'stty raw -echo -icanon isig' if $?.success?
+        pass = ''
+        while char = $stdin.getbyte and not (char == 13 or char == 10)
+          if char == 127 or char == 8
+            pass[-1,1] = '' unless pass.empty?
+          else
+            pass << char.chr
+          end
+        end
+        pass
+      ensure
+        system "stty #{tty_state}" unless tty_state.empty?
+      end
+
+      def proxy_uri(with_ssl)
+        env_name = "HTTP#{with_ssl ? 'S' : ''}_PROXY"
+        if proxy = ENV[env_name] || ENV[env_name.downcase]
+          proxy = "http://#{proxy}" unless proxy.include? '://'
+          URI.parse proxy
+        end
+      end
+    end
+  end
+end
 
 require 'shellwords'
 require 'forwardable'
@@ -82,6 +577,9 @@ module Hub
       end
     end
 
+    class Error < RuntimeError; end
+    class FatalError < Error; end
+
     private
 
     def git_reader
@@ -96,7 +594,7 @@ module Hub
         if is_repo?
           LocalRepo.new git_reader, current_dir
         elsif fatal
-          abort "fatal: Not a git repository"
+          raise FatalError, "Not a git repository"
         end
       end
     end
@@ -248,30 +746,6 @@ module Hub
         else "git://#{host}/"
         end + name_with_owner + '.git'
       end
-
-      def api_url(type, resource, action)
-        URI("https://#{host}/api/v2/#{type}/#{resource}/#{action}")
-      end
-
-      def api_show_url(type)
-        api_url(type, 'repos', "show/#{owner}/#{name}")
-      end
-
-      def api_fork_url(type)
-        api_url(type, 'repos', "fork/#{owner}/#{name}")
-      end
-
-      def api_create_url(type)
-        api_url(type, 'repos', 'create')
-      end
-
-      def api_pullrequest_url(id, type)
-        api_url(type, 'pulls', "#{owner}/#{name}/#{id}")
-      end
-
-      def api_create_pullrequest_url(type)
-        api_url(type, 'pulls', "#{owner}/#{name}")
-      end
     end
 
     class GithubURL < URI::HTTPS
@@ -324,7 +798,7 @@ module Hub
 
       def remote_name
         name =~ %r{^refs/remotes/([^/]+)} and $1 or
-          raise "can't get remote name from #{name.inspect}"
+          raise Error, "can't get remote name from #{name.inspect}"
       end
     end
 
@@ -394,42 +868,6 @@ module Hub
       GithubURL.resolve(url, local_repo) if url =~ /^https?:/
     end
 
-    LGHCONF = "http://help.github.com/set-your-user-name-email-and-github-token/"
-
-    def github_user(fatal = true, host = nil)
-      if local = local_repo(false)
-        host ||= local.default_host
-        host = nil if host == local.main_host
-      end
-      host = %(."#{host}") if host
-      if user = ENV['GITHUB_USER'] || git_config("github#{host}.user")
-        user
-      elsif fatal
-        if host.nil?
-          abort("** No GitHub user set. See #{LGHCONF}")
-        else
-          abort("** No user set for github#{host}")
-        end
-      end
-    end
-
-    def github_token(fatal = true, host = nil)
-      if local = local_repo(false)
-        host ||= local.default_host
-        host = nil if host == local.main_host
-      end
-      host = %(."#{host}") if host
-      if token = ENV['GITHUB_TOKEN'] || git_config("github#{host}.token")
-        token
-      elsif fatal
-        if host.nil?
-          abort("** No GitHub token set. See #{LGHCONF}")
-        else
-          abort("** No token set for github#{host}")
-        end
-      end
-    end
-
     def http_clone?
       git_config('--bool hub.http-clone') == 'true'
     end
@@ -467,216 +905,181 @@ module Hub
       editor.shellsplit
     end
 
-    def browser_launcher
-      browser = ENV['BROWSER'] || (
-        osx? ? 'open' : windows? ? 'start' :
-        %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
-      )
+    module System
+      def browser_launcher
+        browser = ENV['BROWSER'] || (
+          osx? ? 'open' : windows? ? 'start' :
+          %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
+        )
 
-      abort "Please set $BROWSER to a web launcher to use this command." unless browser
-      Array(browser)
-    end
-
-    def osx?
-      require 'rbconfig'
-      RbConfig::CONFIG['host_os'].to_s.include?('darwin')
-    end
-
-    def windows?
-      require 'rbconfig'
-      RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/
-    end
-
-    def which(cmd)
-      exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
-      ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
-        exts.each { |ext|
-          exe = "#{path}/#{cmd}#{ext}"
-          return exe if File.executable? exe
-        }
-      end
-      return nil
-    end
-
-    def command?(name)
-      !which(name).nil?
-    end
-
-    class SshConfig
-      CONFIG_FILES = %w(~/.ssh/config /etc/ssh_config /etc/ssh/ssh_config)
-
-      def initialize files = nil
-        @settings = Hash.new {|h,k| h[k] = {} }
-        Array(files || CONFIG_FILES).each do |path|
-          file = File.expand_path path
-          parse_file file if File.exist? file
-        end
+        abort "Please set $BROWSER to a web launcher to use this command." unless browser
+        Array(browser)
       end
 
-      def get_value hostname, key
-        key = key.to_s.downcase
-        @settings.each do |pattern, settings|
-          if pattern.match? hostname and found = settings[key]
-            return found
-          end
-        end
-        yield
+      def osx?
+        require 'rbconfig'
+        RbConfig::CONFIG['host_os'].to_s.include?('darwin')
       end
 
-      class HostPattern
-        def initialize pattern
-          @pattern = pattern.to_s.downcase
-        end
-
-        def to_s() @pattern end
-        def ==(other) other.to_s == self.to_s end
-
-        def matcher
-          @matcher ||=
-            if '*' == @pattern
-              Proc.new { true }
-            elsif @pattern !~ /[?*]/
-              lambda { |hostname| hostname.to_s.downcase == @pattern }
-            else
-              re = self.class.pattern_to_regexp @pattern
-              lambda { |hostname| re =~ hostname }
-            end
-        end
-
-        def match? hostname
-          matcher.call hostname
-        end
-
-        def self.pattern_to_regexp pattern
-          escaped = Regexp.escape(pattern)
-          escaped.gsub!('\*', '.*')
-          escaped.gsub!('\?', '.')
-          /^#{escaped}$/i
-        end
+      def windows?
+        require 'rbconfig'
+        RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/
       end
 
-      def parse_file file
-        host_patterns = [HostPattern.new('*')]
-
-        IO.foreach(file) do |line|
-          case line
-          when /^\s*(#|$)/ then next
-          when /^\s*(\S+)\s*=/
-            key, value = $1, $'
-          else
-            key, value = line.strip.split(/\s+/, 2)
-          end
-
-          next if value.nil?
-          key.downcase!
-          value = $1 if value =~ /^"(.*)"$/
-          value.chomp!
-
-          if 'host' == key
-            host_patterns = value.split(/\s+/).map {|p| HostPattern.new p }
-          else
-            record_setting key, value, host_patterns
-          end
+      def which(cmd)
+        exts = ENV['PATHEXT'] ? ENV['PATHEXT'].split(';') : ['']
+        ENV['PATH'].split(File::PATH_SEPARATOR).each do |path|
+          exts.each { |ext|
+            exe = "#{path}/#{cmd}#{ext}"
+            return exe if File.executable? exe
+          }
         end
+        return nil
       end
 
-      def record_setting key, value, patterns
-        patterns.each do |pattern|
-          @settings[pattern][key] ||= value
-        end
+      def command?(name)
+        !which(name).nil?
       end
     end
+
+    include System
+    extend System
   end
 end
-module Hub
-  class Args < Array
-    attr_accessor :executable
 
-    def initialize(*args)
-      super
-      @executable = ENV["GIT"] || "git"
-      @after = nil
-      @skip = @noop = false
-      @original_args = args.first
-      @chain = [nil]
-    end
+require 'strscan'
+require 'forwardable'
 
-    def after(cmd_or_args = nil, args = nil, &block)
-      @chain.insert(-1, normalize_callback(cmd_or_args, args, block))
-    end
+class Hub::JSON
+  def self.parse(data) new(data).parse end
 
-    def before(cmd_or_args = nil, args = nil, &block)
-      @chain.insert(@chain.index(nil), normalize_callback(cmd_or_args, args, block))
-    end
+  WSP = /\s+/
+  OBJ = /[{\[]/;    HEN = /\}/;  AEN = /\]/
+  COL = /\s*:\s*/;  KEY = /\s*,\s*/
+  NUM = /-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/
+  BOL = /true|false/;  NUL = /null/
 
-    def chained?
-      @chain.size > 1
-    end
+  extend Forwardable
 
-    def commands
-      chain = @chain.dup
-      chain[chain.index(nil)] = self.to_exec
-      chain
-    end
+  attr_reader :scanner
+  alias_method :s, :scanner
+  def_delegators :scanner, :scan, :matched
+  private :s, :scan, :matched
 
-    def skip!
-      @skip = true
-    end
+  def initialize data
+    @scanner = StringScanner.new data.to_s
+  end
 
-    def skip?
-      @skip
-    end
+  def parse
+    space
+    object
+  end
 
-    def noop!
-      @noop = true
-    end
+  private
 
-    def noop?
-      @noop
-    end
+  def space() scan WSP end
 
-    def to_exec(args = self)
-      Array(executable) + args
-    end
+  def endkey() scan(KEY) or space end
 
-    def add_exec_flags(flags)
-      self.executable = Array(executable).concat(flags)
-    end
+  def object
+    matched == '{' ? hash : array if scan(OBJ)
+  end
 
-    def words
-      reject { |arg| arg.index('-') == 0 }
-    end
+  def value
+    object or string or
+      scan(NUL) ? nil :
+      scan(BOL) ? matched.size == 4:
+      scan(NUM) ? eval(matched) :
+      error
+  end
 
-    def flags
-      self - words
-    end
+  def hash
+    obj = {}
+    space
+    repeat_until(HEN) { k = string; scan(COL); obj[k] = value; endkey }
+    obj
+  end
 
-    def changed?
-      chained? or self != @original_args
-    end
+  def array
+    ary = []
+    space
+    repeat_until(AEN) { ary << value; endkey }
+    ary
+  end
 
-    def has_flag?(*flags)
-      pattern = flags.flatten.map { |f| Regexp.escape(f) }.join('|')
-      !grep(/^#{pattern}(?:=|$)/).empty?
+  SPEC = {'b' => "\b", 'f' => "\f", 'n' => "\n", 'r' => "\r", 't' => "\t"}
+  UNI = 'u'; CODE = /[a-fA-F0-9]{4}/
+  STR = /"/; STE = '"'
+  ESC = '\\'
+
+  def string
+    if scan(STR)
+      str, esc = '', false
+      while c = s.getch
+        if esc
+          str << (c == UNI ? (s.scan(CODE) || error).to_i(16).chr : SPEC[c] || c)
+          esc = false
+        else
+          case c
+          when ESC then esc = true
+          when STE then break
+          else str << c
+          end
+        end
+      end
+      str
     end
+  end
+
+  def error
+    raise "parse error at: #{scan(/.{1,10}/m).inspect}"
+  end
+
+  def repeat_until reg
+    until scan(reg)
+      pos = s.pos
+      yield
+      error unless s.pos > pos
+    end
+  end
+
+  module Generator
+    def generate(obj)
+      raise ArgumentError unless obj.is_a? Array or obj.is_a? Hash
+      generate_type(obj)
+    end
+    alias dump generate
 
     private
 
-    def normalize_callback(cmd_or_args, args, block)
-      if block
-        block
-      elsif args
-        [cmd_or_args].concat args
-      elsif Array === cmd_or_args
-        self.to_exec cmd_or_args
-      elsif cmd_or_args
-        cmd_or_args
-      else
-        raise ArgumentError, "command or block required"
+    def generate_type(obj)
+      type = obj.is_a?(Numeric) ? :Numeric : obj.class.name
+      begin send(:"generate_#{type}", obj)
+      rescue NoMethodError; raise ArgumentError, "can't serialize #{type}"
       end
     end
+
+    def generate_String(str) str.inspect end
+    alias generate_Numeric generate_String
+    alias generate_TrueClass generate_String
+    alias generate_FalseClass generate_String
+
+    def generate_Symbol(sym) generate_String(sym.to_s) end
+
+    def generate_NilClass(*) 'null' end
+
+    def generate_Array(ary) '[%s]' % ary.map {|o| generate_type(o) }.join(', ') end
+
+    def generate_Hash(hash)
+      '{%s}' % hash.map { |key, value|
+        "#{generate_String(key.to_s)}: #{generate_type(value)}"
+      }.join(', ')
+    end
   end
+
+  extend Generator
 end
+
 module Hub
   module Commands
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
@@ -714,6 +1117,8 @@ module Hub
       else
         raise
       end
+    rescue Context::FatalError => err
+      abort "fatal: #{err.message}"
     end
 
     def pull_request(args)
@@ -772,7 +1177,7 @@ module Hub
       end
       options[:head] ||= (tracked_branch || current_branch).short_name
 
-      user = github_user(true, head_project.host)
+      user = github_user(head_project.host)
       if head_project.owner != user and !tracked_branch and !explicit_owner
         head_project = head_project.owned_by(user)
       end
@@ -819,12 +1224,12 @@ module Hub
         }
       end
 
-      pull = create_pullrequest(options)
+      pull = api_client.create_pullrequest(options)
 
       args.executable = 'echo'
       args.replace [pull['html_url']]
-    rescue HTTPExceptions
-      display_http_exception("creating pull request", $!.response)
+    rescue GitHubAPI::Exceptions
+      display_api_exception("creating pull request", $!.response)
       exit 1
     end
 
@@ -841,9 +1246,9 @@ module Hub
           if arg =~ NAME_WITH_OWNER_RE and !File.directory?(arg)
             name, owner = arg, nil
             owner, name = name.split('/', 2) if name.index('/')
-            host = ENV['GITHUB_HOST']
-            project = Context::GithubProject.new(nil, owner || github_user(true, host), name, host || 'github.com')
-            ssh ||= args[0] != 'submodule' && project.owner == github_user(false, host) || host
+            host = ENV['GITHUB_HOST'] || 'github.com'
+            project = Context::GithubProject.new(nil, owner || github_user(host), name, host)
+            ssh ||= args[0] != 'submodule' && project.owner == github_user(host) || host != 'github.com'
             args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
           end
           break
@@ -913,7 +1318,7 @@ module Hub
       projects = names.map { |name|
         unless name =~ /\W/ or remotes.include?(name) or remotes_group(name)
           project = github_project(nil, name)
-          project if repo_exists?(project)
+          project if api_client.repo_exists?(project)
         end
       }.compact
 
@@ -928,21 +1333,18 @@ module Hub
       _, url_arg, new_branch_name = args.words
       if url = resolve_github_url(url_arg) and url.project_path =~ /^pull\/(\d+)/
         pull_id = $1
-
-        load_net_http
-        response = http_request(url.project.api_pullrequest_url(pull_id, 'json'))
-        pull_data = JSON.parse(response.body)['pull']
+        pull_data = api_client.pullrequest_info(url.project, pull_id)
 
         args.delete new_branch_name
         user, branch = pull_data['head']['label'].split(':', 2)
-        abort "Error: #{user}'s fork is not available anymore" unless pull_data['head']['repository']
+        abort "Error: #{user}'s fork is not available anymore" unless pull_data['head']['repo']
         new_branch_name ||= "#{user}-#{branch}"
 
         if remotes.include? user
           args.before ['remote', 'set-branches', '--add', user, branch]
           args.before ['fetch', user, "+refs/heads/#{branch}:refs/remotes/#{user}/#{branch}"]
         else
-          url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repository']['private'],
+          url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repo']['private'],
                                                                :https => https_protocol?)
           args.before ['remote', 'add', '-f', '-t', branch, user, url]
         end
@@ -993,8 +1395,8 @@ module Hub
 
     def init(args)
       if args.delete('-g')
-        host = ENV['GITHUB_HOST']
-        project = Context::GithubProject.new(nil, github_user(true, host), File.basename(current_dir), host || 'github.com')
+        host = ENV['GITHUB_HOST'] || 'github.com'
+        project = Context::GithubProject.new(nil, github_user(host), File.basename(current_dir), host)
         url = project.git_url(:private => true, :https => https_protocol?)
         args.after ['remote', 'add', 'origin', url]
       end
@@ -1004,13 +1406,13 @@ module Hub
       unless project = local_repo.main_project
         abort "Error: repository under 'origin' remote is not a GitHub project"
       end
-      forked_project = project.owned_by(github_user(true, project.host))
+      forked_project = project.owned_by(github_user(project.host))
 
-      if repo_exists?(forked_project)
+      if api_client.repo_exists?(forked_project)
         abort "Error creating fork: %s already exists on %s" %
           [ forked_project.name_with_owner, forked_project.host ]
       else
-        fork_repo(project) unless args.noop?
+        api_client.fork_repo(project) unless args.noop?
       end
 
       if args.include?('--no-remote')
@@ -1020,15 +1422,15 @@ module Hub
         args.replace %W"remote add -f #{forked_project.owner} #{url}"
         args.after 'echo', ['new remote:', forked_project.owner]
       end
-    rescue HTTPExceptions
-      display_http_exception("creating fork", $!.response)
+    rescue GitHubAPI::Exceptions
+      display_api_exception("creating fork", $!.response)
       exit 1
     end
 
     def create(args)
       if !is_repo?
         abort "'create' must be run from inside a git repository"
-      elsif owner = github_user and github_token
+      elsif owner = github_user
         args.shift
         options = {}
         options[:private] = true if args.delete('-p')
@@ -1052,12 +1454,12 @@ module Hub
         new_repo_name ||= repo_name
         new_project = github_project(new_repo_name, owner)
 
-        if repo_exists?(new_project)
+        if api_client.repo_exists?(new_project)
           warn "#{new_project.name_with_owner} already exists on #{new_project.host}"
           action = "set remote origin"
         else
           action = "created repository"
-          create_repo(new_project, options) unless args.noop?
+          api_client.create_repo(new_project, options) unless args.noop?
         end
 
         url = new_project.git_url(:private => true, :https => https_protocol?)
@@ -1070,8 +1472,8 @@ module Hub
 
         args.after 'echo', ["#{action}:", new_project.name_with_owner]
       end
-    rescue HTTPExceptions
-      display_http_exception("creating repository", $!.response)
+    rescue GitHubAPI::Exceptions
+      display_api_exception("creating repository", $!.response)
       exit 1
     end
 
@@ -1142,10 +1544,12 @@ module Hub
     def hub(args)
       return help(args) unless args[1] == 'standalone'
       require 'hub/standalone'
-      $stdout.puts Hub::Standalone.build
+      Hub::Standalone.build $stdout
       exit
     rescue LoadError
-      abort "hub is running in standalone mode."
+      abort "hub is already running in standalone mode."
+    rescue Errno::EPIPE
+      exit # ignore broken pipe
     end
 
     def alias(args)
@@ -1206,6 +1610,21 @@ module Hub
     alias_method "--help", :help
 
   private
+
+    def api_client
+      @api_client ||= begin
+        config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
+        file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
+        file_config = GitHubAPI::Configuration.new file_store
+        GitHubAPI.new file_config, :app_url => 'http://defunkt.io/hub/'
+      end
+    end
+
+    def github_user host = nil
+      host ||= local_repo(false) && local_repo.main_host
+      return nil if host.nil?
+      api_client.config.username(host) { }
+    end
 
     def custom_command? cmd
       CUSTOM_COMMANDS.include? cmd
@@ -1374,45 +1793,6 @@ help
       end
     end
 
-    def repo_exists?(project)
-      load_net_http
-      Net::HTTPSuccess === http_request(project.api_show_url('yaml'))
-    end
-
-    def fork_repo(project)
-      load_net_http
-      response = http_post project.api_fork_url('yaml')
-      response.error! unless Net::HTTPSuccess === response
-    end
-
-    def create_repo(project, options = {})
-      is_org = project.owner != github_user(true, project.host)
-      params = {'name' => is_org ? project.name_with_owner : project.name}
-      params['public'] = '0' if options[:private]
-      params['description'] = options[:description] if options[:description]
-      params['homepage'] = options[:homepage] if options[:homepage]
-
-      load_net_http
-      response = http_post(project.api_create_url('json'), params)
-      response.error! unless Net::HTTPSuccess === response
-    end
-
-    def create_pullrequest(options)
-      project = options.fetch(:project)
-      params = {
-        'pull[base]' => options.fetch(:base),
-        'pull[head]' => options.fetch(:head)
-      }
-      params['pull[issue]'] = options[:issue] if options[:issue]
-      params['pull[title]'] = options[:title] if options[:title]
-      params['pull[body]'] = options[:body] if options[:body]
-
-      load_net_http
-      response = http_post(project.api_create_pullrequest_url('json'), params)
-      response.error! unless Net::HTTPSuccess === response
-      JSON.parse(response.body)['pull']
-    end
-
     def pullrequest_editmsg(changes)
       message_file = File.join(git_dir, 'PULLREQ_EDITMSG')
       File.open(message_file, 'w') { |msg|
@@ -1456,183 +1836,18 @@ help
       end
     end
 
-    def http_request(url, type = :Get)
-      url = URI(url) unless url.respond_to? :host
-      user, token = github_user(type != :Get, url.host), github_token(type != :Get, url.host)
-
-      req = Net::HTTP.const_get(type).new(url.request_uri)
-      req.basic_auth "#{user}/token", token if user and token
-
-      http = setup_http(url)
-
-      yield req if block_given?
-      http.start { http.request(req) }
-    end
-
-    def http_post(url, params = nil)
-      http_request(url, :Post) do |req|
-        req.set_form_data params if params
-        req['Content-Length'] = req.body ? req.body.length : 0
-      end
-    end
-
-    def setup_http(url)
-      port = url.port
-      if use_ssl = 'https' == url.scheme and not use_ssl?
-        use_ssl = false
-        port = 80
-      end
-
-      http_args = [url.host, port]
-      if proxy = proxy_url(use_ssl)
-        http_args.concat proxy.select(:host, :port)
-        if proxy.userinfo
-          require 'cgi'
-          http_args.concat proxy.userinfo.split(':', 2).map {|a| CGI.unescape a }
-        end
-      end
-
-      http = Net::HTTP.new(*http_args)
-
-      if http.use_ssl = use_ssl
-        http.verify_mode = OpenSSL::SSL::VERIFY_NONE
-      end
-      return http
-    end
-
-    def load_net_http
-      require 'net/https'
-    rescue LoadError
-      require 'net/http'
-    end
-
-    def use_ssl?
-      defined? ::OpenSSL
-    end
-
-    def proxy_url(use_ssl)
-      env_name = "HTTP#{use_ssl ? 'S' : ''}_PROXY"
-      if proxy = ENV[env_name] || ENV[env_name.downcase]
-        proxy = "http://#{proxy}" unless proxy.include? '://'
-        URI.parse(proxy)
-      end
-    end
-
-    module HTTPExceptions
-      def self.===(exception)
-        exception.class.ancestors.map {|a| a.to_s }.include? 'Net::HTTPExceptions'
-      end
-    end
-
-    def display_http_exception(action, response)
-      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.code})"
-      case response.code.to_i
-      when 401 then warn "Check your token configuration (`git config github.token`)"
-      when 422
-        if response.content_type =~ /\bjson\b/ and data = JSON.parse(response.body) and data["error"]
-          $stderr.puts data["error"]
-        end
+    def display_api_exception(action, response)
+      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.status})"
+      if 422 == response.status and response.error_message?
+        msg = response.error_message
+        msg = msg.join("\n") if msg.respond_to? :join
+        warn msg
       end
     end
 
   end
 end
-require 'strscan'
-require 'forwardable'
 
-class Hub::JSON
-  def self.parse(data) new(data).parse end
-
-  WSP = /\s+/
-  OBJ = /[{\[]/;    HEN = /\}/;  AEN = /\]/
-  COL = /\s*:\s*/;  KEY = /\s*,\s*/
-  NUM = /-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/
-  BOL = /true|false/;  NUL = /null/
-
-  extend Forwardable
-
-  attr_reader :scanner
-  alias_method :s, :scanner
-  def_delegators :scanner, :scan, :matched
-  private :s, :scan, :matched
-
-  def initialize data
-    @scanner = StringScanner.new data.to_s
-  end
-
-  def parse
-    space
-    object
-  end
-
-  private
-
-  def space() scan WSP end
-
-  def endkey() scan(KEY) or space end
-
-  def object
-    matched == '{' ? hash : array if scan(OBJ)
-  end
-
-  def value
-    object or string or
-      scan(NUL) ? nil :
-      scan(BOL) ? matched.size == 4:
-      scan(NUM) ? eval(matched) :
-      error
-  end
-
-  def hash
-    obj = {}
-    space
-    repeat_until(HEN) { k = string; scan(COL); obj[k] = value; endkey }
-    obj
-  end
-
-  def array
-    ary = []
-    space
-    repeat_until(AEN) { ary << value; endkey }
-    ary
-  end
-
-  SPEC = {'b' => "\b", 'f' => "\f", 'n' => "\n", 'r' => "\r", 't' => "\t"}
-  UNI = 'u'; CODE = /[a-fA-F0-9]{4}/
-  STR = /"/; STE = '"'
-  ESC = '\\'
-
-  def string
-    if scan(STR)
-      str, esc = '', false
-      while c = s.getch
-        if esc
-          str << (c == UNI ? (s.scan(CODE) || error).to_i(16).chr : SPEC[c] || c)
-          esc = false
-        else
-          case c
-          when ESC then esc = true
-          when STE then break
-          else str << c
-          end
-        end
-      end
-      str
-    end
-  end
-
-  def error
-    raise "parse error at: #{scan(/.{1,10}/m).inspect}"
-  end
-
-  def repeat_until reg
-    until scan(reg)
-      pos = s.pos
-      yield
-      error unless s.pos > pos
-    end
-  end
-end
 module Hub
   class Runner
     attr_reader :args
@@ -1689,15 +1904,14 @@ module Hub
     end
   end
 end
-module Hub
-  Version = VERSION = '1.8.4'
-end
+
 Hub::Runner.execute(*ARGV)
+
 __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "March 2012" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "April 2012" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -1828,7 +2042,7 @@ Open a GitHub compare view page in the system\'s default web browser\. \fISTART\
 .
 .TP
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
-Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\. Requires \fBgithub\.token\fR to be set (see CONFIGURATION)\.
+Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\.
 .
 .TP
 \fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
@@ -1841,37 +2055,7 @@ If \fITITLE\fR is omitted, a text editor will open in which title and body of th
 If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
 .
 .SH "CONFIGURATION"
-Use git\-config(1) to display the currently configured GitHub username:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\.user
-.
-.fi
-.
-.IP "" 0
-.
-.P
-Or, set the GitHub username and token with:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\.user <username>
-$ git config \-\-global github\.token <token>
-.
-.fi
-.
-.IP "" 0
-.
-.P
-You can override these values with \fIGITHUB_USER\fR and \fIGITHUB_TOKEN\fR environment variables\.
-.
-.P
-See \fIhttp://help\.github\.com/set\-your\-user\-name\-email\-and\-github\-token/\fR for more information\.
+Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.
 .
 .P
 If you prefer the HTTPS protocol for GitHub repositories, you can set "hub\.protocol" to "https"\. This will affect \fBclone\fR, \fBfork\fR, \fBremote add\fR and other operations that expand references to GitHub repositories as full URLs that otherwise use git and ssh protocols\.
@@ -1894,20 +2078,6 @@ By default, hub will only work with repositories that have remotes which point t
 .nf
 
 $ git config \-\-global \-\-add hub\.host my\.git\.org
-.
-.fi
-.
-.IP "" 0
-.
-.P
-API username and token need also be configured for each Enterprise host:
-.
-.IP "" 4
-.
-.nf
-
-$ git config \-\-global github\."my\.git\.org"\.user <username>
-$ git config \-\-global github\."my\.git\.org"\.token <token>
 .
 .fi
 .

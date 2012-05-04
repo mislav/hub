@@ -173,8 +173,7 @@ the range of history to compare. If a range with two dots (<code>a..b</code>) is
 it will be transformed into one with three dots. If <var>START</var> is omitted,
 GitHub will compare against the base branch (the default is "master").</p></dd>
 <dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
-adds a new remote for it under your username. Requires <code>github.token</code> to
-be set (see CONFIGURATION).</p></dd>
+adds a new remote for it under your username.</p></dd>
 <dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of
@@ -194,22 +193,8 @@ of title you can paste a full URL to an issue on GitHub.</p></dd>
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
 
-<p>Use <span class="man-ref">git-config<span class="s">(1)</span></span> to display the currently configured GitHub username:</p>
-
-<pre><code>$ git config --global github.user
-</code></pre>
-
-<p>Or, set the GitHub username and token with:</p>
-
-<pre><code>$ git config --global github.user &lt;username>
-$ git config --global github.token &lt;token>
-</code></pre>
-
-<p>You can override these values with <var>GITHUB_USER</var> and <var>GITHUB_TOKEN</var>
-environment variables.</p>
-
-<p>See <a href="http://help.github.com/set-your-user-name-email-and-github-token/" data-bare-link="true">http://help.github.com/set-your-user-name-email-and-github-token/</a> for more
-information.</p>
+<p>Hub will prompt for GitHub username &amp; password the first time it needs to access
+the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</p>
 
 <p>If you prefer the HTTPS protocol for GitHub repositories, you can set
 "hub.protocol" to "https". This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code>
@@ -226,12 +211,6 @@ point to github.com. GitHub Enterprise hosts need to be whitelisted to
 configure hub to treat such remotes same as github.com:</p>
 
 <pre><code>$ git config --global --add hub.host my.git.org
-</code></pre>
-
-<p>API username and token need also be configured for each Enterprise host:</p>
-
-<pre><code>$ git config --global github."my.git.org".user &lt;username>
-$ git config --global github."my.git.org".token &lt;token>
 </code></pre>
 
 <p>The default host for commands like <code>init</code> and <code>clone</code> is still
@@ -448,7 +427,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>March 2012</li>
+    <li class='tc'>April 2012</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
