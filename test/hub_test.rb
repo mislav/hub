@@ -22,7 +22,7 @@ class HubTest < Test::Unit::TestCase
 
   COMMANDS = []
 
-  Hub::Context.class_eval do
+  Hub::Context::System.class_eval do
     remove_method :which
     define_method :which do |name|
       COMMANDS.include?(name) ? "/usr/bin/#{name}" : nil

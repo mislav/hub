@@ -1,0 +1,19 @@
+#!/bin/sh
+# A wrapper for system git that prevents commands such as `clone` or `fetch` to be
+# executed in testing. It logs commands to "~/.history" so afterwards it can be
+# asserted that they ran.
+
+command="$1"
+[ "$command" == "config" ] || echo git "$@" >> "$HOME"/.history
+
+case "$command" in
+  "clone" | "fetch" | "pull" | "push" )
+    exit
+    ;;
+  * )
+    [ "$command $2 $3" == "remote add -f" ] && exit
+    # note: `submodule add` also initiates a clone, but we work around it
+    ;;
+  esac
+
+exec "$HUB_SYSTEM_GIT" "$@"

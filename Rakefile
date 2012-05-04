@@ -27,13 +27,17 @@ end
 # Tests
 #
 
-task :default => :test
+task :default => [:test, :features]
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
   t.ruby_opts << '-rubygems'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = false
+end
+
+task :features do
+  sh 'RUBYLIB=lib cucumber -f progress -t ~@wip features'
 end
 
 #
