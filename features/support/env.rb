@@ -24,8 +24,14 @@ Before do
   set_env 'HOME', File.expand_path(File.join(current_dir, 'home'))
   # used in fakebin/git
   set_env 'HUB_SYSTEM_GIT', system_git
+  # ensure that api.github.com is actually never hit in tests
+  set_env 'HUB_TEST_HOST', '127.0.0.1:0'
 
   FileUtils.mkdir_p ENV['HOME']
+end
+
+After do
+  @server.stop if defined? @server and @server
 end
 
 Before '~@noexec' do

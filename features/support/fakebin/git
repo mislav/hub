@@ -8,12 +8,17 @@ command="$1"
 
 case "$command" in
   "clone" | "fetch" | "pull" | "push" )
+    # don't actually execute these commands
     exit
     ;;
   * )
-    [ "$command $2 $3" == "remote add -f" ] && exit
     # note: `submodule add` also initiates a clone, but we work around it
+    if [ "$command $2 $3" == "remote add -f" ]; then
+      subcommand=$2
+      shift 3
+      exec "$HUB_SYSTEM_GIT" $command $subcommand "$@"
+    else
+      exec "$HUB_SYSTEM_GIT" "$@"
+    fi
     ;;
   esac
-
-exec "$HUB_SYSTEM_GIT" "$@"

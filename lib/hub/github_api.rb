@@ -147,11 +147,14 @@ module Hub
       end
 
       def perform_request url, type
-        url = URI.parse url unless url.respond_to? :hostname
+        url = URI.parse url unless url.respond_to? :host
 
         require 'net/https'
         req = Net::HTTP.const_get(type).new(url.request_uri)
-        http = create_connection(url)
+        # TODO: better naming?
+        http = configure_connection(req, url) do |host_url|
+          create_connection host_url
+        end
 
         apply_authentication(req, url)
         yield req if block_given?
@@ -160,6 +163,17 @@ module Hub
         res
       rescue SocketError => err
         raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+      end
+
+      def configure_connection req, url
+        if ENV['HUB_TEST_HOST']
+          req['Host'] = url.host
+          url = url.dup
+          url.scheme = 'http'
+          url.host, test_port = ENV['HUB_TEST_HOST'].split(':')
+          url.port = test_port.to_i if test_port
+        end
+        yield url
       end
 
       def apply_authentication req, url

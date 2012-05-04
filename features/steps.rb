@@ -1,3 +1,5 @@
+require 'fileutils'
+
 Given /^HTTPS is preferred$/ do
   run_silent %(git config --global hub.protocol https)
 end
@@ -11,12 +13,19 @@ Given /^"([^"]*)" is a whitelisted Enterprise host$/ do |host|
 end
 
 Given /^the "([^"]*)" remote has url "([^"]*)"$/ do |remote_name, url|
-  run_silent %(git remote add #{remote_name} "#{url}")
+  remotes = run_silent('git remote').split("\n")
+  unless remotes.include? remote_name
+    run_silent %(git remote add #{remote_name} "#{url}")
+  else
+    run_silent %(git remote set-url #{remote_name} "#{url}")
+  end
 end
 
-Given /^I am "([^"]*)" on ([\w.-]+)$/ do |name, host|
+Given /^I am "([^"]*)" on ([\w.-]+)(?: with OAuth token "([^"]*)")?$/ do |name, host, token|
   edit_hub_config do |cfg|
-    cfg[host.downcase] = [{'user' => name}]
+    entry = {'user' => name}
+    entry['oauth_token'] = token if token
+    cfg[host.downcase] = [entry]
   end
 end
 
@@ -34,6 +43,20 @@ Given /^a git repo in "([^"]*)"$/ do |dir_name|
   dirs << dir_name
   step %(I successfully run `git init --quiet`)
   dirs.pop
+end
+
+Given /^the current dir is not a repo$/ do
+  in_current_dir do
+    FileUtils.rm_rf '.git'
+  end
+end
+
+Given /^the GitHub API server:$/ do |endpoints_str|
+  @server = Hub::LocalServer.start_sinatra do
+    eval endpoints_str, binding
+  end
+  # hit our Sinatra server instead of github.com
+  set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
 end
 
 Then /^"([^"]*)" should be run$/ do |cmd|
@@ -65,4 +88,9 @@ end
 Then /^the "([^"]*)" submodule url should be "([^"]*)"$/ do |name, url|
   found = run_silent %(git config --get-all submodule."#{name}".url)
   found.should eql(url)
+end
+
+Then /^there should be no "([^"]*)" remote$/ do |remote_name|
+  remotes = run_silent('git remote').split("\n")
+  remotes.should_not include(remote_name)
 end
