@@ -307,7 +307,7 @@ Configuration
 Hub will prompt for GitHub username & password the first time it needs to access
 the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 
-### HTTPS insted of git protocol
+### HTTPS instead of git protocol
 
 If you prefer using the HTTPS protocol for GitHub repositories instead of the git
 protocol for read and ssh for write, you can set "hub.protocol" to "https".
