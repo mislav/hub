@@ -729,15 +729,6 @@ class HubTest < Test::Unit::TestCase
       "merge https://github.com/defunkt/hub/pull/73/files"
   end
 
-  def test_merge_pullrequest_custom_branch
-    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
-      to_return(:body => mock_pull_response('blueyed:feature'))
-
-    assert_commands "git remote add -f -t feature blueyed git://github.com/blueyed/hub.git",
-      "git merge blueyed/feature --no-ff -m 'Merge pull request #73 from blueyed/feature\n\nMake eyes blue'",
-      "merge https://github.com/defunkt/hub/pull/73/files review"
-  end
-
   def test_merge_pullrequest_existing_remote
     stub_command_output 'remote', "origin\nblueyed"
 
