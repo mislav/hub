@@ -73,6 +73,10 @@ hub enhances various git commands to ease most common workflows with GitHub.
     request before merging. The name of the local branch can explicitly be
     set with <BRANCH>.
 
+  * `git merge` <PULLREQ-URL>:
+    Merge the pull request with a nice commit message that includes the pull
+    request ID and title. Adds a remote but not a local branch.
+
   * `git cherry-pick` <GITHUB-REF>:
     Cherry-pick a commit from a fork using either full URL to the commit
     or GitHub-flavored Markdown notation, which is `user@sha`. If the remote

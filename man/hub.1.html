@@ -131,6 +131,8 @@ remotes are only added if they correspond to valid forks on GitHub.</p></dd>
 reviewing, rebasing and otherwise cleaning up the commits in the pull
 request before merging. The name of the local branch can explicitly be
 set with <var>BRANCH</var>.</p></dd>
+<dt><code>git merge</code> <var>PULLREQ-URL</var></dt><dd><p>Merge the pull request with a nice commit message that includes the pull
+request ID and title. Adds a remote but not a local branch.</p></dd>
 <dt><code>git cherry-pick</code> <var>GITHUB-REF</var></dt><dd><p>Cherry-pick a commit from a fork using either full URL to the commit
 or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
 doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
