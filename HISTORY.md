@@ -1,3 +1,9 @@
+## 1.9.0 (2012-05-04)
+
+* internal refactoring and code reorganization
+* switch to GitHub API v3 and authenticate via OAuth
+* auth info is now stored in ~/.config/hub instead of ~/.gitconfig
+
 ## 1.8.4 (2012-03-20)
 
 * add bash, zsh completion
