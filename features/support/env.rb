@@ -16,6 +16,8 @@ Before do
   set_env 'RUBYLIB', lib_dir
   # put fakebin on the PATH
   set_env 'PATH', "#{bin_dir}:#{ENV['PATH']}"
+  # clear out GIT if it happens to be set
+  set_env 'GIT', nil
   # exclude this project's git directory from use in testing
   set_env 'GIT_CEILING_DIRECTORIES', File.dirname(lib_dir)
   # sabotage git commands that might try to access a remote host
@@ -32,14 +34,6 @@ end
 
 After do
   @server.stop if defined? @server and @server
-end
-
-Before '~@noexec' do
-  set_env 'GIT', nil
-end
-
-Before '@noexec' do
-  set_env 'GIT', 'echo'
 end
 
 World Module.new {
