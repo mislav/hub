@@ -55,7 +55,7 @@ module Hub
       respect_help_flags(expanded_args || args) if custom_command? cmd
 
       # git commands can have dashes
-      cmd = cmd.sub(/(\w)-/, '\1_')
+      cmd = cmd.gsub(/(\w)-/, '\1_')
       if method_defined?(cmd) and cmd != 'run'
         args.replace expanded_args if expanded_args
         send(cmd, args)
@@ -944,7 +944,7 @@ help
       title.tr!("\n", ' ')
       title.strip!
       body.strip!
-      
+
       [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
     end
 
