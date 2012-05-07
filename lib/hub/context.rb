@@ -179,13 +179,16 @@ module Hub
         git_config('hub.host', :all).to_s.split("\n") + [default_host]
       end
 
-      def default_host
+      def self.default_host
         ENV['GITHUB_HOST'] || main_host
       end
 
-      def main_host
+      def self.main_host
         'github.com'
       end
+
+      extend Forwardable
+      def_delegators :'self.class', :default_host, :main_host
 
       def ssh_config
         @ssh_config ||= SshConfig.new
@@ -204,12 +207,12 @@ module Hub
 
       def initialize(*args)
         super
-        self.host ||= local_repo.default_host
+        self.host ||= (local_repo || LocalRepo).default_host
       end
 
       def private?
         repo_data ? repo_data.fetch('private') :
-          local_repo && host != local_repo.main_host
+          host != (local_repo || LocalRepo).main_host
       end
 
       def owned_by(new_owner)
@@ -360,7 +363,7 @@ module Hub
         project.name = name
         project
       else
-        GithubProject.new(local_repo, owner, name)
+        GithubProject.new(local_repo(false), owner, name)
       end
     end
 

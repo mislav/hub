@@ -74,8 +74,8 @@ Then /^it should clone "([^"]*)"$/ do |repo|
   step %("git clone #{repo}" should be run)
 end
 
-Then /^nothing should be run$/ do
-  history.should be_empty
+Then /^"([^"]+)" should not be run$/ do |pattern|
+  history.all? {|h| h.should_not include(pattern) }
 end
 
 Then /^there should be no output$/ do

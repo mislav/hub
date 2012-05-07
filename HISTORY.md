@@ -1,5 +1,6 @@
 ## master
 
+* fix GitHub username prompt in `create` command
 * make `fetch` command work with private repos too
 * add `merge` command to merge pull requests
 

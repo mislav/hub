@@ -213,12 +213,10 @@ module Hub
           # $ hub clone rtomayko/tilt
           # $ hub clone tilt
           if arg =~ NAME_WITH_OWNER_RE and !File.directory?(arg)
-            # FIXME: this logic shouldn't be duplicated here!
             name, owner = arg, nil
             owner, name = name.split('/', 2) if name.index('/')
-            host = ENV['GITHUB_HOST'] || 'github.com'
-            project = Context::GithubProject.new(nil, owner || github_user(host), name, host)
-            ssh ||= args[0] != 'submodule' && project.owner == github_user(host) || host != 'github.com'
+            project = github_project(name, owner || github_user)
+            ssh ||= args[0] != 'submodule' && project.owner == github_user(project.host) { }
             args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
           end
           break
@@ -452,10 +450,7 @@ module Hub
     # > git remote add origin git@github.com:USER/REPO.git
     def init(args)
       if args.delete('-g')
-        # can't use default_host because there is no local_repo yet
-        # FIXME: this shouldn't be here!
-        host = ENV['GITHUB_HOST'] || 'github.com'
-        project = Context::GithubProject.new(nil, github_user(host), File.basename(current_dir), host)
+        project = github_project(File.basename(current_dir))
         url = project.git_url(:private => true, :https => https_protocol?)
         args.after ['remote', 'add', 'origin', url]
       end
@@ -495,7 +490,8 @@ module Hub
     def create(args)
       if !is_repo?
         abort "'create' must be run from inside a git repository"
-      elsif owner = github_user
+      else
+        owner = github_user
         args.shift
         options = {}
         options[:private] = true if args.delete('-p')
@@ -731,10 +727,9 @@ module Hub
       end
     end
 
-    def github_user host = nil
-      host ||= local_repo(false) && local_repo.main_host
-      return nil if host.nil?
-      api_client.config.username(host) { }
+    def github_user host = nil, &block
+      host ||= (local_repo(false) || Context::LocalRepo).default_host
+      api_client.config.username(host, &block)
     end
 
     def custom_command? cmd
