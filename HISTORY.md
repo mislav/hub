@@ -1,3 +1,7 @@
+## master
+
+* add `merge` to merge pull requests
+
 ## 1.9.0 (2012-05-04)
 
 * internal refactoring and code reorganization
