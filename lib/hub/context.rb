@@ -200,13 +200,16 @@ module Hub
         end
       end
 
+      attr_accessor :repo_data
+
       def initialize(*args)
         super
         self.host ||= local_repo.default_host
       end
 
       def private?
-        local_repo and host != local_repo.main_host
+        repo_data ? repo_data.fetch('private') :
+          local_repo && host != local_repo.main_host
       end
 
       def owned_by(new_owner)

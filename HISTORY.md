@@ -1,5 +1,6 @@
 ## master
 
+* make `fetch` command work with private repos too
 * add `merge` command to merge pull requests
 
 ## 1.9.0 (2012-05-04)

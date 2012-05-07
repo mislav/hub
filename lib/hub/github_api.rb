@@ -46,11 +46,15 @@ module Hub
       'github.com' == host ? 'api.github.com' : host
     end
 
-    # Public: Determine whether a specific repo already exists.
-    def repo_exists? project
-      res = get "https://%s/repos/%s/%s" %
+    # Public: Fetch data for a specific repo.
+    def repo_info project
+      get "https://%s/repos/%s/%s" %
         [api_host(project.host), project.owner, project.name]
-      res.success?
+    end
+
+    # Public: Determine whether a specific repo exists.
+    def repo_exists? project
+      repo_info(project).success?
     end
 
     # Public: Fork the specified repo.

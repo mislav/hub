@@ -12,7 +12,7 @@ Feature: hub fetch
   Scenario: Creates new remote
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { status 200 }
+      get('/repos/mislav/dotfiles') { JSON.generate :private => false }
       """
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
@@ -22,17 +22,27 @@ Feature: hub fetch
   Scenario: HTTPS is preferred
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { status 200 }
+      get('/repos/mislav/dotfiles') { JSON.generate :private => false }
       """
     And HTTPS is preferred
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
     And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
 
+  Scenario: Private repo
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { JSON.generate :private => true }
+      """
+    When I successfully run `hub fetch mislav`
+    Then "git fetch mislav" should be run
+    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no output
+
   Scenario: Fetch with options
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { status 200 }
+      get('/repos/mislav/dotfiles') { JSON.generate :private => false }
       """
     When I successfully run `hub fetch --depth=1 mislav`
     Then "git fetch --depth=1 mislav" should be run
@@ -40,7 +50,7 @@ Feature: hub fetch
   Scenario: Fetch multiple
     Given the GitHub API server:
       """
-      get('/repos/:owner/dotfiles') { status 200 }
+      get('/repos/:owner/dotfiles') { JSON.generate :private => false }
       """
     When I successfully run `hub fetch --multiple mislav rtomayko`
     Then "git fetch --multiple mislav rtomayko" should be run
@@ -50,7 +60,7 @@ Feature: hub fetch
   Scenario: Fetch multiple with filtering
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { status 200 }
+      get('/repos/mislav/dotfiles') { JSON.generate :private => false }
       """
     When I successfully run `git config remotes.mygrp "foo bar"`
     When I successfully run `hub fetch --multiple origin mislav mygrp git://example.com typo`
@@ -62,7 +72,7 @@ Feature: hub fetch
   Scenario: Fetch multiple comma-separated
     Given the GitHub API server:
       """
-      get('/repos/:owner/dotfiles') { status 200 }
+      get('/repos/:owner/dotfiles') { JSON.generate :private => false }
       """
     When I successfully run `hub fetch mislav,rtomayko`
     Then "git fetch --multiple mislav rtomayko" should be run
