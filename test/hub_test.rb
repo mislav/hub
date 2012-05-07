@@ -967,7 +967,7 @@ class HubTest < Test::Unit::TestCase
       Hub::JSON.generate :head => {
         :label => label,
         :repo => {:private => !!priv}
-      }, :title => "Make eyes blue"
+      }
     end
 
     def improved_help_text
