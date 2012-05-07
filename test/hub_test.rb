@@ -604,7 +604,7 @@ class HubTest < Test::Unit::TestCase
   def test_help_hub
     help_manpage = hub("help hub")
     assert_includes "git + hub = github", help_manpage
-    assert_includes "Hub will prompt for GitHub username & password", help_manpage
+    assert_includes "Hub will prompt for GitHub username & password", help_manpage.gsub(/ {2,}/, ' ')
   end
 
   def test_help_flag_on_command
