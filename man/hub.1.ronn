@@ -14,6 +14,7 @@ hub(1) -- git + hub = github
 `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
 `git fetch` <USER-1>,[<USER-2>,...]  
 `git checkout` <PULLREQ-URL> [<BRANCH>]  
+`git merge` <PULLREQ-URL>  
 `git cherry-pick` <GITHUB-REF>  
 `git am` <GITHUB-URL>  
 `git apply` <GITHUB-URL>  
@@ -74,8 +75,8 @@ hub enhances various git commands to ease most common workflows with GitHub.
     set with <BRANCH>.
 
   * `git merge` <PULLREQ-URL>:
-    Merge the pull request with a nice commit message that includes the pull
-    request ID and title. Adds a remote but not a local branch.
+    Merge the pull request with a commit message that includes the pull request
+    ID and title, similar to the GitHub Merge Button.
 
   * `git cherry-pick` <GITHUB-REF>:
     Cherry-pick a commit from a fork using either full URL to the commit

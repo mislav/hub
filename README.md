@@ -206,11 +206,17 @@ superpowers:
 
 ### git checkout
 
-    # $ git checkout https://github.com/defunkt/hub/pull/73
-    # > git remote add -f -t feature git://github:com/mislav/hub.git
-    # > git checkout --track -B mislav-feature mislav/feature
+    $ git checkout https://github.com/defunkt/hub/pull/73
+    > git remote add -f -t feature git://github:com/mislav/hub.git
+    > git checkout --track -B mislav-feature mislav/feature
 
-    # $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
+    $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
+
+### git merge
+
+    $ git merge https://github.com/defunkt/hub/pull/73
+    > git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
+    > git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
 
 ### git create
 

@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "April 2012" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "May 2012" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -29,6 +29,9 @@
 .
 .br
 \fBgit checkout\fR \fIPULLREQ\-URL\fR [\fIBRANCH\fR]
+.
+.br
+\fBgit merge\fR \fIPULLREQ\-URL\fR
 .
 .br
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
@@ -97,7 +100,7 @@ Checks out the head of the pull request as a local branch, to allow for reviewin
 .
 .TP
 \fBgit merge\fR \fIPULLREQ\-URL\fR
-Merge the pull request with a nice commit message that includes the pull request ID and title\. Adds a remote but not a local branch\.
+Merge the pull request with a commit message that includes the pull request ID and title, similar to the GitHub Merge Button\.
 .
 .TP
 \fBgit cherry\-pick\fR \fIGITHUB\-REF\fR
@@ -304,11 +307,21 @@ $ git pull\-request \-i 123
 .
 .nf
 
-# $ git checkout https://github\.com/defunkt/hub/pull/73
-# > git remote add \-f \-t feature git://github:com/mislav/hub\.git
-# > git checkout \-\-track \-B mislav\-feature mislav/feature
+$ git checkout https://github\.com/defunkt/hub/pull/73
+> git remote add \-f \-t feature git://github:com/mislav/hub\.git
+> git checkout \-\-track \-B mislav\-feature mislav/feature
 
-# $ git checkout https://github\.com/defunkt/hub/pull/73 custom\-branch\-name
+$ git checkout https://github\.com/defunkt/hub/pull/73 custom\-branch\-name
+.
+.fi
+.
+.SS "git merge"
+.
+.nf
+
+$ git merge https://github\.com/defunkt/hub/pull/73
+> git fetch git://github\.com/mislav/hub\.git +refs/heads/feature:refs/remotes/mislav/feature
+> git merge mislav/feature \-\-no\-ff \-m \'Merge pull request #73 from mislav/feature\.\.\.\'
 .
 .fi
 .

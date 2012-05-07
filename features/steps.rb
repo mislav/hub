@@ -45,6 +45,13 @@ Given /^a git repo in "([^"]*)"$/ do |dir_name|
   dirs.pop
 end
 
+Given /^there is a commit named "([^"]+)"$/ do |name|
+  run_silent %(git commit --quiet --allow-empty --allow-empty-message -m '')
+  run_silent %(git commit --quiet --allow-empty --allow-empty-message -m '')
+  run_silent %(git tag #{name})
+  run_silent %(git reset --quiet --hard HEAD^)
+end
+
 Given /^the current dir is not a repo$/ do
   in_current_dir do
     FileUtils.rm_rf '.git'
