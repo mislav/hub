@@ -343,9 +343,14 @@ module Hub
       # special prompt that has hidden input
       def prompt_password host, user
         print "#{host} password for #{user} (never stored): "
-        password = askpass
-        puts ''
-        password
+        if $stdin.tty?
+          password = askpass
+          puts ''
+          password
+        else
+          # in testing
+          $stdin.gets.chomp
+        end
       end
 
       # FIXME: probably not cross-platform
