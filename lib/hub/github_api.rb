@@ -367,7 +367,7 @@ module Hub
 
       def proxy_uri(with_ssl)
         env_name = "HTTP#{with_ssl ? 'S' : ''}_PROXY"
-        if proxy = ENV[env_name] || ENV[env_name.downcase]
+        if proxy = ENV[env_name] || ENV[env_name.downcase] and !proxy.empty?
           proxy = "http://#{proxy}" unless proxy.include? '://'
           URI.parse proxy
         end
