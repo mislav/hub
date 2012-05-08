@@ -28,12 +28,43 @@ module Hub
       end
     end
 
+    class JsonParamsParser < Struct.new(:app)
+      def call(env)
+        if env['rack.input'] and not input_parsed?(env) and type_match?(env)
+          env['rack.request.form_input'] = env['rack.input']
+          data = env['rack.input'].read
+          env['rack.request.form_hash'] = data.empty?? {} : JSON.parse(data)
+        end
+        app.call(env)
+      end
+
+      def input_parsed? env
+        env['rack.request.form_input'].eql? env['rack.input']
+      end
+
+      def type_match? env
+        type = env['CONTENT_TYPE'] and
+          type.split(/\s*[;,]\s*/, 2).first.downcase == 'application/json'
+      end
+    end
+
     def self.start_sinatra(&block)
+      require 'json'
       require 'sinatra/base'
       klass = Class.new(Sinatra::Base)
+      klass.use JsonParamsParser
       klass.set :environment, :test
       klass.disable :protection
       klass.class_eval(&block)
+      klass.helpers do
+        def body(value = nil) super; nil end
+      end
+      klass.after do
+        if Array === response.body && !response.body.empty? or Hash === response.body
+          content_type :json
+          body JSON.generate(response.body)
+        end
+      end
 
       new(klass.new).start
     end

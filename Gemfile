@@ -5,5 +5,6 @@ gem 'aruba'
 gem 'cucumber'
 gem 'sinatra'
 gem 'thin'
+gem 'json'
 
 gemspec
