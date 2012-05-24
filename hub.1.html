@@ -87,6 +87,7 @@
 <code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
 <code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
 <code>git checkout</code> <var>PULLREQ-URL</var> [<var>BRANCH</var>]<br />
+<code>git merge</code> <var>PULLREQ-URL</var><br />
 <code>git cherry-pick</code> <var>GITHUB-REF</var><br />
 <code>git am</code> <var>GITHUB-URL</var><br />
 <code>git apply</code> <var>GITHUB-URL</var><br />
@@ -131,6 +132,8 @@ remotes are only added if they correspond to valid forks on GitHub.</p></dd>
 reviewing, rebasing and otherwise cleaning up the commits in the pull
 request before merging. The name of the local branch can explicitly be
 set with <var>BRANCH</var>.</p></dd>
+<dt><code>git merge</code> <var>PULLREQ-URL</var></dt><dd><p>Merge the pull request with a commit message that includes the pull request
+ID and title, similar to the GitHub Merge Button.</p></dd>
 <dt><code>git cherry-pick</code> <var>GITHUB-REF</var></dt><dd><p>Cherry-pick a commit from a fork using either full URL to the commit
 or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
 doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
@@ -311,11 +314,18 @@ $ git pull-request -i 123
 
 <h3 id="git-checkout">git checkout</h3>
 
-<pre><code># $ git checkout https://github.com/defunkt/hub/pull/73
-# &gt; git remote add -f -t feature git://github:com/mislav/hub.git
-# &gt; git checkout --track -B mislav-feature mislav/feature
+<pre><code>$ git checkout https://github.com/defunkt/hub/pull/73
+&gt; git remote add -f -t feature git://github:com/mislav/hub.git
+&gt; git checkout --track -B mislav-feature mislav/feature
 
-# $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
+$ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
+</code></pre>
+
+<h3 id="git-merge">git merge</h3>
+
+<pre><code>$ git merge https://github.com/defunkt/hub/pull/73
+&gt; git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
+&gt; git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
 </code></pre>
 
 <h3 id="git-create">git create</h3>
@@ -427,7 +437,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>April 2012</li>
+    <li class='tc'>May 2012</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
