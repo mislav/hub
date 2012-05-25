@@ -363,10 +363,18 @@ module Hub
     end
 
     # $ git merge https://github.com/defunkt/hub/pull/73
+    # or
+    # $ git merge #173
     # > git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
     # > git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
     def merge(args)
       _, url_arg = args.words
+      if url_arg =~ /#(\d+)/
+         num = $1
+         upstream_url = local_repo.upstream_project.web_url
+         url_arg = "#{upstream_url}/pull/#{num}"
+      end
+
       if url = resolve_github_url(url_arg) and url.project_path =~ /^pull\/(\d+)/
         pull_id = $1
         pull_data = api_client.pullrequest_info(url.project, pull_id)
