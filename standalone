@@ -7,7 +7,7 @@
 #
 
 module Hub
-  Version = VERSION = '1.10.0'
+  Version = VERSION = '1.10.1'
 end
 
 module Hub
@@ -434,7 +434,8 @@ module Hub
       end
 
       def load
-        @data.update YAML.load(File.read(@filename))
+        existing_data = File.read(@filename)
+        @data.update YAML.load existing_data unless existing_data.strip.empty?
       end
 
       def save
@@ -620,7 +621,7 @@ module Hub
     end
 
     repo_methods = [
-      :current_branch, :master_branch,
+      :current_branch,
       :current_project, :upstream_project,
       :repo_owner, :repo_host,
       :remotes, :remotes_group, :origin_remote
@@ -628,6 +629,14 @@ module Hub
     def_delegator :local_repo, :name, :repo_name
     def_delegators :local_repo, *repo_methods
     private :repo_name, *repo_methods
+
+    def master_branch
+      if local_repo(false)
+        local_repo.master_branch
+      else
+        Branch.new nil, 'refs/heads/master'
+      end
+    end
 
     class LocalRepo < Struct.new(:git_reader, :dir)
       include GitReaderMethods
