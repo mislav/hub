@@ -34,8 +34,13 @@ Given /^\$(\w+) is "([^"]*)"$/ do |name, value|
 end
 
 Given /^I am in "([^"]*)" git repo$/ do |dir_name|
+  if dir_name.include? '://'
+    origin_url = dir_name
+    dir_name = File.basename origin_url, '.git'
+  end
   step %(a git repo in "#{dir_name}")
   step %(I cd to "#{dir_name}")
+  step %(the "origin" remote has url "#{origin_url}") if origin_url
 end
 
 Given /^a git repo in "([^"]*)"$/ do |dir_name|
@@ -52,6 +57,18 @@ Given /^there is a commit named "([^"]+)"$/ do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
+Given /^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/ do |name, upstream|
+  run_silent %(git commit --quiet --allow-empty --allow-empty-message -m '')
+  if upstream
+    full_upstream = ".git/refs/remotes/#{upstream}"
+    in_current_dir do
+      FileUtils.mkdir_p File.dirname(full_upstream)
+      FileUtils.cp '.git/refs/heads/master', full_upstream
+    end
+  end
+  run_silent %(git checkout --quiet -B #{name} --track #{upstream})
+end
+
 Given /^the current dir is not a repo$/ do
   in_current_dir do
     FileUtils.rm_rf '.git'
@@ -64,6 +81,12 @@ Given /^the GitHub API server:$/ do |endpoints_str|
   end
   # hit our Sinatra server instead of github.com
   set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
+end
+
+Then /^shell$/ do
+  in_current_dir do
+    system '/bin/bash -i'
+  end
 end
 
 Then /^"([^"]*)" should be run$/ do |cmd|

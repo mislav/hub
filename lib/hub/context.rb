@@ -98,7 +98,7 @@ module Hub
     end
 
     repo_methods = [
-      :current_branch, :master_branch,
+      :current_branch,
       :current_project, :upstream_project,
       :repo_owner, :repo_host,
       :remotes, :remotes_group, :origin_remote
@@ -106,6 +106,15 @@ module Hub
     def_delegator :local_repo, :name, :repo_name
     def_delegators :local_repo, *repo_methods
     private :repo_name, *repo_methods
+
+    def master_branch
+      if local_repo(false)
+        local_repo.master_branch
+      else
+        # FIXME: duplicates functionality of LocalRepo#master_branch
+        Branch.new nil, 'refs/heads/master'
+      end
+    end
 
     class LocalRepo < Struct.new(:git_reader, :dir)
       include GitReaderMethods
