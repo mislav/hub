@@ -285,7 +285,8 @@ module Hub
       end
 
       def load
-        @data.update YAML.load(File.read(@filename))
+        existing_data = File.read(@filename)
+        @data.update YAML.load existing_data unless existing_data.strip.empty?
       end
 
       def save
