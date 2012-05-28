@@ -1,0 +1,16 @@
+#!/bin/bash
+## Installs the provided hooks in the current git repo
+
+set -e
+
+hooks_dir="$(git rev-parse --git-dir)/hooks"
+source_dir="$(dirname "$0")"
+
+for file in "$source_dir"/*.sh; do
+  dest="${hooks_dir}/$(basename "$file" .sh)"
+  [[ ! $dest -nt $file ]] && \
+    cp -v "$file" "$dest" && \
+    chmod +x "$dest"
+done
+
+exit 0

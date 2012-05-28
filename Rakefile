@@ -115,6 +115,12 @@ task :install => "hub" do
   FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
 end
 
+#
+# Release
+#
+
+task :release => [:pages, :gem_release, :homebrew]
+
 desc "Copy files to gh-pages branch, but don't publish"
 task :gh_pages => [:check_dirty, "hub", "man/hub.1.html"] do
   cp "man/hub.1.html", "html"
@@ -132,4 +138,34 @@ task :pages => :gh_pages do
   sh "git push origin gh-pages"
   sh "git checkout master"
   puts "Done."
+end
+
+task :gem_release do
+  sh "gem release -t"
+end
+
+desc "Publish to Homebrew"
+task :homebrew do
+  require File.expand_path('../lib/hub/version', __FILE__)
+  Dir.chdir `brew --prefix`.chomp do
+    sh 'git checkout -q master'
+    sh 'git pull -q origin master'
+
+    formula_file = 'Library/Formula/hub.rb'
+    md5 = `curl -#L https://github.com/defunkt/hub/tarball/v#{Hub::VERSION} | md5`.chomp
+    abort unless $?.success? and md5.length == 32
+
+    formula = File.read formula_file
+    formula.sub! /\bv\d+(\.\d+)*/, "v#{Hub::VERSION}"
+    formula.sub! /\b[0-9a-f]{32}\b/, md5
+    File.open(formula_file, 'w') {|f| f << formula }
+
+    branch = "hub-v#{Hub::VERSION}"
+    sh "git checkout -q -B #{branch}"
+    sh "git commit -m 'upgrade hub to v#{Hub::VERSION}' -- #{formula_file}"
+    sh "git push -u mislav #{branch}"
+    sh "hub pull-request 'upgrade hub to v#{Hub::VERSION}'"
+
+    sh "git checkout -q master"
+  end
 end
