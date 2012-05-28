@@ -1,5 +1,11 @@
-## master
+## 1.10.1 (2012-05-28)
 
+* don't choke on empty config file
+* fix `browse` when not in git repo
+
+## 1.10.0 (2012-05-08)
+
+* improve improved help text
 * fix GitHub username prompt in `create` command
 * make `fetch` command work with private repos too
 * add `merge` command to merge pull requests
