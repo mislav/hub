@@ -34,7 +34,7 @@ module Hub
     # provides git interrogation methods
     extend Context
 
-    NAME_RE = /\w[\w.-]*/
+    NAME_RE = /[\w.][\w.-]*/
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
