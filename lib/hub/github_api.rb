@@ -223,7 +223,7 @@ module Hub
       end
 
       def obtain_oauth_token host, user
-        host = api_host(host)
+        host = 'api.github.com' == host ? host : [host, "/api/v3"].join
         # first try to fetch existing authorization
         res = get "https://#{user}@#{host}/authorizations"
         res.error! unless res.success?
