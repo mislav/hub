@@ -256,6 +256,9 @@ superpowers:
     $ git browse -b somebranch
     > open https://github.com/YOUR_USER/CURRENT_REPO/tree/somebranch
 
+    $ git browse -u
+    > (https://github.com/YOUR_USER/CURRENT_REPO)
+
     $ git browse -- commit/SHA
     > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
 
