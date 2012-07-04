@@ -237,11 +237,7 @@ module Hub
       return unless index = args.index('add')
       args.delete_at index
 
-      branch = args.index('-b') || args.index('--branch')
-      if branch
-        args.delete_at branch
-        branch_name = args.delete_at branch
-      end
+      branch, branch_name = slurp_branch(args)
 
       clone(args)
 
@@ -556,6 +552,9 @@ module Hub
     # $ hub browse
     # > open https://github.com/CURRENT_REPO
     #
+    # $ hub browse -b another_brnach
+    # > open https://github.com/CURRENT_REPO/tree/another_branch
+    #
     # $ hub browse -- issues
     # > open https://github.com/CURRENT_REPO/issues
     #
@@ -570,6 +569,9 @@ module Hub
     def browse(args)
       args.shift
       browse_command(args) do
+        branch_name = slurp_branch(args).last
+        branch = branch_named(branch_name) if branch_name
+
         dest = args.shift
         dest = nil if dest == '--'
 
@@ -577,11 +579,11 @@ module Hub
           # $ hub browse pjhyett/github-services
           # $ hub browse github-services
           project = github_project dest
-          branch = master_branch
+          branch ||= master_branch
         else
           # $ hub browse
           project = current_project
-          branch = current_branch && current_branch.upstream || master_branch
+          branch ||= current_branch && current_branch.upstream || master_branch
         end
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
@@ -854,6 +856,18 @@ help
       git_reader.add_exec_flags(globals)
       args.add_exec_flags(globals)
       args.add_exec_flags(locals)
+    end
+
+    # Extract branch name from the arguments list.
+    def slurp_branch(args)
+      index = args.index('-b') || args.index('--branch')
+      name = nil
+      # File.open('/tmp/baba.txt', 'a'){ |f| f.puts "======== #{branch.inspect}" }
+      if index
+        args.delete_at index
+        name = args.delete_at index
+      end
+      [index, name]
     end
 
     # Handles common functionality of browser commands like `browse`

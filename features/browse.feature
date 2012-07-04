@@ -4,6 +4,11 @@ Feature: hub browse
     Then there should be no output
     And "open https://github.com/mislav/dotfiles" should be run
 
+  Scenario: Project with owner
+    When I successfully run `hub browse mislav/dotfiles -b feature`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/tree/feature" should be run
+
   Scenario: Project without owner
     Given I am "mislav" on github.com
     When I successfully run `hub browse dotfiles`
@@ -41,6 +46,12 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then there should be no output
     And "open https://github.com/mislav/dotfiles" should be run
+
+  Scenario: Current project
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    When I successfully run `hub browse -b feature`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/tree/feature" should be run
 
   Scenario: Commit in current project
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
