@@ -862,7 +862,6 @@ help
     def slurp_branch(args)
       index = args.index('-b') || args.index('--branch')
       name = nil
-      # File.open('/tmp/baba.txt', 'a'){ |f| f.puts "======== #{branch.inspect}" }
       if index
         args.delete_at index
         name = args.delete_at index
