@@ -98,8 +98,8 @@ Feature: hub fork
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN' }
-      get('/repos/evilchelu/dotfiles', :host_name => 'git.my.org') { '' }
-      post('/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      get('/api/v3/repos/evilchelu/dotfiles', :host_name => 'git.my.org') { '' }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"

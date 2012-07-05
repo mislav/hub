@@ -315,11 +315,11 @@ class HubTest < Test::Unit::TestCase
       data['git.my.org'] = [{'user'=>'myfiname', 'oauth_token' => 'FITOKEN'}]
     end
 
-    stub_request(:post, "https://git.my.org/repos/defunkt/hub/pulls").
+    stub_request(:post, "https://git.my.org/api/v3/repos/defunkt/hub/pulls").
       with(:body => {'base' => "master", 'head' => "myfiname:feature", 'title' => "hereyougo" }).
-      to_return(:body => mock_pullreq_response(1, 'defunkt/hub', 'git.my.org'))
+      to_return(:body => mock_pullreq_response(1, 'api/v3/defunkt/hub', 'git.my.org'))
 
-    expected = "https://git.my.org/defunkt/hub/pull/1\n"
+    expected = "https://git.my.org/api/v3/defunkt/hub/pull/1\n"
     assert_output expected, "pull-request hereyougo -f"
   end
 
