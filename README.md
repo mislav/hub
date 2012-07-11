@@ -31,6 +31,14 @@ Installing on OS X is easiest with Homebrew:
 $ brew install hub
 ~~~
 
+### MacPorts
+
+Installing on OS X with MacPorts also works:
+
+~~~ sh
+$ sudo port install hub
+~~~
+
 ### Standalone
 
 `hub` is easily installed as a standalone script:
