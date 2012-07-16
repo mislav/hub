@@ -1,3 +1,7 @@
+## master
+
+* fix cloning repos that start with a period
+
 ## 1.10.1 (2012-05-28)
 
 * don't choke on empty config file
