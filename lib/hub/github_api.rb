@@ -43,7 +43,7 @@ module Hub
 
     def api_host host
       host = host.downcase
-      'github.com' == host ? 'api.github.com' : [host, "/api/v3"].join
+      'github.com' == host ? 'api.github.com' : host
     end
 
     # Public: Fetch data for a specific repo.
@@ -154,7 +154,7 @@ module Hub
         url = URI.parse url unless url.respond_to? :host
 
         require 'net/https'
-        req = Net::HTTP.const_get(type).new(url.request_uri)
+        req = Net::HTTP.const_get(type).new request_uri(url)
         # TODO: better naming?
         http = configure_connection(req, url) do |host_url|
           create_connection host_url
@@ -167,6 +167,12 @@ module Hub
         res
       rescue SocketError => err
         raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+      end
+
+      def request_uri url
+        str = url.request_uri
+        str = '/api/v3' << str if url.host != 'api.github.com'
+        str
       end
 
       def configure_connection req, url
@@ -223,7 +229,6 @@ module Hub
       end
 
       def obtain_oauth_token host, user
-        host = 'api.github.com' == host ? host : [host, "/api/v3"].join
         # first try to fetch existing authorization
         res = get "https://#{user}@#{host}/authorizations"
         res.error! unless res.success?
