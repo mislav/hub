@@ -185,7 +185,11 @@ module Hub
       end
 
       def known_hosts
-        git_config('hub.host', :all).to_s.split("\n") + [default_host]
+        hosts = git_config('hub.host', :all).to_s.split("\n")
+        hosts << default_host
+        # support ssh.github.com
+        # https://help.github.com/articles/using-ssh-over-the-https-port
+        hosts << "ssh.#{default_host}"
       end
 
       def self.default_host
@@ -217,6 +221,7 @@ module Hub
       def initialize(*args)
         super
         self.host ||= (local_repo || LocalRepo).default_host
+        self.host = host.sub(/^ssh\./i, '') if 'ssh.github.com' == host.downcase
       end
 
       def private?

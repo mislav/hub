@@ -4,6 +4,7 @@ require 'rbconfig'
 require 'yaml'
 require 'forwardable'
 require 'fileutils'
+require 'tempfile'
 
 WebMock::BodyPattern.class_eval do
   undef normalize_hash
@@ -578,9 +579,16 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_hub_browse_ssh_alias
-    with_ssh_config do
+    with_ssh_config "Host gh\n User git\n HostName github.com" do
       stub_repo_url "gh:singingwolfboy/sekrit.git"
       assert_command "browse", "open https://github.com/singingwolfboy/sekrit"
+    end
+  end
+
+  def test_hub_browse_ssh_github_alias
+    with_ssh_config "Host github.com\n HostName ssh.github.com" do
+      stub_repo_url "git@github.com:suan/git-sanity.git"
+      assert_command "browse", "open https://github.com/suan/git-sanity"
     end
   end
 
@@ -748,10 +756,17 @@ class HubTest < Test::Unit::TestCase
       Hub::Commands.send :improved_help_text
     end
 
-    def with_ssh_config
-      config_file = File.expand_path '../ssh_config', __FILE__
-      Hub::SshConfig::CONFIG_FILES.replace [config_file]
-      yield
+    def with_ssh_config content
+      config_file = Tempfile.open 'ssh_config'
+      config_file << content
+      config_file.close
+
+      begin
+        Hub::SshConfig::CONFIG_FILES.replace [config_file.path]
+        yield
+      ensure
+        config_file.unlink
+      end
     end
 
 end
