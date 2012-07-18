@@ -43,7 +43,7 @@ module Hub
 
     def api_host host
       host = host.downcase
-      'github.com' == host ? 'api.github.com' : host
+      'github.com' == host ? 'api.github.com' : [host, "/api/v3"].join
     end
 
     # Public: Fetch data for a specific repo.
@@ -229,6 +229,7 @@ module Hub
       end
 
       def obtain_oauth_token host, user
+        host = 'api.github.com' == host ? host : [host, "/api/v3"].join
         # first try to fetch existing authorization
         res = get "https://#{user}@#{host}/authorizations"
         res.error! unless res.success?
