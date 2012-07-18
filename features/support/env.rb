@@ -10,6 +10,9 @@ Aruba::Process.class_eval do
   end
 end
 
+if [:macosx, :linux].include? ChildProcess.platform
+  ChildProcess.posix_spawn = true  # experimental suppport
+end
 
 unless system_git = Hub::Context.which('git')
   abort "Error: `git` not found in PATH"
@@ -39,6 +42,8 @@ Before do
   set_env 'HUB_TEST_HOST', '127.0.0.1:0'
 
   FileUtils.mkdir_p ENV['HOME']
+
+  @aruba_io_wait_seconds = 0.02
 end
 
 After do
@@ -79,5 +84,10 @@ World Module.new {
       $?.should be_success
       output
     end
+  end
+
+  # Aruba unnecessarily creates new Announcer instance on each invocation
+  def announcer
+    @announcer ||= super
   end
 }
