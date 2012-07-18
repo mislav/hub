@@ -292,7 +292,7 @@ module Hub
 
       def load
         existing_data = File.read(@filename)
-        @data.update YAML.load existing_data unless existing_data.strip.empty?
+        @data.update YAML.load(existing_data) unless existing_data.strip.empty?
       end
 
       def save
@@ -365,7 +365,7 @@ module Hub
         tty_state = `stty -g`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
-        while char = $stdin.getbyte and not (char == 13 or char == 10)
+        while char = $stdin.getbyte and !(char == 13 or char == 10)
           if char == 127 or char == 8
             pass[-1,1] = '' unless pass.empty?
           else
