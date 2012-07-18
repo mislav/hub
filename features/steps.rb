@@ -124,3 +124,10 @@ Then /^there should be no "([^"]*)" remote$/ do |remote_name|
   remotes = run_silent('git remote').split("\n")
   remotes.should_not include(remote_name)
 end
+
+Then /^the file "([^"]*)" should have mode "([^"]*)"$/ do |file, expected_mode|
+  prep_for_fs_check do
+    mode = File.stat(file).mode
+    mode.to_s(8).should =~ /#{expected_mode}$/
+  end
+end

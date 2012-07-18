@@ -22,6 +22,7 @@ Feature: OAuth authentication
     And the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should have mode "0600"
 
   Scenario: Ask for username & password, re-use existing authorization
     Given the GitHub API server:

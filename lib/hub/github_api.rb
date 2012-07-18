@@ -297,7 +297,7 @@ module Hub
 
       def save
         FileUtils.mkdir_p File.dirname(@filename)
-        File.open(@filename, 'w') {|f| f << YAML.dump(@data) }
+        File.open(@filename, 'w', 0600) {|f| f << YAML.dump(@data) }
       end
     end
 
