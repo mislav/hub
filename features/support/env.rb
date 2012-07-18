@@ -2,6 +2,15 @@ require 'aruba/cucumber'
 require 'fileutils'
 require 'hub/context'
 
+# needed to avoid "Too many open files" on 1.8.7
+Aruba::Process.class_eval do
+  def close_streams
+    @out.close
+    @err.close
+  end
+end
+
+
 unless system_git = Hub::Context.which('git')
   abort "Error: `git` not found in PATH"
 end
@@ -34,6 +43,7 @@ end
 
 After do
   @server.stop if defined? @server and @server
+  processes.each {|_, p| p.close_streams }
 end
 
 World Module.new {
