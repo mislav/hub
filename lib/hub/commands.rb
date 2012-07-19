@@ -989,7 +989,7 @@ help
     end
 
     def display_api_exception(action, response)
-      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.status})"
+      $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?
         # display validation errors
         msg = response.error_message
