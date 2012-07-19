@@ -245,6 +245,12 @@ class HubTest < Test::Unit::TestCase
                     "push origin,staging,qa cool-feature"
   end
 
+  def test_push_multiple_refs
+    assert_commands "git push origin master new-feature",
+                    "git push staging master new-feature",
+                    "push origin,staging master new-feature"
+  end
+
   def test_pullrequest
     expected = "Aborted: head branch is the same as base (\"master\")\n" <<
       "(use `-h <branch>` to specify an explicit pull request head)\n"

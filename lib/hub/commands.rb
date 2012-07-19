@@ -544,12 +544,18 @@ module Hub
     def push(args)
       return if args[1].nil? || !args[1].index(',')
 
-      branch  = (args[2] ||= current_branch.short_name)
+      refs    = args.words[2..-1]
       remotes = args[1].split(',')
       args[1] = remotes.shift
 
+      if refs.empty?
+        # add current branch as explicit ref when there are no refs specified
+        refs = [current_branch.short_name]
+        args.concat refs
+      end
+
       remotes.each do |name|
-        args.after ['push', name, branch]
+        args.after ['push', name, *refs]
       end
     end
 
