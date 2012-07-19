@@ -51,8 +51,7 @@ desc
        fashioned way.  Faster  startup  time,  you see.
 
        Check  out  the  installation  instructions  at
-       https://github.com/defunkt/hub#readme  under the
-       "Standalone" section.
+       https://github.com/defunkt/hub#standalone.
 
        Cheers,
        defunkt
