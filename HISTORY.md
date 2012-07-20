@@ -1,5 +1,9 @@
 ## master
 
+* fix pushing multiple refs to multiple remotes
+* support ssh.github.com
+* security: mode for ~/.config/hub is 0600
+* fix integration with GitHub Enterprise API
 * fix cloning repos that start with a period
 
 ## 1.10.1 (2012-05-28)
