@@ -126,6 +126,12 @@ World Module.new {
     end
   end
 
+  def empty_commit
+    run_silent "git commit --quiet -m ''" <<
+      " --allow-empty --allow-empty-message" <<
+      " --author 'Hub <hub@test.local>'"
+  end
+
   # Aruba unnecessarily creates new Announcer instance on each invocation
   def announcer
     @announcer ||= super

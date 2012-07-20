@@ -51,14 +51,14 @@ Given /^a git repo in "([^"]*)"$/ do |dir_name|
 end
 
 Given /^there is a commit named "([^"]+)"$/ do |name|
-  run_silent %(git commit --quiet --allow-empty --allow-empty-message -m '')
-  run_silent %(git commit --quiet --allow-empty --allow-empty-message -m '')
+  empty_commit
+  empty_commit
   run_silent %(git tag #{name})
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
 Given /^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/ do |name, upstream|
-  run_silent %(git commit --quiet --allow-empty --allow-empty-message -m '')
+  empty_commit
   if upstream
     full_upstream = ".git/refs/remotes/#{upstream}"
     in_current_dir do
