@@ -1,6 +1,7 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'hub/context'
+require 'forwardable'
 
 # needed to avoid "Too many open files" on 1.8.7
 Aruba::Process.class_eval do
@@ -51,6 +52,45 @@ After do
   processes.each {|_, p| p.close_streams }
 end
 
+RSpec::Matchers.define :be_successful_command do
+  match do |cmd|
+    cmd.success?
+  end
+
+  failure_message_for_should do |cmd|
+    %(command "#{cmd}" exited with status #{cmd.status}:) <<
+      cmd.output.gsub(/^/, ' ' * 2)
+  end
+end
+
+class SimpleCommand
+  attr_reader :output
+  extend Forwardable
+
+  def_delegator :@status, :exitstatus, :status
+  def_delegators :@status, :success?
+
+  def initialize cmd
+    @cmd = cmd
+  end
+
+  def to_s
+    @cmd
+  end
+
+  def self.run cmd
+    command = new(cmd)
+    command.run
+    command
+  end
+
+  def run
+    @output = `#{@cmd} 2>&1`.chomp
+    @status = $?
+    $?.success?
+  end
+end
+
 World Module.new {
   def history
     histfile = File.join(ENV['HOME'], '.history')
@@ -80,9 +120,9 @@ World Module.new {
 
   def run_silent cmd
     in_current_dir do
-      output = `#{cmd} 2>&1`.chomp
-      $?.should be_success
-      output
+      command = SimpleCommand.run(cmd)
+      command.should be_successful_command
+      command.output
     end
   end
 
