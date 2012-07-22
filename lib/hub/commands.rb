@@ -1,3 +1,41 @@
+def repo_pushed(repo_dir, remote="origin")
+  old_dir = Dir.pwd
+  Dir.chdir(repo_dir)
+  current_rev = `git rev-list --all | head -n 1`
+  remote_rev_found = %x(git rev-list #{remote} | grep #{current_rev})
+  Dir.chdir(old_dir)
+  return remote_rev_found == current_rev
+end
+
+def submodules_iter(repo_dir)
+  old_dir = Dir.pwd
+  Dir.chdir(repo_dir)
+  sub_output = `git submodule status`
+  sub_lines = sub_output.split("\n")
+  sub_lines.each do |subline|
+    subl = subline[1..-1]
+    commitdir = subl.split(" ")
+    commit, dir= commitdir[0], commitdir[1]
+    full_dir = [repo_dir, dir].join("/")
+    begin
+      yield full_dir, dir
+
+    end
+  end
+  Dir.chdir(old_dir)
+end
+
+def _submodules_pushed(repo_dir)
+  unpushed_count = 0
+
+  submodules_iter(Dir.pwd()) do |submodule_repo_dir, unused|
+    if not repo_pushed(submodule_repo_dir)
+      unpushed_count += 1
+    end
+  end
+  return unpushed_count == 0
+end
+
 module Hub
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
@@ -26,6 +64,9 @@ module Hub
   # An optional `after` callback can be set. If so, it is run after
   # step 5 (which then performs a `system` call rather than an
   # `exec`). See `Hub::Args` for more information on the `after` callback.
+
+
+
   module Commands
     # We are a blank slate.
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
@@ -252,6 +293,23 @@ module Hub
       args.insert index, 'add'
     end
 
+
+    def submodules_pushed(args)
+      unpushed_count = 0
+
+      submodules_iter(Dir.pwd()) do |submodule_repo_dir, relative_dir|
+        if not repo_pushed(submodule_repo_dir)
+          puts "submodule #{relative_dir} not pushed"
+        end
+      end
+
+      if not _submodules_pushed(Dir.pwd)
+        puts "UNPUSHED SUBMODULES "
+      else
+        puts "submodules up to date"
+      end
+      exit
+    end
     # $ hub remote add pjhyett
     # > git remote add pjhyett git://github.com/pjhyett/THIS_REPO.git
     #
@@ -549,6 +607,11 @@ module Hub
     # > git push origin cool-feature
     # > git push staging cool-feature
     def push(args)
+      if not _submodules_pushed(Dir.pwd)
+        self.submodules_pushed(args)
+        exit 1
+      end
+
       return if args[1].nil? || !args[1].index(',')
 
       refs    = args.words[2..-1]
