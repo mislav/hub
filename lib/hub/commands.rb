@@ -234,6 +234,7 @@ module Hub
     # $ hub submodule add -b ryppl ryppl/pip vendor/bundler
     # > git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
     def submodule(args)
+      puts "I wrote this"
       return unless index = args.index('add')
       args.delete_at index
 
@@ -360,6 +361,12 @@ module Hub
         args.delete_at idx
         args.insert idx, '--track', '-B', new_branch_name, "#{user}/#{branch}"
       end
+
+    end
+
+    def update_submodule()
+
+
     end
 
     # $ git merge https://github.com/defunkt/hub/pull/73
