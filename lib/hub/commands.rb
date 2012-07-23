@@ -38,10 +38,8 @@ end
 
 def cd_to_repo_root()
   if Dir.entries(".").index(".git")
-    puts "#{Dir.pwd} REPO ROOT"
     return
   else
-    puts "#{Dir.pwd} not repo root, going up"
     Dir.chdir("..")
     return cd_to_repo_root()
   end
@@ -51,11 +49,9 @@ end
 def _submodule_update()
   old_dir = Dir.pwd
   cd_to_repo_root()
-  puts `git submodule sync`
-  puts `git submodule init`
-  puts `git submodule sync`
-  puts `git submodule update`
-  puts "after git submodule update"
+  `git submodule init`
+  `git submodule sync`
+  `git submodule update`
   Dir.chdir(old_dir)
 end
 
@@ -338,7 +334,6 @@ module Hub
 
     def submodule_update(args)
       _submodule_update()
-      puts "after _submodule_update "
       exit
     end
 
