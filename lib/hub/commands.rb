@@ -671,11 +671,11 @@ module Hub
       end
 
       if script
-        puts "alias git=hub"
+        puts "alias git=hub;"
         if 'zsh' == shell
           puts "if type compdef >/dev/null; then"
-          puts "   compdef hub=git"
-          puts "fi"
+          puts "   compdef hub=git;"
+          puts "fi;"
         end
       else
         profile = case shell
