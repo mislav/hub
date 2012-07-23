@@ -1,10 +1,14 @@
-def repo_pushed(repo_dir, remote="origin")
+def _repo_pushed(repo_dir, remote="origin")
   old_dir = Dir.pwd
   Dir.chdir(repo_dir)
   current_rev = `git rev-list --all | head -n 1`
-  remote_rev_found = %x(git rev-list #{remote} | grep #{current_rev})
+  remote_cmd_str = "git rev-list #{remote} | grep #{current_rev}"
+
+  #see if any of the remote branches contain the current commit
+  any_remote_branch = `git branch -r --contains #{current_rev}`
   Dir.chdir(old_dir)
-  return remote_rev_found == current_rev
+
+  return any_remote_branch != ""
 end
 
 def submodules_iter(repo_dir)
@@ -26,13 +30,17 @@ def submodules_iter(repo_dir)
 end
 
 def _submodules_pushed(repo_dir)
+  old_dir = Dir.pwd
+  cd_to_repo_root()
+
   unpushed_count = 0
 
   submodules_iter(Dir.pwd()) do |submodule_repo_dir, unused|
-    if not repo_pushed(submodule_repo_dir)
+    if not _repo_pushed(submodule_repo_dir)
       unpushed_count += 1
     end
   end
+  Dir.chdir(old_dir)
   return unpushed_count == 0
 end
 
@@ -295,7 +303,6 @@ module Hub
     # $ hub submodule add -b ryppl ryppl/pip vendor/bundler
     # > git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
     def submodule(args)
-      puts "I wrote this"
       return unless index = args.index('add')
       args.delete_at index
 
@@ -315,10 +322,14 @@ module Hub
 
 
     def submodules_pushed(args)
+      old_dir = Dir.pwd
+      cd_to_repo_root()
+
+
       unpushed_count = 0
 
       submodules_iter(Dir.pwd()) do |submodule_repo_dir, relative_dir|
-        if not repo_pushed(submodule_repo_dir)
+        if not _repo_pushed(submodule_repo_dir)
           puts "submodule #{relative_dir} not pushed"
         end
       end
@@ -328,9 +339,19 @@ module Hub
       else
         puts "submodules up to date"
       end
+      Dir.chdir(old_dir)
       exit
     end
 
+    def repo_pushed(args)
+      if _repo_pushed(Dir.pwd())
+        puts "repo pushed"
+      else
+        puts "NOT PUSHED"
+      end
+      exit
+
+    end
 
     def submodule_update(args)
       _submodule_update()
