@@ -1,3 +1,69 @@
+def _repo_pushed(repo_dir, remote="origin")
+  old_dir = Dir.pwd
+  Dir.chdir(repo_dir)
+  current_rev = `git rev-list --all | head -n 1`
+  remote_cmd_str = "git rev-list #{remote} | grep #{current_rev}"
+
+  #see if any of the remote branches contain the current commit
+  any_remote_branch = `git branch -r --contains #{current_rev}`
+  Dir.chdir(old_dir)
+
+  return any_remote_branch != ""
+end
+
+def submodules_iter(repo_dir)
+  old_dir = Dir.pwd
+  Dir.chdir(repo_dir)
+  sub_output = `git submodule status`
+  sub_lines = sub_output.split("\n")
+  sub_lines.each do |subline|
+    subl = subline[1..-1]
+    commitdir = subl.split(" ")
+    commit, dir= commitdir[0], commitdir[1]
+    full_dir = [repo_dir, dir].join("/")
+    begin
+      yield full_dir, dir
+
+    end
+  end
+  Dir.chdir(old_dir)
+end
+
+def _submodules_pushed(repo_dir)
+  old_dir = Dir.pwd
+  cd_to_repo_root()
+
+  unpushed_count = 0
+
+  submodules_iter(Dir.pwd()) do |submodule_repo_dir, unused|
+    if not _repo_pushed(submodule_repo_dir)
+      unpushed_count += 1
+    end
+  end
+  Dir.chdir(old_dir)
+  return unpushed_count == 0
+end
+
+def cd_to_repo_root()
+  if Dir.entries(".").index(".git")
+    return
+  else
+    Dir.chdir("..")
+    return cd_to_repo_root()
+  end
+
+end
+
+def _submodule_update()
+  old_dir = Dir.pwd
+  cd_to_repo_root()
+  `git submodule init`
+  `git submodule sync`
+  `git submodule update`
+  Dir.chdir(old_dir)
+end
+
+
 module Hub
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
@@ -26,6 +92,9 @@ module Hub
   # An optional `after` callback can be set. If so, it is run after
   # step 5 (which then performs a `system` call rather than an
   # `exec`). See `Hub::Args` for more information on the `after` callback.
+
+
+
   module Commands
     # We are a blank slate.
     instance_methods.each { |m| undef_method(m) unless m =~ /(^__|send|to\?$)/ }
@@ -251,6 +320,48 @@ module Hub
       args.insert index, 'add'
     end
 
+
+    def submodules_pushed(args)
+      old_dir = Dir.pwd
+      cd_to_repo_root()
+
+
+      unpushed_count = 0
+
+      submodules_iter(Dir.pwd()) do |submodule_repo_dir, relative_dir|
+        if not _repo_pushed(submodule_repo_dir)
+          puts "submodule #{relative_dir} not pushed"
+        end
+      end
+
+      if not _submodules_pushed(Dir.pwd)
+        puts "UNPUSHED SUBMODULES "
+      else
+        puts "submodules up to date"
+      end
+      Dir.chdir(old_dir)
+      exit
+    end
+
+    def repo_pushed(args)
+      if _repo_pushed(Dir.pwd())
+        puts "repo pushed"
+      else
+        puts "NOT PUSHED"
+      end
+      exit
+
+    end
+
+    def submodule_update(args)
+      _submodule_update()
+      exit
+    end
+
+
+
+
+
     # $ hub remote add pjhyett
     # > git remote add pjhyett git://github.com/pjhyett/THIS_REPO.git
     #
@@ -360,8 +471,16 @@ module Hub
         args.delete_at idx
         args.insert idx, '--track', '-B', new_branch_name, "#{user}/#{branch}"
       end
+
+
     end
 
+
+    def scheckout(args)
+      self.checkout(args)
+      _submodule_update()
+
+    end
     # $ git merge https://github.com/defunkt/hub/pull/73
     # > git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
     # > git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
@@ -542,6 +661,11 @@ module Hub
     # > git push origin cool-feature
     # > git push staging cool-feature
     def push(args)
+      if not _submodules_pushed(Dir.pwd)
+        self.submodules_pushed(args)
+        exit 1
+      end
+
       return if args[1].nil? || !args[1].index(',')
 
       refs    = args.words[2..-1]
