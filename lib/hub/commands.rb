@@ -36,6 +36,30 @@ def _submodules_pushed(repo_dir)
   return unpushed_count == 0
 end
 
+def cd_to_repo_root()
+  if Dir.entries(".").index(".git")
+    puts "#{Dir.pwd} REPO ROOT"
+    return
+  else
+    puts "#{Dir.pwd} not repo root, going up"
+    Dir.chdir("..")
+    return cd_to_repo_root()
+  end
+
+end
+
+def _submodule_update()
+  old_dir = Dir.pwd
+  cd_to_repo_root()
+  puts `git submodule sync`
+  puts `git submodule init`
+  puts `git submodule sync`
+  puts `git submodule update`
+  puts "after git submodule update"
+  Dir.chdir(old_dir)
+end
+
+
 module Hub
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
@@ -310,6 +334,18 @@ module Hub
       end
       exit
     end
+
+
+    def submodule_update(args)
+      _submodule_update()
+      puts "after _submodule_update "
+      exit
+    end
+
+
+
+
+
     # $ hub remote add pjhyett
     # > git remote add pjhyett git://github.com/pjhyett/THIS_REPO.git
     #
@@ -420,13 +456,15 @@ module Hub
         args.insert idx, '--track', '-B', new_branch_name, "#{user}/#{branch}"
       end
 
-    end
-
-    def update_submodule()
-
 
     end
 
+
+    def scheckout(args)
+      self.checkout(args)
+      _submodule_update()
+
+    end
     # $ git merge https://github.com/defunkt/hub/pull/73
     # > git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
     # > git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
