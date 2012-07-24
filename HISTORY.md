@@ -1,4 +1,4 @@
-## master
+## 1.10.2 (2012-07-24)
 
 * fix pushing multiple refs to multiple remotes
 * support ssh.github.com
