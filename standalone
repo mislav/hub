@@ -7,7 +7,7 @@
 #
 
 module Hub
-  Version = VERSION = '1.10.1'
+  Version = VERSION = '1.10.2'
 end
 
 module Hub
@@ -310,7 +310,7 @@ module Hub
         url = URI.parse url unless url.respond_to? :host
 
         require 'net/https'
-        req = Net::HTTP.const_get(type).new(url.request_uri)
+        req = Net::HTTP.const_get(type).new request_uri(url)
         http = configure_connection(req, url) do |host_url|
           create_connection host_url
         end
@@ -322,6 +322,12 @@ module Hub
         res
       rescue SocketError => err
         raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+      end
+
+      def request_uri url
+        str = url.request_uri
+        str = '/api/v3' << str if url.host != 'api.github.com'
+        str
       end
 
       def configure_connection req, url
@@ -364,7 +370,7 @@ module Hub
 
     module OAuth
       def apply_authentication req, url
-        if req.path.index('/authorizations') == 0
+        if (req.path =~ /\/authorizations$/)
           super
         else
           user = url.user || config.username(url.host)
@@ -435,12 +441,12 @@ module Hub
 
       def load
         existing_data = File.read(@filename)
-        @data.update YAML.load existing_data unless existing_data.strip.empty?
+        @data.update YAML.load(existing_data) unless existing_data.strip.empty?
       end
 
       def save
         FileUtils.mkdir_p File.dirname(@filename)
-        File.open(@filename, 'w') {|f| f << YAML.dump(@data) }
+        File.open(@filename, 'w', 0600) {|f| f << YAML.dump(@data) }
       end
     end
 
@@ -502,7 +508,7 @@ module Hub
         tty_state = `stty -g`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
-        while char = $stdin.getbyte and not (char == 13 or char == 10)
+        while char = $stdin.getbyte and !(char == 13 or char == 10)
           if char == 127 or char == 8
             pass[-1,1] = '' unless pass.empty?
           else
@@ -705,7 +711,9 @@ module Hub
       end
 
       def known_hosts
-        git_config('hub.host', :all).to_s.split("\n") + [default_host]
+        hosts = git_config('hub.host', :all).to_s.split("\n")
+        hosts << default_host
+        hosts << "ssh.#{default_host}"
       end
 
       def self.default_host
@@ -737,6 +745,7 @@ module Hub
       def initialize(*args)
         super
         self.host ||= (local_repo || LocalRepo).default_host
+        self.host = host.sub(/^ssh\./i, '') if 'ssh.github.com' == host.downcase
       end
 
       def private?
@@ -1122,7 +1131,7 @@ module Hub
 
     extend Context
 
-    NAME_RE = /\w[\w.-]*/
+    NAME_RE = /[\w.][\w.-]*/
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
@@ -1540,12 +1549,17 @@ module Hub
     def push(args)
       return if args[1].nil? || !args[1].index(',')
 
-      branch  = (args[2] ||= current_branch.short_name)
+      refs    = args.words[2..-1]
       remotes = args[1].split(',')
       args[1] = remotes.shift
 
+      if refs.empty?
+        refs = [current_branch.short_name]
+        args.concat refs
+      end
+
       remotes.each do |name|
-        args.after ['push', name, branch]
+        args.after ['push', name, *refs]
       end
     end
 
@@ -1903,7 +1917,7 @@ help
     end
 
     def display_api_exception(action, response)
-      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.status})"
+      $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?
         msg = response.error_message
         msg = msg.join("\n") if msg.respond_to? :join
