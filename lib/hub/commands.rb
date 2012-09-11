@@ -93,6 +93,10 @@ module Hub
         [project || context_project, ref]
       end
 
+      if args.delete('-t')
+        options[:scheme] = 'http'
+      end
+
       while arg = args.shift
         case arg
         when '-f'

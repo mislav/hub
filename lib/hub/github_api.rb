@@ -102,7 +102,8 @@ module Hub
         params[:body]  = options[:body]  if options[:body]
       end
 
-      res = post "https://%s/repos/%s/%s/pulls" %
+      scheme = options[:scheme] || 'https'
+      res = post "#{scheme}://%s/repos/%s/%s/pulls" %
         [api_host(project.host), project.owner, project.name], params
 
       res.error! unless res.success?
