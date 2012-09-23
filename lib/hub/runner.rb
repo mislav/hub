@@ -51,7 +51,7 @@ module Hub
         if args.chained?
           execute_command_chain
         else
-          exec(*args.to_exec)
+          system(*args.to_exec)
         end
       end
     end
@@ -63,7 +63,7 @@ module Hub
         if cmd.respond_to?(:call) then cmd.call
         elsif i == commands.length - 1
           # last command in chain
-          exec(*cmd)
+          system(*cmd)
         else
           exit($?.exitstatus) unless system(*cmd)
         end
