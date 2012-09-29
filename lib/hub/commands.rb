@@ -9,12 +9,12 @@ module Hub
   # 1. hub is invoked from the command line:
   #    $ hub clone rtomayko/tilt
   #
-  # 2. The Hub class is initialized:
-  #    >> hub = Hub.new('clone', 'rtomayko/tilt')
+  # 2. The Runner class is initialized:
+  #    >> Hub::Runner.new('clone', 'rtomayko/tilt')
   #
   # 3. The method representing the git subcommand is executed with the
   #    full args:
-  #    >> Commands.clone('clone', 'rtomayko/tilt')
+  #    >> Hub::Commands.clone(['clone', 'rtomayko/tilt'])
   #
   # 4. That method rewrites the args as it sees fit:
   #    >> args[1] = "git://github.com/" + args[1] + ".git"
