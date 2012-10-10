@@ -74,8 +74,7 @@ class HubTest < Test::Unit::TestCase
     @git_reader.stub! \
       'remote' => "mislav\norigin",
       'symbolic-ref -q HEAD' => 'refs/heads/master',
-      'config --get-all remote.origin.url' => 'git://github.com/defunkt/hub.git',
-      'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
+      'remote -v' => "origin\tgit://github.com/defunkt/hub.git (fetch)\nmislav\tgit://github.com/mislav/hub.git (fetch)",
       'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
       'config --get --bool hub.http-clone' => 'false',
       'config --get hub.protocol' => nil,
@@ -641,11 +640,6 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded 'name'
   end
 
-  def test_multiple_remote_urls
-    stub_repo_url("git://example.com/other.git\ngit://github.com/my/repo.git")
-    assert_command "browse", "open https://github.com/my/repo"
-  end
-
   def test_global_flags_preserved
     cmd = '--no-pager --bare -c core.awesome=true -c name=value --git-dir=/srv/www perform'
     assert_command cmd, 'git --bare -c core.awesome=true -c name=value --git-dir=/srv/www --no-pager perform'
@@ -655,7 +649,7 @@ class HubTest < Test::Unit::TestCase
   private
 
     def stub_repo_url(value, remote_name = 'origin')
-      stub_config_value "remote.#{remote_name}.url", value, '--get-all'
+      stub_command_output 'remote -v', "#{remote_name}\t#{value} (fetch)"
     end
 
     def stub_branch(value)
