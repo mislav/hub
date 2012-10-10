@@ -11,7 +11,7 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         halt 400 unless params[:scopes] == ['repo']
-        body :token => 'OTOKEN'
+        json :token => 'OTOKEN'
       }
       post('/user/repos') { status 200 }
       """
@@ -31,7 +31,7 @@ Feature: OAuth authentication
       get('/authorizations') {
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
-        body [
+        json [
           {:token => 'SKIPPD', :app => {:url => 'http://example.com'}},
           {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
         ]

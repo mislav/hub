@@ -8,7 +8,7 @@ Feature: hub merge
     Given the GitHub API server:
       """
       require 'json'
-      get('/repos/defunkt/hub/pulls/164') { body \
+      get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
           :label => 'jfirebaugh:hub_merge',
           :repo  => {:private => false}
@@ -31,7 +31,7 @@ Feature: hub merge
     Given the GitHub API server:
       """
       require 'json'
-      get('/repos/defunkt/hub/pulls/164') { body \
+      get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
           :label => 'jfirebaugh:hub_merge',
           :repo  => {:private => true}
@@ -47,7 +47,7 @@ Feature: hub merge
     Given the GitHub API server:
       """
       require 'json'
-      get('/repos/defunkt/hub/pulls/164') { body \
+      get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
           :label => 'jfirebaugh:hub_merge',
           :repo  => nil
