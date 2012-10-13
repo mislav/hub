@@ -80,8 +80,8 @@ module Hub
     end
 
     # Public: Fetch info about a pull request.
-    def pullrequest_info project, pull_id
-      res = get "https://%s/repos/%s/%s/pulls/%d" %
+    def pullrequest_info project, pull_id, scheme
+      res = get "#{scheme}://%s/repos/%s/%s/pulls/%d" %
         [api_host(project.host), project.owner, project.name, pull_id]
       res.error! unless res.success?
       res.data
@@ -102,7 +102,8 @@ module Hub
         params[:body]  = options[:body]  if options[:body]
       end
 
-      res = post "https://%s/repos/%s/%s/pulls" %
+      scheme = options[:scheme] || 'https'
+      res = post "#{scheme}://%s/repos/%s/%s/pulls" %
         [api_host(project.host), project.owner, project.name], params
 
       res.error! unless res.success?
@@ -222,22 +223,22 @@ module Hub
         else
           user = url.user || config.username(url.host)
           token = config.oauth_token(url.host, user) {
-            obtain_oauth_token url.host, user
+            obtain_oauth_token url.host, user, url.scheme
           }
           req['Authorization'] = "token #{token}"
         end
       end
 
-      def obtain_oauth_token host, user
+      def obtain_oauth_token host, user, scheme
         # first try to fetch existing authorization
-        res = get "https://#{user}@#{host}/authorizations"
+        res = get "#{scheme}://#{user}@#{host}/authorizations"
         res.error! unless res.success?
 
         if found = res.data.find {|auth| auth['app']['url'] == oauth_app_url }
           found['token']
         else
           # create a new authorization
-          res = post "https://#{user}@#{host}/authorizations",
+          res = post "#{scheme}://#{user}@#{host}/authorizations",
             :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url
           res.error! unless res.success?
           res.data['token']

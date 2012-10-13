@@ -93,6 +93,10 @@ module Hub
         [project || context_project, ref]
       end
 
+      if args.delete('-t')
+        options[:scheme] = 'http'
+      end
+
       while arg = args.shift
         case arg
         when '-f'
@@ -341,7 +345,7 @@ module Hub
       _, url_arg, new_branch_name = args.words
       if url = resolve_github_url(url_arg) and url.project_path =~ /^pull\/(\d+)/
         pull_id = $1
-        pull_data = api_client.pullrequest_info(url.project, pull_id)
+        pull_data = api_client.pullrequest_info(url.project, pull_id, url.scheme)
 
         args.delete new_branch_name
         user, branch = pull_data['head']['label'].split(':', 2)
