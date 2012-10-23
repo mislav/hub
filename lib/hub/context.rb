@@ -257,7 +257,8 @@ module Hub
             path = '/wiki' + path
           end
         end
-        "https://#{host}/" + project_name + path.to_s
+        scheme = config.uri_scheme(host)
+        "#{scheme}://#{host}/" + project_name + path.to_s
       end
 
       def git_url(options = {})
@@ -265,6 +266,16 @@ module Hub
         elsif options[:private] or private? then "git@#{host}:"
         else "git://#{host}/"
         end + name_with_owner + '.git'
+      end
+
+      private
+
+      def config
+        @config ||= begin
+          config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
+          file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
+          GitHubAPI::Configuration.new file_store
+        end
       end
     end
 
