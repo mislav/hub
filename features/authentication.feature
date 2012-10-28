@@ -11,7 +11,7 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         halt 400 unless params[:scopes] == ['repo']
-        body :token => 'OTOKEN'
+        json :token => 'OTOKEN'
       }
       post('/user/repos') { status 200 }
       """
@@ -22,6 +22,7 @@ Feature: OAuth authentication
     And the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should have mode "0600"
 
   Scenario: Ask for username & password, re-use existing authorization
     Given the GitHub API server:
@@ -30,7 +31,7 @@ Feature: OAuth authentication
       get('/authorizations') {
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
-        body [
+        json [
           {:token => 'SKIPPD', :app => {:url => 'http://example.com'}},
           {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
         ]

@@ -1,3 +1,11 @@
+## 1.10.2 (2012-07-24)
+
+* fix pushing multiple refs to multiple remotes
+* support ssh.github.com
+* security: mode for ~/.config/hub is 0600
+* fix integration with GitHub Enterprise API
+* fix cloning repos that start with a period
+
 ## 1.10.1 (2012-05-28)
 
 * don't choke on empty config file

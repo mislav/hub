@@ -154,7 +154,7 @@ module Hub
         url = URI.parse url unless url.respond_to? :host
 
         require 'net/https'
-        req = Net::HTTP.const_get(type).new(url.request_uri)
+        req = Net::HTTP.const_get(type).new request_uri(url)
         # TODO: better naming?
         http = configure_connection(req, url) do |host_url|
           create_connection host_url
@@ -167,6 +167,12 @@ module Hub
         res
       rescue SocketError => err
         raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+      end
+
+      def request_uri url
+        str = url.request_uri
+        str = '/api/v3' << str if url.host != 'api.github.com'
+        str
       end
 
       def configure_connection req, url
@@ -211,7 +217,7 @@ module Hub
 
     module OAuth
       def apply_authentication req, url
-        if req.path.index('/authorizations') == 0
+        if (req.path =~ /\/authorizations$/)
           super
         else
           user = url.user || config.username(url.host)
@@ -286,12 +292,12 @@ module Hub
 
       def load
         existing_data = File.read(@filename)
-        @data.update YAML.load existing_data unless existing_data.strip.empty?
+        @data.update YAML.load(existing_data) unless existing_data.strip.empty?
       end
 
       def save
         FileUtils.mkdir_p File.dirname(@filename)
-        File.open(@filename, 'w') {|f| f << YAML.dump(@data) }
+        File.open(@filename, 'w', 0600) {|f| f << YAML.dump(@data) }
       end
     end
 
@@ -359,7 +365,7 @@ module Hub
         tty_state = `stty -g`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
-        while char = $stdin.getbyte and not (char == 13 or char == 10)
+        while char = $stdin.getbyte and !(char == 13 or char == 10)
           if char == 127 or char == 8
             pass[-1,1] = '' unless pass.empty?
           else

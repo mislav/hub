@@ -4,6 +4,7 @@ require 'rbconfig'
 require 'yaml'
 require 'forwardable'
 require 'fileutils'
+require 'tempfile'
 
 WebMock::BodyPattern.class_eval do
   undef normalize_hash
@@ -73,8 +74,7 @@ class HubTest < Test::Unit::TestCase
     @git_reader.stub! \
       'remote' => "mislav\norigin",
       'symbolic-ref -q HEAD' => 'refs/heads/master',
-      'config --get-all remote.origin.url' => 'git://github.com/defunkt/hub.git',
-      'config --get-all remote.mislav.url' => 'git://github.com/mislav/hub.git',
+      'remote -v' => "origin\tgit://github.com/defunkt/hub.git (fetch)\nmislav\tgit://github.com/mislav/hub.git (fetch)",
       'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
       'config --get --bool hub.http-clone' => 'false',
       'config --get hub.protocol' => nil,
@@ -244,6 +244,12 @@ class HubTest < Test::Unit::TestCase
                     "push origin,staging,qa cool-feature"
   end
 
+  def test_push_multiple_refs
+    assert_commands "git push origin master new-feature",
+                    "git push staging master new-feature",
+                    "push origin,staging master new-feature"
+  end
+
   def test_pullrequest
     expected = "Aborted: head branch is the same as base (\"master\")\n" <<
       "(use `-h <branch>` to specify an explicit pull request head)\n"
@@ -315,11 +321,11 @@ class HubTest < Test::Unit::TestCase
       data['git.my.org'] = [{'user'=>'myfiname', 'oauth_token' => 'FITOKEN'}]
     end
 
-    stub_request(:post, "https://git.my.org/repos/defunkt/hub/pulls").
+    stub_request(:post, "https://git.my.org/api/v3/repos/defunkt/hub/pulls").
       with(:body => {'base' => "master", 'head' => "myfiname:feature", 'title' => "hereyougo" }).
-      to_return(:body => mock_pullreq_response(1, 'defunkt/hub', 'git.my.org'))
+      to_return(:body => mock_pullreq_response(1, 'api/v3/defunkt/hub', 'git.my.org'))
 
-    expected = "https://git.my.org/defunkt/hub/pull/1\n"
+    expected = "https://git.my.org/api/v3/defunkt/hub/pull/1\n"
     assert_output expected, "pull-request hereyougo -f"
   end
 
@@ -578,9 +584,16 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_hub_browse_ssh_alias
-    with_ssh_config do
+    with_ssh_config "Host gh\n User git\n HostName github.com" do
       stub_repo_url "gh:singingwolfboy/sekrit.git"
       assert_command "browse", "open https://github.com/singingwolfboy/sekrit"
+    end
+  end
+
+  def test_hub_browse_ssh_github_alias
+    with_ssh_config "Host github.com\n HostName ssh.github.com" do
+      stub_repo_url "git@github.com:suan/git-sanity.git"
+      assert_command "browse", "open https://github.com/suan/git-sanity"
     end
   end
 
@@ -627,11 +640,6 @@ class HubTest < Test::Unit::TestCase
     assert_forwarded 'name'
   end
 
-  def test_multiple_remote_urls
-    stub_repo_url("git://example.com/other.git\ngit://github.com/my/repo.git")
-    assert_command "browse", "open https://github.com/my/repo"
-  end
-
   def test_global_flags_preserved
     cmd = '--no-pager --bare -c core.awesome=true -c name=value --git-dir=/srv/www perform'
     assert_command cmd, 'git --bare -c core.awesome=true -c name=value --git-dir=/srv/www --no-pager perform'
@@ -641,7 +649,7 @@ class HubTest < Test::Unit::TestCase
   private
 
     def stub_repo_url(value, remote_name = 'origin')
-      stub_config_value "remote.#{remote_name}.url", value, '--get-all'
+      stub_command_output 'remote -v', "#{remote_name}\t#{value} (fetch)"
     end
 
     def stub_branch(value)
@@ -748,10 +756,17 @@ class HubTest < Test::Unit::TestCase
       Hub::Commands.send :improved_help_text
     end
 
-    def with_ssh_config
-      config_file = File.expand_path '../ssh_config', __FILE__
-      Hub::SshConfig::CONFIG_FILES.replace [config_file]
-      yield
+    def with_ssh_config content
+      config_file = Tempfile.open 'ssh_config'
+      config_file << content
+      config_file.close
+
+      begin
+        Hub::SshConfig::CONFIG_FILES.replace [config_file.path]
+        yield
+      ensure
+        config_file.unlink
+      end
     end
 
 end

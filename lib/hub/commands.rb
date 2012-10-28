@@ -9,12 +9,12 @@ module Hub
   # 1. hub is invoked from the command line:
   #    $ hub clone rtomayko/tilt
   #
-  # 2. The Hub class is initialized:
-  #    >> hub = Hub.new('clone', 'rtomayko/tilt')
+  # 2. The Runner class is initialized:
+  #    >> Hub::Runner.new('clone', 'rtomayko/tilt')
   #
   # 3. The method representing the git subcommand is executed with the
   #    full args:
-  #    >> Commands.clone('clone', 'rtomayko/tilt')
+  #    >> Hub::Commands.clone(['clone', 'rtomayko/tilt'])
   #
   # 4. That method rewrites the args as it sees fit:
   #    >> args[1] = "git://github.com/" + args[1] + ".git"
@@ -34,7 +34,7 @@ module Hub
     # provides git interrogation methods
     extend Context
 
-    NAME_RE = /\w[\w.-]*/
+    NAME_RE = /[\w.][\w.-]*/
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
@@ -540,12 +540,18 @@ module Hub
     def push(args)
       return if args[1].nil? || !args[1].index(',')
 
-      branch  = (args[2] ||= current_branch.short_name)
+      refs    = args.words[2..-1]
       remotes = args[1].split(',')
       args[1] = remotes.shift
 
+      if refs.empty?
+        # add current branch as explicit ref when there are no refs specified
+        refs = [current_branch.short_name]
+        args.concat refs
+      end
+
       remotes.each do |name|
-        args.after ['push', name, branch]
+        args.after ['push', name, *refs]
       end
     end
 
@@ -1002,7 +1008,7 @@ help
     end
 
     def display_api_exception(action, response)
-      $stderr.puts "Error #{action}: #{response.message} (HTTP #{response.status})"
+      $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?
         # display validation errors
         msg = response.error_message

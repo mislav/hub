@@ -75,7 +75,8 @@ You can also install from source:
 
 ~~~ sh
 $ git clone git://github.com/defunkt/hub.git
-$ cd hub && rake install prefix=/usr/local
+$ cd hub
+$ rake install prefix=/usr/local
 ~~~
 
 ### Help! It's Slow!
@@ -339,11 +340,13 @@ $ git clone defunkt/repl
 Contributing
 ------------
 
-These instructions assume that you already have hub installed and aliased as
+These instructions assume that _you already have hub installed_ and aliased as
 `git` (see "Aliasing").
 
 1. Clone hub:  
     `git clone defunkt/hub && cd hub`
+1. Ensure Bundler is installed:  
+    `which bundle || gem install bundler`
 1. Install development dependencies:  
     `bundle install`
 2. Verify that existing tests pass:  

@@ -9,6 +9,11 @@ Feature: hub clone
     Then it should clone "git://github.com/hookio/hook.js.git"
     And there should be no output
 
+  Scenario: Clone a public repo that starts with a period
+    When I successfully run `hub clone zhuangya/.vim`
+    Then it should clone "git://github.com/zhuangya/.vim.git"
+    And there should be no output
+
   Scenario: Clone a public repo with HTTPS
     Given HTTPS is preferred
     When I successfully run `hub clone rtomayko/ronn`
@@ -89,3 +94,4 @@ Feature: hub clone
     When I successfully run `hub clone dotfiles`
     Then the git command should be unchanged
     And there should be no output
+

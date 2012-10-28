@@ -11,6 +11,22 @@ ENV['PATH'] = "#{fakebin_dir}:#{ENV['PATH']}"
 # Use an isolated config file in testing
 ENV['HUB_CONFIG'] = File.join(ENV['TMPDIR'] || '/tmp', 'hub-test-config')
 
+# Disable `abort` and `exit` in the main test process, but allow it in
+# subprocesses where we need to test does a command properly bail out.
+Hub::Commands.extend Module.new {
+  main_pid = Process.pid
+
+  [:abort, :exit].each do |method|
+    define_method method do |*args|
+      if Process.pid == main_pid
+        raise "#{method} is disabled"
+      else
+        super(*args)
+      end
+    end
+  end
+}
+
 class Test::Unit::TestCase
   # Shortcut for creating a `Hub` instance. Pass it what you would
   # normally pass `hub` on the command line, e.g.

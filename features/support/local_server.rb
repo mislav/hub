@@ -57,12 +57,9 @@ module Hub
       klass.disable :protection
       klass.class_eval(&block)
       klass.helpers do
-        def body(value = nil) super; nil end
-      end
-      klass.after do
-        if Array === response.body && !response.body.empty? or Hash === response.body
+        def json(value)
           content_type :json
-          body JSON.generate(response.body)
+          JSON.generate value
         end
       end
 

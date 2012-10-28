@@ -198,7 +198,11 @@ module Hub
       end
 
       def known_hosts
-        git_config('hub.host', :all).to_s.split("\n") + [default_host]
+        hosts = git_config('hub.host', :all).to_s.split("\n")
+        hosts << default_host
+        # support ssh.github.com
+        # https://help.github.com/articles/using-ssh-over-the-https-port
+        hosts << "ssh.#{default_host}"
       end
 
       def self.default_host
@@ -230,6 +234,7 @@ module Hub
       def initialize(*args)
         super
         self.host ||= (local_repo || LocalRepo).default_host
+        self.host = host.sub(/^ssh\./i, '') if 'ssh.github.com' == host.downcase
       end
 
       def private?
@@ -339,7 +344,7 @@ module Hub
       end
 
       def project
-        urls.each { |url|
+        urls.each_value { |url|
           if valid = GithubProject.from_url(url, local_repo)
             return valid
           end
@@ -348,15 +353,21 @@ module Hub
       end
 
       def urls
-        @urls ||= local_repo.git_config("remote.#{name}.url", :all).to_s.split("\n").map { |uri|
-          begin
-            if uri =~ %r{^[\w-]+://}    then uri_parse(uri)
-            elsif uri =~ %r{^([^/]+?):} then uri_parse("ssh://#{$1}/#{$'}")  # scp-like syntax
+        return @urls if defined? @urls
+        @urls = {}
+        local_repo.git_command('remote -v').to_s.split("\n").map do |line|
+          next if line !~ /^(.+?)\t(.+) \((.+)\)$/
+          remote, uri, type = $1, $2, $3
+          next if remote != self.name
+          if uri =~ %r{^[\w-]+://} or uri =~ %r{^([^/]+?):}
+            uri = "ssh://#{$1}/#{$'}" if $1
+            begin
+              @urls[type] = uri_parse(uri)
+            rescue URI::InvalidURIError
             end
-          rescue URI::InvalidURIError
-            nil
           end
-        }.compact
+        end
+        @urls
       end
 
       def uri_parse uri
