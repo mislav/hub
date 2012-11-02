@@ -109,6 +109,20 @@ module Hub
       res.data
     end
 
+    # Return the pull request corresponding to the current branch
+    def get_pullrequest project, current_branch
+      res = get "https://%s/repos/%s/%s/pulls" %
+        [api_host(project.host), project.owner, project.name]
+      puts res.data.length
+      res.error! unless res.success?
+      res.data.each { |x|
+        if current_branch.short_name == x['head']['label'].split(':', 0)[1]
+          return x['html_url']
+        end
+      }
+      nil
+    end
+
     # Methods for performing HTTP requests
     #
     # Requires access to a `config` object that implements `proxy_uri(with_ssl)`

@@ -95,6 +95,12 @@ module Hub
 
       while arg = args.shift
         case arg
+        when '-l'
+          pull_data = api_client.get_pullrequest(base_project, current_branch)
+          if pull_data
+            puts pull_data
+          end
+          exit
         when '-f'
           force = true
         when '-b'
