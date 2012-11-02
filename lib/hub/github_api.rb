@@ -110,7 +110,7 @@ module Hub
     end
 
     # Return the pull request corresponding to the current branch
-    def get_pullrequest project, current_branch
+    def get_pullrequest project, branch_name
       page = 1
       res = nil
       while page == 1 or res.data.length > 0
@@ -118,7 +118,7 @@ module Hub
           [api_host(project.host), project.owner, project.name, page]
         res.error! unless res.success?
         res.data.each { |x|
-          if current_branch.short_name == x['head']['label'].split(':', 0)[1]
+          if branch_name == x['head']['label'].split(':', 0)[1]
             return x['html_url']
           end
         }

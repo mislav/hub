@@ -96,7 +96,8 @@ module Hub
       while arg = args.shift
         case arg
         when '-l'
-          pull_data = api_client.get_pullrequest(base_project, current_branch)
+          branch_name = args.shift || current_branch.short_name
+          pull_data = api_client.get_pullrequest(base_project, branch_name)
           if pull_data
             puts pull_data
           end
