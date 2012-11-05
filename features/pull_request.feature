@@ -34,3 +34,15 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request hereyougo`
     Then the output should contain exactly "https://github.com/Manganeez/repo/pull/12\n"
+
+  Scenario: With Unicode characters
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 if request.content_charset != 'utf-8'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request ăéñøü`
+    Then the output should contain exactly "the://url\n"

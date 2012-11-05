@@ -10,6 +10,13 @@ WebMock::BodyPattern.class_eval do
   undef normalize_hash
   # override normalizing hash since it otherwise requires JSON
   def normalize_hash(hash) hash end
+
+  # strip out the "charset" directive from Content-type value
+  alias matches_with_dumb_content_type matches?
+  def matches?(body, content_type = "")
+    content_type = content_type.split(';').first if content_type.respond_to? :split
+    matches_with_dumb_content_type(body, content_type)
+  end
 end
 
 class HubTest < Test::Unit::TestCase

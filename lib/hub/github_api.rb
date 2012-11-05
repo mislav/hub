@@ -139,7 +139,7 @@ module Hub
         perform_request url, :Post do |req|
           if params
             req.body = JSON.dump params
-            req['Content-Type'] = 'application/json'
+            req['Content-Type'] = 'application/json;charset=utf-8'
           end
           yield req if block_given?
           req['Content-Length'] = req.body ? req.body.length : 0
