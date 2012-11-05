@@ -111,7 +111,10 @@ module Hub
 
     # Methods for performing HTTP requests
     #
-    # Requires access to a `config` object that implements `proxy_uri(with_ssl)`
+    # Requires access to a `config` object that implements:
+    # - proxy_uri(with_ssl)
+    # - username(host)
+    # - password(host, user)
     module HttpMethods
       # Decorator for Net::HTTPResponse
       module ResponseMethods
@@ -316,6 +319,7 @@ module Hub
       end
 
       def username host
+        return ENV['GITHUB_USER'] unless ENV['GITHUB_USER'].to_s.empty?
         host = normalize_host host
         @data.fetch_user host do
           if block_given? then yield
@@ -334,6 +338,7 @@ module Hub
       end
 
       def password host, user
+        return ENV['GITHUB_PASSWORD'] unless ENV['GITHUB_PASSWORD'].to_s.empty?
         host = normalize_host host
         @password_cache["#{user}@#{host}"] ||= prompt_password host, user
       end
