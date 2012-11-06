@@ -1,3 +1,9 @@
+## master
+
+* fix `pull-request` with Unicode chars on Ruby 1.8
+* respect $GITHUB_USER & $GITHUB_PASSWORD
+* improve reading git remotes configuration
+
 ## 1.10.2 (2012-07-24)
 
 * fix pushing multiple refs to multiple remotes
