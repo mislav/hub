@@ -111,10 +111,22 @@ class Hub::JSON
       end
     end
 
-    def generate_String(str) str.inspect end
-    alias generate_Numeric generate_String
-    alias generate_TrueClass generate_String
-    alias generate_FalseClass generate_String
+    ESC_MAP = Hash.new {|h,k| k }.update \
+      "\r" => 'r',
+      "\n" => 'n',
+      "\f" => 'f',
+      "\t" => 't',
+      "\b" => 'b'
+
+    def generate_String(str)
+      escaped = str.gsub(/[\r\n\f\t\b"\\]/) { "\\#{ESC_MAP[$&]}"}
+      %("#{escaped}")
+    end
+
+    def generate_simple(obj) obj.inspect end
+    alias generate_Numeric generate_simple
+    alias generate_TrueClass generate_simple
+    alias generate_FalseClass generate_simple
 
     def generate_Symbol(sym) generate_String(sym.to_s) end
 

@@ -41,6 +41,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         halt 400 if request.content_charset != 'utf-8'
+        halt 422 if params[:title] != 'ăéñøü'
         json :html_url => "the://url"
       }
       """

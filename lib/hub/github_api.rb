@@ -145,7 +145,14 @@ module Hub
             req['Content-Type'] = 'application/json;charset=utf-8'
           end
           yield req if block_given?
-          req['Content-Length'] = req.body ? req.body.length : 0
+          req['Content-Length'] = byte_size req.body
+        end
+      end
+
+      def byte_size str
+        if    str.respond_to? :bytesize then str.bytesize
+        elsif str.respond_to? :length   then str.length
+        else  0
         end
       end
 
