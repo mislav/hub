@@ -11,10 +11,6 @@ Aruba::Process.class_eval do
   end
 end
 
-if [:macosx, :linux].include? ChildProcess.platform
-  ChildProcess.posix_spawn = true  # experimental suppport
-end
-
 unless system_git = Hub::Context.which('git')
   abort "Error: `git` not found in PATH"
 end
