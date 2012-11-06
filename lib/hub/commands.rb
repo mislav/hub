@@ -467,9 +467,15 @@ module Hub
 
       if api_client.repo_exists?(forked_project) 
         orig_url = api_client.repo_info(project).data["url"]
-        parent_url = api_client.repo_info(forked_project).data["parent"]["url"]
-        notfork = orig_url!=parent_url
         
+        parent_data = api_client.repo_info(forked_project).data
+        if parent_data.has_key?("parent")
+          parent_url = parent_data["parent"]["url"]
+          notfork = orig_url!=parent_url
+        else
+          notfork = false
+        end
+
         if notfork
           abort "Error creating fork: %s already exists on %s and is not a direct fork of %s" %
             [ forked_project.name_with_owner, forked_project.host, project.name_with_owner ]
