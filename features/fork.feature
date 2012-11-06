@@ -40,7 +40,7 @@ Feature: hub fork
       """
     And there should be no "mislav" remote
 
-  Scenario: Fork already exists
+  Scenario: Unrelated fork already exists
     Given the GitHub API server:
       """
       get('/repos/evilchelu/dotfiles') { '' }
@@ -50,7 +50,7 @@ Feature: hub fork
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error creating fork: mislav/dotfiles already exists on github.com\n
+      Error creating fork: mislav/dotfiles already exists on github.com and is not a direct fork of evilchelu/dotfiles\n
       """
     And there should be no "mislav" remote
 

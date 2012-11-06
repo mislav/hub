@@ -465,9 +465,9 @@ module Hub
       end
       forked_project = project.owned_by(github_user(project.host))
 
-      if api_client.repo_exists?(forked_project)
-        abort "Error creating fork: %s already exists on %s" %
-          [ forked_project.name_with_owner, forked_project.host ]
+      if api_client.repo_exists?(forked_project) and !is_fork_of(forked_project,project) 
+        abort "Error creating fork: %s already exists on %s and is not a direct fork of %s" %
+          [ forked_project.name_with_owner, forked_project.host, project.name_with_owner ]
       else
         api_client.fork_repo(project) unless args.noop?
       end
@@ -992,6 +992,12 @@ help
           Shellwords.shellwords(expanded)
         end
       end
+    end
+
+    def is_fork_of(fork, parent)
+        orig_url = api_client.repo_info(parent).data["url"]
+        parent_url = api_client.repo_info(fork).data["parent"]["url"]
+        orig_url==parent_url
     end
 
     def display_api_exception(action, response)
