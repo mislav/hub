@@ -465,20 +465,13 @@ module Hub
       end
       forked_project = project.owned_by(github_user(project.host))
 
-      if api_client.repo_exists?(forked_project) 
-        orig_url = api_client.repo_info(project).data["url"]
-        
-        parent_data = api_client.repo_info(forked_project).data
-        if parent_data.has_key?("parent")
-          parent_url = parent_data["parent"]["url"]
-          notfork = orig_url!=parent_url
-        else
-          notfork = false
-        end
-
-        if notfork
-          abort "Error creating fork: %s already exists on %s and is not a direct fork of %s" %
-            [ forked_project.name_with_owner, forked_project.host, project.name_with_owner ]
+      existing_repo = api_client.repo_info(forked_project)
+      if existing_repo.success?
+        parent_data = existing_repo.data['parent']
+        parent_url  = parent_data && resolve_github_url(parent_data['html_url'])
+        if !parent_url or parent_url.project != project
+          abort "Error creating fork: %s already exists on %s" %
+            [ forked_project.name_with_owner, forked_project.host ]
         end
       else
         api_client.fork_repo(project) unless args.noop?

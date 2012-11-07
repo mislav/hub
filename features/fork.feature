@@ -43,38 +43,27 @@ Feature: hub fork
   Scenario: Unrelated fork already exists
     Given the GitHub API server:
       """
-      get('/repos/evilchelu/dotfiles') { json \
-        :url => "http://github.com/evilchelu/dotfiles"
-       }
-      get('/repos/mislav/dotfiles') { json \
-        :parent => {
-		:url => "http://github.com/mislav/dotfiles"	
-		}		
-       }
+      get('/repos/mislav/dotfiles') {
+        json :parent => { :html_url => 'https://github.com/unrelated/dotfiles' }
+      }
       """
     When I run `hub fork`
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error creating fork: mislav/dotfiles already exists on github.com and is not a direct fork of evilchelu/dotfiles\n
+      Error creating fork: mislav/dotfiles already exists on github.com\n
       """
     And there should be no "mislav" remote
 
 Scenario: Related fork already exists
     Given the GitHub API server:
       """
-      get('/repos/evilchelu/dotfiles') { json \
-        :url => "http://github.com/evilchelu/dotfiles"
-       }
-      get('/repos/mislav/dotfiles') { json \
-        :parent => {
-		:url => "http://github.com/evilchelu/dotfiles"	
-		}		
-       }
+      get('/repos/mislav/dotfiles') {
+        json :parent => { :html_url => 'https://github.com/evilchelu/dotfiles' }
+      }
       """
     When I run `hub fork`
     Then the exit status should be 0
-    And "git remote add -f mislav git@github.com:mislav/dotfiles.git" should be run	
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: Invalid OAuth token
