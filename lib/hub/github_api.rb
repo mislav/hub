@@ -111,18 +111,20 @@ module Hub
 
     # Return the pull request corresponding to the current branch
     def get_pullrequest project, branch_name
-      page = 1
-      res = nil
-      while page == 1 or res.data.length > 0
-        res = get "https://%s/repos/%s/%s/pulls?page=%s" %
-          [api_host(project.host), project.owner, project.name, page]
-        res.error! unless res.success?
-        res.data.each { |x|
-          if branch_name == x['head']['label'].split(':', 0)[1]
-            return x['html_url']
-          end
-        }
-        page += 1
+      for state in ['open', 'closed']
+        page = 1
+        res = nil
+        while page == 1 or res.data.length > 0
+          res = get "https://%s/repos/%s/%s/pulls?state=%s&page=%s" %
+            [api_host(project.host), project.owner, project.name, state, page]
+          res.error! unless res.success?
+          res.data.each { |x|
+            if branch_name == x['head']['label'].split(':', 0)[1]
+              return x['html_url']
+            end
+          }
+          page += 1
+        end
       end
       nil
     end
