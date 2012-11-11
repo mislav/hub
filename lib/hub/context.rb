@@ -257,7 +257,6 @@ module Hub
             path = '/wiki' + path
           end
         end
-        scheme = config.uri_scheme(host)
         "#{scheme}://#{host}/" + project_name + path.to_s
       end
 
@@ -270,11 +269,15 @@ module Hub
 
       private
 
-      def config
-        @config ||= begin
-          config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
+      def scheme
+        config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
+
+        if File.exist? File.expand_path(config_file)
           file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
-          GitHubAPI::Configuration.new file_store
+          config = GitHubAPI::Configuration.new file_store
+          config.uri_scheme(host)
+        else
+          'https'
         end
       end
     end
