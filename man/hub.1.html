@@ -100,7 +100,7 @@
 <code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
 <code>git fork</code> [<code>--no-remote</code>]<br />
-<code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</p>
+<code>git pull-request</code> [<code>-f</code>] [<code>-t</code> <var>TITLE</var>] [<code>-B</code> <var>BODY</var>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</p>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
@@ -177,7 +177,7 @@ it will be transformed into one with three dots. If <var>START</var> is omitted,
 GitHub will compare against the base branch (the default is "master").</p></dd>
 <dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username.</p></dd>
-<dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
+<dt><code>git pull-request</code> [<code>-f</code>] [<code>-t</code> <var>TITLE</var>] [<code>-B</code> <var>BODY</var>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of
 the following formats: "branch", "owner:branch", "owner/repo:branch".

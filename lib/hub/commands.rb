@@ -105,6 +105,10 @@ module Hub
           head_project, options[:head] = from_github_ref.call(head, head_project)
         when '-i'
           options[:issue] = args.shift
+        when '-t'
+          options[:title] = args.shift
+        when '-B'
+          options[:body] = args.shift
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
