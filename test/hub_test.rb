@@ -387,6 +387,30 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "pull-request -i 92"
   end
 
+  def test_get_pullrequest
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls?page=1&state=open").
+      to_return(:body =>
+                mock_list_pulls_response({
+                                           'defunkt:feature-foo' => 1,
+                                           'defunkt:feature-bar' => 2,
+                                         }))
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls?page=2&state=open").
+      to_return(:body =>
+                mock_list_pulls_response({
+                                           'jianlius:feature-baz' => 3,
+                                           'jianlius:feature-qux' => 4,
+                                         }))
+
+    expected = "https://github.com/defunkt/hub/pull/2\n"
+    assert_output expected, "pull-request -l feature-bar"
+
+    stub_branch('refs/heads/feature-qux')
+    stub_tracking('feature-qux', 'upstream')
+
+    expected = "https://github.com/defunkt/hub/pull/4\n"
+    assert_output expected, "pull-request -l"
+  end
+
   def test_pullrequest_existing_issue_url
     stub_branch('refs/heads/myfix')
     stub_tracking('myfix', 'mislav', 'awesomefix')
@@ -750,6 +774,19 @@ class HubTest < Test::Unit::TestCase
         :label => label,
         :repo => {:private => !!priv}
       }
+    end
+
+    def mock_list_pulls_response(branches, name_with_owner = 'defunkt/hub', host = 'github.com')
+      arr = []
+      branches.each_pair do |branch, id|
+        arr << {
+          'head' => {
+            'label' => branch,
+          },
+          'html_url' => "https://#{host}/#{name_with_owner}/pull/#{id}",
+        }
+      end
+      Hub::JSON.generate arr
     end
 
     def improved_help_text
