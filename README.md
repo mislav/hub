@@ -1,3 +1,9 @@
+(Notes on this Fork)
+==================
+This is a maintained fork which adds support for a `-b <branch>` option in `hub browse`. In other words, `hub browse -b somebranch` will take you to `https://github.com/YOUR_USER/CURRENT_REPO/tree/somebranch`.
+
+The pull request to upstream is [here](https://github.com/defunkt/hub/pull/209), and is still up in the air as to whether it will get merged. In the meantime, I'm keeping this fork up-to-date for myself and those who are interested in the feature.
+
 git + hub = github
 ==================
 
@@ -253,6 +259,12 @@ superpowers:
 
     $ git browse
     > open https://github.com/YOUR_USER/CURRENT_REPO
+
+    $ git browse -b somebranch
+    > open https://github.com/YOUR_USER/CURRENT_REPO/tree/somebranch
+
+    $ git browse -u
+    > (https://github.com/YOUR_USER/CURRENT_REPO)
 
     $ git browse -- commit/SHA
     > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA

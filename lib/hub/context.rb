@@ -116,6 +116,15 @@ module Hub
       end
     end
 
+    def branch_named(name)
+      if local_repo(false)
+        local_repo.branch_named(name)
+      else
+        # FIXME: duplicates functionality of LocalRepo#branch_named
+        Branch.new nil, "refs/heads/#{name}"
+      end
+    end
+
     class LocalRepo < Struct.new(:git_reader, :dir)
       include GitReaderMethods
 
@@ -160,6 +169,10 @@ module Hub
 
       def master_branch
         Branch.new self, 'refs/heads/master'
+      end
+
+      def branch_named name
+        Branch.new self, "refs/heads/#{name}"
       end
 
       def remotes
