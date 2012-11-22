@@ -199,6 +199,9 @@ of title you can paste a full URL to an issue on GitHub.</p></dd>
 <p>Hub will prompt for GitHub username &amp; password the first time it needs to access
 the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</p>
 
+<p>To avoid being prompted, use <var>GITHUB_USER</var> and <var>GITHUB_PASSWORD</var> environment
+variables.</p>
+
 <p>If you prefer the HTTPS protocol for GitHub repositories, you can set
 "hub.protocol" to "https". This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code>
 and other operations that expand references to GitHub repositories as full
@@ -437,7 +440,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>May 2012</li>
+    <li class='tc'>November 2012</li>
     <li class='tr'>hub(1)</li>
   </ol>
 

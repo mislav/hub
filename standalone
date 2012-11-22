@@ -7,7 +7,7 @@
 #
 
 module Hub
-  Version = VERSION = '1.10.2'
+  Version = VERSION = '1.10.3'
 end
 
 module Hub
@@ -239,6 +239,7 @@ module Hub
         res = post "https://%s/user/repos" % api_host(project.host), params
       end
       res.error! unless res.success?
+      res.data
     end
 
     def pullrequest_info project, pull_id
@@ -295,10 +296,17 @@ module Hub
         perform_request url, :Post do |req|
           if params
             req.body = JSON.dump params
-            req['Content-Type'] = 'application/json'
+            req['Content-Type'] = 'application/json;charset=utf-8'
           end
           yield req if block_given?
-          req['Content-Length'] = req.body ? req.body.length : 0
+          req['Content-Length'] = byte_size req.body
+        end
+      end
+
+      def byte_size str
+        if    str.respond_to? :bytesize then str.bytesize
+        elsif str.respond_to? :length   then str.length
+        else  0
         end
       end
 
@@ -317,11 +325,14 @@ module Hub
 
         apply_authentication(req, url)
         yield req if block_given?
-        res = http.start { http.request(req) }
-        res.extend ResponseMethods
-        res
-      rescue SocketError => err
-        raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+
+        begin
+          res = http.start { http.request(req) }
+          res.extend ResponseMethods
+          return res
+        rescue SocketError => err
+          raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+        end
       end
 
       def request_uri url
@@ -462,6 +473,7 @@ module Hub
       end
 
       def username host
+        return ENV['GITHUB_USER'] unless ENV['GITHUB_USER'].to_s.empty?
         host = normalize_host host
         @data.fetch_user host do
           if block_given? then yield
@@ -480,6 +492,7 @@ module Hub
       end
 
       def password host, user
+        return ENV['GITHUB_PASSWORD'] unless ENV['GITHUB_PASSWORD'].to_s.empty?
         host = normalize_host host
         @password_cache["#{user}@#{host}"] ||= prompt_password host, user
       end
@@ -744,6 +757,7 @@ module Hub
 
       def initialize(*args)
         super
+        self.name = self.name.tr(' ', '-')
         self.host ||= (local_repo || LocalRepo).default_host
         self.host = host.sub(/^ssh\./i, '') if 'ssh.github.com' == host.downcase
       end
@@ -854,7 +868,7 @@ module Hub
       end
 
       def project
-        urls.each { |url|
+        urls.each_value { |url|
           if valid = GithubProject.from_url(url, local_repo)
             return valid
           end
@@ -863,15 +877,21 @@ module Hub
       end
 
       def urls
-        @urls ||= local_repo.git_config("remote.#{name}.url", :all).to_s.split("\n").map { |uri|
-          begin
-            if uri =~ %r{^[\w-]+://}    then uri_parse(uri)
-            elsif uri =~ %r{^([^/]+?):} then uri_parse("ssh://#{$1}/#{$'}")  # scp-like syntax
+        return @urls if defined? @urls
+        @urls = {}
+        local_repo.git_command('remote -v').to_s.split("\n").map do |line|
+          next if line !~ /^(.+?)\t(.+) \((.+)\)$/
+          remote, uri, type = $1, $2, $3
+          next if remote != self.name
+          if uri =~ %r{^[\w-]+://} or uri =~ %r{^([^/]+?):}
+            uri = "ssh://#{$1}/#{$'}" if $1
+            begin
+              @urls[type] = uri_parse(uri)
+            rescue URI::InvalidURIError
             end
-          rescue URI::InvalidURIError
-            nil
           end
-        }.compact
+        end
+        @urls
       end
 
       def uri_parse uri
@@ -952,7 +972,7 @@ module Hub
     module System
       def browser_launcher
         browser = ENV['BROWSER'] || (
-          osx? ? 'open' : windows? ? 'start' :
+          osx? ? 'open' : windows? ? %w[cmd /c start] :
           %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
         )
 
@@ -1103,10 +1123,22 @@ class Hub::JSON
       end
     end
 
-    def generate_String(str) str.inspect end
-    alias generate_Numeric generate_String
-    alias generate_TrueClass generate_String
-    alias generate_FalseClass generate_String
+    ESC_MAP = Hash.new {|h,k| k }.update \
+      "\r" => 'r',
+      "\n" => 'n',
+      "\f" => 'f',
+      "\t" => 't',
+      "\b" => 'b'
+
+    def generate_String(str)
+      escaped = str.gsub(/[\r\n\f\t\b"\\]/) { "\\#{ESC_MAP[$&]}"}
+      %("#{escaped}")
+    end
+
+    def generate_simple(obj) obj.inspect end
+    alias generate_Numeric generate_simple
+    alias generate_TrueClass generate_simple
+    alias generate_FalseClass generate_simple
 
     def generate_Symbol(sym) generate_String(sym.to_s) end
 
@@ -1476,9 +1508,14 @@ module Hub
       end
       forked_project = project.owned_by(github_user(project.host))
 
-      if api_client.repo_exists?(forked_project)
-        abort "Error creating fork: %s already exists on %s" %
-          [ forked_project.name_with_owner, forked_project.host ]
+      existing_repo = api_client.repo_info(forked_project)
+      if existing_repo.success?
+        parent_data = existing_repo.data['parent']
+        parent_url  = parent_data && resolve_github_url(parent_data['html_url'])
+        if !parent_url or parent_url.project != project
+          abort "Error creating fork: %s already exists on %s" %
+            [ forked_project.name_with_owner, forked_project.host ]
+        end
       else
         api_client.fork_repo(project) unless args.noop?
       end
@@ -1528,7 +1565,10 @@ module Hub
           action = "set remote origin"
         else
           action = "created repository"
-          api_client.create_repo(new_project, options) unless args.noop?
+          unless args.noop?
+            repo_data = api_client.create_repo(new_project, options)
+            new_project = github_project(repo_data['full_name'])
+          end
         end
 
         url = new_project.git_url(:private => true, :https => https_protocol?)
@@ -1871,6 +1911,7 @@ help
         read.close
         write.close
       end
+    rescue NotImplementedError
     end
 
     def pullrequest_editmsg(changes)
@@ -1915,7 +1956,7 @@ help
         end
       end
     end
-
+    
     def display_api_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?
@@ -1991,7 +2032,7 @@ __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "May 2012" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "November 2012" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -2143,6 +2184,9 @@ If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pu
 .
 .SH "CONFIGURATION"
 Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.
+.
+.P
+To avoid being prompted, use \fIGITHUB_USER\fR and \fIGITHUB_PASSWORD\fR environment variables\.
 .
 .P
 If you prefer the HTTPS protocol for GitHub repositories, you can set "hub\.protocol" to "https"\. This will affect \fBclone\fR, \fBfork\fR, \fBremote add\fR and other operations that expand references to GitHub repositories as full URLs that otherwise use git and ssh protocols\.
