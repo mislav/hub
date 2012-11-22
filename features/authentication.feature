@@ -13,7 +13,9 @@ Feature: OAuth authentication
         halt 400 unless params[:scopes] == ['repo']
         json :token => 'OTOKEN'
       }
-      post('/user/repos') { status 200 }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     When I run `hub create` interactively
     When I type "mislav"
@@ -36,7 +38,9 @@ Feature: OAuth authentication
           {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
         ]
       }
-      post('/user/repos') { status 200 }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     When I run `hub create` interactively
     When I type "mislav"
@@ -56,7 +60,9 @@ Feature: OAuth authentication
           {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
         ]
       }
-      post('/user/repos') { status 200 }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     Given $GITHUB_USER is "mislav"
     And $GITHUB_PASSWORD is "kitty"

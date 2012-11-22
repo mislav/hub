@@ -77,6 +77,7 @@ module Hub
         res = post "https://%s/user/repos" % api_host(project.host), params
       end
       res.error! unless res.success?
+      res.data
     end
 
     # Public: Fetch info about a pull request.

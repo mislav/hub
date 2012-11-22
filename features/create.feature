@@ -8,7 +8,7 @@ Feature: hub create
       """
       post('/user/repos') {
         halt 400 if params[:private]
-        status 200
+        json :full_name => 'mislav/dotfiles'
       }
       """
     When I successfully run `hub create`
@@ -20,7 +20,7 @@ Feature: hub create
       """
       post('/user/repos') {
         halt 400 unless params[:private]
-        status 200
+        json :full_name => 'mislav/dotfiles'
       }
       """
     When I successfully run `hub create -p`
@@ -29,7 +29,9 @@ Feature: hub create
   Scenario: HTTPS is preferred
     Given the GitHub API server:
       """
-      post('/user/repos') { status 200 }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     And HTTPS is preferred
     When I successfully run `hub create`
@@ -38,7 +40,9 @@ Feature: hub create
   Scenario: Create in organization
     Given the GitHub API server:
       """
-      post('/orgs/acme/repos') { status 200 }
+      post('/orgs/acme/repos') {
+        json :full_name => 'acme/dotfiles'
+      }
       """
     When I successfully run `hub create acme/dotfiles`
     Then the url for "origin" should be "git@github.com:acme/dotfiles.git"
@@ -59,7 +63,7 @@ Feature: hub create
       """
       post('/user/repos') {
         halt 400 unless params[:name] == 'myconfig'
-        status 200
+        json :full_name => 'mislav/myconfig'
       }
       """
     When I successfully run `hub create myconfig`
@@ -71,7 +75,7 @@ Feature: hub create
       post('/user/repos') {
         halt 400 unless params[:description] == 'mydesc' and
           params[:homepage] == 'http://example.com'
-        status 200
+        json :full_name => 'mislav/dotfiles'
       }
       """
     When I successfully run `hub create -d mydesc -h http://example.com`
@@ -86,7 +90,9 @@ Feature: hub create
   Scenario: Origin remote already exists
     Given the GitHub API server:
       """
-      post('/user/repos') { status 200 }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     And the "origin" remote has url "git://github.com/mislav/dotfiles.git"
     When I successfully run `hub create`
@@ -100,3 +106,14 @@ Feature: hub create
     When I successfully run `hub create`
     Then the output should contain "mislav/dotfiles already exists on github.com\n"
     And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+
+  Scenario: API response changes the clone URL
+    Given the GitHub API server:
+      """
+      post('/user/repos') {
+        json :full_name => 'Mooslav/myconfig'
+      }
+      """
+    When I successfully run `hub create`
+    Then the url for "origin" should be "git@github.com:Mooslav/myconfig.git"
+    And the output should contain exactly "created repository: Mooslav/myconfig\n"

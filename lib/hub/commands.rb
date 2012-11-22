@@ -525,7 +525,10 @@ module Hub
           action = "set remote origin"
         else
           action = "created repository"
-          api_client.create_repo(new_project, options) unless args.noop?
+          unless args.noop?
+            repo_data = api_client.create_repo(new_project, options)
+            new_project = github_project(repo_data['full_name'])
+          end
         end
 
         url = new_project.git_url(:private => true, :https => https_protocol?)
