@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "May 2012" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "November 2012" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -153,6 +153,9 @@ If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pu
 .
 .SH "CONFIGURATION"
 Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.
+.
+.P
+To avoid being prompted, use \fIGITHUB_USER\fR and \fIGITHUB_PASSWORD\fR environment variables\.
 .
 .P
 If you prefer the HTTPS protocol for GitHub repositories, you can set "hub\.protocol" to "https"\. This will affect \fBclone\fR, \fBfork\fR, \fBremote add\fR and other operations that expand references to GitHub repositories as full URLs that otherwise use git and ssh protocols\.
