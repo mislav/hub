@@ -442,7 +442,7 @@ module Hub
       # Returns an array, e.g.: ['open']
       def browser_launcher
         browser = ENV['BROWSER'] || (
-          osx? ? 'open' : windows? ? 'start' :
+          osx? ? 'open' : windows? ? ['cmd', '/c', 'start'] :
           %w[xdg-open cygstart x-www-browser firefox opera mozilla netscape].find { |comm| which comm }
         )
 
