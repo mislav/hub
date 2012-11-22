@@ -79,20 +79,49 @@ $ cd hub
 $ rake install prefix=/usr/local
 ~~~
 
-### Help! It's Slow!
+### Help! It's slow!
 
-Is your prompt slow? It may be hub.
+#### Is `hub` noticeably slower than plain git?
 
-1. Check that it's **not** installed using RubyGems.
-2. Check that RUBYOPT isn't loading anything shady:
+That is inconvenient, especially if you want to alias hub as `git`. Few things
+you can try:
 
-        $ echo $RUBYOPT
+* Find out which ruby is used for the hub executable:
 
-3. Check that your system Ruby is speedy:
+    ``` sh
+    head -1 `which hub`
+    ```
 
-        $ time /usr/bin/env ruby -e0
+* That ruby should be speedy. Time it with:
 
-If #3 is slow, it may be your [GC settings][gc].
+    ``` sh
+    time /usr/bin/ruby -e0
+    #=> it should be below 0.01 s total
+    ```
+
+* Check that Ruby isn't loading something shady:
+
+    ``` sh
+    echo $RUBYOPT
+    ```
+
+* Check your [GC settings][gc]
+
+General recommendation: you should change hub's shebang line to run with system
+ruby (usually `/usr/bin/ruby`) instead of currently active ruby (`/usr/bin/env
+ruby`). Also, Ruby 1.8 is speedier than 1.9.
+
+#### Is your shell prompt slow?
+
+Does your prompt show git information? Hub may be slowing down your prompt.
+
+This can happen if you've aliased hub as `git`. This is fine when you use `git`
+manually, but may be unacceptable for your prompt, which doesn't need hub
+features anyway!
+
+The solution is to identify which shell functions are calling `git`, and replace
+each occurrence of that with `command git`. This is a shell feature that enables
+you to call a command directly and skip aliases and functions wrapping it.
 
 
 Aliasing
