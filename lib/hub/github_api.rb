@@ -173,11 +173,14 @@ module Hub
 
         apply_authentication(req, url)
         yield req if block_given?
-        res = http.start { http.request(req) }
-        res.extend ResponseMethods
-        res
-      rescue SocketError => err
-        raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+
+        begin
+          res = http.start { http.request(req) }
+          res.extend ResponseMethods
+          return res
+        rescue SocketError => err
+          raise Context::FatalError, "error with #{type.to_s.upcase} #{url} (#{err.message})"
+        end
       end
 
       def request_uri url
