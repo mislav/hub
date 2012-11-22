@@ -1,5 +1,6 @@
 ## master
 
+* fix `browse` on Windows
 * fix hub on JRuby
 * try fixing Ruby 1.8.7 error with API requests
 * fix various edge cases around `create` command
