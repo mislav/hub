@@ -40,7 +40,12 @@ Before do
 
   FileUtils.mkdir_p ENV['HOME']
 
-  @aruba_io_wait_seconds = 0.02
+  if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
+    @aruba_timeout_seconds = 5
+    @aruba_io_wait_seconds = 0.1
+  else
+    @aruba_io_wait_seconds = 0.02
+  end
 end
 
 After do
