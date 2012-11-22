@@ -1,4 +1,4 @@
-## master
+## 1.10.3 (2012-11-22)
 
 * fix `browse` on Windows
 * fix hub on JRuby
