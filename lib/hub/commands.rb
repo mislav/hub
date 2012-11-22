@@ -957,6 +957,8 @@ help
         read.close
         write.close
       end
+    rescue NotImplementedError
+      # fork might not available, such as in JRuby
     end
 
     def pullrequest_editmsg(changes)
