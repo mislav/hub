@@ -117,3 +117,15 @@ Feature: hub create
     When I successfully run `hub create`
     Then the url for "origin" should be "git@github.com:Mooslav/myconfig.git"
     And the output should contain exactly "created repository: Mooslav/myconfig\n"
+
+  Scenario: Current directory contains spaces
+    Given I am in "my dot files" git repo
+    Given the GitHub API server:
+      """
+      post('/user/repos') {
+        halt 400 unless params[:name] == 'my-dot-files'
+        json :full_name => 'mislav/my-dot-files'
+      }
+      """
+    When I successfully run `hub create`
+    Then the url for "origin" should be "git@github.com:mislav/my-dot-files.git"

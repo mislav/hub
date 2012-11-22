@@ -220,6 +220,7 @@ module Hub
 
       def initialize(*args)
         super
+        self.name = self.name.tr(' ', '-')
         self.host ||= (local_repo || LocalRepo).default_host
         self.host = host.sub(/^ssh\./i, '') if 'ssh.github.com' == host.downcase
       end
