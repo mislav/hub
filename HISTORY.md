@@ -1,5 +1,9 @@
 ## master
 
+* fix hub on JRuby
+* try fixing Ruby 1.8.7 error with API requests
+* fix various edge cases around `create` command
+* have `fork` set up a remote even if own fork already exists
 * fix `pull-request` with Unicode chars on Ruby 1.8
 * respect $GITHUB_USER & $GITHUB_PASSWORD
 * improve reading git remotes configuration
