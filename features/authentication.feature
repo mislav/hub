@@ -13,7 +13,12 @@ Feature: OAuth authentication
         halt 400 unless params[:scopes] == ['repo']
         json :token => 'OTOKEN'
       }
+      get('/user') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        json :login => 'MiSlAv'
+      }
       post('/user/repos') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -23,6 +28,7 @@ Feature: OAuth authentication
     Then the output should contain "github.com username:"
     And the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
+    And the file "../home/.config/hub" should contain "user: MiSlAv"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
     And the file "../home/.config/hub" should have mode "0600"
 
@@ -37,6 +43,9 @@ Feature: OAuth authentication
           {:token => 'SKIPPD', :app => {:url => 'http://example.com'}},
           {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
         ]
+      }
+      get('/user') {
+        json :login => 'mislav'
       }
       post('/user/repos') {
         json :full_name => 'mislav/dotfiles'
@@ -59,6 +68,9 @@ Feature: OAuth authentication
         json [
           {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
         ]
+      }
+      get('/user') {
+        json :login => 'mislav'
       }
       post('/user/repos') {
         json :full_name => 'mislav/dotfiles'

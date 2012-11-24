@@ -66,7 +66,7 @@ module Hub
 
     # Public: Create a new project.
     def create_repo project, options = {}
-      is_org = project.owner != config.username(api_host(project.host))
+      is_org = project.owner.downcase != config.username(api_host(project.host)).downcase
       params = { :name => project.name, :private => !!options[:private] }
       params[:description] = options[:description] if options[:description]
       params[:homepage]    = options[:homepage]    if options[:homepage]
@@ -115,6 +115,7 @@ module Hub
     # Requires access to a `config` object that implements:
     # - proxy_uri(with_ssl)
     # - username(host)
+    # - update_username(host, old_username, new_username)
     # - password(host, user)
     module HttpMethods
       # Decorator for Net::HTTPResponse
@@ -234,10 +235,18 @@ module Hub
         if (req.path =~ /\/authorizations$/)
           super
         else
+          refresh = false
           user = url.user || config.username(url.host)
           token = config.oauth_token(url.host, user) {
+            refresh = true
             obtain_oauth_token url.host, user
           }
+          if refresh
+            # get current user info user to persist correctly capitalized login name
+            res = get "https://#{url.host}/user"
+            res.error! unless res.success?
+            config.update_username(url.host, user, res.data['login'])
+          end
           req['Authorization'] = "token #{token}"
         end
       end
@@ -337,6 +346,12 @@ module Hub
           else prompt "#{host} username"
           end
         end
+      end
+
+      def update_username host, old_username, new_username
+        entry = @data.entry_for_user(normalize_host(host), old_username)
+        entry['user'] = new_username
+        @data.save
       end
 
       def api_token host, user
