@@ -8,6 +8,7 @@ Gem::Specification.new do |s|
   s.homepage          = "http://defunkt.io/hub/"
   s.email             = "mislav.marohnic@gmail.com"
   s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
+  s.license           = "MIT"
 
   s.add_development_dependency 'rake'
   s.add_development_dependency 'webmock'
