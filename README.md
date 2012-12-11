@@ -359,6 +359,15 @@ $ git clone defunkt/repl
 < https clone >
 ~~~
 
+### Github Enterprise
+
+Hub supports connecting to a Github Enterprise server.
+
+~~~ sh
+$ git config --global --add hub.host my.git.org
+$ git config --global github."my.git.org".user mislav
+~~~
+
 
 Contributing
 ------------
