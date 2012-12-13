@@ -186,6 +186,9 @@ module Hub
       args.replace [pull['html_url']]
     rescue GitHubAPI::Exceptions
       display_api_exception("creating pull request", $!.response)
+      if options.has_key?(:issue) and 422 == $!.response.status and $!.response.message == "Unprocessable Entity"
+        $stderr.puts "Remember that you can only attach pull requests to your own issues"
+      end
       exit 1
     end
 
