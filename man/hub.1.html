@@ -175,8 +175,9 @@ subpage: one of "wiki", "commits", "issues" or other (the default is
 the range of history to compare. If a range with two dots (<code>a..b</code>) is given,
 it will be transformed into one with three dots. If <var>START</var> is omitted,
 GitHub will compare against the base branch (the default is "master").</p></dd>
-<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
-adds a new remote for it under your username.</p></dd>
+<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub,
+renames the current "origin" branch to "upstream", and creates a new
+"origin" branch with your fork.</p></dd>
 <dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of

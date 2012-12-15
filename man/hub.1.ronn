@@ -132,8 +132,9 @@ hub also adds some custom commands that are otherwise not present in git:
     GitHub will compare against the base branch (the default is "master").
 
   * `git fork` [`--no-remote`]:
-    Forks the original project (referenced by "origin" remote) on GitHub and
-    adds a new remote for it under your username.
+    Forks the original project (referenced by "origin" remote) on GitHub, renames
+    the current "origin" branch to "upstream", and creates a new "origin" branch
+    with your fork.
 
   * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]:
     Opens a pull request on GitHub for the project that the "origin" remote

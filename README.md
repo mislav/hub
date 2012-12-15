@@ -219,7 +219,8 @@ superpowers:
 
     $ git fork
     [ repo forked on GitHub ]
-    > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+    > git remote rename origin upstream
+    > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
 
 ### git pull-request
 

@@ -481,8 +481,10 @@ module Hub
         exit
       else
         url = forked_project.git_url(:private => true, :https => https_protocol?)
-        args.replace %W"remote add -f #{forked_project.owner} #{url}"
-        args.after 'echo', ['new remote:', forked_project.owner]
+        args.before 'git', %W"remote rename origin upstream"
+        args.replace %W"remote add -f origin #{url}"
+        args.after 'echo', ['-e',
+          'renamed remote: origin -> upstream\nnew remote (your fork): origin']
       end
     rescue GitHubAPI::Exceptions
       display_api_exception("creating fork", $!.response)
