@@ -130,7 +130,12 @@ module Hub
           data['errors'].map do |err|
             case err['code']
             when 'custom'        then err['message']
-            when 'missing_field' then "field '%s' is missing" % err['field']
+            when 'missing_field'
+              %(Missing field: "%s") % err['field']
+            when 'invalid'
+              %(Invalid value for "%s": "%s") % [ err['field'], err['value'] ]
+            when 'unauthorized'
+              %(Not allowed to change field "%s") % err['field']
             end
           end.compact if data['errors']
         end
