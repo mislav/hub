@@ -433,7 +433,10 @@ module Hub
       editor = git_command 'var GIT_EDITOR'
       editor = ENV[$1] if editor =~ /^\$(\w+)$/
       editor = File.expand_path editor if (editor =~ /^[~.]/ or editor.index('/')) and editor !~ /["']/
-      editor.shellsplit
+      # avoid shellsplitting "C:\Program Files"
+      if File.exist? editor then [editor]
+      else editor.shellsplit
+      end
     end
 
     module System
@@ -481,6 +484,10 @@ module Hub
       # Returns a Boolean.
       def command?(name)
         !which(name).nil?
+      end
+
+      def tmp_dir
+        ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
       end
     end
 

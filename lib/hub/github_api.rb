@@ -396,9 +396,11 @@ module Hub
         end
       end
 
-      # FIXME: probably not cross-platform
+      NULL = defined?(File::NULL) ? File::NULL :
+               File.exist?('/dev/null') ? '/dev/null' : 'NUL'
+
       def askpass
-        tty_state = `stty -g`
+        tty_state = `stty -g 2>#{NULL}`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
         while char = $stdin.getbyte and !(char == 13 or char == 10)

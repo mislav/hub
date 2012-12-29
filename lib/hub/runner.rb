@@ -48,17 +48,12 @@ module Hub
       if args.noop?
         puts commands
       elsif not args.skip?
-        if args.chained?
-          execute_command_chain
-        else
-          exec(*args.to_exec)
-        end
+        execute_command_chain args.commands
       end
     end
 
     # Runs multiple commands in succession; exits at first failure.
-    def execute_command_chain
-      commands = args.commands
+    def execute_command_chain commands
       commands.each_with_index do |cmd, i|
         if cmd.respond_to?(:call) then cmd.call
         elsif i == commands.length - 1
@@ -67,6 +62,15 @@ module Hub
         else
           exit($?.exitstatus) unless system(*cmd)
         end
+      end
+    end
+
+    # Special-case `echo` for Windows
+    def exec *args
+      if args.first == 'echo' && Context::windows?
+        puts args[1..-1].join(' ')
+      else
+        super
       end
     end
   end
