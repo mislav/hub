@@ -23,6 +23,15 @@ Dependencies:
 * **git 1.7.3** or newer
 * **Ruby 1.8.6** or newer
 
+### Installing on Windows
+
+1.  Install [Git for Windows](http://msysgit.github.com/)
+2.  Install Ruby with [RubyInstaller](http://rubyinstaller.org/)
+3.  Add ruby\bin\ to your system `PATH` variable
+4.  Download [hub](http://defunkt.io/hub/standalone) (you **must** save it as "hub", not "standalone") into your git\bin\ folder
+
+msysgit is required, because it contains
+
 ### Homebrew
 
 Installing on OS X is easiest with Homebrew:
