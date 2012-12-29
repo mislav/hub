@@ -152,12 +152,12 @@ task :homebrew do
     sh 'git pull -q origin master'
 
     formula_file = 'Library/Formula/hub.rb'
-    md5 = `curl -#L https://github.com/defunkt/hub/tarball/v#{Hub::VERSION} | md5`.chomp
-    abort unless $?.success? and md5.length == 32
+    sha = `curl -#L https://github.com/defunkt/hub/tarball/v#{Hub::VERSION} | shasum`.split(/\s+/).first
+    abort unless $?.success? and sha.length == 40
 
     formula = File.read formula_file
     formula.sub! /\bv\d+(\.\d+)*/, "v#{Hub::VERSION}"
-    formula.sub! /\b[0-9a-f]{32}\b/, md5
+    formula.sub! /\b[0-9a-f]{40}\b/, sha
     File.open(formula_file, 'w') {|f| f << formula }
 
     branch = "hub-v#{Hub::VERSION}"
