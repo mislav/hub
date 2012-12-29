@@ -11,7 +11,6 @@ module Hub
     def initialize(*args)
       super
       @executable = ENV["GIT"] || "git"
-      @after = nil
       @skip = @noop = false
       @original_args = args.first
       @chain = [nil]
