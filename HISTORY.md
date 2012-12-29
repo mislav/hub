@@ -1,3 +1,9 @@
+## 1.10.4 (2012-12-29)
+
+* fixes for Windows
+* display more validation errors on GitHub API failures
+* persist correctly capitalized GitHub login name
+
 ## 1.10.3 (2012-11-22)
 
 * fix `browse` on Windows
