@@ -7,7 +7,7 @@
 #
 
 module Hub
-  Version = VERSION = '1.10.3'
+  Version = VERSION = '1.10.4'
 end
 
 module Hub
@@ -17,7 +17,6 @@ module Hub
     def initialize(*args)
       super
       @executable = ENV["GIT"] || "git"
-      @after = nil
       @skip = @noop = false
       @original_args = args.first
       @chain = [nil]
@@ -228,7 +227,7 @@ module Hub
     end
 
     def create_repo project, options = {}
-      is_org = project.owner != config.username(api_host(project.host))
+      is_org = project.owner.downcase != config.username(api_host(project.host)).downcase
       params = { :name => project.name, :private => !!options[:private] }
       params[:description] = options[:description] if options[:description]
       params[:homepage]    = options[:homepage]    if options[:homepage]
@@ -282,7 +281,12 @@ module Hub
           data['errors'].map do |err|
             case err['code']
             when 'custom'        then err['message']
-            when 'missing_field' then "field '%s' is missing" % err['field']
+            when 'missing_field'
+              %(Missing field: "%s") % err['field']
+            when 'invalid'
+              %(Invalid value for "%s": "%s") % [ err['field'], err['value'] ]
+            when 'unauthorized'
+              %(Not allowed to change field "%s") % err['field']
             end
           end.compact if data['errors']
         end
@@ -384,10 +388,17 @@ module Hub
         if (req.path =~ /\/authorizations$/)
           super
         else
+          refresh = false
           user = url.user || config.username(url.host)
           token = config.oauth_token(url.host, user) {
+            refresh = true
             obtain_oauth_token url.host, user
           }
+          if refresh
+            res = get "https://#{url.host}/user"
+            res.error! unless res.success?
+            config.update_username(url.host, user, res.data['login'])
+          end
           req['Authorization'] = "token #{token}"
         end
       end
@@ -482,6 +493,12 @@ module Hub
         end
       end
 
+      def update_username host, old_username, new_username
+        entry = @data.entry_for_user(normalize_host(host), old_username)
+        entry['user'] = new_username
+        @data.save
+      end
+
       def api_token host, user
         host = normalize_host host
         @data.fetch_value host, user, :api_token do
@@ -517,8 +534,11 @@ module Hub
         end
       end
 
+      NULL = defined?(File::NULL) ? File::NULL :
+               File.exist?('/dev/null') ? '/dev/null' : 'NUL'
+
       def askpass
-        tty_state = `stty -g`
+        tty_state = `stty -g 2>#{NULL}`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
         while char = $stdin.getbyte and !(char == 13 or char == 10)
@@ -966,7 +986,9 @@ module Hub
       editor = git_command 'var GIT_EDITOR'
       editor = ENV[$1] if editor =~ /^\$(\w+)$/
       editor = File.expand_path editor if (editor =~ /^[~.]/ or editor.index('/')) and editor !~ /["']/
-      editor.shellsplit
+      if File.exist? editor then [editor]
+      else editor.shellsplit
+      end
     end
 
     module System
@@ -1003,6 +1025,10 @@ module Hub
 
       def command?(name)
         !which(name).nil?
+      end
+
+      def tmp_dir
+        ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
       end
     end
 
@@ -1486,7 +1512,7 @@ module Hub
         url = url.sub(%r{(/pull/\d+)/\w*$}, '\1') unless gist
         ext = gist ? '.txt' : '.patch'
         url += ext unless File.extname(url) == ext
-        patch_file = File.join(ENV['TMPDIR'] || '/tmp', "#{gist ? 'gist-' : ''}#{File.basename(url)}")
+        patch_file = File.join(tmp_dir, "#{gist ? 'gist-' : ''}#{File.basename(url)}")
         args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
         args[idx] = patch_file
       end
@@ -2004,16 +2030,11 @@ module Hub
       if args.noop?
         puts commands
       elsif not args.skip?
-        if args.chained?
-          execute_command_chain
-        else
-          exec(*args.to_exec)
-        end
+        execute_command_chain args.commands
       end
     end
 
-    def execute_command_chain
-      commands = args.commands
+    def execute_command_chain commands
       commands.each_with_index do |cmd, i|
         if cmd.respond_to?(:call) then cmd.call
         elsif i == commands.length - 1
@@ -2021,6 +2042,14 @@ module Hub
         else
           exit($?.exitstatus) unless system(*cmd)
         end
+      end
+    end
+
+    def exec *args
+      if args.first == 'echo' && Context::windows?
+        puts args[1..-1].join(' ')
+      else
+        super
       end
     end
   end
