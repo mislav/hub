@@ -48,6 +48,15 @@ git version 1.7.6
 hub version 1.8.3
 ~~~
 
+#### On Windows
+
+If you have mysysgit, open "Git Bash" and follow the steps above but put the
+`hub` executable in `/bin` instead of `~/bin`.
+
+Avoid aliasing hub as `git` due to the fact that mysysgit automatically
+configures your prompt to include git information, and you want to avoid slowing
+that down. See [Is your shell prompt slow?](#is-your-shell-prompt-slow)
+
 ### RubyGems
 
 Though not recommended, hub can also be installed as a RubyGem:
