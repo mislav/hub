@@ -27,7 +27,7 @@ Feature: hub merge
       Add `hub merge` command
       """
 
-  Scenario: Merge pull request
+  Scenario: Merge private pull request
     Given the GitHub API server:
       """
       require 'json'
