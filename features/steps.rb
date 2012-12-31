@@ -47,6 +47,8 @@ Given /^a git repo in "([^"]*)"$/ do |dir_name|
   step %(a directory named "#{dir_name}")
   dirs << dir_name
   step %(I successfully run `git init --quiet`)
+  step %(I successfully run `git config user.name Hub`)
+  step %(I successfully run `git config user.email '<hub@test.local>'`)
   dirs.pop
 end
 
