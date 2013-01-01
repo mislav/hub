@@ -38,6 +38,13 @@ Before do
   # ensure that api.github.com is actually never hit in tests
   set_env 'HUB_TEST_HOST', '127.0.0.1:0'
 
+  author_name  = "Hub"
+  author_email = "hub@test.local"
+  set_env 'GIT_AUTHOR_NAME',     author_name
+  set_env 'GIT_COMMITTER_NAME',  author_name
+  set_env 'GIT_AUTHOR_EMAIL',    author_email
+  set_env 'GIT_COMMITTER_EMAIL', author_email
+
   FileUtils.mkdir_p ENV['HOME']
 
   if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
@@ -128,9 +135,7 @@ World Module.new {
   end
 
   def empty_commit
-    run_silent "git commit --quiet -m ''" <<
-      " --allow-empty --allow-empty-message" <<
-      " --author 'Hub <hub@test.local>'"
+    run_silent "git commit --quiet -m '' --allow-empty --allow-empty-message"
   end
 
   # Aruba unnecessarily creates new Announcer instance on each invocation
