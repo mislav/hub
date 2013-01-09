@@ -274,6 +274,11 @@ superpowers:
     [ repo created in GitHub organization ]
     > git remote add origin git@github.com:sinatra/recipes.git
 
+### git delete
+
+    $ git delete NAME
+    [ repo NAME is deleted from GitHub ]
+
 ### git init
 
     $ git init -g

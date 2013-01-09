@@ -14,6 +14,7 @@ alias
 pull-request
 fork
 create
+delete
 browse
 compare
 EOF

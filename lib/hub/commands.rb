@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create delete browse compare fork pull-request]
 
     def run(args)
       slurp_global_flags(args)
@@ -547,6 +547,26 @@ module Hub
       exit 1
     end
 
+    # $ hub delete
+    # ... delete an existing repo on github ...
+    def delete(args)
+      owner = github_user
+      args.shift
+
+      name = args.shift
+      project = github_project(name, owner)
+
+      if !api_client.repo_exists?(project)
+        abort "#{name} doesn't exist on #{project.host}"
+      end
+
+      api_client.delete_repo(project)
+      args.skip!
+    rescue GitHubAPI::Exceptions
+      display_api_exception("deleting repository", $!.response)
+      exit 1
+    end
+
     # $ hub push origin,staging cool-feature
     # > git push origin cool-feature
     # > git push staging cool-feature
@@ -817,6 +837,7 @@ GitHub Commands:
    pull-request   Open a pull request on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
    create         Create this repository on GitHub and add GitHub as origin
+   delete         Delete an existing GitHub repository
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
 

@@ -80,6 +80,13 @@ module Hub
       res.data
     end
 
+    # Public: Delete a project.
+    def delete_repo project
+      res = delete "https://%s/repos/%s/%s" % [api_host(project.host), project.owner, project.name]
+      res.error! unless res.success?
+      res.data
+    end
+
     # Public: Fetch info about a pull request.
     def pullrequest_info project, pull_id
       res = get "https://%s/repos/%s/%s/pulls/%d" %
@@ -154,6 +161,10 @@ module Hub
           yield req if block_given?
           req['Content-Length'] = byte_size req.body
         end
+      end
+
+      def delete url, &block
+        perform_request url, :Delete, &block
       end
 
       def byte_size str
@@ -266,7 +277,7 @@ module Hub
         else
           # create a new authorization
           res = post "https://#{user}@#{host}/authorizations",
-            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url
+            :scopes => %w[repo delete_repo], :note => 'hub', :note_url => oauth_app_url
           res.error! unless res.success?
           res.data['token']
         end

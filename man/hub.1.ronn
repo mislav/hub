@@ -24,6 +24,7 @@ hub(1) -- git + hub = github
 ### Custom git commands:
 
 `git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]  
+`git delete` [<NAME>]  
 `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
 `git fork` [`--no-remote`]  
@@ -115,6 +116,9 @@ hub also adds some custom commands that are otherwise not present in git:
     <ORGANIZATION>/<NAME> form to create under an organization you're a
     member of. With `-p`, create a private repository, and with `-d` and `-h`
     set the repository's description and homepage URL, respectively.
+
+  * `git delete` [<NAME>]:
+    Delete an existing GitHub repository specified by <NAME>.
 
   * `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]:
     Open repository's GitHub page in the system's default web browser using
