@@ -14,6 +14,7 @@ if declare -f _git_commands > /dev/null; then
     'pull-request:open a pull request on GitHub'
     'fork:fork origin repo on GitHub'
     'create:create new repo on GitHub for the current project'
+    'delete:delete an existing repo on GitHub'
     'browse:browse the project on GitHub'
     'compare:open GitHub compare view'
   )

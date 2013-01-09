@@ -97,6 +97,7 @@
 <h3 id="Custom-git-commands-">Custom git commands:</h3>
 
 <p><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]<br />
+<code>git delete</code> [<var>NAME</var>]<br />
 <code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
 <code>git fork</code> [<code>--no-remote</code>]<br />
@@ -164,6 +165,7 @@ To explicitly name the new repository, pass in <var>NAME</var>, optionally in
 <var>ORGANIZATION</var>/<var>NAME</var> form to create under an organization you're a
 member of. With <code>-p</code>, create a private repository, and with <code>-d</code> and <code>-h</code>
 set the repository's description and homepage URL, respectively.</p></dd>
+<dt><code>git delete</code> [<var>NAME</var>]</dt><dd><p>Delete an existing GitHub repository specified by <var>NAME</var>.</p></dd>
 <dt><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser using
 <code>open(1)</code> or the <code>BROWSER</code> env variable. If the repository isn't
 specified, <code>browse</code> opens the page of the repository found in the current
@@ -349,6 +351,12 @@ $ git create sinatra/recipes
 &gt; git remote add origin git@github.com:sinatra/recipes.git
 </code></pre>
 
+<h3 id="git-delete">git delete</h3>
+
+<pre><code>$ git delete NAME
+[ repo NAME is deleted from GitHub ]
+</code></pre>
+
 <h3 id="git-init">git init</h3>
 
 <pre><code>$ git init -g
@@ -440,7 +448,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>November 2012</li>
+    <li class='tc'>January 2013</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
