@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request merge-button]
 
     def run(args)
       slurp_global_flags(args)
@@ -360,6 +360,27 @@ module Hub
         args.delete_at idx
         args.insert idx, '--track', '-B', new_branch_name, "#{user}/#{branch}"
       end
+    end
+
+    # $ git merge-button https://github.com/defunkt/hub/pull/73
+    # > push the GitHub Merge Button (TM) for #73
+    def merge_button(args)
+      _, url_arg = args.words
+      if url = resolve_github_url(url_arg) and url.project_path =~ /^pull\/(\d+)/
+        pull_id = $1
+        options = {
+          :project => url.project,
+          :pull_id => pull_id,
+        }
+        merge = api_client.merge_pullrequest(options)
+        args.executable = 'echo'
+        args.replace ['merged', pull_id]
+      else
+        raise "Not a GitHub URL"
+      end
+    rescue GitHubAPI::Exceptions
+      display_api_exception("pushing merge button", $!.response)
+      exit 1
     end
 
     # $ git merge https://github.com/defunkt/hub/pull/73
