@@ -400,7 +400,7 @@ module Hub
       args.executable = 'echo'
       args.replace ['merged', '%s#%s' % [project.name_with_owner, pull_id]]
     rescue GitHubAPI::Exceptions
-      display_api_exception("pushing merge button", $!.response)
+      display_api_exception("pushing merge button", $!.response, $!.data)
       exit 1
     end
 
@@ -1048,8 +1048,11 @@ help
       end
     end
     
-    def display_api_exception(action, response)
+    def display_api_exception(action, response, message=nil)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
+      if message
+        $stderr.puts message
+      end
       if 422 == response.status and response.error_message?
         # display validation errors
         msg = response.error_message
