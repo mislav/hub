@@ -365,19 +365,37 @@ module Hub
     # $ git merge-button https://github.com/defunkt/hub/pull/73
     # > push the GitHub Merge Button (TM) for #73
     def merge_button(args)
-      _, url_arg = args.words
-      if url = resolve_github_url(url_arg) and url.project_path =~ /^pull\/(\d+)/
-        pull_id = $1
-        options = {
-          :project => url.project,
-          :pull_id => pull_id,
-        }
-        merge = api_client.merge_pullrequest(options)
-        args.executable = 'echo'
-        args.replace ['merged', pull_id]
-      else
-        raise "Not a GitHub URL"
+      args.shift
+      project = pull_id = commit_message = nil
+      while arg = args.shift
+        case arg
+        when '-m'
+          commit_message = args.shift
+        else
+          if url = resolve_github_url(arg) and url.project_path =~ /^pull\/(\d+)/
+            pull_id = $1
+            project = url.project
+          else
+            abort "invalid argument: #{arg}"
+          end
+        end
       end
+      if !project
+        abort "usage: project not specified"
+      end
+      if !pull_id
+        abort "usage: pull ID not specified"
+      end
+      options = {
+        :project => project,
+        :pull_id => pull_id,
+      }
+      if commit_message
+        options[:commit_message] = commit_message
+      end
+      merge = api_client.merge_pullrequest(options)
+      args.executable = 'echo'
+      args.replace ['merged', pull_id]
     rescue GitHubAPI::Exceptions
       display_api_exception("pushing merge button", $!.response)
       exit 1
