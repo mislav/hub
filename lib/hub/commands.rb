@@ -366,11 +366,14 @@ module Hub
     # > push the GitHub Merge Button (TM) for #73
     def merge_button(args)
       args.shift
-      project = pull_id = commit_message = nil
+      project = local_repo.main_project
+      pull_id = commit_message = nil
       while arg = args.shift
         case arg
         when '-m'
           commit_message = args.shift
+        when '-i'
+          pull_id = args.shift
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^pull\/(\d+)/
             pull_id = $1
@@ -395,7 +398,7 @@ module Hub
       end
       merge = api_client.merge_pullrequest(options)
       args.executable = 'echo'
-      args.replace ['merged', pull_id]
+      args.replace ['merged', '%s#%s' % [project.name_with_owner, pull_id]]
     rescue GitHubAPI::Exceptions
       display_api_exception("pushing merge button", $!.response)
       exit 1
