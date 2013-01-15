@@ -857,6 +857,7 @@ Advanced Commands:
 
 GitHub Commands:
    pull-request   Open a pull request on GitHub
+   merge-button   Push the GitHub Merge Button (TM) for a pull request
    fork           Make a fork of a remote repository on GitHub and add as remote
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser

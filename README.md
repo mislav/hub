@@ -257,6 +257,20 @@ superpowers:
     > git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
     > git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
 
+### git merge-button
+
+    # explicit owner/repo
+    $ git merge-button https://github.com/defunkt/hub/pull/73
+    [ push the GitHub Merge Button (TM) for pull request #73 ]
+
+    # use the owner/repo referenced by the  "origin" remote
+    $ git merge-button -i 73
+    [ push the GitHub Merge Button (TM) for pull request #73 ]
+
+    # add additional comments to the merge commit
+    $ git merge-button -m 'This fixes #some-bug.' -i 73
+    [ push the GitHub Merge Button (TM) for pull request #73 ]
+
 ### git create
 
     $ git create
