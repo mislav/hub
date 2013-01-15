@@ -146,7 +146,15 @@ module Hub
       end
 
       def post url, params = nil
-        perform_request url, :Post do |req|
+        _post url, :Post, params
+      end
+
+      def put url, params = nil
+        _post url, :Put, params
+      end
+
+      def _post url, type, params = nil
+        perform_request url, type do |req|
           if params
             req.body = JSON.dump params
             req['Content-Type'] = 'application/json;charset=utf-8'
