@@ -231,8 +231,8 @@ module Hub
     # $ hub submodule add -p wycats/bundler vendor/bundler
     # > git submodule add git@github.com:wycats/bundler.git vendor/bundler
     #
-    # $ hub submodule add -b ryppl ryppl/pip vendor/bundler
-    # > git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
+    # $ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
+    # > git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
     def submodule(args)
       return unless index = args.index('add')
       args.delete_at index
@@ -243,8 +243,17 @@ module Hub
         branch_name = args.delete_at branch
       end
 
+      name = args.index('--name')
+      if name
+        args.delete_at name
+        submodule_name = args.delete_at name
+      end
+
       clone(args)
 
+      if submodule_name
+        args.insert name, '--name', submodule_name
+      end
       if branch_name
         args.insert branch, '-b', branch_name
       end
