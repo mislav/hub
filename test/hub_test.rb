@@ -257,6 +257,11 @@ class HubTest < Test::Unit::TestCase
                     "push origin,staging master new-feature"
   end
 
+  def test_statuses
+    expected = "No commit SHA given\n"
+    assert_output expected, "statuses"
+  end
+
   def test_pullrequest
     expected = "Aborted: head branch is the same as base (\"master\")\n" <<
       "(use `-h <branch>` to specify an explicit pull request head)\n"

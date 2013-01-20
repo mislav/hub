@@ -110,6 +110,14 @@ module Hub
       res.data
     end
 
+    def statuses project, sha
+      res = get "https://%s/repos/%s/%s/statuses/%s" %
+        [api_host(project.host), project.owner, project.name, sha]
+
+      res.error! unless res.success?
+      res.data
+    end
+
     # Methods for performing HTTP requests
     #
     # Requires access to a `config` object that implements:

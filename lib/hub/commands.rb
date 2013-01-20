@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request statuses]
 
     def run(args)
       slurp_global_flags(args)
@@ -68,6 +68,22 @@ module Hub
       end
     rescue Context::FatalError => err
       abort "fatal: #{err.message}"
+    end
+
+    def statuses(args)
+      args.shift
+      head_project = local_repo.current_project
+
+      sha = args.shift
+
+      if sha.nil?
+        abort "No commit SHA given"
+      end
+
+      status = api_client.statuses(head_project, sha)
+
+      args.executable = 'echo'
+      args.replace [status.inspect]
     end
 
     # $ hub pull-request
