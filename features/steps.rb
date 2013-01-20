@@ -83,6 +83,18 @@ Given /^the GitHub API server:$/ do |endpoints_str|
   set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
 end
 
+Given /^a HEAD commit with GitHub status "([^"]*)"$/ do |status|
+  empty_commit
+  commit_sha = run_silent %(git rev-parse HEAD)
+  status_endpoint = <<-EOS
+    get('/repos/michiels/pencilbox/statuses/#{commit_sha}') {
+      json [ { :state => "#{status}" } ]
+    }
+  EOS
+
+  step %{the GitHub API server:}, status_endpoint
+end
+
 Then /^shell$/ do
   in_current_dir do
     system '/bin/bash -i'

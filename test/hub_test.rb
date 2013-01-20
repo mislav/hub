@@ -257,6 +257,30 @@ class HubTest < Test::Unit::TestCase
                     "push origin,staging master new-feature"
   end
 
+  def test_ci_status_use_last_sha
+    stub_command_output "rev-parse -q HEAD", "head_sha"
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/statuses/head_sha").to_return(:body => Hub::JSON.generate([ { :state => "success" } ]))
+
+    expected = "success\n"
+    assert_output expected, "ci-status"
+  end
+
+  def test_ci_status_with_sha
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/statuses/sha").to_return(:body => Hub::JSON.generate([ { :state => "failure" } ]))
+
+    expected = "failure\n"
+    assert_output expected, "ci-status sha"
+  end
+
+  def test_ci_status_without_github_project
+    stub_repo_url('gh:singingwolfboy/sekrit.git')
+    stub_branch('refs/heads/feature')
+    stub_tracking('feature', 'origin', 'feature')
+
+    expected = "Aborted: the origin remote doesn't point to a GitHub repository.\n"
+    assert_output expected, "ci-status"
+  end
+
   def test_pullrequest
     expected = "Aborted: head branch is the same as base (\"master\")\n" <<
       "(use `-h <branch>` to specify an explicit pull request head)\n"

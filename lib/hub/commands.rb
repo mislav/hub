@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
 
     def run(args)
       slurp_global_flags(args)
@@ -68,6 +68,46 @@ module Hub
       end
     rescue Context::FatalError => err
       abort "fatal: #{err.message}"
+    end
+
+
+    # $ hub ci-status
+    # $ hub ci-status 6f6d9797f9d6e56c3da623a97cfc3f45daf9ae5f
+    def ci_status(args)
+      args.shift
+      head_project = local_repo.current_project
+
+      unless head_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
+      sha = args.shift
+
+      if sha.nil?
+        sha = local_repo.head_sha
+      end
+
+      statuses = api_client.statuses(head_project, sha)
+
+      if statuses.any?
+        commit_state = statuses.first['state']
+      else
+        commit_state = 'no status'
+      end
+
+      case commit_state
+      when 'success'
+        exitcode = 0
+      when 'failure', 'error'
+        exitcode = 1
+      when 'pending'
+        exitcode = 2
+      else
+        exitcode = 3
+      end
+
+      puts commit_state
+      exit(exitcode)
     end
 
     # $ hub pull-request
@@ -809,6 +849,7 @@ GitHub Commands:
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
+   ci-status      Show the CI status of a commit 
 
 See 'git help <command>' for more information on a specific command.
 help
