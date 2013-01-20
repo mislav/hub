@@ -202,7 +202,7 @@ module Hub
     # > git clone git@github.com:YOUR_LOGIN/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
-      has_values = /^(--(upload-pack|template|depth|origin|branch|reference)|-[ubo])$/
+      has_values = /^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$/
 
       idx = 1
       while idx < args.length
@@ -237,26 +237,7 @@ module Hub
       return unless index = args.index('add')
       args.delete_at index
 
-      branch = args.index('-b') || args.index('--branch')
-      if branch
-        args.delete_at branch
-        branch_name = args.delete_at branch
-      end
-
-      name = args.index('--name')
-      if name
-        args.delete_at name
-        submodule_name = args.delete_at name
-      end
-
       clone(args)
-
-      if submodule_name
-        args.insert name, '--name', submodule_name
-      end
-      if branch_name
-        args.insert branch, '-b', branch_name
-      end
       args.insert index, 'add'
     end
 
