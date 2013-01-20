@@ -1,0 +1,4 @@
+# This directory contains the symlinks named after web browser commands.
+# Ignore everything except for .gitignore itself.
+*
+!.gitignore

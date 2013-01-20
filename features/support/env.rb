@@ -17,14 +17,15 @@ end
 
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
+browser_dir = File.join(bin_dir, 'browser')
 
 Before do
   # don't want hub to run in bundle
   unset_bundler_env_vars
   # have bin/hub load code from the current project
   set_env 'RUBYLIB', lib_dir
-  # put fakebin on the PATH
-  set_env 'PATH', "#{bin_dir}:#{ENV['PATH']}"
+  # put fakebin and fakebin/browser on the PATH
+  set_env 'PATH', "#{bin_dir}:#{browser_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
   set_env 'GIT', nil
   # exclude this project's git directory from use in testing
@@ -46,6 +47,16 @@ Before do
   set_env 'GIT_COMMITTER_EMAIL', author_email
 
   FileUtils.mkdir_p ENV['HOME']
+
+  browser = Hub::Context.browser_launcher[0]
+  fake_browser = File.join(browser_dir, browser)
+  unless browser == 'open' or File.exists?(fake_browser)
+    begin
+      File.symlink(File.join('..', 'open'), fake_browser)
+    rescue NotImplemented
+      # symlink not supported...
+    end
+  end
 
   if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
     @aruba_timeout_seconds = 5
