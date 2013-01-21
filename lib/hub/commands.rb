@@ -81,7 +81,7 @@ module Hub
       sha = args.shift
 
       if sha.nil?
-        abort "No commit SHA given."
+        sha = local_repo.head_sha
       end
 
       statuses = api_client.statuses(head_project, sha)

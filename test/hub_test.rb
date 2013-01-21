@@ -257,9 +257,12 @@ class HubTest < Test::Unit::TestCase
                     "push origin,staging master new-feature"
   end
 
-  def test_last_status
-    expected = "No commit SHA given.\n"
-    assert_output expected, "last-status"
+  def test_ci_status_use_last_sha
+    stub_command_output "rev-parse -q HEAD", "head_sha"
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/statuses/head_sha").to_return(:body => Hub::JSON.generate([ { :state => "success" } ]))
+
+    expected = "success\n"
+    assert_output expected, "ci-status"
   end
 
   def test_last_status_with_sha
