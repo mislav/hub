@@ -625,7 +625,7 @@ module Hub
             abort "Usage: hub compare [USER] [<START>...]<END>"
           end
         else
-          sha_or_tag = /(\w{1,2}|\w[\w.-]+\w)/
+          sha_or_tag = /((?:#{OWNER_RE}:)?\w[\w.-]+\w)/
           # replaces two dots with three: "sha1...sha2"
           range = args.pop.sub(/^#{sha_or_tag}\.\.#{sha_or_tag}$/, '\1...\2')
           project = if owner = args.pop then github_project(nil, owner)

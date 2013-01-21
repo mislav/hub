@@ -44,6 +44,11 @@ Feature: hub browse
     Then there should be no output
     And "open https://github.com/mislav/dotfiles/compare/1234abc...3456cde" should be run
 
+  Scenario: Compare 2-dots range with "user:repo" notation
+    When I successfully run `hub compare henrahmagix:master..2b10927`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/henrahmagix:master...2b10927" should be run
+
   Scenario: Complex range is unchanged
     When I successfully run `hub compare @{a..b}..@{c..d}`
     Then there should be no output
