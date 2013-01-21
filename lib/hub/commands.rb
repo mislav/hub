@@ -74,6 +74,10 @@ module Hub
       args.shift
       head_project = local_repo.current_project
 
+      unless head_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
       sha = args.shift
 
       if sha.nil?

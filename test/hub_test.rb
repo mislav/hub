@@ -267,6 +267,13 @@ class HubTest < Test::Unit::TestCase
 
     expected = "failure\n"
     assert_output expected, "last-status sha"
+  def test_ci_status_without_github_project
+    stub_repo_url('gh:singingwolfboy/sekrit.git')
+    stub_branch('refs/heads/feature')
+    stub_tracking('feature', 'origin', 'feature')
+
+    expected = "Aborted: the origin remote doesn't point to a GitHub repository.\n"
+    assert_output expected, "ci-status"
   end
 
   def test_pullrequest
