@@ -265,11 +265,13 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "ci-status"
   end
 
-  def test_last_status_with_sha
+  def test_ci_status_with_sha
     stub_request(:get, "https://api.github.com/repos/defunkt/hub/statuses/sha").to_return(:body => Hub::JSON.generate([ { :state => "failure" } ]))
 
     expected = "failure\n"
-    assert_output expected, "last-status sha"
+    assert_output expected, "ci-status sha"
+  end
+
   def test_ci_status_without_github_project
     stub_repo_url('gh:singingwolfboy/sekrit.git')
     stub_branch('refs/heads/feature')

@@ -86,8 +86,30 @@ module Hub
 
       statuses = api_client.statuses(head_project, sha)
 
+      if statuses.any?
+        commit_state = statuses.first['state']
+        args.replace [commit_state]
+      else
+        commit_state = 'no status'
+      end
+
+      case commit_state
+      when 'success'
+        exitcode = 0
+      when 'failure', 'error'
+        exitcode = 1
+      when 'pending'
+        exitcode = 2
+      else
+        exitcode = 3
+      end
+
       args.executable = 'echo'
-      args.replace [statuses.first['state']]
+      args.replace [commit_state]
+      args.after do
+        Kernel.exit(exitcode)
+      end
+
     end
 
     # $ hub pull-request
