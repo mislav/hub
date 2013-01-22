@@ -104,12 +104,8 @@ module Hub
         exitcode = 3
       end
 
-      args.executable = 'echo'
-      args.replace [commit_state]
-      args.after do
-        Kernel.exit(exitcode)
-      end
-
+      puts commit_state
+      exit(exitcode)
     end
 
     # $ hub pull-request
