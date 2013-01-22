@@ -88,7 +88,6 @@ module Hub
 
       if statuses.any?
         commit_state = statuses.first['state']
-        args.replace [commit_state]
       else
         commit_state = 'no status'
       end
