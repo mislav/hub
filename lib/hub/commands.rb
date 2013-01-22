@@ -70,6 +70,9 @@ module Hub
       abort "fatal: #{err.message}"
     end
 
+
+    # $ hub ci-status
+    # $ hub ci-status 6f6d9797f9d6e56c3da623a97cfc3f45daf9ae5f
     def ci_status(args)
       args.shift
       head_project = local_repo.current_project
