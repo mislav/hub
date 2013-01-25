@@ -22,4 +22,8 @@ EOF
 
   # Ensure cached commands are cleared
   __git_all_commands=""
+
+  # Enable completion for hub even when not using the alias
+  complete -o bashdefault -o default -o nospace -F _git hub 2>/dev/null \
+    || complete -o default -o nospace -F _git hub
 fi
