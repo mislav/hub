@@ -110,6 +110,21 @@ module Hub
       res.data
     end
 
+    # Press the GitHub Merge Button (TM) for a given pull request.
+    def merge_pullrequest options
+      project = options.fetch(:project)
+      pull_id = options.fetch(:pull_id)
+      params = {}
+      if options[:commit_message]
+        params[:commit_message] = options.fetch(:commit_message)
+      end
+      res = put "https://%s/repos/%s/%s/pulls/%s/merge" %
+        [api_host(project.host), project.owner, project.name, pull_id], params
+
+      res.error! unless res.success?
+      res.data
+    end
+
     # Methods for performing HTTP requests
     #
     # Requires access to a `config` object that implements:
@@ -146,7 +161,15 @@ module Hub
       end
 
       def post url, params = nil
-        perform_request url, :Post do |req|
+        _post url, :Post, params
+      end
+
+      def put url, params = nil
+        _post url, :Put, params
+      end
+
+      def _post url, type, params = nil
+        perform_request url, type do |req|
           if params
             req.body = JSON.dump params
             req['Content-Type'] = 'application/json;charset=utf-8'

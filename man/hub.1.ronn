@@ -28,6 +28,7 @@ hub(1) -- git + hub = github
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
 `git fork` [`--no-remote`]  
 `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]  
+`git merge-button` [`-m` <MESSAGE>] (`-i` <PULLREQ-ID>|<PULLREQ-URL>)
 
 ## DESCRIPTION
 
@@ -150,6 +151,16 @@ hub also adds some custom commands that are otherwise not present in git:
     If instead of normal <TITLE> an issue number is given with `-i`, the pull
     request will be attached to an existing GitHub issue. Alternatively, instead
     of title you can paste a full URL to an issue on GitHub.
+
+  * `git merge-button` [`-m` <MESSAGE>] (`-i` <PULLREQ-ID>|<PULLREQ-URL>):
+    Push the GitHub Merge Button (TM) for the pull request. The pull
+    request may be specified with either the full GitHub URL or the
+    `-i` flag. With `-i`, the "owner/repo" defaults to the project
+    that the "origin" remote points to.
+
+    If <MESSAGE> is given, it is used as the body of the commit
+    message. The summary line will still be GitHub's usual Merge
+    Button summary.
 
 ## CONFIGURATION
 

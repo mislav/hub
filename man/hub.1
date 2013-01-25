@@ -63,6 +63,9 @@
 .br
 \fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
 .
+.br
+\fBgit merge\-button\fR [\fB\-m\fR \fIMESSAGE\fR] (\fB\-i\fR \fIPULLREQ\-ID\fR|\fIPULLREQ\-URL\fR)
+.
 .SH "DESCRIPTION"
 hub enhances various git commands to ease most common workflows with GitHub\.
 .
@@ -150,6 +153,13 @@ If \fITITLE\fR is omitted, a text editor will open in which title and body of th
 .
 .IP
 If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
+.
+.TP
+\fBgit merge\-button\fR [\fB\-m\fR \fIMESSAGE\fR] (\fB\-i\fR \fIPULLREQ\-ID\fR|\fIPULLREQ\-URL\fR)
+Push the GitHub Merge Button (TM) for the pull request\. The pull request may be specified with either the full GitHub URL or the \fB-i\fR flag\. With \fB-i\fR, the "owner/repo" defaults to the project that the "origin" remote points to.
+.
+.IP
+If \fIMESSAGE\fR is given, it is used as the body of the commit message. The summary line will still be GitHub's usual Merge Button summary.
 .
 .SH "CONFIGURATION"
 Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.

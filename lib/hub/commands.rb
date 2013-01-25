@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9-]+/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request merge-button]
 
     def run(args)
       slurp_global_flags(args)
@@ -350,6 +350,48 @@ module Hub
         args.delete_at idx
         args.insert idx, '--track', '-B', new_branch_name, "#{user}/#{branch}"
       end
+    end
+
+    # $ git merge-button https://github.com/defunkt/hub/pull/73
+    # > push the GitHub Merge Button (TM) for #73
+    def merge_button(args)
+      args.shift
+      project = local_repo.main_project
+      pull_id = commit_message = nil
+      while arg = args.shift
+        case arg
+        when '-m'
+          commit_message = args.shift
+        when '-i'
+          pull_id = args.shift
+        else
+          if url = resolve_github_url(arg) and url.project_path =~ /^pull\/(\d+)/
+            pull_id = $1
+            project = url.project
+          else
+            abort "invalid argument: #{arg}"
+          end
+        end
+      end
+      if !project
+        abort "usage: project not specified"
+      end
+      if !pull_id
+        abort "usage: pull ID not specified"
+      end
+      options = {
+        :project => project,
+        :pull_id => pull_id,
+      }
+      if commit_message
+        options[:commit_message] = commit_message
+      end
+      merge = api_client.merge_pullrequest(options)
+      args.executable = 'echo'
+      args.replace ['merged', '%s#%s' % [project.name_with_owner, pull_id]]
+    rescue GitHubAPI::Exceptions
+      display_api_exception("pushing merge button", $!.response, $!.data)
+      exit 1
     end
 
     # $ git merge https://github.com/defunkt/hub/pull/73
@@ -805,6 +847,7 @@ Advanced Commands:
 
 GitHub Commands:
    pull-request   Open a pull request on GitHub
+   merge-button   Push the GitHub Merge Button (TM) for a pull request
    fork           Make a fork of a remote repository on GitHub and add as remote
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
@@ -995,8 +1038,11 @@ help
       end
     end
     
-    def display_api_exception(action, response)
+    def display_api_exception(action, response, message=nil)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
+      if message
+        $stderr.puts message
+      end
       if 422 == response.status and response.error_message?
         # display validation errors
         msg = response.error_message

@@ -18,13 +18,11 @@ Feature: hub merge
       """
     And there is a commit named "jfirebaugh/hub_merge"
     When I successfully run `hub merge https://github.com/defunkt/hub/pull/164`
-    Then "git fetch git://github.com/jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
-    When I successfully run `git show -s --format=%B`
+    And I successfully run `git fetch origin`
+    And I successfully run `git log --oneline HEAD..origin/master`
     Then the output should contain:
       """
       Merge pull request #164 from jfirebaugh/hub_merge
-
-      Add `hub merge` command
       """
 
   Scenario: Merge private pull request
@@ -41,7 +39,12 @@ Feature: hub merge
       """
     And there is a commit named "jfirebaugh/hub_merge"
     When I successfully run `hub merge https://github.com/defunkt/hub/pull/164`
-    Then "git fetch git@github.com:jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
+    And I successfully run `git fetch origin`
+    And I successfully run `git log --oneline HEAD..origin/master`
+    Then the output should contain:
+      """
+      Merge pull request #164 from jfirebaugh/hub_merge
+      """
 
   Scenario: Missing repo
     Given the GitHub API server:
