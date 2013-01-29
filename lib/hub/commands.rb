@@ -89,8 +89,8 @@ module Hub
         ref = local_repo.head_sha
       end
 
-      sha = local_repo.git_command("rev-parse '#{ref}'")
-      if sha.empty?
+      sha = local_repo.git_command("rev-parse -q #{ref}")
+      if !sha
         abort "Aborted: no revision could be determined from '#{ref}'"
       end
 
@@ -856,7 +856,7 @@ GitHub Commands:
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
-   ci-status      Show the CI status of a commit 
+   ci-status      Show the CI status of a commit
 
 See 'git help <command>' for more information on a specific command.
 help
@@ -1042,7 +1042,7 @@ help
         end
       end
     end
-    
+
     def display_api_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?

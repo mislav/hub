@@ -259,6 +259,7 @@ class HubTest < Test::Unit::TestCase
 
   def test_ci_status_use_last_sha
     stub_command_output "rev-parse -q HEAD", "head_sha"
+    stub_command_output "rev-parse -q head_sha", "head_sha"
     stub_request(:get, "https://api.github.com/repos/defunkt/hub/statuses/head_sha").to_return(:body => Hub::JSON.generate([ { :state => "success" } ]))
 
     expected = "success\n"
@@ -266,6 +267,7 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_ci_status_with_sha
+    stub_command_output "rev-parse -q sha", "sha"
     stub_request(:get, "https://api.github.com/repos/defunkt/hub/statuses/sha").to_return(:body => Hub::JSON.generate([ { :state => "failure" } ]))
 
     expected = "failure\n"
