@@ -73,6 +73,8 @@ module Hub
 
     # $ hub ci-status
     # $ hub ci-status 6f6d9797f9d6e56c3da623a97cfc3f45daf9ae5f
+    # $ hub ci-status master
+    # $ hub ci-status origin/master
     def ci_status(args)
       args.shift
       head_project = local_repo.current_project
@@ -81,10 +83,15 @@ module Hub
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
       end
 
-      sha = args.shift
+      ref = args.shift
 
-      if sha.nil?
-        sha = local_repo.head_sha
+      if ref.nil?
+        ref = local_repo.head_sha
+      end
+
+      sha = local_repo.git_command("rev-parse -q #{ref}")
+      if !sha
+        abort "Aborted: no revision could be determined from '#{ref}'"
       end
 
       statuses = api_client.statuses(head_project, sha)
@@ -849,7 +856,7 @@ GitHub Commands:
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
-   ci-status      Show the CI status of a commit 
+   ci-status      Show the CI status of a commit
 
 See 'git help <command>' for more information on a specific command.
 help
@@ -1035,7 +1042,7 @@ help
         end
       end
     end
-    
+
     def display_api_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?

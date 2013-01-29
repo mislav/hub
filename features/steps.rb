@@ -83,18 +83,6 @@ Given /^the GitHub API server:$/ do |endpoints_str|
   set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
 end
 
-Given /^a HEAD commit with GitHub status "([^"]*)"$/ do |status|
-  empty_commit
-  commit_sha = run_silent %(git rev-parse HEAD)
-  status_endpoint = <<-EOS
-    get('/repos/michiels/pencilbox/statuses/#{commit_sha}') {
-      json [ { :state => "#{status}" } ]
-    }
-  EOS
-
-  step %{the GitHub API server:}, status_endpoint
-end
-
 Then /^shell$/ do
   in_current_dir do
     system '/bin/bash -i'
@@ -142,4 +130,26 @@ Then /^the file "([^"]*)" should have mode "([^"]*)"$/ do |file, expected_mode|
     mode = File.stat(file).mode
     mode.to_s(8).should =~ /#{expected_mode}$/
   end
+end
+
+Given /^the remote commit states of "(.*?)" "(.*?)" are:$/ do |proj, ref, json_value|
+  if ref == 'HEAD'
+    empty_commit
+  end
+  rev = run_silent %(git rev-parse #{ref})
+
+  status_endpoint = <<-EOS
+    get('/repos/#{proj}/statuses/#{rev}') {
+      json #{json_value}
+    }
+    EOS
+  step %{the GitHub API server:}, status_endpoint
+end
+
+Given /^the remote commit state of "(.*?)" "(.*?)" is "(.*?)"$/ do |proj, ref, status|
+  step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ { :state => \"#{status}\" } ]"
+end
+
+Given /^the remote commit state of "(.*?)" "(.*?)" is nil$/ do |proj, ref|
+  step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ ]"
 end
