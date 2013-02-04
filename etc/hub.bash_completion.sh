@@ -52,7 +52,12 @@ EOF
 
   # hub browse [-u] [--|[USER/]REPOSITORY] [SUBPAGE]
   _git_browse() {
-    local i c=2 u=-u repo subpages="commits issues tree wiki "
+    local i c=2 u=-u repo subpage
+    local -A subpages
+    subpages["/"]="commits issues tree wiki pulls branches stargazers
+      contributors network network/ graphs graphs/"
+    subpages["/network"]="members"
+    subpages["/graphs"]="commit-activity code-frequency punch-card"
     while [ $c -lt $cword ]; do
       i="${words[c]}"
       case "$i" in
@@ -63,7 +68,7 @@ EOF
           if [ -z "$repo" ]; then
             repo=$i
           else
-            unset subpages
+            subpage=$i
           fi
           ;;
       esac
@@ -71,8 +76,18 @@ EOF
     done
     if [ -z "$repo" ]; then
       __gitcomp "$u -- $(__hub_github_repos '\p')"
+    elif [ -z "$subpage" ]; then
+      case "$cur" in
+        */*)
+          local pfx="${cur%/*}" cur_="${cur#*/}"
+          __gitcomp "${subpages[/$pfx]}" "$pfx/" "$cur_"
+          ;;
+        *)
+          __gitcomp "$u ${subpages[/]}"
+          ;;
+      esac
     else
-      __gitcomp "$u $subpages"
+      __gitcomp "$u"
     fi
   }
 
