@@ -185,7 +185,12 @@ module Hub
       args.executable = 'echo'
       args.replace [pull['html_url']]
     rescue GitHubAPI::Exceptions
-      display_api_exception("creating pull request", $!.response)
+      response = $!.response
+      display_api_exception("creating pull request", response)
+      if 404 == response.status
+        base_url = base_project.web_url.split('://', 2).last
+        warn "Are you sure that #{base_url} exists?"
+      end
       exit 1
     end
 

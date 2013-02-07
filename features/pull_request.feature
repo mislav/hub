@@ -47,3 +47,17 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request ăéñøü`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Non-existing base
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    Given the GitHub API server:
+      """
+      post('/repos/origin/coral/pulls') { 404 }
+      """
+    When I run `hub pull-request -b origin:master hereyougo`
+    Then the exit status should be 1
+    Then the stderr should contain:
+      """
+      Error creating pull request: Not Found (HTTP 404)
+      Are you sure that github.com/origin/coral exists?
+      """
