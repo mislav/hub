@@ -1,6 +1,5 @@
 require 'aruba/cucumber'
 require 'fileutils'
-require 'hub/context'
 require 'forwardable'
 
 # needed to avoid "Too many open files" on 1.8.7
@@ -11,10 +10,7 @@ Aruba::Process.class_eval do
   end
 end
 
-unless system_git = Hub::Context.which('git')
-  abort "Error: `git` not found in PATH"
-end
-
+system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
 
