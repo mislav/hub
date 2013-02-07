@@ -77,44 +77,29 @@ module Hub
     # $ hub ci-status origin/master
     def ci_status(args)
       args.shift
-      head_project = local_repo.current_project
+      ref = args.words.first || 'HEAD'
 
-      unless head_project
+      unless head_project = local_repo.current_project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
       end
 
-      ref = args.shift
-
-      if ref.nil?
-        ref = local_repo.head_sha
-      end
-
-      sha = local_repo.git_command("rev-parse -q #{ref}")
-      if !sha
+      unless sha = local_repo.git_command("rev-parse -q #{ref}")
         abort "Aborted: no revision could be determined from '#{ref}'"
       end
 
       statuses = api_client.statuses(head_project, sha)
+      status = statuses.first
+      ref_state = status ? status['state'] : 'no status'
 
-      if statuses.any?
-        commit_state = statuses.first['state']
-      else
-        commit_state = 'no status'
-      end
+      exit_code = case ref_state
+        when 'success'          then 0
+        when 'failure', 'error' then 1
+        when 'pending'          then 2
+        else 3
+        end
 
-      case commit_state
-      when 'success'
-        exitcode = 0
-      when 'failure', 'error'
-        exitcode = 1
-      when 'pending'
-        exitcode = 2
-      else
-        exitcode = 3
-      end
-
-      puts commit_state
-      exit(exitcode)
+      $stdout.puts ref_state
+      exit exit_code
     end
 
     # $ hub pull-request

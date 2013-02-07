@@ -133,10 +133,6 @@ module Hub
         end
       end
 
-      def head_sha
-        git_command('rev-parse -q HEAD')
-      end
-
       def repo_host
         project = main_project and project.host
       end
