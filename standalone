@@ -7,7 +7,7 @@
 #
 
 module Hub
-  Version = VERSION = '1.10.4'
+  Version = VERSION = '1.10.5'
 end
 
 module Hub
@@ -1331,13 +1331,18 @@ module Hub
       args.executable = 'echo'
       args.replace [pull['html_url']]
     rescue GitHubAPI::Exceptions
-      display_api_exception("creating pull request", $!.response)
+      response = $!.response
+      display_api_exception("creating pull request", response)
+      if 404 == response.status
+        base_url = base_project.web_url.split('://', 2).last
+        warn "Are you sure that #{base_url} exists?"
+      end
       exit 1
     end
 
     def clone(args)
       ssh = args.delete('-p')
-      has_values = /^(--(upload-pack|template|depth|origin|branch|reference)|-[ubo])$/
+      has_values = /^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$/
 
       idx = 1
       while idx < args.length
@@ -1362,17 +1367,7 @@ module Hub
       return unless index = args.index('add')
       args.delete_at index
 
-      branch = args.index('-b') || args.index('--branch')
-      if branch
-        args.delete_at branch
-        branch_name = args.delete_at branch
-      end
-
       clone(args)
-
-      if branch_name
-        args.insert branch, '-b', branch_name
-      end
       args.insert index, 'add'
     end
 
@@ -1670,7 +1665,7 @@ module Hub
             abort "Usage: hub compare [USER] [<START>...]<END>"
           end
         else
-          sha_or_tag = /(\w{1,2}|\w[\w.-]+\w)/
+          sha_or_tag = /((?:#{OWNER_RE}:)?\w[\w.-]+\w)/
           range = args.pop.sub(/^#{sha_or_tag}\.\.#{sha_or_tag}$/, '\1...\2')
           project = if owner = args.pop then github_project(nil, owner)
                     else current_project
@@ -2061,7 +2056,7 @@ __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "November 2012" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "March 2013" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -2485,8 +2480,8 @@ $ hub submodule add wycats/bundler vendor/bundler
 $ hub submodule add \-p wycats/bundler vendor/bundler
 > git submodule add git@github\.com:wycats/bundler\.git vendor/bundler
 
-$ hub submodule add \-b ryppl ryppl/pip vendor/pip
-> git submodule add \-b ryppl git://github\.com/ryppl/pip\.git vendor/pip
+$ hub submodule add \-b ryppl \-\-name pip ryppl/pip vendor/pip
+> git submodule add \-b ryppl \-\-name pip git://github\.com/ryppl/pip\.git vendor/pip
 .
 .fi
 .

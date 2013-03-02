@@ -411,8 +411,8 @@ $ git compare other-user patch
 $ hub submodule add -p wycats/bundler vendor/bundler
 &gt; git submodule add git@github.com:wycats/bundler.git vendor/bundler
 
-$ hub submodule add -b ryppl ryppl/pip vendor/pip
-&gt; git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
+$ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
+&gt; git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
 </code></pre>
 
 <h3 id="git-help">git help</h3>
@@ -440,7 +440,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>November 2012</li>
+    <li class='tc'>March 2013</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
