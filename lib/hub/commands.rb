@@ -676,11 +676,6 @@ module Hub
 
       if script
         puts "alias git=hub"
-        if 'zsh' == shell
-          puts "if type compdef >/dev/null; then"
-          puts "   compdef hub=git"
-          puts "fi"
-        end
       else
         profile = case shell
           when 'bash' then '~/.bash_profile'
