@@ -1,3 +1,9 @@
+## 1.10.5 (2013-03-02)
+
+* helpful `pull-request` error message when base project is invalid
+* fix `compare` for ranges containing "owner:branch" notation
+* enable `--name` argument for `submodule add`
+
 ## 1.10.4 (2012-12-29)
 
 * fixes for Windows

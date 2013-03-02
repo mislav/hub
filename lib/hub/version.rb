@@ -1,3 +1,3 @@
 module Hub
-  Version = VERSION = '1.10.4'
+  Version = VERSION = '1.10.5'
 end

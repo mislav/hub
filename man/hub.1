@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "November 2012" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "March 2013" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -425,8 +425,8 @@ $ hub submodule add wycats/bundler vendor/bundler
 $ hub submodule add \-p wycats/bundler vendor/bundler
 > git submodule add git@github\.com:wycats/bundler\.git vendor/bundler
 
-$ hub submodule add \-b ryppl ryppl/pip vendor/pip
-> git submodule add \-b ryppl git://github\.com/ryppl/pip\.git vendor/pip
+$ hub submodule add \-b ryppl \-\-name pip ryppl/pip vendor/pip
+> git submodule add \-b ryppl \-\-name pip git://github\.com/ryppl/pip\.git vendor/pip
 .
 .fi
 .
