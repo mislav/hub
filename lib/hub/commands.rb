@@ -759,10 +759,16 @@ module Hub
       if command == 'hub' || custom_command?(command)
         puts hub_manpage
         exit
-      elsif command.nil? && !args.has_flag?('-a', '--all')
-        ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
-        puts improved_help_text
-        exit
+      elsif command.nil?
+        if args.has_flag?('-a', '--all')
+          # Add the special hub commands to the end of "git help -a" output.
+          args.after 'echo', ["\nhub custom commands\n"]
+          args.after 'echo', CUSTOM_COMMANDS.map {|cmd| "  #{cmd}" }
+        else
+          ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
+          puts improved_help_text
+          exit
+        end
       end
     end
     alias_method "--help", :help
