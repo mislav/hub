@@ -19,7 +19,7 @@ module Hub
         # caches output when shelling out to git
         read_proc ||= lambda { |cache, cmd|
           result = %x{#{command_to_string(cmd)} 2>#{NULL}}.chomp
-          cache[cmd] = $?.success? && !result.empty? ? result : nil
+          $?.success? && !result.empty? ? cache[cmd] = result : nil
         }
         @cache = Hash.new(&read_proc)
       end
