@@ -87,15 +87,3 @@ Feature: hub fetch
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
     And there should be no "mislav" remote
-
-  Scenario: Fetches when remote has dash in username
-    Given I am in "mrjob" git repo
-    And the "origin" remote has url "git://github.com/Yelp/mrjob.git"
-    And the GitHub API server:
-      """
-      get('/repos/mislav/dotfiles') { json :private => false }
-      """
-    When I successfully run `hub fetch ankit-maverick`
-    Then "git fetch ankit-maverick" should be run
-    And the url for "ankit-maverick" should be "git://github.com/ankit-maverick/mrjob.git"
-    And there should be no output
