@@ -312,7 +312,7 @@ module Hub
       end
 
       projects = names.map { |name|
-        unless name =~ /\W/ or remotes.include?(name) or remotes_group(name)
+        unless name =~ /\s/ or remotes.include?(name) or remotes_group(name)
           project = github_project(nil, name)
           repo_info = api_client.repo_info(project)
           if repo_info.success?
