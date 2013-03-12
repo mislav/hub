@@ -35,7 +35,7 @@ module Hub
     extend Context
 
     NAME_RE = /[\w.][\w.-]*/
-    OWNER_RE = /[a-zA-Z0-9-]+/
+    OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
     CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
@@ -312,7 +312,7 @@ module Hub
       end
 
       projects = names.map { |name|
-        unless name =~ /\W/ or remotes.include?(name) or remotes_group(name)
+        unless name !~ /^#{OWNER_RE}$/ or remotes.include?(name) or remotes_group(name)
           project = github_project(nil, name)
           repo_info = api_client.repo_info(project)
           if repo_info.success?
