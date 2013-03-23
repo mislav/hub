@@ -81,6 +81,10 @@ module Hub
       base_project = local_repo.main_project
       head_project = local_repo.current_project
 
+      unless current_branch
+        abort "Aborted: not currently on any branch."
+      end
+
       unless base_project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
       end

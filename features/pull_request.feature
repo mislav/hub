@@ -3,6 +3,13 @@ Feature: hub pull-request
     Given I am in "dotfiles" git repo
     And I am "mislav" on github.com with OAuth token "OTOKEN"
 
+  Scenario: Detached HEAD
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    And I am in detached HEAD
+    When I run `hub pull-request`
+    Then the stderr should contain "Aborted: not currently on any branch.\n"
+    And the exit status should be 1
+
   Scenario: Non-GitHub repo
     Given the "origin" remote has url "mygh:Manganeez/repo.git"
     When I run `hub pull-request`
