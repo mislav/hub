@@ -69,6 +69,12 @@ Given /^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/ do |name, up
   run_silent %(git checkout --quiet -B #{name} --track #{upstream})
 end
 
+Given /^I am in detached HEAD$/ do
+  empty_commit
+  empty_commit
+  run_silent %(git checkout HEAD^)
+end
+
 Given /^the current dir is not a repo$/ do
   in_current_dir do
     FileUtils.rm_rf '.git'

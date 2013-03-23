@@ -308,6 +308,15 @@ class HubTest < Test::Unit::TestCase
     expected = "https://github.com/defunkt/hub/pull/1\n"
     assert_output expected, "pull-request hereyougo -f"
   end
+  
+  def test_pullrequest_detached_head
+    stub_repo_url('git@git.my.org:defunkt/hub.git')
+    stub_branch(nil)
+    stub_tracking('feature', 'origin', 'feature')
+
+    expected = "Aborted: not currently on any branch.\n"
+    assert_output expected, "pull-request hereyougo"
+  end
 
   def test_pullrequest_invalid_remote
     stub_repo_url('gh:singingwolfboy/sekrit.git')
