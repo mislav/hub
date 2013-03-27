@@ -558,7 +558,7 @@ module Hub
     # $ hub browse
     # > open https://github.com/CURRENT_REPO
     #
-    # $ hub browse -b another_brnach
+    # $ hub browse -b another_branch
     # > open https://github.com/CURRENT_REPO/tree/another_branch
     #
     # $ hub browse -- issues
