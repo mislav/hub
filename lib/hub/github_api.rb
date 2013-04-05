@@ -403,7 +403,7 @@ module Hub
         tty_state = `stty -g 2>#{NULL}`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
-        while char = $stdin.getbyte and !(char == 13 or char == 10)
+        while char = getbyte($stdin) and !(char == 13 or char == 10)
           if char == 127 or char == 8
             pass[-1,1] = '' unless pass.empty?
           else
@@ -413,6 +413,15 @@ module Hub
         pass
       ensure
         system "stty #{tty_state}" unless tty_state.empty?
+      end
+
+      def getbyte(io)
+        if io.respond_to?(:getbyte)
+          io.getbyte
+        else
+          # In Ruby <= 1.8.6, getc behaved the same
+          io.getc
+        end
       end
 
       def proxy_uri(with_ssl)
