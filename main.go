@@ -36,7 +36,14 @@ func (c *Command) Runnable() bool {
 	return c.Run != nil
 }
 
-var commands = []*Command{}
+func (c *Command) List() bool {
+	return c.Short != ""
+}
+
+var commands = []*Command{
+	cmdPullRequest,
+	cmdHelp,
+}
 
 func main() {
 	args := os.Args[1:]
