@@ -88,6 +88,33 @@ module Hub
       res.data
     end
 
+    # Public: List all collaborators on a repo
+    def collaborators project
+      res = get "https://%s/repos/%s/%s/collaborators" %
+        [api_host(project.host), project.owner, project.name]
+
+      res.error! unless res.success?
+      res.data
+    end
+
+    # Public: Add a collaborator to a repo
+    def add_collaborator user, project
+      res = put "https://%s/repos/%s/%s/collaborators/%s" %
+        [api_host(project.host), project.owner, project.name, user]
+
+      res.error! unless res.success?
+      res.data
+    end
+
+    # Public: Remove a collaborator from a repo
+    def remove_collaborator user, project
+      res = delete "https://%s/repos/%s/%s/collaborators/%s" %
+        [api_host(project.host), project.owner, project.name, user]
+
+      res.error! unless res.success?
+      res.data
+    end
+
     # Returns parsed data from the new pull request.
     def create_pullrequest options
       project = options.fetch(:project)

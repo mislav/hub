@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse collaborator compare fork pull-request]
 
     def run(args)
       slurp_global_flags(args)
@@ -646,6 +646,71 @@ module Hub
       end
     end
 
+    def collaborator(args)
+      args.shift
+
+      if args.empty?
+        abort "Usage: hub collaborator [ACTION] <[USER1] [USER2]...>"
+      else
+        case subcommand = args.shift
+
+        when "list"
+          repo_collaborators = api_client.collaborators(current_project)
+
+          if repo_collaborators.any?
+            puts "Collaborators: "
+            repo_collaborators.each do |user|
+              puts "  * #{user['login']}"
+            end
+          else
+            puts "This repo doesn't have any collaborators yet."
+          end
+
+        when "add"
+          if args.empty?
+            abort "Usage: hub collaborator add [USER1] <[USER2]...>"
+          else
+            existing_collaborators = api_client.collaborators(current_project)
+            new_collaborators      = args
+
+            new_collaborators.each do |c|
+              if existing_collaborators.member? c
+                puts "#{c} is already a collaborator!"
+              else
+                c.add_collaborator c, current_project
+
+                puts "Added #{c} as a collaborator!"
+              end
+            end
+          end
+
+        when "remove"
+          if args.empty?
+            abort "Usage: hub collaborator remove [USER1] <[USER2]...>"
+          else
+            existing_collaborators  = api_client.collaborators(current_project)
+            collaborators_to_remove = args
+
+            collaborators_to_remove.each do |c|
+              unless existing_collaborators.member? c
+                puts "#{c} is not a collaborator on this repo!"
+              else
+                c.remove_collaborator c, current_project
+
+                puts "Removed #{c} as a collaborator!"
+              end
+            end
+          end
+
+        else
+          abort [
+            "Usage: hub collaborator [ACTION]",
+            "ACTION must be one of list, add, or remove!"
+          ].join("\n")
+        end
+      end
+    end
+
     # $ hub hub standalone
     # Prints the "standalone" version of hub for an easy, memorable
     # installation sequence:
@@ -1003,7 +1068,7 @@ help
         end
       end
     end
-    
+
     def display_api_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?
