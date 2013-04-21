@@ -8,8 +8,8 @@ import (
 )
 
 type Config struct {
-	User       string
-	OauthToken string
+	User  string
+	Token string
 }
 
 func loadConfig(filename string) Config {
