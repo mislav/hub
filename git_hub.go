@@ -26,6 +26,13 @@ type unprocessableEntity struct {
 	Errors  []unprocessableEntityError `json:"errors"`
 }
 
+func NewGitHub(configFile string) GitHub {
+	config := loadConfig(configFile)
+	client := &http.Client{}
+
+	return GitHub{client, config.Token}
+}
+
 type GitHub struct {
 	httpClient    *http.Client
 	Authorization string

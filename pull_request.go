@@ -28,13 +28,15 @@ of title you can paste a full URL to an issue on GitHub.
 var flagPullRequestBase, flagPullRequestHead string
 
 func init() {
-	// TODO: make base default as USER:master, head default as USER:HEAD
-	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", "HEAD", "HEAD")
+	// TODO: delay calculation of owner and current branch until being used
+	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", git.Owner()+":master", "BASE")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", git.Owner()+":"+git.CurrentBranch(), "HEAD")
 }
 
 func pullRequest(cmd *Command, args []string) {
-	log.Println(args)
-	log.Println(flagPullRequestBase)
-	log.Println(flagPullRequestHead)
+	params := PullRequestParams{"title", "body", flagPullRequestBase, flagPullRequestHead}
+	err := gh.CreatePullRequest(git.Owner(), git.Repo(), params)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

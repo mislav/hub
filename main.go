@@ -45,6 +45,8 @@ var commands = []*Command{
 	cmdHelp,
 }
 
+var gh = NewGitHub(os.Getenv("HOME") + "/.config/gh")
+
 func main() {
 	args := os.Args[1:]
 	if len(args) < 1 {
