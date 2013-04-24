@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"log"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -13,7 +14,13 @@ var git = Git{}
 type Git struct{}
 
 func (g *Git) Dir() string {
-	return execGitCmd("rev-parse -q --git-dir")[0]
+	gitDir := execGitCmd("rev-parse -q --git-dir")[0]
+	gitDir, err := filepath.Abs(gitDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return gitDir
 }
 
 func (g *Git) Editor() string {
@@ -46,14 +53,9 @@ func (g *Git) Remote() string {
 	panic("Can't find remote")
 }
 
-func execGitCmd(args string) []string {
-	return execCmd("git " + args)
-}
-
-func execCmd(input string) (outputs []string) {
-	inputs := strings.Split(input, " ")
-	name := inputs[0]
-	args := inputs[1:]
+func execGitCmd(input string) (outputs []string) {
+	name := "git"
+	args := strings.Split(input, " ")
 
 	out, err := exec.Command(name, args...).Output()
 	if err != nil {

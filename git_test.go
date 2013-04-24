@@ -2,11 +2,12 @@ package main
 
 import (
 	"github.com/bmizerany/assert"
+	"strings"
 	"testing"
 )
 
 func TestGitMethods(t *testing.T) {
-	assert.Equal(t, ".git", git.Dir())
+	assert.T(t, strings.Contains(git.Dir(), ".git"))
 	assert.Equal(t, "vim", git.Editor())
 	assert.Equal(t, "git@github.com:jingweno/gh.git", git.Remote())
 	assert.Equal(t, "jingweno", git.Owner())

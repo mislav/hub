@@ -1,7 +1,12 @@
 package main
 
 import (
+	"io/ioutil"
 	"log"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
 )
 
 var cmdPullRequest = &Command{
@@ -34,8 +39,42 @@ func init() {
 }
 
 func pullRequest(cmd *Command, args []string) {
-	params := PullRequestParams{"title", "body", flagPullRequestBase, flagPullRequestHead}
-	err := gh.CreatePullRequest(git.Owner(), git.Repo(), params)
+	message := []byte("#\n# Changes:\n#")
+	messageFile := filepath.Join(git.Dir(), "PULLREQ_EDITMSG")
+	err := ioutil.WriteFile(messageFile, message, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	editCmd := make([]string, 0)
+	gitEditor := git.Editor()
+	editCmd = append(editCmd, gitEditor)
+	r := regexp.MustCompile("^[mg]?vim$")
+	if r.MatchString(gitEditor) {
+		editCmd = append(editCmd, "-c")
+		editCmd = append(editCmd, "set ft=gitcommit")
+	}
+	editCmd = append(editCmd, messageFile)
+	execCmd(editCmd)
+	message, err = ioutil.ReadFile(messageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	params := PullRequestParams{"title", string(message), flagPullRequestBase, flagPullRequestHead}
+	err = gh.CreatePullRequest(git.Owner(), git.Repo(), params)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func execCmd(command []string) {
+	cmd := exec.Command(command[0], command[1:]...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
 	if err != nil {
 		log.Fatal(err)
 	}
