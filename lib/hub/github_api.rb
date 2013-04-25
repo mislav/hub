@@ -181,6 +181,8 @@ module Hub
         apply_authentication(req, url)
         yield req if block_given?
 
+        req['User-Agent'] = "hub/#{Hub::VERSION}"
+
         begin
           res = http.start { http.request(req) }
           res.extend ResponseMethods
