@@ -152,7 +152,7 @@ task :homebrew do
     sh 'git pull -q origin master'
 
     formula_file = 'Library/Formula/hub.rb'
-    sha = `curl -#L https://github.com/defunkt/hub/tarball/v#{Hub::VERSION} | shasum`.split(/\s+/).first
+    sha = `curl -fsSL https://github.com/defunkt/hub/tarball/v#{Hub::VERSION} | shasum`.split(/\s+/).first
     abort unless $?.success? and sha.length == 40
 
     formula = File.read formula_file
@@ -162,7 +162,7 @@ task :homebrew do
 
     branch = "hub-v#{Hub::VERSION}"
     sh "git checkout -q -B #{branch}"
-    sh "git commit -m 'upgrade hub to v#{Hub::VERSION}' -- #{formula_file}"
+    sh "git commit -m 'hub v#{Hub::VERSION}' -- #{formula_file}"
     sh "git push -u mislav #{branch}"
     sh "hub pull-request 'upgrade hub to v#{Hub::VERSION}'"
 
