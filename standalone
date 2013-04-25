@@ -7,7 +7,7 @@
 #
 
 module Hub
-  Version = VERSION = '1.10.5'
+  Version = VERSION = '1.10.6'
 end
 
 module Hub
@@ -327,6 +327,7 @@ module Hub
           create_connection host_url
         end
 
+        req['User-Agent'] = "Hub #{Hub::VERSION}"
         apply_authentication(req, url)
         yield req if block_given?
 
@@ -541,7 +542,7 @@ module Hub
         tty_state = `stty -g 2>#{NULL}`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
-        while char = $stdin.getbyte and !(char == 13 or char == 10)
+        while char = getbyte($stdin) and !(char == 13 or char == 10)
           if char == 127 or char == 8
             pass[-1,1] = '' unless pass.empty?
           else
@@ -551,6 +552,14 @@ module Hub
         pass
       ensure
         system "stty #{tty_state}" unless tty_state.empty?
+      end
+
+      def getbyte(io)
+        if io.respond_to?(:getbyte)
+          io.getbyte
+        else
+          io.getc
+        end
       end
 
       def proxy_uri(with_ssl)
@@ -1190,7 +1199,7 @@ module Hub
     extend Context
 
     NAME_RE = /[\w.][\w.-]*/
-    OWNER_RE = /[a-zA-Z0-9-]+/
+    OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
     CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
@@ -1229,6 +1238,10 @@ module Hub
       force = explicit_owner = false
       base_project = local_repo.main_project
       head_project = local_repo.current_project
+
+      unless current_branch
+        abort "Aborted: not currently on any branch."
+      end
 
       unless base_project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
@@ -1412,7 +1425,7 @@ module Hub
       end
 
       projects = names.map { |name|
-        unless name =~ /\W/ or remotes.include?(name) or remotes_group(name)
+        unless name !~ /^#{OWNER_RE}$/ or remotes.include?(name) or remotes_group(name)
           project = github_project(nil, name)
           repo_info = api_client.repo_info(project)
           if repo_info.success?
