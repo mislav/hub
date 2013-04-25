@@ -68,3 +68,15 @@ Feature: hub pull-request
       Error creating pull request: Not Found (HTTP 404)
       Are you sure that github.com/origin/coral exists?
       """
+
+  Scenario: Supplies User-Agent string to API calls
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 unless request.user_agent.include?('Hub')
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request useragent`
+    Then the output should contain exactly "the://url\n"
