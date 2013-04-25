@@ -172,6 +172,7 @@ module Hub
 
         require 'net/https'
         req = Net::HTTP.const_get(type).new request_uri(url)
+        req['User-Agent'] = 'Hub'
         # TODO: better naming?
         http = configure_connection(req, url) do |host_url|
           create_connection host_url
