@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "March 2013" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "April 2013" "DEFUNKT" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -62,6 +62,9 @@
 .
 .br
 \fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
+.
+.br
+\fBgit ci\-status\fR [\fICOMMIT\fR]
 .
 .SH "DESCRIPTION"
 hub enhances various git commands to ease most common workflows with GitHub\.
@@ -150,6 +153,13 @@ If \fITITLE\fR is omitted, a text editor will open in which title and body of th
 .
 .IP
 If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
+.
+.TP
+\fBgit ci\-status\fR [\fICOMMIT\fR]
+Looks up the SHA for \fICOMMIT\fR in GitHub Status API and displays the latest status\. Exits with one of:
+.
+.br
+success (0), error (1), failure (1), pending (2), no status (3)
 .
 .SH "CONFIGURATION"
 Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.
@@ -427,6 +437,16 @@ $ hub submodule add \-p wycats/bundler vendor/bundler
 
 $ hub submodule add \-b ryppl \-\-name pip ryppl/pip vendor/pip
 > git submodule add \-b ryppl \-\-name pip git://github\.com/ryppl/pip\.git vendor/pip
+.
+.fi
+.
+.SS "git ci\-status"
+.
+.nf
+
+$ hub ci\-status [commit]
+> (prints CI state of commit and exits with appropriate code)
+> One of: success (0), error (1), failure (1), pending (2), no status (3)
 .
 .fi
 .

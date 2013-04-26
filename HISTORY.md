@@ -1,3 +1,7 @@
+## master
+
+* new `ci-status` command for checking GitHub Status API
+
 ## 1.10.6 (2013-04-25)
 
 * compensate for new GitHub API enforcement

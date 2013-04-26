@@ -28,6 +28,7 @@ hub(1) -- git + hub = github
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
 `git fork` [`--no-remote`]  
 `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]  
+`git ci-status` [<COMMIT>]
 
 ## DESCRIPTION
 
@@ -150,6 +151,11 @@ hub also adds some custom commands that are otherwise not present in git:
     If instead of normal <TITLE> an issue number is given with `-i`, the pull
     request will be attached to an existing GitHub issue. Alternatively, instead
     of title you can paste a full URL to an issue on GitHub.
+
+  * `git ci-status` [<COMMIT>]:
+    Looks up the SHA for <COMMIT> in GitHub Status API and displays the latest
+    status. Exits with one of:  
+    success (0), error (1), failure (1), pending (2), no status (3)
 
 ## CONFIGURATION
 

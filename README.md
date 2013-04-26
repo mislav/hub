@@ -337,8 +337,8 @@ superpowers:
 
 ### git ci-status
 
-    $ hub ci-status
-    > (prints commit ci state and exits with exitcode)
+    $ hub ci-status [commit]
+    > (prints CI state of commit and exits with appropriate code)
     > One of: success (0), error (1), failure (1), pending (2), no status (3)
 
 
