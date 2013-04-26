@@ -12,6 +12,17 @@ Feature: hub ci-status
     Then the output should contain exactly "success\n"
     And the exit status should be 0
 
+  Scenario: Multiple statuses, latest is passing
+    Given there is a commit named "the_sha"
+    Given the remote commit states of "michiels/pencilbox" "the_sha" are:
+      """
+      [ { :state => 'pending' },
+        { :state => 'success' }  ]
+      """
+    When I run `hub ci-status the_sha`
+    Then the output should contain exactly "success\n"
+    And the exit status should be 0
+
   Scenario: Exit status 1 for 'error' and 'failure'
     Given the remote commit state of "michiels/pencilbox" "HEAD" is "error"
     When I run `hub ci-status`
