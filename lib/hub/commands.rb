@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
 
     def run(args)
       slurp_global_flags(args)
@@ -68,6 +68,38 @@ module Hub
       end
     rescue Context::FatalError => err
       abort "fatal: #{err.message}"
+    end
+
+
+    # $ hub ci-status
+    # $ hub ci-status 6f6d9797f9d6e56c3da623a97cfc3f45daf9ae5f
+    # $ hub ci-status master
+    # $ hub ci-status origin/master
+    def ci_status(args)
+      args.shift
+      ref = args.words.first || 'HEAD'
+
+      unless head_project = local_repo.current_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
+      unless sha = local_repo.git_command("rev-parse -q #{ref}")
+        abort "Aborted: no revision could be determined from '#{ref}'"
+      end
+
+      statuses = api_client.statuses(head_project, sha)
+      status = statuses.last
+      ref_state = status ? status['state'] : 'no status'
+
+      exit_code = case ref_state
+        when 'success'          then 0
+        when 'failure', 'error' then 1
+        when 'pending'          then 2
+        else 3
+        end
+
+      $stdout.puts ref_state
+      exit exit_code
     end
 
     # $ hub pull-request
@@ -818,6 +850,7 @@ GitHub Commands:
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
+   ci-status      Show the CI status of a commit
 
 See 'git help <command>' for more information on a specific command.
 help
@@ -1003,7 +1036,7 @@ help
         end
       end
     end
-    
+
     def display_api_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?

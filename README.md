@@ -335,6 +335,12 @@ superpowers:
     $ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
     > git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
 
+### git ci-status
+
+    $ hub ci-status
+    > (prints commit ci state and exits with exitcode)
+    > One of: success (0), error (1), failure (1), pending (2), no status (3)
+
 
 ### git help
 
