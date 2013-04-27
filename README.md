@@ -132,6 +132,8 @@ The solution is to identify which shell functions are calling `git`, and replace
 each occurrence of that with `command git`. This is a shell feature that enables
 you to call a command directly and skip aliases and functions wrapping it.
 
+Most themes for [Oh My ZSH][ohmyzsh] have git prompt info. You need to edit
+`~ZSH/lib/git.zsh`.
 
 Aliasing
 --------
@@ -147,6 +149,12 @@ You should place this command in your `.bash_profile` or other startup script:
 ~~~ sh
 eval "$(hub alias -s)"
 ~~~
+
+### Oh My ZSH
+
+If you are using [Oh My ZSH][ohmyzsh], the github plugin takes care of the
+dirty work (aliasing and tab-completion). You just have to add it to the
+plugin array.
 
 ### Shell tab-completion
 
@@ -415,3 +423,4 @@ GitHub simpler:
 
 [speed]: http://gist.github.com/284823
 [gc]: https://twitter.com/brynary/status/49560668994674688
+[ohmyzsh]: https://github.com/robbyrussell/oh-my-zsh
