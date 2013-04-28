@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -43,7 +44,7 @@ func init() {
 func pullRequest(cmd *Command, args []string) {
 	messageFile := filepath.Join(git.Dir(), "PULLREQ_EDITMSG")
 
-	writePullRequestChanges(messageFile)
+	writePullRequestChanges(messageFile, flagPullRequestBase, flagPullRequestHead)
 
 	editCmd := buildEditCommand(messageFile)
 	err := execCmd(editCmd)
@@ -66,9 +67,26 @@ func pullRequest(cmd *Command, args []string) {
 	}
 }
 
-func writePullRequestChanges(messageFile string) {
-	message := []byte("\n#\n# Changes:\n#")
-	err := ioutil.WriteFile(messageFile, message, 0644)
+func writePullRequestChanges(messageFile, base, head string) {
+	message := `
+# Requesting a pull to %s from %s
+#
+# Write a message for this pull reuqest. The first block
+# of the text is the title and the rest is description.
+#
+# Changes:
+#
+%s
+`
+	startRegexp := regexp.MustCompilePOSIX("^")
+	endRegexp := regexp.MustCompilePOSIX(" +$")
+
+	commitLogs := git.CommitLogs("master", "pull_request")
+	commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
+	commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
+
+	message = fmt.Sprintf(message, base, head, commitLogs)
+	err := ioutil.WriteFile(messageFile, []byte(message), 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"os/exec"
 	"path/filepath"
@@ -39,6 +40,22 @@ func (g *Git) Repo() string {
 
 func (g *Git) CurrentBranch() string {
 	return execGitCmd("symbolic-ref -q --short HEAD")[0]
+}
+
+func (g *Git) CommitLogs(sha1, sha2 string) string {
+	execCmd := NewExecCmd("git")
+	execCmd.WithArg("log").WithArg("--no-color")
+	execCmd.WithArg("--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b")
+	execCmd.WithArg("--cherry")
+	shaRange := fmt.Sprintf("%s...%s", sha1, sha2)
+	execCmd.WithArg(shaRange)
+
+	outputs, err := execCmd.Exec()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return outputs
 }
 
 // FIXME: only care about origin push remote now
