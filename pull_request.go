@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 )
 
 var cmdPullRequest = &Command{
@@ -39,13 +41,40 @@ func init() {
 }
 
 func pullRequest(cmd *Command, args []string) {
-	message := []byte("#\n# Changes:\n#")
 	messageFile := filepath.Join(git.Dir(), "PULLREQ_EDITMSG")
-	err := ioutil.WriteFile(messageFile, message, 0644)
+
+	writePullRequestChanges(messageFile)
+
+	editCmd := buildEditCommand(messageFile)
+	err := execCmd(editCmd)
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	title, body, err := readTitleAndBodyFromFile(messageFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if len(title) == 0 {
+		log.Fatal("Aborting due to empty pull request title")
+	}
+
+	params := PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead}
+	err = gh.CreatePullRequest(git.Owner(), git.Repo(), params)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func writePullRequestChanges(messageFile string) {
+	message := []byte("\n#\n# Changes:\n#")
+	err := ioutil.WriteFile(messageFile, message, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func buildEditCommand(messageFile string) []string {
 	editCmd := make([]string, 0)
 	gitEditor := git.Editor()
 	editCmd = append(editCmd, gitEditor)
@@ -55,27 +84,66 @@ func pullRequest(cmd *Command, args []string) {
 		editCmd = append(editCmd, "set ft=gitcommit")
 	}
 	editCmd = append(editCmd, messageFile)
-	execCmd(editCmd)
-	message, err = ioutil.ReadFile(messageFile)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	params := PullRequestParams{"title", string(message), flagPullRequestBase, flagPullRequestHead}
-	err = gh.CreatePullRequest(git.Owner(), git.Repo(), params)
-	if err != nil {
-		log.Fatal(err)
-	}
+	return editCmd
 }
 
-func execCmd(command []string) {
+func execCmd(command []string) error {
 	cmd := exec.Command(command[0], command[1:]...)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	err := cmd.Run()
+	return err
+}
+
+func readTitleAndBodyFromFile(messageFile string) (title, body string, err error) {
+	f, err := os.Open(messageFile)
+	defer f.Close()
 	if err != nil {
-		log.Fatal(err)
+		return "", "", err
 	}
+
+	reader := bufio.NewReader(f)
+	return readTitleAndBody(reader)
+}
+
+func readTitleAndBody(reader *bufio.Reader) (title, body string, err error) {
+	r := regexp.MustCompile("\\S")
+	var titleParts, bodyParts []string
+
+	line, err := readln(reader)
+	for err == nil {
+		if strings.HasPrefix(line, "#") {
+			break
+		}
+		if len(bodyParts) == 0 && r.MatchString(line) {
+			titleParts = append(titleParts, line)
+		} else {
+			bodyParts = append(bodyParts, line)
+		}
+		line, err = readln(reader)
+	}
+
+	title = strings.Join(titleParts, " ")
+	title = strings.TrimSpace(title)
+
+	body = strings.Join(bodyParts, "\n")
+	body = strings.TrimSpace(body)
+
+	return title, body, nil
+}
+
+func readln(r *bufio.Reader) (string, error) {
+	var (
+		isPrefix bool  = true
+		err      error = nil
+		line, ln []byte
+	)
+	for isPrefix && err == nil {
+		line, isPrefix, err = r.ReadLine()
+		ln = append(ln, line...)
+	}
+	return string(ln), err
 }
