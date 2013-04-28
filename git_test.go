@@ -14,5 +14,5 @@ func TestGitMethods(t *testing.T) {
 	assert.Equal(t, "gh", git.Repo())
 	assert.Equal(t, "pull_request", git.CurrentBranch())
 	logs := git.CommitLogs("master", "HEAD")
-	assert.Equal(t, 19, len(logs))
+	assert.T(t, len(logs) > 0)
 }
