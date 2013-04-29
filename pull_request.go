@@ -44,10 +44,13 @@ func init() {
 func pullRequest(cmd *Command, args []string) {
 	messageFile := filepath.Join(git.Dir(), "PULLREQ_EDITMSG")
 
-	writePullRequestChanges(messageFile, flagPullRequestBase, flagPullRequestHead)
+	err := writePullRequestChanges(messageFile, flagPullRequestBase, flagPullRequestHead)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	editCmd := buildEditCommand(messageFile)
-	err := execCmd(editCmd)
+	err = execCmd(editCmd)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -67,7 +70,7 @@ func pullRequest(cmd *Command, args []string) {
 	}
 }
 
-func writePullRequestChanges(messageFile, base, head string) {
+func writePullRequestChanges(messageFile, base, head string) error {
 	message := `
 # Requesting a pull to %s from %s
 #
@@ -81,16 +84,19 @@ func writePullRequestChanges(messageFile, base, head string) {
 	startRegexp := regexp.MustCompilePOSIX("^")
 	endRegexp := regexp.MustCompilePOSIX(" +$")
 
-	commitLogs := git.CommitLogs("master", "pull_request")
+	commitLogs := git.CommitLogs(getLocalBranch(base), getLocalBranch(head))
 	commitLogs = strings.TrimSpace(commitLogs)
 	commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
 	commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
 
 	message = fmt.Sprintf(message, base, head, commitLogs)
-	err := ioutil.WriteFile(messageFile, []byte(message), 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
+
+	return ioutil.WriteFile(messageFile, []byte(message), 0644)
+}
+
+func getLocalBranch(branchName string) string {
+	result := strings.Split(branchName, ":")
+	return result[len(result)-1]
 }
 
 func buildEditCommand(messageFile string) []string {
