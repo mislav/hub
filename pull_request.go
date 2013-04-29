@@ -82,6 +82,7 @@ func writePullRequestChanges(messageFile, base, head string) {
 	endRegexp := regexp.MustCompilePOSIX(" +$")
 
 	commitLogs := git.CommitLogs("master", "pull_request")
+	commitLogs = strings.TrimSpace(commitLogs)
 	commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
 	commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
 
