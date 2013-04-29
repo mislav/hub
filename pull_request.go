@@ -63,10 +63,12 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	params := PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead}
-	err = gh.CreatePullRequest(git.Owner(), git.Repo(), params)
+	pullRequestResponse, err := gh.CreatePullRequest(git.Owner(), git.Repo(), params)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Println(pullRequestResponse.HtmlUrl)
 }
 
 func writePullRequestChanges(messageFile, base, head string) error {

@@ -38,16 +38,16 @@ type GitHub struct {
 	Authorization string
 }
 
-func (gh *GitHub) call(request *http.Request) (response *http.Response, err error) {
+func (gh *GitHub) call(request *http.Request) (*http.Response, error) {
 	request.Header.Set("Authorization", "token "+gh.Authorization)
 
-	response, err = gh.httpClient.Do(request)
+	response, err := gh.httpClient.Do(request)
 	if err != nil {
-		return
+		return response, err
 	}
 
 	if response.StatusCode != 422 {
-		return
+		return response, err
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
@@ -55,7 +55,7 @@ func (gh *GitHub) call(request *http.Request) (response *http.Response, err erro
 		var unprocessable unprocessableEntity
 		err = json.Unmarshal(body, &unprocessable)
 		if err != nil {
-			return
+			return response, err
 		}
 
 		errorMessages := make([]string, len(unprocessable.Errors))
@@ -86,28 +86,25 @@ func (gh *GitHub) call(request *http.Request) (response *http.Response, err erro
 		err = errors.New(text)
 	}
 
-	return
+	return response, err
 }
 
-func (gh *GitHub) httpPost(uri string, extraHeaders map[string]string, content *bytes.Buffer) (response *http.Response, err error) {
+func (gh *GitHub) httpPost(uri string, extraHeaders map[string]string, content *bytes.Buffer) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", GitHubUrl, uri)
 	request, err := http.NewRequest("POST", url, content)
 	if err != nil {
-		return
+		return nil, err
 	}
 
-	// Add (any of) the extra headers to the request
 	if extraHeaders != nil {
 		for h, v := range extraHeaders {
 			request.Header.Set(h, v)
 		}
 	}
 
-	// Set the Content-Type header
 	request.Header.Set("Content-Type", "application/json; charset=utf-8")
-	response, err = gh.call(request)
 
-	return
+	return gh.call(request)
 }
 
 type PullRequestParams struct {
@@ -117,15 +114,33 @@ type PullRequestParams struct {
 	Head  string `json:"head"`
 }
 
-func (gh *GitHub) CreatePullRequest(owner, repo string, params PullRequestParams) (err error) {
+type PullRequestResponse struct {
+	Url      string `json:"url"`
+	HtmlUrl  string `json:"html_url"`
+	DiffUrl  string `json:"diff_url"`
+	PatchUrl string `json:"patch_url"`
+	IssueUrl string `json:"issue_url"`
+}
+
+func (gh *GitHub) CreatePullRequest(owner, repo string, params PullRequestParams) (*PullRequestResponse, error) {
 	b, err := json.Marshal(params)
 	if err != nil {
-		return
+		return nil, err
 	}
 
 	buffer := bytes.NewBuffer(b)
 	url := "/repos/" + owner + "/" + repo + "/pulls"
-	_, err = gh.httpPost(url, nil, buffer)
+	response, err := gh.httpPost(url, nil, buffer)
+	js, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
 
-	return err
+	var pullRequestResponse PullRequestResponse
+	err = json.Unmarshal(js, &pullRequestResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pullRequestResponse, nil
 }
