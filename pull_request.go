@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -50,7 +49,7 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	editCmd := buildEditCommand(messageFile)
-	err = execCmd(editCmd)
+	err = editCmd.Exec()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -96,31 +95,21 @@ func writePullRequestChanges(messageFile, base, head string) error {
 
 func getLocalBranch(branchName string) string {
 	result := strings.Split(branchName, ":")
+
 	return result[len(result)-1]
 }
 
-func buildEditCommand(messageFile string) []string {
-	editCmd := make([]string, 0)
+func buildEditCommand(messageFile string) *ExecCmd {
 	gitEditor := git.Editor()
-	editCmd = append(editCmd, gitEditor)
+	editCmd := NewExecCmd(gitEditor)
 	r := regexp.MustCompile("^[mg]?vim$")
 	if r.MatchString(gitEditor) {
-		editCmd = append(editCmd, "-c")
-		editCmd = append(editCmd, "set ft=gitcommit")
+		editCmd.WithArg("-c")
+		editCmd.WithArg("set ft=gitcommit")
 	}
-	editCmd = append(editCmd, messageFile)
+	editCmd.WithArg(messageFile)
 
 	return editCmd
-}
-
-func execCmd(command []string) error {
-	cmd := exec.Command(command[0], command[1:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	err := cmd.Run()
-	return err
 }
 
 func readTitleAndBodyFromFile(messageFile string) (title, body string, err error) {
@@ -131,6 +120,7 @@ func readTitleAndBodyFromFile(messageFile string) (title, body string, err error
 	}
 
 	reader := bufio.NewReader(f)
+
 	return readTitleAndBody(reader)
 }
 
@@ -170,5 +160,6 @@ func readln(r *bufio.Reader) (string, error) {
 		line, isPrefix, err = r.ReadLine()
 		ln = append(ln, line...)
 	}
+
 	return string(ln), err
 }

@@ -50,7 +50,7 @@ func (g *Git) CommitLogs(sha1, sha2 string) string {
 	shaRange := fmt.Sprintf("%s...%s", sha1, sha2)
 	execCmd.WithArg(shaRange)
 
-	outputs, err := execCmd.Exec()
+	outputs, err := execCmd.ExecOutput()
 	if err != nil {
 		log.Fatal(err)
 	}
