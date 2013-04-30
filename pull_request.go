@@ -35,15 +35,17 @@ of title you can paste a full URL to an issue on GitHub.
 var flagPullRequestBase, flagPullRequestHead string
 
 func init() {
-	// TODO: delay calculation of owner and current branch until being used
-	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", git.Owner()+":master", "BASE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", git.Owner()+":"+git.CurrentBranch(), "HEAD")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", repo.Base, "BASE")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", repo.Head, "HEAD")
 }
 
 func pullRequest(cmd *Command, args []string) {
-	messageFile := filepath.Join(git.Dir(), "PULLREQ_EDITMSG")
+	repo.Base = flagPullRequestBase
+	repo.Head = flagPullRequestHead
 
-	err := writePullRequestChanges(messageFile, flagPullRequestBase, flagPullRequestHead)
+	messageFile := filepath.Join(repo.Dir, "PULLREQ_EDITMSG")
+
+	err := writePullRequestChanges(messageFile)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -63,7 +65,7 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	params := PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead}
-	pullRequestResponse, err := gh.CreatePullRequest(git.Owner(), git.Project(), params)
+	pullRequestResponse, err := gh.CreatePullRequest(repo.Owner, repo.Project, params)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +73,7 @@ func pullRequest(cmd *Command, args []string) {
 	fmt.Println(pullRequestResponse.HtmlUrl)
 }
 
-func writePullRequestChanges(messageFile, base, head string) error {
+func writePullRequestChanges(messageFile string) error {
 	message := `
 # Requesting a pull to %s from %s
 #
@@ -85,12 +87,12 @@ func writePullRequestChanges(messageFile, base, head string) error {
 	startRegexp := regexp.MustCompilePOSIX("^")
 	endRegexp := regexp.MustCompilePOSIX(" +$")
 
-	commitLogs := git.CommitLogs(getLocalBranch(base), getLocalBranch(head))
+	commitLogs := FetchGitCommitLogs(repo.Base, repo.Head)
 	commitLogs = strings.TrimSpace(commitLogs)
 	commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
 	commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
 
-	message = fmt.Sprintf(message, base, head, commitLogs)
+	message = fmt.Sprintf(message, repo.FullBase(), repo.FullHead(), commitLogs)
 
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
@@ -102,10 +104,10 @@ func getLocalBranch(branchName string) string {
 }
 
 func buildEditCommand(messageFile string) *ExecCmd {
-	gitEditor := git.Editor()
-	editCmd := NewExecCmd(gitEditor)
+	editor := repo.Editor
+	editCmd := NewExecCmd(editor)
 	r := regexp.MustCompile("^[mg]?vim$")
-	if r.MatchString(gitEditor) {
+	if r.MatchString(editor) {
 		editCmd.WithArg("-c")
 		editCmd.WithArg("set ft=gitcommit")
 	}

@@ -8,11 +8,7 @@ import (
 	"strings"
 )
 
-var git = Git{}
-
-type Git struct{}
-
-func (g *Git) Dir() string {
+func FetchGitDir() string {
 	gitDir := execGitCmd([]string{"rev-parse", "-q", "--git-dir"})[0]
 	gitDir, err := filepath.Abs(gitDir)
 	if err != nil {
@@ -22,25 +18,37 @@ func (g *Git) Dir() string {
 	return gitDir
 }
 
-func (g *Git) Editor() string {
+func FetchGitEditor() string {
 	return execGitCmd([]string{"var", "GIT_EDITOR"})[0]
 }
 
-func (g *Git) Owner() string {
-	remote := g.Remote()
+func FetchGitOwner() string {
+	remote := FetchGitRemote()
 	return mustMatchGitUrl(remote)[1]
 }
 
-func (g *Git) Project() string {
-	remote := g.Remote()
+func FetchGitProject() string {
+	remote := FetchGitRemote()
 	return mustMatchGitUrl(remote)[2]
 }
 
-func (g *Git) CurrentBranch() string {
+func FetchGitHead() string {
 	return execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})[0]
 }
 
-func (g *Git) CommitLogs(sha1, sha2 string) string {
+// FIXME: only care about origin push remote now
+func FetchGitRemote() string {
+	r := regexp.MustCompile("origin\t(.+) \\(push\\)")
+	for _, output := range execGitCmd([]string{"remote", "-v"}) {
+		if r.MatchString(output) {
+			return r.FindStringSubmatch(output)[1]
+		}
+	}
+
+	panic("Can't find remote")
+}
+
+func FetchGitCommitLogs(sha1, sha2 string) string {
 	execCmd := NewExecCmd("git")
 	execCmd.WithArg("log").WithArg("--no-color")
 	execCmd.WithArg("--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b")
@@ -54,18 +62,6 @@ func (g *Git) CommitLogs(sha1, sha2 string) string {
 	}
 
 	return outputs
-}
-
-// FIXME: only care about origin push remote now
-func (g *Git) Remote() string {
-	r := regexp.MustCompile("origin\t(.+) \\(push\\)")
-	for _, output := range execGitCmd([]string{"remote", "-v"}) {
-		if r.MatchString(output) {
-			return r.FindStringSubmatch(output)[1]
-		}
-	}
-
-	panic("Can't find remote")
 }
 
 func execGitCmd(input []string) (outputs []string) {

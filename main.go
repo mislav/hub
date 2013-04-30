@@ -45,7 +45,8 @@ var (
 		cmdPullRequest,
 		cmdHelp,
 	}
-	gh = NewGitHub(os.Getenv("HOME") + "/.config/gh")
+	gh   = NewGitHub(os.Getenv("HOME") + "/.config/gh")
+	repo = NewRepo()
 )
 
 func main() {
