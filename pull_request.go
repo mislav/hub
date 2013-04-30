@@ -63,7 +63,7 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	params := PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead}
-	pullRequestResponse, err := gh.CreatePullRequest(git.Owner(), git.Repo(), params)
+	pullRequestResponse, err := gh.CreatePullRequest(git.Owner(), git.Project(), params)
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -31,7 +31,7 @@ func (g *Git) Owner() string {
 	return mustMatchGitUrl(remote)[1]
 }
 
-func (g *Git) Repo() string {
+func (g *Git) Project() string {
 	remote := g.Remote()
 	return mustMatchGitUrl(remote)[2]
 }
