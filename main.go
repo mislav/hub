@@ -40,12 +40,13 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
-var commands = []*Command{
-	cmdPullRequest,
-	cmdHelp,
-}
-
-var gh = NewGitHub(os.Getenv("HOME") + "/.config/gh")
+var (
+	commands = []*Command{
+		cmdPullRequest,
+		cmdHelp,
+	}
+	gh = NewGitHub(os.Getenv("HOME") + "/.config/gh")
+)
 
 func main() {
 	args := os.Args[1:]

@@ -1,10 +1,8 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"log"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -15,7 +13,7 @@ var git = Git{}
 type Git struct{}
 
 func (g *Git) Dir() string {
-	gitDir := execGitCmd("rev-parse -q --git-dir")[0]
+	gitDir := execGitCmd([]string{"rev-parse", "-q", "--git-dir"})[0]
 	gitDir, err := filepath.Abs(gitDir)
 	if err != nil {
 		log.Fatal(err)
@@ -25,7 +23,7 @@ func (g *Git) Dir() string {
 }
 
 func (g *Git) Editor() string {
-	return execGitCmd("var GIT_EDITOR")[0]
+	return execGitCmd([]string{"var", "GIT_EDITOR"})[0]
 }
 
 func (g *Git) Owner() string {
@@ -39,7 +37,7 @@ func (g *Git) Repo() string {
 }
 
 func (g *Git) CurrentBranch() string {
-	return execGitCmd("symbolic-ref -q --short HEAD")[0]
+	return execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})[0]
 }
 
 func (g *Git) CommitLogs(sha1, sha2 string) string {
@@ -61,7 +59,7 @@ func (g *Git) CommitLogs(sha1, sha2 string) string {
 // FIXME: only care about origin push remote now
 func (g *Git) Remote() string {
 	r := regexp.MustCompile("origin\t(.+) \\(push\\)")
-	for _, output := range execGitCmd("remote -v") {
+	for _, output := range execGitCmd([]string{"remote", "-v"}) {
 		if r.MatchString(output) {
 			return r.FindStringSubmatch(output)[1]
 		}
@@ -70,16 +68,18 @@ func (g *Git) Remote() string {
 	panic("Can't find remote")
 }
 
-func execGitCmd(input string) (outputs []string) {
-	name := "git"
-	args := strings.Split(input, " ")
+func execGitCmd(input []string) (outputs []string) {
+	cmd := NewExecCmd("git")
+	for _, i := range input {
+		cmd.WithArg(i)
+	}
 
-	out, err := exec.Command(name, args...).Output()
+	out, err := cmd.ExecOutput()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	for _, line := range bytes.Split(out, []byte{'\n'}) {
+	for _, line := range strings.Split(out, "\n") {
 		outputs = append(outputs, string(line))
 	}
 

@@ -131,6 +131,10 @@ func (gh *GitHub) CreatePullRequest(owner, repo string, params PullRequestParams
 	buffer := bytes.NewBuffer(b)
 	url := "/repos/" + owner + "/" + repo + "/pulls"
 	response, err := gh.httpPost(url, nil, buffer)
+	if err != nil {
+		return nil, err
+	}
+
 	js, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
