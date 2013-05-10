@@ -3,7 +3,7 @@ require 'fileutils'
 require 'forwardable'
 
 # needed to avoid "Too many open files" on 1.8.7
-Aruba::Process.class_eval do
+Aruba::SpawnProcess.class_eval do
   def close_streams
     @out.close
     @err.close
