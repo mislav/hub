@@ -28,6 +28,7 @@ module Hub
     #   - api_token(host, user)
     #   - password(host, user)
     #   - oauth_token(host, user)
+    #   - uri_scheme(host)
     def initialize config, options
       @config = config
       @oauth_app_url = options.fetch(:app_url)
@@ -48,8 +49,8 @@ module Hub
 
     # Public: Fetch data for a specific repo.
     def repo_info project
-      get "https://%s/repos/%s/%s" %
-        [api_host(project.host), project.owner, project.name]
+      get "%s://%s/repos/%s/%s" %
+        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name]
     end
 
     # Public: Determine whether a specific repo exists.
@@ -59,8 +60,8 @@ module Hub
 
     # Public: Fork the specified repo.
     def fork_repo project
-      res = post "https://%s/repos/%s/%s/forks" %
-        [api_host(project.host), project.owner, project.name]
+      res = post "%s://%s/repos/%s/%s/forks" %
+        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name]
       res.error! unless res.success?
     end
 
@@ -71,10 +72,13 @@ module Hub
       params[:description] = options[:description] if options[:description]
       params[:homepage]    = options[:homepage]    if options[:homepage]
 
+      uri_scheme = config.uri_scheme(project.host)
       if is_org
-        res = post "https://%s/orgs/%s/repos" % [api_host(project.host), project.owner], params
+        res = post "%s://%s/orgs/%s/repos" %
+          [uri_scheme, api_host(project.host), project.owner], params
       else
-        res = post "https://%s/user/repos" % api_host(project.host), params
+        res = post "%s://%s/user/repos" %
+          [uri_scheme, api_host(project.host)], params
       end
       res.error! unless res.success?
       res.data
@@ -82,8 +86,8 @@ module Hub
 
     # Public: Fetch info about a pull request.
     def pullrequest_info project, pull_id
-      res = get "https://%s/repos/%s/%s/pulls/%d" %
-        [api_host(project.host), project.owner, project.name, pull_id]
+      res = get "%s://%s/repos/%s/%s/pulls/%d" %
+        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name, pull_id]
       res.error! unless res.success?
       res.data
     end
@@ -103,8 +107,8 @@ module Hub
         params[:body]  = options[:body]  if options[:body]
       end
 
-      res = post "https://%s/repos/%s/%s/pulls" %
-        [api_host(project.host), project.owner, project.name], params
+      res = post "%s://%s/repos/%s/%s/pulls" %
+        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name], params
 
       res.error! unless res.success?
       res.data
@@ -266,15 +270,16 @@ module Hub
       end
 
       def obtain_oauth_token host, user
+        uri_scheme = config.uri_scheme(host)
         # first try to fetch existing authorization
-        res = get "https://#{user}@#{host}/authorizations"
+        res = get "#{uri_scheme}://#{user}@#{host}/authorizations"
         res.error! unless res.success?
 
         if found = res.data.find {|auth| auth['app']['url'] == oauth_app_url }
           found['token']
         else
           # create a new authorization
-          res = post "https://#{user}@#{host}/authorizations",
+          res = post "#{uri_scheme}://#{user}@#{host}/authorizations",
             :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url
           res.error! unless res.success?
           res.data['token']
@@ -438,6 +443,13 @@ module Hub
         if proxy = ENV[env_name] || ENV[env_name.downcase] and !proxy.empty?
           proxy = "http://#{proxy}" unless proxy.include? '://'
           URI.parse proxy
+        end
+      end
+
+      def uri_scheme host
+        user = @data.fetch_user normalize_host(host)
+        @data.fetch_value normalize_host(host), user, :uri_scheme do
+          'https'
         end
       end
     end
