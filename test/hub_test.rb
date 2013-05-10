@@ -487,6 +487,38 @@ class HubTest < Test::Unit::TestCase
       "checkout https://github.com/defunkt/hub/pull/73/files"
   end
 
+  def test_comment_on_commit
+    stub_command_output "rev-parse -q HEAD", "head_sha"
+    stub_request(:post, "https://api.github.com/repos/defunkt/hub/commits/head_sha/comments").
+      with(:body => {'body' => "awesome!" }).
+      to_return(:body => mock_comment_response('head_sha'))
+
+    expected = "https://github.com/defunkt/hub/commit/head_sha#commitcomment-1\n"
+    assert_output expected, 'comment awesome!'
+  end
+
+  def test_comment_on_commit_with_explicit_commit
+    stub_command_output "rev-parse -q master", "master_sha"
+    stub_request(:post, "https://api.github.com/repos/defunkt/hub/commits/master_sha/comments").
+      with(:body => {'body' => "awesome!" }).
+      to_return(:body => mock_comment_response('master_sha'))
+
+    expected = "https://github.com/defunkt/hub/commit/master_sha#commitcomment-1\n"
+    assert_output expected, 'comment master awesome!'
+  end
+
+  def test_comment_fails
+    stub_command_output "rev-parse -q master", "master_sha"
+    stub_request(:post, "https://api.github.com/repos/defunkt/hub/commits/master_sha/comments").
+      to_return(:status => [422, "Unprocessable Entity"],
+                :headers => {"Content-type" => "application/json"},
+                :body => %({"message":["oh no!\\nit failed."]}))
+
+    expected = "Error commenting on commit: Unprocessable Entity (HTTP 422)\n"
+    expected << "oh no!\nit failed.\n"
+    assert_output expected, 'comment master awesome!'
+  end
+
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out
@@ -716,6 +748,10 @@ class HubTest < Test::Unit::TestCase
 
     def mock_pullreq_response(id, name_with_owner = 'defunkt/hub', host = 'github.com')
       Hub::JSON.generate :html_url => "https://#{host}/#{name_with_owner}/pull/#{id}"
+    end
+
+    def mock_comment_response(sha, name_with_owner = 'defunkt/hub', host = 'github.com')
+      Hub::JSON.generate :html_url => "https://#{host}/#{name_with_owner}/commit/#{sha}#commitcomment-1"
     end
 
     def mock_pull_response(label, priv = false)

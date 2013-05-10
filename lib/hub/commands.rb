@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status, comment]
 
     def run(args)
       slurp_global_flags(args)
@@ -227,6 +227,31 @@ module Hub
         base_url = base_project.web_url.split('://', 2).last
         warn "Are you sure that #{base_url} exists?"
       end
+      exit 1
+    end
+
+    # $ hub comment "Awesome, man!"
+    # $ hub comment master "Awesome, man!"
+    def comment(args)
+      args.shift
+
+      ref = args.words.count == 1 ? 'HEAD' : args.shift
+      body = args.shift
+
+      unless head_project = local_repo.current_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
+      unless sha = local_repo.git_command("rev-parse -q #{ref}")
+        abort "Aborted: no revision could be determined from '#{ref}'"
+      end
+
+      comment = api_client.comment(head_project, sha, { :body => body })
+
+      args.executable = 'echo'
+      args.replace [comment['html_url']]
+    rescue GitHubAPI::Exceptions
+      display_api_exception("commenting on commit", $!.response)
       exit 1
     end
 
@@ -851,6 +876,7 @@ GitHub Commands:
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
    ci-status      Show the CI status of a commit
+   comment        Comment on a commit
 
 See 'git help <command>' for more information on a specific command.
 help

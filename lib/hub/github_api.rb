@@ -118,6 +118,14 @@ module Hub
       res.data
     end
 
+    def comment project, sha, params={}
+      res = post "https://%s/repos/%s/%s/commits/%s/comments" %
+        [api_host(project.host), project.owner, project.name, sha], params
+
+      res.error! unless res.success?
+      res.data
+    end
+
     # Methods for performing HTTP requests
     #
     # Requires access to a `config` object that implements:
