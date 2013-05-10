@@ -131,16 +131,18 @@ module Hub
 
       while arg = args.shift
         case arg
-        when '-f'
+        when '-f', '--force'
           force = true
-        when '-b'
+        when '-b', '--base'
           base_project, options[:base] = from_github_ref.call(args.shift, base_project)
-        when '-h'
+        when '-h', '--head'
           head = args.shift
           explicit_owner = !!head.index(':')
           head_project, options[:head] = from_github_ref.call(head, head_project)
-        when '-i'
+        when '-i', '--issue'
           options[:issue] = args.shift
+        when '--body'
+          options[:body] = args.shift
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
