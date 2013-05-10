@@ -243,6 +243,7 @@ module Hub
     # > git clone git@github.com:YOUR_LOGIN/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
+      userdir = args.delete('-d')
       has_values = /^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$/
 
       idx = 1
@@ -259,6 +260,9 @@ module Hub
             project = github_project(name, owner || github_user)
             ssh ||= args[0] != 'submodule' && project.owner == github_user(project.host) { }
             args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
+            if userdir
+              args.push(File.join(owner || github_user, name))
+            end
           end
           break
         end

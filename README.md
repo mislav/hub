@@ -174,6 +174,12 @@ superpowers:
     $ git clone resque
     > git clone git@github.com/YOUR_USER/resque.git
 
+    $ git clone -d schacon/ticgit
+    > git clone git://github.com/schacon/ticgit.git schacon/ticgit
+
+    $ git clone -d resque
+    > git clone git@github.com:YOUR_USER/resque.git YOUR_USER/resque
+
 ### git remote add
 
     $ git remote add rtomayko
