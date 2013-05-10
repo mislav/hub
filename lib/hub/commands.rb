@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status, comment]
 
     def run(args)
       slurp_global_flags(args)
@@ -227,6 +227,40 @@ module Hub
         base_url = base_project.web_url.split('://', 2).last
         warn "Are you sure that #{base_url} exists?"
       end
+      exit 1
+    end
+
+    # $ hub comment "Awesome, man!"
+    # $ hub comment master "Awesome, man!"
+    def comment(args)
+      args.shift
+
+      ref = args.words.count <= 1 ? 'HEAD' : args.shift
+      body = args.shift
+
+      unless head_project = local_repo.current_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
+      unless sha = local_repo.git_command("rev-parse -q #{ref}")
+        abort "Aborted: no revision could be determined from '#{ref}'"
+      end
+
+      options = { :body => body }
+
+      unless options[:body]
+        options[:body] = comment_editmsg { |msg|
+          msg.puts ""
+          msg.puts "# Write a comment for #{sha}"
+        }
+      end
+
+      comment = api_client.comment(head_project, sha, options)
+
+      args.executable = 'echo'
+      args.replace [comment['html_url']]
+    rescue GitHubAPI::Exceptions
+      display_api_exception("commenting on commit", $!.response)
       exit 1
     end
 
@@ -851,6 +885,7 @@ GitHub Commands:
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
    ci-status      Show the CI status of a commit
+   comment        Comment on a commit
 
 See 'git help <command>' for more information on a specific command.
 help
@@ -1017,7 +1052,7 @@ help
       title, body = '', ''
       File.open(file, 'r') { |msg|
         msg.each_line do |line|
-          next if line.index('#') == 0
+          next if comment?(line)
           ((body.empty? and line =~ /\S/) ? title : body) << line
         end
       }
@@ -1026,6 +1061,31 @@ help
       body.strip!
 
       [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
+    end
+
+    def comment_editmsg
+      message_file = File.join(git_dir, 'COMMENT_EDITMSG')
+      File.open(message_file, 'w') { |msg|
+        yield msg
+      }
+      edit_cmd = Array(git_editor).dup
+      edit_cmd << '-c' << 'set ft=gitcommit' if edit_cmd[0] =~ /^[mg]?vim$/
+      edit_cmd << message_file
+      system(*edit_cmd)
+      abort "can't open text editor for comment" unless $?.success?
+      body = ''
+      File.open(message_file, 'r') { |msg|
+        msg.each_line do |line|
+          next if comment?(line)
+          body << line
+        end
+      }
+      abort "Aborting due to empty comment" unless body
+      body
+    end
+
+    def comment?(line)
+      line.index('#') == 0
     end
 
     def expand_alias(cmd)
