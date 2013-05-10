@@ -1,5 +1,4 @@
 *.swp
 *~
 /hub
-Gemfile.lock
 tmp/
