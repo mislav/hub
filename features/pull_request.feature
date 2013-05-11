@@ -80,3 +80,70 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request useragent`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Text editor adds title and body
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    And the text editor adds:
+      """
+      This title comes from vim!
+
+      This body as well.
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        { :title => 'This title comes from vim!',
+          :body  => 'This body as well.'
+        }.each do |param, value|
+          if params[param] != value
+            halt 422, json(
+              :message => "expected %s to be %s; got %s" % [
+                param.inspect,
+                value.inspect,
+                params[param].inspect
+              ]
+            )
+          end
+        end
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Failed pull request preserves previous message
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    And the text editor adds:
+      """
+      This title will fail
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 422 if params[:title].include?("fail")
+        halt 422 unless params[:body] == "This title will fail"
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I run `hub pull-request`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Error creating pull request:  (HTTP 422)\n
+      """
+    Given the text editor adds:
+      """
+      But this title will prevail
+      """
+    When I successfully run `hub pull-request`
+    Then the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Text editor fails
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    And the text editor exits with error status
+    And an empty file named ".git/PULLREQ_EDITMSG"
+    When I run `hub pull-request`
+    Then the stderr should contain "error using text editor for pull request message"
+    And the exit status should be 1
+    And the file ".git/PULLREQ_EDITMSG" should not exist

@@ -35,6 +35,8 @@ Before do
   set_env 'HUB_TEST_HOST', '127.0.0.1:0'
   # ensure we use fakebin `open` to test browsing
   set_env 'BROWSER', 'open'
+  # ensure we use fakebin `vim` as text editor
+  set_env 'GIT_EDITOR', 'vim'
 
   author_name  = "Hub"
   author_email = "hub@test.local"
@@ -56,6 +58,7 @@ end
 After do
   @server.stop if defined? @server and @server
   processes.each {|_, p| p.close_streams }
+  FileUtils.rm_f("#{bin_dir}/vim")
 end
 
 RSpec::Matchers.define :be_successful_command do
@@ -122,6 +125,14 @@ World Module.new {
     end
     yield data
     File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
+  end
+
+  define_method(:text_editor_script) do |bash_code|
+    File.open("#{bin_dir}/vim", 'w', 0755) do |exe|
+      exe.puts "#!/bin/bash"
+      exe.puts "set -e"
+      exe.puts bash_code
+    end
   end
 
   def run_silent cmd

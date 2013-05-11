@@ -159,3 +159,18 @@ end
 Given /^the remote commit state of "(.*?)" "(.*?)" is nil$/ do |proj, ref|
   step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ ]"
 end
+
+Given /^the text editor exits with error status$/ do
+  text_editor_script "exit 1"
+end
+
+Given /^the text editor adds:$/ do |text|
+  text_editor_script <<-BASH
+    file="$3"
+    contents="$(cat "$file" 2>/dev/null || true)"
+    { echo "#{text}"
+      echo
+      echo "$contents"
+    } > "$file"
+  BASH
+end

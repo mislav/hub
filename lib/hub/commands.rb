@@ -206,8 +206,9 @@ module Hub
             [format, base_branch, remote_branch]
         end
 
-        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg|
-          msg.puts default_message if default_message
+        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message|
+          initial_message ||= default_message
+          msg.puts initial_message if initial_message
           msg.puts ""
           msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
           msg.puts "#"
@@ -217,8 +218,6 @@ module Hub
       end
 
       pull = api_client.create_pullrequest(options)
-
-      delete_pullreq_editmsg_file
 
       args.executable = 'echo'
       args.replace [pull['html_url']]
@@ -230,6 +229,8 @@ module Hub
         warn "Are you sure that #{base_url} exists?"
       end
       exit 1
+    else
+      delete_editmsg
     end
 
     # $ hub clone rtomayko/tilt
@@ -997,27 +998,39 @@ help
     end
 
     def pullrequest_editmsg(changes)
-      message_file = pullreq_editmsg_file
+      message_file = pullrequest_editmsg_file
 
-      unless File.exists?(message_file)
-        File.open(message_file, 'w') { |msg|
-          yield msg
-          if changes
-            msg.puts "#\n# Changes:\n#"
-            msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
-          end
-        }
+      if File.exists?(message_file)
+        title, body = read_editmsg(message_file)
+        previous_message = [title, body].compact.join("\n\n") if title
       end
+
+      File.open(message_file, 'w') { |msg|
+        yield msg, previous_message
+        if changes
+          msg.puts "#\n# Changes:\n#"
+          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
+        end
+      }
 
       edit_cmd = Array(git_editor).dup
       edit_cmd << '-c' << 'set ft=gitcommit' if edit_cmd[0] =~ /^[mg]?vim$/
       edit_cmd << message_file
       system(*edit_cmd)
-      abort "can't open text editor for pull request message" unless $?.success?
+
+      unless $?.success?
+        # writing was cancelled, or the editor never opened in the first place
+        delete_editmsg(message_file)
+        abort "error using text editor for pull request message"
+      end
 
       title, body = read_editmsg(message_file)
       abort "Aborting due to empty pull request title" unless title
       [title, body]
+    end
+
+    def pullrequest_editmsg_file
+      File.join(git_dir, 'PULLREQ_EDITMSG')
     end
 
     def read_editmsg(file)
@@ -1035,12 +1048,8 @@ help
       [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
     end
 
-    def delete_pullreq_editmsg_file
-      File.delete(pullreq_editmsg_file) if File.exists?(pullreq_editmsg_file)
-    end
-
-    def pullreq_editmsg_file
-      File.join(git_dir, 'PULLREQ_EDITMSG')
+    def delete_editmsg(file = pullrequest_editmsg_file)
+      File.delete(file) if File.exist?(file)
     end
 
     def expand_alias(cmd)
