@@ -133,6 +133,13 @@ module Hub
         case arg
         when '-f'
           force = true
+        when '-F', '--file'
+          file = args.shift
+          text = file == '-' ? $stdin.read : File.read(file)
+          options[:title], options[:body] = read_msg(text)
+        when '-m', '--message'
+          text = args.shift
+          options[:title], options[:body] = read_msg(text)
         when '-b'
           base_project, options[:base] = from_github_ref.call(args.shift, base_project)
         when '-h'
@@ -145,7 +152,10 @@ module Hub
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
             base_project = url.project
-          elsif !options[:title] then options[:title] = arg
+          elsif !options[:title]
+            options[:title] = arg
+            warn "hub: Specifying pull request title without a flag is deprecated."
+            warn "Please use one of `-m' or `-F' options."
           else
             abort "invalid argument: #{arg}"
           end
@@ -1027,6 +1037,10 @@ help
       title, body = read_editmsg(message_file)
       abort "Aborting due to empty pull request title" unless title
       [title, body]
+    end
+
+    def read_msg(message)
+      message.split("\n\n", 2).each {|s| s.strip! }.reject {|s| s.empty? }
     end
 
     def pullrequest_editmsg_file

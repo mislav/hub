@@ -24,7 +24,7 @@ Feature: hub pull-request
       post('/repos/Manganeez/repo/pulls') {
         { :base  => 'master',
           :head  => 'mislav:master',
-          :title => 'hereyougo'
+          :title => 'here we go'
         }.each do |param, value|
           if params[param] != value
             halt 422, json(
@@ -39,7 +39,7 @@ Feature: hub pull-request
         json :html_url => "https://github.com/Manganeez/repo/pull/12"
       }
       """
-    When I successfully run `hub pull-request hereyougo`
+    When I successfully run `hub pull-request -m "here we go"`
     Then the output should contain exactly "https://github.com/Manganeez/repo/pull/12\n"
 
   Scenario: With Unicode characters
@@ -52,8 +52,24 @@ Feature: hub pull-request
         json :html_url => "the://url"
       }
       """
-    When I successfully run `hub pull-request ăéñøü`
+    When I successfully run `hub pull-request -m ăéñøü`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Deprecated title argument
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 422 if params[:title] != 'mytitle'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request mytitle`
+    Then the stderr should contain exactly:
+      """
+      hub: Specifying pull request title without a flag is deprecated.
+      Please use one of `-m' or `-F' options.\n
+      """
 
   Scenario: Non-existing base
     Given the "origin" remote has url "git://github.com/mislav/coral.git"
@@ -61,7 +77,7 @@ Feature: hub pull-request
       """
       post('/repos/origin/coral/pulls') { 404 }
       """
-    When I run `hub pull-request -b origin:master hereyougo`
+    When I run `hub pull-request -b origin:master -m here`
     Then the exit status should be 1
     Then the stderr should contain:
       """
@@ -78,7 +94,7 @@ Feature: hub pull-request
         json :html_url => "the://url"
       }
       """
-    When I successfully run `hub pull-request useragent`
+    When I successfully run `hub pull-request -m useragent`
     Then the output should contain exactly "the://url\n"
 
   Scenario: Text editor adds title and body
@@ -146,4 +162,94 @@ Feature: hub pull-request
     When I run `hub pull-request`
     Then the stderr should contain "error using text editor for pull request message"
     And the exit status should be 1
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Title and body from file
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        { :title => 'Title from file',
+          :body  => "Body from file as well.\n\nMultiline, even!"
+        }.each do |param, value|
+          if params[param] != value
+            halt 422, json(
+              :message => "expected %s to be %s; got %s" % [
+                param.inspect,
+                value.inspect,
+                params[param].inspect
+              ]
+            )
+          end
+        end
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    And a file named "pullreq-msg" with:
+      """
+      Title from file
+
+      Body from file as well.
+
+      Multiline, even!
+      """
+    When I successfully run `hub pull-request -F pullreq-msg`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Title and body from stdin
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        { :title => 'Unix piping is great',
+          :body  => 'Just look at this'
+        }.each do |param, value|
+          if params[param] != value
+            halt 422, json(
+              :message => "expected %s to be %s; got %s" % [
+                param.inspect,
+                value.inspect,
+                params[param].inspect
+              ]
+            )
+          end
+        end
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I run `hub pull-request -F -` interactively
+    And I pass in:
+      """
+      Unix piping is great
+
+      Just look at this
+      """
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the exit status should be 0
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Title and body from command-line argument
+    Given the "origin" remote has url "git://github.com/mislav/coral.git"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        { :title => 'I am just a pull',
+          :body  => 'A little pull'
+        }.each do |param, value|
+          if params[param] != value
+            halt 422, json(
+              :message => "expected %s to be %s; got %s" % [
+                param.inspect,
+                value.inspect,
+                params[param].inspect
+              ]
+            )
+          end
+        end
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I successfully run `hub pull-request -m "I am just a pull\n\nA little pull"`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
