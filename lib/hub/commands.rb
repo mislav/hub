@@ -153,7 +153,7 @@ module Hub
       end
 
       options[:project] = base_project
-      options[:base] ||= master_branch.short_name
+      options[:base] ||= default_branch_for(base_project).short_name
 
       if tracked_branch = options[:head].nil? && current_branch.upstream
         if !tracked_branch.remote?
@@ -623,11 +623,11 @@ module Hub
           # $ hub browse pjhyett/github-services
           # $ hub browse github-services
           project = github_project dest
-          branch = master_branch
+          branch = default_branch_for(project)
         else
           # $ hub browse
           project = current_project
-          branch = current_branch && current_branch.upstream || master_branch
+          branch = current_branch && current_branch.upstream || default_branch_for(project)
         end
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
@@ -1035,6 +1035,11 @@ help
           Shellwords.shellwords(expanded)
         end
       end
+    end
+
+    def default_branch_for(project)
+      repo_info = api_client.repo_info(project)
+      default_branch(repo_info.success? && repo_info.data['master_branch'])
     end
 
     def display_api_exception(action, response)
