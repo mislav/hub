@@ -16,8 +16,8 @@ Feature: hub ci-status
     Given there is a commit named "the_sha"
     Given the remote commit states of "michiels/pencilbox" "the_sha" are:
       """
-      [ { :state => 'pending' },
-        { :state => 'success' }  ]
+      [ { :state => 'success' },
+        { :state => 'pending' }  ]
       """
     When I run `hub ci-status the_sha`
     Then the output should contain exactly "success\n"

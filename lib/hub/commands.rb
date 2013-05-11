@@ -88,7 +88,7 @@ module Hub
       end
 
       statuses = api_client.statuses(head_project, sha)
-      status = statuses.last
+      status = statuses.first
       ref_state = status ? status['state'] : 'no status'
 
       exit_code = case ref_state
