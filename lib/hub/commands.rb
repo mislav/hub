@@ -999,18 +999,16 @@ help
     def pullrequest_editmsg(changes)
       message_file = pullreq_editmsg_file
 
-      if File.exists?(message_file)
-        title, body = read_editmsg(message_file)
-        return [title, body] unless title
+      unless File.exists?(message_file)
+        File.open(message_file, 'w') { |msg|
+          yield msg
+          if changes
+            msg.puts "#\n# Changes:\n#"
+            msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
+          end
+        }
       end
 
-      File.open(message_file, 'w') { |msg|
-        yield msg
-        if changes
-          msg.puts "#\n# Changes:\n#"
-          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
-        end
-      }
       edit_cmd = Array(git_editor).dup
       edit_cmd << '-c' << 'set ft=gitcommit' if edit_cmd[0] =~ /^[mg]?vim$/
       edit_cmd << message_file
