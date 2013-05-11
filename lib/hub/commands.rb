@@ -218,6 +218,8 @@ module Hub
 
       pull = api_client.create_pullrequest(options)
 
+      delete_pullreq_editmsg_file
+
       args.executable = 'echo'
       args.replace [pull['html_url']]
     rescue GitHubAPI::Exceptions
@@ -995,7 +997,13 @@ help
     end
 
     def pullrequest_editmsg(changes)
-      message_file = File.join(git_dir, 'PULLREQ_EDITMSG')
+      message_file = pullreq_editmsg_file
+
+      if File.exists?(message_file)
+        title, body = read_editmsg(message_file)
+        return [title, body] unless title
+      end
+
       File.open(message_file, 'w') { |msg|
         yield msg
         if changes
@@ -1008,6 +1016,7 @@ help
       edit_cmd << message_file
       system(*edit_cmd)
       abort "can't open text editor for pull request message" unless $?.success?
+
       title, body = read_editmsg(message_file)
       abort "Aborting due to empty pull request title" unless title
       [title, body]
@@ -1026,6 +1035,14 @@ help
       body.strip!
 
       [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
+    end
+
+    def delete_pullreq_editmsg_file
+      File.delete(pullreq_editmsg_file) if File.exists?(pullreq_editmsg_file)
+    end
+
+    def pullreq_editmsg_file
+      File.join(git_dir, 'PULLREQ_EDITMSG')
     end
 
     def expand_alias(cmd)
