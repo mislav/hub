@@ -444,49 +444,6 @@ class HubTest < Test::Unit::TestCase
     assert_output expected, "pull-request hereyougo -b feature -f"
   end
 
-  def test_checkout_no_changes
-    assert_forwarded "checkout master"
-  end
-
-  def test_checkout_pullrequest
-    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
-      to_return(:body => mock_pull_response('blueyed:feature'))
-
-    assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
-      'git checkout -f --track -B blueyed-feature blueyed/feature -q',
-      "checkout -f https://github.com/defunkt/hub/pull/73/files -q"
-  end
-
-  def test_checkout_private_pullrequest
-    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
-      to_return(:body => mock_pull_response('blueyed:feature', :private))
-
-    assert_commands 'git remote add -f -t feature blueyed git@github.com:blueyed/hub.git',
-      'git checkout --track -B blueyed-feature blueyed/feature',
-      "checkout https://github.com/defunkt/hub/pull/73/files"
-  end
-
-  def test_checkout_pullrequest_custom_branch
-    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
-      to_return(:body => mock_pull_response('blueyed:feature'))
-
-    assert_commands 'git remote add -f -t feature blueyed git://github.com/blueyed/hub.git',
-      'git checkout --track -B review blueyed/feature',
-      "checkout https://github.com/defunkt/hub/pull/73/files review"
-  end
-
-  def test_checkout_pullrequest_existing_remote
-    stub_command_output 'remote', "origin\nblueyed"
-
-    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/73").
-      to_return(:body => mock_pull_response('blueyed:feature'))
-
-    assert_commands 'git remote set-branches --add blueyed feature',
-      'git fetch blueyed +refs/heads/feature:refs/remotes/blueyed/feature',
-      'git checkout --track -B blueyed-feature blueyed/feature',
-      "checkout https://github.com/defunkt/hub/pull/73/files"
-  end
-
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out
