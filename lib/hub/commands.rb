@@ -88,15 +88,19 @@ module Hub
       end
 
       statuses = api_client.statuses(head_project, sha)
-      status = statuses.last
-      ref_state = status ? status['state'] : 'no status'
+      statuses = statuses.map { |status| status["state"] }.uniq
 
-      exit_code = case ref_state
-        when 'success'          then 0
-        when 'failure', 'error' then 1
-        when 'pending'          then 2
-        else 3
-        end
+      ref_state, exit_code = if statuses.include?('success')
+                    ['success', 0]
+                  elsif statuses.include?('failure')
+                    ['failure', 1]
+                  elsif  statuses.include?('error')
+                    ['error', 1]
+                  elsif statuses.include?('pending')
+                    ['pending', 2]
+                  else
+                    ['no status', 3]
+                  end
 
       $stdout.puts ref_state
       exit exit_code
