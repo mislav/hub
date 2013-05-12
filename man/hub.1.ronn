@@ -27,7 +27,7 @@ hub(1) -- git + hub = github
 `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
 `git fork` [`--no-remote`]  
-`git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>] [`-b` <BASE>] [`-h` <HEAD>]  
+`git pull-request` [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]  
 `git ci-status` [<COMMIT>]
 
 ## DESCRIPTION
@@ -136,7 +136,7 @@ hub also adds some custom commands that are otherwise not present in git:
     Forks the original project (referenced by "origin" remote) on GitHub and
     adds a new remote for it under your username.
 
-  * `git pull-request` [`-f`] [<TITLE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]:
+  * `git pull-request` [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]:
     Opens a pull request on GitHub for the project that the "origin" remote
     points to. The default head of the pull request is the current branch.
     Both base and head of the pull request can be explicitly given in one of
@@ -145,8 +145,9 @@ hub also adds some custom commands that are otherwise not present in git:
     branch has local commits that are not yet pushed to its upstream branch
     on the remote. To skip this check, use `-f`.
 
-    If <TITLE> is omitted, a text editor will open in which title and body of
-    the pull request can be entered in the same manner as git commit message.
+    Without <MESSAGE> or <FILE>, a text editor will open in which title and body
+    of the pull request can be entered in the same manner as git commit message.
+    Pull request message can also be passed via stdin with `-F -`.
 
     If instead of normal <TITLE> an issue number is given with `-i`, the pull
     request will be attached to an existing GitHub issue. Alternatively, instead

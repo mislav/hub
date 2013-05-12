@@ -10,7 +10,7 @@ Feature: OAuth authentication
       post('/authorizations') {
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
-        halt 400 unless params[:scopes] == ['repo']
+        assert :scopes => ['repo']
         json :token => 'OTOKEN'
       }
       get('/user') {

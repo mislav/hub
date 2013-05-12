@@ -61,6 +61,20 @@ module Hub
           content_type :json
           JSON.generate value
         end
+
+        def assert(expected)
+          expected.each do |key, value|
+            if params[key] != value
+              halt 422, json(
+                :message => "expected %s to be %s; got %s" % [
+                  key.inspect,
+                  value.inspect,
+                  params[key].inspect
+                ]
+              )
+            end
+          end
+        end
       end
 
       new(klass.new).start

@@ -7,7 +7,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
-        halt 400 if params[:private]
+        assert :private => false
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -19,7 +19,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
-        halt 400 unless params[:private]
+        assert :private => true
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -62,7 +62,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
-        halt 400 unless params[:name] == 'myconfig'
+        assert :name => 'myconfig'
         json :full_name => 'mislav/myconfig'
       }
       """
@@ -73,8 +73,8 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
-        halt 400 unless params[:description] == 'mydesc' and
-          params[:homepage] == 'http://example.com'
+        assert :description => 'mydesc',
+               :homepage => 'http://example.com'
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -123,7 +123,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
-        halt 400 unless params[:name] == 'my-dot-files'
+        assert :name => 'my-dot-files'
         json :full_name => 'mislav/my-dot-files'
       }
       """
