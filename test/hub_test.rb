@@ -286,7 +286,7 @@ class HubTest < Test::Unit::TestCase
   def test_pullrequest
     expected = "Aborted: head branch is the same as base (\"master\")\n" <<
       "(use `-h <branch>` to specify an explicit pull request head)\n"
-    assert_output expected, "pull-request hereyougo"
+    assert_output expected, "pull-request -m hereyougo"
   end
 
   def test_pullrequest_with_unpushed_commits
@@ -295,7 +295,7 @@ class HubTest < Test::Unit::TestCase
 
     expected = "Aborted: 2 commits are not yet pushed to mislav/master\n" <<
       "(use `-f` to force submit a pull request anyway)\n"
-    assert_output expected, "pull-request hereyougo"
+    assert_output expected, "pull-request -m hereyougo"
   end
 
   def test_pullrequest_from_branch
@@ -308,7 +308,7 @@ class HubTest < Test::Unit::TestCase
       }.to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -f"
+    assert_output expected, "pull-request -m hereyougo -f"
   end
 
   def test_pullrequest_from_tracking_branch
@@ -320,7 +320,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -f"
+    assert_output expected, "pull-request -m hereyougo -f"
   end
 
   def test_pullrequest_from_branch_tracking_local
@@ -332,7 +332,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -f"
+    assert_output expected, "pull-request -m hereyougo -f"
   end
 
   def test_pullrequest_invalid_remote
@@ -341,7 +341,7 @@ class HubTest < Test::Unit::TestCase
     stub_tracking('feature', 'origin', 'feature')
 
     expected = "Aborted: the origin remote doesn't point to a GitHub repository.\n"
-    assert_output expected, "pull-request hereyougo"
+    assert_output expected, "pull-request -m hereyougo"
   end
 
   def test_pullrequest_enterprise_no_tracking
@@ -359,7 +359,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1, 'api/v3/defunkt/hub', 'git.my.org'))
 
     expected = "https://git.my.org/api/v3/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -f"
+    assert_output expected, "pull-request -m hereyougo -f"
   end
 
   def test_pullrequest_explicit_head
@@ -368,7 +368,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -h yay-feature -f"
+    assert_output expected, "pull-request -m hereyougo -h yay-feature -f"
   end
 
   def test_pullrequest_explicit_head_with_owner
@@ -377,7 +377,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -h mojombo:feature -f"
+    assert_output expected, "pull-request -m hereyougo -h mojombo:feature -f"
   end
 
   def test_pullrequest_explicit_base
@@ -386,7 +386,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -b feature -f"
+    assert_output expected, "pull-request -m hereyougo -b feature -f"
   end
 
   def test_pullrequest_explicit_base_with_owner
@@ -395,7 +395,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1, 'mojombo/hub'))
 
     expected = "https://github.com/mojombo/hub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -b mojombo:feature -f"
+    assert_output expected, "pull-request -m hereyougo -b mojombo:feature -f"
   end
 
   def test_pullrequest_explicit_base_with_repo
@@ -404,7 +404,7 @@ class HubTest < Test::Unit::TestCase
       to_return(:body => mock_pullreq_response(1, 'mojombo/hubbub'))
 
     expected = "https://github.com/mojombo/hubbub/pull/1\n"
-    assert_output expected, "pull-request hereyougo -b mojombo/hubbub:feature -f"
+    assert_output expected, "pull-request -m hereyougo -b mojombo/hubbub:feature -f"
   end
 
   def test_pullrequest_existing_issue
@@ -441,7 +441,7 @@ class HubTest < Test::Unit::TestCase
 
     expected = "Error creating pull request: Unprocessable Entity (HTTP 422)\n"
     expected << "oh no!\nit failed.\n"
-    assert_output expected, "pull-request hereyougo -b feature -f"
+    assert_output expected, "pull-request -m hereyougo -b feature -f"
   end
 
   def test_version
@@ -495,7 +495,7 @@ class HubTest < Test::Unit::TestCase
     assert_equal expected, usage_help
 
     usage_help = hub("pull-request -h")
-    expected = "Usage: git pull-request [-f] [TITLE|-i ISSUE] [-b BASE] [-h HEAD]\n"
+    expected = "Usage: git pull-request [-f] [-m MESSAGE|-F FILE|-i ISSUE|ISSUE-URL] [-b BASE] [-h HEAD]\n"
     assert_equal expected, usage_help
   end
 

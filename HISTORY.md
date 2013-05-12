@@ -1,5 +1,8 @@
 ## master
 
+* change `pull-request` interface to allow passing title & body
+* avoid hard breaks in `pull-request` message authored in Vim
+* save and reuse `pull-request` message if creating it failed
 * new `ci-status` command for checking GitHub Status API
 
 ## 1.10.6 (2013-04-25)
