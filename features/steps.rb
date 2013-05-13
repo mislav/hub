@@ -57,6 +57,11 @@ Given /^there is a commit named "([^"]+)"$/ do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
+When /^I make (a|\d+) commits?$/ do |num|
+  num = num == 'a' ? 1 : num.to_i
+  num.times { empty_commit }
+end
+
 Given /^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/ do |name, upstream|
   empty_commit
   if upstream

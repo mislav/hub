@@ -21,9 +21,11 @@ module Hub
       begin
         require 'rack/handler/thin'
         Thin::Logging.silent = true
+        Thin::HTTP_STATUS_CODES[422] = "Unprocessable Entity"
         Rack::Handler::Thin.run(app, :Port => port, &block)
       rescue LoadError
         require 'rack/handler/webrick'
+        WEBrick::HTTPStatus::StatusMessage[422] = "Unprocessable Entity"
         Rack::Handler::WEBrick.run(app, :Port => port, :AccessLog => [], :Logger => WEBrick::Log::new(nil, 0), &block)
       end
     end

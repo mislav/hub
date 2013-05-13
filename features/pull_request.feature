@@ -1,11 +1,10 @@
 Feature: hub pull-request
   Background:
-    Given I am in "dotfiles" git repo
+    Given I am in "git://github.com/mislav/coral.git" git repo
     And I am "mislav" on github.com with OAuth token "OTOKEN"
 
   Scenario: Detached HEAD
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
-    And I am in detached HEAD
+    Given I am in detached HEAD
     When I run `hub pull-request`
     Then the stderr should contain "Aborted: not currently on any branch.\n"
     And the exit status should be 1
@@ -32,7 +31,6 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/Manganeez/repo/pull/12\n"
 
   Scenario: With Unicode characters
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -45,7 +43,6 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Deprecated title argument
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -61,7 +58,6 @@ Feature: hub pull-request
       """
 
   Scenario: Non-existing base
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
     Given the GitHub API server:
       """
       post('/repos/origin/coral/pulls') { 404 }
@@ -75,7 +71,6 @@ Feature: hub pull-request
       """
 
   Scenario: Supplies User-Agent string to API calls
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -87,8 +82,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Text editor adds title and body
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
-    And the text editor adds:
+    Given the text editor adds:
       """
       This title comes from vim!
 
@@ -107,8 +101,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Failed pull request preserves previous message
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
-    And the text editor adds:
+    Given the text editor adds:
       """
       This title will fail
       """
@@ -125,7 +118,7 @@ Feature: hub pull-request
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error creating pull request:  (HTTP 422)\n
+      Error creating pull request: Unprocessable Entity (HTTP 422)\n
       """
     Given the text editor adds:
       """
@@ -135,8 +128,7 @@ Feature: hub pull-request
     Then the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Text editor fails
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
-    And the text editor exits with error status
+    Given the text editor exits with error status
     And an empty file named ".git/PULLREQ_EDITMSG"
     When I run `hub pull-request`
     Then the stderr should contain "error using text editor for pull request message"
@@ -144,7 +136,6 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from file
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -166,7 +157,6 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from stdin
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -187,7 +177,6 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from command-line argument
-    Given the "origin" remote has url "git://github.com/mislav/coral.git"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -199,3 +188,198 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m "I am just a pull\n\nA little pull"`
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Error when implicit head is the same as base
+    Given I am on the "master" branch with upstream "origin/master"
+    When I run `hub pull-request`
+    Then the stderr should contain exactly:
+      """
+      Aborted: head branch is the same as base ("master")
+      (use `-h <branch>` to specify an explicit pull request head)\n
+      """
+
+  Scenario: Explicit head
+    Given I am on the "master" branch
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head => 'mislav:feature'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -h feature -m message`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Explicit head with owner
+    Given I am on the "master" branch
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head => 'mojombo:feature'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -h mojombo:feature -m message`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Explicit base
+    Given I am on the "feature" branch
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :base => 'develop'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -b develop -m message`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Explicit base with owner
+    Given I am on the "master" branch
+    Given the GitHub API server:
+      """
+      post('/repos/mojombo/coral/pulls') {
+        assert :base => 'develop'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -b mojombo:develop -m message`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Explicit base with owner and repo name
+    Given I am on the "master" branch
+    Given the GitHub API server:
+      """
+      post('/repos/mojombo/coralify/pulls') {
+        assert :base => 'develop'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -b mojombo/coralify:develop -m message`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Error when there are unpushed commits
+    Given I am on the "feature" branch with upstream "origin/feature"
+    When I make 2 commits
+    And I run `hub pull-request`
+    Then the stderr should contain exactly:
+      """
+      Aborted: 2 commits are not yet pushed to origin/feature
+      (use `-f` to force submit a pull request anyway)\n
+      """
+
+  Scenario: Ignore unpushed commits with `-f`
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head => 'mislav:feature'
+        json :html_url => "the://url"
+      }
+      """
+    When I make 2 commits
+    And I successfully run `hub pull-request -f -m message`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request fails on the server
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        status 422
+        json(:message => "I haz fail!")
+      }
+      """
+    When I run `hub pull-request -m message`
+    Then the stderr should contain exactly:
+      """
+      Error creating pull request: Unprocessable Entity (HTTP 422)
+      I haz fail!\n
+      """
+
+  Scenario: Convert issue to pull request
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :issue => '92'
+        json :html_url => "https://github.com/mislav/coral/pull/92"
+      }
+      """
+    When I successfully run `hub pull-request -i 92`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
+
+  Scenario: Convert issue URL to pull request
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :issue => '92'
+        json :html_url => "https://github.com/mislav/coral/pull/92"
+      }
+      """
+    When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
+
+  Scenario: Error when there are unpushed commits
+    Given I am on the "feature" branch with upstream "origin/feature"
+    When I make 2 commits
+    And I run `hub pull-request`
+    Then the stderr should contain exactly:
+      """
+      Aborted: 2 commits are not yet pushed to origin/feature
+      (use `-f` to force submit a pull request anyway)\n
+      """
+
+  Scenario: Ignore unpushed commits with `-f`
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head => 'mislav:feature'
+        json :html_url => "the://url"
+      }
+      """
+    When I make 2 commits
+    And I successfully run `hub pull-request -f -m message`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request fails on the server
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        status 422
+        json(:message => "I haz fail!")
+      }
+      """
+    When I run `hub pull-request -m message`
+    Then the stderr should contain exactly:
+      """
+      Error creating pull request: Unprocessable Entity (HTTP 422)
+      I haz fail!\n
+      """
+
+  Scenario: Convert issue to pull request
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :issue => '92'
+        json :html_url => "https://github.com/mislav/coral/pull/92"
+      }
+      """
+    When I successfully run `hub pull-request -i 92`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
+
+  Scenario: Convert issue URL to pull request
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :issue => '92'
+        json :html_url => "https://github.com/mislav/coral/pull/92"
+      }
+      """
+    When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
