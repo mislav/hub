@@ -1,8 +1,7 @@
 Feature: hub ci-status
 
   Background:
-    Given I am in "pencilbox" git repo
-    Given the "origin" remote has url "git://github.com/michiels/pencilbox.git"
+    Given I am in "git://github.com/michiels/pencilbox.git" git repo
     And I am "michiels" on github.com with OAuth token "OTOKEN"
 
   Scenario: Fetch commit SHA
