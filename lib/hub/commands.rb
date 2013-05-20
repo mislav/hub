@@ -645,12 +645,13 @@ module Hub
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
 
+        require 'CGI'
         # $ hub browse -- wiki
         path = case subpage = args.shift
         when 'commits'
-          "/commits/#{branch.short_name}"
+          "/commits/#{CGI.escape(branch.short_name).sub("%2F", "/")}"
         when 'tree', NilClass
-          "/tree/#{branch.short_name}" if branch and !branch.master?
+          "/tree/#{CGI.escape(branch.short_name).sub("%2F", "/")}" if branch and !branch.master?
         else
           "/#{subpage}"
         end
