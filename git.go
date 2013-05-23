@@ -38,7 +38,7 @@ func FetchGitHead() string {
 
 // FIXME: only care about origin push remote now
 func FetchGitRemote() string {
-	r := regexp.MustCompile("origin\t(.+) \\(push\\)")
+	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
 	for _, output := range execGitCmd([]string{"remote", "-v"}) {
 		if r.MatchString(output) {
 			return r.FindStringSubmatch(output)[1]

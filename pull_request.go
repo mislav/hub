@@ -65,6 +65,7 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	params := PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead}
+	gh := NewGitHub()
 	pullRequestResponse, err := gh.CreatePullRequest(repo.Owner, repo.Project, params)
 	if err != nil {
 		log.Fatal(err)

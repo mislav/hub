@@ -12,10 +12,10 @@ type Config struct {
 	Token string
 }
 
-func loadConfig(filename string) Config {
+func LoadConfig(filename string) (*Config, error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		log.Fatal(err)
+		return &Config{}, err
 	}
 	defer f.Close()
 
@@ -28,5 +28,5 @@ func loadConfig(filename string) Config {
 		log.Fatal(err)
 	}
 
-	return c
+	return &c, nil
 }

@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"os"
+	"path/filepath"
 )
 
 const (
@@ -26,11 +29,11 @@ type unprocessableEntity struct {
 	Errors  []unprocessableEntityError `json:"errors"`
 }
 
-func NewGitHub(configFile string) GitHub {
-	config := loadConfig(configFile)
-	client := &http.Client{}
+func NewGitHub() *GitHub {
+	configFile := filepath.Join(os.Getenv("HOME"), ".config", "gh")
+	config, _ := LoadConfig(configFile)
 
-	return GitHub{client, config.Token}
+	return &GitHub{&http.Client{}, config.Token}
 }
 
 type GitHub struct {
@@ -38,7 +41,15 @@ type GitHub struct {
 	Authorization string
 }
 
+func (gh *GitHub) performBasicAuth(url *url.URL) {
+	url.String()
+}
+
 func (gh *GitHub) call(request *http.Request) (*http.Response, error) {
+	if len(gh.Authorization) == 0 {
+		gh.performBasicAuth(request.URL)
+	}
+
 	request.Header.Set("Authorization", "token "+gh.Authorization)
 
 	response, err := gh.httpClient.Do(request)
