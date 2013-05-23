@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -69,4 +70,10 @@ func main() {
 
 	fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args[0])
 	usage()
+}
+
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }

@@ -9,8 +9,6 @@ import (
 	"github.com/howeyc/gopass"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
 )
 
 const (
@@ -48,15 +46,18 @@ type Authorization struct {
 }
 
 func NewGitHub() *GitHub {
-	configFile := filepath.Join(os.Getenv("HOME"), ".config", "gh")
-	config, _ := LoadConfig(configFile)
+	config, _ := LoadConfig(ConfigFile)
 
-	user := config.User
+	var user, auth string
+	if config != nil {
+		user = config.User
+		auth = config.Token
+	}
+
 	if len(user) == 0 {
 		user = FetchGitOwner()
 	}
 
-	auth := config.Token
 	if len(auth) > 0 {
 		auth = "token " + auth
 	}
@@ -122,6 +123,8 @@ func (gh *GitHub) obtainOAuthTokenWithBasicAuth() error {
 
 		token = auth.Token
 	}
+
+	SaveConfig(ConfigFile, Config{gh.User, token})
 
 	gh.Authorization = "token " + token
 
