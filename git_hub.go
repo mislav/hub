@@ -14,8 +14,9 @@ import (
 )
 
 const (
-	GitHubUrl  string = "https://" + GitHubHost
-	GitHubHost string = "api.github.com"
+	GitHubUrl   string = "https://" + GitHubHost
+	GitHubHost  string = "api.github.com"
+	OAuthAppUrl string = "http://owenou.com/gh"
 )
 
 type GitHubError struct {
@@ -29,6 +30,21 @@ type GitHubError struct {
 type GitHubErrors struct {
 	Message string        `json:"message"`
 	Errors  []GitHubError `json:"errors"`
+}
+
+type App struct {
+	Url      string `json:"url"`
+	Name     string `json:"name"`
+	ClientId string `json:"client_id"`
+}
+
+type Authorization struct {
+	Scopes  []string `json:"scopes"`
+	Url     string   `json:"url"`
+	App     App      `json:"app"`
+	Token   string   `json:"token"`
+	Note    string   `josn:"note"`
+	NoteUrl string   `josn:"note_url"`
 }
 
 func NewGitHub() *GitHub {
@@ -70,23 +86,44 @@ func (gh *GitHub) performBasicAuth() error {
 	}
 	gh.Password = string(pass)
 
-	return gh.obtainOAuthToken()
+	return gh.obtainOAuthTokenWithBasicAuth()
 }
 
-func (gh *GitHub) obtainOAuthToken() error {
+func (gh *GitHub) obtainOAuthTokenWithBasicAuth() error {
 	gh.Authorization = fmt.Sprintf("Basic %s", hashAuth(gh.User, gh.Password))
 	response, err := gh.httpGet("/authorizations", nil)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(response.StatusCode)
-	js, err := ioutil.ReadAll(response.Body)
+	var auths []Authorization
+	err = unmarshalBody(response, &auths)
 	if err != nil {
 		return err
 	}
 
-	fmt.Println(string(js))
+	var token string
+	for _, auth := range auths {
+		if auth.Url == OAuthAppUrl {
+			token = auth.Token
+		}
+	}
+
+	if len(token) == 0 {
+		authParam := AuthorizationParams{}
+		authParam.Scopes = append(authParam.Scopes, "repo")
+		authParam.Note = "gh"
+		authParam.NoteUrl = OAuthAppUrl
+
+		auth, err := gh.CreateAuthorization(authParam)
+		if err != nil {
+			return err
+		}
+
+		token = auth.Token
+	}
+
+	gh.Authorization = "token " + token
 
 	return nil
 }
@@ -155,6 +192,20 @@ func handleGitHubErrors(response *http.Response) error {
 	return err
 }
 
+func unmarshalBody(response *http.Response, v interface{}) error {
+	js, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(js, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (gh *GitHub) httpGet(uri string, extraHeaders map[string]string) (*http.Response, error) {
 	url := fmt.Sprintf("%s%s", GitHubUrl, uri)
 	request, err := http.NewRequest("GET", url, nil)
@@ -196,6 +247,32 @@ type PullRequestParams struct {
 	Head  string `json:"head"`
 }
 
+type AuthorizationParams struct {
+	Scopes       []string `json:"scopes"`
+	Note         string   `json:"note"`
+	NoteUrl      string   `json:"note_url"`
+	ClientId     string   `json:"client_id"`
+	ClientSecret string   `json:"client_secret"`
+}
+
+func (gh *GitHub) CreateAuthorization(authParam AuthorizationParams) (*Authorization, error) {
+	b, err := json.Marshal(authParam)
+	if err != nil {
+		return nil, err
+	}
+
+	buffer := bytes.NewBuffer(b)
+	response, err := gh.httpPost("/authorizations", nil, buffer)
+
+	var auth Authorization
+	err = unmarshalBody(response, &auth)
+	if err != nil {
+		return nil, err
+	}
+
+	return &auth, nil
+}
+
 type PullRequestResponse struct {
 	Url      string `json:"url"`
 	HtmlUrl  string `json:"html_url"`
@@ -217,13 +294,8 @@ func (gh *GitHub) CreatePullRequest(owner, repo string, params PullRequestParams
 		return nil, err
 	}
 
-	js, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	var pullRequestResponse PullRequestResponse
-	err = json.Unmarshal(js, &pullRequestResponse)
+	err = unmarshalBody(response, pullRequestResponse)
 	if err != nil {
 		return nil, err
 	}
