@@ -55,7 +55,10 @@ func NewGitHub() *GitHub {
 	}
 
 	if len(user) == 0 {
-		user = FetchGitOwner()
+		_, err := FetchGitOwner()
+		if err != nil {
+			// prompt for user
+		}
 	}
 
 	if len(auth) > 0 {
@@ -298,7 +301,7 @@ func (gh *GitHub) CreatePullRequest(owner, repo string, params PullRequestParams
 	}
 
 	var pullRequestResponse PullRequestResponse
-	err = unmarshalBody(response, pullRequestResponse)
+	err = unmarshalBody(response, &pullRequestResponse)
 	if err != nil {
 		return nil, err
 	}
