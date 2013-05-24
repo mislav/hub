@@ -18,11 +18,11 @@ func (r *Repo) FullHead() string {
 }
 
 func NewRepo() *Repo {
-	dir := FetchGitDir()
-	editor := FetchGitEditor()
-	owner := FetchGitOwner()
-	project := FetchGitProject()
-	head := FetchGitHead()
+	dir, _ := FetchGitDir()
+	editor, _ := FetchGitEditor()
+	owner, _ := FetchGitOwner()
+	project, _ := FetchGitProject()
+	head, _ := FetchGitHead()
 
 	return &Repo{dir, editor, owner, project, "master", head}
 }

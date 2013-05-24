@@ -46,7 +46,6 @@ var (
 		cmdPullRequest,
 		cmdHelp,
 	}
-	repo = NewRepo()
 )
 
 func main() {

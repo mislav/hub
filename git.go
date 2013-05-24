@@ -1,54 +1,82 @@
 package main
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-func FetchGitDir() string {
-	gitDir := execGitCmd([]string{"rev-parse", "-q", "--git-dir"})[0]
-	gitDir, err := filepath.Abs(gitDir)
+func FetchGitDir() (string, error) {
+	output, err := execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	return gitDir
+	gitDir := output[0]
+	gitDir, err = filepath.Abs(gitDir)
+	if err != nil {
+		return "", err
+	}
+
+	return gitDir, nil
 }
 
-func FetchGitEditor() string {
-	return execGitCmd([]string{"var", "GIT_EDITOR"})[0]
+func FetchGitEditor() (string, error) {
+	output, err := execGitCmd([]string{"var", "GIT_EDITOR"})
+	if err != nil {
+		return "", err
+	}
+
+	return output[0], nil
 }
 
-func FetchGitOwner() string {
-	remote := FetchGitRemote()
-	return mustMatchGitUrl(remote)[1]
+func FetchGitOwner() (string, error) {
+	remote, err := FetchGitRemote()
+	if err != nil {
+		return "", err
+	}
+
+	return mustMatchGitUrl(remote)[1], nil
 }
 
-func FetchGitProject() string {
-	remote := FetchGitRemote()
-	return mustMatchGitUrl(remote)[2]
+func FetchGitProject() (string, error) {
+	remote, err := FetchGitRemote()
+	if err != nil {
+		return "", err
+	}
+
+	return mustMatchGitUrl(remote)[2], nil
 }
 
-func FetchGitHead() string {
-	return execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})[0]
+func FetchGitHead() (string, error) {
+	output, err := execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
+	if err != nil {
+		return "master", err
+	}
+
+	return output[0], nil
 }
 
 // FIXME: only care about origin push remote now
-func FetchGitRemote() string {
+func FetchGitRemote() (string, error) {
 	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
-	for _, output := range execGitCmd([]string{"remote", "-v"}) {
-		if r.MatchString(output) {
-			return r.FindStringSubmatch(output)[1]
+	output, err := execGitCmd([]string{"remote", "-v"})
+	if err != nil {
+		return "", err
+	}
+
+	for _, o := range output {
+		if r.MatchString(o) {
+			return r.FindStringSubmatch(o)[1], nil
 		}
 	}
 
-	panic("Can't find remote")
+	return "", errors.New("Can't find remote")
 }
 
-func FetchGitCommitLogs(sha1, sha2 string) string {
+func FetchGitCommitLogs(sha1, sha2 string) (string, error) {
 	execCmd := NewExecCmd("git")
 	execCmd.WithArg("log").WithArg("--no-color")
 	execCmd.WithArg("--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b")
@@ -58,13 +86,13 @@ func FetchGitCommitLogs(sha1, sha2 string) string {
 
 	outputs, err := execCmd.ExecOutput()
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	return outputs
+	return outputs, nil
 }
 
-func execGitCmd(input []string) (outputs []string) {
+func execGitCmd(input []string) (outputs []string, err error) {
 	cmd := NewExecCmd("git")
 	for _, i := range input {
 		cmd.WithArg(i)
@@ -72,12 +100,12 @@ func execGitCmd(input []string) (outputs []string) {
 
 	out, err := cmd.ExecOutput()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	for _, line := range strings.Split(out, "\n") {
 		outputs = append(outputs, string(line))
 	}
 
-	return outputs
+	return outputs, nil
 }

@@ -55,7 +55,10 @@ func NewGitHub() *GitHub {
 	}
 
 	if len(user) == 0 {
-		user = FetchGitOwner()
+		_, err := FetchGitOwner()
+		if err != nil {
+			// prompt for user
+		}
 	}
 
 	if len(auth) > 0 {

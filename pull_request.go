@@ -35,31 +35,29 @@ of title you can paste a full URL to an issue on GitHub.
 var flagPullRequestBase, flagPullRequestHead string
 
 func init() {
-	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", repo.Base, "BASE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", repo.Head, "HEAD")
+	head, _ := FetchGitHead()
+
+	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", head, "HEAD")
 }
 
 func pullRequest(cmd *Command, args []string) {
+	repo := NewRepo()
 	repo.Base = flagPullRequestBase
 	repo.Head = flagPullRequestHead
 
 	messageFile := filepath.Join(repo.Dir, "PULLREQ_EDITMSG")
 
-	err := writePullRequestChanges(messageFile)
-	if err != nil {
-		log.Fatal(err)
-	}
+	err := writePullRequestChanges(repo, messageFile)
+	check(err)
 
-	editCmd := buildEditCommand(messageFile)
+	editCmd := buildEditCommand(repo, messageFile)
 	err = editCmd.Exec()
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 
 	title, body, err := readTitleAndBodyFromFile(messageFile)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
+
 	if len(title) == 0 {
 		log.Fatal("Aborting due to empty pull request title")
 	}
@@ -67,14 +65,12 @@ func pullRequest(cmd *Command, args []string) {
 	params := PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead}
 	gh := NewGitHub()
 	pullRequestResponse, err := gh.CreatePullRequest(repo.Owner, repo.Project, params)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 
 	fmt.Println(pullRequestResponse.HtmlUrl)
 }
 
-func writePullRequestChanges(messageFile string) error {
+func writePullRequestChanges(repo *Repo, messageFile string) error {
 	message := `
 # Requesting a pull to %s from %s
 #
@@ -88,7 +84,9 @@ func writePullRequestChanges(messageFile string) error {
 	startRegexp := regexp.MustCompilePOSIX("^")
 	endRegexp := regexp.MustCompilePOSIX(" +$")
 
-	commitLogs := FetchGitCommitLogs(repo.Base, repo.Head)
+	commitLogs, err := FetchGitCommitLogs(repo.Base, repo.Head)
+	check(err)
+
 	commitLogs = strings.TrimSpace(commitLogs)
 	commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
 	commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
@@ -104,7 +102,7 @@ func getLocalBranch(branchName string) string {
 	return result[len(result)-1]
 }
 
-func buildEditCommand(messageFile string) *ExecCmd {
+func buildEditCommand(repo *Repo, messageFile string) *ExecCmd {
 	editor := repo.Editor
 	editCmd := NewExecCmd(editor)
 	r := regexp.MustCompile("^[mg]?vim$")
