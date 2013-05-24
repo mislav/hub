@@ -6,8 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/howeyc/gopass"
+	"github.com/jingweno/gopass"
 	"io/ioutil"
+	"log"
 	"net/http"
 )
 
@@ -55,10 +56,13 @@ func NewGitHub() *GitHub {
 	}
 
 	if len(user) == 0 {
-		_, err := FetchGitOwner()
+		owner, err := FetchGitOwner()
 		if err != nil {
 			// prompt for user
+			log.Fatal(err)
 		}
+
+		user = owner
 	}
 
 	if len(auth) > 0 {
