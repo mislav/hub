@@ -75,23 +75,27 @@ func writePullRequestChanges(repo *Repo, messageFile string) error {
 # Requesting a pull to %s from %s
 #
 # Write a message for this pull reuqest. The first block
-# of the text is the title and the rest is description.
+# of the text is the title and the rest is description.%s
+`
+	startRegexp := regexp.MustCompilePOSIX("^")
+	endRegexp := regexp.MustCompilePOSIX(" +$")
+
+	commitLogs, _ := FetchGitCommitLogs(repo.Base, repo.Head)
+	var changesMsg string
+	if len(commitLogs) > 0 {
+		commitLogs = strings.TrimSpace(commitLogs)
+		commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
+		commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
+		changesMsg = `
 #
 # Changes:
 #
 %s
 `
-	startRegexp := regexp.MustCompilePOSIX("^")
-	endRegexp := regexp.MustCompilePOSIX(" +$")
+		changesMsg = fmt.Sprintf(changesMsg, commitLogs)
+	}
 
-	commitLogs, err := FetchGitCommitLogs(repo.Base, repo.Head)
-	check(err)
-
-	commitLogs = strings.TrimSpace(commitLogs)
-	commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
-	commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
-
-	message = fmt.Sprintf(message, repo.FullBase(), repo.FullHead(), commitLogs)
+	message = fmt.Sprintf(message, repo.FullBase(), repo.FullHead(), changesMsg)
 
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
