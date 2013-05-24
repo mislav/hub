@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -40,10 +41,13 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
-var commands = []*Command{
-	cmdPullRequest,
-	cmdHelp,
-}
+var (
+	commands = []*Command{
+		cmdPullRequest,
+		cmdHelp,
+	}
+	repo = NewRepo()
+)
 
 func main() {
 	args := os.Args[1:]
@@ -66,4 +70,10 @@ func main() {
 
 	fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args[0])
 	usage()
+}
+
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
 }
