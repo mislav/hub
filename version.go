@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const Version = "dev"
+const Version = "0.0.1"
 
 var cmdVersion = &Command{
 	Run:   runVersion,
