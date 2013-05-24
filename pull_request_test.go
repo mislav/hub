@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func _TestReadTitleAndBody(t *testing.T) {
+func TestReadTitleAndBody(t *testing.T) {
 	message := `A title
 A title continues
 

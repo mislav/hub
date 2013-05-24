@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func _TestWithArg(t *testing.T) {
+func TestWithArg(t *testing.T) {
 	execCmd := NewExecCmd("git")
 	execCmd.WithArg("log").WithArg("--no-color")
 	assert.Equal(t, "git", execCmd.Name)

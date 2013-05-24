@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func _TestSaveConfig(t *testing.T) {
+func TestSaveConfig(t *testing.T) {
 	config := Config{"jingweno", "123"}
 	file := "./test_support/test"
 	err := SaveConfig(file, config)

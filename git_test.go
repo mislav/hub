@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func _TestGitMethods(t *testing.T) {
+func TestGitMethods(t *testing.T) {
 	assert.T(t, strings.Contains(FetchGitDir(), ".git"))
 	assert.Equal(t, "vim", FetchGitEditor())
 	assert.Equal(t, "git@github.com:jingweno/gh.git", FetchGitRemote())
