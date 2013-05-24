@@ -9,7 +9,7 @@ const Version = "dev"
 var cmdVersion = &Command{
 	Run:   runVersion,
 	Usage: "version",
-	Short: "show gh version",
+	Short: "Show gh version",
 	Long:  `Version shows the gh client version showstring.`,
 }
 

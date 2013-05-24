@@ -9,7 +9,7 @@ import (
 
 var cmdHelp = &Command{
 	Usage: "help [command]",
-	Short: "show help",
+	Short: "Show help",
 	Long:  `Help shows usage for a command.`,
 }
 
