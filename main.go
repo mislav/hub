@@ -45,6 +45,7 @@ var (
 	commands = []*Command{
 		cmdPullRequest,
 		cmdHelp,
+		cmdVersion,
 	}
 )
 

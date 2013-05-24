@@ -7,17 +7,6 @@ import (
 	"text/template"
 )
 
-var cmdVersion = &Command{
-	Run:   runVersion,
-	Usage: "version",
-	Short: "show gh version",
-	Long:  `Version shows the gh client version showstring.`,
-}
-
-func runVersion(cmd *Command, args []string) {
-	fmt.Println(Version)
-}
-
 var cmdHelp = &Command{
 	Usage: "help [command]",
 	Short: "show help",
