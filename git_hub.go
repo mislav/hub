@@ -301,7 +301,7 @@ func (gh *GitHub) CreatePullRequest(owner, repo string, params PullRequestParams
 	}
 
 	var pullRequestResponse PullRequestResponse
-	err = unmarshalBody(response, pullRequestResponse)
+	err = unmarshalBody(response, &pullRequestResponse)
 	if err != nil {
 		return nil, err
 	}
