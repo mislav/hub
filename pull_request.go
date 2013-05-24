@@ -96,12 +96,6 @@ func writePullRequestChanges(repo *Repo, messageFile string) error {
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
 
-func getLocalBranch(branchName string) string {
-	result := strings.Split(branchName, ":")
-
-	return result[len(result)-1]
-}
-
 func buildEditCommand(repo *Repo, messageFile string) *ExecCmd {
 	editor := repo.Editor
 	editCmd := NewExecCmd(editor)
