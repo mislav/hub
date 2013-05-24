@@ -11,12 +11,12 @@ func TestGitMethods(t *testing.T) {
 	assert.T(t, strings.Contains(gitDir, ".git"))
 
 	gitEditor, err := FetchGitEditor()
-	if err != nil {
+	if err == nil {
 		assert.NotEqual(t, "", gitEditor)
 	}
 
 	gitRemote, _ := FetchGitRemote()
-	assert.Equal(t, "git@github.com:jingweno/gh.git", gitRemote)
+	assert.T(t, strings.Contains(gitRemote, "jingweno/gh.git"))
 
 	gitOwner, _ := FetchGitOwner()
 	assert.Equal(t, "jingweno", gitOwner)
