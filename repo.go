@@ -1,5 +1,9 @@
 package main
 
+import (
+	"strings"
+)
+
 type Repo struct {
 	Dir     string
 	Editor  string
@@ -10,11 +14,19 @@ type Repo struct {
 }
 
 func (r *Repo) FullBase() string {
-	return r.Owner + ":" + r.Base
+	if strings.Contains(r.Base, ":") {
+		return r.Base
+	} else {
+		return r.Owner + ":" + r.Base
+	}
 }
 
 func (r *Repo) FullHead() string {
-	return r.Owner + ":" + r.Head
+	if strings.Contains(r.Head, ":") {
+		return r.Head
+	} else {
+		return r.Owner + ":" + r.Head
+	}
 }
 
 func NewRepo() *Repo {
