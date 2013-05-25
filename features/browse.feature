@@ -59,6 +59,12 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles" should be run
 
+  Scenario: Current branch with special chars
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And I am on the "fix-bug-#123" branch with upstream "origin/fix-bug-#123"
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles/tree/fix-bug-%23123" should be run
+
   Scenario: Commits on current branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And I am on the "feature" branch with upstream "origin/experimental"
