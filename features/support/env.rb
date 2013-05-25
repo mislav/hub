@@ -35,8 +35,8 @@ Before do
   set_env 'HUB_TEST_HOST', '127.0.0.1:0'
   # ensure we use fakebin `open` to test browsing
   set_env 'BROWSER', 'open'
-  # ensure we use fakebin `vim` as text editor
-  set_env 'GIT_EDITOR', 'vim'
+  # sabotage opening a commit message editor interactively
+  set_env 'GIT_EDITOR', 'false'
 
   author_name  = "Hub"
   author_email = "hub@test.local"

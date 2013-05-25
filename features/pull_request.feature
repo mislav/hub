@@ -2,6 +2,7 @@ Feature: hub pull-request
   Background:
     Given I am in "git://github.com/mislav/coral.git" git repo
     And I am "mislav" on github.com with OAuth token "OTOKEN"
+    And the git commit editor is "vim"
 
   Scenario: Detached HEAD
     Given I am in detached HEAD
