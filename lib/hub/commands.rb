@@ -660,11 +660,6 @@ module Hub
       end
     end
 
-    def branch_in_url(branch)
-      require 'CGI'
-      CGI.escape(branch.short_name).gsub("%2F", "/")
-    end
-
     # $ hub compare 1.0..fix
     # > open https://github.com/CURRENT_REPO/compare/1.0...fix
     # $ hub compare refactor
@@ -782,6 +777,11 @@ module Hub
     # Helper methods are private so they cannot be invoked
     # from the command line.
     #
+
+    def branch_in_url(branch)
+      require 'CGI'
+      CGI.escape(branch.short_name).gsub("%2F", "/")
+    end
 
     def api_client
       @api_client ||= begin
