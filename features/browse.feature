@@ -73,9 +73,9 @@ Feature: hub browse
 
   Scenario: Complex branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
-    And I am on the "foo/bar" branch with upstream "origin/baz/qux"
+    And I am on the "foo/bar" branch with upstream "origin/baz/qux/moo"
     When I successfully run `hub browse`
-    Then "open https://github.com/mislav/dotfiles/tree/baz/qux" should be run
+    Then "open https://github.com/mislav/dotfiles/tree/baz/qux/moo" should be run
 
   Scenario: Wiki repo
     Given I am in "git://github.com/defunkt/hub.wiki.git" git repo

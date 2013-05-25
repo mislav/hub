@@ -649,15 +649,20 @@ module Hub
         # $ hub browse -- wiki
         path = case subpage = args.shift
         when 'commits'
-          "/commits/#{CGI.escape(branch.short_name).sub("%2F", "/")}"
+          "/commits/#{branch_in_url(branch)}"
         when 'tree', NilClass
-          "/tree/#{CGI.escape(branch.short_name).sub("%2F", "/")}" if branch and !branch.master?
+          "/tree/#{branch_in_url(branch)}" if branch and !branch.master?
         else
           "/#{subpage}"
         end
 
         project.web_url(path)
       end
+    end
+
+    def branch_in_url(branch)
+      require 'CGI'
+      CGI.escape(branch.short_name).gsub("%2F", "/")
     end
 
     # $ hub compare 1.0..fix
