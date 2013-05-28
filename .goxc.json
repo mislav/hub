@@ -10,6 +10,14 @@
     "Resources": {
       "Include": "INSTALL*",
       "Exclude": "*.go"
+    },
+    "TaskSettings": {
+      "archive": {
+        "os": {
+          "linux": "TarGz",
+          "darwin": "TarGz"
+        }
+      }
     }
   }
 }
