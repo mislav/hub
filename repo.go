@@ -5,8 +5,6 @@ import (
 )
 
 type Repo struct {
-	Dir     string
-	Editor  string
 	Owner   string
 	Project string
 	Base    string
@@ -37,10 +35,8 @@ func NewRepo(base, head string) *Repo {
 		head, _ = git.Head()
 	}
 
-	dir, _ := git.Dir()
-	editor, _ := git.Editor()
 	owner, _ := git.Owner()
 	project, _ := git.Project()
 
-	return &Repo{dir, editor, owner, project, base, head}
+	return &Repo{owner, project, base, head}
 }

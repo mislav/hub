@@ -6,8 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -43,26 +41,24 @@ func init() {
 func pullRequest(cmd *Command, args []string) {
 	repo := NewRepo(flagPullRequestBase, flagPullRequestHead)
 
-	messageFile := filepath.Join(repo.Dir, "PULLREQ_EDITMSG")
-
-	err := writePullRequestChanges(repo, messageFile)
+	messageFile, err := git.PullReqMsgFile()
+	check(err)
+	err = writePullRequestChanges(repo, messageFile)
 	check(err)
 
-	editorPath, err := exec.LookPath(repo.Editor)
+	editorPath, err := git.EditorPath()
+	check(err)
+	err = editTitleAndBody(editorPath, messageFile)
 	check(err)
 
-	editCmd := buildEditCommand(editorPath, messageFile)
-	err = editCmd.Exec()
+	title, body, err := readTitleAndBody(messageFile)
 	check(err)
 
-	title, body, err := readTitleAndBodyFromFile(messageFile)
-	check(err)
-
-	if len(title) == 0 {
+	if title == "" {
 		log.Fatal("Aborting due to empty pull request title")
 	}
 
-	params := PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead}
+	params := PullRequestParams{title, body, repo.Base, repo.Head}
 	gh := NewGitHub()
 	pullRequestResponse, err := gh.CreatePullRequest(repo.Owner, repo.Project, params)
 	check(err)
@@ -100,7 +96,7 @@ func writePullRequestChanges(repo *Repo, messageFile string) error {
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
 
-func buildEditCommand(editorPath, messageFile string) *ExecCmd {
+func editTitleAndBody(editorPath, messageFile string) error {
 	editCmd := NewExecCmd(editorPath)
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(editorPath) {
@@ -109,10 +105,10 @@ func buildEditCommand(editorPath, messageFile string) *ExecCmd {
 	}
 	editCmd.WithArg(messageFile)
 
-	return editCmd
+	return editCmd.Exec()
 }
 
-func readTitleAndBodyFromFile(messageFile string) (title, body string, err error) {
+func readTitleAndBody(messageFile string) (title, body string, err error) {
 	f, err := os.Open(messageFile)
 	defer f.Close()
 	if err != nil {
@@ -121,10 +117,10 @@ func readTitleAndBodyFromFile(messageFile string) (title, body string, err error
 
 	reader := bufio.NewReader(f)
 
-	return readTitleAndBody(reader)
+	return readTitleAndBodyFrom(reader)
 }
 
-func readTitleAndBody(reader *bufio.Reader) (title, body string, err error) {
+func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) {
 	r := regexp.MustCompile("\\S")
 	var titleParts, bodyParts []string
 

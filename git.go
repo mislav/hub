@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -36,6 +37,15 @@ func (git *Git) Dir() (string, error) {
 	return gitDir, nil
 }
 
+func (git *Git) PullReqMsgFile() (string, error) {
+	gitDir, err := git.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(gitDir, "PULLREQ_EDITMSG"), nil
+}
+
 func (git *Git) Editor() (string, error) {
 	output, err := git.execGitCmd([]string{"var", "GIT_EDITOR"})
 	if err != nil {
@@ -43,6 +53,20 @@ func (git *Git) Editor() (string, error) {
 	}
 
 	return output[0], nil
+}
+
+func (git *Git) EditorPath() (string, error) {
+	gitEditor, err := git.Editor()
+	if err != nil {
+		return "", err
+	}
+
+	editorPath, err := exec.LookPath(gitEditor)
+	if err != nil {
+		return "", err
+	}
+
+	return editorPath, nil
 }
 
 func (git *Git) Owner() (string, error) {

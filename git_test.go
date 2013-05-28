@@ -11,6 +11,9 @@ func TestGitMethods(t *testing.T) {
 	gitDir, _ := git.Dir()
 	assert.T(t, strings.Contains(gitDir, ".git"))
 
+	gitPullReqMsgFile, _ := git.PullReqMsgFile()
+	assert.T(t, strings.Contains(gitPullReqMsgFile, "PULLREQ_EDITMSG"))
+
 	gitEditor, err := git.Editor()
 	if err == nil {
 		assert.NotEqual(t, "", gitEditor)
