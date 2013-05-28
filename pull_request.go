@@ -105,7 +105,7 @@ func buildEditCommand(editorPath, messageFile string) *ExecCmd {
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(editorPath) {
 		editCmd.WithArg("-c")
-		editCmd.WithArg("set ft=gitcommit")
+		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}
 	editCmd.WithArg(messageFile)
 
