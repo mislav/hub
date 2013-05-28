@@ -2,11 +2,15 @@ require 'formula'
 
 class Gh < Formula
   VERSION = '0.0.1'
+  ARCH = if MacOS.prefer_64_bit?
+           'amd64'
+         else
+           '386'
+         end
 
   homepage 'https://github.com/jingweno/gh'
-  url "https://drone.io/github.com/jingweno/gh/files/target/#{VERSION}-snapshot/darwin_amd64/gh_#{VERSION}-snapshot_darwin_amd64.zip"
   version VERSION
-  sha1 '12743626cd717014c3ddd8ac70d77da44356fa66'
+  url "https://drone.io/github.com/jingweno/gh/files/target/#{VERSION}-snapshot/darwin_#{ARCH}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
   head 'https://github.com/jingweno/gh.git'
 
   def install
