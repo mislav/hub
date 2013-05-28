@@ -36,16 +36,16 @@ of title you can paste a full URL to an issue on GitHub.
 var flagPullRequestBase, flagPullRequestHead string
 
 func init() {
-	head, _ := FetchGitHead()
-
 	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", head, "HEAD")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
 }
 
 func pullRequest(cmd *Command, args []string) {
 	repo := NewRepo()
 	repo.Base = flagPullRequestBase
-	repo.Head = flagPullRequestHead
+	if flagPullRequestHead != "" {
+		repo.Head = flagPullRequestHead
+	}
 
 	messageFile := filepath.Join(repo.Dir, "PULLREQ_EDITMSG")
 
