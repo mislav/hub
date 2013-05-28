@@ -16,16 +16,16 @@ type Git struct {
 func (git *Git) Version() (string, error) {
 	output, err := git.execGitCmd([]string{"version"})
 	if err != nil {
-		return "", err
+		return "", errors.New("Can't load git version")
 	}
 
-	return output[0], err
+	return output[0], nil
 }
 
 func (git *Git) Dir() (string, error) {
 	output, err := git.execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
 	if err != nil {
-		return "", err
+		return "", errors.New("Not a git repository (or any of the parent directories): .git")
 	}
 
 	gitDir := output[0]
@@ -49,7 +49,7 @@ func (git *Git) PullReqMsgFile() (string, error) {
 func (git *Git) Editor() (string, error) {
 	output, err := git.execGitCmd([]string{"var", "GIT_EDITOR"})
 	if err != nil {
-		return "", err
+		return "", errors.New("Can't load git var: GIT_EDITOR")
 	}
 
 	return output[0], nil
@@ -63,7 +63,7 @@ func (git *Git) EditorPath() (string, error) {
 
 	editorPath, err := exec.LookPath(gitEditor)
 	if err != nil {
-		return "", err
+		return "", errors.New("Can't locate git editor: " + gitEditor)
 	}
 
 	return editorPath, nil
@@ -75,7 +75,12 @@ func (git *Git) Owner() (string, error) {
 		return "", err
 	}
 
-	return mustMatchGitUrl(remote)[1], nil
+	url, err := mustMatchGitUrl(remote)
+	if err != nil {
+		return "", err
+	}
+
+	return url[1], nil
 }
 
 func (git *Git) Project() (string, error) {
@@ -84,13 +89,18 @@ func (git *Git) Project() (string, error) {
 		return "", err
 	}
 
-	return mustMatchGitUrl(remote)[2], nil
+	url, err := mustMatchGitUrl(remote)
+	if err != nil {
+		return "", err
+	}
+
+	return url[2], nil
 }
 
 func (git *Git) Head() (string, error) {
 	output, err := git.execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
 	if err != nil {
-		return "master", err
+		return "master", errors.New("Can't load git HEAD")
 	}
 
 	return output[0], nil
@@ -101,7 +111,7 @@ func (git *Git) Remote() (string, error) {
 	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
 	output, err := git.execGitCmd([]string{"remote", "-v"})
 	if err != nil {
-		return "", err
+		return "", errors.New("Can't load git remote")
 	}
 
 	for _, o := range output {
@@ -110,7 +120,7 @@ func (git *Git) Remote() (string, error) {
 		}
 	}
 
-	return "", errors.New("Can't find remote")
+	return "", errors.New("Can't find git remote (push)")
 }
 
 func (git *Git) Log(sha1, sha2 string) (string, error) {
@@ -123,7 +133,7 @@ func (git *Git) Log(sha1, sha2 string) (string, error) {
 
 	outputs, err := execCmd.ExecOutput()
 	if err != nil {
-		return "", err
+		return "", errors.New("Can't load git log " + sha1 + ".." + sha2)
 	}
 
 	return outputs, nil

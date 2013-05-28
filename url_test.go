@@ -6,7 +6,12 @@ import (
 )
 
 func TestMustMatchGitUrl(t *testing.T) {
-	assert.Equal(t, "git://github.com/jingweno/gh.git", mustMatchGitUrl("git://github.com/jingweno/gh.git")[0])
-	assert.Equal(t, "git@github.com:jingweno/gh.git", mustMatchGitUrl("git@github.com:jingweno/gh.git")[0])
-	assert.Equal(t, "https://github.com/jingweno/gh.git", mustMatchGitUrl("https://github.com/jingweno/gh.git")[0])
+	url, _ := mustMatchGitUrl("git://github.com/jingweno/gh.git")
+	assert.Equal(t, "git://github.com/jingweno/gh.git", url[0])
+
+	url, _ = mustMatchGitUrl("git@github.com:jingweno/gh.git")
+	assert.Equal(t, "git@github.com:jingweno/gh.git", url[0])
+
+	url, _ = mustMatchGitUrl("https://github.com/jingweno/gh.git")
+	assert.Equal(t, "https://github.com/jingweno/gh.git", url[0])
 }
