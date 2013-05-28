@@ -14,11 +14,14 @@ type Git struct {
 
 func (git *Git) Version() (string, error) {
 	output, err := git.execGitCmd([]string{"version"})
+	if err != nil {
+		return "", err
+	}
 
 	return output[0], err
 }
 
-func FetchGitDir() (string, error) {
+func (git *Git) Dir() (string, error) {
 	output, err := git.execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
 	if err != nil {
 		return "", err
@@ -33,7 +36,7 @@ func FetchGitDir() (string, error) {
 	return gitDir, nil
 }
 
-func FetchGitEditor() (string, error) {
+func (git *Git) Editor() (string, error) {
 	output, err := git.execGitCmd([]string{"var", "GIT_EDITOR"})
 	if err != nil {
 		return "", err
@@ -42,8 +45,8 @@ func FetchGitEditor() (string, error) {
 	return output[0], nil
 }
 
-func FetchGitOwner() (string, error) {
-	remote, err := FetchGitRemote()
+func (git *Git) Owner() (string, error) {
+	remote, err := git.Remote()
 	if err != nil {
 		return "", err
 	}
@@ -51,8 +54,8 @@ func FetchGitOwner() (string, error) {
 	return mustMatchGitUrl(remote)[1], nil
 }
 
-func FetchGitProject() (string, error) {
-	remote, err := FetchGitRemote()
+func (git *Git) Project() (string, error) {
+	remote, err := git.Remote()
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +63,7 @@ func FetchGitProject() (string, error) {
 	return mustMatchGitUrl(remote)[2], nil
 }
 
-func FetchGitHead() (string, error) {
+func (git *Git) Head() (string, error) {
 	output, err := git.execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
 	if err != nil {
 		return "master", err
@@ -70,7 +73,7 @@ func FetchGitHead() (string, error) {
 }
 
 // FIXME: only care about origin push remote now
-func FetchGitRemote() (string, error) {
+func (git *Git) Remote() (string, error) {
 	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
 	output, err := git.execGitCmd([]string{"remote", "-v"})
 	if err != nil {
@@ -86,7 +89,7 @@ func FetchGitRemote() (string, error) {
 	return "", errors.New("Can't find remote")
 }
 
-func FetchGitCommitLogs(sha1, sha2 string) (string, error) {
+func (git *Git) Log(sha1, sha2 string) (string, error) {
 	execCmd := NewExecCmd("git")
 	execCmd.WithArg("log").WithArg("--no-color")
 	execCmd.WithArg("--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b")

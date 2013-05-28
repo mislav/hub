@@ -56,7 +56,7 @@ func NewGitHub() *GitHub {
 	}
 
 	if len(user) == 0 {
-		owner, err := FetchGitOwner()
+		owner, err := git.Owner()
 		if err != nil {
 			// prompt for user
 			log.Fatal(err)

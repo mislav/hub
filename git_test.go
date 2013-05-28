@@ -7,26 +7,27 @@ import (
 )
 
 func TestGitMethods(t *testing.T) {
-	gitDir, _ := FetchGitDir()
+	git = Git{"git"}
+	gitDir, _ := git.Dir()
 	assert.T(t, strings.Contains(gitDir, ".git"))
 
-	gitEditor, err := FetchGitEditor()
+	gitEditor, err := git.Editor()
 	if err == nil {
 		assert.NotEqual(t, "", gitEditor)
 	}
 
-	gitRemote, _ := FetchGitRemote()
+	gitRemote, _ := git.Remote()
 	assert.T(t, strings.Contains(gitRemote, "jingweno/gh.git"))
 
-	gitOwner, _ := FetchGitOwner()
+	gitOwner, _ := git.Owner()
 	assert.Equal(t, "jingweno", gitOwner)
 
-	gitProject, _ := FetchGitProject()
+	gitProject, _ := git.Project()
 	assert.Equal(t, "gh", gitProject)
 
-	gitHead, _ := FetchGitHead()
+	gitHead, _ := git.Head()
 	assert.NotEqual(t, "", gitHead)
 
-	logs, _ := FetchGitCommitLogs("master", "HEAD")
+	logs, _ := git.Log("master", "HEAD")
 	assert.T(t, len(logs) >= 0)
 }

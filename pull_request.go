@@ -80,7 +80,7 @@ func writePullRequestChanges(repo *Repo, messageFile string) error {
 	startRegexp := regexp.MustCompilePOSIX("^")
 	endRegexp := regexp.MustCompilePOSIX(" +$")
 
-	commitLogs, _ := FetchGitCommitLogs(repo.Base, repo.Head)
+	commitLogs, _ := git.Log(repo.Base, repo.Head)
 	var changesMsg string
 	if len(commitLogs) > 0 {
 		commitLogs = strings.TrimSpace(commitLogs)

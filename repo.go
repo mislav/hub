@@ -34,13 +34,13 @@ func NewRepo(base, head string) *Repo {
 		base = "master"
 	}
 	if head == "" {
-		head, _ = FetchGitHead()
+		head, _ = git.Head()
 	}
 
-	dir, _ := FetchGitDir()
-	editor, _ := FetchGitEditor()
-	owner, _ := FetchGitOwner()
-	project, _ := FetchGitProject()
+	dir, _ := git.Dir()
+	editor, _ := git.Editor()
+	owner, _ := git.Owner()
+	project, _ := git.Project()
 
 	return &Repo{dir, editor, owner, project, base, head}
 }
