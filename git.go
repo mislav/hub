@@ -8,8 +8,18 @@ import (
 	"strings"
 )
 
+type Git struct {
+	Cmd string
+}
+
+func (git *Git) Version() (string, error) {
+	output, err := git.execGitCmd([]string{"version"})
+
+	return output[0], err
+}
+
 func FetchGitDir() (string, error) {
-	output, err := execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
+	output, err := git.execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
 	if err != nil {
 		return "", err
 	}
@@ -24,7 +34,7 @@ func FetchGitDir() (string, error) {
 }
 
 func FetchGitEditor() (string, error) {
-	output, err := execGitCmd([]string{"var", "GIT_EDITOR"})
+	output, err := git.execGitCmd([]string{"var", "GIT_EDITOR"})
 	if err != nil {
 		return "", err
 	}
@@ -51,7 +61,7 @@ func FetchGitProject() (string, error) {
 }
 
 func FetchGitHead() (string, error) {
-	output, err := execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
+	output, err := git.execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
 	if err != nil {
 		return "master", err
 	}
@@ -62,7 +72,7 @@ func FetchGitHead() (string, error) {
 // FIXME: only care about origin push remote now
 func FetchGitRemote() (string, error) {
 	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
-	output, err := execGitCmd([]string{"remote", "-v"})
+	output, err := git.execGitCmd([]string{"remote", "-v"})
 	if err != nil {
 		return "", err
 	}
@@ -92,8 +102,8 @@ func FetchGitCommitLogs(sha1, sha2 string) (string, error) {
 	return outputs, nil
 }
 
-func execGitCmd(input []string) (outputs []string, err error) {
-	cmd := NewExecCmd("git")
+func (git *Git) execGitCmd(input []string) (outputs []string, err error) {
+	cmd := NewExecCmd(git.Cmd)
 	for _, i := range input {
 		cmd.WithArg(i)
 	}

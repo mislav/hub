@@ -47,6 +47,8 @@ var (
 		cmdHelp,
 		cmdVersion,
 	}
+
+	git = Git{"git"}
 )
 
 func main() {

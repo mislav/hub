@@ -29,12 +29,18 @@ func (r *Repo) FullHead() string {
 	}
 }
 
-func NewRepo() *Repo {
+func NewRepo(base, head string) *Repo {
+	if base == "" {
+		base = "master"
+	}
+	if head == "" {
+		head, _ = FetchGitHead()
+	}
+
 	dir, _ := FetchGitDir()
 	editor, _ := FetchGitEditor()
 	owner, _ := FetchGitOwner()
 	project, _ := FetchGitProject()
-	head, _ := FetchGitHead()
 
-	return &Repo{dir, editor, owner, project, "master", head}
+	return &Repo{dir, editor, owner, project, base, head}
 }

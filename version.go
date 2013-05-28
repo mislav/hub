@@ -14,5 +14,11 @@ var cmdVersion = &Command{
 }
 
 func runVersion(cmd *Command, args []string) {
-	fmt.Println(Version)
+	gitVersion, err := git.Version()
+	check(err)
+
+	ghVersion := fmt.Sprintf("gh version %s", Version)
+
+	fmt.Println(gitVersion)
+	fmt.Println(ghVersion)
 }

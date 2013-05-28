@@ -41,11 +41,7 @@ func init() {
 }
 
 func pullRequest(cmd *Command, args []string) {
-	repo := NewRepo()
-	repo.Base = flagPullRequestBase
-	if flagPullRequestHead != "" {
-		repo.Head = flagPullRequestHead
-	}
+	repo := NewRepo(flagPullRequestBase, flagPullRequestHead)
 
 	messageFile := filepath.Join(repo.Dir, "PULLREQ_EDITMSG")
 
