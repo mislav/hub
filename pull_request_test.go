@@ -17,7 +17,7 @@ A body continues
 `
 	r := strings.NewReader(message)
 	reader := bufio.NewReader(r)
-	title, body, err := readTitleAndBody(reader)
+	title, body, err := readTitleAndBodyFrom(reader)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "A title A title continues", title)
 	assert.Equal(t, "A body\nA body continues", body)
