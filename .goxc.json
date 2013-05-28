@@ -1,5 +1,5 @@
 {
-  "FormatVersion": "0.2.0",
+  "FormatVersion": "0.6",
   "Settings": {
     "Arch": "386,amd64",
     "ArtifactsDest": "target",
