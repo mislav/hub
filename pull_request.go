@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -51,7 +52,10 @@ func pullRequest(cmd *Command, args []string) {
 	err := writePullRequestChanges(repo, messageFile)
 	check(err)
 
-	editCmd := buildEditCommand(repo, messageFile)
+	editorPath, err := exec.LookPath(repo.Editor)
+	check(err)
+
+	editCmd := buildEditCommand(editorPath, messageFile)
 	err = editCmd.Exec()
 	check(err)
 
@@ -100,11 +104,10 @@ func writePullRequestChanges(repo *Repo, messageFile string) error {
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
 
-func buildEditCommand(repo *Repo, messageFile string) *ExecCmd {
-	editor := repo.Editor
-	editCmd := NewExecCmd(editor)
-	r := regexp.MustCompile("^[mg]?vim$")
-	if r.MatchString(editor) {
+func buildEditCommand(editorPath, messageFile string) *ExecCmd {
+	editCmd := NewExecCmd(editorPath)
+	r := regexp.MustCompile("[mg]?vi[m]$")
+	if r.MatchString(editorPath) {
 		editCmd.WithArg("-c")
 		editCmd.WithArg("set ft=gitcommit")
 	}
