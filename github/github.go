@@ -47,11 +47,12 @@ type Authorization struct {
 	NoteUrl string   `josn:"note_url"`
 }
 
-func NewGitHub() *GitHub {
-	config, _ := config.Load()
+func New() *GitHub {
+	project := CurrentProject()
+	config, err := config.Load(project.Owner)
 
 	var user, auth string
-	if config != nil {
+	if err == nil {
 		user = config.User
 		auth = config.Token
 	}
@@ -60,7 +61,7 @@ func NewGitHub() *GitHub {
 		auth = fmt.Sprintf("token %s", auth)
 	}
 
-	return &GitHub{&http.Client{}, user, "", auth}
+	return &GitHub{&http.Client{}, user, "", auth, project}
 }
 
 func hashAuth(u, p string) string {
@@ -73,6 +74,7 @@ type GitHub struct {
 	User          string
 	Password      string
 	Authorization string
+	Project       *Project
 }
 
 func (gh *GitHub) performBasicAuth() error {

@@ -10,13 +10,26 @@ import (
 func TestSave(t *testing.T) {
 	config := Config{"jingweno", "123"}
 	file := "./test_support/test"
-	err := saveTo(file, config)
+	defer os.RemoveAll(filepath.Dir(file))
 
+	err := saveTo(file, config)
 	assert.Equal(t, nil, err)
 
-	newConfig, _ := loadFrom(file)
-	assert.Equal(t, "jingweno", newConfig.User)
-	assert.Equal(t, "123", newConfig.Token)
+	configs, err := loadFrom(file)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, 1, len(configs))
+	assert.Equal(t, "jingweno", configs[0].User)
+	assert.Equal(t, "123", configs[0].Token)
 
-	os.RemoveAll(filepath.Dir(file))
+	newConfig := Config{"foo", "456"}
+	err = saveTo(file, newConfig)
+	assert.Equal(t, nil, err)
+
+	configs, err = loadFrom(file)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, 2, len(configs))
+	assert.Equal(t, "jingweno", configs[0].User)
+	assert.Equal(t, "123", configs[0].Token)
+	assert.Equal(t, "foo", configs[1].User)
+	assert.Equal(t, "456", configs[1].Token)
 }
