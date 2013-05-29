@@ -61,9 +61,17 @@ func (git *Git) EditorPath() (string, error) {
 		return "", err
 	}
 
+	gitEditorWithParams := strings.Split(gitEditor, " ")
+	gitEditor = gitEditorWithParams[0]
+	gitEditorParams := gitEditorWithParams[1:]
+
 	editorPath, err := exec.LookPath(gitEditor)
 	if err != nil {
 		return "", errors.New("Can't locate git editor: " + gitEditor)
+	}
+
+	for _, p := range gitEditorParams {
+		editorPath = editorPath + " " + p
 	}
 
 	return editorPath, nil

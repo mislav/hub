@@ -19,6 +19,11 @@ func TestGitMethods(t *testing.T) {
 		assert.NotEqual(t, "", gitEditor)
 	}
 
+	gitEditorPath, err := git.EditorPath()
+	if err == nil {
+		assert.NotEqual(t, "", gitEditorPath)
+	}
+
 	gitRemote, _ := git.Remote()
 	assert.T(t, strings.Contains(gitRemote, "jingweno/gh.git"))
 
