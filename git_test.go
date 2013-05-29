@@ -44,18 +44,6 @@ func TestGitRemote(t *testing.T) {
 	assert.T(t, strings.Contains(gitRemote, "jingweno/gh.git"))
 }
 
-func TestGitOwner(t *testing.T) {
-	git := setupGit()
-	gitOwner, _ := git.Owner()
-	assert.Equal(t, "jingweno", gitOwner)
-}
-
-func TestGitProject(t *testing.T) {
-	git := setupGit()
-	gitProject, _ := git.Project()
-	assert.Equal(t, "gh", gitProject)
-}
-
 func TestGitHead(t *testing.T) {
 	git := setupGit()
 	gitHead, _ := git.Head()

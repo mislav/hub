@@ -77,34 +77,6 @@ func (git *Git) EditorPath() (string, error) {
 	return editorPath, nil
 }
 
-func (git *Git) Owner() (string, error) {
-	remote, err := git.Remote()
-	if err != nil {
-		return "", err
-	}
-
-	url, err := mustMatchGitUrl(remote)
-	if err != nil {
-		return "", err
-	}
-
-	return url[1], nil
-}
-
-func (git *Git) Project() (string, error) {
-	remote, err := git.Remote()
-	if err != nil {
-		return "", err
-	}
-
-	url, err := mustMatchGitUrl(remote)
-	if err != nil {
-		return "", err
-	}
-
-	return url[2], nil
-}
-
 func (git *Git) Head() (string, error) {
 	output, err := git.execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
 	if err != nil {

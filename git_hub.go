@@ -55,18 +55,8 @@ func NewGitHub() *GitHub {
 		auth = config.Token
 	}
 
-	if len(user) == 0 {
-		owner, err := git.Owner()
-		if err != nil {
-			// prompt for user
-			log.Fatal(err)
-		}
-
-		user = owner
-	}
-
-	if len(auth) > 0 {
-		auth = "token " + auth
+	if auth != "" {
+		auth = fmt.Sprintf("token %s", auth)
 	}
 
 	return &GitHub{&http.Client{}, user, "", auth}
@@ -85,7 +75,17 @@ type GitHub struct {
 }
 
 func (gh *GitHub) performBasicAuth() error {
-	msg := fmt.Sprintf("%s password for %s (never stored): ", GitHubHost, gh.User)
+	user := gh.User
+	if user == "" {
+		user = CurrentProject().Owner
+		gh.User = user
+	}
+	if user == "" {
+		// TODO: prompt user
+		log.Fatal("TODO: prompt user for basic auth")
+	}
+
+	msg := fmt.Sprintf("%s password for %s (never stored): ", GitHubHost, user)
 	fmt.Print(msg)
 
 	pass := gopass.GetPasswd()
@@ -291,14 +291,14 @@ type PullRequestResponse struct {
 	IssueUrl string `json:"issue_url"`
 }
 
-func (gh *GitHub) CreatePullRequest(owner, repo string, params PullRequestParams) (*PullRequestResponse, error) {
+func (gh *GitHub) CreatePullRequest(project *GitHubProject, params PullRequestParams) (*PullRequestResponse, error) {
 	b, err := json.Marshal(params)
 	if err != nil {
 		return nil, err
 	}
 
 	buffer := bytes.NewBuffer(b)
-	url := fmt.Sprintf("/repos/%s/%s/pulls", owner, repo)
+	url := fmt.Sprintf("/repos/%s/%s/pulls", project.Owner, project.Name)
 	response, err := gh.httpPost(url, nil, buffer)
 	if err != nil {
 		return nil, err

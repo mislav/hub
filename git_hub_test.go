@@ -12,6 +12,6 @@ func _TestCreatePullRequest(t *testing.T) {
 	client := &http.Client{}
 	gh := GitHub{client, "jingweno", "123", config.Token}
 	params := PullRequestParams{"title", "body", "jingweno:master", "jingweno:pull_request"}
-	_, err := gh.CreatePullRequest("jingweno", "gh", params)
+	_, err := gh.CreatePullRequest(CurrentProject(), params)
 	assert.Equal(t, nil, err)
 }

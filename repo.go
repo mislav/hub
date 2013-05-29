@@ -5,17 +5,16 @@ import (
 )
 
 type Repo struct {
-	Owner   string
-	Project string
 	Base    string
 	Head    string
+	Project *GitHubProject
 }
 
 func (r *Repo) FullBase() string {
 	if strings.Contains(r.Base, ":") {
 		return r.Base
 	} else {
-		return r.Owner + ":" + r.Base
+		return r.Project.Owner + ":" + r.Base
 	}
 }
 
@@ -23,7 +22,7 @@ func (r *Repo) FullHead() string {
 	if strings.Contains(r.Head, ":") {
 		return r.Head
 	} else {
-		return r.Owner + ":" + r.Head
+		return r.Project.Owner + ":" + r.Head
 	}
 }
 
@@ -35,8 +34,7 @@ func NewRepo(base, head string) *Repo {
 		head, _ = git.Head()
 	}
 
-	owner, _ := git.Owner()
-	project, _ := git.Project()
+	project := CurrentProject()
 
-	return &Repo{owner, project, base, head}
+	return &Repo{base, head, project}
 }
