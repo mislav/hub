@@ -11,13 +11,13 @@ func TestParseNameAndOwner(t *testing.T) {
 	assert.Equal(t, "jingweno", owner)
 }
 
-func TestMustMatchGitUrl(t *testing.T) {
-	url, _ := mustMatchGitUrl("git://github.com/jingweno/gh.git")
+func TestMustMatchGitHubUrl(t *testing.T) {
+	url, _ := mustMatchGitHubUrl("git://github.com/jingweno/gh.git")
 	assert.Equal(t, "git://github.com/jingweno/gh.git", url[0])
 
-	url, _ = mustMatchGitUrl("git@github.com:jingweno/gh.git")
+	url, _ = mustMatchGitHubUrl("git@github.com:jingweno/gh.git")
 	assert.Equal(t, "git@github.com:jingweno/gh.git", url[0])
 
-	url, _ = mustMatchGitUrl("https://github.com/jingweno/gh.git")
+	url, _ = mustMatchGitHubUrl("https://github.com/jingweno/gh.git")
 	assert.Equal(t, "https://github.com/jingweno/gh.git", url[0])
 }
