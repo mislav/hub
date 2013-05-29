@@ -5,6 +5,27 @@ import (
 	"regexp"
 )
 
+type GitHubProject struct {
+	Name  string
+	Owner string
+}
+
+func CurrentProject() *GitHubProject {
+	owner, name := parseOwnerAndName()
+
+	return &GitHubProject{name, owner}
+}
+
+func parseOwnerAndName() (name, remote string) {
+	remote, err := git.Remote()
+	check(err)
+
+	url, err := mustMatchGitUrl(remote)
+	check(err)
+
+	return url[1], url[2]
+}
+
 func mustMatchGitUrl(url string) ([]string, error) {
 	httpRegex := regexp.MustCompile("https://.+/(.+)/(.+).git")
 	if httpRegex.MatchString(url) {
