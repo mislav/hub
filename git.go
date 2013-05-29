@@ -114,6 +114,15 @@ func (git *Git) Head() (string, error) {
 	return output[0], nil
 }
 
+func (git *Git) Ref(ref string) (string, error) {
+	output, err := git.execGitCmd([]string{"ref-parse", "-q", ref})
+	if err != nil {
+		return "", errors.New("Unknown revision or path not in the working tree: " + ref)
+	}
+
+	return output[0], nil
+}
+
 // FIXME: only care about origin push remote now
 func (git *Git) Remote() (string, error) {
 	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
