@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"github.com/bmizerany/assert"
@@ -7,14 +7,14 @@ import (
 	"testing"
 )
 
-func TestSaveConfig(t *testing.T) {
+func TestSave(t *testing.T) {
 	config := Config{"jingweno", "123"}
 	file := "./test_support/test"
-	err := SaveConfig(file, config)
+	err := saveTo(file, config)
 
 	assert.Equal(t, nil, err)
 
-	newConfig, _ := LoadConfig(file)
+	newConfig, _ := loadFrom(file)
 	assert.Equal(t, "jingweno", newConfig.User)
 	assert.Equal(t, "123", newConfig.Token)
 

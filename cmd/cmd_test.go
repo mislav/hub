@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"github.com/bmizerany/assert"
@@ -6,7 +6,7 @@ import (
 )
 
 func TestWithArg(t *testing.T) {
-	execCmd := NewExecCmd("git")
+	execCmd := New("git")
 	execCmd.WithArg("log").WithArg("--no-color")
 	assert.Equal(t, "git", execCmd.Name)
 	assert.Equal(t, 2, len(execCmd.Args))

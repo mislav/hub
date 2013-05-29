@@ -1,20 +1,17 @@
-package main
+package git
 
 import (
 	"errors"
 	"fmt"
+	"github.com/jingweno/gh/cmd"
 	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 )
 
-type Git struct {
-	Cmd string
-}
-
-func (git *Git) Version() (string, error) {
-	output, err := git.execGitCmd([]string{"version"})
+func Version() (string, error) {
+	output, err := execGitCmd([]string{"version"})
 	if err != nil {
 		return "", errors.New("Can't load git version")
 	}
@@ -22,8 +19,8 @@ func (git *Git) Version() (string, error) {
 	return output[0], nil
 }
 
-func (git *Git) Dir() (string, error) {
-	output, err := git.execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
+func Dir() (string, error) {
+	output, err := execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
 	if err != nil {
 		return "", errors.New("Not a git repository (or any of the parent directories): .git")
 	}
@@ -37,8 +34,8 @@ func (git *Git) Dir() (string, error) {
 	return gitDir, nil
 }
 
-func (git *Git) PullReqMsgFile() (string, error) {
-	gitDir, err := git.Dir()
+func PullReqMsgFile() (string, error) {
+	gitDir, err := Dir()
 	if err != nil {
 		return "", err
 	}
@@ -46,8 +43,8 @@ func (git *Git) PullReqMsgFile() (string, error) {
 	return filepath.Join(gitDir, "PULLREQ_EDITMSG"), nil
 }
 
-func (git *Git) Editor() (string, error) {
-	output, err := git.execGitCmd([]string{"var", "GIT_EDITOR"})
+func Editor() (string, error) {
+	output, err := execGitCmd([]string{"var", "GIT_EDITOR"})
 	if err != nil {
 		return "", errors.New("Can't load git var: GIT_EDITOR")
 	}
@@ -55,8 +52,8 @@ func (git *Git) Editor() (string, error) {
 	return output[0], nil
 }
 
-func (git *Git) EditorPath() (string, error) {
-	gitEditor, err := git.Editor()
+func EditorPath() (string, error) {
+	gitEditor, err := Editor()
 	if err != nil {
 		return "", err
 	}
@@ -77,8 +74,8 @@ func (git *Git) EditorPath() (string, error) {
 	return editorPath, nil
 }
 
-func (git *Git) Head() (string, error) {
-	output, err := git.execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
+func Head() (string, error) {
+	output, err := execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
 	if err != nil {
 		return "master", errors.New("Can't load git HEAD")
 	}
@@ -86,8 +83,8 @@ func (git *Git) Head() (string, error) {
 	return output[0], nil
 }
 
-func (git *Git) Ref(ref string) (string, error) {
-	output, err := git.execGitCmd([]string{"ref-parse", "-q", ref})
+func Ref(ref string) (string, error) {
+	output, err := execGitCmd([]string{"ref-parse", "-q", ref})
 	if err != nil {
 		return "", errors.New("Unknown revision or path not in the working tree: " + ref)
 	}
@@ -96,9 +93,9 @@ func (git *Git) Ref(ref string) (string, error) {
 }
 
 // FIXME: only care about origin push remote now
-func (git *Git) Remote() (string, error) {
+func Remote() (string, error) {
 	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
-	output, err := git.execGitCmd([]string{"remote", "-v"})
+	output, err := execGitCmd([]string{"remote", "-v"})
 	if err != nil {
 		return "", errors.New("Can't load git remote")
 	}
@@ -112,8 +109,8 @@ func (git *Git) Remote() (string, error) {
 	return "", errors.New("Can't find git remote (push)")
 }
 
-func (git *Git) Log(sha1, sha2 string) (string, error) {
-	execCmd := NewExecCmd("git")
+func Log(sha1, sha2 string) (string, error) {
+	execCmd := cmd.New("git")
 	execCmd.WithArg("log").WithArg("--no-color")
 	execCmd.WithArg("--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b")
 	execCmd.WithArg("--cherry")
@@ -128,8 +125,8 @@ func (git *Git) Log(sha1, sha2 string) (string, error) {
 	return outputs, nil
 }
 
-func (git *Git) execGitCmd(input []string) (outputs []string, err error) {
-	cmd := NewExecCmd(git.Cmd)
+func execGitCmd(input []string) (outputs []string, err error) {
+	cmd := cmd.New("git")
 	for _, i := range input {
 		cmd.WithArg(i)
 	}

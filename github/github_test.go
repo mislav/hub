@@ -1,13 +1,14 @@
-package main
+package github
 
 import (
 	"github.com/bmizerany/assert"
+	"github.com/jingweno/gh/config"
 	"net/http"
 	"testing"
 )
 
 func _TestCreatePullRequest(t *testing.T) {
-	config, _ := LoadConfig("./test_support/gh")
+	config, _ := config.Load()
 
 	client := &http.Client{}
 	gh := GitHub{client, "jingweno", "123", config.Token}

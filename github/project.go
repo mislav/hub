@@ -1,27 +1,29 @@
-package main
+package github
 
 import (
 	"errors"
+	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/utils"
 	"regexp"
 )
 
-type GitHubProject struct {
+type Project struct {
 	Name  string
 	Owner string
 }
 
-func CurrentProject() *GitHubProject {
+func CurrentProject() *Project {
 	owner, name := parseOwnerAndName()
 
-	return &GitHubProject{name, owner}
+	return &Project{name, owner}
 }
 
 func parseOwnerAndName() (name, remote string) {
 	remote, err := git.Remote()
-	check(err)
+	utils.Check(err)
 
 	url, err := mustMatchGitHubUrl(remote)
-	check(err)
+	utils.Check(err)
 
 	return url[1], url[2]
 }

@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"bufio"
@@ -12,13 +12,17 @@ type Config struct {
 	Token string `json:"token"`
 }
 
-var ConfigFile string
+var DefaultFile string
 
 func init() {
-	ConfigFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
+	DefaultFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
 }
 
-func LoadConfig(filename string) (*Config, error) {
+func Load() (*Config, error) {
+	return loadFrom(DefaultFile)
+}
+
+func loadFrom(filename string) (*Config, error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -37,7 +41,11 @@ func LoadConfig(filename string) (*Config, error) {
 	return &c, nil
 }
 
-func SaveConfig(filename string, config Config) error {
+func Save(config Config) error {
+	return saveTo(DefaultFile, config)
+}
+
+func saveTo(filename string, config Config) error {
 	err := os.MkdirAll(filepath.Dir(filename), 0771)
 	if err != nil {
 		return err

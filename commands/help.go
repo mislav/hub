@@ -1,4 +1,4 @@
-package main
+package commands
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 var cmdHelp = &Command{
 	Usage: "help [command]",
 	Short: "Show help",
-	Long:  `Help shows usage for a command.`,
+	Long:  `Shows usage for a command.`,
 }
 
 func init() {
@@ -19,16 +19,16 @@ func init() {
 
 func runHelp(cmd *Command, args []string) {
 	if len(args) == 0 {
-		printUsage()
+		PrintUsage()
 		return // not os.Exit(2); success
 	}
 	if len(args) != 1 {
 		log.Fatal("too many arguments")
 	}
 
-	for _, cmd := range commands {
+	for _, cmd := range All {
 		if cmd.Name() == args[0] {
-			cmd.printUsage()
+			cmd.PrintUsage()
 			return
 		}
 	}
@@ -46,15 +46,15 @@ Commands:
 See 'gh help [command]' for more information about a command.
 `))
 
-func printUsage() {
+func PrintUsage() {
 	usageTemplate.Execute(os.Stdout, struct {
 		Commands []*Command
 	}{
-		commands,
+		All,
 	})
 }
 
-func usage() {
-	printUsage()
+func Usage() {
+	PrintUsage()
 	os.Exit(2)
 }

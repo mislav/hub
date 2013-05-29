@@ -1,4 +1,4 @@
-package main
+package github
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/howeyc/gopass"
+	"github.com/jingweno/gh/config"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -47,7 +48,7 @@ type Authorization struct {
 }
 
 func NewGitHub() *GitHub {
-	config, _ := LoadConfig(ConfigFile)
+	config, _ := config.Load()
 
 	var user, auth string
 	if config != nil {
@@ -131,7 +132,7 @@ func (gh *GitHub) obtainOAuthTokenWithBasicAuth() error {
 		token = auth.Token
 	}
 
-	SaveConfig(ConfigFile, Config{gh.User, token})
+	config.Save(config.Config{gh.User, token})
 
 	gh.Authorization = "token " + token
 
@@ -291,7 +292,7 @@ type PullRequestResponse struct {
 	IssueUrl string `json:"issue_url"`
 }
 
-func (gh *GitHub) CreatePullRequest(project *GitHubProject, params PullRequestParams) (*PullRequestResponse, error) {
+func (gh *GitHub) CreatePullRequest(project *Project, params PullRequestParams) (*PullRequestResponse, error) {
 	b, err := json.Marshal(params)
 	if err != nil {
 		return nil, err

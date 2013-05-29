@@ -1,8 +1,12 @@
-package main
+package commands
 
 import (
 	"bufio"
 	"fmt"
+	"github.com/jingweno/gh/cmd"
+	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/utils"
 	"io/ioutil"
 	"log"
 	"os"
@@ -42,26 +46,26 @@ func pullRequest(cmd *Command, args []string) {
 	repo := NewRepo(flagPullRequestBase, flagPullRequestHead)
 
 	messageFile, err := git.PullReqMsgFile()
-	check(err)
+	utils.Check(err)
 	err = writePullRequestChanges(repo, messageFile)
-	check(err)
+	utils.Check(err)
 
 	editorPath, err := git.EditorPath()
-	check(err)
+	utils.Check(err)
 	err = editTitleAndBody(editorPath, messageFile)
-	check(err)
 
+	utils.Check(err)
 	title, body, err := readTitleAndBody(messageFile)
-	check(err)
+	utils.Check(err)
 
 	if title == "" {
 		log.Fatal("Aborting due to empty pull request title")
 	}
 
-	params := PullRequestParams{title, body, repo.Base, repo.Head}
-	gh := NewGitHub()
+	params := github.PullRequestParams{title, body, repo.Base, repo.Head}
+	gh := github.NewGitHub()
 	pullRequestResponse, err := gh.CreatePullRequest(repo.Project, params)
-	check(err)
+	utils.Check(err)
 
 	fmt.Println(pullRequestResponse.HtmlUrl)
 }
@@ -97,7 +101,7 @@ func writePullRequestChanges(repo *Repo, messageFile string) error {
 }
 
 func editTitleAndBody(editorPath, messageFile string) error {
-	editCmd := NewExecCmd(editorPath)
+	editCmd := cmd.New(editorPath)
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(editorPath) {
 		editCmd.WithArg("-c")

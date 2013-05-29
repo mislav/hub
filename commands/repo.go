@@ -1,13 +1,15 @@
-package main
+package commands
 
 import (
+	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/github"
 	"strings"
 )
 
 type Repo struct {
 	Base    string
 	Head    string
-	Project *GitHubProject
+	Project *github.Project
 }
 
 func (r *Repo) FullBase() string {
@@ -34,7 +36,7 @@ func NewRepo(base, head string) *Repo {
 		head, _ = git.Head()
 	}
 
-	project := CurrentProject()
+	project := github.CurrentProject()
 
 	return &Repo{base, head, project}
 }

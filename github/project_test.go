@@ -1,4 +1,4 @@
-package main
+package github
 
 import (
 	"github.com/bmizerany/assert"

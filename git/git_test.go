@@ -1,4 +1,4 @@
-package main
+package git
 
 import (
 	"github.com/bmizerany/assert"
@@ -6,58 +6,46 @@ import (
 	"testing"
 )
 
-func setupGit() *Git {
-	return &Git{"git"}
-}
-
 func TestGitDir(t *testing.T) {
-	git := setupGit()
-	gitDir, _ := git.Dir()
+	gitDir, _ := Dir()
 	assert.T(t, strings.Contains(gitDir, ".git"))
 }
 
 func TestGitPullReqMsgFile(t *testing.T) {
-	git := setupGit()
-	gitPullReqMsgFile, _ := git.PullReqMsgFile()
+	gitPullReqMsgFile, _ := PullReqMsgFile()
 	assert.T(t, strings.Contains(gitPullReqMsgFile, "PULLREQ_EDITMSG"))
 }
 
 func TestGitEditor(t *testing.T) {
-	git := setupGit()
-	gitEditor, err := git.Editor()
+	gitEditor, err := Editor()
 	if err == nil {
 		assert.NotEqual(t, "", gitEditor)
 	}
 }
 
 func TestGitEditorPath(t *testing.T) {
-	git := setupGit()
-	gitEditorPath, err := git.EditorPath()
+	gitEditorPath, err := EditorPath()
 	if err == nil {
 		assert.NotEqual(t, "", gitEditorPath)
 	}
 }
 
 func TestGitRemote(t *testing.T) {
-	git := setupGit()
-	gitRemote, _ := git.Remote()
+	gitRemote, _ := Remote()
 	assert.T(t, strings.Contains(gitRemote, "jingweno/gh.git"))
 }
 
 func TestGitHead(t *testing.T) {
-	git := setupGit()
-	gitHead, _ := git.Head()
+	gitHead, _ := Head()
 	assert.NotEqual(t, "", gitHead)
 }
 
 func TestGitLog(t *testing.T) {
-	git := setupGit()
-	logs, _ := git.Log("master", "HEAD")
+	logs, _ := Log("master", "HEAD")
 	assert.T(t, len(logs) >= 0)
 }
 
 func TestGitRef(t *testing.T) {
-	git := setupGit()
-	gitRef, _ := git.Ref("HEAD")
+	gitRef, _ := Ref("HEAD")
 	assert.NotEqual(t, "", gitRef)
 }
