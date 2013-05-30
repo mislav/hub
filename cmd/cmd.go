@@ -1,22 +1,22 @@
-package main
+package cmd
 
 import (
 	"os"
 	"os/exec"
 )
 
-type ExecCmd struct {
+type Cmd struct {
 	Name string
 	Args []string
 }
 
-func (cmd *ExecCmd) WithArg(arg string) *ExecCmd {
+func (cmd *Cmd) WithArg(arg string) *Cmd {
 	cmd.Args = append(cmd.Args, arg)
 
 	return cmd
 }
 
-func (cmd *ExecCmd) ExecOutput() (string, error) {
+func (cmd *Cmd) ExecOutput() (string, error) {
 	output, err := exec.Command(cmd.Name, cmd.Args...).Output()
 	if err != nil {
 		return "", err
@@ -25,7 +25,7 @@ func (cmd *ExecCmd) ExecOutput() (string, error) {
 	return string(output), nil
 }
 
-func (cmd *ExecCmd) Exec() error {
+func (cmd *Cmd) Exec() error {
 	c := exec.Command(cmd.Name, cmd.Args...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
@@ -34,6 +34,6 @@ func (cmd *ExecCmd) Exec() error {
 	return c.Run()
 }
 
-func NewExecCmd(name string) *ExecCmd {
-	return &ExecCmd{name, make([]string, 0)}
+func New(name string) *Cmd {
+	return &Cmd{name, make([]string, 0)}
 }

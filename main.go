@@ -1,66 +1,21 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"log"
+	"github.com/jingweno/gh/commands"
 	"os"
-	"strings"
-)
-
-type Command struct {
-	Run  func(cmd *Command, args []string)
-	Flag flag.FlagSet
-
-	Usage string
-	Short string
-	Long  string
-}
-
-func (c *Command) printUsage() {
-	if c.Runnable() {
-		fmt.Printf("Usage: gh %s\n\n", c.Usage)
-	}
-	fmt.Println(strings.Trim(c.Long, "\n"))
-}
-
-func (c *Command) Name() string {
-	name := c.Usage
-	i := strings.Index(name, " ")
-	if i >= 0 {
-		name = name[:i]
-	}
-	return name
-}
-
-func (c *Command) Runnable() bool {
-	return c.Run != nil
-}
-
-func (c *Command) List() bool {
-	return c.Short != ""
-}
-
-var (
-	commands = []*Command{
-		cmdPullRequest,
-		cmdHelp,
-		cmdVersion,
-	}
-
-	git = Git{"git"}
 )
 
 func main() {
 	args := os.Args[1:]
 	if len(args) < 1 {
-		usage()
+		commands.Usage()
 	}
 
-	for _, cmd := range commands {
-		if cmd.Name() == args[0] && cmd.Run != nil {
+	for _, cmd := range commands.All {
+		if cmd.Name() == args[0] && cmd.Runnable() {
 			cmd.Flag.Usage = func() {
-				cmd.printUsage()
+				cmd.PrintUsage()
 			}
 			if err := cmd.Flag.Parse(args[1:]); err != nil {
 				os.Exit(2)
@@ -71,11 +26,5 @@ func main() {
 	}
 
 	fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args[0])
-	usage()
-}
-
-func check(err error) {
-	if err != nil {
-		log.Fatalf("fatal: %v", err)
-	}
+	commands.Usage()
 }
