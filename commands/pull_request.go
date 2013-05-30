@@ -90,8 +90,7 @@ func writePullRequestChanges(repo *Repo, messageFile string) error {
 #
 # Changes:
 #
-%s
-`
+%s`
 		changesMsg = fmt.Sprintf(changesMsg, commitLogs)
 	}
 
