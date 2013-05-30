@@ -64,7 +64,7 @@ func pullRequest(cmd *Command, args []string) {
 
 	params := github.PullRequestParams{title, body, repo.Base, repo.Head}
 	gh := github.New()
-	pullRequestResponse, err := gh.CreatePullRequest(repo.Project, params)
+	pullRequestResponse, err := gh.CreatePullRequest(params)
 	utils.Check(err)
 
 	fmt.Println(pullRequestResponse.HtmlUrl)

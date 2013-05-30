@@ -12,7 +12,7 @@ func TestSave(t *testing.T) {
 	file := "./test_support/test"
 	defer os.RemoveAll(filepath.Dir(file))
 
-	err := saveTo(file, config)
+	err := saveTo(file, &config)
 	assert.Equal(t, nil, err)
 
 	configs, err := loadFrom(file)
@@ -22,7 +22,7 @@ func TestSave(t *testing.T) {
 	assert.Equal(t, "123", configs[0].Token)
 
 	newConfig := Config{"foo", "456"}
-	err = saveTo(file, newConfig)
+	err = saveTo(file, &newConfig)
 	assert.Equal(t, nil, err)
 
 	configs, err = loadFrom(file)
