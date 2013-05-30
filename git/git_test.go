@@ -46,6 +46,7 @@ func TestGitLog(t *testing.T) {
 }
 
 func TestGitRef(t *testing.T) {
-	gitRef, _ := Ref("HEAD")
+	gitRef, err := Ref("master")
+	assert.Equal(t, nil, err)
 	assert.NotEqual(t, "", gitRef)
 }

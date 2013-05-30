@@ -84,7 +84,7 @@ func Head() (string, error) {
 }
 
 func Ref(ref string) (string, error) {
-	output, err := execGitCmd([]string{"ref-parse", "-q", ref})
+	output, err := execGitCmd([]string{"rev-parse", "-q", ref})
 	if err != nil {
 		return "", errors.New("Unknown revision or path not in the working tree: " + ref)
 	}
