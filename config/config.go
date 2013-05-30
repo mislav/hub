@@ -18,7 +18,7 @@ type Config struct {
 	Token string `json:"token"`
 }
 
-func (c *Config) UserName() string {
+func (c *Config) FetchUser() string {
 	if c.User == "" {
 		var user string
 		msg := fmt.Sprintf("%s username: ", GitHubHost)
@@ -30,7 +30,7 @@ func (c *Config) UserName() string {
 	return c.User
 }
 
-func (c *Config) Password() string {
+func (c *Config) FetchPassword() string {
 	msg := fmt.Sprintf("%s password for %s (never stored): ", GitHubHost, c.User)
 	fmt.Print(msg)
 

@@ -58,6 +58,7 @@ func hashAuth(u, p string) string {
 func New() *GitHub {
 	project := CurrentProject()
 	c, _ := config.Load()
+	c.FetchUser()
 
 	gh := GitHub{&http.Client{}, "", project, &c}
 	if c.Token != "" {

@@ -23,8 +23,8 @@ type GitHubErrors struct {
 }
 
 func performBasicAuth(gh *GitHub) error {
-	user := gh.config.UserName()
-	password := gh.config.Password()
+	user := gh.config.FetchUser()
+	password := gh.config.FetchPassword()
 	gh.updateBasicAuth(user, password)
 
 	return obtainOAuthTokenWithBasicAuth(gh)
