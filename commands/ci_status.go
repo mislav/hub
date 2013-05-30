@@ -1,9 +1,11 @@
 package commands
 
 import (
-	//"github.com/jingweno/gh/github"
+	"fmt"
 	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"os"
 )
 
 var cmdCiStatus = &Command{
@@ -18,19 +20,47 @@ success (0), error (1), failure (1), pending (2), no status (3)
 }
 
 func ciStatus(cmd *Command, args []string) {
-	if len(args) == 0 {
-		cmd.PrintUsage()
-		return
-	}
-
-	ref := args[0]
-	if ref == "" {
-		ref = "HEAD"
+	ref := "HEAD"
+	if len(args) > 0 {
+		ref = args[0]
 	}
 
 	ref, err := git.Ref(ref)
 	utils.Check(err)
 
-	//github := github.NewGitHub()
-	//github.ListStatuses(github.CurrentProject(), ref)
+	gh := github.New()
+	statuses, err := gh.ListStatuses(ref)
+	utils.Check(err)
+
+	var state string
+	var targetUrl string
+	var desc string
+	var exitCode int
+	if len(statuses) == 0 {
+		state = "no status"
+	} else {
+		status := statuses[0]
+		state = status.State
+		targetUrl = status.TargetUrl
+		desc = status.Description
+	}
+
+	switch state {
+	case "success":
+		exitCode = 0
+	case "failure", "error":
+		exitCode = 1
+	case "pending":
+		exitCode = 2
+	}
+
+	fmt.Println(state)
+	if targetUrl != "" {
+		fmt.Println(targetUrl)
+	}
+	if desc != "" {
+		fmt.Println(desc)
+	}
+
+	os.Exit(exitCode)
 }

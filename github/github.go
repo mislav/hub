@@ -46,6 +46,10 @@ func (gh *GitHub) CreatePullRequest(params PullRequestParams) (*PullRequestRespo
 	return createPullRequest(gh, params)
 }
 
+func (gh *GitHub) ListStatuses(ref string) ([]Status, error) {
+	return listStatuses(gh, ref)
+}
+
 func hashAuth(u, p string) string {
 	var a = fmt.Sprintf("%s:%s", u, p)
 	return base64.StdEncoding.EncodeToString([]byte(a))
@@ -53,8 +57,11 @@ func hashAuth(u, p string) string {
 
 func New() *GitHub {
 	project := CurrentProject()
-	c, err := config.Load(project.Owner)
-	if err != nil {
+	configs, err := config.LoadAll()
+	var c *config.Config
+	if err == nil {
+		c = configs[0]
+	} else {
 		c = &config.Config{User: project.Owner}
 	}
 

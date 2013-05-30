@@ -19,8 +19,17 @@ func init() {
 	DefaultFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
 }
 
-func Load(user string) (*Config, error) {
+func LoadAll() ([]*Config, error) {
 	configs, err := loadFrom(DefaultFile)
+	if err != nil {
+		return nil, err
+	}
+
+	return configs, nil
+}
+
+func Load(user string) (*Config, error) {
+	configs, err := LoadAll()
 	if err != nil {
 		return nil, err
 	}
