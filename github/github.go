@@ -9,9 +9,9 @@ import (
 )
 
 const (
-	GitHubUrl   string = "https://" + GitHubHost
-	GitHubHost  string = "api.github.com"
-	OAuthAppUrl string = "http://owenou.com/gh"
+	GitHubApiUrl  string = "https://" + GitHubApiHost
+	GitHubApiHost string = "api.github.com"
+	OAuthAppUrl   string = "http://owenou.com/gh"
 )
 
 type GitHub struct {
@@ -57,15 +57,9 @@ func hashAuth(u, p string) string {
 
 func New() *GitHub {
 	project := CurrentProject()
-	configs, err := config.LoadAll()
-	var c *config.Config
-	if err == nil {
-		c = configs[0]
-	} else {
-		c = &config.Config{User: project.Owner}
-	}
+	c, _ := config.Load()
 
-	gh := GitHub{&http.Client{}, "", project, c}
+	gh := GitHub{&http.Client{}, "", project, &c}
 	if c.Token != "" {
 		gh.updateTokenAuth(c.Token)
 	}

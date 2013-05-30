@@ -4,13 +4,42 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/howeyc/gopass"
+	"github.com/jingweno/gh/utils"
 	"os"
 	"path/filepath"
 )
 
+const GitHubHost string = "github.com"
+
 type Config struct {
 	User  string `json:"user"`
 	Token string `json:"token"`
+}
+
+func (c *Config) UserName() string {
+	if c.User == "" {
+		var user string
+		msg := fmt.Sprintf("%s username: ", GitHubHost)
+		fmt.Print(msg)
+		fmt.Scanln(&user)
+		c.User = user
+	}
+
+	return c.User
+}
+
+func (c *Config) Password() string {
+	msg := fmt.Sprintf("%s password for %s (never stored): ", GitHubHost, c.User)
+	fmt.Print(msg)
+
+	pass := gopass.GetPasswd()
+	if len(pass) == 0 {
+		utils.Check(errors.New("Password cannot be empty"))
+	}
+
+	return string(pass)
 }
 
 var DefaultFile string
@@ -19,49 +48,29 @@ func init() {
 	DefaultFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
 }
 
-func LoadAll() ([]*Config, error) {
-	configs, err := loadFrom(DefaultFile)
-	if err != nil {
-		return nil, err
-	}
-
-	return configs, nil
+func Load() (Config, error) {
+	return loadFrom(DefaultFile)
 }
 
-func Load(user string) (*Config, error) {
-	configs, err := LoadAll()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, c := range configs {
-		if c.User == user {
-			return c, nil
-		}
-	}
-
-	return nil, errors.New("There's no matching config for user: " + user)
-}
-
-func loadFrom(filename string) ([]*Config, error) {
+func loadFrom(filename string) (Config, error) {
 	f, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 
 	return doLoadFrom(f)
 }
 
-func doLoadFrom(f *os.File) ([]*Config, error) {
+func doLoadFrom(f *os.File) (Config, error) {
 	defer f.Close()
 
 	reader := bufio.NewReader(f)
 	dec := json.NewDecoder(reader)
 
-	var c []*Config
+	var c Config
 	err := dec.Decode(&c)
 	if err != nil {
-		return nil, err
+		return Config{}, err
 	}
 
 	return c, nil
@@ -72,8 +81,6 @@ func Save(config *Config) error {
 }
 
 func saveTo(filename string, config *Config) error {
-	configs, _ := loadFrom(filename)
-
 	err := os.MkdirAll(filepath.Dir(filename), 0771)
 	if err != nil {
 		return err
@@ -84,25 +91,12 @@ func saveTo(filename string, config *Config) error {
 		return err
 	}
 
-	var foundConfig *Config
-	for _, c := range configs {
-		if c.User == config.User {
-			foundConfig = c
-			break
-		}
-	}
-	if foundConfig == nil {
-		configs = append(configs, config)
-	} else {
-		foundConfig.Token = config.Token
-	}
-
-	return doSaveTo(f, configs)
+	return doSaveTo(f, config)
 }
 
-func doSaveTo(f *os.File, configs []*Config) error {
+func doSaveTo(f *os.File, config *Config) error {
 	defer f.Close()
 
 	enc := json.NewEncoder(f)
-	return enc.Encode(configs)
+	return enc.Encode(config)
 }

@@ -15,21 +15,16 @@ func TestSave(t *testing.T) {
 	err := saveTo(file, &config)
 	assert.Equal(t, nil, err)
 
-	configs, err := loadFrom(file)
+	config, err = loadFrom(file)
 	assert.Equal(t, nil, err)
-	assert.Equal(t, 1, len(configs))
-	assert.Equal(t, "jingweno", configs[0].User)
-	assert.Equal(t, "123", configs[0].Token)
+	assert.Equal(t, "jingweno", config.User)
+	assert.Equal(t, "123", config.Token)
 
 	newConfig := Config{"foo", "456"}
 	err = saveTo(file, &newConfig)
 	assert.Equal(t, nil, err)
 
-	configs, err = loadFrom(file)
-	assert.Equal(t, nil, err)
-	assert.Equal(t, 2, len(configs))
-	assert.Equal(t, "jingweno", configs[0].User)
-	assert.Equal(t, "123", configs[0].Token)
-	assert.Equal(t, "foo", configs[1].User)
-	assert.Equal(t, "456", configs[1].Token)
+	config, err = loadFrom(file)
+	assert.Equal(t, "foo", config.User)
+	assert.Equal(t, "456", config.Token)
 }

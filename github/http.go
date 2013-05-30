@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/howeyc/gopass"
 	"io/ioutil"
 	"net/http"
 )
@@ -24,16 +23,8 @@ type GitHubErrors struct {
 }
 
 func performBasicAuth(gh *GitHub) error {
-	user := gh.project.Owner
-	msg := fmt.Sprintf("%s password for %s (never stored): ", GitHubHost, user)
-	fmt.Print(msg)
-
-	pass := gopass.GetPasswd()
-	if len(pass) == 0 {
-		return errors.New("Password cannot be empty")
-	}
-	password := string(pass)
-
+	user := gh.config.UserName()
+	password := gh.config.Password()
 	gh.updateBasicAuth(user, password)
 
 	return obtainOAuthTokenWithBasicAuth(gh)
@@ -73,7 +64,7 @@ func obtainOAuthTokenWithBasicAuth(gh *GitHub) error {
 }
 
 func httpGet(gh *GitHub, uri string, extraHeaders map[string]string) (*http.Response, error) {
-	url := fmt.Sprintf("%s%s", GitHubUrl, uri)
+	url := fmt.Sprintf("%s%s", GitHubApiUrl, uri)
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -89,7 +80,7 @@ func httpGet(gh *GitHub, uri string, extraHeaders map[string]string) (*http.Resp
 }
 
 func httpPost(gh *GitHub, uri string, extraHeaders map[string]string, content *bytes.Buffer) (*http.Response, error) {
-	url := fmt.Sprintf("%s%s", GitHubUrl, uri)
+	url := fmt.Sprintf("%s%s", GitHubApiUrl, uri)
 	request, err := http.NewRequest("POST", url, content)
 	if err != nil {
 		return nil, err
