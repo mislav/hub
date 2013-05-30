@@ -4,7 +4,7 @@
     "Arch": "386,amd64",
     "ArtifactsDest": "target",
     "Os": "darwin,linux,windows",
-    "PackageVersion": "0.0.1",
+    "PackageVersion": "0.0.2",
     "PrereleaseInfo": "snapshot",
     "Verbosity": "v",
     "Resources": {
