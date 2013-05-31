@@ -42,6 +42,7 @@ func (c *Command) List() bool {
 var All = []*Command{
 	cmdPullRequest,
 	cmdCiStatus,
+	cmdBrowse,
 	cmdHelp,
 	cmdVersion,
 }
