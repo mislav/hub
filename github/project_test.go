@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func TestWekUrl(t *testing.T) {
+	project := Project{"foo", "bar"}
+	url := project.WebUrl("", "", "baz")
+	assert.Equal(t, "https://github.com/bar/foo/baz", url)
+
+	url = project.WebUrl("1", "2", "")
+	assert.Equal(t, "https://github.com/2/1", url)
+}
+
 func TestParseNameAndOwner(t *testing.T) {
 	owner, name := parseOwnerAndName()
 	assert.Equal(t, "gh", name)

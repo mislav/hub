@@ -3,12 +3,12 @@ package github
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/jingweno/gh/config"
 	"net/http"
 	"strings"
 )
 
 const (
+	GitHubHost    string = "github.com"
 	GitHubApiUrl  string = "https://" + GitHubApiHost
 	GitHubApiHost string = "api.github.com"
 	OAuthAppUrl   string = "http://owenou.com/gh"
@@ -18,12 +18,12 @@ type GitHub struct {
 	httpClient    *http.Client
 	authorization string
 	project       *Project
-	config        *config.Config
+	config        *Config
 }
 
 func (gh *GitHub) updateToken(token string) {
 	gh.config.Token = token
-	config.Save(gh.config)
+	saveConfig(gh.config)
 }
 
 func (gh *GitHub) updateTokenAuth(token string) {
@@ -57,7 +57,7 @@ func hashAuth(u, p string) string {
 
 func New() *GitHub {
 	project := CurrentProject()
-	c, _ := config.Load()
+	c, _ := loadConfig()
 	c.FetchUser()
 
 	gh := GitHub{&http.Client{}, "", project, &c}

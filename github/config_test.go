@@ -1,4 +1,4 @@
-package config
+package github
 
 import (
 	"github.com/bmizerany/assert"
@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestSave(t *testing.T) {
+func TestSaveConfig(t *testing.T) {
 	config := Config{"jingweno", "123"}
 	file := "./test_support/test"
 	defer os.RemoveAll(filepath.Dir(file))

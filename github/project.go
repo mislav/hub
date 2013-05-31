@@ -2,6 +2,7 @@ package github
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 	"regexp"
@@ -10,6 +11,22 @@ import (
 type Project struct {
 	Name  string
 	Owner string
+}
+
+func (p *Project) WebUrl(name, owner, path string) string {
+	if owner == "" {
+		owner = p.Owner
+	}
+	if name == "" {
+		name = p.Name
+	}
+
+	url := fmt.Sprintf("https://%s", utils.ConcatPaths(GitHubHost, owner, name))
+	if path != "" {
+		url = utils.ConcatPaths(url, path)
+	}
+
+	return url
 }
 
 func CurrentProject() *Project {

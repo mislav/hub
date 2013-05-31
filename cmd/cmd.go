@@ -37,3 +37,7 @@ func (cmd *Cmd) Exec() error {
 func New(name string) *Cmd {
 	return &Cmd{name, make([]string, 0)}
 }
+
+func NewWithArray(cmd []string) *Cmd {
+	return &Cmd{cmd[0], cmd[1:]}
+}
