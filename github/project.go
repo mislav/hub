@@ -13,12 +13,15 @@ type Project struct {
 	Owner string
 }
 
-func (p *Project) OwnerWithName() string {
-	return utils.ConcatPaths(p.Owner, p.Name)
-}
+func (p *Project) WebUrl(name, owner, path string) string {
+	if owner == "" {
+		owner = p.Owner
+	}
+	if name == "" {
+		name = p.Name
+	}
 
-func (p *Project) WebUrl(ownerWithName, path string) string {
-	url := fmt.Sprintf("https://%s", utils.ConcatPaths(GitHubHost, ownerWithName))
+	url := fmt.Sprintf("https://%s", utils.ConcatPaths(GitHubHost, owner, name))
 	if path != "" {
 		url = utils.ConcatPaths(url, path)
 	}

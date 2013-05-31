@@ -12,3 +12,7 @@ func TestSearchBrowserLauncher(t *testing.T) {
 	browser = searchBrowserLauncher("windows")
 	assert.Equal(t, "cmd /c start", browser)
 }
+
+func TestConcatPaths(t *testing.T) {
+	assert.Equal(t, "foo/bar/baz", ConcatPaths("foo", "bar", "baz"))
+}

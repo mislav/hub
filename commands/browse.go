@@ -27,22 +27,13 @@ func init() {
 }
 
 func browse(command *Command, args []string) {
-	project := github.CurrentProject()
-	if flagBrowseUser == "" {
-		flagBrowseUser = project.Owner
-	}
-	if flagBrowseRepo == "" {
-		flagBrowseRepo = project.Name
-	}
-
-	ownerWithName := utils.ConcatPaths(flagBrowseUser, flagBrowseRepo)
-
-	url := project.WebUrl(ownerWithName, flagBrowseSubpage)
-	browser, err := utils.BrowserLauncher()
+	launcher, err := utils.BrowserLauncher()
 	utils.Check(err)
 
-	browser = append(browser, url)
-	c := cmd.NewWithArray(browser)
+	project := github.CurrentProject()
+	url := project.WebUrl(flagBrowseRepo, flagBrowseUser, flagBrowseSubpage)
+	launcher = append(launcher, url)
+	c := cmd.NewWithArray(launcher)
 	err = c.Exec()
 	utils.Check(err)
 }
