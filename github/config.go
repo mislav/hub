@@ -1,4 +1,4 @@
-package config
+package github
 
 import (
 	"bufio"
@@ -10,8 +10,6 @@ import (
 	"os"
 	"path/filepath"
 )
-
-const GitHubHost string = "github.com"
 
 type Config struct {
 	User  string `json:"user"`
@@ -48,7 +46,7 @@ func init() {
 	DefaultFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
 }
 
-func Load() (Config, error) {
+func loadConfig() (Config, error) {
 	return loadFrom(DefaultFile)
 }
 
@@ -76,7 +74,7 @@ func doLoadFrom(f *os.File) (Config, error) {
 	return c, nil
 }
 
-func Save(config *Config) error {
+func saveConfig(config *Config) error {
 	return saveTo(DefaultFile, config)
 }
 

@@ -15,6 +15,10 @@ func Check(err error) {
 	}
 }
 
+func CatPaths(paths ...string) string {
+	return strings.Join(paths, "/")
+}
+
 func BrowserLauncher() ([]string, error) {
 	browser := os.Getenv("BROWSER")
 	if browser == "" {
