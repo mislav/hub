@@ -15,7 +15,7 @@ func Check(err error) {
 	}
 }
 
-func CatPaths(paths ...string) string {
+func ConcatPaths(paths ...string) string {
 	return strings.Join(paths, "/")
 }
 

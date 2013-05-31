@@ -14,13 +14,13 @@ type Project struct {
 }
 
 func (p *Project) OwnerWithName() string {
-	return utils.CatPaths(p.Owner, p.Name)
+	return utils.ConcatPaths(p.Owner, p.Name)
 }
 
 func (p *Project) WebUrl(ownerWithName, path string) string {
-	url := fmt.Sprintf("https://%s", utils.CatPaths(GitHubHost, ownerWithName))
+	url := fmt.Sprintf("https://%s", utils.ConcatPaths(GitHubHost, ownerWithName))
 	if path != "" {
-		url = utils.CatPaths(url, path)
+		url = utils.ConcatPaths(url, path)
 	}
 
 	return url

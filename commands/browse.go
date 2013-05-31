@@ -1,14 +1,14 @@
 package commands
 
 import (
-	"fmt"
+	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 )
 
 var cmdBrowse = &Command{
 	Run:   browse,
-	Usage: "browse [[USER]/REPOSITORY] [SUBPAGE]",
+	Usage: "browse [-u USER] [-r REPOSITORY] [-p SUBPAGE]",
 	Short: "Open a GitHub page in the default browser",
 	Long: `Open repository's GitHub page in the system's default web browser using
 open(1) or the BROWSER env variable. If the repository isn't specified,
@@ -18,23 +18,31 @@ one of "wiki", "commits", "issues" or other (the default is "tree").
 `,
 }
 
-func browse(cmd *Command, args []string) {
-	var subpage string
-	project := github.CurrentProject()
-	ownerWithName := project.OwnerWithName()
+var flagBrowseUser, flagBrowseRepo, flagBrowseSubpage string
 
-	if len(args) == 1 {
-		ownerWithName = utils.CatPaths(project.Owner, args[0])
-	} else if len(args) == 2 {
-		if args[0] != "--" {
-			ownerWithName = args[0]
-		}
-		subpage = args[1]
-	} else if len(args) > 2 {
-		cmd.PrintUsage()
+func init() {
+	cmdBrowse.Flag.StringVar(&flagBrowseUser, "u", "", "USER")
+	cmdBrowse.Flag.StringVar(&flagBrowseRepo, "r", "", "REPOSITORY")
+	cmdBrowse.Flag.StringVar(&flagBrowseSubpage, "p", "", "SUBPAGE")
+}
+
+func browse(command *Command, args []string) {
+	project := github.CurrentProject()
+	if flagBrowseUser == "" {
+		flagBrowseUser = project.Owner
+	}
+	if flagBrowseRepo == "" {
+		flagBrowseRepo = project.Name
 	}
 
-	url := project.WebUrl(ownerWithName, subpage)
+	ownerWithName := utils.ConcatPaths(flagBrowseUser, flagBrowseRepo)
 
-	fmt.Println(url)
+	url := project.WebUrl(ownerWithName, flagBrowseSubpage)
+	browser, err := utils.BrowserLauncher()
+	utils.Check(err)
+
+	browser = append(browser, url)
+	c := cmd.NewWithArray(browser)
+	err = c.Exec()
+	utils.Check(err)
 }
