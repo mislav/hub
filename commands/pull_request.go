@@ -43,20 +43,28 @@ func init() {
 }
 
 func pullRequest(cmd *Command, args []string) {
+	var title, body string
+	if len(args) == 1 {
+		title = args[0]
+	}
+
 	repo := NewRepo(flagPullRequestBase, flagPullRequestHead)
+	if title == "" {
+		messageFile, err := git.PullReqMsgFile()
+		utils.Check(err)
 
-	messageFile, err := git.PullReqMsgFile()
-	utils.Check(err)
-	err = writePullRequestChanges(repo, messageFile)
-	utils.Check(err)
+		err = writePullRequestChanges(repo, messageFile)
+		utils.Check(err)
 
-	editorPath, err := git.EditorPath()
-	utils.Check(err)
-	err = editTitleAndBody(editorPath, messageFile)
+		editorPath, err := git.EditorPath()
+		utils.Check(err)
 
-	utils.Check(err)
-	title, body, err := readTitleAndBody(messageFile)
-	utils.Check(err)
+		err = editTitleAndBody(editorPath, messageFile)
+		utils.Check(err)
+
+		title, body, err = readTitleAndBody(messageFile)
+		utils.Check(err)
+	}
 
 	if title == "" {
 		log.Fatal("Aborting due to empty pull request title")
