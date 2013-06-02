@@ -13,7 +13,7 @@ type Status struct {
 }
 
 func listStatuses(gh *GitHub, ref string) ([]Status, error) {
-	project := gh.project
+	project := gh.Project
 	url := fmt.Sprintf("/repos/%s/%s/statuses/%s", project.Owner, project.Name, ref)
 	response, err := httpGet(gh, url, nil)
 	if err != nil {

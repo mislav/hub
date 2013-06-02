@@ -17,7 +17,7 @@ const (
 type GitHub struct {
 	httpClient    *http.Client
 	authorization string
-	project       *Project
+	Project       *Project
 	config        *Config
 }
 

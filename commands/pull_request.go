@@ -49,7 +49,8 @@ func pullRequest(cmd *Command, args []string) {
 		title = args[0]
 	}
 
-	repo := NewRepo(flagPullRequestBase, flagPullRequestHead)
+	gh := github.New()
+	repo := gh.Project.LocalRepo(flagPullRequestBase, flagPullRequestHead)
 	if title == "" && flagPullRequestIssue == "" {
 		messageFile, err := git.PullReqMsgFile()
 		utils.Check(err)
@@ -68,18 +69,17 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	if title == "" && flagPullRequestIssue == "" {
-		log.Fatal("Aborting due to empty pull request title or unspecified issue number")
+		log.Fatal("Aborting due to empty pull request title")
 	}
 
-	params := github.PullRequestParams{title, body, repo.Base, repo.Head, flagPullRequestIssue}
-	gh := github.New()
+	params := github.PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue}
 	pullRequestResponse, err := gh.CreatePullRequest(params)
 	utils.Check(err)
 
 	fmt.Println(pullRequestResponse.HtmlUrl)
 }
 
-func writePullRequestChanges(repo *Repo, messageFile string) error {
+func writePullRequestChanges(repo *github.Repo, messageFile string) error {
 	message := `
 # Requesting a pull to %s from %s
 #

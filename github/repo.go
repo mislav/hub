@@ -1,15 +1,13 @@
-package commands
+package github
 
 import (
-	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/github"
 	"strings"
 )
 
 type Repo struct {
 	Base    string
 	Head    string
-	Project *github.Project
+	Project *Project
 }
 
 func (r *Repo) FullBase() string {
@@ -26,17 +24,4 @@ func (r *Repo) FullHead() string {
 	} else {
 		return r.Project.Owner + ":" + r.Head
 	}
-}
-
-func NewRepo(base, head string) *Repo {
-	if base == "" {
-		base = "master"
-	}
-	if head == "" {
-		head, _ = git.Head()
-	}
-
-	project := github.CurrentProject()
-
-	return &Repo{base, head, project}
 }
