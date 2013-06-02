@@ -23,7 +23,7 @@ type PullRequestResponse struct {
 }
 
 func createPullRequest(gh *GitHub, params PullRequestParams) (*PullRequestResponse, error) {
-	project := gh.project
+	project := gh.Project
 	b, err := json.Marshal(params)
 	if err != nil {
 		return nil, err

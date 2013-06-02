@@ -29,6 +29,17 @@ func (p *Project) WebUrl(name, owner, path string) string {
 	return url
 }
 
+func (p *Project) LocalRepo(base, head string) *Repo {
+	if base == "" {
+		base = "master"
+	}
+	if head == "" {
+		head, _ = git.Head()
+	}
+
+	return &Repo{base, head, p}
+}
+
 func CurrentProject() *Project {
 	owner, name := parseOwnerAndName()
 
