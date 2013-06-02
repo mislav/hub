@@ -35,11 +35,12 @@ of title you can paste a full URL to an issue on GitHub.
 `,
 }
 
-var flagPullRequestBase, flagPullRequestHead string
+var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue string
 
 func init() {
 	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
 }
 
 func pullRequest(cmd *Command, args []string) {
@@ -49,7 +50,7 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	repo := NewRepo(flagPullRequestBase, flagPullRequestHead)
-	if title == "" {
+	if title == "" && flagPullRequestIssue == "" {
 		messageFile, err := git.PullReqMsgFile()
 		utils.Check(err)
 
@@ -66,11 +67,11 @@ func pullRequest(cmd *Command, args []string) {
 		utils.Check(err)
 	}
 
-	if title == "" {
-		log.Fatal("Aborting due to empty pull request title")
+	if title == "" && flagPullRequestIssue == "" {
+		log.Fatal("Aborting due to empty pull request title or unspecified issue number")
 	}
 
-	params := github.PullRequestParams{title, body, repo.Base, repo.Head}
+	params := github.PullRequestParams{title, body, repo.Base, repo.Head, flagPullRequestIssue}
 	gh := github.New()
 	pullRequestResponse, err := gh.CreatePullRequest(params)
 	utils.Check(err)

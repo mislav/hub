@@ -10,11 +10,11 @@ import (
 )
 
 type GitHubError struct {
-	Resource string `json:"resource"`
-	Field    string `json:"field"`
-	Value    string `json:"value"`
-	Code     string `json:"code"`
-	Message  string `json:"message"`
+	Resource string      `json:"resource"`
+	Field    string      `json:"field"`
+	Value    interface{} `json:"value"`
+	Code     string      `json:"code"`
+	Message  string      `json:"message"`
 }
 
 type GitHubErrors struct {
@@ -136,7 +136,8 @@ func handleGitHubErrors(response *http.Response) error {
 		case "missing_field":
 			errorMessages = append(errorMessages, "Missing field: "+e.Field)
 		case "invalid":
-			errorMessages = append(errorMessages, "Invalid value for "+e.Field+": "+e.Value)
+			msg := fmt.Sprintf("Invalid value for %s: %v", e.Field, e.Value)
+			errorMessages = append(errorMessages, msg)
 		case "unauthorized":
 			errorMessages = append(errorMessages, "Not allow to change field "+e.Field)
 		}
