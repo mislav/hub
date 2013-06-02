@@ -23,7 +23,7 @@ var flagBrowseUser, flagBrowseRepo, flagBrowseSubpage string
 func init() {
 	cmdBrowse.Flag.StringVar(&flagBrowseUser, "u", "", "USER")
 	cmdBrowse.Flag.StringVar(&flagBrowseRepo, "r", "", "REPOSITORY")
-	cmdBrowse.Flag.StringVar(&flagBrowseSubpage, "p", "", "SUBPAGE")
+	cmdBrowse.Flag.StringVar(&flagBrowseSubpage, "p", "tree", "SUBPAGE")
 }
 
 func browse(command *Command, args []string) {
@@ -31,6 +31,11 @@ func browse(command *Command, args []string) {
 	utils.Check(err)
 
 	project := github.CurrentProject()
+	if flagBrowseSubpage == "tree" || flagBrowseSubpage == "commits" {
+		repo := project.LocalRepo()
+		flagBrowseSubpage = utils.ConcatPaths(flagBrowseSubpage, repo.Head)
+	}
+
 	url := project.WebUrl(flagBrowseRepo, flagBrowseUser, flagBrowseSubpage)
 	launcher = append(launcher, url)
 	c := cmd.NewWithArray(launcher)
