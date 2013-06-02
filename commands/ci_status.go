@@ -52,6 +52,8 @@ func ciStatus(cmd *Command, args []string) {
 		exitCode = 1
 	case "pending":
 		exitCode = 2
+	default:
+		exitCode = 3
 	}
 
 	fmt.Println(state)
