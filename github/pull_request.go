@@ -11,6 +11,7 @@ type PullRequestParams struct {
 	Body  string `json:"body"`
 	Base  string `json:"base"`
 	Head  string `json:"head"`
+	Issue string `json:"issue"`
 }
 
 type PullRequestResponse struct {
