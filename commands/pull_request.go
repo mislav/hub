@@ -72,7 +72,7 @@ func pullRequest(cmd *Command, args []string) {
 		log.Fatal("Aborting due to empty pull request title")
 	}
 
-	params := github.PullRequestParams{title, body, flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue}
+	params := github.PullRequestParams{title, body, repo.Base, repo.Head, flagPullRequestIssue}
 	pullRequestResponse, err := gh.CreatePullRequest(params)
 	utils.Check(err)
 
