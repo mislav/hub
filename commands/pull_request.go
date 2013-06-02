@@ -50,7 +50,7 @@ func pullRequest(cmd *Command, args []string) {
 	}
 
 	gh := github.New()
-	repo := gh.Project.LocalRepo(flagPullRequestBase, flagPullRequestHead)
+	repo := gh.Project.LocalRepoWith(flagPullRequestBase, flagPullRequestHead)
 	if title == "" && flagPullRequestIssue == "" {
 		messageFile, err := git.PullReqMsgFile()
 		utils.Check(err)

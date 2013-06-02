@@ -29,7 +29,7 @@ func (p *Project) WebUrl(name, owner, path string) string {
 	return url
 }
 
-func (p *Project) LocalRepo(base, head string) *Repo {
+func (p *Project) LocalRepoWith(base, head string) *Repo {
 	if base == "" {
 		base = "master"
 	}
@@ -38,6 +38,10 @@ func (p *Project) LocalRepo(base, head string) *Repo {
 	}
 
 	return &Repo{base, head, p}
+}
+
+func (p *Project) LocalRepo() *Repo {
+	return p.LocalRepoWith("", "")
 }
 
 func CurrentProject() *Project {
