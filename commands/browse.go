@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 )
@@ -27,9 +26,6 @@ func init() {
 }
 
 func browse(command *Command, args []string) {
-	launcher, err := utils.BrowserLauncher()
-	utils.Check(err)
-
 	project := github.CurrentProject()
 	if flagBrowseSubpage == "tree" || flagBrowseSubpage == "commits" {
 		repo := project.LocalRepo()
@@ -37,8 +33,6 @@ func browse(command *Command, args []string) {
 	}
 
 	url := project.WebUrl(flagBrowseRepo, flagBrowseUser, flagBrowseSubpage)
-	launcher = append(launcher, url)
-	c := cmd.NewWithArray(launcher)
-	err = c.Exec()
+	err := browserCommand(url)
 	utils.Check(err)
 }
