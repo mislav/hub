@@ -43,6 +43,7 @@ var All = []*Command{
 	cmdPullRequest,
 	cmdCiStatus,
 	cmdBrowse,
+	cmdCompare,
 	cmdHelp,
 	cmdVersion,
 }
