@@ -40,8 +40,8 @@ func (c *Command) List() bool {
 }
 
 var All = []*Command{
-	cmdPullRequest,
-	cmdCiStatus,
+	cmdPull,
+	cmdCi,
 	cmdBrowse,
 	cmdCompare,
 	cmdHelp,
