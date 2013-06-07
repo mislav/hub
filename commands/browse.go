@@ -7,7 +7,7 @@ import (
 
 var cmdBrowse = &Command{
 	Run:   browse,
-	Usage: "browse [-u USER] [-r REPOSITORY] [-p SUBPAGE]",
+	Usage: "browse [-u USER] [-r REPOSITORY] [SUBPAGE]",
 	Short: "Open a GitHub page in the default browser",
 	Long: `Open repository's GitHub page in the system's default web browser using
 open(1) or the BROWSER env variable. If the repository isn't specified,
@@ -17,22 +17,26 @@ one of "wiki", "commits", "issues" or other (the default is "tree").
 `,
 }
 
-var flagBrowseUser, flagBrowseRepo, flagBrowseSubpage string
+var flagBrowseUser, flagBrowseRepo string
 
 func init() {
 	cmdBrowse.Flag.StringVar(&flagBrowseUser, "u", "", "USER")
 	cmdBrowse.Flag.StringVar(&flagBrowseRepo, "r", "", "REPOSITORY")
-	cmdBrowse.Flag.StringVar(&flagBrowseSubpage, "p", "tree", "SUBPAGE")
 }
 
 func browse(command *Command, args []string) {
+  subpage := "tree"
+  if len(args) > 0 {
+    subpage = args[0]
+  }
+
 	project := github.CurrentProject()
-	if flagBrowseSubpage == "tree" || flagBrowseSubpage == "commits" {
+	if subpage == "tree" || subpage == "commits" {
 		repo := project.LocalRepo()
-		flagBrowseSubpage = utils.ConcatPaths(flagBrowseSubpage, repo.Head)
+		subpage = utils.ConcatPaths(subpage, repo.Head)
 	}
 
-	url := project.WebUrl(flagBrowseRepo, flagBrowseUser, flagBrowseSubpage)
+	url := project.WebUrl(flagBrowseRepo, flagBrowseUser, subpage)
 	err := browserCommand(url)
 	utils.Check(err)
 }
