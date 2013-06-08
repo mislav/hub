@@ -18,12 +18,9 @@ func TestPost(t *testing.T) {
 	content := "# title"
 	c := NewClient()
 
-	body, err := c.post("markdown/raw", nil, bytes.NewBufferString(content))
-	assert.Equal(t, "Invalid request media type (expecting 'text/plain')", err.Error())
-
 	headers := make(map[string]string)
 	headers["Content-Type"] = "text/plain"
-	body, err = c.post("markdown/raw", headers, bytes.NewBufferString(content))
+	body, err := c.post("markdown/raw", headers, bytes.NewBufferString(content))
 
 	assert.Equal(t, nil, err)
 	expectBody := "<h1>\n<a name=\"title\" class=\"anchor\" href=\"#title\"><span class=\"octicon octicon-link\"></span></a>title</h1>"
