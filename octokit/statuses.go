@@ -6,13 +6,14 @@ import (
 )
 
 type Status struct {
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	State       string    `json:"state"`
-	TargetUrl   string    `json:"target_url"`
-	Description string    `json:"description"`
-	Id          int       `json:"id"`
-	Url         string    `json:"url"`
+	CreatedAt   time.Time     `json:"created_at"`
+	UpdatedAt   time.Time     `json:"updated_at"`
+	State       string        `json:"state"`
+	TargetUrl   string        `json:"target_url"`
+	Description string        `json:"description"`
+	Id          int           `json:"id"`
+	Url         string        `json:"url"`
+	Creator     StatusCreator `json:"creator"`
 }
 
 type StatusCreator struct {
