@@ -1,7 +1,7 @@
 package github
 
 import (
-	"github.com/jingweno/gh/octokit"
+	"github.com/jingweno/octokit"
 	"github.com/jingweno/gh/utils"
 )
 
