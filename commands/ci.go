@@ -29,7 +29,7 @@ func ci(cmd *Command, args []string) {
 	utils.Check(err)
 
 	gh := github.New()
-	status, err := gh.CIStatus(ref)
+	status, err := gh.CiStatus(ref)
 	utils.Check(err)
 
 	var state string

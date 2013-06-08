@@ -37,7 +37,7 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, e
 	return pullRequest.HtmlUrl, nil
 }
 
-func (gh *GitHub) CIStatus(sha string) (*octokit.Status, error) {
+func (gh *GitHub) CiStatus(sha string) (*octokit.Status, error) {
 	client := gh.client()
 	statuses, err := client.Statuses(gh.repo(), sha)
 	if err != nil {
