@@ -33,19 +33,21 @@ func handleErrors(body []byte) error {
 }
 
 func buildErrorMessage(githubErrors gitHubErrors) string {
-	errorMessages := make([]string, len(githubErrors.Errors))
+	errorMessages := make([]string, 0)
 	for _, e := range githubErrors.Errors {
+		var msg string
 		switch e.Code {
 		case "custom":
-			errorMessages = append(errorMessages, e.Message)
+			msg = e.Message
 		case "missing_field":
-			msg := fmt.Sprintf("Missing field: %s", e.Field)
-			errorMessages = append(errorMessages, msg)
+			msg = fmt.Sprintf("Missing field: %s", e.Field)
 		case "invalid":
-			msg := fmt.Sprintf("Invalid value for %s: %v", e.Field, e.Value)
-			errorMessages = append(errorMessages, msg)
+			msg = fmt.Sprintf("Invalid value for %s: %v", e.Field, e.Value)
 		case "unauthorized":
-			msg := fmt.Sprintf("Not allow to change field %s", e.Field)
+			msg = fmt.Sprintf("Not allow to change field %s", e.Field)
+		}
+
+		if msg != "" {
 			errorMessages = append(errorMessages, msg)
 		}
 	}

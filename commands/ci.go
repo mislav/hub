@@ -29,17 +29,16 @@ func ci(cmd *Command, args []string) {
 	utils.Check(err)
 
 	gh := github.New()
-	statuses, err := gh.ListStatuses(ref)
+	status, err := gh.CIStatus(ref)
 	utils.Check(err)
 
 	var state string
 	var targetUrl string
 	var desc string
 	var exitCode int
-	if len(statuses) == 0 {
+	if status == nil {
 		state = "no status"
 	} else {
-		status := statuses[0]
 		state = status.State
 		targetUrl = status.TargetUrl
 		desc = status.Description

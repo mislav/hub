@@ -28,14 +28,28 @@ func (c *Client) post(path string, extraHeaders map[string]string, content io.Re
 	return c.request("POST", path, extraHeaders, content)
 }
 
-func (c *Client) postWithParams(path string, extraHeaders map[string]string, params interface{}) ([]byte, error) {
+func (c *Client) jsonGet(path string, extraHeaders map[string]string, v interface{}) error {
+	body, err := c.get(path, extraHeaders)
+	if err != nil {
+		return err
+	}
+
+	return jsonUnmarshal(body, v)
+}
+
+func (c *Client) jsonPost(path string, extraHeaders map[string]string, params interface{}, v interface{}) error {
 	b, err := jsonMarshal(params)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	buffer := bytes.NewBuffer(b)
 
-	return c.post(path, extraHeaders, buffer)
+	buffer := bytes.NewBuffer(b)
+	body, err := c.post(path, extraHeaders, buffer)
+	if err != nil {
+		return err
+	}
+
+	return jsonUnmarshal(body, v)
 }
 
 func (c *Client) request(method, path string, extraHeaders map[string]string, content io.Reader) ([]byte, error) {

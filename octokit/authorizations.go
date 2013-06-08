@@ -39,13 +39,8 @@ func (c *Client) Authorizations() ([]Authorization, error) {
 }
 
 func (c *Client) CreatedAuthorization(params AuthorizationParams) (*Authorization, error) {
-	body, err := c.postWithParams("authorizations", nil, params)
-	if err != nil {
-		return nil, err
-	}
-
 	var auth Authorization
-	err = jsonUnmarshal(body, &auth)
+	err := c.jsonPost("authorizations", nil, params, &auth)
 	if err != nil {
 		return nil, err
 	}

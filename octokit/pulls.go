@@ -11,6 +11,12 @@ type PullRequestParams struct {
 	Body  string `json:"body"`
 }
 
+type PullRequestForIssueParams struct {
+	Base  string `json:"base"`
+	Head  string `json:"head"`
+	Issue string `json:"issue"`
+}
+
 type PullRequest struct {
 	Url      string `json:"url"`
 	HtmlUrl  string `json:"html_url"`
@@ -20,14 +26,17 @@ type PullRequest struct {
 }
 
 func (c *Client) CreatePullRequest(repo Repository, params PullRequestParams) (*PullRequest, error) {
-	path := fmt.Sprintf("repos/%s/%s/pulls", repo.UserName, repo.Name)
-	body, err := c.postWithParams(path, nil, params)
-	if err != nil {
-		return nil, err
-	}
+	return c.createPullRequest(repo, params)
+}
 
+func (c *Client) CreatePullRequestForIssue(repo Repository, params PullRequestForIssueParams) (*PullRequest, error) {
+	return c.createPullRequest(repo, params)
+}
+
+func (c *Client) createPullRequest(repo Repository, params interface{}) (*PullRequest, error) {
+	path := fmt.Sprintf("repos/%s/pulls", repo)
 	var pr PullRequest
-	err = jsonUnmarshal(body, &pr)
+	err := c.jsonPost(path, nil, params, &pr)
 	if err != nil {
 		return nil, err
 	}
