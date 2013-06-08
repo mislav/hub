@@ -72,11 +72,18 @@ func pull(cmd *Command, args []string) {
 		log.Fatal("Aborting due to empty pull request title")
 	}
 
-	params := github.PullRequestParams{title, body, repo.Base, repo.Head, flagPullRequestIssue}
-	pullRequestResponse, err := gh.CreatePullRequest(params)
+	var pullRequestUrl string
+	var err error
+	if title != "" {
+		pullRequestUrl, err = gh.CreatePullRequest(repo.Base, repo.Head, title, body)
+	}
+	if flagPullRequestIssue != "" {
+		pullRequestUrl, err = gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
+	}
+
 	utils.Check(err)
 
-	fmt.Println(pullRequestResponse.HtmlUrl)
+	fmt.Println(pullRequestUrl)
 }
 
 func writePullRequestChanges(repo *github.Repo, messageFile string) error {
