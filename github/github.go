@@ -1,47 +1,18 @@
 package github
 
 import (
-	"encoding/base64"
-	"fmt"
 	"github.com/jingweno/gh/octokit"
 	"github.com/jingweno/gh/utils"
-	"net/http"
-	"strings"
 )
 
 const (
-	GitHubHost    string = "github.com"
-	GitHubApiUrl  string = "https://" + GitHubApiHost
-	GitHubApiHost string = "api.github.com"
-	OAuthAppUrl   string = "http://owenou.com/gh"
+	GitHubHost  string = "github.com"
+	OAuthAppUrl string = "http://owenou.com/gh"
 )
 
 type GitHub struct {
-	httpClient    *http.Client
-	authorization string
-	Project       *Project
-	config        *Config
-}
-
-func (gh *GitHub) updateToken(token string) {
-	gh.config.Token = token
-	saveConfig(gh.config)
-}
-
-func (gh *GitHub) updateTokenAuth(token string) {
-	gh.authorization = fmt.Sprintf("token %s", token)
-}
-
-func (gh *GitHub) updateBasicAuth(user, pass string) {
-	gh.authorization = fmt.Sprintf("Basic %s", hashAuth(user, pass))
-}
-
-func (gh *GitHub) setAuth(auth string) {
-	gh.authorization = auth
-}
-
-func (gh *GitHub) isBasicAuth() bool {
-	return strings.HasPrefix(gh.authorization, "Basic")
+	Project *Project
+	config  *Config
 }
 
 func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, error) {
@@ -136,20 +107,10 @@ func (gh *GitHub) client() *octokit.Client {
 	return octokit.NewClientWithToken(config.Token)
 }
 
-func hashAuth(u, p string) string {
-	var a = fmt.Sprintf("%s:%s", u, p)
-	return base64.StdEncoding.EncodeToString([]byte(a))
-}
-
 func New() *GitHub {
 	project := CurrentProject()
 	c, _ := loadConfig()
 	c.FetchUser()
 
-	gh := GitHub{&http.Client{}, "", project, &c}
-	if c.Token != "" {
-		gh.updateTokenAuth(c.Token)
-	}
-
-	return &gh
+	return &GitHub{project, &c}
 }
