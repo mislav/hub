@@ -3,10 +3,13 @@ package octokit
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 )
 
 const (
@@ -15,6 +18,19 @@ const (
 	GitHubApiHost string = "api.github.com"
 	OAuthAppUrl   string = "http://owenou.com/gh"
 )
+
+type GitHubError struct {
+	Resource string      `json:"resource"`
+	Field    string      `json:"field"`
+	Value    interface{} `json:"value"`
+	Code     string      `json:"code"`
+	Message  string      `json:"message"`
+}
+
+type GitHubErrors struct {
+	Message string        `json:"message"`
+	Errors  []GitHubError `json:"errors"`
+}
 
 type Client struct {
 	httpClient *http.Client
@@ -56,6 +72,10 @@ func (c *Client) request(method, path string, extraHeaders map[string]string, co
 		return nil, err
 	}
 
+	if response.StatusCode >= 400 && response.StatusCode < 600 {
+		return nil, handleErrors(body)
+	}
+
 	return body, nil
 }
 
@@ -67,6 +87,37 @@ func (c *Client) setDefaultHeaders(request *http.Request) {
 	if c.Token != "" {
 		request.Header.Set("Authorization", fmt.Sprintf("token %s", c.Token))
 	}
+}
+
+func handleErrors(body []byte) error {
+	var githubErrors GitHubErrors
+	err := json.Unmarshal(body, &githubErrors)
+	if err != nil {
+		return err
+	}
+
+	errorMessages := make([]string, len(githubErrors.Errors))
+	for _, e := range githubErrors.Errors {
+		switch e.Code {
+		case "custom":
+			errorMessages = append(errorMessages, e.Message)
+		case "missing_field":
+			msg := fmt.Sprintf("Missing field: %s", e.Field)
+			errorMessages = append(errorMessages, msg)
+		case "invalid":
+			msg := fmt.Sprintf("Invalid value for %s: %v", e.Field, e.Value)
+			errorMessages = append(errorMessages, msg)
+		case "unauthorized":
+			errorMessages = append(errorMessages, "Not allow to change field "+e.Field)
+		}
+	}
+
+	text := strings.Join(errorMessages, "\n")
+	if text == "" {
+		text = githubErrors.Message
+	}
+
+	return errors.New(text)
 }
 
 func hashAuth(u, p string) string {
