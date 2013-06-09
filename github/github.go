@@ -57,7 +57,7 @@ func (gh *GitHub) repo() octokit.Repository {
 }
 
 func findOrCreateToken(user, password string) (string, error) {
-	client := octokit.NewClientWithPassword(user, password)
+	client := octokit.NewClient().WithLogin(user, password)
 	auths, err := client.Authorizations()
 	if err != nil {
 		return "", err
@@ -104,7 +104,7 @@ func (gh *GitHub) client() *octokit.Client {
 		utils.Check(err)
 	}
 
-	return octokit.NewClientWithToken(config.Token)
+	return octokit.NewClient().WithToken(config.Token)
 }
 
 func New() *GitHub {
