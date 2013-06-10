@@ -1,8 +1,8 @@
 package github
 
 import (
-	"github.com/jingweno/octokit"
 	"github.com/jingweno/gh/utils"
+	"github.com/jingweno/octokat"
 )
 
 const (
@@ -17,7 +17,7 @@ type GitHub struct {
 
 func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, error) {
 	client := gh.client()
-	params := octokit.PullRequestParams{base, head, title, body}
+	params := octokat.PullRequestParams{base, head, title, body}
 	pullRequest, err := client.CreatePullRequest(gh.repo(), params)
 	if err != nil {
 		return "", err
@@ -28,7 +28,7 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, err
 
 func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, error) {
 	client := gh.client()
-	params := octokit.PullRequestForIssueParams{base, head, issue}
+	params := octokat.PullRequestForIssueParams{base, head, issue}
 	pullRequest, err := client.CreatePullRequestForIssue(gh.repo(), params)
 	if err != nil {
 		return "", err
@@ -37,7 +37,7 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, e
 	return pullRequest.HtmlUrl, nil
 }
 
-func (gh *GitHub) CiStatus(sha string) (*octokit.Status, error) {
+func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 	client := gh.client()
 	statuses, err := client.Statuses(gh.repo(), sha)
 	if err != nil {
@@ -51,13 +51,13 @@ func (gh *GitHub) CiStatus(sha string) (*octokit.Status, error) {
 	}
 }
 
-func (gh *GitHub) repo() octokit.Repository {
+func (gh *GitHub) repo() octokat.Repository {
 	project := gh.Project
-	return octokit.Repository{project.Name, project.Owner}
+	return octokat.Repository{project.Name, project.Owner}
 }
 
 func findOrCreateToken(user, password string) (string, error) {
-	client := octokit.NewClient().WithLogin(user, password)
+	client := octokat.NewClient().WithLogin(user, password)
 	auths, err := client.Authorizations()
 	if err != nil {
 		return "", err
@@ -72,7 +72,7 @@ func findOrCreateToken(user, password string) (string, error) {
 	}
 
 	if token == "" {
-		authParam := octokit.AuthorizationParams{}
+		authParam := octokat.AuthorizationParams{}
 		authParam.Scopes = append(authParam.Scopes, "repo")
 		authParam.Note = "gh"
 		authParam.NoteUrl = OAuthAppUrl
@@ -88,7 +88,7 @@ func findOrCreateToken(user, password string) (string, error) {
 	return token, nil
 }
 
-func (gh *GitHub) client() *octokit.Client {
+func (gh *GitHub) client() *octokat.Client {
 	config := gh.config
 	if config.User == "" {
 		config.FetchUser()
@@ -104,7 +104,7 @@ func (gh *GitHub) client() *octokit.Client {
 		utils.Check(err)
 	}
 
-	return octokit.NewClient().WithToken(config.Token)
+	return octokat.NewClient().WithToken(config.Token)
 }
 
 func New() *GitHub {
