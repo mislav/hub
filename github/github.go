@@ -7,7 +7,7 @@ import (
 
 const (
 	GitHubHost  string = "github.com"
-	OAuthAppUrl string = "http://owenou.com/gh"
+	OAuthAppURL string = "http://owenou.com/gh"
 )
 
 type GitHub struct {
@@ -46,9 +46,9 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 
 	if len(statuses) == 0 {
 		return nil, nil
-	} else {
-		return &statuses[0], nil
 	}
+
+	return &statuses[0], nil
 }
 
 func (gh *GitHub) ForkRepository(name, owner string) error {
@@ -76,7 +76,7 @@ func findOrCreateToken(user, password string) (string, error) {
 
 	var token string
 	for _, auth := range auths {
-		if auth.NoteUrl == OAuthAppUrl {
+		if auth.NoteUrl == OAuthAppURL {
 			token = auth.Token
 			break
 		}
@@ -86,7 +86,7 @@ func findOrCreateToken(user, password string) (string, error) {
 		authParam := octokat.AuthorizationParams{}
 		authParam.Scopes = append(authParam.Scopes, "repo")
 		authParam.Note = "gh"
-		authParam.NoteUrl = OAuthAppUrl
+		authParam.NoteUrl = OAuthAppURL
 
 		auth, err := client.CreatedAuthorization(authParam)
 		if err != nil {

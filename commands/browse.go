@@ -36,7 +36,7 @@ func browse(command *Command, args []string) {
 		subpage = utils.ConcatPaths(subpage, repo.Head)
 	}
 
-	url := project.WebUrl(flagBrowseRepo, flagBrowseUser, subpage)
+	url := project.WebURL(flagBrowseRepo, flagBrowseUser, subpage)
 	err := browserCommand(url)
 	utils.Check(err)
 }

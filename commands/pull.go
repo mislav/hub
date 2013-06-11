@@ -72,18 +72,18 @@ func pull(cmd *Command, args []string) {
 		log.Fatal("Aborting due to empty pull request title")
 	}
 
-	var pullRequestUrl string
+	var pullRequestURL string
 	var err error
 	if title != "" {
-		pullRequestUrl, err = gh.CreatePullRequest(repo.Base, repo.Head, title, body)
+		pullRequestURL, err = gh.CreatePullRequest(repo.Base, repo.Head, title, body)
 	}
 	if flagPullRequestIssue != "" {
-		pullRequestUrl, err = gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
+		pullRequestURL, err = gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
 	}
 
 	utils.Check(err)
 
-	fmt.Println(pullRequestUrl)
+	fmt.Println(pullRequestURL)
 }
 
 func writePullRequestChanges(repo *github.Repo, messageFile string) error {
@@ -167,8 +167,8 @@ func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) 
 
 func readln(r *bufio.Reader) (string, error) {
 	var (
-		isPrefix bool  = true
-		err      error = nil
+		isPrefix = true
+		err      error
 		line, ln []byte
 	)
 	for isPrefix && err == nil {

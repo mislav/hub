@@ -33,14 +33,14 @@ func ci(cmd *Command, args []string) {
 	utils.Check(err)
 
 	var state string
-	var targetUrl string
+	var targetURL string
 	var desc string
 	var exitCode int
 	if status == nil {
 		state = "no status"
 	} else {
 		state = status.State
-		targetUrl = status.TargetURL
+		targetURL = status.TargetURL
 		desc = status.Description
 	}
 
@@ -56,8 +56,8 @@ func ci(cmd *Command, args []string) {
 	}
 
 	fmt.Println(state)
-	if targetUrl != "" {
-		fmt.Println(targetUrl)
+	if targetURL != "" {
+		fmt.Println(targetURL)
 	}
 	if desc != "" {
 		fmt.Println(desc)
