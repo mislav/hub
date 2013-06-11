@@ -51,9 +51,9 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 	}
 }
 
-func (gh *GitHub) repo() octokat.Repository {
+func (gh *GitHub) repo() octokat.Repo {
 	project := gh.Project
-	return octokat.Repository{project.Name, project.Owner}
+	return octokat.Repo{project.Name, project.Owner}
 }
 
 func findOrCreateToken(user, password string) (string, error) {
