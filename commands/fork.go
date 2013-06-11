@@ -1,7 +1,9 @@
 package commands
 
 import (
-  "github.com/jingweno/gh/github"
+	"fmt"
+	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/utils"
 )
 
 var cmdFork = &Command{
@@ -20,10 +22,13 @@ func init() {
 }
 
 func fork(cmd *Command, args []string) {
-  gh := github.New()
-  project := gh.Project
+	gh := github.New()
+	project := gh.Project
 
-  err := gh.ForkRepository(project.Name, project.Owner)
+	newRemote, err := gh.ForkRepository(project.Name, project.Owner, flagForkNoRemote)
+	utils.Check(err)
 
-
+	if !flagForkNoRemote && newRemote != "" {
+		fmt.Printf("New remote: %s\n", newRemote)
+	}
 }
