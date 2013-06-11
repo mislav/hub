@@ -18,6 +18,6 @@ class Gh < Formula
   end
 
   test do
-    `#{bin}/gh version`.chomp == VERSION
+    assert_equal VERSION, `#{bin}/gh version`.split.last
   end
 end
