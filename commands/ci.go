@@ -40,7 +40,7 @@ func ci(cmd *Command, args []string) {
 		state = "no status"
 	} else {
 		state = status.State
-		targetUrl = status.TargetUrl
+		targetUrl = status.TargetURL
 		desc = status.Description
 	}
 

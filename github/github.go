@@ -23,7 +23,7 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, err
 		return "", err
 	}
 
-	return pullRequest.HtmlUrl, nil
+	return pullRequest.HTMLURL, nil
 }
 
 func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, error) {
@@ -34,7 +34,7 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, e
 		return "", err
 	}
 
-	return pullRequest.HtmlUrl, nil
+	return pullRequest.HTMLURL, nil
 }
 
 func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
