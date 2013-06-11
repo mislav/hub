@@ -13,7 +13,7 @@ type Project struct {
 	Owner string
 }
 
-func (p *Project) WebUrl(name, owner, path string) string {
+func (p *Project) WebURL(name, owner, path string) string {
 	if owner == "" {
 		owner = p.Owner
 	}
@@ -54,13 +54,13 @@ func parseOwnerAndName() (name, remote string) {
 	remote, err := git.Remote()
 	utils.Check(err)
 
-	url, err := mustMatchGitHubUrl(remote)
+	url, err := mustMatchGitHubURL(remote)
 	utils.Check(err)
 
 	return url[1], url[2]
 }
 
-func mustMatchGitHubUrl(url string) ([]string, error) {
+func mustMatchGitHubURL(url string) ([]string, error) {
 	httpRegex := regexp.MustCompile("https://github.com/(.+)/(.+).git")
 	if httpRegex.MatchString(url) {
 		return httpRegex.FindStringSubmatch(url), nil

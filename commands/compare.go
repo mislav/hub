@@ -38,7 +38,7 @@ func compare(command *Command, args []string) {
 
 	r = transformToTripleDots(r)
 	subpage := utils.ConcatPaths("compare", r)
-	url := project.WebUrl("", flagCompareUser, subpage)
+	url := project.WebURL("", flagCompareUser, subpage)
 	err := browserCommand(url)
 	utils.Check(err)
 }

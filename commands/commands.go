@@ -41,6 +41,7 @@ func (c *Command) List() bool {
 
 var All = []*Command{
 	cmdPull,
+	cmdFork,
 	cmdCi,
 	cmdBrowse,
 	cmdCompare,

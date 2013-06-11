@@ -1,13 +1,16 @@
 package github
 
 import (
+	"errors"
+	"fmt"
+	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/octokat"
 )
 
 const (
 	GitHubHost  string = "github.com"
-	OAuthAppUrl string = "http://owenou.com/gh"
+	OAuthAppURL string = "http://owenou.com/gh"
 )
 
 type GitHub struct {
@@ -46,9 +49,32 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 
 	if len(statuses) == 0 {
 		return nil, nil
-	} else {
-		return &statuses[0], nil
 	}
+
+	return &statuses[0], nil
+}
+
+func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (newRemote string, err error) {
+	client := gh.client()
+	config := gh.config
+	repo, err := client.Repository(octokat.Repo{name, config.User})
+	if repo != nil && err == nil {
+		msg := fmt.Sprintf("Error creating fork: %s exists on %s", repo.FullName, GitHubHost)
+		err = errors.New(msg)
+		return
+	}
+
+	repo, err = client.Fork(octokat.Repo{name, owner}, nil)
+	if err != nil {
+		return
+	}
+
+	if !noRemote {
+		newRemote = config.User
+		err = git.AddRemote(config.User, repo.SshURL)
+	}
+
+	return
 }
 
 func (gh *GitHub) repo() octokat.Repo {
@@ -65,7 +91,7 @@ func findOrCreateToken(user, password string) (string, error) {
 
 	var token string
 	for _, auth := range auths {
-		if auth.NoteUrl == OAuthAppUrl {
+		if auth.NoteUrl == OAuthAppURL {
 			token = auth.Token
 			break
 		}
@@ -75,7 +101,7 @@ func findOrCreateToken(user, password string) (string, error) {
 		authParam := octokat.AuthorizationParams{}
 		authParam.Scopes = append(authParam.Scopes, "repo")
 		authParam.Note = "gh"
-		authParam.NoteUrl = OAuthAppUrl
+		authParam.NoteUrl = OAuthAppURL
 
 		auth, err := client.CreatedAuthorization(authParam)
 		if err != nil {
