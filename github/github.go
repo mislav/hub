@@ -51,6 +51,17 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 	}
 }
 
+func (gh *GitHub) ForkRepository(name, owner string) error {
+	client := gh.client()
+	_, err := client.Repository(octokat.Repo{name, owner})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (gh *GitHub) repo() octokat.Repo {
 	project := gh.Project
 	return octokat.Repo{project.Name, project.Owner}
