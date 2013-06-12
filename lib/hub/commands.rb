@@ -615,6 +615,9 @@ module Hub
     # $ hub browse
     # > open https://github.com/CURRENT_REPO
     #
+    # $ hub browse -b BRANCH_NAME
+    # > open https://github.com/CURRENT_REPO/pull/258
+    #
     # $ hub browse -- issues
     # > open https://github.com/CURRENT_REPO/issues
     #
