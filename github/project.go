@@ -61,17 +61,17 @@ func parseOwnerAndName(remote string) (owner string, name string) {
 }
 
 func mustMatchGitHubURL(url string) ([]string, error) {
-	httpRegex := regexp.MustCompile("https://github.com/(.+)/(.+).git")
+	httpRegex := regexp.MustCompile("https://github.com/(.+)/(.+?)(.git|$)")
 	if httpRegex.MatchString(url) {
 		return httpRegex.FindStringSubmatch(url), nil
 	}
 
-	readOnlyRegex := regexp.MustCompile("git://github.com/(.+)/(.+).git")
+	readOnlyRegex := regexp.MustCompile("git://github.com/(.+)/(.+?)(.git|$)")
 	if readOnlyRegex.MatchString(url) {
 		return readOnlyRegex.FindStringSubmatch(url), nil
 	}
 
-	sshRegex := regexp.MustCompile("git@github.com:(.+)/(.+).git")
+	sshRegex := regexp.MustCompile("git@github.com:(.+)/(.+?)(.git|$)")
 	if sshRegex.MatchString(url) {
 		return sshRegex.FindStringSubmatch(url), nil
 	}
