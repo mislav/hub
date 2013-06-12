@@ -17,7 +17,9 @@ func TestWebURL(t *testing.T) {
 func TestParseNameAndOwner(t *testing.T) {
 	owner, name := parseOwnerAndName()
 	assert.Equal(t, "gh", name)
-	assert.Equal(t, "jingweno", owner)
+
+	ownerNotEmpty := len(owner) != 0
+	assert.Equal(t, ownerNotEmpty, true)
 }
 
 func TestMustMatchGitHubURL(t *testing.T) {
