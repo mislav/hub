@@ -9,7 +9,8 @@ fakebin_dir = File.expand_path('../fakebin', __FILE__)
 ENV['PATH'] = "#{fakebin_dir}:#{ENV['PATH']}"
 
 # Use an isolated config file in testing
-ENV['HUB_CONFIG'] = File.join(ENV['TMPDIR'] || '/tmp', 'hub-test-config')
+tmp_dir = ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
+ENV['HUB_CONFIG'] = File.join(tmp_dir, 'hub-test-config')
 
 # Disable `abort` and `exit` in the main test process, but allow it in
 # subprocesses where we need to test does a command properly bail out.

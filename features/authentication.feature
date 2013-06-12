@@ -10,10 +10,17 @@ Feature: OAuth authentication
       post('/authorizations') {
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
-        halt 400 unless params[:scopes] == ['repo']
+        assert :scopes => ['repo']
         json :token => 'OTOKEN'
       }
-      post('/user/repos') { status 200 }
+      get('/user') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        json :login => 'MiSlAv'
+      }
+      post('/user/repos') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     When I run `hub create` interactively
     When I type "mislav"
@@ -21,6 +28,7 @@ Feature: OAuth authentication
     Then the output should contain "github.com username:"
     And the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
+    And the file "../home/.config/hub" should contain "user: MiSlAv"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
     And the file "../home/.config/hub" should have mode "0600"
 
@@ -36,13 +44,42 @@ Feature: OAuth authentication
           {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
         ]
       }
-      post('/user/repos') { status 200 }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     When I run `hub create` interactively
     When I type "mislav"
     And I type "kitty"
     Then the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+
+  Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
+    Given the GitHub API server:
+      """
+      require 'rack/auth/basic'
+      get('/authorizations') {
+        auth = Rack::Auth::Basic::Request.new(env)
+        halt 401 unless auth.credentials == %w[mislav kitty]
+        json [
+          {:token => 'OTOKEN', :app => {:url => 'http://defunkt.io/hub/'}}
+        ]
+      }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    Given $GITHUB_USER is "mislav"
+    And $GITHUB_PASSWORD is "kitty"
+    When I successfully run `hub create`
+    Then the output should not contain "github.com password for mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
   Scenario: Wrong password

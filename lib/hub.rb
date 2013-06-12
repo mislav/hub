@@ -1,4 +1,4 @@
-require 'hub/version'
+require 'hub/version' unless defined?(Hub::VERSION)
 require 'hub/args'
 require 'hub/ssh_config'
 require 'hub/github_api'

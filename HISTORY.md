@@ -1,3 +1,39 @@
+## master
+
+* change `pull-request` interface to allow passing title & body
+* avoid hard breaks in `pull-request` message authored in Vim
+* save and reuse `pull-request` message if creating it failed
+* new `ci-status` command for checking GitHub Status API
+
+## 1.10.6 (2013-04-25)
+
+* compensate for new GitHub API enforcement
+* fix asking for password on Ruby <= 1.8.6
+* fix `fetch` for forks where username contains a dash
+
+## 1.10.5 (2013-03-02)
+
+* helpful `pull-request` error message when base project is invalid
+* fix `compare` for ranges containing "owner:branch" notation
+* enable `--name` argument for `submodule add`
+
+## 1.10.4 (2012-12-29)
+
+* fixes for Windows
+* display more validation errors on GitHub API failures
+* persist correctly capitalized GitHub login name
+
+## 1.10.3 (2012-11-22)
+
+* fix `browse` on Windows
+* fix hub on JRuby
+* try fixing Ruby 1.8.7 error with API requests
+* fix various edge cases around `create` command
+* have `fork` set up a remote even if own fork already exists
+* fix `pull-request` with Unicode chars on Ruby 1.8
+* respect $GITHUB_USER & $GITHUB_PASSWORD
+* improve reading git remotes configuration
+
 ## 1.10.2 (2012-07-24)
 
 * fix pushing multiple refs to multiple remotes

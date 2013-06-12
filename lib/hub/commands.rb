@@ -35,10 +35,10 @@ module Hub
     extend Context
 
     NAME_RE = /[\w.][\w.-]*/
-    OWNER_RE = /[a-zA-Z0-9-]+/
+    OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
 
     def run(args)
       slurp_global_flags(args)
@@ -70,6 +70,38 @@ module Hub
       abort "fatal: #{err.message}"
     end
 
+
+    # $ hub ci-status
+    # $ hub ci-status 6f6d9797f9d6e56c3da623a97cfc3f45daf9ae5f
+    # $ hub ci-status master
+    # $ hub ci-status origin/master
+    def ci_status(args)
+      args.shift
+      ref = args.words.first || 'HEAD'
+
+      unless head_project = local_repo.current_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
+      unless sha = local_repo.git_command("rev-parse -q #{ref}")
+        abort "Aborted: no revision could be determined from '#{ref}'"
+      end
+
+      statuses = api_client.statuses(head_project, sha)
+      status = statuses.first
+      ref_state = status ? status['state'] : 'no status'
+
+      exit_code = case ref_state
+        when 'success'          then 0
+        when 'failure', 'error' then 1
+        when 'pending'          then 2
+        else 3
+        end
+
+      $stdout.puts ref_state
+      exit exit_code
+    end
+
     # $ hub pull-request
     # $ hub pull-request "My humble contribution"
     # $ hub pull-request -i 92
@@ -80,6 +112,10 @@ module Hub
       force = explicit_owner = false
       base_project = local_repo.main_project
       head_project = local_repo.current_project
+
+      unless current_branch
+        abort "Aborted: not currently on any branch."
+      end
 
       unless base_project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
@@ -104,6 +140,13 @@ module Hub
           exit
         when '-f'
           force = true
+        when '-F', '--file'
+          file = args.shift
+          text = file == '-' ? $stdin.read : File.read(file)
+          options[:title], options[:body] = read_msg(text)
+        when '-m', '--message'
+          text = args.shift
+          options[:title], options[:body] = read_msg(text)
         when '-b'
           base_project, options[:base] = from_github_ref.call(args.shift, base_project)
         when '-h'
@@ -116,7 +159,10 @@ module Hub
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
             base_project = url.project
-          elsif !options[:title] then options[:title] = arg
+          elsif !options[:title]
+            options[:title] = arg
+            warn "hub: Specifying pull request title without a flag is deprecated."
+            warn "Please use one of `-m' or `-F' options."
           else
             abort "invalid argument: #{arg}"
           end
@@ -177,8 +223,9 @@ module Hub
             [format, base_branch, remote_branch]
         end
 
-        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg|
-          msg.puts default_message if default_message
+        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message|
+          initial_message ||= default_message
+          msg.puts initial_message if initial_message
           msg.puts ""
           msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
           msg.puts "#"
@@ -192,8 +239,15 @@ module Hub
       args.executable = 'echo'
       args.replace [pull['html_url']]
     rescue GitHubAPI::Exceptions
-      display_api_exception("creating pull request", $!.response)
+      response = $!.response
+      display_api_exception("creating pull request", response)
+      if 404 == response.status
+        base_url = base_project.web_url.split('://', 2).last
+        warn "Are you sure that #{base_url} exists?"
+      end
       exit 1
+    else
+      delete_editmsg
     end
 
     # $ hub clone rtomayko/tilt
@@ -209,7 +263,7 @@ module Hub
     # > git clone git@github.com:YOUR_LOGIN/hemingway.git
     def clone(args)
       ssh = args.delete('-p')
-      has_values = /^(--(upload-pack|template|depth|origin|branch|reference)|-[ubo])$/
+      has_values = /^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$/
 
       idx = 1
       while idx < args.length
@@ -238,23 +292,13 @@ module Hub
     # $ hub submodule add -p wycats/bundler vendor/bundler
     # > git submodule add git@github.com:wycats/bundler.git vendor/bundler
     #
-    # $ hub submodule add -b ryppl ryppl/pip vendor/bundler
-    # > git submodule add -b ryppl git://github.com/ryppl/pip.git vendor/pip
+    # $ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
+    # > git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
     def submodule(args)
       return unless index = args.index('add')
       args.delete_at index
 
-      branch = args.index('-b') || args.index('--branch')
-      if branch
-        args.delete_at branch
-        branch_name = args.delete_at branch
-      end
-
       clone(args)
-
-      if branch_name
-        args.insert branch, '-b', branch_name
-      end
       args.insert index, 'add'
     end
 
@@ -324,7 +368,7 @@ module Hub
       end
 
       projects = names.map { |name|
-        unless name =~ /\W/ or remotes.include?(name) or remotes_group(name)
+        unless name !~ /^#{OWNER_RE}$/ or remotes.include?(name) or remotes_group(name)
           project = github_project(nil, name)
           repo_info = api_client.repo_info(project)
           if repo_info.success?
@@ -441,7 +485,8 @@ module Hub
         url = url.sub(%r{(/pull/\d+)/\w*$}, '\1') unless gist
         ext = gist ? '.txt' : '.patch'
         url += ext unless File.extname(url) == ext
-        patch_file = File.join(ENV['TMPDIR'] || '/tmp', "#{gist ? 'gist-' : ''}#{File.basename(url)}")
+        patch_file = File.join(tmp_dir, "#{gist ? 'gist-' : ''}#{File.basename(url)}")
+        # TODO: remove dependency on curl
         args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
         args[idx] = patch_file
       end
@@ -472,9 +517,14 @@ module Hub
       end
       forked_project = project.owned_by(github_user(project.host))
 
-      if api_client.repo_exists?(forked_project)
-        abort "Error creating fork: %s already exists on %s" %
-          [ forked_project.name_with_owner, forked_project.host ]
+      existing_repo = api_client.repo_info(forked_project)
+      if existing_repo.success?
+        parent_data = existing_repo.data['parent']
+        parent_url  = parent_data && resolve_github_url(parent_data['html_url'])
+        if !parent_url or parent_url.project != project
+          abort "Error creating fork: %s already exists on %s" %
+            [ forked_project.name_with_owner, forked_project.host ]
+        end
       else
         api_client.fork_repo(project) unless args.noop?
       end
@@ -527,7 +577,10 @@ module Hub
           action = "set remote origin"
         else
           action = "created repository"
-          api_client.create_repo(new_project, options) unless args.noop?
+          unless args.noop?
+            repo_data = api_client.create_repo(new_project, options)
+            new_project = github_project(repo_data['full_name'])
+          end
         end
 
         url = new_project.git_url(:private => true, :https => https_protocol?)
@@ -599,12 +652,13 @@ module Hub
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
 
+        require 'CGI'
         # $ hub browse -- wiki
         path = case subpage = args.shift
         when 'commits'
-          "/commits/#{branch.short_name}"
+          "/commits/#{branch_in_url(branch)}"
         when 'tree', NilClass
-          "/tree/#{branch.short_name}" if branch and !branch.master?
+          "/tree/#{branch_in_url(branch)}" if branch and !branch.master?
         else
           "/#{subpage}"
         end
@@ -633,7 +687,7 @@ module Hub
             abort "Usage: hub compare [USER] [<START>...]<END>"
           end
         else
-          sha_or_tag = /(\w{1,2}|\w[\w.-]+\w)/
+          sha_or_tag = /((?:#{OWNER_RE}:)?\w[\w.-]+\w)/
           # replaces two dots with three: "sha1...sha2"
           range = args.pop.sub(/^#{sha_or_tag}\.\.#{sha_or_tag}$/, '\1...\2')
           project = if owner = args.pop then github_project(nil, owner)
@@ -731,6 +785,11 @@ module Hub
     # from the command line.
     #
 
+    def branch_in_url(branch)
+      require 'CGI'
+      CGI.escape(branch.short_name).gsub("%2F", "/")
+    end
+
     def api_client
       @api_client ||= begin
         config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
@@ -817,6 +876,7 @@ GitHub Commands:
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
+   ci-status      Show the CI status of a commit
 
 See 'git help <command>' for more information on a specific command.
 help
@@ -956,25 +1016,48 @@ help
         read.close
         write.close
       end
+    rescue NotImplementedError
+      # fork might not available, such as in JRuby
     end
 
     def pullrequest_editmsg(changes)
-      message_file = File.join(git_dir, 'PULLREQ_EDITMSG')
+      message_file = pullrequest_editmsg_file
+
+      if File.exists?(message_file)
+        title, body = read_editmsg(message_file)
+        previous_message = [title, body].compact.join("\n\n") if title
+      end
+
       File.open(message_file, 'w') { |msg|
-        yield msg
+        yield msg, previous_message
         if changes
           msg.puts "#\n# Changes:\n#"
           msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
         end
       }
+
       edit_cmd = Array(git_editor).dup
-      edit_cmd << '-c' << 'set ft=gitcommit' if edit_cmd[0] =~ /^[mg]?vim$/
+      edit_cmd << '-c' << 'set ft=gitcommit tw=0 wrap lbr' if edit_cmd[0] =~ /^[mg]?vim$/
       edit_cmd << message_file
       system(*edit_cmd)
-      abort "can't open text editor for pull request message" unless $?.success?
+
+      unless $?.success?
+        # writing was cancelled, or the editor never opened in the first place
+        delete_editmsg(message_file)
+        abort "error using text editor for pull request message"
+      end
+
       title, body = read_editmsg(message_file)
       abort "Aborting due to empty pull request title" unless title
       [title, body]
+    end
+
+    def read_msg(message)
+      message.split("\n\n", 2).each {|s| s.strip! }.reject {|s| s.empty? }
+    end
+
+    def pullrequest_editmsg_file
+      File.join(git_dir, 'PULLREQ_EDITMSG')
     end
 
     def read_editmsg(file)
@@ -990,6 +1073,10 @@ help
       body.strip!
 
       [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
+    end
+
+    def delete_editmsg(file = pullrequest_editmsg_file)
+      File.delete(file) if File.exist?(file)
     end
 
     def expand_alias(cmd)

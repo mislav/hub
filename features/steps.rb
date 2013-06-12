@@ -57,6 +57,11 @@ Given /^there is a commit named "([^"]+)"$/ do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
+When /^I make (a|\d+) commits?$/ do |num|
+  num = num == 'a' ? 1 : num.to_i
+  num.times { empty_commit }
+end
+
 Given /^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/ do |name, upstream|
   empty_commit
   if upstream
@@ -67,6 +72,12 @@ Given /^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/ do |name, up
     end
   end
   run_silent %(git checkout --quiet -B #{name} --track #{upstream})
+end
+
+Given /^I am in detached HEAD$/ do
+  empty_commit
+  empty_commit
+  run_silent %(git checkout HEAD^)
 end
 
 Given /^the current dir is not a repo$/ do
@@ -130,4 +141,50 @@ Then /^the file "([^"]*)" should have mode "([^"]*)"$/ do |file, expected_mode|
     mode = File.stat(file).mode
     mode.to_s(8).should =~ /#{expected_mode}$/
   end
+end
+
+Given /^the remote commit states of "(.*?)" "(.*?)" are:$/ do |proj, ref, json_value|
+  if ref == 'HEAD'
+    empty_commit
+  end
+  rev = run_silent %(git rev-parse #{ref})
+
+  status_endpoint = <<-EOS
+    get('/repos/#{proj}/statuses/#{rev}') {
+      json #{json_value}
+    }
+    EOS
+  step %{the GitHub API server:}, status_endpoint
+end
+
+Given /^the remote commit state of "(.*?)" "(.*?)" is "(.*?)"$/ do |proj, ref, status|
+  step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ { :state => \"#{status}\" } ]"
+end
+
+Given /^the remote commit state of "(.*?)" "(.*?)" is nil$/ do |proj, ref|
+  step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ ]"
+end
+
+Given /^the text editor exits with error status$/ do
+  text_editor_script "exit 1"
+end
+
+Given /^the text editor adds:$/ do |text|
+  text_editor_script <<-BASH
+    file="$3"
+    contents="$(cat "$file" 2>/dev/null || true)"
+    { echo "#{text}"
+      echo
+      echo "$contents"
+    } > "$file"
+  BASH
+end
+
+When /^I pass in:$/ do |input|
+  type(input)
+  @interactive.stdin.close
+end
+
+Given /^the git commit editor is "([^"]+)"$/ do |cmd|
+  set_env('GIT_EDITOR', cmd)
 end

@@ -21,9 +21,11 @@ module Hub
       begin
         require 'rack/handler/thin'
         Thin::Logging.silent = true
+        Thin::HTTP_STATUS_CODES[422] = "Unprocessable Entity"
         Rack::Handler::Thin.run(app, :Port => port, &block)
       rescue LoadError
         require 'rack/handler/webrick'
+        WEBrick::HTTPStatus::StatusMessage[422] = "Unprocessable Entity"
         Rack::Handler::WEBrick.run(app, :Port => port, :AccessLog => [], :Logger => WEBrick::Log::new(nil, 0), &block)
       end
     end
@@ -60,6 +62,20 @@ module Hub
         def json(value)
           content_type :json
           JSON.generate value
+        end
+
+        def assert(expected)
+          expected.each do |key, value|
+            if params[key] != value
+              halt 422, json(
+                :message => "expected %s to be %s; got %s" % [
+                  key.inspect,
+                  value.inspect,
+                  params[key].inspect
+                ]
+              )
+            end
+          end
         end
       end
 

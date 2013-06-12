@@ -19,6 +19,16 @@ Feature: hub fetch
     And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
     And there should be no output
 
+  Scenario: Owner name with dash
+    Given the GitHub API server:
+      """
+      get('/repos/ankit-maverick/dotfiles') { json :private => false }
+      """
+    When I successfully run `hub fetch ankit-maverick`
+    Then "git fetch ankit-maverick" should be run
+    And the url for "ankit-maverick" should be "git://github.com/ankit-maverick/dotfiles.git"
+    And there should be no output
+
   Scenario: HTTPS is preferred
     Given the GitHub API server:
       """

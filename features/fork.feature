@@ -8,7 +8,7 @@ Feature: hub fork
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
-      get('/repos/evilchelu/dotfiles', :host_name => 'api.github.com') { '' }
+      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
       post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
     When I successfully run `hub fork`
@@ -19,7 +19,6 @@ Feature: hub fork
   Scenario: --no-remote
     Given the GitHub API server:
       """
-      get('/repos/evilchelu/dotfiles') { '' }
       post('/repos/evilchelu/dotfiles/forks') { '' }
       """
     When I successfully run `hub fork --no-remote`
@@ -29,7 +28,6 @@ Feature: hub fork
   Scenario: Fork failed
     Given the GitHub API server:
       """
-      get('/repos/evilchelu/dotfiles') { '' }
       post('/repos/evilchelu/dotfiles/forks') { halt 500 }
       """
     When I run `hub fork`
@@ -40,11 +38,12 @@ Feature: hub fork
       """
     And there should be no "mislav" remote
 
-  Scenario: Fork already exists
+  Scenario: Unrelated fork already exists
     Given the GitHub API server:
       """
-      get('/repos/evilchelu/dotfiles') { '' }
-      get('/repos/mislav/dotfiles') { '' }
+      get('/repos/mislav/dotfiles') {
+        json :parent => { :html_url => 'https://github.com/unrelated/dotfiles' }
+      }
       """
     When I run `hub fork`
     Then the exit status should be 1
@@ -54,11 +53,21 @@ Feature: hub fork
       """
     And there should be no "mislav" remote
 
+Scenario: Related fork already exists
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :parent => { :html_url => 'https://github.com/evilchelu/dotfiles' }
+      }
+      """
+    When I run `hub fork`
+    Then the exit status should be 0
+    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+
   Scenario: Invalid OAuth token
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
-      get('/repos/evilchelu/dotfiles') { '' }
       """
     And I am "mislav" on github.com with OAuth token "WRONGTOKEN"
     When I run `hub fork`
@@ -71,7 +80,6 @@ Feature: hub fork
   Scenario: HTTPS is preferred
     Given the GitHub API server:
       """
-      get('/repos/evilchelu/dotfiles') { '' }
       post('/repos/evilchelu/dotfiles/forks') { '' }
       """
     And HTTPS is preferred
@@ -98,7 +106,6 @@ Feature: hub fork
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN' }
-      get('/api/v3/repos/evilchelu/dotfiles', :host_name => 'git.my.org') { '' }
       post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"

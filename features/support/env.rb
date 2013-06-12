@@ -1,6 +1,5 @@
 require 'aruba/cucumber'
 require 'fileutils'
-require 'hub/context'
 require 'forwardable'
 
 # needed to avoid "Too many open files" on 1.8.7
@@ -11,14 +10,7 @@ Aruba::Process.class_eval do
   end
 end
 
-if [:macosx, :linux].include? ChildProcess.platform
-  ChildProcess.posix_spawn = true  # experimental suppport
-end
-
-unless system_git = Hub::Context.which('git')
-  abort "Error: `git` not found in PATH"
-end
-
+system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
 
@@ -41,15 +33,32 @@ Before do
   set_env 'HUB_SYSTEM_GIT', system_git
   # ensure that api.github.com is actually never hit in tests
   set_env 'HUB_TEST_HOST', '127.0.0.1:0'
+  # ensure we use fakebin `open` to test browsing
+  set_env 'BROWSER', 'open'
+  # sabotage opening a commit message editor interactively
+  set_env 'GIT_EDITOR', 'false'
+
+  author_name  = "Hub"
+  author_email = "hub@test.local"
+  set_env 'GIT_AUTHOR_NAME',     author_name
+  set_env 'GIT_COMMITTER_NAME',  author_name
+  set_env 'GIT_AUTHOR_EMAIL',    author_email
+  set_env 'GIT_COMMITTER_EMAIL', author_email
 
   FileUtils.mkdir_p ENV['HOME']
 
-  @aruba_io_wait_seconds = 0.02
+  if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
+    @aruba_timeout_seconds = 5
+    @aruba_io_wait_seconds = 0.1
+  else
+    @aruba_io_wait_seconds = 0.02
+  end
 end
 
 After do
   @server.stop if defined? @server and @server
   processes.each {|_, p| p.close_streams }
+  FileUtils.rm_f("#{bin_dir}/vim")
 end
 
 RSpec::Matchers.define :be_successful_command do
@@ -118,6 +127,14 @@ World Module.new {
     File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
   end
 
+  define_method(:text_editor_script) do |bash_code|
+    File.open("#{bin_dir}/vim", 'w', 0755) do |exe|
+      exe.puts "#!/bin/bash"
+      exe.puts "set -e"
+      exe.puts bash_code
+    end
+  end
+
   def run_silent cmd
     in_current_dir do
       command = SimpleCommand.run(cmd)
@@ -127,9 +144,7 @@ World Module.new {
   end
 
   def empty_commit
-    run_silent "git commit --quiet -m ''" <<
-      " --allow-empty --allow-empty-message" <<
-      " --author 'Hub <hub@test.local>'"
+    run_silent "git commit --quiet -m empty --allow-empty"
   end
 
   # Aruba unnecessarily creates new Announcer instance on each invocation
