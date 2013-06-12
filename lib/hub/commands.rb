@@ -131,13 +131,6 @@ module Hub
 
       while arg = args.shift
         case arg
-        when '-l'
-          branch_name = args.shift || current_branch.short_name
-          pull_data = api_client.get_pullrequest(base_project, branch_name)
-          if pull_data
-            puts pull_data
-          end
-          exit
         when '-f'
           force = true
         when '-F', '--file'
@@ -639,7 +632,15 @@ module Hub
         dest = args.shift
         dest = nil if dest == '--'
 
-        if dest
+        if dest == '-b'
+          branch_name = args.shift || current_branch.short_name
+          pr_url = api_client.get_pullrequest(local_repo.main_project, branch_name)
+          if pr_url
+            next pr_url
+          else
+            abort "Pull request not found for branch #{branch_name}."
+          end
+        elsif dest
           # $ hub browse pjhyett/github-services
           # $ hub browse github-services
           project = github_project dest
