@@ -45,15 +45,15 @@ func (p *Project) LocalRepo() *Repo {
 }
 
 func CurrentProject() *Project {
-	owner, name := parseOwnerAndName()
+	remote, err := git.Remote()
+	utils.Check(err)
+
+	owner, name := parseOwnerAndName(remote)
 
 	return &Project{name, owner}
 }
 
-func parseOwnerAndName() (name, remote string) {
-	remote, err := git.Remote()
-	utils.Check(err)
-
+func parseOwnerAndName(remote string) (owner string, name string) {
 	url, err := mustMatchGitHubURL(remote)
 	utils.Check(err)
 

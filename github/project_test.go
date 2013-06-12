@@ -14,11 +14,10 @@ func TestWebURL(t *testing.T) {
 	assert.Equal(t, "https://github.com/2/1", url)
 }
 
-func TestParseNameAndOwner(t *testing.T) {
-	owner, name := parseOwnerAndName()
-
+func TestParseOwnerAndName(t *testing.T) {
+	owner, name := parseOwnerAndName("git://github.com/jingweno/gh.git")
 	assert.Equal(t, "gh", name)
-	assert.T(t, len(owner) > 0)
+	assert.Equal(t, "jingweno", owner)
 }
 
 func TestMustMatchGitHubURL(t *testing.T) {
