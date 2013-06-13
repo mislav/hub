@@ -14,7 +14,7 @@ class Gh < Formula
   depends_on 'go'
 
   def install
-    go_path = `pwd`.chomp
+    go_path = Dir.getwd
     system "GOPATH='#{go_path}' go get -d ./..."
     system "GOPATH='#{go_path}' go build -o gh"
     bin.install 'gh'
