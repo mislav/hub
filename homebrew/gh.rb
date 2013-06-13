@@ -9,12 +9,23 @@ class Gh < Formula
          end
 
   homepage 'https://github.com/jingweno/gh'
+  url "https://github.com/jingweno/gh/archive/#{VERSION}.tar.gz"
   version VERSION
-  url "https://drone.io/github.com/jingweno/gh/files/target/#{VERSION}-snapshot/darwin_#{ARCH}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
+
   head 'https://github.com/jingweno/gh.git'
 
+  depends_on 'go'
+
   def install
+    system 'go build -o gh'
     bin.install 'gh'
+  end
+
+  def caveats; <<-EOS.undent
+  To upgrade gh, run `brew upgrade https://raw.github.com/jingweno/gh/master/homebrew/gh.rb`
+
+  More information here: https://github.com/jingweno/gh/blob/master/README.md
+    EOS
   end
 
   test do
