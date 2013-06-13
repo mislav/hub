@@ -32,7 +32,7 @@ func TestGitEditorPath(t *testing.T) {
 
 func TestGitRemote(t *testing.T) {
 	gitRemote, _ := Remote()
-	assert.T(t, strings.Contains(gitRemote, "gh.git"))
+	assert.T(t, strings.Contains(gitRemote, "gh"))
 }
 
 func TestGitHead(t *testing.T) {
