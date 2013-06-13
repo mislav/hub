@@ -123,7 +123,7 @@ hub also adds some custom commands that are otherwise not present in git:
     specified, `browse` opens the page of the repository found in the current
     directory. If SUBPAGE is specified, the browser will open on the specified
     subpage: one of "wiki", "commits", "issues" or other (the default is
-    "tree").
+    "tree"). With `-u`, outputs the URL rather than opening the browser.
 
   * `git compare` [`-u`] [<USER>] [<START>...]<END>:
     Open a GitHub compare view page in the system's default web browser.
@@ -131,6 +131,7 @@ hub also adds some custom commands that are otherwise not present in git:
     the range of history to compare. If a range with two dots (`a..b`) is given,
     it will be transformed into one with three dots. If <START> is omitted,
     GitHub will compare against the base branch (the default is "master").
+    With `-u`, outputs the URL rather than opening the browser.
 
   * `git fork` [`--no-remote`]:
     Forks the original project (referenced by "origin" remote) on GitHub and
