@@ -43,6 +43,7 @@ var All = []*Command{
 	cmdPull,
 	cmdFork,
 	cmdCi,
+	cmdRemoteAdd,
 	cmdBrowse,
 	cmdCompare,
 	cmdHelp,
