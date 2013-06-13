@@ -156,38 +156,30 @@ your GitHub login. With <code>-p</code>, use private remote
 
 <p>hub also adds some custom commands that are otherwise not present in git:</p>
 
-<ul>
-<li><p><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]:
-Create a new public GitHub repository from the current git
+<dl>
+<dt><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]</dt><dd><p>Create a new public GitHub repository from the current git
 repository and add remote <code>origin</code> at
 "git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub
 username and <var>REPOSITORY</var> is the current working directory name.
 To explicitly name the new repository, pass in <var>NAME</var>, optionally in
 <var>ORGANIZATION</var>/<var>NAME</var> form to create under an organization you're a
 member of. With <code>-p</code>, create a private repository, and with <code>-d</code> and <code>-h</code>
-set the repository's description and homepage URL, respectively.</p></li>
-<li><p><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]:
-Open repository's GitHub page in the system's default web browser using
+set the repository's description and homepage URL, respectively.</p></dd>
+<dt><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser using
 <code>open(1)</code> or the <code>BROWSER</code> env variable. If the repository isn't
 specified, <code>browse</code> opens the page of the repository found in the current
 directory. If SUBPAGE is specified, the browser will open on the specified
 subpage: one of "wiki", "commits", "issues" or other (the default is
-"tree").</p></li>
-<li><p><code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var>:
-Open a GitHub compare view page in the system's default web browser.
+"tree"). With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
+<dt><code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var></dt><dd><p>Open a GitHub compare view page in the system's default web browser.
 <var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If a range with two dots (<code>a..b</code>) is given,
 it will be transformed into one with three dots. If <var>START</var> is omitted,
-GitHub will compare against the base branch (the default is "master").</p></li>
-<li><p><code>git fork</code> [<code>--no-remote</code>]:
-Forks the original project (referenced by "origin" remote) on GitHub and
-adds a new remote for it under your username.</p></li>
-<li><p><code>git pull-request</code> [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>]</p>
-
-<pre><code>               [`-b` &lt;BASE>] [`-h` &lt;HEAD>]:
-</code></pre>
-
-<p>Opens a pull request on GitHub for the project that the "origin" remote
+GitHub will compare against the base branch (the default is "master").
+With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
+<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
+adds a new remote for it under your username.</p></dd>
+<dt><code>git pull-request</code> [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of
 the following formats: "branch", "owner:branch", "owner/repo:branch".
@@ -201,12 +193,11 @@ Pull request message can also be passed via stdin with <code>-F -</code>.</p>
 
 <p>If instead of normal <var>TITLE</var> an issue number is given with <code>-i</code>, the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
-of title you can paste a full URL to an issue on GitHub.</p></li>
-<li><p><code>git ci-status</code> [<var>COMMIT</var>]:
-Looks up the SHA for <var>COMMIT</var> in GitHub Status API and displays the latest
+of title you can paste a full URL to an issue on GitHub.</p></dd>
+<dt><code>git ci-status</code> [<var>COMMIT</var>]</dt><dd><p>Looks up the SHA for <var>COMMIT</var> in GitHub Status API and displays the latest
 status. Exits with one of:<br />
-success (0), error (1), failure (1), pending (2), no status (3)</p></li>
-</ul>
+success (0), error (1), failure (1), pending (2), no status (3)</p></dd>
+</dl>
 
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
@@ -462,7 +453,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>DEFUNKT</li>
-    <li class='tc'>May 2013</li>
+    <li class='tc'>June 2013</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
