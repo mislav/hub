@@ -90,7 +90,7 @@ func writePullRequestChanges(repo *github.Repo, messageFile string) error {
 	message := `
 # Requesting a pull to %s from %s
 #
-# Write a message for this pull reuqest. The first block
+# Write a message for this pull request. The first block
 # of the text is the title and the rest is description.%s
 `
 	startRegexp := regexp.MustCompilePOSIX("^")
