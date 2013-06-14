@@ -7,8 +7,8 @@ import (
 	"os"
 )
 
-var cmdRemoteAdd = &Command{
-	Run:   remoteAdd,
+var cmdRemote = &Command{
+	Run:   remote,
 	Usage: "remote [-p] add USER",
 	Short: "Add remote from GitHub repository",
 	Long: `Add remote from GitHub repository, using USER as the username and the current repository name.
@@ -20,10 +20,10 @@ If USER is "origin", your own username will be used.
 var flagRemoteAddSSH bool
 
 func init() {
-	cmdRemoteAdd.Flag.BoolVar(&flagRemoteAddSSH, "p", false, "")
+	cmdRemote.Flag.BoolVar(&flagRemoteAddSSH, "p", false, "")
 }
 
-func remoteAdd(command *Command, args []string) {
+func remote(command *Command, args []string) {
 	if len(args) <= 1 || len(args) >= 3 || len(args) > 0 && args[0] != "add" {
 		command.PrintUsage()
 		os.Exit(1)
