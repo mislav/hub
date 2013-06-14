@@ -29,6 +29,28 @@ func (p *Project) WebURL(name, owner, path string) string {
 	return url
 }
 
+func (p *Project) GitURL(name, owner string) string {
+	if owner == "" {
+		owner = p.Owner
+	}
+	if name == "" {
+		name = p.Name
+	}
+
+	return fmt.Sprintf("git://%s", utils.ConcatPaths(GitHubHost, owner, name))
+}
+
+func (p *Project) SshURL(name, owner string) string {
+	if owner == "" {
+		owner = p.Owner
+	}
+	if name == "" {
+		name = p.Name
+	}
+
+	return fmt.Sprintf("git@%s:%s/%s", []interface{}{GitHubHost, owner, name}...)
+}
+
 func (p *Project) LocalRepoWith(base, head string) *Repo {
 	if base == "" {
 		base = "master"

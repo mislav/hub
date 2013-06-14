@@ -25,10 +25,10 @@ func init() {
 }
 
 func browse(command *Command, args []string) {
-  subpage := "tree"
-  if len(args) > 0 {
-    subpage = args[0]
-  }
+	subpage := "tree"
+	if len(args) > 0 {
+		subpage = args[0]
+	}
 
 	project := github.CurrentProject()
 	if subpage == "tree" || subpage == "commits" {
