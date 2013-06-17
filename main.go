@@ -12,7 +12,7 @@ func main() {
 		commands.Usage()
 	}
 
-	for _, cmd := range commands.All {
+	for _, cmd := range commands.All() {
 		if cmd.Name() == args[0] && cmd.Runnable() {
 			cmdArgs := args[1:]
 			if !cmd.GitExtension {

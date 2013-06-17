@@ -48,8 +48,6 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
-var All = append(Remote, GitHub...)
-
 var Remote = []*Command{
 	cmdRemote,
 }
@@ -60,6 +58,12 @@ var GitHub = []*Command{
 	cmdCi,
 	cmdBrowse,
 	cmdCompare,
-	cmdHelp,
 	cmdVersion,
+}
+
+func All() []*Command {
+	all := append(Remote, GitHub...)
+	all = append(all, cmdHelp)
+
+	return all
 }
