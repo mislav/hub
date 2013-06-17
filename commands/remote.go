@@ -25,7 +25,7 @@ var cmdRemote = &Command{
   git://github.com/YOUR_LOGIN/THIS_REPO.git
 **/
 func remote(command *Command, args []string) {
-	if len(args) >= 1 && (args[0] == "add" || args[0] == "set-url") {
+	if len(args) >= 2 && (args[0] == "add" || args[0] == "set-url") {
 		args = transformRemoteArgs(args)
 	}
 
