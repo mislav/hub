@@ -3,6 +3,8 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/utils"
 	"strings"
 )
 
@@ -10,16 +12,23 @@ type Command struct {
 	Run  func(cmd *Command, args []string)
 	Flag flag.FlagSet
 
-	Usage string
-	Short string
-	Long  string
+	Usage        string
+	Short        string
+	Long         string
+	GitExtension bool
 }
 
 func (c *Command) PrintUsage() {
-	if c.Runnable() {
-		fmt.Printf("Usage: gh %s\n\n", c.Usage)
+	if c.GitExtension {
+		err := git.Help(c.Name())
+		utils.Check(err)
+	} else {
+		if c.Runnable() {
+			fmt.Printf("Usage: gh %s\n\n", c.Usage)
+		}
+
+		fmt.Println(strings.Trim(c.Long, "\n"))
 	}
-	fmt.Println(strings.Trim(c.Long, "\n"))
 }
 
 func (c *Command) Name() string {
@@ -39,12 +48,22 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
-var All = []*Command{
+var Remote = []*Command{
+	cmdRemote,
+}
+
+var GitHub = []*Command{
 	cmdPull,
 	cmdFork,
 	cmdCi,
 	cmdBrowse,
 	cmdCompare,
-	cmdHelp,
 	cmdVersion,
+}
+
+func All() []*Command {
+	all := append(Remote, GitHub...)
+	all = append(all, cmdHelp)
+
+	return all
 }

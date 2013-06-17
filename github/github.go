@@ -77,6 +77,18 @@ func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (newRemote s
 	return
 }
 
+func (gh *GitHub) ExpandRemoteUrl(owner string, isSSH bool) (url string) {
+	project := gh.Project
+	if owner == "origin" {
+		config := gh.config
+		project.Owner = config.FetchUser()
+	} else {
+		project.Owner = owner
+	}
+
+	return project.GitURL("", owner, isSSH)
+}
+
 func (gh *GitHub) repo() octokat.Repo {
 	project := gh.Project
 	return octokat.Repo{project.Name, project.Owner}

@@ -109,10 +109,28 @@ func Remote() (string, error) {
 	return "", errors.New("Can't find git remote (push)")
 }
 
+func ExecRemote(args []string) error {
+	cmd := cmd.New("git")
+	cmd.WithArg("remote")
+	for _, i := range args {
+		cmd.WithArg(i)
+	}
+
+	return cmd.SysExec()
+}
+
 func AddRemote(name, url string) error {
 	_, err := execGitCmd([]string{"remote", "add", "-f", name, url})
 
 	return err
+}
+
+func Help(command string) error {
+	cmd := cmd.New("git")
+	cmd.WithArg(command)
+	cmd.WithArg("--help")
+
+	return cmd.SysExec()
 }
 
 func Log(sha1, sha2 string) (string, error) {

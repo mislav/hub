@@ -26,7 +26,7 @@ func runHelp(cmd *Command, args []string) {
 		log.Fatal("too many arguments")
 	}
 
-	for _, cmd := range All {
+	for _, cmd := range All() {
 		if cmd.Name() == args[0] {
 			cmd.PrintUsage()
 			return
@@ -39,8 +39,10 @@ func runHelp(cmd *Command, args []string) {
 
 var usageTemplate = template.Must(template.New("usage").Parse(`Usage: gh [command] [options] [arguments]
 
-Commands:
-{{range .Commands}}{{if .Runnable}}{{if .List}}
+Remote Commands:{{range .RemoteCommands}}{{if .Runnable}}{{if .List}}
+    {{.Name | printf "%-16s"}}  {{.Short}}{{end}}{{end}}{{end}}
+
+GitHub Commands:{{range .GitHubCommands}}{{if .Runnable}}{{if .List}}
     {{.Name | printf "%-16s"}}  {{.Short}}{{end}}{{end}}{{end}}
 
 See 'gh help [command]' for more information about a command.
@@ -48,9 +50,11 @@ See 'gh help [command]' for more information about a command.
 
 func PrintUsage() {
 	usageTemplate.Execute(os.Stdout, struct {
-		Commands []*Command
+		RemoteCommands []*Command
+		GitHubCommands []*Command
 	}{
-		All,
+    Remote,
+		GitHub,
 	})
 }
 
