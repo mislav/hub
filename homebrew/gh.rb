@@ -1,7 +1,7 @@
 require 'formula'
 
 class Gh < Formula
-  VERSION = '0.6.1'
+  VERSION = '0.7.0'
 
   homepage 'https://github.com/jingweno/gh'
   url "https://github.com/jingweno/gh/archive/#{VERSION}.tar.gz"
