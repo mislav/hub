@@ -1,10 +1,9 @@
 package commands
 
 import (
-	"fmt"
+	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"os"
 )
 
 var cmdRemote = &Command{
@@ -19,22 +18,43 @@ then uses your GitHub login.
 `,
 }
 
-var flagRemoteAddSSH bool
+/**
+  $ gh remote add jingweno
+  > git remote add jingweno git://github.com/jingweno/THIS_REPO.git
 
-func init() {
-	cmdRemote.Flag.BoolVar(&flagRemoteAddSSH, "p", false, "")
-}
+  $ gh remote add -p jingweno
+  > git remote add jingweno git@github.com:jingweno/THIS_REPO.git
 
+  $ gh remote add origin
+  > git remote add origin
+  git://github.com/YOUR_LOGIN/THIS_REPO.git
+**/
 func remote(command *Command, args []string) {
-	if len(args) <= 1 || len(args) >= 3 || len(args) > 0 && args[0] != "add" {
-		command.PrintUsage()
-		os.Exit(1)
+	if len(args) >= 1 && (args[0] == "add" || args[0] == "set-url") {
+		args = transformRemoteArgs(args)
 	}
 
-	name := args[1]
+	err := git.ExecRemote(args)
+	utils.Check(err)
+}
+
+func transformRemoteArgs(args []string) (newArgs []string) {
+	args, isPriavte := parseRemotePrivateFlag(args)
+	newArgs, owner := removeItem(args, len(args)-1)
 
 	gh := github.New()
-	url, err := gh.RemoteAdd(name, flagRemoteAddSSH)
-	utils.Check(err)
-	fmt.Printf("The remote %s has been added.\n", url)
+	url := gh.ExpandRemoteUrl(owner, isPriavte)
+
+	return append(newArgs, owner, url)
+}
+
+func parseRemotePrivateFlag(args []string) ([]string, bool) {
+	for i, arg := range args {
+		if arg == "-p" {
+			args, _ = removeItem(args, i)
+			return args, true
+		}
+	}
+
+	return args, false
 }
