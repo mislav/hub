@@ -14,6 +14,15 @@ func TestWebURL(t *testing.T) {
 	assert.Equal(t, "https://github.com/2/1", url)
 }
 
+func TestGitURL(t *testing.T) {
+	project := Project{"foo", "bar"}
+	url := project.GitURL("gh", "jingweno", false)
+	assert.Equal(t, "git://github.com/jingweno/gh.git", url)
+
+	url = project.GitURL("gh", "jingweno", true)
+  assert.Equal(t, "git@github.com:jingweno/gh.git", url)
+}
+
 func TestParseOwnerAndName(t *testing.T) {
 	owner, name := parseOwnerAndName("git://github.com/jingweno/gh.git")
 	assert.Equal(t, "gh", name)
