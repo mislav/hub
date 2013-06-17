@@ -125,6 +125,14 @@ func AddRemote(name, url string) error {
 	return err
 }
 
+func Help(command string) error {
+	cmd := cmd.New("git")
+	cmd.WithArg(command)
+	cmd.WithArg("--help")
+
+	return cmd.SysExec()
+}
+
 func Log(sha1, sha2 string) (string, error) {
 	execCmd := cmd.New("git")
 	execCmd.WithArg("log").WithArg("--no-color")
