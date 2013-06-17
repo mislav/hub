@@ -9,11 +9,13 @@ import (
 
 var cmdRemote = &Command{
 	Run:   remote,
-	Usage: "remote [-p] add USER",
-	Short: "Add remote from GitHub repository",
-	Long: `Add remote from GitHub repository, using USER as the username and the current repository name.
-If -p is provided, the SSH remote will be added.
-If USER is "origin", your own username will be used.
+	Usage: "remote [-p] OPTIONS USER[/REPOSITORY]",
+	Short: "View and manage a set of remote repositories",
+	Long: `Add remote "git://github.com/USER/REPOSITORY.git" as with
+git-remote(1). When /REPOSITORY is omitted, the basename of the
+current working directory is used. With -p, use private remote
+"git@github.com:USER/REPOSITORY.git". If USER is "origin"
+then uses your GitHub login.
 `,
 }
 
