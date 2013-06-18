@@ -17,6 +17,10 @@
           "linux": "TarGz",
           "darwin": "TarGz"
         }
+      },
+      "downloads-page": {
+        "fileheader": "",
+        "filename": ""
       }
     }
   }
