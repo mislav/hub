@@ -2,21 +2,19 @@ require 'formula'
 
 class Gh < Formula
   VERSION = '0.7.0'
+  ARCH = if MacOS.prefer_64_bit?
+           'amd64'
+         else
+           '386'
+         end
 
   homepage 'https://github.com/jingweno/gh'
-  url "https://github.com/jingweno/gh/archive/#{VERSION}.tar.gz"
-  sha1 '1e4ca70ebf018ae192a641f18b735beca5df5c31'
+  head 'https://github.com/jingweno/gh.git'
+  url "https://dl.dropboxusercontent.com/u/1079131/gh/#{VERSION}-snapshot/darwin_#{ARCH}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
   version VERSION
 
-  head 'https://github.com/jingweno/gh.git'
-
-  depends_on 'hg'
-  depends_on 'go'
 
   def install
-    go_path = Dir.getwd
-    system "GOPATH='#{go_path}' go get -d ./..."
-    system "GOPATH='#{go_path}' go build -o gh"
     bin.install 'gh'
   end
 
