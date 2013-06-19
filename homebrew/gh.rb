@@ -1,21 +1,21 @@
-require 'formula'
+require "formula"
 
 class Gh < Formula
-  VERSION = '0.7.0'
+  VERSION = "0.7.0"
   ARCH = if MacOS.prefer_64_bit?
-           'amd64'
+           "amd64"
          else
-           '386'
+           "386"
          end
 
-  homepage 'https://github.com/jingweno/gh'
-  head 'https://github.com/jingweno/gh.git'
+  homepage "https://github.com/jingweno/gh"
+  head "https://github.com/jingweno/gh.git"
   url "https://dl.dropboxusercontent.com/u/1079131/gh/#{VERSION}-snapshot/darwin_#{ARCH}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
   version VERSION
 
 
   def install
-    bin.install 'gh'
+    bin.install "gh"
   end
 
   def caveats; <<-EOS.undent
