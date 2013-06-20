@@ -16,7 +16,7 @@ import (
 
 var cmdPull = &Command{
 	Run:   pull,
-	Usage: "pull [-f] [TITLE|-i ISSUE] [-b BASE] [-h HEAD]",
+	Usage: "pull [-f] [i ISSUE] [-b BASE] [-h HEAD] [TITLE]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
