@@ -29,7 +29,7 @@ func remote(command *Command, args []string) {
 		args = transformRemoteArgs(args)
 	}
 
-	err := git.ExecRemote(args)
+	err := git.ExecRemote(args...)
 	utils.Check(err)
 }
 

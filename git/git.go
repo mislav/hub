@@ -109,14 +109,12 @@ func Remote() (string, error) {
 	return "", errors.New("Can't find git remote (push)")
 }
 
-func ExecRemote(args []string) error {
-	cmd := cmd.New("git")
-	cmd.WithArg("remote")
-	for _, i := range args {
-		cmd.WithArg(i)
-	}
+func ExecRemote(args ...string) error {
+	cmdArgs := make([]string, 0)
+	cmdArgs = append(cmdArgs, "checkout")
+	cmdArgs = append(cmdArgs, args...)
 
-	return cmd.SysExec()
+	return sysExec(cmdArgs...)
 }
 
 func AddRemote(name, url string) error {
@@ -125,12 +123,16 @@ func AddRemote(name, url string) error {
 	return err
 }
 
-func Help(command string) error {
-	cmd := cmd.New("git")
-	cmd.WithArg(command)
-	cmd.WithArg("--help")
+func ExecCheckout(args []string) error {
+	cmdArgs := make([]string, 0)
+	cmdArgs = append(cmdArgs, "checkout")
+	cmdArgs = append(cmdArgs, args...)
 
-	return cmd.SysExec()
+	return sysExec(cmdArgs...)
+}
+
+func ExecHelp(command string) error {
+	return sysExec("help", command, "--help")
 }
 
 func Log(sha1, sha2 string) (string, error) {
@@ -147,6 +149,15 @@ func Log(sha1, sha2 string) (string, error) {
 	}
 
 	return outputs, nil
+}
+
+func sysExec(args ...string) error {
+	cmd := cmd.New("git")
+	for _, a := range args {
+		cmd.WithArg(a)
+	}
+
+	return cmd.SysExec()
 }
 
 func execGitCmd(input []string) (outputs []string, err error) {
