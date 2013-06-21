@@ -48,6 +48,10 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
+var Branching = []*Command{
+	cmdCheckout,
+}
+
 var Remote = []*Command{
 	cmdRemote,
 }
@@ -58,11 +62,14 @@ var GitHub = []*Command{
 	cmdCi,
 	cmdBrowse,
 	cmdCompare,
-	cmdVersion,
 }
 
 func All() []*Command {
-	all := append(Remote, GitHub...)
+	all := make([]*Command, 0)
+	all = append(all, Branching...)
+	all = append(all, Remote...)
+	all = append(all, GitHub...)
+	all = append(all, cmdVersion)
 	all = append(all, cmdHelp)
 
 	return all
