@@ -996,7 +996,8 @@ help
         Kernel.select [STDIN]
 
         pager = ENV['GIT_PAGER'] ||
-          `git config --get-all core.pager`.split.first || ENV['PAGER'] ||
+          `git config --get-all core.pager`.split("\n").first ||
+          ENV['PAGER'] ||
           'less -isr'
 
         pager = 'cat' if pager.empty?
