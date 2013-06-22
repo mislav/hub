@@ -10,7 +10,9 @@ import (
 )
 
 func Fatal(err error) {
-	log.Fatal(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func Check(err error) {
