@@ -26,7 +26,7 @@ func checkout(command *Command, args []string) {
 	var err error
 	if len(args) > 0 {
 		args, err = transformCheckoutArgs(args)
-		utils.Check(err)
+		utils.Fatal(err)
 	}
 
 	err = git.ExecCheckout(args)
@@ -48,7 +48,23 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 		if pullRequest.Head.Repo.ID == 0 {
 			return nil, fmt.Errorf("%s's fork is not available anymore", user)
 		}
-		git.AddRemoteWithTrack(branch, user, url)
+
+		if user == gh.Project.Owner {
+			err = git.Spawn("remote", "set-branches", "--add", user, branch)
+			if err != nil {
+				return nil, err
+			}
+			remote := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
+			git.Spawn("fetch", user, remote)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err = git.AddRemoteWithTrack(branch, user, url)
+			if err != nil {
+				return nil, err
+			}
+		}
 
 		trackedBranch := fmt.Sprintf("%s/%s", user, branch)
 		var newBranchName string

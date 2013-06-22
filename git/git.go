@@ -114,7 +114,7 @@ func ExecRemote(args ...string) error {
 	cmdArgs = append(cmdArgs, "checkout")
 	cmdArgs = append(cmdArgs, args...)
 
-	return sysExec(cmdArgs...)
+	return SysExec(cmdArgs...)
 }
 
 func AddRemote(name, url string) error {
@@ -134,11 +134,11 @@ func ExecCheckout(args []string) error {
 	cmdArgs = append(cmdArgs, "checkout")
 	cmdArgs = append(cmdArgs, args...)
 
-	return sysExec(cmdArgs...)
+	return SysExec(cmdArgs...)
 }
 
 func ExecHelp(command string) error {
-	return sysExec(command, "--help")
+	return SysExec(command, "--help")
 }
 
 func Log(sha1, sha2 string) (string, error) {
@@ -157,13 +157,27 @@ func Log(sha1, sha2 string) (string, error) {
 	return outputs, nil
 }
 
-func sysExec(args ...string) error {
+func SysExec(args ...string) error {
 	cmd := cmd.New("git")
 	for _, a := range args {
 		cmd.WithArg(a)
 	}
 
 	return cmd.SysExec()
+}
+
+func Spawn(args ...string) error {
+	cmd := cmd.New("git")
+	for _, a := range args {
+		cmd.WithArg(a)
+	}
+
+	out, err := cmd.ExecOutput()
+	if err != nil {
+		return errors.New(out)
+	}
+
+	return nil
 }
 
 func execGitCmd(input []string) (outputs []string, err error) {

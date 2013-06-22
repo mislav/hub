@@ -19,12 +19,9 @@ func (cmd *Cmd) WithArg(arg string) *Cmd {
 }
 
 func (cmd *Cmd) ExecOutput() (string, error) {
-	output, err := exec.Command(cmd.Name, cmd.Args...).Output()
-	if err != nil {
-		return "", err
-	}
+	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
 
-	return string(output), nil
+	return string(output), err
 }
 
 func (cmd *Cmd) Exec() error {
