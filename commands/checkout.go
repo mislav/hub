@@ -6,6 +6,7 @@ import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"regexp"
+	"strings"
 )
 
 var cmdCheckout = &Command{
@@ -54,7 +55,7 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 			return nil, err
 		}
 
-		if user == remote {
+		if strings.Contains(remote, user) {
 			err = git.Spawn("remote", "set-branches", "--add", user, branch)
 			if err != nil {
 				return nil, err
