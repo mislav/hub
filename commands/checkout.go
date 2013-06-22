@@ -60,13 +60,13 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 			if err != nil {
 				return nil, err
 			}
-			remote := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
-			git.Spawn("fetch", user, remote)
+			remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
+			git.Spawn("fetch", user, remoteURL)
 			if err != nil {
 				return nil, err
 			}
 		} else {
-			err = git.AddRemoteWithTrack(branch, user, url)
+			err = git.Spawn("remote", "add", "-f", "-t", branch, user, url)
 			if err != nil {
 				return nil, err
 			}
