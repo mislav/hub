@@ -18,6 +18,12 @@ type GitHub struct {
 	config  *Config
 }
 
+func (gh *GitHub) PullRequest(id string) (*octokat.PullRequest, error) {
+	client := gh.client()
+
+	return client.PullRequest(gh.repo(), id)
+}
+
 func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, error) {
 	client := gh.client()
 	params := octokat.PullRequestParams{base, head, title, body}

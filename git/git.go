@@ -123,6 +123,12 @@ func AddRemote(name, url string) error {
 	return err
 }
 
+func AddRemoteWithTrack(trackedBranch, name, url string) error {
+	_, err := execGitCmd([]string{"remote", "add", "-f", "-t", trackedBranch, name, url})
+
+	return err
+}
+
 func ExecCheckout(args []string) error {
 	cmdArgs := make([]string, 0)
 	cmdArgs = append(cmdArgs, "checkout")
