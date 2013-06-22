@@ -49,7 +49,12 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 			return nil, fmt.Errorf("%s's fork is not available anymore", user)
 		}
 
-		if user == gh.Project.Owner {
+		remote, err := git.Remote()
+		if err != nil {
+			return nil, err
+		}
+
+		if user == remote {
 			err = git.Spawn("remote", "set-branches", "--add", user, branch)
 			if err != nil {
 				return nil, err
