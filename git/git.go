@@ -138,7 +138,7 @@ func ExecCheckout(args []string) error {
 }
 
 func ExecHelp(command string) error {
-	return sysExec("help", command, "--help")
+	return sysExec(command, "--help")
 }
 
 func Log(sha1, sha2 string) (string, error) {
