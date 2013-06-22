@@ -66,7 +66,13 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 				return nil, err
 			}
 		} else {
-			err = git.Spawn("remote", "add", "-f", "-t", branch, user, url)
+			project, err := github.ParseProjectFromURL(url)
+			if err != nil {
+				return nil, err
+			}
+
+			sshURL := project.GitURL("", "", pullRequest.Head.Repo.Private)
+			err = git.Spawn("remote", "add", "-f", "-t", branch, user, sshURL)
 			if err != nil {
 				return nil, err
 			}
