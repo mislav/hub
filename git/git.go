@@ -111,7 +111,7 @@ func Remote() (string, error) {
 
 func ExecRemote(args ...string) error {
 	cmdArgs := make([]string, 0)
-	cmdArgs = append(cmdArgs, "checkout")
+	cmdArgs = append(cmdArgs, "remote")
 	cmdArgs = append(cmdArgs, args...)
 
 	return SysExec(cmdArgs...)
