@@ -6,7 +6,6 @@ import (
 	"github.com/jingweno/gh/cmd"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -92,23 +91,6 @@ func Ref(ref string) (string, error) {
 	return output[0], nil
 }
 
-// FIXME: only care about origin push remote now
-func Remote() (string, error) {
-	r := regexp.MustCompile("origin\t(.+github.com.+) \\(push\\)")
-	output, err := execGitCmd([]string{"remote", "-v"})
-	if err != nil {
-		return "", errors.New("Can't load git remote")
-	}
-
-	for _, o := range output {
-		if r.MatchString(o) {
-			return r.FindStringSubmatch(o)[1], nil
-		}
-	}
-
-	return "", errors.New("Can't find git remote (push)")
-}
-
 func ExecRemote(args ...string) error {
 	cmdArgs := make([]string, 0)
 	cmdArgs = append(cmdArgs, "remote")
@@ -181,13 +163,9 @@ func execGitCmd(input []string) (outputs []string, err error) {
 	}
 
 	out, err := cmd.ExecOutput()
-	if err != nil {
-		return nil, err
-	}
-
 	for _, line := range strings.Split(out, "\n") {
 		outputs = append(outputs, string(line))
 	}
 
-	return outputs, nil
+	return outputs, err
 }

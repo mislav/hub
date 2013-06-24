@@ -6,7 +6,6 @@ import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"regexp"
-	"strings"
 )
 
 var cmdCheckout = &Command{
@@ -50,12 +49,20 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 			return nil, fmt.Errorf("%s's fork is not available anymore", user)
 		}
 
-		remote, err := git.Remote()
+		remotes, err := git.Remotes()
 		if err != nil {
 			return nil, err
 		}
 
-		if strings.Contains(remote, user) {
+		var remoteExists bool
+		for _, r := range remotes {
+			if r.Name == user {
+				remoteExists = true
+				break
+			}
+		}
+
+		if remoteExists {
 			err = git.Spawn("remote", "set-branches", "--add", user, branch)
 			if err != nil {
 				return nil, err

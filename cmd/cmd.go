@@ -25,7 +25,12 @@ func (cmd *Cmd) ExecOutput() (string, error) {
 }
 
 func (cmd *Cmd) Exec() error {
-	c := exec.Command(cmd.Name, cmd.Args...)
+	binary, lookErr := exec.LookPath(cmd.Name)
+	if lookErr != nil {
+		return fmt.Errorf("command not found: %s", cmd.Name)
+	}
+
+	c := exec.Command(binary, cmd.Args...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
