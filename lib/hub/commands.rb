@@ -574,6 +574,7 @@ module Hub
             repo_data = api_client.create_repo(new_project, options)
             new_project = github_project(repo_data['full_name'])
           end
+          args.after ['push', '-u', 'origin', 'master']
         end
 
         url = new_project.git_url(:private => true, :https => https_protocol?)
