@@ -6,7 +6,7 @@ import (
 	"github.com/jingweno/gh/utils"
 )
 
-const Version = "0.7.0"
+const Version = "0.8.0"
 
 var cmdVersion = &Command{
 	Run:   runVersion,
