@@ -10,18 +10,18 @@ type GitRemote struct {
 	URL  string
 }
 
-func Remotes() ([]GitRemote, error) {
+func Remotes() ([]*GitRemote, error) {
 	r := regexp.MustCompile("(.+)\t(.+github.com.+) \\(push\\)")
 	output, err := execGitCmd("remote", "-v")
 	if err != nil {
 		return nil, errors.New("Can't load git remote")
 	}
 
-	remotes := make([]GitRemote, 0)
+	remotes := make([]*GitRemote, 0)
 	for _, o := range output {
 		if r.MatchString(o) {
 			match := r.FindStringSubmatch(o)
-			remotes = append(remotes, GitRemote{Name: match[1], URL: match[2]})
+			remotes = append(remotes, &GitRemote{Name: match[1], URL: match[2]})
 		}
 	}
 
@@ -40,7 +40,7 @@ func OriginRemote() (*GitRemote, error) {
 
 	for _, r := range remotes {
 		if r.Name == "origin" {
-			return &r, nil
+			return r, nil
 		}
 	}
 
