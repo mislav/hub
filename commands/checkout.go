@@ -49,49 +49,27 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 			return nil, fmt.Errorf("%s's fork is not available anymore", user)
 		}
 
-		remotes, err := git.Remotes()
+		remoteExists, err := checkIfRemoteExists(user)
 		if err != nil {
 			return nil, err
 		}
 
-		var remoteExists bool
-		for _, r := range remotes {
-			if r.Name == user {
-				remoteExists = true
-				break
-			}
-		}
-
 		if remoteExists {
-			err = git.Spawn("remote", "set-branches", "--add", user, branch)
-			if err != nil {
-				return nil, err
-			}
-			remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
-			git.Spawn("fetch", user, remoteURL)
-			if err != nil {
-				return nil, err
-			}
+			err = updateExistingRemote(user, branch)
 		} else {
-			project, err := github.ParseProjectFromURL(url)
-			if err != nil {
-				return nil, err
-			}
-
-			sshURL := project.GitURL("", user, pullRequest.Head.Repo.Private)
-			err = git.Spawn("remote", "add", "-f", "-t", branch, user, sshURL)
-			if err != nil {
-				return nil, err
-			}
+			err = addRmote(user, branch, url, pullRequest.Head.Repo.Private)
+		}
+		if err != nil {
+			return nil, err
 		}
 
-		trackedBranch := fmt.Sprintf("%s/%s", user, branch)
 		var newBranchName string
 		if len(newArgs) > 0 {
 			newArgs, newBranchName = removeItem(newArgs, 0)
 		} else {
 			newBranchName = fmt.Sprintf("%s-%s", user, branch)
 		}
+		trackedBranch := fmt.Sprintf("%s/%s", user, branch)
 
 		newArgs = append(newArgs, "--track", "-B", newBranchName, trackedBranch)
 
@@ -108,4 +86,40 @@ func parsePullRequestId(url string) string {
 	}
 
 	return ""
+}
+
+func checkIfRemoteExists(remote string) (bool, error) {
+	remotes, err := git.Remotes()
+	if err != nil {
+		return false, err
+	}
+
+	for _, r := range remotes {
+		if r.Name == remote {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func updateExistingRemote(user, branch string) error {
+	err := git.Spawn("remote", "set-branches", "--add", user, branch)
+	if err != nil {
+		return err
+	}
+	remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
+
+	return git.Spawn("fetch", user, remoteURL)
+}
+
+func addRmote(user, branch, url string, isPrivate bool) error {
+	project, err := github.ParseProjectFromURL(url)
+	if err != nil {
+		return err
+	}
+
+	sshURL := project.GitURL("", user, isPrivate)
+
+	return git.Spawn("remote", "add", "-f", "-t", branch, user, sshURL)
 }
