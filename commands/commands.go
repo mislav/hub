@@ -57,7 +57,7 @@ var Remote = []*Command{
 }
 
 var GitHub = []*Command{
-	cmdPull,
+	cmdPr,
 	cmdFork,
 	cmdCi,
 	cmdBrowse,

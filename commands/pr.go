@@ -14,9 +14,9 @@ import (
 	"strings"
 )
 
-var cmdPull = &Command{
-	Run:   pull,
-	Usage: "pull [-f] [i ISSUE] [-b BASE] [-h HEAD] [TITLE]",
+var cmdPr = &Command{
+	Run:   pr,
+	Usage: "pr [-f] [i ISSUE] [-b BASE] [-h HEAD] [TITLE]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -38,12 +38,12 @@ of title you can paste a full URL to an issue on GitHub.
 var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue string
 
 func init() {
-	cmdPull.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
-	cmdPull.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
-	cmdPull.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
+	cmdPr.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
+	cmdPr.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
+	cmdPr.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
 }
 
-func pull(cmd *Command, args []string) {
+func pr(cmd *Command, args []string) {
 	var title, body string
 	if len(args) == 1 {
 		title = args[0]
