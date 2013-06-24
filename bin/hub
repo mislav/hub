@@ -3,7 +3,8 @@
 # hub(1)
 # alias git=hub
 
-$LOAD_PATH.unshift File.join(File.dirname(__FILE__), '../lib')
+require 'pathname'
+$LOAD_PATH.unshift File.join(File.dirname(Pathname.new(__FILE__).realpath), '../lib')
 
 require 'hub'
 Hub::Runner.execute(*ARGV)
