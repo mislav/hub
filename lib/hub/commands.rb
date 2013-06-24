@@ -595,7 +595,11 @@ module Hub
     # > git push origin cool-feature
     # > git push staging cool-feature
     def push(args)
-      return if args[1].nil? || !args[1].index(',')
+      if args[1].nil?
+        return args.concat ['--follow-tags']
+      end
+
+      return if !args[1].index(',')
 
       refs    = args.words[2..-1]
       remotes = args[1].split(',')
