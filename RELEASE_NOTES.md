@@ -1,5 +1,6 @@
 * **0.8.0** June 24, 2013
   * Implement `gh checkout`
+  * Rename `gh pull` to `gh pr`
 * **0.7.0** June 12, 2013
   * Implement `gh remote`
 * **0.6.1** June 12, 2013
