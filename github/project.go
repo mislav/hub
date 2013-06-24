@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
+	"net/url"
 	"regexp"
+	"strings"
 )
 
 type Project struct {
@@ -62,12 +64,30 @@ func (p *Project) LocalRepo() *Repo {
 }
 
 func CurrentProject() *Project {
-	remote, err := git.Remote()
+	remote, err := git.OriginRemote()
 	utils.Check(err)
 
-	owner, name := parseOwnerAndName(remote)
+	owner, name := parseOwnerAndName(remote.URL)
 
 	return &Project{name, owner}
+}
+
+func ParseProjectFromURL(uu string) (*Project, error) {
+	u, err := url.Parse(uu)
+	if err != nil {
+		return nil, err
+	}
+
+	if u.Host != GitHubHost || u.Scheme != "https" {
+		return nil, fmt.Errorf("Invalid GitHub URL: %s", u)
+	}
+
+	parts := strings.SplitN(u.Path, "/", 4)
+	if len(parts) >= 2 {
+		return &Project{Name: parts[2], Owner: parts[1]}, nil
+	}
+
+	return nil, fmt.Errorf("Invalid GitHub URL: %s", u)
 }
 
 func parseOwnerAndName(remote string) (owner string, name string) {

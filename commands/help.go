@@ -39,6 +39,9 @@ func runHelp(cmd *Command, args []string) {
 
 var usageTemplate = template.Must(template.New("usage").Parse(`Usage: gh [command] [options] [arguments]
 
+Branching Commands:{{range .BranchingCommands}}{{if .Runnable}}{{if .List}}
+    {{.Name | printf "%-16s"}}  {{.Short}}{{end}}{{end}}{{end}}
+
 Remote Commands:{{range .RemoteCommands}}{{if .Runnable}}{{if .List}}
     {{.Name | printf "%-16s"}}  {{.Short}}{{end}}{{end}}{{end}}
 
@@ -50,10 +53,12 @@ See 'gh help [command]' for more information about a command.
 
 func PrintUsage() {
 	usageTemplate.Execute(os.Stdout, struct {
-		RemoteCommands []*Command
-		GitHubCommands []*Command
+		BranchingCommands []*Command
+		RemoteCommands    []*Command
+		GitHubCommands    []*Command
 	}{
-    Remote,
+		Branching,
+		Remote,
 		GitHub,
 	})
 }

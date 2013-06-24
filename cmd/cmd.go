@@ -19,16 +19,18 @@ func (cmd *Cmd) WithArg(arg string) *Cmd {
 }
 
 func (cmd *Cmd) ExecOutput() (string, error) {
-	output, err := exec.Command(cmd.Name, cmd.Args...).Output()
-	if err != nil {
-		return "", err
-	}
+	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
 
-	return string(output), nil
+	return string(output), err
 }
 
 func (cmd *Cmd) Exec() error {
-	c := exec.Command(cmd.Name, cmd.Args...)
+	binary, lookErr := exec.LookPath(cmd.Name)
+	if lookErr != nil {
+		return fmt.Errorf("command not found: %s", cmd.Name)
+	}
+
+	c := exec.Command(binary, cmd.Args...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
