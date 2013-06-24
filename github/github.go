@@ -77,7 +77,7 @@ func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (newRemote s
 
 	if !noRemote {
 		newRemote = config.User
-		err = git.AddRemote(config.User, repo.SshURL)
+		err = git.Spawn("remote", "add", "-f", config.User, repo.SshURL)
 	}
 
 	return

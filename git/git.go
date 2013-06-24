@@ -10,7 +10,7 @@ import (
 )
 
 func Version() (string, error) {
-	output, err := execGitCmd([]string{"version"})
+	output, err := execGitCmd("version")
 	if err != nil {
 		return "", errors.New("Can't load git version")
 	}
@@ -19,7 +19,7 @@ func Version() (string, error) {
 }
 
 func Dir() (string, error) {
-	output, err := execGitCmd([]string{"rev-parse", "-q", "--git-dir"})
+	output, err := execGitCmd("rev-parse", "-q", "--git-dir")
 	if err != nil {
 		return "", errors.New("Not a git repository (or any of the parent directories): .git")
 	}
@@ -43,7 +43,7 @@ func PullReqMsgFile() (string, error) {
 }
 
 func Editor() (string, error) {
-	output, err := execGitCmd([]string{"var", "GIT_EDITOR"})
+	output, err := execGitCmd("var", "GIT_EDITOR")
 	if err != nil {
 		return "", errors.New("Can't load git var: GIT_EDITOR")
 	}
@@ -74,7 +74,7 @@ func EditorPath() (string, error) {
 }
 
 func Head() (string, error) {
-	output, err := execGitCmd([]string{"symbolic-ref", "-q", "--short", "HEAD"})
+	output, err := execGitCmd("symbolic-ref", "-q", "--short", "HEAD")
 	if err != nil {
 		return "master", errors.New("Can't load git HEAD")
 	}
@@ -83,38 +83,12 @@ func Head() (string, error) {
 }
 
 func Ref(ref string) (string, error) {
-	output, err := execGitCmd([]string{"rev-parse", "-q", ref})
+	output, err := execGitCmd("rev-parse", "-q", ref)
 	if err != nil {
 		return "", errors.New("Unknown revision or path not in the working tree: " + ref)
 	}
 
 	return output[0], nil
-}
-
-func ExecRemote(args ...string) error {
-	cmdArgs := make([]string, 0)
-	cmdArgs = append(cmdArgs, "remote")
-	cmdArgs = append(cmdArgs, args...)
-
-	return SysExec(cmdArgs...)
-}
-
-func AddRemote(name, url string) error {
-	_, err := execGitCmd([]string{"remote", "add", "-f", name, url})
-
-	return err
-}
-
-func ExecCheckout(args []string) error {
-	cmdArgs := make([]string, 0)
-	cmdArgs = append(cmdArgs, "checkout")
-	cmdArgs = append(cmdArgs, args...)
-
-	return SysExec(cmdArgs...)
-}
-
-func ExecHelp(command string) error {
-	return SysExec(command, "--help")
 }
 
 func Log(sha1, sha2 string) (string, error) {
@@ -133,8 +107,9 @@ func Log(sha1, sha2 string) (string, error) {
 	return outputs, nil
 }
 
-func SysExec(args ...string) error {
+func SysExec(command string, args ...string) error {
 	cmd := cmd.New("git")
+	cmd.WithArg(command)
 	for _, a := range args {
 		cmd.WithArg(a)
 	}
@@ -142,8 +117,9 @@ func SysExec(args ...string) error {
 	return cmd.SysExec()
 }
 
-func Spawn(args ...string) error {
+func Spawn(command string, args ...string) error {
 	cmd := cmd.New("git")
+	cmd.WithArg(command)
 	for _, a := range args {
 		cmd.WithArg(a)
 	}
@@ -156,7 +132,7 @@ func Spawn(args ...string) error {
 	return nil
 }
 
-func execGitCmd(input []string) (outputs []string, err error) {
+func execGitCmd(input ...string) (outputs []string, err error) {
 	cmd := cmd.New("git")
 	for _, i := range input {
 		cmd.WithArg(i)

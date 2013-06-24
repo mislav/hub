@@ -20,7 +20,7 @@ type Command struct {
 
 func (c *Command) PrintUsage() {
 	if c.GitExtension {
-		err := git.ExecHelp(c.Name())
+		err := git.SysExec(c.Name(), "--help")
 		utils.Check(err)
 	} else {
 		if c.Runnable() {

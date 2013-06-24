@@ -12,7 +12,7 @@ type GitRemote struct {
 
 func Remotes() ([]GitRemote, error) {
 	r := regexp.MustCompile("(.+)\t(.+github.com.+) \\(push\\)")
-	output, err := execGitCmd([]string{"remote", "-v"})
+	output, err := execGitCmd("remote", "-v")
 	if err != nil {
 		return nil, errors.New("Can't load git remote")
 	}

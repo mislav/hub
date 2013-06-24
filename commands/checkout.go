@@ -29,7 +29,7 @@ func checkout(command *Command, args []string) {
 		utils.Fatal(err)
 	}
 
-	err = git.ExecCheckout(args)
+	err = git.SysExec("checkout", args...)
 	utils.Check(err)
 }
 
