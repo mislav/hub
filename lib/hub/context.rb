@@ -262,10 +262,7 @@ module Hub
       end
 
       def git_url(options = {})
-        if options[:https] then "https://#{host}/"
-        elsif options[:private] or private? then "git@#{host}:"
-        else "git://#{host}/"
-        end + name_with_owner + '.git'
+        "git@#{host}:#{name_with_owner}"
       end
     end
 
@@ -441,7 +438,7 @@ module Hub
 
     module System
       # Cross-platform web browser command; respects the value set in $BROWSER.
-      # 
+      #
       # Returns an array, e.g.: ['open']
       def browser_launcher
         browser = ENV['BROWSER'] || (
