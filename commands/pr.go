@@ -16,7 +16,7 @@ import (
 
 var cmdPr = &Command{
 	Run:   pr,
-	Usage: "pr [-f] [i ISSUE] [-b BASE] [-h HEAD] [TITLE]",
+	Usage: "pr [-f] [-i ISSUE] [-b BASE] [-d HEAD] [TITLE]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -39,7 +39,7 @@ var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue string
 
 func init() {
 	cmdPr.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
-	cmdPr.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
+	cmdPr.Flag.StringVar(&flagPullRequestHead, "d", "", "HEAD")
 	cmdPr.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
 }
 
