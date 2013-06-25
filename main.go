@@ -9,19 +9,20 @@ import (
 )
 
 func main() {
-	args := os.Args[1:]
-	if len(args) < 1 {
+	args := commands.NewArgs(os.Args[1:])
+	if args.Size() < 1 {
 		commands.Usage()
+		return
 	}
 
 	for _, cmd := range commands.All() {
-		if cmd.Name() == args[0] && cmd.Runnable() {
-			cmdArgs := args[1:]
+		if cmd.Name() == args.First() && cmd.Runnable() {
+			cmdArgs := args.Rest()
 			if !cmd.GitExtension {
 				cmd.Flag.Usage = func() {
 					cmd.PrintUsage()
 				}
-				if err := cmd.Flag.Parse(args[1:]); err != nil {
+				if err := cmd.Flag.Parse(cmdArgs); err != nil {
 					os.Exit(2)
 				}
 
@@ -29,17 +30,16 @@ func main() {
 			}
 
 			cmd.Run(cmd, cmdArgs)
-
 			return
 		}
 	}
 
-	if len(args) > 0 {
-		err := git.SysExec(args[0], args[1:]...)
+	if args.Size() > 0 {
+		err := git.SysExec(args.First(), args.Rest()...)
 		utils.Check(err)
 		return
 	}
 
-	fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args[0])
+	fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args.First())
 	commands.Usage()
 }
