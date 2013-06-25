@@ -1,3 +1,6 @@
+* **0.9.0** (in progress)
+  * Proxy commands to `git`
+  * `gh alias`
 * **0.8.0** June 24, 2013
   * Implement `gh checkout`
   * Rename `gh pull` to `gh pr`
