@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/jingweno/gh/commands"
+	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/utils"
 	"os"
 )
 
@@ -30,6 +32,12 @@ func main() {
 
 			return
 		}
+	}
+
+	if len(args) > 0 {
+		err := git.SysExec(args[0], args[1:]...)
+		utils.Check(err)
+		return
 	}
 
 	fmt.Fprintf(os.Stderr, "Unknown command: %s\n", args[0])
