@@ -761,7 +761,7 @@ module Hub
     def help(args)
       command = args.words[1]
 
-      if command == 'hub'
+      if command == 'hub' || custom_command?(command)
         puts hub_manpage
         exit
       elsif command.nil? && !args.has_flag?('-a', '--all')

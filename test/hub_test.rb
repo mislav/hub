@@ -321,15 +321,20 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_help_hub
-    help_manpage = hub("help hub")
+    help_manpage = strip_man_escapes hub("help hub")
     assert_includes "git + hub = github", help_manpage
     assert_includes "Hub will prompt for GitHub username & password", help_manpage.gsub(/ {2,}/, ' ')
   end
 
   def test_help_flag_on_command
-    help_manpage = hub("browse --help")
+    help_manpage = strip_man_escapes hub("browse --help")
     assert_includes "git + hub = github", help_manpage
     assert_includes "git browse", help_manpage
+  end
+
+  def test_help_custom_command
+    help_manpage = strip_man_escapes hub("help fork")
+    assert_includes "git fork [--no-remote]", help_manpage
   end
 
   def test_help_short_flag_on_command
@@ -540,6 +545,10 @@ class HubTest < Test::Unit::TestCase
       ensure
         config_file.unlink
       end
+    end
+
+    def strip_man_escapes(manpage)
+      manpage.gsub(/_\010/, '').gsub(/\010./, '')
     end
 
 end
