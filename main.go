@@ -29,7 +29,8 @@ func main() {
 				cmdArgs = cmd.Flag.Args()
 			}
 
-			cmd.Run(cmd, cmdArgs)
+			args = commands.NewArgs(cmdArgs)
+			cmd.Run(cmd, args)
 			return
 		}
 	}

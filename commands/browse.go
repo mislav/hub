@@ -24,10 +24,10 @@ func init() {
 	cmdBrowse.Flag.StringVar(&flagBrowseRepo, "r", "", "REPOSITORY")
 }
 
-func browse(command *Command, args []string) {
+func browse(command *Command, args *Args) {
 	subpage := "tree"
-	if len(args) > 0 {
-		subpage = args[0]
+	if !args.IsEmpty() {
+		subpage = args.First()
 	}
 
 	project := github.CurrentProject()

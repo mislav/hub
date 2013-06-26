@@ -17,23 +17,23 @@ func init() {
 	cmdHelp.Run = runHelp // break init loop
 }
 
-func runHelp(cmd *Command, args []string) {
-	if len(args) == 0 {
+func runHelp(cmd *Command, args *Args) {
+	if args.IsEmpty() {
 		PrintUsage()
 		return // not os.Exit(2); success
 	}
-	if len(args) != 1 {
+	if args.Size() != 1 {
 		log.Fatal("too many arguments")
 	}
 
 	for _, cmd := range All() {
-		if cmd.Name() == args[0] {
+		if cmd.Name() == args.First() {
 			cmd.PrintUsage()
 			return
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "Unknown help topic: %q. Run 'gh help'.\n", args[0])
+	fmt.Fprintf(os.Stderr, "Unknown help topic: %q. Run 'gh help'.\n", args.First())
 	os.Exit(2)
 }
 

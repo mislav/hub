@@ -22,36 +22,36 @@ var cmdCheckout = &Command{
 
   $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
 **/
-func checkout(command *Command, args []string) {
+func checkout(command *Command, args *Args) {
 	var err error
-	if len(args) > 0 {
-		args, err = transformCheckoutArgs(args)
+	if !args.IsEmpty() {
+		err = transformCheckoutArgs(args)
 		utils.Fatal(err)
 	}
 
-	err = git.SysExec("checkout", args...)
+	err = git.SysExec("checkout", args.Array()...)
 	utils.Check(err)
 }
 
-func transformCheckoutArgs(args []string) ([]string, error) {
-	id := parsePullRequestId(args[0])
+func transformCheckoutArgs(args *Args) error {
+	id := parsePullRequestId(args.First())
 	if id != "" {
-		newArgs, url := removeItem(args, 0)
+		url := args.Remove(0)
 		gh := github.New()
 		pullRequest, err := gh.PullRequest(id)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		user := pullRequest.User.Login
 		branch := pullRequest.Head.Ref
 		if pullRequest.Head.Repo.ID == 0 {
-			return nil, fmt.Errorf("%s's fork is not available anymore", user)
+			return fmt.Errorf("%s's fork is not available anymore", user)
 		}
 
 		remoteExists, err := checkIfRemoteExists(user)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if remoteExists {
@@ -60,23 +60,23 @@ func transformCheckoutArgs(args []string) ([]string, error) {
 			err = addRmote(user, branch, url, pullRequest.Head.Repo.Private)
 		}
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		var newBranchName string
-		if len(newArgs) > 0 {
-			newArgs, newBranchName = removeItem(newArgs, 0)
+		if args.Size() > 0 {
+			newBranchName = args.Remove(0)
 		} else {
 			newBranchName = fmt.Sprintf("%s-%s", user, branch)
 		}
 		trackedBranch := fmt.Sprintf("%s/%s", user, branch)
 
-		newArgs = append(newArgs, "--track", "-B", newBranchName, trackedBranch)
+		args.Append("--track", "-B", newBranchName, trackedBranch)
 
-		return newArgs, nil
+		return nil
 	}
 
-	return args, nil
+	return nil
 }
 
 func parsePullRequestId(url string) string {

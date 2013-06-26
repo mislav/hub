@@ -25,15 +25,15 @@ func init() {
 	cmdCompare.Flag.StringVar(&flagCompareUser, "u", "", "USER")
 }
 
-func compare(command *Command, args []string) {
+func compare(command *Command, args *Args) {
 	project := github.CurrentProject()
 
 	var r string
-	if len(args) == 0 {
+	if args.IsEmpty() {
 		repo := project.LocalRepo()
 		r = repo.Head
 	} else {
-		r = args[0]
+		r = args.First()
 	}
 
 	r = transformToTripleDots(r)

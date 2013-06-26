@@ -19,10 +19,10 @@ success (0), error (1), failure (1), pending (2), no status (3)
 `,
 }
 
-func ci(cmd *Command, args []string) {
+func ci(cmd *Command, args *Args) {
 	ref := "HEAD"
-	if len(args) > 0 {
-		ref = args[0]
+	if !args.IsEmpty() {
+		ref = args.First()
 	}
 
 	ref, err := git.Ref(ref)

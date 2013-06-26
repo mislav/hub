@@ -21,7 +21,7 @@ func init() {
 	cmdFork.Flag.BoolVar(&flagForkNoRemote, "no-remote", false, "")
 }
 
-func fork(cmd *Command, args []string) {
+func fork(cmd *Command, args *Args) {
 	gh := github.New()
 	project := gh.Project
 

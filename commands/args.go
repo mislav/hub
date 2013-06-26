@@ -23,8 +23,30 @@ func (a *Args) Remove(i int) string {
 	return item
 }
 
+func (a *Args) IndexOf(arg string) int {
+	for i, aa := range a.args {
+		if aa == arg {
+			return i
+		}
+	}
+
+	return -1
+}
+
 func (a *Args) Size() int {
 	return len(a.args)
+}
+
+func (a *Args) IsEmpty() bool {
+	return a.Size() == 0
+}
+
+func (a *Args) Array() []string {
+	return a.args
+}
+
+func (a *Args) Append(args ...string) {
+	a.args = append(a.args, args...)
 }
 
 func NewArgs(args []string) *Args {
