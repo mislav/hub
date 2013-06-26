@@ -6,19 +6,19 @@ import (
 )
 
 func TestTransformRemoteArgs(t *testing.T) {
-	args := []string{"add", "jingweno"}
-	args = transformRemoteArgs(args)
+	args := Args{[]string{"add", "jingweno"}}
+	transformRemoteArgs(&args)
 
-	assert.Equal(t, 3, len(args))
-	assert.Equal(t, "add", args[0])
-	assert.Equal(t, "jingweno", args[1])
-	assert.Equal(t, "git://github.com/jingweno/gh.git", args[2])
+	assert.Equal(t, 3, args.Size())
+	assert.Equal(t, "add", args.First())
+	assert.Equal(t, "jingweno", args.Get(1))
+	assert.Equal(t, "git://github.com/jingweno/gh.git", args.Get(2))
 
-	args = []string{"add", "-p", "jingweno"}
-	args = transformRemoteArgs(args)
+	args = Args{[]string{"add", "-p", "jingweno"}}
+	transformRemoteArgs(&args)
 
-	assert.Equal(t, 3, len(args))
-	assert.Equal(t, "add", args[0])
-	assert.Equal(t, "jingweno", args[1])
-	assert.Equal(t, "git@github.com:jingweno/gh.git", args[2])
+	assert.Equal(t, 3, args.Size())
+	assert.Equal(t, "add", args.First())
+	assert.Equal(t, "jingweno", args.Get(1))
+	assert.Equal(t, "git@github.com:jingweno/gh.git", args.Get(2))
 }

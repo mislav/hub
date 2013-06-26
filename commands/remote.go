@@ -35,12 +35,12 @@ func remote(command *Command, args *Args) {
 
 func transformRemoteArgs(args *Args) {
 	isPriavte := parseRemotePrivateFlag(args)
-	owner := args.Remove(args.Size() - 1)
+	owner := args.Last()
 
 	gh := github.New()
 	url := gh.ExpandRemoteUrl(owner, isPriavte)
 
-	args.Append(owner, url)
+	args.Append(url)
 }
 
 func parseRemotePrivateFlag(args *Args) bool {

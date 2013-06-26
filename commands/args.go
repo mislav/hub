@@ -1,5 +1,9 @@
 package commands
 
+import (
+	"fmt"
+)
+
 type Args struct {
 	args []string
 }
@@ -12,12 +16,16 @@ func (a *Args) First() string {
 	return a.args[0]
 }
 
+func (a *Args) Last() string {
+	return a.args[a.Size()-1]
+}
+
 func (a *Args) Rest() []string {
 	return a.args[1:]
 }
 
 func (a *Args) Remove(i int) string {
-	newArgs, item := removeItem(a.args, 0)
+	newArgs, item := removeItem(a.args, i)
 	a.args = newArgs
 
 	return item
@@ -51,4 +59,15 @@ func (a *Args) Append(args ...string) {
 
 func NewArgs(args []string) *Args {
 	return &Args{args}
+}
+
+func removeItem(slice []string, index int) (newSlice []string, item string) {
+	if index > len(slice)-1 {
+		panic(fmt.Sprintf("Index %d is out of bound", index))
+	}
+
+	item = slice[index]
+	newSlice = append(slice[:index], slice[index+1:]...)
+
+	return newSlice, item
 }
