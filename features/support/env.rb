@@ -128,11 +128,11 @@ World Module.new {
   end
 
   define_method(:text_editor_script) do |bash_code|
-    File.open("#{bin_dir}/vim", 'w', 0755) do |exe|
+    File.open("#{bin_dir}/vim", 'w', 0755) { |exe|
       exe.puts "#!/bin/bash"
       exe.puts "set -e"
       exe.puts bash_code
-    end
+    }
   end
 
   def run_silent cmd
