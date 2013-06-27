@@ -112,6 +112,7 @@ module Hub
       force = explicit_owner = false
       base_project = local_repo.main_project
       head_project = local_repo.current_project
+      after_exec = 'echo'
 
       unless current_branch
         abort "Aborted: not currently on any branch."
@@ -148,6 +149,8 @@ module Hub
           head_project, options[:head] = from_github_ref.call(head, head_project)
         when '-i'
           options[:issue] = args.shift
+        when '--open-browser'
+          after_exec = 'open'
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
@@ -229,7 +232,7 @@ module Hub
 
       pull = api_client.create_pullrequest(options)
 
-      args.executable = 'echo'
+      args.executable = after_exec
       args.replace [pull['html_url']]
     rescue GitHubAPI::Exceptions
       response = $!.response
