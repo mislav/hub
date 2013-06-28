@@ -6,7 +6,7 @@ import (
 )
 
 func TestRemove(t *testing.T) {
-	args := Args{[]string{"1", "2", "3"}}
+	args := NewArgs([]string{"1", "2", "3"})
 	item := args.Remove(1)
 
 	assert.Equal(t, "2", item)
