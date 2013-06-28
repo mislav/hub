@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"log"
+	"github.com/jingweno/gh/utils"
 	"os"
 	"text/template"
 )
@@ -19,17 +19,18 @@ func init() {
 
 func runHelp(cmd *Command, args *Args) {
 	if args.IsEmpty() {
-		PrintUsage()
-		return // not os.Exit(2); success
+    printUsage()
+    os.Exit(0)
 	}
+
 	if args.Size() != 1 {
-		log.Fatal("too many arguments")
+		utils.Check(fmt.Errorf("too many arguments"))
 	}
 
 	for _, cmd := range All() {
 		if cmd.Name() == args.First() {
 			cmd.PrintUsage()
-			return
+			os.Exit(0)
 		}
 	}
 
@@ -51,7 +52,7 @@ GitHub Commands:{{range .GitHubCommands}}{{if .Runnable}}{{if .List}}
 See 'gh help [command]' for more information about a command.
 `))
 
-func PrintUsage() {
+func printUsage() {
 	usageTemplate.Execute(os.Stdout, struct {
 		BranchingCommands []*Command
 		RemoteCommands    []*Command
@@ -63,7 +64,7 @@ func PrintUsage() {
 	})
 }
 
-func Usage() {
-	PrintUsage()
+func usage() {
+	printUsage()
 	os.Exit(2)
 }

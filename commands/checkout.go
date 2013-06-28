@@ -28,9 +28,6 @@ func checkout(command *Command, args *Args) {
 		err = transformCheckoutArgs(args)
 		utils.Fatal(err)
 	}
-
-	err = git.SysExec("checkout", args.Array()...)
-	utils.Check(err)
 }
 
 func transformCheckoutArgs(args *Args) error {
@@ -55,12 +52,12 @@ func transformCheckoutArgs(args *Args) error {
 		}
 
 		if remoteExists {
-			err = updateExistingRemote(user, branch)
+			updateExistingRemote(args, user, branch)
 		} else {
-			err = addRmote(user, branch, url, pullRequest.Head.Repo.Private)
-		}
-		if err != nil {
-			return err
+			err = addRmote(args, user, branch, url, pullRequest.Head.Repo.Private)
+			if err != nil {
+				return err
+			}
 		}
 
 		var newBranchName string
@@ -103,23 +100,20 @@ func checkIfRemoteExists(remote string) (bool, error) {
 	return false, nil
 }
 
-func updateExistingRemote(user, branch string) error {
-	err := git.Spawn("remote", "set-branches", "--add", user, branch)
-	if err != nil {
-		return err
-	}
+func updateExistingRemote(args *Args, user, branch string) {
+	args.Before("git", "remote", "set-branches", "--add", user, branch)
 	remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
-
-	return git.Spawn("fetch", user, remoteURL)
+	args.Before("git", "fetch", user, remoteURL)
 }
 
-func addRmote(user, branch, url string, isPrivate bool) error {
+func addRmote(args *Args, user, branch, url string, isPrivate bool) error {
 	project, err := github.ParseProjectFromURL(url)
 	if err != nil {
 		return err
 	}
 
 	sshURL := project.GitURL("", user, isPrivate)
+	args.Before("git", "remote", "add", "-f", "-t", branch, user, sshURL)
 
-	return git.Spawn("remote", "add", "-f", "-t", branch, user, sshURL)
+	return nil
 }

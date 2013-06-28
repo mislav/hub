@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
-	"github.com/jingweno/gh/utils"
 )
 
 var cmdRemote = &Command{
@@ -28,9 +26,6 @@ func remote(command *Command, args *Args) {
 	if args.Size() >= 2 && (args.First() == "add" || args.First() == "set-url") {
 		transformRemoteArgs(args)
 	}
-
-	err := git.SysExec("remote", args.Array()...)
-	utils.Check(err)
 }
 
 func transformRemoteArgs(args *Args) {

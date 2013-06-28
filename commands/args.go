@@ -2,10 +2,33 @@ package commands
 
 import (
 	"fmt"
+	"github.com/jingweno/gh/cmd"
 )
 
 type Args struct {
-	args []string
+	args        []string
+	beforeChain []*cmd.Cmd
+	afterChain  []*cmd.Cmd
+}
+
+func (a *Args) Before(command ...string) {
+	a.beforeChain = append(a.beforeChain, cmd.NewWithArray(command))
+}
+
+func (a *Args) After(command ...string) {
+	a.afterChain = append(a.afterChain, cmd.NewWithArray(command))
+}
+
+func (a *Args) Commands() []*cmd.Cmd {
+	result := a.beforeChain
+	result = append(result, a.ToCmd())
+	result = append(result, a.afterChain...)
+
+	return result
+}
+
+func (a *Args) ToCmd() *cmd.Cmd {
+	return cmd.New("git").WithArgs(a.Array()...)
 }
 
 func (a *Args) Get(i int) string {
@@ -57,8 +80,12 @@ func (a *Args) Append(args ...string) {
 	a.args = append(a.args, args...)
 }
 
+func (a *Args) Prepend(args ...string) {
+	a.args = append(args, a.args...)
+}
+
 func NewArgs(args []string) *Args {
-	return &Args{args}
+	return &Args{args, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {

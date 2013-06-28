@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"os"
 )
 
 var cmdFork = &Command{
@@ -31,4 +32,6 @@ func fork(cmd *Command, args *Args) {
 	if !flagForkNoRemote && newRemote != "" {
 		fmt.Printf("New remote: %s\n", newRemote)
 	}
+
+	os.Exit(0)
 }

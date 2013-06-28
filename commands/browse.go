@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"os"
 )
 
 var cmdBrowse = &Command{
@@ -39,4 +40,6 @@ func browse(command *Command, args *Args) {
 	url := project.WebURL(flagBrowseRepo, flagBrowseUser, subpage)
 	err := browserCommand(url)
 	utils.Check(err)
+
+	os.Exit(0)
 }

@@ -84,6 +84,8 @@ func pr(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	fmt.Println(pullRequestURL)
+
+	os.Exit(0)
 }
 
 func writePullRequestChanges(repo *github.Repo, messageFile string) error {

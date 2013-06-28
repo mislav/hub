@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
+	"os"
 )
 
 const Version = "0.8.0"
@@ -23,4 +24,6 @@ func runVersion(cmd *Command, args *Args) {
 
 	fmt.Println(gitVersion)
 	fmt.Println(ghVersion)
+
+	os.Exit(0)
 }
