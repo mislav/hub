@@ -726,11 +726,6 @@ module Hub
 
       if script
         puts "alias git=hub"
-        if 'zsh' == shell
-          puts "if type compdef >/dev/null; then"
-          puts "   compdef hub=git"
-          puts "fi"
-        end
       else
         profile = case shell
           when 'bash' then '~/.bash_profile'
@@ -764,10 +759,18 @@ module Hub
       if command == 'hub' || custom_command?(command)
         puts hub_manpage
         exit
-      elsif command.nil? && !args.has_flag?('-a', '--all')
-        ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
-        puts improved_help_text
-        exit
+      elsif command.nil?
+        if args.has_flag?('-a', '--all')
+          # Add the special hub commands to the end of "git help -a" output.
+          args.after 'echo', ['']
+          args.after 'echo', ['hub commands']
+          args.after 'echo', ['']
+          args.after 'echo', ['  ' + CUSTOM_COMMANDS.join(' ')]
+        else
+          ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
+          puts improved_help_text
+          exit
+        end
       end
     end
     alias_method "--help", :help
