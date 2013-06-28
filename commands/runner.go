@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/jingweno/gh/git"
 	"os"
 )
 
@@ -46,8 +47,10 @@ func (r *Runner) Execute() error {
 					return err
 				}
 			}
+
+			return nil
 		}
 	}
 
-	return nil
+	return git.SysExec(args.First(), args.Rest()...)
 }
