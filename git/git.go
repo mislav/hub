@@ -107,6 +107,15 @@ func Log(sha1, sha2 string) (string, error) {
 	return outputs, nil
 }
 
+func Config(name string) (string, error) {
+	output, err := execGitCmd("config", name)
+	if err != nil {
+		return "", fmt.Errorf("Unknown config %s", name)
+	}
+
+	return output[0], nil
+}
+
 func SysExec(command string, args ...string) error {
 	cmd := cmd.New("git")
 	cmd.WithArg(command)

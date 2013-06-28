@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/jingweno/gh/git"
 	"os"
 )
@@ -14,6 +15,8 @@ func (r *Runner) Execute() error {
 	if args.Size() < 1 {
 		usage()
 	}
+
+	expandAlias(args)
 
 	for _, cmd := range All() {
 		if cmd.Name() == args.First() && cmd.Runnable() {
@@ -53,4 +56,13 @@ func (r *Runner) Execute() error {
 	}
 
 	return git.SysExec(args.First(), args.Rest()...)
+}
+
+func expandAlias(args *Args) {
+	cmd := args.First()
+	expandedCmd, err := git.Config(fmt.Sprintf("alias.%s", cmd))
+	if err == nil && expandedCmd != "" {
+		args.Remove(0)
+		args.Prepend(expandedCmd)
+	}
 }
