@@ -9,7 +9,7 @@ import (
 )
 
 type Command struct {
-	Run  func(cmd *Command, args []string)
+	Run  func(cmd *Command, args *Args)
 	Flag flag.FlagSet
 
 	Usage        string

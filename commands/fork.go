@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"os"
 )
 
 var cmdFork = &Command{
@@ -21,7 +22,7 @@ func init() {
 	cmdFork.Flag.BoolVar(&flagForkNoRemote, "no-remote", false, "")
 }
 
-func fork(cmd *Command, args []string) {
+func fork(cmd *Command, args *Args) {
 	gh := github.New()
 	project := gh.Project
 
@@ -31,4 +32,6 @@ func fork(cmd *Command, args []string) {
 	if !flagForkNoRemote && newRemote != "" {
 		fmt.Printf("New remote: %s\n", newRemote)
 	}
+
+	os.Exit(0)
 }

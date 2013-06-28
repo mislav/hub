@@ -18,6 +18,12 @@ func (cmd *Cmd) WithArg(arg string) *Cmd {
 	return cmd
 }
 
+func (cmd *Cmd) WithArgs(args ...string) *Cmd {
+	cmd.Args = append(cmd.Args, args...)
+
+	return cmd
+}
+
 func (cmd *Cmd) ExecOutput() (string, error) {
 	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
 

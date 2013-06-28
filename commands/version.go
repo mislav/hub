@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
+	"os"
 )
 
 const Version = "0.8.0"
@@ -15,7 +16,7 @@ var cmdVersion = &Command{
 	Long:  `Shows git version and gh client version.`,
 }
 
-func runVersion(cmd *Command, args []string) {
+func runVersion(cmd *Command, args *Args) {
 	gitVersion, err := git.Version()
 	utils.Check(err)
 
@@ -23,4 +24,6 @@ func runVersion(cmd *Command, args []string) {
 
 	fmt.Println(gitVersion)
 	fmt.Println(ghVersion)
+
+	os.Exit(0)
 }

@@ -43,10 +43,10 @@ func init() {
 	cmdPr.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
 }
 
-func pr(cmd *Command, args []string) {
+func pr(cmd *Command, args *Args) {
 	var title, body string
-	if len(args) == 1 {
-		title = args[0]
+	if args.Size() == 1 {
+		title = args.First()
 	}
 
 	gh := github.New()
@@ -84,6 +84,8 @@ func pr(cmd *Command, args []string) {
 	utils.Check(err)
 
 	fmt.Println(pullRequestURL)
+
+	os.Exit(0)
 }
 
 func writePullRequestChanges(repo *github.Repo, messageFile string) error {

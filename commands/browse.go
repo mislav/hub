@@ -3,6 +3,7 @@ package commands
 import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"os"
 )
 
 var cmdBrowse = &Command{
@@ -24,10 +25,10 @@ func init() {
 	cmdBrowse.Flag.StringVar(&flagBrowseRepo, "r", "", "REPOSITORY")
 }
 
-func browse(command *Command, args []string) {
+func browse(command *Command, args *Args) {
 	subpage := "tree"
-	if len(args) > 0 {
-		subpage = args[0]
+	if !args.IsEmpty() {
+		subpage = args.First()
 	}
 
 	project := github.CurrentProject()
@@ -39,4 +40,6 @@ func browse(command *Command, args []string) {
 	url := project.WebURL(flagBrowseRepo, flagBrowseUser, subpage)
 	err := browserCommand(url)
 	utils.Check(err)
+
+	os.Exit(0)
 }

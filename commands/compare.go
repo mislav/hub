@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"os"
 	"regexp"
 )
 
@@ -25,15 +26,15 @@ func init() {
 	cmdCompare.Flag.StringVar(&flagCompareUser, "u", "", "USER")
 }
 
-func compare(command *Command, args []string) {
+func compare(command *Command, args *Args) {
 	project := github.CurrentProject()
 
 	var r string
-	if len(args) == 0 {
+	if args.IsEmpty() {
 		repo := project.LocalRepo()
 		r = repo.Head
 	} else {
-		r = args[0]
+		r = args.First()
 	}
 
 	r = transformToTripleDots(r)
@@ -41,6 +42,8 @@ func compare(command *Command, args []string) {
 	url := project.WebURL("", flagCompareUser, subpage)
 	err := browserCommand(url)
 	utils.Check(err)
+
+	os.Exit(0)
 }
 
 func transformToTripleDots(r string) string {

@@ -22,61 +22,58 @@ var cmdCheckout = &Command{
 
   $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
 **/
-func checkout(command *Command, args []string) {
+func checkout(command *Command, args *Args) {
 	var err error
-	if len(args) > 0 {
-		args, err = transformCheckoutArgs(args)
+	if !args.IsEmpty() {
+		err = transformCheckoutArgs(args)
 		utils.Fatal(err)
 	}
-
-	err = git.SysExec("checkout", args...)
-	utils.Check(err)
 }
 
-func transformCheckoutArgs(args []string) ([]string, error) {
-	id := parsePullRequestId(args[0])
+func transformCheckoutArgs(args *Args) error {
+	id := parsePullRequestId(args.First())
 	if id != "" {
-		newArgs, url := removeItem(args, 0)
+		url := args.Remove(0)
 		gh := github.New()
 		pullRequest, err := gh.PullRequest(id)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		user := pullRequest.User.Login
 		branch := pullRequest.Head.Ref
 		if pullRequest.Head.Repo.ID == 0 {
-			return nil, fmt.Errorf("%s's fork is not available anymore", user)
+			return fmt.Errorf("%s's fork is not available anymore", user)
 		}
 
 		remoteExists, err := checkIfRemoteExists(user)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 		if remoteExists {
-			err = updateExistingRemote(user, branch)
+			updateExistingRemote(args, user, branch)
 		} else {
-			err = addRmote(user, branch, url, pullRequest.Head.Repo.Private)
-		}
-		if err != nil {
-			return nil, err
+			err = addRmote(args, user, branch, url, pullRequest.Head.Repo.Private)
+			if err != nil {
+				return err
+			}
 		}
 
 		var newBranchName string
-		if len(newArgs) > 0 {
-			newArgs, newBranchName = removeItem(newArgs, 0)
+		if args.Size() > 0 {
+			newBranchName = args.Remove(0)
 		} else {
 			newBranchName = fmt.Sprintf("%s-%s", user, branch)
 		}
 		trackedBranch := fmt.Sprintf("%s/%s", user, branch)
 
-		newArgs = append(newArgs, "--track", "-B", newBranchName, trackedBranch)
+		args.Append("--track", "-B", newBranchName, trackedBranch)
 
-		return newArgs, nil
+		return nil
 	}
 
-	return args, nil
+	return nil
 }
 
 func parsePullRequestId(url string) string {
@@ -103,23 +100,20 @@ func checkIfRemoteExists(remote string) (bool, error) {
 	return false, nil
 }
 
-func updateExistingRemote(user, branch string) error {
-	err := git.Spawn("remote", "set-branches", "--add", user, branch)
-	if err != nil {
-		return err
-	}
+func updateExistingRemote(args *Args, user, branch string) {
+	args.Before("git", "remote", "set-branches", "--add", user, branch)
 	remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
-
-	return git.Spawn("fetch", user, remoteURL)
+	args.Before("git", "fetch", user, remoteURL)
 }
 
-func addRmote(user, branch, url string, isPrivate bool) error {
+func addRmote(args *Args, user, branch, url string, isPrivate bool) error {
 	project, err := github.ParseProjectFromURL(url)
 	if err != nil {
 		return err
 	}
 
 	sshURL := project.GitURL("", user, isPrivate)
+	args.Before("git", "remote", "add", "-f", "-t", branch, user, sshURL)
 
-	return git.Spawn("remote", "add", "-f", "-t", branch, user, sshURL)
+	return nil
 }

@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
-	"github.com/jingweno/gh/utils"
 )
 
 var cmdRemote = &Command{
@@ -24,32 +22,27 @@ var cmdRemote = &Command{
   > git remote add origin
   git://github.com/YOUR_LOGIN/THIS_REPO.git
 **/
-func remote(command *Command, args []string) {
-	if len(args) >= 2 && (args[0] == "add" || args[0] == "set-url") {
-		args = transformRemoteArgs(args)
+func remote(command *Command, args *Args) {
+	if args.Size() >= 2 && (args.First() == "add" || args.First() == "set-url") {
+		transformRemoteArgs(args)
 	}
-
-	err := git.SysExec("remote", args...)
-	utils.Check(err)
 }
 
-func transformRemoteArgs(args []string) (newArgs []string) {
-	args, isPriavte := parseRemotePrivateFlag(args)
-	newArgs, owner := removeItem(args, len(args)-1)
+func transformRemoteArgs(args *Args) {
+	isPriavte := parseRemotePrivateFlag(args)
+	owner := args.Last()
 
 	gh := github.New()
 	url := gh.ExpandRemoteUrl(owner, isPriavte)
 
-	return append(newArgs, owner, url)
+	args.Append(url)
 }
 
-func parseRemotePrivateFlag(args []string) ([]string, bool) {
-	for i, arg := range args {
-		if arg == "-p" {
-			args, _ = removeItem(args, i)
-			return args, true
-		}
+func parseRemotePrivateFlag(args *Args) bool {
+	if i := args.IndexOf("-p"); i != -1 {
+		args.Remove(i)
+		return true
 	}
 
-	return args, false
+	return false
 }
