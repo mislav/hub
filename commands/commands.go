@@ -69,6 +69,7 @@ func All() []*Command {
 	all = append(all, Branching...)
 	all = append(all, Remote...)
 	all = append(all, GitHub...)
+	all = append(all, cmdAlias)
 	all = append(all, cmdVersion)
 	all = append(all, cmdHelp)
 
