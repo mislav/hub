@@ -8,7 +8,7 @@
     "PrereleaseInfo": "snapshot",
     "Verbosity": "v",
     "Resources": {
-      "Include": "INSTALL*",
+      "Include": "INSTALL*,README*,LICENSE*,gh.*",
       "Exclude": "*.go"
     },
     "TaskSettings": {
@@ -21,6 +21,16 @@
       "downloads-page": {
         "fileheader": "",
         "filename": ""
+      },
+      "pkg-build": {
+        "metadata": {
+          "description": "Fast GitHub command line client",
+          "maintainer": "Jingwen Owen Ou (http://owenou.com)"
+        },
+        "metadata-deb": {
+          "Depends": "",
+          "Homepage": "http://owenou.com/gh"
+        }
       }
     }
   }
