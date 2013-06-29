@@ -148,6 +148,8 @@ You should place this command in your `.bash_profile` or other startup script:
 eval "$(hub alias -s)"
 ~~~
 
+When enabling git-sh support (see below) this is done by default.
+
 ### Shell tab-completion
 
 hub repository contains tab-completion scripts for bash and zsh. These scripts
@@ -155,6 +157,12 @@ complement existing completion scripts that ship with git.
 
 * [hub bash completion](https://github.com/defunkt/hub/blob/master/etc/hub.bash_completion.sh)
 * [hub zsh completion](https://github.com/defunkt/hub/blob/master/etc/hub.zsh_completion)
+
+### git-sh support
+[git-sh](https://github.com/rtomayko/git-sh) is a customized bash shell suitable for git work.
+
+In order to enable git-sh support source [gitshrc](https://github.com/defunkt/hub/blob/master/etc/hub.gitsh.sh)
+either in /etc/gitshrc or ~/.gitshrc.
 
 
 Commands
