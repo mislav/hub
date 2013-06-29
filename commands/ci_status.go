@@ -8,9 +8,9 @@ import (
 	"os"
 )
 
-var cmdCi = &Command{
-	Run:   ci,
-	Usage: "ci [COMMIT]",
+var cmdCiStatus = &Command{
+	Run:   ciStatus,
+	Usage: "ci-status [COMMIT]",
 	Short: "Show CI status of a commit",
 	Long: `Looks up the SHA for COMMIT in GitHub Status API and displays the latest
 status. If no COMMIT is provided, HEAD will be used. Exits with one of:
@@ -19,7 +19,7 @@ success (0), error (1), failure (1), pending (2), no status (3)
 `,
 }
 
-func ci(cmd *Command, args *Args) {
+func ciStatus(cmd *Command, args *Args) {
 	ref := "HEAD"
 	if !args.IsEmpty() {
 		ref = args.First()
