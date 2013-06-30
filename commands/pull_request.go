@@ -16,7 +16,7 @@ import (
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-  Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-d HEAD] [TITLE]",
+	Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-d HEAD] [TITLE]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -54,6 +54,8 @@ func pullRequest(cmd *Command, args *Args) {
 	if title == "" && flagPullRequestIssue == "" {
 		messageFile, err := git.PullReqMsgFile()
 		utils.Check(err)
+
+		defer removeFile(messageFile)
 
 		err = writePullRequestChanges(repo, messageFile)
 		utils.Check(err)
@@ -179,4 +181,9 @@ func readln(r *bufio.Reader) (string, error) {
 	}
 
 	return string(ln), err
+}
+
+func removeFile(file string) {
+	err := os.Remove(file)
+	utils.Check(err)
 }
