@@ -55,8 +55,6 @@ func pullRequest(cmd *Command, args *Args) {
 		messageFile, err := git.PullReqMsgFile()
 		utils.Check(err)
 
-		defer removeFile(messageFile)
-
 		err = writePullRequestChanges(repo, messageFile)
 		utils.Check(err)
 
@@ -67,6 +65,9 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		title, body, err = readTitleAndBody(messageFile)
+		utils.Check(err)
+
+		err = os.Remove(messageFile)
 		utils.Check(err)
 	}
 
@@ -181,9 +182,4 @@ func readln(r *bufio.Reader) (string, error) {
 	}
 
 	return string(ln), err
-}
-
-func removeFile(file string) {
-	err := os.Remove(file)
-	utils.Check(err)
 }
