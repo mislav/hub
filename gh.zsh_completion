@@ -11,8 +11,9 @@ fi
 if declare -f _git_commands > /dev/null; then
   _hub_commands=(
     'alias:show shell instructions for wrapping git'
-    'pr:open a pull request on GitHub'
+    'pull-request:open a pull request on GitHub'
     'fork:fork origin repo on GitHub'
+    'ci-status:show CI status of a commit'
     'create:create new repo on GitHub for the current project'
     'browse:browse the project on GitHub'
     'compare:open GitHub compare view'

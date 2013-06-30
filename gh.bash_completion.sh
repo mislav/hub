@@ -11,8 +11,9 @@ if declare -F _git > /dev/null; then
   __git_list_all_commands() {
     cat <<-EOF
 alias
-pr
+pull-request
 fork
+ci-status
 create
 browse
 compare

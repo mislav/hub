@@ -16,7 +16,7 @@ import (
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-  Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-d HEAD] [TITLE]",
+	Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-d HEAD] [TITLE]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -65,6 +65,9 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		title, body, err = readTitleAndBody(messageFile)
+		utils.Check(err)
+
+		err = os.Remove(messageFile)
 		utils.Check(err)
 	}
 
