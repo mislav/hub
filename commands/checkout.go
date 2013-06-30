@@ -17,8 +17,8 @@ var cmdCheckout = &Command{
 
 /**
   $ gh checkout https://github.com/jingweno/gh/pull/73
-  # > git remote add -f -t feature git://github:com/foo/gh.git
-  # > git checkout --track -B foo-feature foo/feature
+  > git remote add -f -t feature git://github:com/foo/gh.git
+  > git checkout --track -B foo-feature foo/feature
 
   $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
 **/

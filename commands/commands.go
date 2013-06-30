@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+var (
+	NameRe          = "[\\w.][\\w.-]*"
+	OwnerRe         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
+	NameWithOwnerRe = fmt.Sprintf("/^(?:%s|%s\\/%s)$", NameRe, OwnerRe, NameRe)
+)
+
 type Command struct {
 	Run  func(cmd *Command, args *Args)
 	Flag flag.FlagSet
