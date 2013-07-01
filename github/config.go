@@ -41,8 +41,10 @@ func (c *Config) FetchPassword() string {
 }
 
 func (c *Config) FetchCredentials() {
+	var changed bool
 	if c.User == "" {
 		c.FetchUser()
+		changed = true
 	}
 
 	if c.Token == "" {
@@ -51,7 +53,11 @@ func (c *Config) FetchCredentials() {
 		utils.Check(err)
 
 		c.Token = token
-		err = saveConfig(c)
+		changed = true
+	}
+
+	if changed {
+		err := SaveConfig(c)
 		utils.Check(err)
 	}
 }
@@ -62,7 +68,9 @@ var (
 
 func CurrentConfig() *Config {
 	config, err := loadConfig()
-	utils.Check(err)
+	if err != nil {
+		config = Config{}
+	}
 	config.FetchCredentials()
 
 	return &config
@@ -96,7 +104,7 @@ func doLoadFrom(f *os.File) (Config, error) {
 	return c, nil
 }
 
-func saveConfig(config *Config) error {
+func SaveConfig(config *Config) error {
 	return saveTo(DefaultFile, config)
 }
 

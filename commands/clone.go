@@ -42,18 +42,7 @@ func transformCloneArgs(args *Args) {
 		}
 
 		if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
-			owner, name := "", a
-			if strings.Contains(a, "/") {
-				split := strings.SplitN(a, "/", 2)
-				owner = split[0]
-				name = split[1]
-			}
-
-			if owner == "" {
-				config := github.CurrentConfig()
-				owner = config.User
-			}
-
+			name, owner := parseCloneNameAndOwner(a)
 			project := github.Project{Name: name, Owner: owner}
 			url := project.GitURL(name, owner, isSSH)
 			args.Replace(i, url)
@@ -70,4 +59,20 @@ func parseClonePrivateFlag(args *Args) bool {
 	}
 
 	return false
+}
+
+func parseCloneNameAndOwner(arg string) (name, owner string) {
+	name, owner = arg, ""
+	if strings.Contains(arg, "/") {
+		split := strings.SplitN(arg, "/", 2)
+		name = split[1]
+		owner = split[0]
+	}
+
+	if owner == "" {
+    config := github.CurrentConfig()
+		owner = config.User
+	}
+
+	return
 }
