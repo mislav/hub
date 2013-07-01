@@ -11,7 +11,7 @@ import (
 var (
 	NameRe          = "[\\w.][\\w.-]*"
 	OwnerRe         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
-	NameWithOwnerRe = fmt.Sprintf("/^(?:%s|%s\\/%s)$", NameRe, OwnerRe, NameRe)
+	NameWithOwnerRe = fmt.Sprintf("^(?:%s|%s\\/%s)$", NameRe, OwnerRe, NameRe)
 )
 
 type Command struct {
@@ -59,6 +59,7 @@ var Branching = []*Command{
 }
 
 var Remote = []*Command{
+	cmdClone,
 	cmdRemote,
 }
 

@@ -54,6 +54,14 @@ func (a *Args) Remove(i int) string {
 	return item
 }
 
+func (a *Args) Replace(i int, item string) {
+	if i > a.Size()-1 {
+		panic(fmt.Sprintf("Index %d is out of bound", i))
+	}
+
+	a.args[i] = item
+}
+
 func (a *Args) IndexOf(arg string) int {
 	for i, aa := range a.args {
 		if aa == arg {

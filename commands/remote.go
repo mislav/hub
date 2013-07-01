@@ -3,6 +3,9 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/utils"
+	"os"
+	"path/filepath"
 	"regexp"
 )
 
@@ -31,15 +34,23 @@ func remote(command *Command, args *Args) {
 
 func transformRemoteArgs(args *Args) {
 	ownerWithName := args.Last()
-	owner, repo, match := parseRepoNameOwner(ownerWithName)
+	owner, name, match := parseRepoNameOwner(ownerWithName)
 	if !match {
 		return
 	}
-
 	isPriavte := parseRemotePrivateFlag(args)
+	if name == "" {
+		dir, err := os.Getwd()
+		utils.Check(err)
+		name = filepath.Base(dir)
+	}
 
-	gh := github.New()
-	url := gh.ExpandRemoteUrl(owner, repo, isPriavte)
+	if owner == "origin" {
+		owner = github.CurrentConfig().FetchUser()
+	}
+
+	project := github.Project{Owner: owner, Name: name}
+	url := project.GitURL(name, owner, isPriavte)
 
 	args.Append(url)
 }
