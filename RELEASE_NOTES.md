@@ -1,4 +1,9 @@
-* **0.9.0** (in progress)
+* **0.10.0**
+  * Implement `gh clone`
+  * Fix various bugs in `gh remote`
+  * Rename `gh pr` `gh pull-request` to avoid potential alias collision
+  * Rename `gh ci` `gh ci-status` to avoid potential alias collision
+* **0.9.0**
   * Proxy commands to `git`
   * `gh alias`
 * **0.8.0** June 24, 2013
