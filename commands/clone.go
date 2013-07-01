@@ -28,8 +28,8 @@ For repositories under your GitHub login, -p is implicit.
   $ gh clone jekyll_and_hype
   > git clone git://github.com/YOUR_LOGIN/jekyll_and_hype.
 
-  $ hub clone -p jekyll_and_hype
-  > git clone git@github.com:YOUR_LOGIN/jekyll_and_hype.git
+  $ gh clone -p jekyll_and_hyde
+  > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
 */
 func clone(command *Command, args *Args) {
 	if !args.IsEmpty() {
