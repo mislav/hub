@@ -9,8 +9,13 @@ import (
 var cmdClone = &Command{
 	Run:          clone,
 	GitExtension: true,
-	Usage:        "clone [-p] OPTIONS [USER] REPOSITORY DIRECTORY",
+	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
 	Short:        "clone a remote repository into a new directory",
+	Long: `Clone repository "git://github.com/USER/REPOSITORY.git" into
+DIRECTORY as with git-clone(1). When USER/ is omitted, assumes
+your GitHub login. With -p, clone private repositories over SSH.
+For repositories under your GitHub login, -p is implicit.
+`,
 }
 
 /**
@@ -70,7 +75,7 @@ func parseCloneNameAndOwner(arg string) (name, owner string) {
 	}
 
 	if owner == "" {
-    config := github.CurrentConfig()
+		config := github.CurrentConfig()
 		owner = config.User
 	}
 
