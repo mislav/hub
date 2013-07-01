@@ -40,14 +40,44 @@ func (c *Config) FetchPassword() string {
 	return string(pass)
 }
 
-var DefaultFile string
+func (c *Config) FetchCredentials() {
+	var changed bool
+	if c.User == "" {
+		c.FetchUser()
+		changed = true
+	}
 
-func init() {
-	DefaultFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
+	if c.Token == "" {
+		password := c.FetchPassword()
+		token, err := findOrCreateToken(c.User, password)
+		utils.Check(err)
+
+		c.Token = token
+		changed = true
+	}
+
+	if changed {
+		err := SaveConfig(c)
+		utils.Check(err)
+	}
+}
+
+var (
+	DefaultConfigFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
+)
+
+func CurrentConfig() *Config {
+	config, err := loadConfig()
+	if err != nil {
+		config = Config{}
+	}
+	config.FetchCredentials()
+
+	return &config
 }
 
 func loadConfig() (Config, error) {
-	return loadFrom(DefaultFile)
+	return loadFrom(DefaultConfigFile)
 }
 
 func loadFrom(filename string) (Config, error) {
@@ -74,8 +104,8 @@ func doLoadFrom(f *os.File) (Config, error) {
 	return c, nil
 }
 
-func saveConfig(config *Config) error {
-	return saveTo(DefaultFile, config)
+func SaveConfig(config *Config) error {
+	return saveTo(DefaultConfigFile, config)
 }
 
 func saveTo(filename string, config *Config) error {

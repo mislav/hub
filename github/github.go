@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/octokat"
 )
 
@@ -87,9 +86,7 @@ func (gh *GitHub) ExpandRemoteUrl(owner, name string, isSSH bool) (url string) {
 	project := gh.Project
 	if owner == "origin" {
 		config := gh.config
-		project.Owner = config.FetchUser()
-	} else {
-		project.Owner = owner
+		owner = config.FetchUser()
 	}
 
 	return project.GitURL(name, owner, isSSH)
@@ -134,27 +131,15 @@ func findOrCreateToken(user, password string) (string, error) {
 
 func (gh *GitHub) client() *octokat.Client {
 	config := gh.config
-	if config.User == "" {
-		config.FetchUser()
-	}
-
-	if config.Token == "" {
-		password := config.FetchPassword()
-		token, err := findOrCreateToken(config.User, password)
-		utils.Check(err)
-
-		config.Token = token
-		err = saveConfig(config)
-		utils.Check(err)
-	}
+	config.FetchCredentials()
 
 	return octokat.NewClient().WithToken(config.Token)
 }
 
 func New() *GitHub {
 	project := CurrentProject()
-	c, _ := loadConfig()
+	c := CurrentConfig()
 	c.FetchUser()
 
-	return &GitHub{project, &c}
+	return &GitHub{project, c}
 }
