@@ -63,7 +63,7 @@ func (c *Config) FetchCredentials() {
 }
 
 var (
-	DefaultFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
+	DefaultConfigFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
 )
 
 func CurrentConfig() *Config {
@@ -77,7 +77,7 @@ func CurrentConfig() *Config {
 }
 
 func loadConfig() (Config, error) {
-	return loadFrom(DefaultFile)
+	return loadFrom(DefaultConfigFile)
 }
 
 func loadFrom(filename string) (Config, error) {
@@ -105,7 +105,7 @@ func doLoadFrom(f *os.File) (Config, error) {
 }
 
 func SaveConfig(config *Config) error {
-	return saveTo(DefaultFile, config)
+	return saveTo(DefaultConfigFile, config)
 }
 
 func saveTo(filename string, config *Config) error {

@@ -2,6 +2,9 @@ package commands
 
 import (
 	"github.com/bmizerany/assert"
+	"github.com/jingweno/gh/github"
+	"os"
+	"path/filepath"
 	"regexp"
 	"testing"
 )
@@ -38,6 +41,11 @@ func TestTransformRemoteArgs(t *testing.T) {
 	assert.Equal(t, "jingweno", args.Get(1))
 	reg = regexp.MustCompile("^git@github.com:jingweno/.+\\.git$")
 	assert.T(t, reg.MatchString(args.Get(2)))
+
+	github.DefaultConfigFile = "./test_support/gh"
+	config := github.Config{User: "jingweno", Token: "123"}
+	github.SaveConfig(&config)
+	defer os.RemoveAll(filepath.Dir(github.DefaultConfigFile))
 
 	args = NewArgs([]string{"add", "origin"})
 	transformRemoteArgs(args)
