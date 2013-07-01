@@ -14,6 +14,12 @@ var cmdRemote = &Command{
 	GitExtension: true,
 	Usage:        "remote [-p] OPTIONS USER[/REPOSITORY]",
 	Short:        "View and manage a set of remote repositories",
+	Long: `Add remote "git://github.com/USER/REPOSITORY.git" as with
+git-remote(1). When /REPOSITORY is omitted, the basename of the
+current working directory is used. With -p, use private remote
+"git@github.com:USER/REPOSITORY.git". If USER is "origin"
+then uses your GitHub login.
+`,
 }
 
 /*

@@ -13,6 +13,11 @@ var cmdCheckout = &Command{
 	GitExtension: true,
 	Usage:        "checkout PULLREQ-URL [BRANCH]",
 	Short:        "Switch the active branch to another branch",
+	Long: `Checks out the head of the pull request as a local branch, to allow for
+reviewing, rebasing and otherwise cleaning up the commits in the pull
+request before merging. The name of the local branch can explicitly be
+set with BRANCH.
+`,
 }
 
 /**
