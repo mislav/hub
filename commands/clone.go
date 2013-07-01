@@ -48,6 +48,12 @@ func transformCloneArgs(args *Args) {
 
 		if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
 			name, owner := parseCloneNameAndOwner(a)
+			config := github.CurrentConfig()
+			if owner == "" {
+				owner = config.User
+			}
+			isSSH = isSSH || owner == config.User
+
 			project := github.Project{Name: name, Owner: owner}
 			url := project.GitURL(name, owner, isSSH)
 			args.Replace(i, url)
@@ -72,11 +78,6 @@ func parseCloneNameAndOwner(arg string) (name, owner string) {
 		split := strings.SplitN(arg, "/", 2)
 		name = split[1]
 		owner = split[0]
-	}
-
-	if owner == "" {
-		config := github.CurrentConfig()
-		owner = config.User
 	}
 
 	return
