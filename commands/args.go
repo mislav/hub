@@ -91,15 +91,15 @@ func (a *Args) AppendParams(params ...string) {
 
 func NewArgs(args []string) *Args {
 	var command string
-	var a []string
+	var params []string
 	if len(args) == 0 {
-		a = []string{}
+		params = []string{}
 	} else {
 		command = args[0]
-		a = args[1:]
+		params = args[1:]
 	}
 
-	return &Args{command, a, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
+	return &Args{command, params, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {
