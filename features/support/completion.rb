@@ -37,7 +37,7 @@ git_distributed_bash_completion = lambda {
 link_completion = lambda { |from, name = nil|
   name ||= from.basename
   raise ArgumentError, from.to_s unless File.exist?(from)
-  FileUtils.ln_s(from, cpldir + name)
+  FileUtils.ln_s(from, cpldir + name, :force => true)
 }
 
 setup_tmp_home = lambda { |shell|
