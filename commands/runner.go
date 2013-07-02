@@ -24,15 +24,11 @@ func (r *Runner) Execute() error {
 				cmd.Flag.Usage = func() {
 					cmd.PrintUsage()
 				}
-				cmdArgs := args.Array()
-				if err := cmd.Flag.Parse(cmdArgs); err != nil {
+				if err := cmd.Flag.Parse(args.Params); err != nil {
 					return err
 				}
 
-				cmdArgs = cmd.Flag.Args()
-				newArgs := []string{cmd.Name()}
-				newArgs = append(newArgs, cmdArgs...)
-				args = NewArgs(newArgs)
+				args.Params = cmd.Flag.Args()
 			}
 
 			cmd.Run(cmd, args)
@@ -56,7 +52,7 @@ func (r *Runner) Execute() error {
 		}
 	}
 
-	return git.SysExec(args.Command, args.Array()...)
+	return git.SysExec(args.Command, args.Params...)
 }
 
 func expandAlias(args *Args) {

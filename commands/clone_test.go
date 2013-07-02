@@ -17,30 +17,30 @@ func TestTransformCloneArgs(t *testing.T) {
 	args := NewArgs([]string{"clone", "foo/gh"})
 	transformCloneArgs(args)
 
-	assert.Equal(t, 1, args.Size())
-	assert.Equal(t, "git://github.com/foo/gh.git", args.First())
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.Equal(t, "git://github.com/foo/gh.git", args.FirstParam())
 
 	args = NewArgs([]string{"clone", "-p", "foo/gh"})
 	transformCloneArgs(args)
 
-	assert.Equal(t, 1, args.Size())
-	assert.Equal(t, "git@github.com:foo/gh.git", args.First())
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.Equal(t, "git@github.com:foo/gh.git", args.FirstParam())
 
 	args = NewArgs([]string{"clone", "jingweno/gh"})
 	transformCloneArgs(args)
 
-	assert.Equal(t, 1, args.Size())
-	assert.Equal(t, "git@github.com:jingweno/gh.git", args.First())
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.Equal(t, "git@github.com:jingweno/gh.git", args.FirstParam())
 
 	args = NewArgs([]string{"clone", "-p", "acl-services/devise-acl"})
 	transformCloneArgs(args)
 
-	assert.Equal(t, 1, args.Size())
-	assert.Equal(t, "git@github.com:acl-services/devise-acl.git", args.First())
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.Equal(t, "git@github.com:acl-services/devise-acl.git", args.FirstParam())
 
-	args = NewArgs([]string{"-p", "jekyll_and_hyde"})
+	args = NewArgs([]string{"clone", "-p", "jekyll_and_hyde"})
 	transformCloneArgs(args)
 
-	assert.Equal(t, 1, args.Size())
-	assert.Equal(t, "git@github.com:jingweno/jekyll_and_hyde.git", args.First())
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.Equal(t, "git@github.com:jingweno/jekyll_and_hyde.git", args.FirstParam())
 }

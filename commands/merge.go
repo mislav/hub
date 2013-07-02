@@ -22,14 +22,14 @@ ID and title, similar to the GitHub Merge Button.
   > git merge jingweno/feature --no-ff -m 'Merge pull request #73 from jingweno/feature...'
 */
 func merge(command *Command, args *Args) {
-	if !args.IsEmpty() {
+	if !args.IsParamsEmpty() {
 		err := transformMergeArgs(args)
 		utils.Fatal(err)
 	}
 }
 
 func transformMergeArgs(args *Args) error {
-	id := parsePullRequestId(args.First())
+	id := parsePullRequestId(args.FirstParam())
 	if id != "" {
 		pullRequest, err := fetchPullRequest(id)
 		if err != nil {
@@ -54,13 +54,13 @@ func fetchAndMerge(args *Args, pullRequest *octokat.PullRequest) error {
 		return err
 	}
 
-	args.Remove(0) // Remove the pull request URL
+	args.RemoveParam(0) // Remove the pull request URL
 
 	mergeHead := fmt.Sprintf("%s/%s", user, branch)
 	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
 	args.Before("git", "fetch", url, ref)
 	mergeMsg := fmt.Sprintf("'Merge pull request #%v from %s\n\n%s'", pullRequest.Id, mergeHead, pullRequest.Title)
-	args.Append(mergeHead, "--no-ff", "-m", mergeMsg)
+	args.AppendParams(mergeHead, "--no-ff", "-m", mergeMsg)
 
 	return nil
 }

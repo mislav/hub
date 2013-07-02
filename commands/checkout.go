@@ -29,16 +29,15 @@ set with BRANCH.
   $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
 **/
 func checkout(command *Command, args *Args) {
-	if !args.IsEmpty() {
+	if !args.IsParamsEmpty() {
 		err := transformCheckoutArgs(args)
 		utils.Fatal(err)
 	}
 }
 
 func transformCheckoutArgs(args *Args) error {
-	id := parsePullRequestId(args.First())
+	id := parsePullRequestId(args.FirstParam())
 	if id != "" {
-		url := args.Remove(0)
 		pullRequest, err := fetchPullRequest(id)
 		if err != nil {
 			return err
@@ -52,6 +51,7 @@ func transformCheckoutArgs(args *Args) error {
 			return err
 		}
 
+		url := args.RemoveParam(0) // Remove the pull request URL
 		if remoteExists {
 			updateExistingRemote(args, user, branch)
 		} else {
@@ -65,16 +65,14 @@ func transformCheckoutArgs(args *Args) error {
 		}
 
 		var newBranchName string
-		if args.Size() > 0 {
-			newBranchName = args.Remove(0)
+		if args.ParamsSize() > 0 {
+			newBranchName = args.RemoveParam(0)
 		} else {
 			newBranchName = fmt.Sprintf("%s-%s", user, branch)
 		}
 		trackedBranch := fmt.Sprintf("%s/%s", user, branch)
 
-		args.Append("--track", "-B", newBranchName, trackedBranch)
-
-		return nil
+		args.AppendParams("--track", "-B", newBranchName, trackedBranch)
 	}
 
 	return nil

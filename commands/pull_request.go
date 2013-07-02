@@ -45,8 +45,8 @@ func init() {
 
 func pullRequest(cmd *Command, args *Args) {
 	var title, body string
-	if args.Size() == 1 {
-		title = args.First()
+	if args.ParamsSize() == 1 {
+		title = args.FirstParam()
 	}
 
 	gh := github.New()
