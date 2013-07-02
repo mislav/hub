@@ -3,10 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"github.com/jingweno/octokat"
-	"regexp"
 )
 
 var cmdCheckout = &Command{
@@ -51,12 +48,11 @@ func transformCheckoutArgs(args *Args) error {
 			return err
 		}
 
-		url := args.RemoveParam(0) // Remove the pull request URL
+		args.RemoveParam(0) // Remove the pull request URL
 		if remoteExists {
 			updateExistingRemote(args, user, branch)
 		} else {
-			isSSH := pullRequest.Head.Repo.Private
-			sshURL, err := convertPullRequestURLToGitURL(url, user, isSSH)
+			sshURL, err := convertToGitURL(pullRequest)
 			if err != nil {
 				return err
 			}
@@ -76,30 +72,6 @@ func transformCheckoutArgs(args *Args) error {
 	}
 
 	return nil
-}
-
-func parsePullRequestId(url string) string {
-	pullURLRegex := regexp.MustCompile("https://github\\.com/.+/.+/pull/(\\d+)")
-	if pullURLRegex.MatchString(url) {
-		return pullURLRegex.FindStringSubmatch(url)[1]
-	}
-
-	return ""
-}
-
-func fetchPullRequest(id string) (*octokat.PullRequest, error) {
-	gh := github.New()
-	pullRequest, err := gh.PullRequest(id)
-	if err != nil {
-		return nil, err
-	}
-
-	if pullRequest.Head.Repo.ID == 0 {
-		user := pullRequest.User.Login
-		return nil, fmt.Errorf("%s's fork is not available anymore", user)
-	}
-
-	return pullRequest, nil
 }
 
 func checkIfRemoteExists(remote string) (bool, error) {
@@ -125,13 +97,4 @@ func updateExistingRemote(args *Args, user, branch string) {
 
 func addRmote(args *Args, user, branch, sshURL string) {
 	args.Before("git", "remote", "add", "-f", "-t", branch, user, sshURL)
-}
-
-func convertPullRequestURLToGitURL(pullRequestURL, user string, isSSH bool) (string, error) {
-	project, err := github.ParseProjectFromURL(pullRequestURL)
-	if err != nil {
-		return "", err
-	}
-
-	return project.GitURL("", user, isSSH), nil
 }
