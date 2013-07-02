@@ -33,10 +33,7 @@ Feature: hub alias
     When I successfully run `hub alias -s`
     Then the output should contain exactly:
       """
-      alias git=hub
-      if type compdef >/dev/null; then
-         compdef hub=git
-      fi\n
+      alias git=hub\n
       """
 
   Scenario: unsupported shell
