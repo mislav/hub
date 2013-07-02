@@ -26,8 +26,8 @@ func init() {
 
 func alias(command *Command, args *Args) {
 	var shell string
-	if args.Size() > 0 {
-		shell = args.First()
+	if args.ParamsSize() > 0 {
+		shell = args.FirstParam()
 	} else {
 		shell = os.Getenv("SHELL")
 	}

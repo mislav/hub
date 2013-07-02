@@ -18,23 +18,23 @@ func init() {
 }
 
 func runHelp(cmd *Command, args *Args) {
-	if args.IsEmpty() {
-    printUsage()
-    os.Exit(0)
+	if args.IsParamsEmpty() {
+		printUsage()
+		os.Exit(0)
 	}
 
-	if args.Size() != 1 {
+	if args.ParamsSize() > 1 {
 		utils.Check(fmt.Errorf("too many arguments"))
 	}
 
 	for _, cmd := range All() {
-		if cmd.Name() == args.First() {
+		if cmd.Name() == args.FirstParam() {
 			cmd.PrintUsage()
 			os.Exit(0)
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "Unknown help topic: %q. Run 'gh help'.\n", args.First())
+	fmt.Fprintf(os.Stderr, "Unknown help topic: %q. Run 'gh help'.\n", args.FirstParam())
 	os.Exit(2)
 }
 

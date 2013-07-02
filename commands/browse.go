@@ -27,8 +27,8 @@ func init() {
 
 func browse(command *Command, args *Args) {
 	subpage := "tree"
-	if !args.IsEmpty() {
-		subpage = args.First()
+	if !args.IsParamsEmpty() {
+		subpage = args.FirstParam()
 	}
 
 	project := github.CurrentProject()

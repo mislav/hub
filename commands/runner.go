@@ -12,29 +12,26 @@ type Runner struct {
 
 func (r *Runner) Execute() error {
 	args := NewArgs(os.Args[1:])
-	if args.Size() < 1 {
+	if args.Command == "" {
 		usage()
 	}
 
 	expandAlias(args)
 
 	for _, cmd := range All() {
-		if cmd.Name() == args.First() && cmd.Runnable() {
-			cmdArgs := args.Rest()
+		if cmd.Name() == args.Command && cmd.Runnable() {
 			if !cmd.GitExtension {
 				cmd.Flag.Usage = func() {
 					cmd.PrintUsage()
 				}
-				if err := cmd.Flag.Parse(cmdArgs); err != nil {
+				if err := cmd.Flag.Parse(args.Params); err != nil {
 					return err
 				}
 
-				cmdArgs = cmd.Flag.Args()
+				args.Params = cmd.Flag.Args()
 			}
 
-			args = NewArgs(cmdArgs)
 			cmd.Run(cmd, args)
-			args.Prepend(cmd.Name())
 
 			cmds := args.Commands()
 			length := len(cmds)
@@ -55,14 +52,13 @@ func (r *Runner) Execute() error {
 		}
 	}
 
-	return git.SysExec(args.First(), args.Rest()...)
+	return git.SysExec(args.Command, args.Params...)
 }
 
 func expandAlias(args *Args) {
-	cmd := args.First()
+	cmd := args.Command
 	expandedCmd, err := git.Config(fmt.Sprintf("alias.%s", cmd))
 	if err == nil && expandedCmd != "" {
-		args.Remove(0)
-		args.Prepend(expandedCmd)
+		args.Command = expandedCmd
 	}
 }

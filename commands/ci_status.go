@@ -21,8 +21,8 @@ success (0), error (1), failure (1), pending (2), no status (3)
 
 func ciStatus(cmd *Command, args *Args) {
 	ref := "HEAD"
-	if !args.IsEmpty() {
-		ref = args.First()
+	if !args.IsParamsEmpty() {
+		ref = args.FirstParam()
 	}
 
 	ref, err := git.Ref(ref)

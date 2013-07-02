@@ -6,7 +6,8 @@ import (
 )
 
 type Args struct {
-	args        []string
+	Command     string
+	Params      []string
 	beforeChain []*cmd.Cmd
 	afterChain  []*cmd.Cmd
 }
@@ -28,43 +29,47 @@ func (a *Args) Commands() []*cmd.Cmd {
 }
 
 func (a *Args) ToCmd() *cmd.Cmd {
-	return cmd.New("git").WithArgs(a.Array()...)
+	return cmd.New("git").WithArg(a.Command).WithArgs(a.Params...)
 }
 
-func (a *Args) Get(i int) string {
-	return a.args[i]
+func (a *Args) GetParam(i int) string {
+	return a.Params[i]
 }
 
-func (a *Args) First() string {
-	return a.args[0]
+func (a *Args) FirstParam() string {
+	if a.ParamsSize() == 0 {
+		panic(fmt.Sprintf("Index 0 is out of bound"))
+	}
+
+	return a.Params[0]
 }
 
-func (a *Args) Last() string {
-	return a.args[a.Size()-1]
+func (a *Args) LastParam() string {
+	if a.ParamsSize()-1 < 0 {
+		panic(fmt.Sprintf("Index %d is out of bound", a.ParamsSize()-1))
+	}
+
+	return a.Params[a.ParamsSize()-1]
 }
 
-func (a *Args) Rest() []string {
-	return a.args[1:]
-}
-
-func (a *Args) Remove(i int) string {
-	newArgs, item := removeItem(a.args, i)
-	a.args = newArgs
+func (a *Args) RemoveParam(i int) string {
+	newParams, item := removeItem(a.Params, i)
+	a.Params = newParams
 
 	return item
 }
 
-func (a *Args) Replace(i int, item string) {
-	if i > a.Size()-1 {
+func (a *Args) ReplaceParam(i int, item string) {
+	if i > a.ParamsSize()-1 {
 		panic(fmt.Sprintf("Index %d is out of bound", i))
 	}
 
-	a.args[i] = item
+	a.Params[i] = item
 }
 
-func (a *Args) IndexOf(arg string) int {
-	for i, aa := range a.args {
-		if aa == arg {
+func (a *Args) IndexOfParam(param string) int {
+	for i, p := range a.Params {
+		if p == param {
 			return i
 		}
 	}
@@ -72,28 +77,29 @@ func (a *Args) IndexOf(arg string) int {
 	return -1
 }
 
-func (a *Args) Size() int {
-	return len(a.args)
+func (a *Args) ParamsSize() int {
+	return len(a.Params)
 }
 
-func (a *Args) IsEmpty() bool {
-	return a.Size() == 0
+func (a *Args) IsParamsEmpty() bool {
+	return a.ParamsSize() == 0
 }
 
-func (a *Args) Array() []string {
-	return a.args
-}
-
-func (a *Args) Append(args ...string) {
-	a.args = append(a.args, args...)
-}
-
-func (a *Args) Prepend(args ...string) {
-	a.args = append(args, a.args...)
+func (a *Args) AppendParams(params ...string) {
+	a.Params = append(a.Params, params...)
 }
 
 func NewArgs(args []string) *Args {
-	return &Args{args, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
+	var command string
+	var params []string
+	if len(args) == 0 {
+		params = []string{}
+	} else {
+		command = args[0]
+		params = args[1:]
+	}
+
+	return &Args{command, params, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {

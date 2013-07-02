@@ -30,11 +30,11 @@ func compare(command *Command, args *Args) {
 	project := github.CurrentProject()
 
 	var r string
-	if args.IsEmpty() {
+	if args.IsParamsEmpty() {
 		repo := project.LocalRepo()
 		r = repo.Head
 	} else {
-		r = args.First()
+		r = args.FirstParam()
 	}
 
 	r = transformToTripleDots(r)

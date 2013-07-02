@@ -32,7 +32,7 @@ For repositories under your GitHub login, -p is implicit.
   > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
 */
 func clone(command *Command, args *Args) {
-	if !args.IsEmpty() {
+	if !args.IsParamsEmpty() {
 		transformCloneArgs(args)
 	}
 }
@@ -41,7 +41,7 @@ func transformCloneArgs(args *Args) {
 	isSSH := parseClonePrivateFlag(args)
 	hasValueRegxp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
-	for i, a := range args.Array() {
+	for i, a := range args.Params {
 		if hasValueRegxp.MatchString(a) {
 			continue
 		}
@@ -56,7 +56,7 @@ func transformCloneArgs(args *Args) {
 
 			project := github.Project{Name: name, Owner: owner}
 			url := project.GitURL(name, owner, isSSH)
-			args.Replace(i, url)
+			args.ReplaceParam(i, url)
 
 			break
 		}
@@ -64,8 +64,8 @@ func transformCloneArgs(args *Args) {
 }
 
 func parseClonePrivateFlag(args *Args) bool {
-	if i := args.IndexOf("-p"); i != -1 {
-		args.Remove(i)
+	if i := args.IndexOfParam("-p"); i != -1 {
+		args.RemoveParam(i)
 		return true
 	}
 

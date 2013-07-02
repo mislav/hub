@@ -56,6 +56,7 @@ func (c *Command) List() bool {
 
 var Branching = []*Command{
 	cmdCheckout,
+	cmdMerge,
 }
 
 var Remote = []*Command{

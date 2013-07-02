@@ -33,13 +33,13 @@ then uses your GitHub login.
   > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
 */
 func remote(command *Command, args *Args) {
-	if args.Size() >= 2 && (args.First() == "add" || args.First() == "set-url") {
+	if args.ParamsSize() >= 2 && (args.Command == "add" || args.Command == "set-url") {
 		transformRemoteArgs(args)
 	}
 }
 
 func transformRemoteArgs(args *Args) {
-	ownerWithName := args.Last()
+	ownerWithName := args.LastParam()
 	owner, name, match := parseRepoNameOwner(ownerWithName)
 	if !match {
 		return
@@ -58,7 +58,7 @@ func transformRemoteArgs(args *Args) {
 	project := github.Project{Owner: owner, Name: name}
 	url := project.GitURL(name, owner, isPriavte)
 
-	args.Append(url)
+	args.AppendParams(url)
 }
 
 func parseRepoNameOwner(nameWithOwner string) (string, string, bool) {
@@ -79,8 +79,8 @@ func parseRepoNameOwner(nameWithOwner string) (string, string, bool) {
 }
 
 func parseRemotePrivateFlag(args *Args) bool {
-	if i := args.IndexOf("-p"); i != -1 {
-		args.Remove(i)
+	if i := args.IndexOfParam("-p"); i != -1 {
+		args.RemoveParam(i)
 		return true
 	}
 
