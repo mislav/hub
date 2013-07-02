@@ -8,11 +8,10 @@ import (
 
 func TestFetchAndMerge(t *testing.T) {
 	url := "https://github.com/jingweno/gh/pull/73"
+	number := 73
+	title := "title"
 
 	args := NewArgs([]string{"merge", url})
-
-	id := 73
-	title := "title"
 
 	userLogin := "jingweno"
 	user := octokat.User{Login: userLogin}
@@ -23,7 +22,7 @@ func TestFetchAndMerge(t *testing.T) {
 	headRef := "new-feature"
 	head := octokat.Commit{Ref: headRef, Repo: repo}
 
-	pullRequest := octokat.PullRequest{Id: id, Title: title, HTMLURL: url, User: user, Head: head}
+	pullRequest := octokat.PullRequest{Number: number, Title: title, HTMLURL: url, User: user, Head: head}
 
 	err := fetchAndMerge(args, &pullRequest)
 	assert.Equal(t, nil, err)
