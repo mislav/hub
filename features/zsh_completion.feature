@@ -34,3 +34,9 @@ Feature: zsh tab-completion
   Scenario: Completion of 2nd browse argument
     When I type "git browse -- i" and press <Tab>
     Then the command should expand to "git browse -- issues"
+
+  # In this combination, zsh uses completion support from a bash script.
+  Scenario: "ci-" expands to "ci-status"
+    Given I'm using git-distributed base git completions
+    When I type "git ci-" and press <Tab>
+    Then the command should expand to "git ci-status"
