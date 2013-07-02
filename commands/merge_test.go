@@ -23,7 +23,7 @@ func TestFetchAndMerge(t *testing.T) {
 	headRef := "new-feature"
 	head := octokat.Commit{Ref: headRef, Repo: repo}
 
-	pullRequest := octokat.PullRequest{Id: id, Title: title, URL: url, User: user, Head: head}
+	pullRequest := octokat.PullRequest{Id: id, Title: title, HTMLURL: url, User: user, Head: head}
 
 	err := fetchAndMerge(args, &pullRequest)
 	assert.Equal(t, nil, err)

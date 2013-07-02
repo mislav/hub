@@ -61,7 +61,7 @@ func fetchPullRequest(id string) (*octokat.PullRequest, error) {
 }
 
 func convertToGitURL(pullRequest *octokat.PullRequest) (string, error) {
-	pullRequestURL := pullRequest.URL
+	pullRequestURL := pullRequest.HTMLURL
 	user := pullRequest.User.Login
 	isSSH := pullRequest.Head.Repo.Private
 
