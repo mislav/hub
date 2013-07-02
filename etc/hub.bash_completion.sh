@@ -313,7 +313,7 @@ EOF
       format=${format//\p/\2}
       format=${format//\o/\3}
     fi
-    git config --get-regexp 'remote\.[^.]*\.url' |
+    command git config --get-regexp 'remote\.[^.]*\.url' |
     grep -E ' ((https?|git)://|git@)github\.com[:/][^:/]+/[^/]+$' |
     sed -E 's#^remote\.([^.]+)\.url +.+[:/](([^/]+)/[^.]+)(\.git)?$#'"$format"'#'
   }
@@ -323,12 +323,12 @@ EOF
   __hub_heads() {
     local i remote repo branch dir=$(__gitdir)
     if [ -d "$dir" ]; then
-      git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
+      command git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
         "refs/heads/"
       for i in $(__hub_github_repos); do
         remote=${i%%:*}
         repo=${i#*:}
-        git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
+        command git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
           "refs/remotes/${remote}/" | while read branch; do
           echo "${repo}:${branch#${remote}/}"
         done
@@ -342,11 +342,11 @@ EOF
   __hub_revlist() {
     local i remote=${1:-origin} dir=$(__gitdir)
     if [ -d "$dir" ]; then
-      git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
+      command git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
         "refs/remotes/${remote}/" | while read i; do
         echo "${i#${remote}/}"
       done
-      git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
+      command git --git-dir="$dir" for-each-ref --format='%(refname:short)' \
         "refs/tags/"
     fi
   }
