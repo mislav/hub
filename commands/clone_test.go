@@ -14,25 +14,25 @@ func TestTransformCloneArgs(t *testing.T) {
 	github.SaveConfig(&config)
 	defer os.RemoveAll(filepath.Dir(github.DefaultConfigFile))
 
-	args := NewArgs([]string{"foo/gh"})
+	args := NewArgs([]string{"clone", "foo/gh"})
 	transformCloneArgs(args)
 
 	assert.Equal(t, 1, args.Size())
 	assert.Equal(t, "git://github.com/foo/gh.git", args.First())
 
-	args = NewArgs([]string{"-p", "foo/gh"})
+	args = NewArgs([]string{"clone", "-p", "foo/gh"})
 	transformCloneArgs(args)
 
 	assert.Equal(t, 1, args.Size())
 	assert.Equal(t, "git@github.com:foo/gh.git", args.First())
 
-	args = NewArgs([]string{"jingweno/gh"})
+	args = NewArgs([]string{"clone", "jingweno/gh"})
 	transformCloneArgs(args)
 
 	assert.Equal(t, 1, args.Size())
 	assert.Equal(t, "git@github.com:jingweno/gh.git", args.First())
 
-	args = NewArgs([]string{"-p", "acl-services/devise-acl"})
+	args = NewArgs([]string{"clone", "-p", "acl-services/devise-acl"})
 	transformCloneArgs(args)
 
 	assert.Equal(t, 1, args.Size())

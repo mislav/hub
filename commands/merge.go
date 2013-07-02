@@ -1,6 +1,10 @@
 package commands
 
-import ()
+import (
+	"fmt"
+	"github.com/jingweno/gh/utils"
+	"github.com/jingweno/octokat"
+)
 
 var cmdMerge = &Command{
 	Run:          merge,
@@ -12,5 +16,51 @@ ID and title, similar to the GitHub Merge Button.
 `,
 }
 
+/*
+  $ gh merge https://github.com/jingweno/gh/pull/73
+  > git fetch git://github.com/jingweno/gh.git +refs/heads/feature:refs/remotes/jingweno/feature
+  > git merge jingweno/feature --no-ff -m 'Merge pull request #73 from jingweno/feature...'
+*/
 func merge(command *Command, args *Args) {
+	if !args.IsEmpty() {
+		err := transformMergeArgs(args)
+		utils.Fatal(err)
+	}
+}
+
+func transformMergeArgs(args *Args) error {
+	id := parsePullRequestId(args.First())
+	if id != "" {
+		pullRequest, err := fetchPullRequest(id)
+		if err != nil {
+			return err
+		}
+
+		err = fetchAndMerge(args, pullRequest)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func fetchAndMerge(args *Args, pullRequest *octokat.PullRequest) error {
+	user := pullRequest.User.Login
+	branch := pullRequest.Head.Ref
+	isSSH := pullRequest.Head.Repo.Private
+	url, err := convertPullRequestURLToGitURL(pullRequest.URL, user, isSSH)
+	if err != nil {
+		return err
+	}
+
+	args.Remove(0) // Remove the pull request URL
+
+	mergeHead := fmt.Sprintf("%s/%s", user, branch)
+	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
+	args.Before("git", "fetch", url, ref)
+	mergeMsg := fmt.Sprintf("'Merge pull request #%v from %s\n\n%s'", pullRequest.Id, mergeHead, pullRequest.Title)
+	args.Append(mergeHead, "--no-ff", "-m", mergeMsg)
+
+	return nil
 }

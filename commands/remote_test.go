@@ -24,7 +24,7 @@ func TestParseRepoNameOwner(t *testing.T) {
 }
 
 func TestTransformRemoteArgs(t *testing.T) {
-	args := NewArgs([]string{"add", "jingweno"})
+	args := NewArgs([]string{"remote", "add", "jingweno"})
 	transformRemoteArgs(args)
 
 	assert.Equal(t, 3, args.Size())
@@ -33,7 +33,7 @@ func TestTransformRemoteArgs(t *testing.T) {
 	reg := regexp.MustCompile("^git://github.com/jingweno/.+\\.git$")
 	assert.T(t, reg.MatchString(args.Get(2)))
 
-	args = NewArgs([]string{"add", "-p", "jingweno"})
+	args = NewArgs([]string{"remote", "add", "-p", "jingweno"})
 	transformRemoteArgs(args)
 
 	assert.Equal(t, 3, args.Size())
@@ -47,7 +47,7 @@ func TestTransformRemoteArgs(t *testing.T) {
 	github.SaveConfig(&config)
 	defer os.RemoveAll(filepath.Dir(github.DefaultConfigFile))
 
-	args = NewArgs([]string{"add", "origin"})
+	args = NewArgs([]string{"remote", "add", "origin"})
 	transformRemoteArgs(args)
 
 	assert.Equal(t, 3, args.Size())
@@ -56,7 +56,7 @@ func TestTransformRemoteArgs(t *testing.T) {
 	reg = regexp.MustCompile("^git://github.com/.+/.+\\.git$")
 	assert.T(t, reg.MatchString(args.Get(2)))
 
-	args = NewArgs([]string{"add", "jingweno", "git@github.com:jingweno/gh.git"})
+	args = NewArgs([]string{"remote", "add", "jingweno", "git@github.com:jingweno/gh.git"})
 	transformRemoteArgs(args)
 
 	assert.Equal(t, 3, args.Size())

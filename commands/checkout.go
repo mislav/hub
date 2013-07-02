@@ -5,6 +5,7 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"github.com/jingweno/octokat"
 	"regexp"
 )
 
@@ -28,9 +29,8 @@ set with BRANCH.
   $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
 **/
 func checkout(command *Command, args *Args) {
-	var err error
 	if !args.IsEmpty() {
-		err = transformCheckoutArgs(args)
+		err := transformCheckoutArgs(args)
 		utils.Fatal(err)
 	}
 }
@@ -39,17 +39,13 @@ func transformCheckoutArgs(args *Args) error {
 	id := parsePullRequestId(args.First())
 	if id != "" {
 		url := args.Remove(0)
-		gh := github.New()
-		pullRequest, err := gh.PullRequest(id)
+		pullRequest, err := fetchPullRequest(id)
 		if err != nil {
 			return err
 		}
 
 		user := pullRequest.User.Login
 		branch := pullRequest.Head.Ref
-		if pullRequest.Head.Repo.ID == 0 {
-			return fmt.Errorf("%s's fork is not available anymore", user)
-		}
 
 		remoteExists, err := checkIfRemoteExists(user)
 		if err != nil {
@@ -59,10 +55,13 @@ func transformCheckoutArgs(args *Args) error {
 		if remoteExists {
 			updateExistingRemote(args, user, branch)
 		} else {
-			err = addRmote(args, user, branch, url, pullRequest.Head.Repo.Private)
+			isSSH := pullRequest.Head.Repo.Private
+			sshURL, err := convertPullRequestURLToGitURL(url, user, isSSH)
 			if err != nil {
 				return err
 			}
+
+			addRmote(args, user, branch, sshURL)
 		}
 
 		var newBranchName string
@@ -90,6 +89,21 @@ func parsePullRequestId(url string) string {
 	return ""
 }
 
+func fetchPullRequest(id string) (*octokat.PullRequest, error) {
+	gh := github.New()
+	pullRequest, err := gh.PullRequest(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if pullRequest.Head.Repo.ID == 0 {
+		user := pullRequest.User.Login
+		return nil, fmt.Errorf("%s's fork is not available anymore", user)
+	}
+
+	return pullRequest, nil
+}
+
 func checkIfRemoteExists(remote string) (bool, error) {
 	remotes, err := git.Remotes()
 	if err != nil {
@@ -111,14 +125,15 @@ func updateExistingRemote(args *Args, user, branch string) {
 	args.Before("git", "fetch", user, remoteURL)
 }
 
-func addRmote(args *Args, user, branch, url string, isPrivate bool) error {
-	project, err := github.ParseProjectFromURL(url)
+func addRmote(args *Args, user, branch, sshURL string) {
+	args.Before("git", "remote", "add", "-f", "-t", branch, user, sshURL)
+}
+
+func convertPullRequestURLToGitURL(pullRequestURL, user string, isSSH bool) (string, error) {
+	project, err := github.ParseProjectFromURL(pullRequestURL)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	sshURL := project.GitURL("", user, isPrivate)
-	args.Before("git", "remote", "add", "-f", "-t", branch, user, sshURL)
-
-	return nil
+	return project.GitURL("", user, isSSH), nil
 }

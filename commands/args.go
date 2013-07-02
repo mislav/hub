@@ -6,6 +6,7 @@ import (
 )
 
 type Args struct {
+	Command     string
 	args        []string
 	beforeChain []*cmd.Cmd
 	afterChain  []*cmd.Cmd
@@ -28,7 +29,7 @@ func (a *Args) Commands() []*cmd.Cmd {
 }
 
 func (a *Args) ToCmd() *cmd.Cmd {
-	return cmd.New("git").WithArgs(a.Array()...)
+	return cmd.New("git").WithArg(a.Command).WithArgs(a.Array()...)
 }
 
 func (a *Args) Get(i int) string {
@@ -93,7 +94,16 @@ func (a *Args) Prepend(args ...string) {
 }
 
 func NewArgs(args []string) *Args {
-	return &Args{args, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
+	var command string
+	var a []string
+	if len(args) == 0 {
+		a = []string{}
+	} else {
+		command = args[0]
+		a = args[1:]
+	}
+
+	return &Args{command, a, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {
