@@ -224,16 +224,16 @@ EOF
     fi
   }
 
-  # hub pull-request [-f] [TITLE|-i ISSUE|ISSUE-URL] [-b BASE] [-h HEAD]
+  # hub pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-b <BASE>] [-h <HEAD>]
   _git_pull_request() {
-    local i c=2 flags="-f -i -b -h"
+    local i c=2 flags="-f -m -F -i -b -h"
     while [ $c -lt $cword ]; do
       i="${words[c]}"
       case "$i" in
-        -i|-b|-h)
+        -m|-F|-i|-b|-h)
           ((c++))
           ;;&
-        -f|-i|-b|-h)
+        -f|-m|-F|-i|-b|-h)
           flags=${flags/$i/}
           ;;
       esac
