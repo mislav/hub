@@ -35,5 +35,5 @@ func TestFetchAndMerge(t *testing.T) {
 	assert.Equal(t, "git fetch git@github.com:jingweno/gh.git +refs/heads/new-feature:refs/remotes/jingweno/new-feature", cmd.String())
 
 	cmd = cmds[1]
-	assert.Equal(t, "git merge jingweno/new-feature --no-ff -m 'Merge pull request #73 from jingweno/new-feature\n\ntitle'", cmd.String())
+	assert.Equal(t, "git merge jingweno/new-feature --no-ff -m Merge pull request #73 from jingweno/new-feature\n\ntitle", cmd.String())
 }
