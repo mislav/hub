@@ -58,7 +58,7 @@ func fetchAndMerge(args *Args, pullRequest *octokat.PullRequest) error {
 	mergeHead := fmt.Sprintf("%s/%s", user, branch)
 	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
 	args.Before("git", "fetch", url, ref)
-	mergeMsg := fmt.Sprintf("Merge pull request #%v from %s\n\n%s", pullRequest.Id, mergeHead, pullRequest.Title)
+	mergeMsg := fmt.Sprintf("Merge pull request #%v from %s\n\n%s", pullRequest.Number, mergeHead, pullRequest.Title)
 	args.AppendParams(mergeHead, "--no-ff", "-m", mergeMsg)
 
 	return nil
