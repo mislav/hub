@@ -1,3 +1,5 @@
+* **0.11.0**
+  * Implement `gh merge`
 * **0.10.0**
   * Implement `gh clone`
   * Fix various bugs in `gh remote`
