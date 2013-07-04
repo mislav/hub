@@ -78,6 +78,7 @@ var GitHub = []*Command{
 
 func All() []*Command {
 	all := make([]*Command, 0)
+	all = append(all, Basic...)
 	all = append(all, Branching...)
 	all = append(all, Remote...)
 	all = append(all, GitHub...)

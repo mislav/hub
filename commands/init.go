@@ -1,5 +1,12 @@
 package commands
 
+import (
+	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/utils"
+	"os"
+	"path/filepath"
+)
+
 var cmdInit = &Command{
 	Run:          gitInit,
 	GitExtension: true,
@@ -17,4 +24,36 @@ REPOSITORY is the current working directory's basename.
   > git remote add origin git@github.com:USER/REPO.git
 */
 func gitInit(command *Command, args *Args) {
+	if !args.IsParamsEmpty() {
+		err := transformInitArgs(args)
+		utils.Check(err)
+	}
+}
+
+func transformInitArgs(args *Args) error {
+	if !parseInitFlag(args) {
+		return nil
+	}
+
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	name := filepath.Base(dir)
+	owner := github.CurrentConfig().FetchUser()
+	project := github.Project{Owner: owner, Name: name}
+	url := project.GitURL(name, owner, true)
+	args.After("git", "remote", "add", "origin", url)
+
+	return nil
+}
+
+func parseInitFlag(args *Args) bool {
+	if i := args.IndexOfParam("-g"); i != -1 {
+		args.RemoveParam(i)
+		return true
+	}
+
+	return false
 }
