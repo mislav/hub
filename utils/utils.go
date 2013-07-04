@@ -9,12 +9,6 @@ import (
 	"strings"
 )
 
-func Fatal(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
 func Check(err error) {
 	if err != nil {
 		log.Fatalf("fatal: %v", err)

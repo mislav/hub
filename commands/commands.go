@@ -30,7 +30,7 @@ func (c *Command) PrintUsage() {
 		utils.Check(err)
 	} else {
 		if c.Runnable() {
-			fmt.Printf("Usage: gh %s\n\n", c.Usage)
+			fmt.Printf("Usage: git %s\n\n", c.Usage)
 		}
 
 		fmt.Println(strings.Trim(c.Long, "\n"))
@@ -54,6 +54,10 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
+var Basic = []*Command{
+  cmdInit,
+}
+
 var Branching = []*Command{
 	cmdCheckout,
 	cmdMerge,
@@ -74,6 +78,7 @@ var GitHub = []*Command{
 
 func All() []*Command {
 	all := make([]*Command, 0)
+	all = append(all, Basic...)
 	all = append(all, Branching...)
 	all = append(all, Remote...)
 	all = append(all, GitHub...)
