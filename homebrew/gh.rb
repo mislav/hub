@@ -1,7 +1,7 @@
 require "formula"
 
 class Gh < Formula
-  VERSION = "0.11.0"
+  VERSION = "0.12.0"
   ARCH = if MacOS.prefer_64_bit?
            "amd64"
          else
