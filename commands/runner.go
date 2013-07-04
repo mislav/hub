@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/git"
-	"os"
 )
 
 type Runner struct {
@@ -11,7 +10,7 @@ type Runner struct {
 }
 
 func (r *Runner) Execute() error {
-	args := NewArgs(os.Args[1:])
+	args := NewArgs(r.Args)
 	if args.Command == "" {
 		usage()
 	}
