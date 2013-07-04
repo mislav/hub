@@ -28,7 +28,7 @@ set with BRANCH.
 func checkout(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		err := transformCheckoutArgs(args)
-		utils.Fatal(err)
+		utils.Check(err)
 	}
 }
 

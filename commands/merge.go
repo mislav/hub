@@ -24,7 +24,7 @@ ID and title, similar to the GitHub Merge Button.
 func merge(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		err := transformMergeArgs(args)
-		utils.Fatal(err)
+		utils.Check(err)
 	}
 }
 
