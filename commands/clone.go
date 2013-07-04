@@ -9,7 +9,7 @@ import (
 var cmdClone = &Command{
 	Run:          clone,
 	GitExtension: true,
-	Usage:        "Clone [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
+	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
 	Short:        "Clone a remote repository into a new directory",
 	Long: `Clone repository "git://github.com/USER/REPOSITORY.git" into
 DIRECTORY as with git-clone(1). When USER/ is omitted, assumes
