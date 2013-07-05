@@ -17,7 +17,7 @@ func (r *Runner) Execute() error {
 	}
 
 	expandAlias(args)
-	args.Noop = true
+	slurpGlobalFlags(args)
 
 	for _, cmd := range All() {
 		if cmd.Name() == args.Command && cmd.Runnable() {
@@ -49,6 +49,15 @@ func (r *Runner) Execute() error {
 	}
 
 	return git.SysExec(args.Command, args.Params...)
+}
+
+func slurpGlobalFlags(args *Args) {
+	for i, p := range args.Params {
+		if p == "--no-op" {
+			args.Noop = true
+			args.RemoveParam(i)
+		}
+	}
 }
 
 func printCommands(cmds []*cmd.Cmd) {
