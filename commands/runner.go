@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
 )
 
@@ -33,15 +34,11 @@ func (r *Runner) Execute() error {
 			cmd.Run(cmd, args)
 
 			cmds := args.Commands()
-			length := len(cmds)
-			for i, c := range cmds {
-				var err error
-				if i == (length - 1) {
-					err = c.SysExec()
-				} else {
-					err = c.Exec()
-				}
-
+      args.Noop = true
+			if args.Noop {
+				printCommands(cmds)
+			} else {
+				err := executeCommands(cmds)
 				if err != nil {
 					return err
 				}
@@ -52,6 +49,30 @@ func (r *Runner) Execute() error {
 	}
 
 	return git.SysExec(args.Command, args.Params...)
+}
+
+func printCommands(cmds []*cmd.Cmd) {
+	for _, c := range cmds {
+		fmt.Println(c)
+	}
+}
+
+func executeCommands(cmds []*cmd.Cmd) error {
+	length := len(cmds)
+	for i, c := range cmds {
+		var err error
+		if i == (length - 1) {
+			err = c.SysExec()
+		} else {
+			err = c.Exec()
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func expandAlias(args *Args) {

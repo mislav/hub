@@ -20,13 +20,13 @@ For repositories under your GitHub login, -p is implicit.
 
 /**
   $ gh clone jingweno/gh
-  > git clone git://github.com/jingweno/gh
+  > git clone git://github.com/jingweno/gh.git
 
   $ gh clone -p jingweno/gh
   > git clone git@github.com:jingweno/gh.git
 
-  $ gh clone jekyll_and_hype
-  > git clone git://github.com/YOUR_LOGIN/jekyll_and_hype.
+  $ gh clone jekyll_and_hyde
+  > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git
 
   $ gh clone -p jekyll_and_hyde
   > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
@@ -49,10 +49,10 @@ func transformCloneArgs(args *Args) {
 		if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
 			name, owner := parseCloneNameAndOwner(a)
 			config := github.CurrentConfig()
+			isSSH = isSSH || owner == config.User
 			if owner == "" {
 				owner = config.User
 			}
-			isSSH = isSSH || owner == config.User
 
 			project := github.Project{Name: name, Owner: owner}
 			url := project.GitURL(name, owner, isSSH)

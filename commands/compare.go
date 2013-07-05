@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"os"
 	"regexp"
 )
 
@@ -40,10 +39,15 @@ func compare(command *Command, args *Args) {
 	r = transformToTripleDots(r)
 	subpage := utils.ConcatPaths("compare", r)
 	url := project.WebURL("", flagCompareUser, subpage)
-	err := browserCommand(url)
-	utils.Check(err)
+	launcher, err := utils.BrowserLauncher()
+	if err != nil {
+		utils.Check(err)
+	}
 
-	os.Exit(0)
+	args.Executable = launcher[0]
+	args.Command = ""
+	args.PrependParams(launcher[1:]...)
+	args.AppendParams(url)
 }
 
 func transformToTripleDots(r string) string {

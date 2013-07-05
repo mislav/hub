@@ -8,7 +8,6 @@ import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
 	"strings"
@@ -44,51 +43,72 @@ func init() {
 }
 
 func pullRequest(cmd *Command, args *Args) {
-	var title, body string
+	var (
+		title, body string
+		err         error
+	)
 	if args.ParamsSize() == 1 {
-		title = args.FirstParam()
+		title = args.RemoveParam(0)
 	}
 
 	gh := github.New()
 	repo := gh.Project.LocalRepoWith(flagPullRequestBase, flagPullRequestHead)
 	if title == "" && flagPullRequestIssue == "" {
-		messageFile, err := git.PullReqMsgFile()
-		utils.Check(err)
-
-		err = writePullRequestChanges(repo, messageFile)
-		utils.Check(err)
-
-		editorPath, err := git.EditorPath()
-		utils.Check(err)
-
-		err = editTitleAndBody(editorPath, messageFile)
-		utils.Check(err)
-
-		title, body, err = readTitleAndBody(messageFile)
-		utils.Check(err)
-
-		err = os.Remove(messageFile)
-		utils.Check(err)
+		title, body, err = writePullRequestTitleAndBody(repo)
 	}
 
 	if title == "" && flagPullRequestIssue == "" {
-		log.Fatal("Aborting due to empty pull request title")
+		utils.Check(fmt.Errorf("Aborting due to empty pull request title"))
 	}
 
-	var pullRequestURL string
-	var err error
-	if title != "" {
-		pullRequestURL, err = gh.CreatePullRequest(repo.Base, repo.Head, title, body)
+	if args.Noop {
+		msg := fmt.Sprintf("Would request a pull to %s from %s with message:\n%s\n\n%s", repo.FullBase(), repo.FullHead(), title, body)
+		fmt.Println(msg)
+	} else {
+		var pullRequestURL string
+		if title != "" {
+			pullRequestURL, err = gh.CreatePullRequest(repo.Base, repo.Head, title, body)
+		}
+		utils.Check(err)
+
+		if flagPullRequestIssue != "" {
+			pullRequestURL, err = gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
+		}
+		utils.Check(err)
+
+		fmt.Println(pullRequestURL)
 	}
-	if flagPullRequestIssue != "" {
-		pullRequestURL, err = gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
+}
+
+func writePullRequestTitleAndBody(repo *github.Repo) (title, body string, err error) {
+	messageFile, err := git.PullReqMsgFile()
+	if err != nil {
+		return
 	}
 
-	utils.Check(err)
+	err = writePullRequestChanges(repo, messageFile)
+	if err != nil {
+		return
+	}
 
-	fmt.Println(pullRequestURL)
+	editorPath, err := git.EditorPath()
+	if err != nil {
+		return
+	}
 
-	os.Exit(0)
+	err = editTitleAndBody(editorPath, messageFile)
+	if err != nil {
+		return
+	}
+
+	title, body, err = readTitleAndBody(messageFile)
+	if err != nil {
+		return
+	}
+
+	err = os.Remove(messageFile)
+
+	return
 }
 
 func writePullRequestChanges(repo *github.Repo, messageFile string) error {

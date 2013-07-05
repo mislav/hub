@@ -33,7 +33,7 @@ then uses your GitHub login.
   > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
 */
 func remote(command *Command, args *Args) {
-	if args.ParamsSize() >= 2 && (args.Command == "add" || args.Command == "set-url") {
+	if args.ParamsSize() >= 2 && (args.FirstParam() == "add" || args.FirstParam() == "set-url") {
 		transformRemoteArgs(args)
 	}
 }

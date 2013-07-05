@@ -18,13 +18,17 @@ func (cmd Cmd) String() string {
 }
 
 func (cmd *Cmd) WithArg(arg string) *Cmd {
-	cmd.Args = append(cmd.Args, arg)
+	if arg != "" {
+		cmd.Args = append(cmd.Args, arg)
+	}
 
 	return cmd
 }
 
 func (cmd *Cmd) WithArgs(args ...string) *Cmd {
-	cmd.Args = append(cmd.Args, args...)
+	for _, arg := range args {
+		cmd.WithArg(arg)
+	}
 
 	return cmd
 }
@@ -64,9 +68,9 @@ func (cmd *Cmd) SysExec() error {
 }
 
 func New(name string) *Cmd {
-	return &Cmd{name, make([]string, 0)}
+	return &Cmd{Name: name, Args: make([]string, 0)}
 }
 
 func NewWithArray(cmd []string) *Cmd {
-	return &Cmd{cmd[0], cmd[1:]}
+	return &Cmd{Name: cmd[0], Args: cmd[1:]}
 }
