@@ -57,7 +57,6 @@ func ciStatus(cmd *Command, args *Args) {
 
 		os.Exit(exitCode)
 	}
-
 }
 
 func fetchCiStatus(ref string) (state, targetURL, desc string, exitCode int, err error) {
