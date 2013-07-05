@@ -3,7 +3,6 @@ package github
 import (
 	"errors"
 	"fmt"
-	"github.com/jingweno/gh/git"
 	"github.com/jingweno/octokat"
 )
 
@@ -14,7 +13,7 @@ const (
 
 type GitHub struct {
 	Project *Project
-	config  *Config
+	Config  *Config
 }
 
 func (gh *GitHub) PullRequest(id string) (*octokat.PullRequest, error) {
@@ -59,10 +58,10 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 	return &statuses[0], nil
 }
 
-func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (newRemote string, err error) {
+func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokat.Repository, err error) {
 	client := gh.client()
-	config := gh.config
-	repo, err := client.Repository(octokat.Repo{name, config.User})
+	config := gh.Config
+	repo, err = client.Repository(octokat.Repo{name, config.User})
 	if repo != nil && err == nil {
 		msg := fmt.Sprintf("Error creating fork: %s exists on %s", repo.FullName, GitHubHost)
 		err = errors.New(msg)
@@ -70,14 +69,6 @@ func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (newRemote s
 	}
 
 	repo, err = client.Fork(octokat.Repo{name, owner}, nil)
-	if err != nil {
-		return
-	}
-
-	if !noRemote {
-		newRemote = config.User
-		err = git.Spawn("remote", "add", "-f", config.User, repo.SshURL)
-	}
 
 	return
 }
@@ -85,7 +76,7 @@ func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (newRemote s
 func (gh *GitHub) ExpandRemoteUrl(owner, name string, isSSH bool) (url string) {
 	project := gh.Project
 	if owner == "origin" {
-		config := gh.config
+		config := gh.Config
 		owner = config.FetchUser()
 	}
 
@@ -130,7 +121,7 @@ func findOrCreateToken(user, password string) (string, error) {
 }
 
 func (gh *GitHub) client() *octokat.Client {
-	config := gh.config
+	config := gh.Config
 	config.FetchCredentials()
 
 	return octokat.NewClient().WithToken(config.Token)

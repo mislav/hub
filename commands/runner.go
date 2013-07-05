@@ -17,6 +17,7 @@ func (r *Runner) Execute() error {
 	}
 
 	expandAlias(args)
+	args.Noop = true
 
 	for _, cmd := range All() {
 		if cmd.Name() == args.Command && cmd.Runnable() {
@@ -34,7 +35,6 @@ func (r *Runner) Execute() error {
 			cmd.Run(cmd, args)
 
 			cmds := args.Commands()
-      args.Noop = true
 			if args.Noop {
 				printCommands(cmds)
 			} else {

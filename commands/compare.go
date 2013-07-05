@@ -25,6 +25,16 @@ func init() {
 	cmdCompare.Flag.StringVar(&flagCompareUser, "u", "", "USER")
 }
 
+/*
+  $ gh compare refactor
+  > open https://github.com/CURRENT_REPO/compare/refactor
+
+  $ gh compare 1.0..1.1
+  > open https://github.com/CURRENT_REPO/compare/1.0...1.1
+
+  $ gh compare -u other-user patch
+  > open https://github.com/other-user/REPO/compare/patch
+*/
 func compare(command *Command, args *Args) {
 	project := github.CurrentProject()
 

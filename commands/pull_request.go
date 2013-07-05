@@ -42,6 +42,18 @@ func init() {
 	cmdPullRequest.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
 }
 
+/*
+  # while on a topic branch called "feature":
+  $ gh pull-request
+  [ opens text editor to edit title & body for the request ]
+  [ opened pull request on GitHub for "YOUR_USER:feature" ]
+
+  # explicit pull base & head:
+  $ gh pull-request -b jingweno:master -h jingweno:feature
+
+  $ gh pull-request -i 123
+  [ attached pull request to issue #123 ]
+*/
 func pullRequest(cmd *Command, args *Args) {
 	var (
 		title, body string
@@ -61,11 +73,11 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("Aborting due to empty pull request title"))
 	}
 
+	var pullRequestURL string
 	if args.Noop {
-		msg := fmt.Sprintf("Would request a pull to %s from %s with message:\n%s\n\n%s", repo.FullBase(), repo.FullHead(), title, body)
-		fmt.Println(msg)
+		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", repo.FullBase(), repo.FullHead()), "")
+		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
-		var pullRequestURL string
 		if title != "" {
 			pullRequestURL, err = gh.CreatePullRequest(repo.Base, repo.Head, title, body)
 		}
@@ -76,8 +88,9 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 		utils.Check(err)
 
-		fmt.Println(pullRequestURL)
 	}
+
+	args.Replace("echo", "", pullRequestURL)
 }
 
 func writePullRequestTitleAndBody(repo *github.Repo) (title, body string, err error) {

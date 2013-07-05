@@ -22,6 +22,12 @@ func (a *Args) After(command ...string) {
 	a.afterChain = append(a.afterChain, cmd.NewWithArray(command))
 }
 
+func (a *Args) Replace(executable, command string, params ...string) {
+	a.Executable = executable
+	a.Command = command
+	a.Params = params
+}
+
 func (a *Args) Commands() []*cmd.Cmd {
 	result := a.beforeChain
 	result = append(result, a.ToCmd())
