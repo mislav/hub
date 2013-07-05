@@ -97,10 +97,6 @@ func (a *Args) AppendParams(params ...string) {
 	a.Params = append(a.Params, params...)
 }
 
-func (a *Args) PrependParams(params ...string) {
-	a.Params = append(params, a.Params...)
-}
-
 func NewArgs(args []string) *Args {
 	var command string
 	var params []string

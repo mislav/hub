@@ -54,9 +54,7 @@ func compare(command *Command, args *Args) {
 		utils.Check(err)
 	}
 
-	args.Executable = launcher[0]
-	args.Command = ""
-	args.PrependParams(launcher[1:]...)
+	args.Replace(launcher[0], "", launcher[1:]...)
 	args.AppendParams(url)
 }
 
