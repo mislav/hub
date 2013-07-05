@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
 )
 
@@ -16,6 +17,7 @@ func (r *Runner) Execute() error {
 	}
 
 	expandAlias(args)
+	slurpGlobalFlags(args)
 
 	for _, cmd := range All() {
 		if cmd.Name() == args.Command && cmd.Runnable() {
@@ -33,15 +35,10 @@ func (r *Runner) Execute() error {
 			cmd.Run(cmd, args)
 
 			cmds := args.Commands()
-			length := len(cmds)
-			for i, c := range cmds {
-				var err error
-				if i == (length - 1) {
-					err = c.SysExec()
-				} else {
-					err = c.Exec()
-				}
-
+			if args.Noop {
+				printCommands(cmds)
+			} else {
+				err := executeCommands(cmds)
 				if err != nil {
 					return err
 				}
@@ -52,6 +49,39 @@ func (r *Runner) Execute() error {
 	}
 
 	return git.SysExec(args.Command, args.Params...)
+}
+
+func slurpGlobalFlags(args *Args) {
+	for i, p := range args.Params {
+		if p == "--no-op" {
+			args.Noop = true
+			args.RemoveParam(i)
+		}
+	}
+}
+
+func printCommands(cmds []*cmd.Cmd) {
+	for _, c := range cmds {
+		fmt.Println(c)
+	}
+}
+
+func executeCommands(cmds []*cmd.Cmd) error {
+	length := len(cmds)
+	for i, c := range cmds {
+		var err error
+		if i == (length - 1) {
+			err = c.SysExec()
+		} else {
+			err = c.Exec()
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func expandAlias(args *Args) {

@@ -3,7 +3,6 @@ package commands
 import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"os"
 )
 
 var cmdBrowse = &Command{
@@ -25,10 +24,32 @@ func init() {
 	cmdBrowse.Flag.StringVar(&flagBrowseRepo, "r", "", "REPOSITORY")
 }
 
+/*
+  $ gh browse
+  > open https://github.com/YOUR_USER/CURRENT_REPO
+
+  $ gh browse commit/SHA
+  > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
+
+  $ gh browse issues
+  > open https://github.com/YOUR_USER/CURRENT_REPO/issues
+
+  $ gh browse -u jingweno -r gh
+  > open https://github.com/jingweno/gh
+
+  $ gh browse -u jingweno -r gh commit/SHA
+  > open https://github.com/jingweno/gh/commit/SHA
+
+  $ gh browse -r resque
+  > open https://github.com/YOUR_USER/resque
+
+  $ gh browse -r resque network
+  > open https://github.com/YOUR_USER/resque/network
+*/
 func browse(command *Command, args *Args) {
 	subpage := "tree"
 	if !args.IsParamsEmpty() {
-		subpage = args.FirstParam()
+		subpage = args.RemoveParam(0)
 	}
 
 	project := github.CurrentProject()
@@ -38,8 +59,11 @@ func browse(command *Command, args *Args) {
 	}
 
 	url := project.WebURL(flagBrowseRepo, flagBrowseUser, subpage)
-	err := browserCommand(url)
-	utils.Check(err)
+	launcher, err := utils.BrowserLauncher()
+	if err != nil {
+		utils.Check(err)
+	}
 
-	os.Exit(0)
+  args.Replace(launcher[0], "", launcher[1:]...)
+	args.AppendParams(url)
 }

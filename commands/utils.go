@@ -2,24 +2,11 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/github"
-	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/octokat"
 	"os"
 	"regexp"
 )
-
-func browserCommand(url string) error {
-	launcher, err := utils.BrowserLauncher()
-	if err != nil {
-		return err
-	}
-
-	launcher = append(launcher, url)
-	c := cmd.NewWithArray(launcher)
-	return c.Exec()
-}
 
 func isDir(file string) bool {
 	f, err := os.Open(file)

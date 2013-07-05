@@ -6,10 +6,12 @@ import (
 )
 
 type Args struct {
+	Executable  string
 	Command     string
 	Params      []string
 	beforeChain []*cmd.Cmd
 	afterChain  []*cmd.Cmd
+	Noop        bool
 }
 
 func (a *Args) Before(command ...string) {
@@ -18,6 +20,12 @@ func (a *Args) Before(command ...string) {
 
 func (a *Args) After(command ...string) {
 	a.afterChain = append(a.afterChain, cmd.NewWithArray(command))
+}
+
+func (a *Args) Replace(executable, command string, params ...string) {
+	a.Executable = executable
+	a.Command = command
+	a.Params = params
 }
 
 func (a *Args) Commands() []*cmd.Cmd {
@@ -29,7 +37,7 @@ func (a *Args) Commands() []*cmd.Cmd {
 }
 
 func (a *Args) ToCmd() *cmd.Cmd {
-	return cmd.New("git").WithArg(a.Command).WithArgs(a.Params...)
+	return cmd.New(a.Executable).WithArg(a.Command).WithArgs(a.Params...)
 }
 
 func (a *Args) GetParam(i int) string {
@@ -99,7 +107,7 @@ func NewArgs(args []string) *Args {
 		params = args[1:]
 	}
 
-	return &Args{command, params, make([]*cmd.Cmd, 0), make([]*cmd.Cmd, 0)}
+	return &Args{Executable: "git", Command: command, Params: params, beforeChain: make([]*cmd.Cmd, 0), afterChain: make([]*cmd.Cmd, 0)}
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {

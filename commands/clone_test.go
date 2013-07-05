@@ -38,6 +38,12 @@ func TestTransformCloneArgs(t *testing.T) {
 	assert.Equal(t, 1, args.ParamsSize())
 	assert.Equal(t, "git@github.com:acl-services/devise-acl.git", args.FirstParam())
 
+	args = NewArgs([]string{"clone", "jekyll_and_hyde"})
+	transformCloneArgs(args)
+
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.Equal(t, "git://github.com/jingweno/jekyll_and_hyde.git", args.FirstParam())
+
 	args = NewArgs([]string{"clone", "-p", "jekyll_and_hyde"})
 	transformCloneArgs(args)
 
