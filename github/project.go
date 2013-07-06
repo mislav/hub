@@ -53,7 +53,9 @@ func (p *Project) LocalRepoWith(base, head string) *Repo {
 		base = "master"
 	}
 	if head == "" {
-		head, _ = git.Head()
+		headBranch, err := git.Head()
+		utils.Check(err)
+		head = headBranch.ShortName()
 	}
 
 	return &Repo{base, head, p}
