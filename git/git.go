@@ -73,13 +73,13 @@ func EditorPath() (string, error) {
 	return editorPath, nil
 }
 
-func Head() (string, error) {
-	output, err := execGitCmd("symbolic-ref", "-q", "--short", "HEAD")
+func Head() (*Branch, error) {
+	output, err := execGitCmd("symbolic-ref", "-q", "HEAD")
 	if err != nil {
-		return "master", errors.New("Can't load git HEAD")
+		return nil, errors.New("Can't load git HEAD")
 	}
 
-	return output[0], nil
+	return &Branch{output[0]}, nil
 }
 
 func Ref(ref string) (string, error) {
