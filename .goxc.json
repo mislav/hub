@@ -8,7 +8,7 @@
     "PrereleaseInfo": "snapshot",
     "Verbosity": "v",
     "Resources": {
-      "Include": "INSTALL*,README*,LICENSE*,gh.*",
+      "Include": "INSTALL*,README*,LICENSE*,etc/gh.*",
       "Exclude": "*.go"
     },
     "TaskSettings": {

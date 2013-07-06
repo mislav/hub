@@ -16,8 +16,8 @@ class Gh < Formula
 
   def install
     bin.install "gh"
-    bash_completion.install "gh.bash_completion.sh"
-    zsh_completion.install "gh.zsh_completion" => "_gh"
+    bash_completion.install "etc/gh.bash_completion.sh"
+    zsh_completion.install "etc/gh.zsh_completion" => "_gh"
   end
 
   def caveats; <<-EOS.undent
