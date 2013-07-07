@@ -1,7 +1,7 @@
 {
   "FormatVersion": "0.8",
   "ArtifactsDest": "target",
-  "BuildConstraints": "!darwin",
+  "BuildConstraints": "linux",
   "Resources": {
     "Include": "INSTALL*,README*,LICENSE*",
     "Exclude": "*.go"

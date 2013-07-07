@@ -1,0 +1,9 @@
+{
+  "FormatVersion": "0.8",
+  "ArtifactsDest": "target",
+  "BuildConstraints": "windows",
+  "Resources": {
+    "Include": "INSTALL*,README*,LICENSE*",
+    "Exclude": "*.go"
+  }
+}
