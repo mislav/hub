@@ -1,6 +1,5 @@
 {
   "FormatVersion": "0.8",
-  "ArtifactsDest": "target",
   "BuildConstraints": "darwin",
   "Resources": {
     "Include": "INSTALL*,README*,LICENSE*,etc/gh.*",
