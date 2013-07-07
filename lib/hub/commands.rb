@@ -407,28 +407,43 @@ module Hub
     end
 
     # $ git merge https://github.com/defunkt/hub/pull/73
+    # or
+    # $ git merge PR173
+    # $ git merge pr173
+    # $ git merge pull173
+    # $ git merge pull/173
     # > git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
     # > git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
     def merge(args)
       _, url_arg = args.words
-      if url = resolve_github_url(url_arg) and url.project_path =~ /^pull\/(\d+)/
+      pull_id = nil
+      project_url = nil
+      if url_arg =~ /(pr|pull)(-|\/)?(\d+)/i
+        pull_id = $3
+        url = resolve_github_url(local_repo.main_project.web_url)
+      elsif url = resolve_github_url(url_arg) and url.project_path =~ /^pull\/(\d+)/
         pull_id = $1
-        pull_data = api_client.pullrequest_info(url.project, pull_id)
-
-        user, branch = pull_data['head']['label'].split(':', 2)
-        abort "Error: #{user}'s fork is not available anymore" unless pull_data['head']['repo']
-
-        url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repo']['private'],
-                                                             :https => https_protocol?)
-
-        merge_head = "#{user}/#{branch}"
-        args.before ['fetch', url, "+refs/heads/#{branch}:refs/remotes/#{merge_head}"]
-
-        idx = args.index url_arg
-        args.delete_at idx
-        args.insert idx, merge_head, '--no-ff', '-m',
-                    "Merge pull request ##{pull_id} from #{merge_head}\n\n#{pull_data['title']}"
+      else
+        abort "Error : don't understand what #{url_arg} mean"
       end
+
+      project_url = url.project
+      pull_data = api_client.pullrequest_info(project_url, pull_id)
+
+      user, branch = pull_data['head']['label'].split(':', 2)
+      abort "Error: #{user}'s fork is not available anymore" unless pull_data['head']['repo']
+
+      url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repo']['private'],
+                                                           :https => https_protocol?)
+
+      merge_head = "#{user}/#{branch}"
+      args.before ['fetch', url, "+refs/heads/#{branch}:refs/remotes/#{merge_head}"]
+
+      idx = args.index url_arg
+      args.delete_at idx
+      args.insert idx, merge_head, '--no-ff', '-m',
+                  "Merge pull request ##{pull_id} from #{merge_head}\n\n#{pull_data['title']}"
+
     end
 
     # $ git cherry-pick http://github.com/mislav/hub/commit/a319d88#comments
