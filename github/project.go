@@ -15,6 +15,10 @@ type Project struct {
 	Owner string
 }
 
+func (p Project) String() string {
+	return fmt.Sprintf("%s/%s", p.Owner, p.Name)
+}
+
 func (p *Project) WebURL(name, owner, path string) string {
 	if owner == "" {
 		owner = p.Owner
