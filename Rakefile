@@ -156,8 +156,8 @@ task :homebrew do
     abort unless $?.success? and sha.length == 40
 
     formula = File.read formula_file
-    formula.sub! /\bv\d+(\.\d+)*/, "v#{Hub::VERSION}"
-    formula.sub! /\b[0-9a-f]{40}\b/, sha
+    formula.sub!(/\bv\d+(\.\d+)*/, "v#{Hub::VERSION}")
+    formula.sub!(/\b[0-9a-f]{40}\b/, sha)
     File.open(formula_file, 'w') {|f| f << formula }
 
     branch = "hub-v#{Hub::VERSION}"

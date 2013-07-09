@@ -134,12 +134,12 @@ World Module.new {
   end
 }
 
-Given /^my shell is (\w+)$/ do |shell|
+Given(/^my shell is (\w+)$/) do |shell|
   set_shell(shell)
   setup_tmp_home.call(shell)
 end
 
-Given /^I'm using ((?:zsh|git)-distributed) base git completions$/ do |type|
+Given(/^I'm using ((?:zsh|git)-distributed) base git completions$/) do |type|
   link_completion.call(zsh_completion, '_hub')
   case type
   when 'zsh-distributed'
@@ -155,39 +155,39 @@ Given /^I'm using ((?:zsh|git)-distributed) base git completions$/ do |type|
   end
 end
 
-When /^I type "(.+?)" and press <Tab>$/ do |string|
+When(/^I type "(.+?)" and press <Tab>$/) do |string|
   tmux_wait_for_prompt
   @last_command = string
   tmux_send_keys(string)
   tmux_send_keys('Tab')
 end
 
-When /^I press <Tab> again$/ do
+When(/^I press <Tab> again$/) do
   tmux_send_keys('Tab')
 end
 
-Then /^the completion menu should offer "([^"]+?)"$/ do |items|
+Then(/^the completion menu should offer "([^"]+?)"$/) do |items|
   menu = tmux_completion_menu_basic
   menu.join(' ').should eq(items)
 end
 
-Then /^the completion menu should offer "(.+?)" with description "(.+?)"$/ do |item, description|
+Then(/^the completion menu should offer "(.+?)" with description "(.+?)"$/) do |item, description|
   menu = tmux_completion_menu
   menu.keys.should include(item)
   menu[item].should eq(description)
 end
 
-Then /^the completion menu should offer:/ do |table|
+Then(/^the completion menu should offer:/) do |table|
   menu = tmux_completion_menu
   menu.should eq(table.rows_hash)
 end
 
-Then /^the command should expand to "(.+?)"$/ do |cmd|
+Then(/^the command should expand to "(.+?)"$/) do |cmd|
   tmux_wait_for_completion
   tmux_pane_contents.should match(/^\$ #{cmd}$/)
 end
 
-Then /^the command should not expand$/ do
+Then(/^the command should not expand$/) do
   tmux_wait_for_completion { false }
   tmux_pane_contents.should match(/^\$ #{@last_command}$/)
 end
