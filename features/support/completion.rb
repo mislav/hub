@@ -34,7 +34,7 @@ git_distributed_bash_completion = lambda {
   git_prefix.call + 'etc/bash_completion.d/git-completion.bash'
 }
 
-link_completion = lambda { |from, name = nil|
+link_completion = Proc.new { |from, name|
   name ||= from.basename
   raise ArgumentError, from.to_s unless File.exist?(from)
   FileUtils.ln_s(from, cpldir + name, :force => true)
@@ -119,10 +119,10 @@ World Module.new {
   def tmux_completion_menu
     tmux_wait_for_completion
     hash = {}
-    tmux_pane_contents.split("\n").grep(/^[^\$].+ -- /).each do |line|
+    tmux_pane_contents.split("\n").grep(/^[^\$].+ -- /).each { |line|
       item, description = line.split(/ +-- +/, 2)
       hash[item] = description
-    end
+    }
     hash
   end
 
