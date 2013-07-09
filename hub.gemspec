@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
+  s.files            += Dir.glob("script/**/*")
   s.files            += Dir.glob("test/**/*")
 
   s.executables       = %w( hub )
