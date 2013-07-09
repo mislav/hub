@@ -269,6 +269,14 @@ module Hub
       res.data
     end
 
+    def statuses project, sha
+      res = get "https://%s/repos/%s/%s/statuses/%s" %
+        [api_host(project.host), project.owner, project.name, sha]
+
+      res.error! unless res.success?
+      res.data
+    end
+
     module HttpMethods
       module ResponseMethods
         def status() code.to_i end
@@ -1202,7 +1210,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
 
     def run(args)
       slurp_global_flags(args)
@@ -1232,6 +1240,34 @@ module Hub
       abort "fatal: #{err.message}"
     end
 
+
+    def ci_status(args)
+      args.shift
+      ref = args.words.first || 'HEAD'
+
+      unless head_project = local_repo.current_project
+        abort "Aborted: the origin remote doesn't point to a GitHub repository."
+      end
+
+      unless sha = local_repo.git_command("rev-parse -q #{ref}")
+        abort "Aborted: no revision could be determined from '#{ref}'"
+      end
+
+      statuses = api_client.statuses(head_project, sha)
+      status = statuses.first
+      ref_state = status ? status['state'] : 'no status'
+
+      exit_code = case ref_state
+        when 'success'          then 0
+        when 'failure', 'error' then 1
+        when 'pending'          then 2
+        else 3
+        end
+
+      $stdout.puts ref_state
+      exit exit_code
+    end
+
     def pull_request(args)
       args.shift
       options = { }
@@ -1259,6 +1295,13 @@ module Hub
         case arg
         when '-f'
           force = true
+        when '-F', '--file'
+          file = args.shift
+          text = file == '-' ? $stdin.read : File.read(file)
+          options[:title], options[:body] = read_msg(text)
+        when '-m', '--message'
+          text = args.shift
+          options[:title], options[:body] = read_msg(text)
         when '-b'
           base_project, options[:base] = from_github_ref.call(args.shift, base_project)
         when '-h'
@@ -1271,7 +1314,10 @@ module Hub
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
             base_project = url.project
-          elsif !options[:title] then options[:title] = arg
+          elsif !options[:title]
+            options[:title] = arg
+            warn "hub: Specifying pull request title without a flag is deprecated."
+            warn "Please use one of `-m' or `-F' options."
           else
             abort "invalid argument: #{arg}"
           end
@@ -1329,8 +1375,9 @@ module Hub
             [format, base_branch, remote_branch]
         end
 
-        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg|
-          msg.puts default_message if default_message
+        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message|
+          initial_message ||= default_message
+          msg.puts initial_message if initial_message
           msg.puts ""
           msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
           msg.puts "#"
@@ -1351,6 +1398,8 @@ module Hub
         warn "Are you sure that #{base_url} exists?"
       end
       exit 1
+    else
+      delete_editmsg
     end
 
     def clone(args)
@@ -1653,11 +1702,12 @@ module Hub
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
 
+        require 'cgi'
         path = case subpage = args.shift
         when 'commits'
-          "/commits/#{branch.short_name}"
+          "/commits/#{branch_in_url(branch)}"
         when 'tree', NilClass
-          "/tree/#{branch.short_name}" if branch and !branch.master?
+          "/tree/#{branch_in_url(branch)}" if branch and !branch.master?
         else
           "/#{subpage}"
         end
@@ -1716,11 +1766,6 @@ module Hub
 
       if script
         puts "alias git=hub"
-        if 'zsh' == shell
-          puts "if type compdef >/dev/null; then"
-          puts "   compdef hub=git"
-          puts "fi"
-        end
       else
         profile = case shell
           when 'bash' then '~/.bash_profile'
@@ -1746,25 +1791,35 @@ module Hub
     def help(args)
       command = args.words[1]
 
-      if command == 'hub'
+      if command == 'hub' || custom_command?(command)
         puts hub_manpage
         exit
-      elsif command.nil? && !args.has_flag?('-a', '--all')
-        ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
-        puts improved_help_text
-        exit
+      elsif command.nil?
+        if args.has_flag?('-a', '--all')
+          args.after 'echo', ["\nhub custom commands\n"]
+          args.after 'echo', CUSTOM_COMMANDS.map {|cmd| "  #{cmd}" }
+        else
+          ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
+          puts improved_help_text
+          exit
+        end
       end
     end
     alias_method "--help", :help
 
   private
 
+    def branch_in_url(branch)
+      require 'cgi'
+      CGI.escape(branch.short_name).gsub("%2F", "/")
+    end
+
     def api_client
       @api_client ||= begin
         config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
         file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
         file_config = GitHubAPI::Configuration.new file_store
-        GitHubAPI.new file_config, :app_url => 'http://defunkt.io/hub/'
+        GitHubAPI.new file_config, :app_url => 'http://github.github.com/hub/'
       end
     end
 
@@ -1842,6 +1897,7 @@ GitHub Commands:
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
+   ci-status      Show the CI status of a commit
 
 See 'git help <command>' for more information on a specific command.
 help
@@ -1933,7 +1989,8 @@ help
         Kernel.select [STDIN]
 
         pager = ENV['GIT_PAGER'] ||
-          `git config --get-all core.pager`.split.first || ENV['PAGER'] ||
+          `git config --get-all core.pager`.split("\n").first ||
+          ENV['PAGER'] ||
           'less -isr'
 
         pager = 'cat' if pager.empty?
@@ -1949,22 +2006,47 @@ help
     end
 
     def pullrequest_editmsg(changes)
-      message_file = File.join(git_dir, 'PULLREQ_EDITMSG')
+      message_file = pullrequest_editmsg_file
+
+      if valid_editmsg_file?(message_file)
+        title, body = read_editmsg(message_file)
+        previous_message = [title, body].compact.join("\n\n") if title
+      end
+
       File.open(message_file, 'w') { |msg|
-        yield msg
+        yield msg, previous_message
         if changes
           msg.puts "#\n# Changes:\n#"
           msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
         end
       }
+
       edit_cmd = Array(git_editor).dup
-      edit_cmd << '-c' << 'set ft=gitcommit' if edit_cmd[0] =~ /^[mg]?vim$/
+      edit_cmd << '-c' << 'set ft=gitcommit tw=0 wrap lbr' if edit_cmd[0] =~ /^[mg]?vim$/
       edit_cmd << message_file
       system(*edit_cmd)
-      abort "can't open text editor for pull request message" unless $?.success?
+
+      unless $?.success?
+        delete_editmsg(message_file)
+        abort "error using text editor for pull request message"
+      end
+
       title, body = read_editmsg(message_file)
       abort "Aborting due to empty pull request title" unless title
       [title, body]
+    end
+
+    def valid_editmsg_file?(message_file)
+      File.exists?(message_file) &&
+        File.mtime(message_file) > File.mtime(__FILE__)
+    end
+
+    def read_msg(message)
+      message.split("\n\n", 2).each {|s| s.strip! }.reject {|s| s.empty? }
+    end
+
+    def pullrequest_editmsg_file
+      File.join(git_dir, 'PULLREQ_EDITMSG')
     end
 
     def read_editmsg(file)
@@ -1982,6 +2064,10 @@ help
       [title =~ /\S/ ? title : nil, body =~ /\S/ ? body : nil]
     end
 
+    def delete_editmsg(file = pullrequest_editmsg_file)
+      File.delete(file) if File.exist?(file)
+    end
+
     def expand_alias(cmd)
       if expanded = git_alias_for(cmd)
         if expanded.index('!') != 0
@@ -1990,7 +2076,7 @@ help
         end
       end
     end
-    
+
     def display_api_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
       if 422 == response.status and response.error_message?
@@ -2069,7 +2155,7 @@ __END__
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "March 2013" "DEFUNKT" "Git Manual"
+.TH "HUB" "1" "July 2013" "GITHUB" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -2129,7 +2215,10 @@ __END__
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
 .
 .br
-\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
+\fBgit pull\-request\fR [\fB\-f\fR] [\fB\-m\fR \fIMESSAGE\fR|\fB\-F\fR \fIFILE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
+.
+.br
+\fBgit ci\-status\fR [\fICOMMIT\fR]
 .
 .SH "DESCRIPTION"
 hub enhances various git commands to ease most common workflows with GitHub\.
@@ -2199,25 +2288,32 @@ Create a new public GitHub repository from the current git repository and add re
 .
 .TP
 \fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
-Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\.
+Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
 .
 .TP
 \fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR
-Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If a range with two dots (\fBa\.\.b\fR) is given, it will be transformed into one with three dots\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\.
+Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If a range with two dots (\fBa\.\.b\fR) is given, it will be transformed into one with three dots\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
 .
 .TP
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
 Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\.
 .
 .TP
-\fBgit pull\-request\fR [\fB\-f\fR] [\fITITLE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
+\fBgit pull\-request\fR [\fB\-f\fR] [\fB\-m\fR \fIMESSAGE\fR|\fB\-F\fR \fIFILE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
 Opens a pull request on GitHub for the project that the "origin" remote points to\. The default head of the pull request is the current branch\. Both base and head of the pull request can be explicitly given in one of the following formats: "branch", "owner:branch", "owner/repo:branch"\. This command will abort operation if it detects that the current topic branch has local commits that are not yet pushed to its upstream branch on the remote\. To skip this check, use \fB\-f\fR\.
 .
 .IP
-If \fITITLE\fR is omitted, a text editor will open in which title and body of the pull request can be entered in the same manner as git commit message\.
+Without \fIMESSAGE\fR or \fIFILE\fR, a text editor will open in which title and body of the pull request can be entered in the same manner as git commit message\. Pull request message can also be passed via stdin with \fB\-F \-\fR\.
 .
 .IP
 If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
+.
+.TP
+\fBgit ci\-status\fR [\fICOMMIT\fR]
+Looks up the SHA for \fICOMMIT\fR in GitHub Status API and displays the latest status\. Exits with one of:
+.
+.br
+success (0), error (1), failure (1), pending (2), no status (3)
 .
 .SH "CONFIGURATION"
 Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.
@@ -2367,7 +2463,7 @@ $ git pull\-request
 [ opened pull request on GitHub for "YOUR_USER:feature" ]
 
 # explicit title, pull base & head:
-$ git pull\-request "I\'ve implemented feature X" \-b defunkt:master \-h mislav:feature
+$ git pull\-request \-m "Implemented feature X" \-b defunkt:master \-h mislav:feature
 
 $ git pull\-request \-i 123
 [ attached pull request to issue #123 ]
@@ -2498,6 +2594,16 @@ $ hub submodule add \-b ryppl \-\-name pip ryppl/pip vendor/pip
 .
 .fi
 .
+.SS "git ci\-status"
+.
+.nf
+
+$ hub ci\-status [commit]
+> (prints CI state of commit and exits with appropriate code)
+> One of: success (0), error (1), failure (1), pending (2), no status (3)
+.
+.fi
+.
 .SS "git help"
 .
 .nf
@@ -2510,10 +2616,10 @@ $ git help hub
 .fi
 .
 .SH "BUGS"
-\fIhttps://github\.com/defunkt/hub/issues\fR
+\fIhttps://github\.com/github/hub/issues\fR
 .
 .SH "AUTHORS"
-\fIhttps://github\.com/defunkt/hub/contributors\fR
+\fIhttps://github\.com/github/hub/contributors\fR
 .
 .SH "SEE ALSO"
-git(1), git\-clone(1), git\-remote(1), git\-init(1), \fIhttp://github\.com\fR, \fIhttps://github\.com/defunkt/hub\fR
+git(1), git\-clone(1), git\-remote(1), git\-init(1), \fIhttp://github\.com\fR, \fIhttps://github\.com/github/hub\fR

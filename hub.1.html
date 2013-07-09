@@ -100,7 +100,8 @@
 <code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var><br />
 <code>git fork</code> [<code>--no-remote</code>]<br />
-<code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</p>
+<code>git pull-request</code> [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]<br />
+<code>git ci-status</code> [<var>COMMIT</var>]</p>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
@@ -169,15 +170,16 @@ set the repository's description and homepage URL, respectively.</p></dd>
 specified, <code>browse</code> opens the page of the repository found in the current
 directory. If SUBPAGE is specified, the browser will open on the specified
 subpage: one of "wiki", "commits", "issues" or other (the default is
-"tree").</p></dd>
+"tree"). With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
 <dt><code>git compare</code> [<code>-u</code>] [<var>USER</var>] [<var>START</var>...]<var>END</var></dt><dd><p>Open a GitHub compare view page in the system's default web browser.
 <var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If a range with two dots (<code>a..b</code>) is given,
 it will be transformed into one with three dots. If <var>START</var> is omitted,
-GitHub will compare against the base branch (the default is "master").</p></dd>
+GitHub will compare against the base branch (the default is "master").
+With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
 <dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username.</p></dd>
-<dt><code>git pull-request</code> [<code>-f</code>] [<var>TITLE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
+<dt><code>git pull-request</code> [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of
 the following formats: "branch", "owner:branch", "owner/repo:branch".
@@ -185,12 +187,16 @@ This command will abort operation if it detects that the current topic
 branch has local commits that are not yet pushed to its upstream branch
 on the remote. To skip this check, use <code>-f</code>.</p>
 
-<p>If <var>TITLE</var> is omitted, a text editor will open in which title and body of
-the pull request can be entered in the same manner as git commit message.</p>
+<p>Without <var>MESSAGE</var> or <var>FILE</var>, a text editor will open in which title and body
+of the pull request can be entered in the same manner as git commit message.
+Pull request message can also be passed via stdin with <code>-F -</code>.</p>
 
 <p>If instead of normal <var>TITLE</var> an issue number is given with <code>-i</code>, the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
 of title you can paste a full URL to an issue on GitHub.</p></dd>
+<dt><code>git ci-status</code> [<var>COMMIT</var>]</dt><dd><p>Looks up the SHA for <var>COMMIT</var> in GitHub Status API and displays the latest
+status. Exits with one of:<br />
+success (0), error (1), failure (1), pending (2), no status (3)</p></dd>
 </dl>
 
 
@@ -309,7 +315,7 @@ $ git pull-request
 [ opened pull request on GitHub for "YOUR_USER:feature" ]
 
 # explicit title, pull base &amp; head:
-$ git pull-request "I've implemented feature X" -b defunkt:master -h mislav:feature
+$ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:feature
 
 $ git pull-request -i 123
 [ attached pull request to issue #123 ]
@@ -415,6 +421,13 @@ $ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
 &gt; git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
 </code></pre>
 
+<h3 id="git-ci-status">git ci-status</h3>
+
+<pre><code>$ hub ci-status [commit]
+&gt; (prints CI state of commit and exits with appropriate code)
+&gt; One of: success (0), error (1), failure (1), pending (2), no status (3)
+</code></pre>
+
 <h3 id="git-help">git help</h3>
 
 <pre><code>$ git help
@@ -425,22 +438,22 @@ $ git help hub
 
 <h2 id="BUGS">BUGS</h2>
 
-<p><a href="https://github.com/defunkt/hub/issues" data-bare-link="true">https://github.com/defunkt/hub/issues</a></p>
+<p><a href="https://github.com/github/hub/issues" data-bare-link="true">https://github.com/github/hub/issues</a></p>
 
 <h2 id="AUTHORS">AUTHORS</h2>
 
-<p><a href="https://github.com/defunkt/hub/contributors" data-bare-link="true">https://github.com/defunkt/hub/contributors</a></p>
+<p><a href="https://github.com/github/hub/contributors" data-bare-link="true">https://github.com/github/hub/contributors</a></p>
 
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
 <p><span class="man-ref">git<span class="s">(1)</span></span>, <span class="man-ref">git-clone<span class="s">(1)</span></span>, <span class="man-ref">git-remote<span class="s">(1)</span></span>, <span class="man-ref">git-init<span class="s">(1)</span></span>,
 <a href="http://github.com" data-bare-link="true">http://github.com</a>,
-<a href="https://github.com/defunkt/hub" data-bare-link="true">https://github.com/defunkt/hub</a></p>
+<a href="https://github.com/github/hub" data-bare-link="true">https://github.com/github/hub</a></p>
 
 
   <ol class='man-decor man-foot man foot'>
-    <li class='tl'>DEFUNKT</li>
-    <li class='tc'>March 2013</li>
+    <li class='tl'>GITHUB</li>
+    <li class='tc'>July 2013</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
