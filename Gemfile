@@ -1,8 +1,8 @@
 source 'https://rubygems.org'
 
 gem 'ronn', :platform => :mri
-gem 'aruba'
-gem 'cucumber'
+gem 'aruba', '~> 0.5.3'
+gem 'cucumber', '~> 1.2.1'
 gem 'sinatra'
 gem 'thin', :platform => :mri
 gem 'json'

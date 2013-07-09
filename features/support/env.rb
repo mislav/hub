@@ -2,14 +2,6 @@ require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
 
-# needed to avoid "Too many open files" on 1.8.7
-Aruba::Process.class_eval do
-  def close_streams
-    @out.close
-    @err.close
-  end
-end
-
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
@@ -57,7 +49,6 @@ end
 
 After do
   @server.stop if defined? @server and @server
-  processes.each {|_, p| p.close_streams }
   FileUtils.rm_f("#{bin_dir}/vim")
 end
 
