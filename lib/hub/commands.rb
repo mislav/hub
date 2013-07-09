@@ -70,6 +70,14 @@ module Hub
       abort "fatal: #{err.message}"
     end
 
+    def pulls(args)
+      pull_data = api_client.pullrequests(local_repo.main_project)
+      pull_data.each do |pull|
+        puts "%s - %s\n%s\n\n" %
+          [pull["user"]["login"], pull["title"], pull["html_url"] ]
+      end
+      exit
+    end
 
     # $ hub ci-status
     # $ hub ci-status 6f6d9797f9d6e56c3da623a97cfc3f45daf9ae5f
@@ -858,6 +866,7 @@ Remote Commands:
    push       Upload data, tags and branches to a remote repository
    remote     View and manage a set of remote repositories
 
+
 Advanced Commands:
    reset      Reset your staging area or working directory to another point
    rebase     Re-apply a series of patches in one branch onto another
@@ -866,6 +875,7 @@ Advanced Commands:
 
 GitHub Commands:
    pull-request   Open a pull request on GitHub
+   pulls          List open pull requests on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser

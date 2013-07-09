@@ -257,6 +257,28 @@ class HubTest < Test::Unit::TestCase
                     "push origin,staging master new-feature"
   end
 
+  def test_pullrequest_list
+    pull1 = {
+      :user => { :login => 'radamant'},
+      :title => 'fixes some bugs',
+      :html_url => 'https://github.com/defunkt/hub/pull/1'
+    }
+
+    pull2 = {
+      :user => { :login => 'defunkt'},
+      :title => 'fixes more bugs',
+      :html_url => 'https://github.com/defunkt/hub/pull/2'
+    }
+
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls").
+      to_return(:body => Hub::JSON.generate([pull1, pull2]))
+
+    expected =  "radamant - fixes some bugs\nhttps://github.com/defunkt/hub/pull/1\n\n"
+    expected << "defunkt - fixes more bugs\nhttps://github.com/defunkt/hub/pull/2\n\n"
+
+    assert_output expected, 'pulls'
+  end
+
   def test_pullrequest_from_branch_tracking_local
     stub_branch('refs/heads/feature')
     stub_tracking('feature', 'refs/heads/master')

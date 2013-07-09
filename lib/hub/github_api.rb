@@ -88,6 +88,13 @@ module Hub
       res.data
     end
 
+    def pullrequests project
+      res = get "https://%s/repos/%s/%s/pulls" %
+                [api_host(project.host), project.owner, project.name]
+
+      res.error! unless res.success?
+      res.data
+    end
     # Returns parsed data from the new pull request.
     def create_pullrequest options
       project = options.fetch(:project)
