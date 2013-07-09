@@ -5,8 +5,18 @@ import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/octokat"
 	"os"
+	"path/filepath"
 	"regexp"
 )
+
+func repoName() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Base(dir), nil
+}
 
 func isDir(file string) bool {
 	f, err := os.Open(file)
@@ -58,4 +68,25 @@ func convertToGitURL(pullRequest *octokat.PullRequest) (string, error) {
 	}
 
 	return project.GitURL("", user, isSSH), nil
+}
+
+func parseRepoNameOwner(nameWithOwner string) (owner, repo string, match bool) {
+	ownerRe := fmt.Sprintf("^(%s)$", OwnerRe)
+	ownerRegexp := regexp.MustCompile(ownerRe)
+	if ownerRegexp.MatchString(nameWithOwner) {
+		owner = ownerRegexp.FindStringSubmatch(nameWithOwner)[1]
+		match = true
+		return
+	}
+
+	nameWithOwnerRe := fmt.Sprintf("^(%s)\\/(%s)$", OwnerRe, NameRe)
+	nameWithOwnerRegexp := regexp.MustCompile(nameWithOwnerRe)
+	if nameWithOwnerRegexp.MatchString(nameWithOwner) {
+		result := nameWithOwnerRegexp.FindStringSubmatch(nameWithOwner)
+		owner = result[1]
+		repo = result[2]
+		match = true
+	}
+
+	return
 }

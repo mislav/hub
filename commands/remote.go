@@ -1,12 +1,8 @@
 package commands
 
 import (
-	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"os"
-	"path/filepath"
-	"regexp"
 )
 
 var cmdRemote = &Command{
@@ -45,10 +41,10 @@ func transformRemoteArgs(args *Args) {
 		return
 	}
 	isPriavte := parseRemotePrivateFlag(args)
+	var err error
 	if name == "" {
-		dir, err := os.Getwd()
+		name, err = repoName()
 		utils.Check(err)
-		name = filepath.Base(dir)
 	}
 
 	if owner == "origin" {
@@ -59,23 +55,6 @@ func transformRemoteArgs(args *Args) {
 	url := project.GitURL(name, owner, isPriavte)
 
 	args.AppendParams(url)
-}
-
-func parseRepoNameOwner(nameWithOwner string) (string, string, bool) {
-	ownerRe := fmt.Sprintf("^(%s)$", OwnerRe)
-	ownerRegexp := regexp.MustCompile(ownerRe)
-	if ownerRegexp.MatchString(nameWithOwner) {
-		return ownerRegexp.FindStringSubmatch(nameWithOwner)[1], "", true
-	}
-
-	nameWithOwnerRe := fmt.Sprintf("^(%s)\\/(%s)$", OwnerRe, NameRe)
-	nameWithOwnerRegexp := regexp.MustCompile(nameWithOwnerRe)
-	if nameWithOwnerRegexp.MatchString(nameWithOwner) {
-		match := nameWithOwnerRegexp.FindStringSubmatch(nameWithOwner)
-		return match[1], match[2], true
-	}
-
-	return "", "", false
 }
 
 func parseRemotePrivateFlag(args *Args) bool {

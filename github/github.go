@@ -33,6 +33,25 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, err
 	return pullRequest.HTMLURL, nil
 }
 
+// TODO: detach GitHub from Project
+func (gh *GitHub) IsRepositoryExist(project Project) bool {
+	client := gh.client()
+	repo, err := client.Repository(octokat.Repo{project.Name, project.Owner})
+
+	return err == nil && repo != nil
+}
+
+func (gh *GitHub) CreateRepository(project Project, description, homepage string, isPrivate bool) (*octokat.Repository, error) {
+	params := octokat.Params{"description": description, "homepage": homepage, "private": isPrivate}
+	if project.Owner != gh.Config.FetchUser() {
+		params.Put("organization", project.Owner)
+	}
+
+	client := gh.client()
+
+	return client.CreateRepository(project.Name, &params)
+}
+
 func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, error) {
 	client := gh.client()
 	params := octokat.PullRequestForIssueParams{base, head, issue}
@@ -133,4 +152,12 @@ func New() *GitHub {
 	c.FetchUser()
 
 	return &GitHub{project, c}
+}
+
+// TODO: detach project from GitHub
+func NewWithoutProject() *GitHub {
+	c := CurrentConfig()
+	c.FetchUser()
+
+	return &GitHub{nil, c}
 }

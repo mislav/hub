@@ -3,8 +3,6 @@ package commands
 import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"os"
-	"path/filepath"
 )
 
 var cmdInit = &Command{
@@ -35,12 +33,11 @@ func transformInitArgs(args *Args) error {
 		return nil
 	}
 
-	dir, err := os.Getwd()
+	name, err := repoName()
 	if err != nil {
 		return err
 	}
 
-	name := filepath.Base(dir)
 	owner := github.CurrentConfig().FetchUser()
 	project := github.Project{Owner: owner, Name: name}
 	url := project.GitURL(name, owner, true)
