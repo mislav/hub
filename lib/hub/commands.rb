@@ -789,7 +789,7 @@ module Hub
         config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
         file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
         file_config = GitHubAPI::Configuration.new file_store
-        GitHubAPI.new file_config, :app_url => 'http://defunkt.io/hub/'
+        GitHubAPI.new file_config, :app_url => 'http://github.github.com/hub/'
       end
     end
 

@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name              = "hub"
   s.version           = Hub::VERSION
   s.summary           = "Command-line wrapper for git and GitHub"
-  s.homepage          = "http://defunkt.io/hub/"
+  s.homepage          = "http://github.github.com/hub/"
   s.email             = "mislav.marohnic@gmail.com"
   s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
   s.license           = "MIT"
@@ -52,7 +52,7 @@ desc
        fashioned way.  Faster  startup  time,  you see.
 
        Check  out  the  installation  instructions  at
-       https://github.com/defunkt/hub#readme  under the
+       https://github.com/github/hub#readme  under the
        "Standalone" section.
 
        Cheers,
