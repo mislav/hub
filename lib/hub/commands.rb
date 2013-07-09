@@ -731,13 +731,18 @@ module Hub
           when 'bash' then '~/.bash_profile'
           when 'zsh'  then '~/.zshrc'
           when 'ksh'  then '~/.profile'
+          when 'fish' then '~/.config/fish/config.fish'
           else
             'your profile'
           end
 
         puts "# Wrap git automatically by adding the following to #{profile}:"
         puts
-        puts 'eval "$(hub alias -s)"'
+        if shell == 'fish'
+          puts 'eval (hub alias -s)'
+        else
+          puts 'eval "$(hub alias -s)"'
+        end
       end
 
       exit
