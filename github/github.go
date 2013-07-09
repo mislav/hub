@@ -153,3 +153,11 @@ func New() *GitHub {
 
 	return &GitHub{project, c}
 }
+
+// TODO: detach project from GitHub
+func NewWithoutProject() *GitHub {
+	c := CurrentConfig()
+	c.FetchUser()
+
+	return &GitHub{nil, c}
+}

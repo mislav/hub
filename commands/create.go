@@ -50,7 +50,7 @@ func init() {
   > git remote add origin git@github.com:sinatra/recipes.git
 */
 func create(command *Command, args *Args) {
-	gh := github.New()
+	gh := github.NewWithoutProject()
 	var nameWithOwner string
 	if args.IsParamsEmpty() {
 		name, err := repoName()
