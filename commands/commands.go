@@ -3,8 +3,6 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/utils"
 	"strings"
 )
 
@@ -25,16 +23,11 @@ type Command struct {
 }
 
 func (c *Command) PrintUsage() {
-	if c.GitExtension {
-		err := git.SysExec(c.Name(), "--help")
-		utils.Check(err)
-	} else {
-		if c.Runnable() {
-			fmt.Printf("Usage: git %s\n\n", c.Usage)
-		}
-
-		fmt.Println(strings.Trim(c.Long, "\n"))
+	if c.Runnable() {
+		fmt.Printf("Usage: git %s\n\n", c.Usage)
 	}
+
+	fmt.Println(strings.Trim(c.Long, "\n"))
 }
 
 func (c *Command) Name() string {
