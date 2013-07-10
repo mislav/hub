@@ -55,7 +55,7 @@ func (c *Command) List() bool {
 }
 
 var Basic = []*Command{
-  cmdInit,
+	cmdInit,
 }
 
 var Branching = []*Command{
@@ -65,13 +65,14 @@ var Branching = []*Command{
 
 var Remote = []*Command{
 	cmdClone,
+	cmdFetch,
 	cmdRemote,
 }
 
 var GitHub = []*Command{
 	cmdPullRequest,
 	cmdFork,
-  cmdCreate,
+	cmdCreate,
 	cmdCiStatus,
 	cmdBrowse,
 	cmdCompare,
