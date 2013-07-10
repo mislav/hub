@@ -33,10 +33,15 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, err
 	return pullRequest.HTMLURL, nil
 }
 
+func (gh *GitHub) Repository(project Project) (*octokat.Repository, error) {
+	client := gh.client()
+
+	return client.Repository(octokat.Repo{project.Name, project.Owner})
+}
+
 // TODO: detach GitHub from Project
 func (gh *GitHub) IsRepositoryExist(project Project) bool {
-	client := gh.client()
-	repo, err := client.Repository(octokat.Repo{project.Name, project.Owner})
+	repo, err := gh.Repository(project)
 
 	return err == nil && repo != nil
 }

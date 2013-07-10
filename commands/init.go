@@ -33,7 +33,7 @@ func transformInitArgs(args *Args) error {
 		return nil
 	}
 
-	name, err := repoName()
+	name, err := utils.DirName()
 	if err != nil {
 		return err
 	}

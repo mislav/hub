@@ -5,7 +5,6 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"strings"
 )
 
 var cmdCreate = &Command{
@@ -50,34 +49,30 @@ func init() {
   > git remote add origin git@github.com:sinatra/recipes.git
 */
 func create(command *Command, args *Args) {
-	gh := github.NewWithoutProject()
-	var nameWithOwner string
+	var (
+		name string
+		err  error
+	)
 	if args.IsParamsEmpty() {
-		name, err := repoName()
+		name, err = utils.DirName()
 		utils.Check(err)
-		nameWithOwner = fmt.Sprintf("%s/%s", gh.Config.FetchUser(), name)
 	} else {
-		nameWithOwner = args.FirstParam()
+		name = args.FirstParam()
 	}
-
-	owner, name := parseCreateOwnerAndName(nameWithOwner)
-	if owner == "" {
-		owner = gh.Config.FetchUser()
-	}
-	project := github.Project{Name: name, Owner: owner}
 
 	var msg string
+	project := github.NewProjectFromNameAndOwner(name, "")
+	gh := github.NewWithoutProject()
 	if gh.IsRepositoryExist(project) {
 		fmt.Printf("%s already exists on %s\n", project, github.GitHubHost)
 		msg = "set remmote origin"
 	} else {
-		msg = "created repository"
 		if !args.Noop {
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
 			utils.Check(err)
-			owner, name = parseCreateOwnerAndName(repo.FullName)
-			project = github.Project{Name: name, Owner: owner}
+			project = github.NewProjectFromNameAndOwner("", repo.FullName)
 		}
+		msg = "created repository"
 	}
 
 	remote, _ := git.OriginRemote()
@@ -89,16 +84,4 @@ func create(command *Command, args *Args) {
 	}
 
 	args.After("echo", fmt.Sprintf("%s:", msg), project.String())
-}
-
-func parseCreateOwnerAndName(nameWithOwner string) (owner, name string) {
-	if strings.Contains(nameWithOwner, "/") {
-		result := strings.SplitN(nameWithOwner, "/", 2)
-		owner = result[0]
-		name = result[1]
-	} else {
-		name = nameWithOwner
-	}
-
-	return
 }

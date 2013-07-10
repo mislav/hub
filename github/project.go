@@ -96,6 +96,28 @@ func ParseProjectFromURL(uu string) (*Project, error) {
 	return nil, fmt.Errorf("Invalid GitHub URL: %s", u)
 }
 
+func NewProjectFromNameAndOwner(name, owner string) Project {
+	if strings.Contains(owner, "/") {
+		result := strings.SplitN(owner, "/", 2)
+		owner = result[0]
+		name = result[1]
+	} else if strings.Contains(name, "/") {
+		result := strings.SplitN(owner, "/", 2)
+		owner = result[0]
+		name = result[1]
+	}
+
+	if owner == "" {
+		owner = CurrentConfig().FetchUser()
+	}
+
+	if name == "" {
+		name, _ = utils.DirName()
+	}
+
+	return Project{Name: name, Owner: owner}
+}
+
 func parseOwnerAndName(remote string) (owner string, name string) {
 	url, err := mustMatchGitHubURL(remote)
 	utils.Check(err)
