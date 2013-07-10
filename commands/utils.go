@@ -5,18 +5,8 @@ import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/octokat"
 	"os"
-	"path/filepath"
 	"regexp"
 )
-
-func repoName() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Base(dir), nil
-}
 
 func isDir(file string) bool {
 	f, err := os.Open(file)

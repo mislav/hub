@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 )
@@ -51,4 +52,13 @@ func searchBrowserLauncher(goos string) (browser string) {
 	}
 
 	return browser
+}
+
+func DirName() (string, error) {
+	dir, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Base(dir), nil
 }

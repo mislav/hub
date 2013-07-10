@@ -43,7 +43,7 @@ func transformRemoteArgs(args *Args) {
 	isPriavte := parseRemotePrivateFlag(args)
 	var err error
 	if name == "" {
-		name, err = repoName()
+		name, err = utils.DirName()
 		utils.Check(err)
 	}
 

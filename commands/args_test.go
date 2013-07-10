@@ -19,6 +19,20 @@ func TestNewArgs(t *testing.T) {
 	assert.Equal(t, 1, args.ParamsSize())
 }
 
+func TestInsert(t *testing.T) {
+	args := NewArgs([]string{"command", "1", "2", "3", "4"})
+	args.InsertParam(0, "foo")
+
+	assert.Equal(t, 5, args.ParamsSize())
+	assert.Equal(t, "foo", args.FirstParam())
+
+	args = NewArgs([]string{"command", "1", "2", "3", "4"})
+	args.InsertParam(3, "foo")
+
+	assert.Equal(t, 5, args.ParamsSize())
+	assert.Equal(t, "foo", args.Params[3])
+}
+
 func TestRemove(t *testing.T) {
 	args := NewArgs([]string{"1", "2", "3", "4"})
 

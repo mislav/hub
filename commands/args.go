@@ -60,6 +60,19 @@ func (a *Args) LastParam() string {
 	return a.Params[a.ParamsSize()-1]
 }
 
+func (a *Args) InsertParam(i int, items ...string) {
+	if i < 0 || (i != 0 && i > a.ParamsSize()-1) {
+		panic(fmt.Sprintf("Index %d is out of bound", i))
+	}
+
+	newParams := []string{}
+	newParams = append(newParams, a.Params[:i]...)
+	newParams = append(newParams, items...)
+	newParams = append(newParams, a.Params[i:]...)
+
+	a.Params = newParams
+}
+
 func (a *Args) RemoveParam(i int) string {
 	newParams, item := removeItem(a.Params, i)
 	a.Params = newParams
@@ -68,7 +81,7 @@ func (a *Args) RemoveParam(i int) string {
 }
 
 func (a *Args) ReplaceParam(i int, item string) {
-	if i > a.ParamsSize()-1 {
+	if i < 0 || i > a.ParamsSize()-1 {
 		panic(fmt.Sprintf("Index %d is out of bound", i))
 	}
 
@@ -111,7 +124,7 @@ func NewArgs(args []string) *Args {
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {
-	if index > len(slice)-1 {
+	if index < 0 || index > len(slice)-1 {
 		panic(fmt.Sprintf("Index %d is out of bound", index))
 	}
 
