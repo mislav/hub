@@ -463,6 +463,11 @@ module Hub
         RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/
       end
 
+      def unix?
+        require 'rbconfig'
+        RbConfig::CONFIG['host_os'] =~ /(aix|darwin|linux|(net|free|open)bsd|cygwin|solaris|irix|hpux)/i
+      end
+
       # Cross-platform way of finding an executable in the $PATH.
       #
       #   which('ruby') #=> /usr/bin/ruby
@@ -488,6 +493,16 @@ module Hub
 
       def tmp_dir
         ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
+      end
+
+      def terminal_width
+        if unix?
+          width = %x{stty size 2>#{NULL}}.split[1].to_i
+          width = %x{tput cols 2>#{NULL}}.to_i if width.zero?
+        else
+          width = 0
+        end
+        width < 10 ? 78 : width
       end
     end
 

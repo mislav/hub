@@ -953,7 +953,8 @@ help
     # in order to turn our raw roff (manpage markup) into something
     # readable on the terminal.
     def groff_command
-      "groff -Wall -mtty-char -mandoc -Tascii"
+      cols = terminal_width
+      "groff -Wall -mtty-char -mandoc -Tascii -rLL=#{cols}n -rLT=#{cols}n"
     end
 
     # Returns the raw hub manpage. If we're not running in standalone
