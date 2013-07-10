@@ -735,7 +735,6 @@ module Hub
           else
             'your profile'
           end
-
         puts "# Wrap git automatically by adding the following to #{profile}:"
         puts
         if shell == 'fish'
