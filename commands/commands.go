@@ -54,6 +54,7 @@ var Basic = []*Command{
 var Branching = []*Command{
 	cmdCheckout,
 	cmdMerge,
+	cmdApply,
 }
 
 var Remote = []*Command{
