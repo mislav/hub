@@ -8,7 +8,7 @@ module Hub
       @settings = Hash.new {|h,k| h[k] = {} }
       Array(files || CONFIG_FILES).each do |path|
         file = File.expand_path path
-        parse_file file if File.exist? file
+        parse_file file if File.readable?(file)
       end
     end
 
