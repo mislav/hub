@@ -3,7 +3,6 @@ package commands
 import (
 	"os"
 	"strings"
-	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 )
 
@@ -29,22 +28,25 @@ func push (command *Command, args *Args) {
 }
 
 func pushToEveryRemote (args *Args) {
-	remotes, ref := getRemotesRef(args)
+	remotes, idx := getRemotes(args)
 	for _, i := range remotes {
-		err := git.Spawn("push", i, ref)
+		copyArgs := args
+		copyArgs.ReplaceParam(idx, i)
+		err := copyArgs.ToCmd().Exec()
 		utils.Check(err)
 	}
 
 	os.Exit(0)
 }
 
-func getRemotesRef(args *Args) (remotes []string, ref string) {
-	remotes = strings.Split(args.GetParam(0), ",")
-	if args.ParamsSize() == 2 {
-		ref = args.GetParam(1)
-	} else {
-		ref = ""
+func getRemotes(args *Args) (remotes []string, idx int) {
+	for a, i := range args.Params {
+		if !strings.HasPrefix(i, "-") {
+			remotes = strings.Split(i, ",")
+			idx = a
+			return
+		}
 	}
-	
+
 	return
 }
