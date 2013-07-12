@@ -60,6 +60,7 @@ var Branching = []*Command{
 var Remote = []*Command{
 	cmdClone,
 	cmdFetch,
+	cmdPush,
 	cmdRemote,
 }
 
