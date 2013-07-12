@@ -8,6 +8,7 @@ import (
 
 var cmdPush = &Command{
 	Run: push,
+	GitExtension: true,
 	Usage: "push REMOTE-1,REMOTE-2,...,REMOTE-N [REF]",
 	Short: "Update remote refs along with associated objects",
 	Long: `Push REF to each of REMOTE-1 through REMOTE-N by executing  mul-
@@ -36,7 +37,7 @@ func pushToEveryRemote (args *Args) {
 		utils.Check(err)
 	}
 
-	os.Exit(0)
+	fixHelp(args)
 }
 
 func getRemotes(args *Args) (remotes []string, idx int) {
@@ -49,4 +50,15 @@ func getRemotes(args *Args) (remotes []string, idx int) {
 	}
 
 	return
+}
+
+func fixHelp(args *Args) {
+	for _, i := range args.Params {
+		if i == "--help" && args.ParamsSize() == 1 {
+			args.Replace(args.Executable, args.Command, "--help")
+			return
+		}
+	}
+
+	os.Exit(0)
 }
