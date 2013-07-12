@@ -35,13 +35,16 @@ remotes are only added if they correspond to valid forks on GitHub.
 */
 func fetch(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
-		tranformFetchArgs(args)
+		err := tranformFetchArgs(args)
+		utils.Check(err)
 	}
 }
 
-func tranformFetchArgs(args *Args) {
+func tranformFetchArgs(args *Args) error {
 	remotes, err := git.Remotes()
-	utils.Check(err)
+	if err != nil {
+		return err
+	}
 
 	names := parseRemoteNames(args)
 	gh := github.New()
@@ -67,6 +70,8 @@ func tranformFetchArgs(args *Args) {
 		}
 		args.Before("git", "remote", "add", project.Owner, project.GitURL("", "", isSSH))
 	}
+
+	return nil
 }
 
 func parseRemoteNames(args *Args) (names []string) {

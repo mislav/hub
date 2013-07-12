@@ -54,6 +54,7 @@ func transformRemoteArgs(args *Args) {
 	project := github.Project{Owner: owner, Name: name}
 	url := project.GitURL(name, owner, isPriavte)
 
+	args.RemoveParam(args.ParamsSize() - 1) // remove ownerWithName
 	args.AppendParams(url)
 }
 
