@@ -6,23 +6,14 @@ import (
 )
 
 func TestGetRemotesRef(t *testing.T) {
-	args := NewArgs([]string{"push", "origin", "master"})
-	remotes, ref := getRemotesRef(args)
+	args := NewArgs([]string{"push", "origin", "master", "--force"})
+	remotes, idx := getRemotes(args)
 	assert.Equal(t, remotes, []string{"origin"})
-	assert.Equal(t, ref, "master")
+	assert.Equal(t, idx, 0)
 
-	args = NewArgs([]string{"push", "origin"})
-	remotes, ref = getRemotesRef(args)
-	assert.Equal(t, remotes, []string{"origin"})
-	assert.Equal(t, ref, "")
-
-	args = NewArgs([]string{"push", "origin,experimental", "master"})
-	remotes, ref = getRemotesRef(args)
+	args = NewArgs([]string{"push", "origin,experimental", "master", "--force"})
+	remotes, idx = getRemotes(args)
 	assert.Equal(t, remotes, []string{"origin", "experimental"})
-	assert.Equal(t, ref, "master")
+	assert.Equal(t, idx, 0)
 
-	args = NewArgs([]string{"push", "origin,experimental"})
-	remotes, ref = getRemotesRef(args)
-	assert.Equal(t, remotes, []string{"origin", "experimental"})
-	assert.Equal(t, ref, "")
 }
