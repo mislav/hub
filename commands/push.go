@@ -24,11 +24,11 @@ tiple git push commands.`,
 
 func push (command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
-		transformPushArgs(args)
+		pushToEveryRemote(args)
 	}
 }
 
-func transformPushArgs (args *Args) {
+func pushToEveryRemote (args *Args) {
 	remotes, ref := getRemotesRef(args)
 	for _, i := range remotes {
 		err := git.Spawn("push", i, ref)
