@@ -31,9 +31,9 @@ func push (command *Command, args *Args) {
 
 func pushToEveryRemote (args *Args) {
 	remotes, idx := getRemotes(args)
-	for _, i := range remotes {
+	for _, a := range remotes {
 		copyArgs := args
-		copyArgs.ReplaceParam(idx, i)
+		copyArgs.ReplaceParam(idx, a)
 		if !args.Noop {
 			err := copyArgs.ToCmd().Exec()
 			utils.Check(err)
@@ -46,10 +46,10 @@ func pushToEveryRemote (args *Args) {
 }
 
 func getRemotes(args *Args) (remotes []string, idx int) {
-	for a, i := range args.Params {
-		if !strings.HasPrefix(i, "-") {
-			remotes = strings.Split(i, ",")
-			idx = a
+	for i, a := range args.Params {
+		if !strings.HasPrefix(a, "-") {
+			remotes = strings.Split(a, ",")
+			idx = i
 			return
 		}
 	}
