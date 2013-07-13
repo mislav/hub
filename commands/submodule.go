@@ -47,7 +47,6 @@ func transformSubmoduleArgs(args *Args) {
 	for i, a := range args.Params {
 		if continueNext {
 			continueNext = false
-			
 			continue
 		}
 
