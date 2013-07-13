@@ -62,6 +62,7 @@ func transformCloneArgs(args *Args) {
 			isSSH = isSSH || owner == config.User
 			if owner == "" {
 				owner = config.User
+				isSSH = true
 			}
 
 			project := github.Project{Name: name, Owner: owner}
