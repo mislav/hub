@@ -4,6 +4,8 @@ import (
 	"github.com/jingweno/gh/github"
 	"regexp"
 	"strings"
+	"fmt"
+	"os"
 )
 
 var cmdClone = &Command{
@@ -65,6 +67,11 @@ func transformCloneArgs(args *Args) {
 			project := github.Project{Name: name, Owner: owner}
 			url := project.GitURL(name, owner, isSSH)
 			args.ReplaceParam(i, url)
+
+			if args.Noop {
+				fmt.Printf("git clone %s\n", strings.Join(args.Params, " "))
+				os.Exit(0)
+			}
 
 			break
 		}
