@@ -58,11 +58,9 @@ func getRemotes(args *Args) (remotes []string, idx int) {
 }
 
 func fixHelp(args *Args) {
-	for _, i := range args.Params {
-		if i == "--help" && args.ParamsSize() == 1 {
-			args.Params = []string{"--help"}
-			return
-		}
+	if i := args.IndexOfParam("--help"); i != -1 && args.ParamsSize() == 1 {
+		args.Params = []string{"--help"}
+		return
 	}
 
 	os.Exit(0)
