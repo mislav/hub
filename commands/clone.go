@@ -44,8 +44,8 @@ func transformCloneArgs(args *Args) {
 	hasValueRegxp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
 
-	httpReadOnlyRegexp := regexp.MustCompile("(https|git)://github\\.com/(.+)/(.+?)(\\.git|$)")
-	sshRegexp := regexp.MustCompile("git@github\\.com:(.+)/(.+?)(\\.git|$)")
+	httpReadOnlyRegexp := regexp.MustCompile("(http(s?)|git)://(.+)/(.+)$")
+	sshRegexp := regexp.MustCompile("^(.+)@(.+):(.+)$")
 
 	for i, a := range args.Params {
 		if hasValueRegxp.MatchString(a) {
