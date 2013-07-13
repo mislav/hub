@@ -40,21 +40,25 @@ func transformRemoteArgs(args *Args) {
 	if !match {
 		return
 	}
-	isPriavte := parseRemotePrivateFlag(args)
+
 	var err error
 	if name == "" {
 		name, err = utils.DirName()
 		utils.Check(err)
 	}
 
+	isPriavte := parseRemotePrivateFlag(args)
+
 	if owner == "origin" {
 		owner = github.CurrentConfig().FetchUser()
+	} else if args.ParamsSize() > 2 {
+		// `git remote add jingweno foo/bar`
+		args.RemoveParam(args.ParamsSize() - 1)
 	}
 
 	project := github.Project{Owner: owner, Name: name}
 	url := project.GitURL(name, owner, isPriavte)
 
-	args.RemoveParam(args.ParamsSize() - 1) // remove ownerWithName
 	args.AppendParams(url)
 }
 
