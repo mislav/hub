@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"github.com/bmizerany/assert"
 	"github.com/jingweno/gh/github"
 	"os"
@@ -13,8 +12,6 @@ import (
 func TestTransformRemoteArgs(t *testing.T) {
 	args := NewArgs([]string{"remote", "add", "jingweno"})
 	transformRemoteArgs(args)
-
-	fmt.Println(args)
 
 	assert.Equal(t, 3, args.ParamsSize())
 	assert.Equal(t, "add", args.FirstParam())
