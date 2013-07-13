@@ -112,7 +112,7 @@
 </style>
 
 <body>
-<h1><a href="http://github.com/defunkt/hub#readme">hub</a> makes git better with GitHub</h1>
+<h1><a href="http://github.com/github/hub#readme">hub</a> makes git better with GitHub</h1>
 
 <p class="man">Documentation: <a href="hub.1.html">man hub</a></p>
 
@@ -126,7 +126,7 @@
 $ <a href="http://mxcl.github.com/homebrew/">brew</a> install hub
 
 <span class="comment"># other systems</span>
-$ curl http://defunkt.io/hub/standalone -sLo <strong>~/bin/hub</strong>
+$ curl http://hub.github.com/standalone -sLo <strong>~/bin/hub</strong>
 $ chmod +x <strong>~/bin/hub</strong>
 
 <span class="comment"># alias it as git</span>
@@ -153,12 +153,12 @@ $ git <strong>clone dotfiles</strong>
 <span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
 
 <span class="comment"># clone another project</span>
-$ git <strong>clone defunkt/hub</strong>
-<span class="result">→ git clone git://github.com/defunkt/hub.git</span>
+$ git <strong>clone github/hub</strong>
+<span class="result">→ git clone git://github.com/github/hub.git</span>
 
 <span class="comment"># see the current project's issues</span>
 $ git <strong>browse -- issues</strong>
-<span class="result">→ open https://github.com/defunkt/hub/issues</span>
+<span class="result">→ open https://github.com/github/hub/issues</span>
 
 <span class="comment"># open another project's wiki</span>
 $ git <strong>browse mojombo/jekyll wiki</strong>
@@ -167,7 +167,7 @@ $ git <strong>browse mojombo/jekyll wiki</strong>
 
 <pre>
 <span class="comment"># Example workflow for contributing to a project:</span>
-$ git clone defunkt/hub
+$ git clone github/hub
 $ cd hub
 <span class="comment"># create a topic branch</span>
 $ git checkout -b feature
@@ -203,11 +203,11 @@ $ git <strong>fetch mislav,cehoffman</strong>
 <span class="result">→ git fetch --multiple mislav cehoffman</span>
 
 <span class="comment"># check out a pull request for review</span>
-$ git <strong>checkout https://github.com/defunkt/hub/pull/134</strong>
+$ git <strong>checkout https://github.com/github/hub/pull/134</strong>
 <span class="result">→ (creates a new branch with the contents of the pull request)</span>
 
 <span class="comment"># directly apply all commits from a pull request to the current branch</span>
-$ git <strong>am -3</strong> https://github.com/defunkt/hub/pull/134
+$ git <strong>am -3</strong> https://github.com/github/hub/pull/134
 
 <span class="comment"># cherry-pick a GitHub URL</span>
 $ git <strong>cherry-pick http://github.com/xoebus/hub/commit/177eeb8</strong>
