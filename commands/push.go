@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"github.com/jingweno/gh/utils"
@@ -33,8 +34,12 @@ func pushToEveryRemote (args *Args) {
 	for _, i := range remotes {
 		copyArgs := args
 		copyArgs.ReplaceParam(idx, i)
-		err := copyArgs.ToCmd().Exec()
-		utils.Check(err)
+		if !args.Noop {
+			err := copyArgs.ToCmd().Exec()
+			utils.Check(err)
+		} else {
+			fmt.Printf("it would run `git push %s`\n", strings.Join(copyArgs.Params, " "))
+		}
 	}
 
 	fixHelp(args)
