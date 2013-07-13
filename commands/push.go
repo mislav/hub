@@ -60,7 +60,7 @@ func getRemotes(args *Args) (remotes []string, idx int) {
 func fixHelp(args *Args) {
 	for _, i := range args.Params {
 		if i == "--help" && args.ParamsSize() == 1 {
-			args.Replace(args.Executable, args.Command, "--help")
+			args.Params = []string{"--help"}
 			return
 		}
 	}
