@@ -1,5 +1,6 @@
 # based on <github.com/jnicklas/capybara/blob/ab62b27/lib/capybara/server.rb>
 require 'net/http'
+require 'rack/handler/webrick'
 
 module Hub
   class LocalServer
@@ -15,19 +16,6 @@ module Hub
 
     def self.ports
       @ports ||= {}
-    end
-
-    def self.run_handler(app, port, &block)
-      begin
-        require 'rack/handler/thin'
-        Thin::Logging.silent = true
-        Thin::HTTP_STATUS_CODES[422] = "Unprocessable Entity"
-        Rack::Handler::Thin.run(app, :Port => port, &block)
-      rescue LoadError
-        require 'rack/handler/webrick'
-        WEBrick::HTTPStatus::StatusMessage[422] = "Unprocessable Entity"
-        Rack::Handler::WEBrick.run(app, :Port => port, :AccessLog => [], :Logger => WEBrick::Log::new(nil, 0), &block)
-      end
     end
 
     class JsonParamsParser < Struct.new(:app)
@@ -106,16 +94,12 @@ module Hub
       @port = self.class.ports[app.object_id]
 
       if not @port or not responsive?
-        @port = find_available_port
-        self.class.ports[app.object_id] = @port
-
-        @server_thread = Thread.new do
-          self.class.run_handler(Identify.new(app), @port) { |server|
-            self.server = server
-          }
+        @server_thread = start_handler(Identify.new(app)) do |server, host, port|
+          self.server = server
+          @port = self.class.ports[app.object_id] = port
         end
 
-        Timeout.timeout(60) { @server_thread.join(0.1) until responsive? }
+        Timeout.timeout(60) { @server_thread.join(0.01) until responsive? }
       end
     rescue TimeoutError
       raise "Rack application timed out during boot"
@@ -123,18 +107,29 @@ module Hub
       self
     end
 
-    def stop
-      server.respond_to?(:stop!) ? server.stop! : server.stop
-      @server_thread.join
+    def start_handler(app)
+      server = nil
+      thread = Rack::Handler::WEBrick.run(app, server_options) { |s| server = s }
+      addr = server.listeners[0].addr
+      yield server, addr[3], addr[1]
+      return thread
     end
 
-  private
+    def server_options
+      { :Port => 0,
+        :BindAddress => '127.0.0.1',
+        :ShutdownSocketWithoutClose => true,
+        :ServerType => Thread,
+        :AccessLog => [],
+        :Logger => WEBrick::Log::new(nil, 0)
+      }
+    end
 
-    def find_available_port
-      server = TCPServer.new('127.0.0.1', 0)
-      server.addr[1]
-    ensure
-      server.close if server
+    def stop
+      server.shutdown
+      @server_thread.join
     end
   end
 end
+
+WEBrick::HTTPStatus::StatusMessage[422] = "Unprocessable Entity"

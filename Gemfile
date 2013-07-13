@@ -4,7 +4,6 @@ gem 'ronn', :platform => :mri
 gem 'aruba', '~> 0.5.3'
 gem 'cucumber', '~> 1.2.1'
 gem 'sinatra'
-gem 'thin', :platform => :mri
 gem 'json'
 gem 'jruby-openssl', :platform => :jruby
 
