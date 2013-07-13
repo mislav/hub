@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name              = "hub"
   s.version           = Hub::VERSION
   s.summary           = "Command-line wrapper for git and GitHub"
-  s.homepage          = "http://github.github.com/hub/"
+  s.homepage          = "http://hub.github.com/"
   s.email             = "mislav.marohnic@gmail.com"
   s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
   s.license           = "MIT"
