@@ -41,9 +41,17 @@ func transformCloneArgs(args *Args) {
 	isSSH := parseClonePrivateFlag(args)
 	hasValueRegxp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
+
+	httpReadOnlyRegexp := regexp.MustCompile("(https|git)://github\\.com/(.+)/(.+?)(\\.git|$)")
+	sshRegexp := regexp.MustCompile("git@github\\.com:(.+)/(.+?)(\\.git|$)")
+
 	for i, a := range args.Params {
 		if hasValueRegxp.MatchString(a) {
 			continue
+		}
+
+		if httpReadOnlyRegexp.MatchString(a) || sshRegexp.MatchString(a) {
+			break
 		}
 
 		if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
