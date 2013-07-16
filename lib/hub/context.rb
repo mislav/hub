@@ -107,6 +107,14 @@ module Hub
     def_delegators :local_repo, *repo_methods
     private :repo_name, *repo_methods
 
+    def default_branch(default_branch_name = nil)
+      if default_branch_name
+        Branch.new nil, default_branch_name
+      else
+        master_branch
+      end
+    end
+
     def master_branch
       if local_repo(false)
         local_repo.master_branch
