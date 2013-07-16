@@ -260,6 +260,7 @@ class HubTest < Test::Unit::TestCase
   def test_pullrequest_from_branch_tracking_local
     stub_branch('refs/heads/feature')
     stub_tracking('feature', 'refs/heads/master')
+    stub_command_output('rev-parse --symbolic-full-name origin', 'refs/remotes/origin/master')
 
     stub_request(:post, "https://api.github.com/repos/defunkt/hub/pulls").
       with(:body => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo" }).
@@ -274,6 +275,7 @@ class HubTest < Test::Unit::TestCase
     stub_repo_url('git@git.my.org:defunkt/hub.git')
     stub_branch('refs/heads/feature')
     stub_tracking_nothing('feature')
+    stub_command_output('rev-parse --symbolic-full-name origin', 'refs/remotes/origin/master')
     stub_command_output "rev-list --cherry-pick --right-only --no-merges origin/feature...", nil
     edit_hub_config do |data|
       data['git.my.org'] = [{'user'=>'myfiname', 'oauth_token' => 'FITOKEN'}]

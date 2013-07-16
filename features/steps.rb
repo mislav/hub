@@ -74,6 +74,16 @@ Given(/^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/) do |name, u
   run_silent %(git checkout --quiet -B #{name} --track #{upstream})
 end
 
+Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|
+  empty_commit
+  ref_file = ".git/refs/remotes/#{remote}/#{branch}"
+  in_current_dir do
+    FileUtils.mkdir_p File.dirname(ref_file)
+    FileUtils.cp '.git/refs/heads/master', ref_file
+  end
+  run_silent %(git remote set-head #{remote} #{branch})
+end
+
 Given(/^I am in detached HEAD$/) do
   empty_commit
   empty_commit

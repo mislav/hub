@@ -255,6 +255,20 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -b develop -m message`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Implicit base by detecting main branch
+    Given the default branch for "origin" is "develop"
+    And I am on the "master" branch
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :base => 'develop',
+               :head => 'mislav:master'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m message`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Explicit base with owner
     Given I am on the "master" branch
     Given the GitHub API server:

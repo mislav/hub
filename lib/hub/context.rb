@@ -159,7 +159,10 @@ module Hub
       end
 
       def master_branch
-        Branch.new self, 'refs/heads/master'
+        if remote = origin_remote
+          default_branch = git_command("rev-parse --symbolic-full-name #{remote}")
+        end
+        Branch.new(self, default_branch || 'refs/heads/master')
       end
 
       def remotes
