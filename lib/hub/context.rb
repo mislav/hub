@@ -308,7 +308,10 @@ module Hub
       end
 
       def master?
-        short_name == 'master'
+        master_name = if local_repo then local_repo.master_branch.short_name
+        else 'master'
+        end
+        short_name == master_name
       end
 
       def upstream
