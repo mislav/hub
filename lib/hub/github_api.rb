@@ -390,6 +390,8 @@ module Hub
       def prompt what
         print "#{what}: "
         $stdin.gets.chomp
+      rescue Interrupt
+        abort
       end
 
       # special prompt that has hidden input
@@ -403,6 +405,8 @@ module Hub
           # in testing
           $stdin.gets.chomp
         end
+      rescue Interrupt
+        abort
       end
 
       NULL = defined?(File::NULL) ? File::NULL :
