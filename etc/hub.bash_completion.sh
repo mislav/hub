@@ -184,7 +184,7 @@ EOF
       case "$i" in
         -d|-h)
           ((c++))
-          ;;&
+          ;;
         -p|-d|-h)
           flags=${flags/$i/}
           ;;
@@ -232,7 +232,7 @@ EOF
       case "$i" in
         -m|-F|-i|-b|-h)
           ((c++))
-          ;;&
+          ;;
         -f|-m|-F|-i|-b|-h)
           flags=${flags/$i/}
           ;;
