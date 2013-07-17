@@ -389,19 +389,27 @@ module Hub
 
       def prompt what
         print "#{what}: "
-        $stdin.gets.chomp
+        begin
+          $stdin.gets.chomp
+        rescue Interrupt
+          exit
+        end
       end
 
       # special prompt that has hidden input
       def prompt_password host, user
         print "#{host} password for #{user} (never stored): "
-        if $stdin.tty?
-          password = askpass
-          puts ''
-          password
-        else
-          # in testing
-          $stdin.gets.chomp
+        begin
+          if $stdin.tty?
+            password = askpass
+            puts ''
+            password
+          else
+            # in testing
+            $stdin.gets.chomp
+          end
+        rescue Interrupt
+          exit
         end
       end
 
