@@ -181,17 +181,19 @@ func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) 
 	r := regexp.MustCompile("\\S")
 	var titleParts, bodyParts []string
 
-	line, err := readln(reader)
+	line, err := readLine(reader)
 	for err == nil {
 		if strings.HasPrefix(line, "#") {
 			break
 		}
+
 		if len(bodyParts) == 0 && r.MatchString(line) {
 			titleParts = append(titleParts, line)
 		} else {
 			bodyParts = append(bodyParts, line)
 		}
-		line, err = readln(reader)
+
+		line, err = readLine(reader)
 	}
 
 	title = strings.Join(titleParts, " ")
@@ -203,12 +205,13 @@ func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) 
 	return title, body, nil
 }
 
-func readln(r *bufio.Reader) (string, error) {
+func readLine(r *bufio.Reader) (string, error) {
 	var (
 		isPrefix = true
 		err      error
 		line, ln []byte
 	)
+
 	for isPrefix && err == nil {
 		line, isPrefix, err = r.ReadLine()
 		ln = append(ln, line...)

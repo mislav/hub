@@ -60,7 +60,7 @@ func convertToGitURL(pullRequest *octokat.PullRequest) (string, error) {
 	return project.GitURL("", user, isSSH), nil
 }
 
-func parseRepoNameOwner(nameWithOwner string) (owner, repo string, match bool) {
+func parseRepoNameOwner(nameWithOwner string) (owner, name string, match bool) {
 	ownerRe := fmt.Sprintf("^(%s)$", OwnerRe)
 	ownerRegexp := regexp.MustCompile(ownerRe)
 	if ownerRegexp.MatchString(nameWithOwner) {
@@ -74,7 +74,7 @@ func parseRepoNameOwner(nameWithOwner string) (owner, repo string, match bool) {
 	if nameWithOwnerRegexp.MatchString(nameWithOwner) {
 		result := nameWithOwnerRegexp.FindStringSubmatch(nameWithOwner)
 		owner = result[1]
-		repo = result[2]
+		name = result[2]
 		match = true
 	}
 

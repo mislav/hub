@@ -49,4 +49,12 @@ func TestTransformRemoteArgs(t *testing.T) {
 	assert.Equal(t, "jingweno", args.GetParam(1))
 	assert.Equal(t, "add", args.FirstParam())
 	assert.Equal(t, "git@github.com:jingweno/gh.git", args.GetParam(2))
+
+	args = NewArgs([]string{"remote", "add", "-p", "origin", "org/foo"})
+	transformRemoteArgs(args)
+
+	assert.Equal(t, 3, args.ParamsSize())
+	assert.Equal(t, "origin", args.GetParam(1))
+	assert.Equal(t, "add", args.FirstParam())
+	assert.Equal(t, "git@github.com:org/foo.git", args.GetParam(2))
 }
