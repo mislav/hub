@@ -4,8 +4,6 @@ import (
 	"github.com/jingweno/gh/github"
 	"regexp"
 	"strings"
-	"fmt"
-	"os"
 )
 
 var cmdClone = &Command{
@@ -43,16 +41,12 @@ func transformCloneArgs(args *Args) {
 	isSSH := parseClonePrivateFlag(args)
 	hasValueRegxp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
-
-	httpReadOnlyRegexp := regexp.MustCompile("(http(s?)|git)://(.+)/(.+)$")
-	sshRegexp := regexp.MustCompile("^(.+)@(.+):(.+)$")
-
 	for i, a := range args.Params {
 		if hasValueRegxp.MatchString(a) {
 			continue
 		}
 
-		if httpReadOnlyRegexp.MatchString(a) || sshRegexp.MatchString(a) {
+		if github.MatchURL(a) != nil {
 			break
 		}
 
@@ -68,11 +62,6 @@ func transformCloneArgs(args *Args) {
 			project := github.Project{Name: name, Owner: owner}
 			url := project.GitURL(name, owner, isSSH)
 			args.ReplaceParam(i, url)
-
-			if args.Noop {
-				fmt.Printf("git clone %s\n", strings.Join(args.Params, " "))
-				os.Exit(0)
-			}
 
 			break
 		}

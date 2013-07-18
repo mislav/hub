@@ -125,21 +125,30 @@ func parseOwnerAndName(remote string) (owner string, name string) {
 	return url[1], url[2]
 }
 
-func mustMatchGitHubURL(url string) ([]string, error) {
+func MatchURL(url string) []string {
 	httpRegex := regexp.MustCompile("https://github\\.com/(.+)/(.+?)(\\.git|$)")
 	if httpRegex.MatchString(url) {
-		return httpRegex.FindStringSubmatch(url), nil
+		return httpRegex.FindStringSubmatch(url)
 	}
 
 	readOnlyRegex := regexp.MustCompile("git://github\\.com/(.+)/(.+?)(\\.git|$)")
 	if readOnlyRegex.MatchString(url) {
-		return readOnlyRegex.FindStringSubmatch(url), nil
+		return readOnlyRegex.FindStringSubmatch(url)
 	}
 
 	sshRegex := regexp.MustCompile("git@github\\.com:(.+)/(.+?)(\\.git|$)")
 	if sshRegex.MatchString(url) {
-		return sshRegex.FindStringSubmatch(url), nil
+		return sshRegex.FindStringSubmatch(url)
 	}
 
-	return nil, errors.New("The origin remote doesn't point to a GitHub repository: " + url)
+	return nil
+}
+
+func mustMatchGitHubURL(url string) ([]string, error) {
+	githubURL := MatchURL(url)
+	if githubURL == nil {
+		return nil, errors.New("The origin remote doesn't point to a GitHub repository: " + url)
+	}
+
+	return githubURL, nil
 }
