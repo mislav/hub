@@ -42,11 +42,18 @@ func TestTransformCloneArgs(t *testing.T) {
 	transformCloneArgs(args)
 
 	assert.Equal(t, 1, args.ParamsSize())
-	assert.Equal(t, "git://github.com/jingweno/jekyll_and_hyde.git", args.FirstParam())
+	assert.Equal(t, "git@github.com:jingweno/jekyll_and_hyde.git", args.FirstParam())
 
 	args = NewArgs([]string{"clone", "-p", "jekyll_and_hyde"})
 	transformCloneArgs(args)
 
 	assert.Equal(t, 1, args.ParamsSize())
 	assert.Equal(t, "git@github.com:jingweno/jekyll_and_hyde.git", args.FirstParam())
+
+	args = NewArgs([]string{"clone", "git://github.com/jingweno/gh", "gh"})
+	transformCloneArgs(args)
+
+	assert.Equal(t, 2, args.ParamsSize())
+	assert.Equal(t, "git://github.com/jingweno/gh", args.FirstParam())
+	assert.Equal(t, "gh", args.GetParam(1))
 }
