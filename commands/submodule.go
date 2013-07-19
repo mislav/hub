@@ -50,6 +50,10 @@ func transformSubmoduleArgs(args *Args) {
 			continue
 		}
 
+        if github.MatchURL(a) != nil {
+            break
+        }
+
 		if hasValueRegexp.MatchString(a) {
 			if !strings.Contains(a, "=") {
 				continueNext = true
