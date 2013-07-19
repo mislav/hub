@@ -1,67 +1,54 @@
 package commands
 
 import (
-	"fmt"
-	"os"
-	"strings"
+	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
+	"strings"
 )
 
 var cmdPush = &Command{
-	Run: push,
+	Run:          push,
 	GitExtension: true,
-	Usage: "push REMOTE-1,REMOTE-2,...,REMOTE-N [REF]",
-	Short: "Update remote refs along with associated objects",
-	Long: `Push REF to each of REMOTE-1 through REMOTE-N by executing  mul-
-tiple git push commands.`,
+	Usage:        "push REMOTE-1,REMOTE-2,...,REMOTE-N [REF]",
+	Short:        "Upload data, tags and branches to a remote repository",
+	Long: `Push REF to each of REMOTE-1 through REMOTE-N by executing
+multiple git-push(1) commands.`,
 }
 
-/**
- $ git push origin,staging,qa bert_timeout
- > git push origin bert_timeout
- > git push staging bert_timeout
- > git push qa bert_timeout
-**/
+/*
+  $ gh push origin,staging,qa bert_timeout
+  > git push origin bert_timeout
+  > git push staging bert_timeout
+  > git push qa bert_timeout
 
-func push (command *Command, args *Args) {
-	if !args.IsParamsEmpty() {
-		pushToEveryRemote(args)
+  $ gh push origin
+  > git push origin HEAD
+*/
+func push(command *Command, args *Args) {
+	if !args.IsParamsEmpty() || !strings.Contains(args.FirstParam(), ",") {
+		transformPushArgs(args)
 	}
 }
 
-func pushToEveryRemote (args *Args) {
-	remotes, idx := getRemotes(args)
-	for _, a := range remotes {
-		copyArgs := args
-		copyArgs.ReplaceParam(idx, a)
-		if !args.Noop {
-			err := copyArgs.ToCmd().Exec()
-			utils.Check(err)
-		} else {
-			fmt.Printf("it would run `git push %s`\n", strings.Join(copyArgs.Params, " "))
-		}
+func transformPushArgs(args *Args) {
+	refs := []string{}
+	if args.ParamsSize() > 1 {
+		refs = args.Params[1:]
 	}
 
-	fixHelp(args)
-}
+	remotes := strings.Split(args.FirstParam(), ",")
+	args.ReplaceParam(0, remotes[0])
 
-func getRemotes(args *Args) (remotes []string, idx int) {
-	for i, a := range args.Params {
-		if !strings.HasPrefix(a, "-") {
-			remotes = strings.Split(a, ",")
-			idx = i
-			return
-		}
+	if len(refs) == 0 {
+		head, err := git.Head()
+		utils.Check(err)
+		refs = []string{head.ShortName()}
+		args.AppendParams(refs...)
 	}
 
-	return
-}
-
-func fixHelp(args *Args) {
-	if i := args.IndexOfParam("--help"); i != -1 && args.ParamsSize() == 1 {
-		args.Params = []string{"--help"}
-		return
+	for _, remote := range remotes[1:] {
+		afterCmd := []string{"git", "push", remote}
+		afterCmd = append(afterCmd, refs...)
+		args.After(afterCmd...)
 	}
-
-	os.Exit(0)
 }

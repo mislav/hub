@@ -2,18 +2,24 @@ package commands
 
 import (
 	"github.com/bmizerany/assert"
+	"regexp"
 	"testing"
 )
 
-func TestGetRemotesRef(t *testing.T) {
-	args := NewArgs([]string{"push", "origin", "master", "--force"})
-	remotes, idx := getRemotes(args)
-	assert.Equal(t, remotes, []string{"origin"})
-	assert.Equal(t, idx, 0)
+func TestTransformPushArgs(t *testing.T) {
+	args := NewArgs([]string{"push", "origin,staging,qa", "bert_timeout"})
+	transformPushArgs(args)
+	cmds := args.Commands()
 
-	args = NewArgs([]string{"push", "origin,experimental", "master", "--force"})
-	remotes, idx = getRemotes(args)
-	assert.Equal(t, remotes, []string{"origin", "experimental"})
-	assert.Equal(t, idx, 0)
+	assert.Equal(t, 3, len(cmds))
+	assert.Equal(t, "git push origin bert_timeout", cmds[0].String())
+	assert.Equal(t, "git push staging bert_timeout", cmds[1].String())
 
+	args = NewArgs([]string{"push", "origin"})
+	transformPushArgs(args)
+	cmds = args.Commands()
+
+	assert.Equal(t, 1, len(cmds))
+	pushRegexp := regexp.MustCompile("git push origin .+")
+	assert.T(t, pushRegexp.MatchString(cmds[0].String()))
 }
