@@ -14,7 +14,7 @@ func TestTransformApplyArgs(t *testing.T) {
 
 	cmds := args.Commands()
 	assert.Equal(t, 2, len(cmds))
-	curlString := fmt.Sprintf("curl -#LA %s https://github.com/jingweno/gh/pull/55.patch -o .+/55.patch", fmt.Sprintf("gh %s", Version))
+	curlString := fmt.Sprintf("curl -#LA %s https://github.com/jingweno/gh/pull/55.patch -o .+55.patch", fmt.Sprintf("gh %s", Version))
 	curlRegexp := regexp.MustCompile(curlString)
 	applyString := "git apply"
 	assert.T(t, curlRegexp.MatchString(cmds[0].String()))
@@ -25,7 +25,7 @@ func TestTransformApplyArgs(t *testing.T) {
 
 	cmds = args.Commands()
 	assert.Equal(t, 2, len(cmds))
-	curlString = fmt.Sprintf("curl -#LA %s https://github.com/jingweno/gh/commit/fdb9921.patch -o .+/fdb9921.patch", fmt.Sprintf("gh %s", Version))
+	curlString = fmt.Sprintf("curl -#LA %s https://github.com/jingweno/gh/commit/fdb9921.patch -o .+fdb9921.patch", fmt.Sprintf("gh %s", Version))
 	curlRegexp = regexp.MustCompile(curlString)
 	applyString = "git apply --ignore-whitespace"
 	assert.T(t, curlRegexp.MatchString(cmds[0].String()))
