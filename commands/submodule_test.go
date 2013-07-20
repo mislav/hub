@@ -9,44 +9,30 @@ import (
 )
 
 func TestTransformSubmoduleArgs(t *testing.T) {
-	github.DefaultConfigFile = "./test_support/clone_gh"
+	github.DefaultConfigFile = "./test_support/submodule_gh"
 	config := github.Config{User: "jingweno", Token: "123"}
 	github.SaveConfig(&config)
 	defer os.RemoveAll(filepath.Dir(github.DefaultConfigFile))
 
-	args := NewArgs([]string{"submodule", "add", "foo/gh", "foo/gh"})
+	args := NewArgs([]string{"submodule", "add", "jingweno/gh", "vendor/gh"})
 	transformSubmoduleArgs(args)
 
-	assert.Equal(t, 3, args.ParamsSize())
-	assert.Equal(t, "git://github.com/foo/gh.git", args.GetParam(1))
+	cmds := args.Commands()
+	assert.Equal(t, 1, len(cmds))
+	assert.Equal(t, "git submodule add git://github.com/jingweno/gh.git vendor/gh", cmds[0].String())
 
-	args = NewArgs([]string{"submodule", "add", "-p", "foo/gh", "foo/gh"})
+	args = NewArgs([]string{"submodule", "add", "-p", "jingweno/gh",
+		"vendor/gh"})
 	transformSubmoduleArgs(args)
 
-	assert.Equal(t, 3, args.ParamsSize())
-	assert.Equal(t, "git@github.com:foo/gh.git", args.GetParam(1))
+	cmds = args.Commands()
+	assert.Equal(t, 1, len(cmds))
+	assert.Equal(t, "git submodule add git@github.com:jingweno/gh.git vendor/gh", cmds[0].String())
 
-	args = NewArgs([]string{"submodule", "add", "jingweno/gh", "jingweno/gh"})
+	args = NewArgs([]string{"submodule", "add", "-b", "gh", "--name", "gh", "jingweno/gh", "vendor/gh"})
 	transformSubmoduleArgs(args)
 
-	assert.Equal(t, 3, args.ParamsSize())
-	assert.Equal(t, "git@github.com:jingweno/gh.git", args.GetParam(1))
-
-	args = NewArgs([]string{"submodule", "add", "-p", "acl-services/devise-acl", "foo/devise-acl"})
-	transformSubmoduleArgs(args)
-
-	assert.Equal(t, 3, args.ParamsSize())
-	assert.Equal(t, "git@github.com:acl-services/devise-acl.git", args.GetParam(1))
-
-	args = NewArgs([]string{"submodule", "add", "jekyll_and_hyde", "foo/jekyll_and_hyde"})
-	transformSubmoduleArgs(args)
-
-	assert.Equal(t, 3, args.ParamsSize())
-	assert.Equal(t, "git://github.com/jingweno/jekyll_and_hyde.git", args.GetParam(1))
-
-	args = NewArgs([]string{"submodule", "add", "-p", "jekyll_and_hyde", "foo/jekyll_and_hyde"})
-	transformSubmoduleArgs(args)
-
-	assert.Equal(t, 3, args.ParamsSize())
-	assert.Equal(t, "git@github.com:jingweno/jekyll_and_hyde.git", args.GetParam(1))
+	cmds = args.Commands()
+	assert.Equal(t, 1, len(cmds))
+	assert.Equal(t, "git submodule add -b gh --name gh git://github.com/jingweno/gh.git vendor/gh", cmds[0].String())
 }
