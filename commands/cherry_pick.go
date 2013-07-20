@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"github.com/jingweno/gh/github"
 	"regexp"
 )
@@ -64,7 +63,7 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 		}
 	}
 
-	ownerWithShaRegexp := regexp.MustCompile(fmt.Sprintf("^(%s)@([a-f0-9]{7,40})$"))
+	ownerWithShaRegexp := regexp.MustCompile("^(%s)@([a-f0-9]{7,40})$")
 	if ownerWithShaRegexp.MatchString(ref) {
 		matches := ownerWithShaRegexp.FindStringSubmatch(ref)
 		sha = matches[2]

@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	runner := commands.Runner{os.Args[1:]}
+  runner := commands.Runner{Args: os.Args[1:]}
 	err := runner.Execute()
 	utils.Check(err)
 }
