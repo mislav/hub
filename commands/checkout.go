@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 )
 
@@ -43,13 +42,8 @@ func transformCheckoutArgs(args *Args) error {
 		user := pullRequest.User.Login
 		branch := pullRequest.Head.Ref
 
-		remoteExists, err := checkIfRemoteExists(user)
-		if err != nil {
-			return err
-		}
-
 		args.RemoveParam(0) // Remove the pull request URL
-		if remoteExists {
+		if hasGitRemote(user) {
 			updateExistingRemote(args, user, branch)
 		} else {
 			sshURL, err := convertToGitURL(pullRequest)
@@ -72,21 +66,6 @@ func transformCheckoutArgs(args *Args) error {
 	}
 
 	return nil
-}
-
-func checkIfRemoteExists(remote string) (bool, error) {
-	remotes, err := git.Remotes()
-	if err != nil {
-		return false, err
-	}
-
-	for _, r := range remotes {
-		if r.Name == remote {
-			return true, nil
-		}
-	}
-
-	return false, nil
 }
 
 func updateExistingRemote(args *Args, user, branch string) {

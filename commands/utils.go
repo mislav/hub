@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/octokat"
 	"os"
 	"regexp"
@@ -85,4 +87,16 @@ func parseRepoNameOwner(nameWithOwner string) (owner, name string, match bool) {
 	}
 
 	return
+}
+
+func hasGitRemote(name string) bool {
+	remotes, err := git.Remotes()
+	utils.Check(err)
+	for _, remote := range remotes {
+		if remote.Name == name {
+			return true
+		}
+	}
+
+	return false
 }

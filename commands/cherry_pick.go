@@ -2,9 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
-	"github.com/jingweno/gh/utils"
 	"regexp"
 )
 
@@ -45,7 +43,7 @@ func transformCherryPickArgs(args *Args) {
 	if project != nil {
 		args.ReplaceParam(args.IndexOfParam(ref), sha)
 
-		if matchGitRemote(project.Owner) {
+		if hasGitRemote(project.Owner) {
 			args.Before("git", "fetch", project.Owner)
 		} else {
 			args.Before("git", "remote", "add", "-f", project.Owner, project.GitURL("", "", false))
@@ -75,16 +73,4 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 	}
 
 	return
-}
-
-func matchGitRemote(name string) bool {
-	remotes, err := git.Remotes()
-	utils.Check(err)
-	for _, remote := range remotes {
-		if remote.Name == name {
-			return true
-		}
-	}
-
-	return false
 }
