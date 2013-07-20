@@ -41,8 +41,17 @@ func transformCloneArgs(args *Args) {
 	isSSH := parseClonePrivateFlag(args)
 	hasValueRegxp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
+	var skipNext bool
 	for i, a := range args.Params {
-		if hasValueRegxp.MatchString(a) {
+		if skipNext {
+			skipNext = false
+			continue
+		}
+
+		if strings.HasPrefix(a, "-") {
+			if hasValueRegxp.MatchString(a) {
+				skipNext = true
+			}
 			continue
 		}
 
@@ -53,7 +62,7 @@ func transformCloneArgs(args *Args) {
 		if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
 			name, owner := parseCloneNameAndOwner(a)
 			config := github.CurrentConfig()
-			isSSH = isSSH || owner == config.User
+			isSSH = isSSH || args.Command != "submodule" && owner == config.User
 			if owner == "" {
 				owner = config.User
 				isSSH = true
