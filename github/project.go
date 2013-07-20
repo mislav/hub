@@ -78,22 +78,17 @@ func CurrentProject() *Project {
 	return &Project{name, owner}
 }
 
-func ParseProjectFromURL(uu string) (*Project, error) {
-	u, err := url.Parse(uu)
-	if err != nil {
-		return nil, err
+func NewProjectFromURL(url *url.URL) (*Project, error) {
+	if url.Host != GitHubHost || url.Scheme != "https" {
+		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
 	}
 
-	if u.Host != GitHubHost || u.Scheme != "https" {
-		return nil, fmt.Errorf("Invalid GitHub URL: %s", u)
+	parts := strings.SplitN(url.Path, "/", 4)
+	if len(parts) < 2 {
+		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
 	}
 
-	parts := strings.SplitN(u.Path, "/", 4)
-	if len(parts) >= 2 {
-		return &Project{Name: parts[2], Owner: parts[1]}, nil
-	}
-
-	return nil, fmt.Errorf("Invalid GitHub URL: %s", u)
+	return &Project{Name: parts[2], Owner: parts[1]}, nil
 }
 
 func NewProjectFromNameAndOwner(name, owner string) Project {

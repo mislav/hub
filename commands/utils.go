@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/octokat"
 	"os"
 	"regexp"
@@ -23,13 +25,19 @@ func isDir(file string) bool {
 	return fi.IsDir()
 }
 
-func parsePullRequestId(url string) string {
-	pullURLRegex := regexp.MustCompile("https://github\\.com/.+/.+/pull/(\\d+)")
-	if pullURLRegex.MatchString(url) {
-		return pullURLRegex.FindStringSubmatch(url)[1]
+func parsePullRequestId(rawurl string) (id string) {
+	url, err := github.ParseURL(rawurl)
+	if err != nil {
+		return
 	}
 
-	return ""
+	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
+	projectPath := url.ProjectPath()
+	if pullURLRegex.MatchString(projectPath) {
+		id = pullURLRegex.FindStringSubmatch(projectPath)[1]
+	}
+
+	return
 }
 
 func fetchPullRequest(id string) (*octokat.PullRequest, error) {
@@ -52,12 +60,12 @@ func convertToGitURL(pullRequest *octokat.PullRequest) (string, error) {
 	user := pullRequest.User.Login
 	isSSH := pullRequest.Head.Repo.Private
 
-	project, err := github.ParseProjectFromURL(pullRequestURL)
+	url, err := github.ParseURL(pullRequestURL)
 	if err != nil {
 		return "", err
 	}
 
-	return project.GitURL("", user, isSSH), nil
+	return url.GitURL("", user, isSSH), nil
 }
 
 func parseRepoNameOwner(nameWithOwner string) (owner, name string, match bool) {
@@ -79,4 +87,16 @@ func parseRepoNameOwner(nameWithOwner string) (owner, name string, match bool) {
 	}
 
 	return
+}
+
+func hasGitRemote(name string) bool {
+	remotes, err := git.Remotes()
+	utils.Check(err)
+	for _, remote := range remotes {
+		if remote.Name == name {
+			return true
+		}
+	}
+
+	return false
 }

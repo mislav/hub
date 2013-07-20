@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"regexp"
@@ -41,17 +40,12 @@ func fetch(command *Command, args *Args) {
 }
 
 func tranformFetchArgs(args *Args) error {
-	remotes, err := git.Remotes()
-	if err != nil {
-		return err
-	}
-
 	names := parseRemoteNames(args)
 	gh := github.New()
 	projects := []github.Project{}
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
-		if ownerRegexp.MatchString(name) && !isRemoteExist(remotes, name) {
+		if ownerRegexp.MatchString(name) && !hasGitRemote(name) {
 			project := github.NewProjectFromNameAndOwner("", name)
 			repo, err := gh.Repository(project)
 			if err != nil {
@@ -94,14 +88,4 @@ func parseRemoteNames(args *Args) (names []string) {
 	}
 
 	return
-}
-
-func isRemoteExist(remotes []*git.GitRemote, name string) bool {
-	for _, r := range remotes {
-		if r.Name == name {
-			return true
-		}
-	}
-
-	return false
 }

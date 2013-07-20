@@ -84,31 +84,3 @@ func TestMustMatchGitHubURL(t *testing.T) {
 	assert.Equal(t, "jingweno", url[1])
 	assert.Equal(t, "gh", url[2])
 }
-
-func TestParseProjectFromURL(t *testing.T) {
-	project, err :=
-		ParseProjectFromURL("https://github.com/jingweno/gh/pulls/21")
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project, err =
-		ParseProjectFromURL("https://github.com/jingweno/gh")
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project, err =
-		ParseProjectFromURL("https://github.com/jingweno/gh/")
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project, err =
-		ParseProjectFromURL("http://github.com/jingweno/gh/")
-	assert.NotEqual(t, nil, err)
-
-	project, err =
-		ParseProjectFromURL("http://github.com/jingweno/")
-	assert.NotEqual(t, nil, err)
-}
