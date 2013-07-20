@@ -1,18 +1,18 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/jingweno/gh/github"
+	"os"
 	"regexp"
 	"strings"
-	"os"
-	"fmt"
 )
 
 var cmdSubmodule = &Command{
-	Run: submodule,
+	Run:          submodule,
 	GitExtension: true,
-	Usage: "submodule add [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
-	Short: "Initialize, update or inspect submodules",
+	Usage:        "submodule add [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
+	Short:        "Initialize, update or inspect submodules",
 	Long: `Submodule repository "git://github.com/USER/REPOSITORY.git" into
 DIRECTORY as  with  git-submodule(1).  When  USER/  is  omitted,
 assumes   your   GitHub  login.  With  -p,  use  private  remote
@@ -38,10 +38,10 @@ func submodule(command *Command, args *Args) {
 
 func transformSubmoduleArgs(args *Args) {
 	isSSH := parseSubmodulePrivateFlag(args)
-	
+
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
 	hasValueRegexp := regexp.MustCompile("^(--(reference|name)|-b)$")
-	
+
 	var continueNext bool
 
 	for i, a := range args.Params {
@@ -50,9 +50,9 @@ func transformSubmoduleArgs(args *Args) {
 			continue
 		}
 
-        if github.MatchURL(a) != nil {
-            break
-        }
+		if github.MatchURL(a) != nil {
+			break
+		}
 
 		if hasValueRegexp.MatchString(a) {
 			if !strings.Contains(a, "=") {
@@ -72,7 +72,7 @@ func transformSubmoduleArgs(args *Args) {
 
 			project := github.Project{Name: name, Owner: owner}
 			url := project.GitURL(name, owner, isSSH)
-			
+
 			args.ReplaceParam(i, url)
 
 			if args.Noop {
