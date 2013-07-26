@@ -10,9 +10,8 @@ class Gh < Formula
 
   homepage "https://github.com/jingweno/gh"
   head "https://github.com/jingweno/gh.git"
-  url "https://dl.dropboxusercontent.com/u/1079131/gh/#{VERSION}-snapshot/darwin_#{ARCH}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
+  url "https://github.com/jingweno/gh/releases/download/v#{VERSION}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
   version VERSION
-
 
   def install
     bin.install "gh"
