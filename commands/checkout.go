@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/utils"
+	"github.com/jingweno/octokat"
 )
 
 var cmdCheckout = &Command{
@@ -39,31 +40,36 @@ func transformCheckoutArgs(args *Args) error {
 			return err
 		}
 
-		user := pullRequest.User.Login
-		branch := pullRequest.Head.Ref
-
-		args.RemoveParam(0) // Remove the pull request URL
-		if hasGitRemote(user) {
-			updateExistingRemote(args, user, branch)
-		} else {
-			sshURL, err := convertToGitURL(pullRequest)
-			if err != nil {
-				return err
-			}
-
-			addRmote(args, user, branch, sshURL)
-		}
-
-		var newBranchName string
-		if args.ParamsSize() > 0 {
-			newBranchName = args.RemoveParam(0)
-		} else {
-			newBranchName = fmt.Sprintf("%s-%s", user, branch)
-		}
-		trackedBranch := fmt.Sprintf("%s/%s", user, branch)
-
-		args.AppendParams("--track", "-B", newBranchName, trackedBranch)
+		return buildArgsFromPullRequest(args, pullRequest)
 	}
+
+	return nil
+}
+
+func buildArgsFromPullRequest(args *Args, pullRequest *octokat.PullRequest) error {
+	user, branch := parseUserBranchFromPR(pullRequest)
+
+	args.RemoveParam(0) // Remove the pull request URL
+	if hasGitRemote(user) {
+		updateExistingRemote(args, user, branch)
+	} else {
+		sshURL, err := convertToGitURL(pullRequest.HTMLURL, user, pullRequest.Head.Repo.Private)
+		if err != nil {
+			return err
+		}
+
+		addRmote(args, user, branch, sshURL)
+	}
+
+	var newBranchName string
+	if args.ParamsSize() > 0 {
+		newBranchName = args.RemoveParam(0)
+	} else {
+		newBranchName = fmt.Sprintf("%s-%s", user, branch)
+	}
+	trackedBranch := fmt.Sprintf("%s/%s", user, branch)
+
+	args.AppendParams("--track", "-B", newBranchName, trackedBranch)
 
 	return nil
 }

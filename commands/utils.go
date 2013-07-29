@@ -2,12 +2,13 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/octokat"
 	"os"
 	"regexp"
+	"strings"
 )
 
 func isDir(file string) bool {
@@ -55,17 +56,25 @@ func fetchPullRequest(id string) (*octokat.PullRequest, error) {
 	return pullRequest, nil
 }
 
-func convertToGitURL(pullRequest *octokat.PullRequest) (string, error) {
-	pullRequestURL := pullRequest.HTMLURL
-	user := pullRequest.User.Login
-	isSSH := pullRequest.Head.Repo.Private
-
+func convertToGitURL(pullRequestURL, user string, isSSH bool) (string, error) {
 	url, err := github.ParseURL(pullRequestURL)
 	if err != nil {
 		return "", err
 	}
 
 	return url.GitURL("", user, isSSH), nil
+}
+
+func parseUserBranchFromPR(pullRequest *octokat.PullRequest) (user string, branch string) {
+	userBranch := strings.SplitN(pullRequest.Head.Label, ":", 2)
+	user = userBranch[0]
+	if len(userBranch) > 1 {
+		branch = userBranch[1]
+	} else {
+		branch = pullRequest.Head.Ref
+	}
+
+	return
 }
 
 func parseRepoNameOwner(nameWithOwner string) (owner, name string, match bool) {

@@ -46,9 +46,8 @@ func transformMergeArgs(args *Args) error {
 }
 
 func fetchAndMerge(args *Args, pullRequest *octokat.PullRequest) error {
-	user := pullRequest.User.Login
-	branch := pullRequest.Head.Ref
-	url, err := convertToGitURL(pullRequest)
+	user, branch := parseUserBranchFromPR(pullRequest)
+	url, err := convertToGitURL(pullRequest.HTMLURL, user, pullRequest.Head.Repo.Private)
 	if err != nil {
 		return err
 	}

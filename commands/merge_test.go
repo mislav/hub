@@ -20,7 +20,7 @@ func TestFetchAndMerge(t *testing.T) {
 	repo := octokat.Repository{Private: repoPrivate}
 
 	headRef := "new-feature"
-	head := octokat.Commit{Ref: headRef, Repo: repo}
+	head := octokat.Commit{Ref: headRef, Repo: repo, Label: "jingweno:new-feature"}
 
 	pullRequest := octokat.PullRequest{Number: number, Title: title, HTMLURL: url, User: user, Head: head}
 
