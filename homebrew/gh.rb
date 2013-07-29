@@ -11,7 +11,6 @@ class Gh < Formula
   homepage "https://github.com/jingweno/gh"
   head "https://github.com/jingweno/gh.git"
   url "https://github.com/jingweno/gh/releases/download/v#{VERSION}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
-  sha1 "7d6fe0f49fa15c44f920064843555aabe55043d0"
   version VERSION
 
   def install
