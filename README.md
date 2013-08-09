@@ -266,6 +266,10 @@ superpowers:
     # with description:
     $ git create -d 'It shall be mine, all mine!'
 
+    $ git create -p
+    [ private repo created on GitHub ]
+    > git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
+
     $ git create recipes
     [ repo created on GitHub ]
     > git remote add origin git@github.com:YOUR_USER/recipes.git
