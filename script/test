@@ -12,7 +12,7 @@ run() {
 
 check_warnings() {
   # Display Ruby warnings from this project's source files. Abort if any were found.
-  num="$(grep -F "$PWD" "$warnings" | grep -v "${PWD}/bundle" | sort | uniq -c | sort -rn | tee /dev/stderr | wc -l)"
+  num="$(grep -F "$PWD" "$warnings" | grep -v "${PWD}/vendor/bundle" | sort | uniq -c | sort -rn | tee /dev/stderr | wc -l)"
   rm -f "$warnings"
   if [ "$num" -gt 0 ]; then
     echo "FAILED: this test suite doesn't tolerate Ruby syntax warnings!" >&2
