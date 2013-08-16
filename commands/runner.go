@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
+	shellquote "github.com/kballard/go-shellquote"
 )
 
 type Runner struct {
@@ -93,6 +94,10 @@ func expandAlias(args *Args) {
 	cmd := args.Command
 	expandedCmd, err := git.Config(fmt.Sprintf("alias.%s", cmd))
 	if err == nil && expandedCmd != "" {
-		args.Command = expandedCmd
+		words, err := shellquote.Split(expandedCmd)
+		if err != nil {
+			args.Command = words[0]
+			args.PrependParams(words[1:]...)
+		}
 	}
 }

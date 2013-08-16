@@ -106,6 +106,10 @@ func (a *Args) IsParamsEmpty() bool {
 	return a.ParamsSize() == 0
 }
 
+func (a *Args) PrependParams(params ...string) {
+	a.Params = append(params, a.Params...)
+}
+
 func (a *Args) AppendParams(params ...string) {
 	a.Params = append(a.Params, params...)
 }
