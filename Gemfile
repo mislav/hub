@@ -5,6 +5,8 @@ gem 'aruba', '~> 0.5.3'
 gem 'cucumber', '~> 1.2.1'
 gem 'sinatra'
 gem 'json'
+gem 'pony'
 gem 'jruby-openssl', :platform => :jruby
 
 gemspec
+
