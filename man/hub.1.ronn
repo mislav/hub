@@ -194,14 +194,14 @@ variable:
 
 ## BUGS
 
-<https://github.com/defunkt/hub/issues>
+<https://github.com/github/hub/issues>
 
 ## AUTHORS
 
-<https://github.com/defunkt/hub/contributors>
+<https://github.com/github/hub/contributors>
 
 ## SEE ALSO
 
 git(1), git-clone(1), git-remote(1), git-init(1),
 <http://github.com>,
-<https://github.com/defunkt/hub>
+<https://github.com/github/hub>

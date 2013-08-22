@@ -15,6 +15,16 @@ Feature: hub browse
       hub compare [USER] [<START>...]<END>
       """
 
+  Scenario: Can't compare default branch to self
+    Given the default branch for "origin" is "develop"
+    And I am on the "develop" branch with upstream "origin/develop"
+    When I run `hub compare`
+    Then the exit status should be 1
+    And the stderr should contain:
+      """
+      hub compare [USER] [<START>...]<END>
+      """
+
   Scenario: No args, has upstream branch
     Given I am on the "feature" branch with upstream "origin/experimental"
     When I successfully run `hub compare`

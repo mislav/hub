@@ -159,7 +159,10 @@ module Hub
       end
 
       def master_branch
-        Branch.new self, 'refs/heads/master'
+        if remote = origin_remote
+          default_branch = git_command("rev-parse --symbolic-full-name #{remote}")
+        end
+        Branch.new(self, default_branch || 'refs/heads/master')
       end
 
       def remotes
@@ -302,7 +305,10 @@ module Hub
       end
 
       def master?
-        short_name == 'master'
+        master_name = if local_repo then local_repo.master_branch.short_name
+        else 'master'
+        end
+        short_name == master_name
       end
 
       def upstream
@@ -460,6 +466,11 @@ module Hub
         RbConfig::CONFIG['host_os'] =~ /msdos|mswin|djgpp|mingw|windows/
       end
 
+      def unix?
+        require 'rbconfig'
+        RbConfig::CONFIG['host_os'] =~ /(aix|darwin|linux|(net|free|open)bsd|cygwin|solaris|irix|hpux)/i
+      end
+
       # Cross-platform way of finding an executable in the $PATH.
       #
       #   which('ruby') #=> /usr/bin/ruby
@@ -485,6 +496,16 @@ module Hub
 
       def tmp_dir
         ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
+      end
+
+      def terminal_width
+        if unix?
+          width = %x{stty size 2>#{NULL}}.split[1].to_i
+          width = %x{tput cols 2>#{NULL}}.to_i if width.zero?
+        else
+          width = 0
+        end
+        width < 10 ? 78 : width
       end
     end
 

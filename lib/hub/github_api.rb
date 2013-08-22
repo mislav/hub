@@ -15,7 +15,7 @@ module Hub
   #     config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
   #     file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
   #     file_config = GitHubAPI::Configuration.new file_store
-  #     GitHubAPI.new file_config, :app_url => 'http://defunkt.io/hub/'
+  #     GitHubAPI.new file_config, :app_url => 'http://hub.github.com/'
   #   end
   class GitHubAPI
     attr_reader :config, :oauth_app_url
@@ -390,6 +390,8 @@ module Hub
       def prompt what
         print "#{what}: "
         $stdin.gets.chomp
+      rescue Interrupt
+        abort
       end
 
       # special prompt that has hidden input
@@ -403,6 +405,8 @@ module Hub
           # in testing
           $stdin.gets.chomp
         end
+      rescue Interrupt
+        abort
       end
 
       NULL = defined?(File::NULL) ? File::NULL :

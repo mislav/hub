@@ -10,6 +10,16 @@ Feature: hub alias
       eval "$(hub alias -s)"\n
       """
 
+  Scenario: fish instructions
+    Given $SHELL is "/usr/local/bin/fish"
+    When I successfully run `hub alias`
+    Then the output should contain exactly:
+      """
+      # Wrap git automatically by adding the following to ~/.config/fish/config.fish:
+
+      eval (hub alias -s)\n
+      """
+
   Scenario: zsh instructions
     Given $SHELL is "/bin/zsh"
     When I successfully run `hub alias`
@@ -28,15 +38,20 @@ Feature: hub alias
       alias git=hub\n
       """
 
+  Scenario: fish code
+    Given $SHELL is "/usr/local/bin/fish"
+    When I successfully run `hub alias -s`
+    Then the output should contain exactly:
+      """
+      alias git=hub\n
+      """
+
   Scenario: zsh code
     Given $SHELL is "/bin/zsh"
     When I successfully run `hub alias -s`
     Then the output should contain exactly:
       """
-      alias git=hub
-      if type compdef >/dev/null; then
-         compdef hub=git
-      fi\n
+      alias git=hub\n
       """
 
   Scenario: unsupported shell

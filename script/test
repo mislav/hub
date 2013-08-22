@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -e
+
+STATUS=0
+warnings="${TMPDIR:-/tmp}/hub-warnings.$$"
+
+run() {
+  # Save warnings on stderr to a separate file
+  RUBYOPT="$RUBYOPT -w" bundle exec "$@" \
+    2> >(tee >(grep 'warning:' >>"$warnings") | grep -v 'warning:') || STATUS=$?
+}
+
+check_warnings() {
+  # Display Ruby warnings from this project's source files. Abort if any were found.
+  num="$(grep -F "$PWD" "$warnings" | grep -v "${PWD}/vendor/bundle" | sort | uniq -c | sort -rn | tee /dev/stderr | wc -l)"
+  rm -f "$warnings"
+  if [ "$num" -gt 0 ]; then
+    echo "FAILED: this test suite doesn't tolerate Ruby syntax warnings!" >&2
+    exit 1
+  fi
+}
+
+run rake test
+run cucumber features
+
+check_warnings
+
+exit $STATUS

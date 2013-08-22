@@ -5,7 +5,7 @@ Gem::Specification.new do |s|
   s.name              = "hub"
   s.version           = Hub::VERSION
   s.summary           = "Command-line wrapper for git and GitHub"
-  s.homepage          = "http://defunkt.io/hub/"
+  s.homepage          = "http://hub.github.com/"
   s.email             = "mislav.marohnic@gmail.com"
   s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
   s.license           = "MIT"
@@ -17,6 +17,7 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
+  s.files            += Dir.glob("script/**/*")
   s.files            += Dir.glob("test/**/*")
 
   s.executables       = %w( hub )
@@ -52,7 +53,7 @@ desc
        fashioned way.  Faster  startup  time,  you see.
 
        Check  out  the  installation  instructions  at
-       https://github.com/defunkt/hub#readme  under the
+       https://github.com/github/hub#readme  under the
        "Standalone" section.
 
        Cheers,

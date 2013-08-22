@@ -71,7 +71,7 @@ if command? :ronn
 
   # generate man page with ronn
   compile_ronn = lambda { |destination, type, contents|
-    File.popen("ronn --pipe --#{type} --organization=DEFUNKT --manual='Git Manual'", 'w+') { |io|
+    File.popen("ronn --pipe --#{type} --organization=GITHUB --manual='Git Manual'", 'w+') { |io|
       io.write contents
       io.close_write
       File.open(destination, 'w') { |f| f << io.read }
@@ -152,12 +152,12 @@ task :homebrew do
     sh 'git pull -q origin master'
 
     formula_file = 'Library/Formula/hub.rb'
-    sha = `curl -fsSL https://github.com/defunkt/hub/tarball/v#{Hub::VERSION} | shasum`.split(/\s+/).first
+    sha = `curl -fsSL https://github.com/github/hub/tarball/v#{Hub::VERSION} | shasum`.split(/\s+/).first
     abort unless $?.success? and sha.length == 40
 
     formula = File.read formula_file
-    formula.sub! /\bv\d+(\.\d+)*/, "v#{Hub::VERSION}"
-    formula.sub! /\b[0-9a-f]{40}\b/, sha
+    formula.sub!(/\bv\d+(\.\d+)*/, "v#{Hub::VERSION}")
+    formula.sub!(/\b[0-9a-f]{40}\b/, sha)
     File.open(formula_file, 'w') {|f| f << formula }
 
     branch = "hub-v#{Hub::VERSION}"

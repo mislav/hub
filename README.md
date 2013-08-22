@@ -36,7 +36,7 @@ $ brew install hub
 `hub` is easily installed as a standalone script:
 
 ~~~ sh
-$ curl http://defunkt.io/hub/standalone -sLo ~/bin/hub &&
+$ curl http://hub.github.com/standalone -sLo ~/bin/hub &&
   chmod +x ~/bin/hub
 ~~~
 
@@ -83,7 +83,7 @@ run, so it's faster.
 You can also install from source:
 
 ~~~ sh
-$ git clone git://github.com/defunkt/hub.git
+$ git clone git://github.com/github/hub.git
 $ cd hub
 $ rake install prefix=/usr/local
 ~~~
@@ -153,8 +153,8 @@ eval "$(hub alias -s)"
 hub repository contains tab-completion scripts for bash and zsh. These scripts
 complement existing completion scripts that ship with git.
 
-* [hub bash completion](https://github.com/defunkt/hub/blob/master/etc/hub.bash_completion.sh)
-* [hub zsh completion](https://github.com/defunkt/hub/blob/master/etc/hub.zsh_completion)
+* [hub bash completion](https://github.com/github/hub/blob/master/etc/hub.bash_completion.sh)
+* [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
 
 
 Commands
@@ -382,7 +382,7 @@ These instructions assume that _you already have hub installed_ and aliased as
 `git` (see "Aliasing").
 
 1. Clone hub:  
-    `git clone defunkt/hub && cd hub`
+    `git clone github/hub && cd hub`
 1. Ensure Bundler is installed:  
     `which bundle || gem install bundler`
 1. Install development dependencies:  
@@ -405,10 +405,10 @@ These instructions assume that _you already have hub installed_ and aliased as
 Meta
 ----
 
-* Home: <https://github.com/defunkt/hub>
-* Bugs: <https://github.com/defunkt/hub/issues>
+* Home: <https://github.com/github/hub>
+* Bugs: <https://github.com/github/hub/issues>
 * Gem: <https://rubygems.org/gems/hub>
-* Authors: <https://github.com/defunkt/hub/contributors>
+* Authors: <https://github.com/github/hub/contributors>
 
 ### Prior art
 
