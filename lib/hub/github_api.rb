@@ -107,6 +107,18 @@ module Hub
         [api_host(project.host), project.owner, project.name], params
 
       res.error! unless res.success?
+
+      if options[:assignee]
+          params = {
+              :assignee => options[:assignee]
+          }
+
+          url = res.data['_links']['issue']['href']
+          res = patch url, params
+
+          res.error! unless res.success?
+      end
+
       res.data
     end
 
@@ -155,6 +167,17 @@ module Hub
 
       def post url, params = nil
         perform_request url, :Post do |req|
+          if params
+            req.body = JSON.dump params
+            req['Content-Type'] = 'application/json;charset=utf-8'
+          end
+          yield req if block_given?
+          req['Content-Length'] = byte_size req.body
+        end
+      end
+
+      def patch url, params = nil
+        perform_request url, :Patch do |req|
           if params
             req.body = JSON.dump params
             req['Content-Type'] = 'application/json;charset=utf-8'

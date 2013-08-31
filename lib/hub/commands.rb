@@ -146,6 +146,8 @@ module Hub
           head = args.shift
           explicit_owner = !!head.index(':')
           head_project, options[:head] = from_github_ref.call(head, head_project)
+        when '-a', '--assignee'
+          options[:assignee] = args.shift
         when '-i'
           options[:issue] = args.shift
         else
