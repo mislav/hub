@@ -64,6 +64,11 @@ func TestMustMatchGitHubURL(t *testing.T) {
 	assert.Equal(t, "jingweno", url[1])
 	assert.Equal(t, "gh", url[2])
 
+	url, _ = mustMatchGitHubURL("git://git@github.com/jingweno/gh")
+	assert.Equal(t, "git://git@github.com/jingweno/gh", url[0])
+	assert.Equal(t, "jingweno", url[1])
+	assert.Equal(t, "gh", url[2])
+
 	url, _ = mustMatchGitHubURL("git@github.com:jingweno/gh.git")
 	assert.Equal(t, "git@github.com:jingweno/gh.git", url[0])
 	assert.Equal(t, "jingweno", url[1])

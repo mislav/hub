@@ -126,12 +126,12 @@ func MatchURL(url string) []string {
 		return httpRegex.FindStringSubmatch(url)
 	}
 
-	readOnlyRegex := regexp.MustCompile("git://github\\.com/(.+)/(.+?)(\\.git|$)")
+	readOnlyRegex := regexp.MustCompile("git://.*github\\.com/(.+)/(.+?)(\\.git|$)")
 	if readOnlyRegex.MatchString(url) {
 		return readOnlyRegex.FindStringSubmatch(url)
 	}
 
-	sshRegex := regexp.MustCompile("git@github\\.com:?/(.+)/(.+?)(\\.git|$)")
+	sshRegex := regexp.MustCompile("git@github\\.com:(.+)/(.+?)(\\.git|$)")
 	if sshRegex.MatchString(url) {
 		return sshRegex.FindStringSubmatch(url)
 	}
