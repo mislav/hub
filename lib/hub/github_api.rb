@@ -409,32 +409,8 @@ module Hub
         abort
       end
 
-      NULL = defined?(File::NULL) ? File::NULL :
-               File.exist?('/dev/null') ? '/dev/null' : 'NUL'
-
       def askpass
-        tty_state = `stty -g 2>#{NULL}`
-        system 'stty raw -echo -icanon isig' if $?.success?
-        pass = ''
-        while char = getbyte($stdin) and !(char == 13 or char == 10)
-          if char == 127 or char == 8
-            pass[-1,1] = '' unless pass.empty?
-          else
-            pass << char.chr
-          end
-        end
-        pass
-      ensure
-        system "stty #{tty_state}" unless tty_state.empty?
-      end
-
-      def getbyte(io)
-        if io.respond_to?(:getbyte)
-          io.getbyte
-        else
-          # In Ruby <= 1.8.6, getc behaved the same
-          io.getc
-        end
+        $stdin.noecho(&:gets).strip
       end
 
       def proxy_uri(with_ssl)
