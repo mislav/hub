@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-const Version = "0.19.2"
+const Version = "0.20.0"
 
 var cmdVersion = &Command{
 	Run:   runVersion,

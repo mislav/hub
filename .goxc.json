@@ -3,7 +3,7 @@
   "ArtifactsDest": "target",
   "Arch": "386,amd64",
   "Os": "darwin,linux,windows",
-  "PackageVersion": "0.19.2",
+  "PackageVersion": "0.20.0",
   "PrereleaseInfo": "snapshot",
   "Verbosity": "v",
   "Resources": {
