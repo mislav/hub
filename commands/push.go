@@ -25,7 +25,7 @@ multiple git-push(1) commands.`,
   > git push origin HEAD
 */
 func push(command *Command, args *Args) {
-	if !args.IsParamsEmpty() || !strings.Contains(args.FirstParam(), ",") {
+	if !args.IsParamsEmpty() && !strings.Contains(args.FirstParam(), ",") {
 		transformPushArgs(args)
 	}
 }
