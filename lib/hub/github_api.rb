@@ -265,10 +265,19 @@ module Hub
         end
       end
 
-      def obtain_oauth_token host, user
+      def obtain_oauth_token host, user, two_factor_code = nil
         # first try to fetch existing authorization
-        res = get "https://#{user}@#{host}/authorizations"
-        res.error! unless res.success?
+        res = get "https://#{user}@#{host}/authorizations" do |req|
+          req['X-GitHub-OTP'] = two_factor_code if two_factor_code
+        end
+        unless res.success?
+          if !two_factor_code && res['X-GitHub-OTP'].to_s.include?('required')
+            two_factor_code = config.prompt_auth_code
+            return obtain_oauth_token(host, user, two_factor_code)
+          else
+            res.error!
+          end
+        end
 
         if found = res.data.find {|auth| auth['app']['url'] == oauth_app_url }
           found['token']
@@ -405,6 +414,13 @@ module Hub
           # in testing
           $stdin.gets.chomp
         end
+      rescue Interrupt
+        abort
+      end
+
+      def prompt_auth_code
+        print "two-factor authentication code: "
+        $stdin.gets.chomp
       rescue Interrupt
         abort
       end
