@@ -116,16 +116,6 @@ func Config(name string) (string, error) {
 	return output[0], nil
 }
 
-func SysExec(command string, args ...string) error {
-	cmd := cmd.New("git")
-	cmd.WithArg(command)
-	for _, a := range args {
-		cmd.WithArg(a)
-	}
-
-	return cmd.SysExec()
-}
-
 func Spawn(command string, args ...string) error {
 	cmd := cmd.New("git")
 	cmd.WithArg(command)

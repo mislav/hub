@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"syscall"
 )
 
 type Cmd struct {
@@ -51,20 +50,6 @@ func (cmd *Cmd) Exec() error {
 	c.Stderr = os.Stderr
 
 	return c.Run()
-}
-
-func (cmd *Cmd) SysExec() error {
-	binary, lookErr := exec.LookPath(cmd.Name)
-	if lookErr != nil {
-		return fmt.Errorf("command not found: %s", cmd.Name)
-	}
-
-	args := []string{cmd.Name}
-	args = append(args, cmd.Args...)
-
-	env := os.Environ()
-
-	return syscall.Exec(binary, args, env)
 }
 
 func New(name string) *Cmd {

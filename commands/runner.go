@@ -54,7 +54,7 @@ func (r *Runner) Execute() error {
 		}
 	}
 
-	return git.SysExec(args.Command, args.Params...)
+	return git.Spawn(args.Command, args.Params...)
 }
 
 func slurpGlobalFlags(args *Args) {
@@ -73,15 +73,8 @@ func printCommands(cmds []*cmd.Cmd) {
 }
 
 func executeCommands(cmds []*cmd.Cmd) error {
-	length := len(cmds)
-	for i, c := range cmds {
-		var err error
-		if i == (length - 1) {
-			err = c.SysExec()
-		} else {
-			err = c.Exec()
-		}
-
+	for _, c := range cmds {
+		err := c.Exec()
 		if err != nil {
 			return err
 		}
