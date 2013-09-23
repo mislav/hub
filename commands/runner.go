@@ -40,7 +40,8 @@ type Runner struct {
 func (r *Runner) Execute() ExecError {
 	args := NewArgs(r.Args)
 	if args.Command == "" {
-		usage()
+		printUsage()
+		return newExecError(nil)
 	}
 
 	expandAlias(args)

@@ -89,8 +89,3 @@ See 'git help <command>' for more information on a specific command.
 func printUsage() {
 	fmt.Print(helpText)
 }
-
-func usage() {
-	printUsage()
-	os.Exit(2)
-}
