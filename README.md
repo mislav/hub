@@ -36,7 +36,7 @@ $ brew install hub
 `hub` is easily installed as a standalone script:
 
 ~~~ sh
-$ curl http://hub.github.com/standalone -sLo ~/bin/hub &&
+$ curl https://hub.github.com/standalone -sLo ~/bin/hub &&
   chmod +x ~/bin/hub
 ~~~
 
