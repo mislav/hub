@@ -64,6 +64,6 @@ func browse(command *Command, args *Args) {
 		utils.Check(err)
 	}
 
-  args.Replace(launcher[0], "", launcher[1:]...)
+	args.Replace(launcher[0], "", launcher[1:]...)
 	args.AppendParams(url)
 }

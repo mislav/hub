@@ -6,13 +6,38 @@ import (
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
 	shellquote "github.com/kballard/go-shellquote"
+	"os/exec"
+	"syscall"
 )
+
+type ExecError struct {
+	Err      error
+	ExitCode int
+}
+
+func (execError *ExecError) Error() string {
+	return execError.Err.Error()
+}
+
+func newExecError(err error) ExecError {
+	exitCode := 0
+	if err != nil {
+		exitCode = 1
+		if exitError, ok := err.(*exec.ExitError); ok {
+			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
+				exitCode = status.ExitStatus()
+			}
+		}
+	}
+
+	return ExecError{Err: err, ExitCode: exitCode}
+}
 
 type Runner struct {
 	Args []string
 }
 
-func (r *Runner) Execute() error {
+func (r *Runner) Execute() ExecError {
 	args := NewArgs(r.Args)
 	if args.Command == "" {
 		usage()
@@ -29,9 +54,9 @@ func (r *Runner) Execute() error {
 				}
 				if err := cmd.Flag.Parse(args.Params); err != nil {
 					if err == flag.ErrHelp {
-						return nil
+						return newExecError(nil)
 					} else {
-						return err
+						return newExecError(err)
 					}
 				}
 
@@ -41,25 +66,24 @@ func (r *Runner) Execute() error {
 			cmd.Run(cmd, args)
 
 			cmds := args.Commands()
+			var err error
 			if args.Noop {
 				printCommands(cmds)
 			} else {
-				err := executeCommands(cmds)
-				if err != nil {
-					return err
-				}
+				err = executeCommands(cmds)
 			}
 
-			return nil
+			return newExecError(err)
 		}
 	}
 
-	return git.SysExec(args.Command, args.Params...)
+	err := git.Spawn(args.Command, args.Params...)
+	return newExecError(err)
 }
 
 func slurpGlobalFlags(args *Args) {
 	for i, p := range args.Params {
-		if p == "--no-op" {
+		if p == "--noop" {
 			args.Noop = true
 			args.RemoveParam(i)
 		}
@@ -73,15 +97,8 @@ func printCommands(cmds []*cmd.Cmd) {
 }
 
 func executeCommands(cmds []*cmd.Cmd) error {
-	length := len(cmds)
-	for i, c := range cmds {
-		var err error
-		if i == (length - 1) {
-			err = c.SysExec()
-		} else {
-			err = c.Exec()
-		}
-
+	for _, c := range cmds {
+		err := c.Exec()
 		if err != nil {
 			return err
 		}

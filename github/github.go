@@ -59,7 +59,7 @@ func (gh *GitHub) CreateRepository(project Project, description, homepage string
 
 func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, error) {
 	client := gh.client()
-  params := octokat.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
+	params := octokat.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
 	pullRequest, err := client.CreatePullRequestForIssue(gh.repo(), params)
 	if err != nil {
 		return "", err
@@ -85,14 +85,14 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokat.Repository, err error) {
 	client := gh.client()
 	config := gh.Config
-  repo, err = client.Repository(octokat.Repo{Name: name, UserName: config.User})
+	repo, err = client.Repository(octokat.Repo{Name: name, UserName: config.User})
 	if repo != nil && err == nil {
 		msg := fmt.Sprintf("Error creating fork: %s exists on %s", repo.FullName, GitHubHost)
 		err = errors.New(msg)
 		return
 	}
 
-  repo, err = client.Fork(octokat.Repo{Name: name, UserName: owner}, nil)
+	repo, err = client.Fork(octokat.Repo{Name: name, UserName: owner}, nil)
 
 	return
 }
@@ -109,7 +109,7 @@ func (gh *GitHub) ExpandRemoteUrl(owner, name string, isSSH bool) (url string) {
 
 func (gh *GitHub) repo() octokat.Repo {
 	project := gh.Project
-  return octokat.Repo{Name: project.Name, UserName: project.Owner}
+	return octokat.Repo{Name: project.Name, UserName: project.Owner}
 }
 
 func findOrCreateToken(user, password string) (string, error) {
