@@ -83,7 +83,7 @@ func (r *Runner) Execute() ExecError {
 
 func slurpGlobalFlags(args *Args) {
 	for i, p := range args.Params {
-		if p == "--no-op" {
+		if p == "--noop" {
 			args.Noop = true
 			args.RemoveParam(i)
 		}
