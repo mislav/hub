@@ -43,7 +43,7 @@ func ciStatus(cmd *Command, args *Args) {
 
 	args.Replace("", "")
 	if args.Noop {
-		fmt.Printf("Would request CI status for %s", ref)
+		fmt.Printf("Would request CI status for %s\n", ref)
 	} else {
 		state, targetURL, desc, exitCode, err := fetchCiStatus(ref)
 		utils.Check(err)

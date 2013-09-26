@@ -87,7 +87,6 @@ func pullRequest(cmd *Command, args *Args) {
 			pullRequestURL, err = gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
 		}
 		utils.Check(err)
-
 	}
 
 	args.Replace("echo", "", pullRequestURL)

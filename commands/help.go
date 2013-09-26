@@ -82,6 +82,7 @@ GitHub Commands:
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
    ci-status      Show the CI status of a commit
+   release        Manipulate releases
 
 See 'git help <command>' for more information on a specific command.
 `

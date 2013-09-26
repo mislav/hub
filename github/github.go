@@ -68,6 +68,16 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, e
 	return pullRequest.HTMLURL, nil
 }
 
+func (gh *GitHub) Releases() ([]octokat.Release, error) {
+	client := gh.client()
+	releases, err := client.Releases(gh.repo())
+	if err != nil {
+		return nil, err
+	}
+
+	return releases, nil
+}
+
 func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 	client := gh.client()
 	statuses, err := client.Statuses(gh.repo(), sha)
@@ -79,7 +89,7 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 		return nil, nil
 	}
 
-	return &statuses[len(statuses) - 1], nil
+	return &statuses[len(statuses)-1], nil
 }
 
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokat.Repository, err error) {
