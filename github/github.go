@@ -70,7 +70,7 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, e
 
 func (gh *GitHub) Releases() ([]octokat.Release, error) {
 	client := gh.client()
-	releases, err := client.Releases(gh.repo())
+  releases, err := client.Releases(gh.repo(), nil)
 	if err != nil {
 		return nil, err
 	}
