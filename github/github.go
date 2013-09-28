@@ -84,7 +84,7 @@ func (gh *GitHub) Releases() ([]octokat.Release, error) {
 
 func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 	client := gh.client()
-	statuses, err := client.Statuses(gh.repo(), sha)
+	statuses, err := client.Statuses(gh.repo(), sha, nil)
 	if err != nil {
 		return nil, err
 	}
