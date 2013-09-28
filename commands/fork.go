@@ -41,7 +41,7 @@ func fork(cmd *Command, args *Args) {
 		repo, err := gh.ForkRepository(project.Name, project.Owner, flagForkNoRemote)
 		utils.Check(err)
 
-		forkURL = repo.SshURL
+		forkURL = repo.SSHURL
 	}
 
 	if !flagForkNoRemote {

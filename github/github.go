@@ -19,13 +19,26 @@ type GitHub struct {
 func (gh *GitHub) PullRequest(id string) (*octokat.PullRequest, error) {
 	client := gh.client()
 
-	return client.PullRequest(gh.repo(), id)
+	return client.PullRequest(gh.repo(), id, nil)
 }
 
 func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, error) {
 	client := gh.client()
 	params := octokat.PullRequestParams{Base: base, Head: head, Title: title, Body: body}
-	pullRequest, err := client.CreatePullRequest(gh.repo(), params)
+	options := octokat.Options{Params: params}
+	pullRequest, err := client.CreatePullRequest(gh.repo(), &options)
+	if err != nil {
+		return "", err
+	}
+
+	return pullRequest.HTMLURL, nil
+}
+
+func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, error) {
+	client := gh.client()
+	params := octokat.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
+	options := octokat.Options{Params: params}
+	pullRequest, err := client.CreatePullRequest(gh.repo(), &options)
 	if err != nil {
 		return "", err
 	}
@@ -35,8 +48,9 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, err
 
 func (gh *GitHub) Repository(project Project) (*octokat.Repository, error) {
 	client := gh.client()
+	repo := octokat.Repo{Name: project.Name, UserName: project.Owner}
 
-	return client.Repository(octokat.Repo{Name: project.Name, UserName: project.Owner})
+	return client.Repository(repo, nil)
 }
 
 // TODO: detach GitHub from Project
@@ -47,25 +61,15 @@ func (gh *GitHub) IsRepositoryExist(project Project) bool {
 }
 
 func (gh *GitHub) CreateRepository(project Project, description, homepage string, isPrivate bool) (*octokat.Repository, error) {
-	params := octokat.Params{"description": description, "homepage": homepage, "private": isPrivate}
+	params := octokat.RepositoryParams{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
+	var org string
 	if project.Owner != gh.Config.FetchUser() {
-		params.Put("organization", project.Owner)
+		org = project.Owner
 	}
 
 	client := gh.client()
-
-	return client.CreateRepository(project.Name, &params)
-}
-
-func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, error) {
-	client := gh.client()
-	params := octokat.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
-	pullRequest, err := client.CreatePullRequestForIssue(gh.repo(), params)
-	if err != nil {
-		return "", err
-	}
-
-	return pullRequest.HTMLURL, nil
+	options := octokat.Options{Params: params}
+	return client.CreateRepository(org, &options)
 }
 
 func (gh *GitHub) Releases() ([]octokat.Release, error) {
@@ -95,7 +99,8 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokat.Repository, err error) {
 	client := gh.client()
 	config := gh.Config
-	repo, err = client.Repository(octokat.Repo{Name: name, UserName: config.User})
+	r := octokat.Repo{Name: name, UserName: config.User}
+	repo, err = client.Repository(r, nil)
 	if repo != nil && err == nil {
 		msg := fmt.Sprintf("Error creating fork: %s exists on %s", repo.FullName, GitHubHost)
 		err = errors.New(msg)
@@ -141,7 +146,7 @@ func findOrCreateToken(user, password string) (string, error) {
 		authParam := octokat.AuthorizationParams{}
 		authParam.Scopes = append(authParam.Scopes, "repo")
 		authParam.Note = "gh"
-		authParam.NoteUrl = OAuthAppURL
+		authParam.NoteURL = OAuthAppURL
 		options := octokat.Options{Params: authParam}
 
 		auth, err := client.CreateAuthorization(&options)
