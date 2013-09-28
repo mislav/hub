@@ -70,7 +70,7 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, e
 
 func (gh *GitHub) Releases() ([]octokat.Release, error) {
 	client := gh.client()
-  releases, err := client.Releases(gh.repo(), nil)
+	releases, err := client.Releases(gh.repo(), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -124,14 +124,14 @@ func (gh *GitHub) repo() octokat.Repo {
 
 func findOrCreateToken(user, password string) (string, error) {
 	client := octokat.NewClient().WithLogin(user, password)
-	auths, err := client.Authorizations()
+	auths, err := client.Authorizations(nil)
 	if err != nil {
 		return "", err
 	}
 
 	var token string
 	for _, auth := range auths {
-		if auth.NoteUrl == OAuthAppURL {
+		if auth.NoteURL == OAuthAppURL {
 			token = auth.Token
 			break
 		}
@@ -142,8 +142,9 @@ func findOrCreateToken(user, password string) (string, error) {
 		authParam.Scopes = append(authParam.Scopes, "repo")
 		authParam.Note = "gh"
 		authParam.NoteUrl = OAuthAppURL
+		options := octokat.Options{Params: authParam}
 
-		auth, err := client.CreatedAuthorization(authParam)
+		auth, err := client.CreateAuthorization(&options)
 		if err != nil {
 			return "", err
 		}
