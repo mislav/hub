@@ -126,3 +126,28 @@ Feature: OAuth authentication
     Then the output should contain "two-factor authentication code:"
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+
+  Scenario: Special characters in username & password
+    Given the GitHub API server:
+      """
+      require 'rack/auth/basic'
+      get('/authorizations') { '[]' }
+      post('/authorizations') {
+        auth = Rack::Auth::Basic::Request.new(env)
+        halt 401 unless auth.credentials == [
+          'mislav:m@example.com',
+          'my pass@phrase ok?'
+        ]
+        json :token => 'OTOKEN'
+      }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "mislav:m@example.com"
+    And I type "my pass@phrase ok?"
+    Then the exit status should be 0
