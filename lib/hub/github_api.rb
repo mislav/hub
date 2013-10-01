@@ -284,7 +284,9 @@ module Hub
         else
           # create a new authorization
           res = post "https://#{user}@#{host}/authorizations",
-            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url
+            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url do |req|
+              req['X-GitHub-OTP'] = two_factor_code if two_factor_code
+            end
           res.error! unless res.success?
           res.data['token']
         end
