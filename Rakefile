@@ -104,16 +104,28 @@ end
 desc "Build standalone script"
 task :standalone => "hub"
 
-desc "Install standalone script and man pages"
+desc "Install standalone script and man pages if unix-based OS. Configure PATH if windows"
 task :install => "hub" do
-  prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+  require 'rbconfig'
+  if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+    require 'win32/registry'
+    File.open('./bin/hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
+    binpath = File.absolute_path(File.dirname __FILE__).gsub('/', '\\') << '\\bin' 
+    Win32::Registry::HKEY_CURRENT_USER.open('Environment', Win32::Registry::KEY_ALL_ACCESS) do |reg|
+      path = reg['PATH'].end_with?(';') ? reg['PATH'] : reg['PATH'] << ';'
+      reg['PATH'] = path << binpath
+    end 
+  else 
+    prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
-  FileUtils.mkdir_p "#{prefix}/bin"
-  FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
+    FileUtils.mkdir_p "#{prefix}/bin"
+    FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
 
-  FileUtils.mkdir_p "#{prefix}/share/man/man1"
-  FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
+    FileUtils.mkdir_p "#{prefix}/share/man/man1"
+    FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
+  end 
 end
+
 
 #
 # Release
