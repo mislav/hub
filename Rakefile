@@ -182,6 +182,6 @@ task :windows do
   binpath = File.absolute_path(File.dirname __FILE__).gsub('/', '\\') << '\\bin' 
   Win32::Registry::HKEY_CURRENT_USER.open('Environment', Win32::Registry::KEY_ALL_ACCESS) do |reg|
     path = reg['PATH'].end_with?(';') ? reg['PATH'] : reg['PATH'] << ';'
-    reg['PATH'] = path << binpath
+    (reg['PATH'] = path << binpath) unless path.include? binpath
   end 
 end 
