@@ -98,7 +98,45 @@ Feature: OAuth authentication
     And the exit status should be 1
     And the file "../home/.config/hub" should not exist
 
-  Scenario: Two-factor authentication
+  Scenario: Two-factor authentication, create authorization
+    Given the GitHub API server:
+      """
+      require 'rack/auth/basic'
+      get('/authorizations') {
+        auth = Rack::Auth::Basic::Request.new(env)
+        halt 401 unless auth.credentials == %w[mislav kitty]
+        if request.env['HTTP_X_GITHUB_OTP'] != "112233"
+          response.headers['X-GitHub-OTP'] = "required;application"
+          halt 401
+        end
+        json [ ]
+      }
+      post('/authorizations') {
+        auth = Rack::Auth::Basic::Request.new(env)
+        halt 401 unless auth.credentials == %w[mislav kitty]
+        if request.env['HTTP_X_GITHUB_OTP'] != "112233"
+          response.headers['X-GitHub-OTP'] = "required;application"
+          halt 401
+        end
+        json :token => 'OTOKEN'
+      }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "mislav"
+    And I type "kitty"
+    And I type "112233"
+    Then the output should contain "github.com password for mislav (never stored):"
+    Then the output should contain "two-factor authentication code:"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+
+  Scenario: Two-factor authentication, re-use existing authorization
     Given the GitHub API server:
       """
       require 'rack/auth/basic'
