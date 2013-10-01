@@ -108,13 +108,7 @@ desc "Install standalone script and man pages if unix-based OS. Configure PATH i
 task :install => "hub" do
   require 'rbconfig'
   if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
-    require 'win32/registry'
-    File.open('./bin/hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
-    binpath = File.absolute_path(File.dirname __FILE__).gsub('/', '\\') << '\\bin' 
-    Win32::Registry::HKEY_CURRENT_USER.open('Environment', Win32::Registry::KEY_ALL_ACCESS) do |reg|
-      path = reg['PATH'].end_with?(';') ? reg['PATH'] : reg['PATH'] << ';'
-      reg['PATH'] = path << binpath
-    end 
+    Rake::Task[:windows].invoke
   else 
     prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
@@ -181,3 +175,13 @@ task :homebrew do
     sh "git checkout -q master"
   end
 end
+
+task :windows do
+  require 'win32/registry'
+  File.open('./bin/hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
+  binpath = File.absolute_path(File.dirname __FILE__).gsub('/', '\\') << '\\bin' 
+  Win32::Registry::HKEY_CURRENT_USER.open('Environment', Win32::Registry::KEY_ALL_ACCESS) do |reg|
+    path = reg['PATH'].end_with?(';') ? reg['PATH'] : reg['PATH'] << ';'
+    reg['PATH'] = path << binpath
+  end 
+end 
