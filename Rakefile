@@ -177,10 +177,7 @@ task :homebrew do
 end
 
 task :windows do
-  File.open('C:\Windows\System32\hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
-  FileUtils.cp 'hub', 'C:\Windows\System32\hub'
-  if File.directory? 'C:\Windows\SysWOW64'
-    FileUtils.cp './hub', 'C:\Windows\SysWOW64' 
-    File.open('C:\Windows\SysWOW64\hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
-  end 
+  ruby_dir = RbConfig::CONFIG['bindir']
+  File.open(ruby_dir + '/hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
+  FileUtils.cp 'hub', ruby_dir << '/hub'
 end 
