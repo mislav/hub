@@ -104,11 +104,13 @@ end
 desc "Build standalone script"
 task :standalone => "hub"
 
-desc "Install standalone script and man pages if unix-based OS. Configure PATH if windows"
+desc "Install standalone script and man pages if unix-based OS. If Windows, install executable and .bat file inside ruby/bin"
 task :install => "hub" do
   require 'rbconfig'
   if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
-    Rake::Task[:windows].invoke
+    ruby_dir = RbConfig::CONFIG['bindir']
+    File.open(File.join(ruby_dir, 'hub.bat'), 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
+    FileUtils.cp 'hub', File.join(ruby_dir, 'hub')
   else 
     prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
@@ -175,9 +177,3 @@ task :homebrew do
     sh "git checkout -q master"
   end
 end
-
-task :windows do
-  ruby_dir = RbConfig::CONFIG['bindir']
-  File.open(ruby_dir + '/hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
-  FileUtils.cp 'hub', ruby_dir << '/hub'
-end 
