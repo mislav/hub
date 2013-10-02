@@ -177,11 +177,10 @@ task :homebrew do
 end
 
 task :windows do
-  require 'win32/registry'
-  File.open('./bin/hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
-  binpath = File.absolute_path(File.dirname __FILE__).gsub('/', '\\') << '\\bin' 
-  Win32::Registry::HKEY_CURRENT_USER.open('Environment', Win32::Registry::KEY_ALL_ACCESS) do |reg|
-    path = reg['PATH'].end_with?(';') ? reg['PATH'] : reg['PATH'] << ';'
-    (reg['PATH'] = path << binpath) unless path.include? binpath
+  File.open('C:\Windows\System32\hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
+  FileUtils.cp 'hub', 'C:\Windows\System32\hub'
+  if File.directory?('C:\Windows\SysWOW64')
+    FileUtils.cp("./hub", 'C:\Windows\SysWOW64') 
+    File.open('C:\Windows\SysWOW64\hub.bat', 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
   end 
 end 
