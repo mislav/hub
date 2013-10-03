@@ -31,16 +31,21 @@ Installing on OS X is easiest with Homebrew:
 $ brew install hub
 ~~~
 
-### Standalone
+### `rake install` from source
 
-`hub` is easily installed as a standalone script:
+This is the preferred installation method without when no package manager that
+supports hub is available:
 
 ~~~ sh
-$ curl http://hub.github.com/standalone -sLo ~/bin/hub &&
-  chmod +x ~/bin/hub
+# Download or clone the project from GitHub:
+$ git clone git://github.com/github/hub.git
+$ cd hub
+$ rake install
 ~~~
 
-Assuming "~/bin/" is in your `$PATH`, you're ready to roll:
+On a Unix-based OS, this installs under `PREFIX`, which is `/usr/local` by default.
+
+Now you should be ready to roll:
 
 ~~~ sh
 $ hub version
@@ -48,10 +53,7 @@ git version 1.7.6
 hub version 1.8.3
 ~~~
 
-#### On Windows
-
-If you have mysysgit, open "Git Bash" and follow the steps above but put the
-`hub` executable in `/bin` instead of `~/bin`.
+#### Windows "Git Bash" (mysysgit) note
 
 Avoid aliasing hub as `git` due to the fact that mysysgit automatically
 configures your prompt to include git information, and you want to avoid slowing
@@ -77,16 +79,6 @@ $ hub hub standalone > ~/bin/hub && chmod +x ~/bin/hub
 
 This installs a standalone version which doesn't require RubyGems to
 run, so it's faster.
-
-### Source
-
-You can also install from source:
-
-~~~ sh
-$ git clone git://github.com/github/hub.git
-$ cd hub
-$ rake install prefix=/usr/local
-~~~
 
 ### Help! It's slow!
 

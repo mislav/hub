@@ -104,7 +104,9 @@ end
 desc "Build standalone script"
 task :standalone => "hub"
 
-desc "Install standalone script and man pages if unix-based OS. If Windows, install executable and .bat file inside ruby/bin"
+desc %{Install standalone script and man page.
+On Unix-based OS, installs into PREFIX (default: `/usr/local`).
+On Windows, installs into Ruby's main bin directory.}
 task :install => "hub" do
   require 'rbconfig'
   if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
