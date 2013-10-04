@@ -243,6 +243,12 @@ module Hub
       delete_editmsg
     end
 
+    # $ hub e-note
+    # $ hub e-note "My humble contribution"
+    # $ hub e-note -i 92
+    # $ hub e-note https://github.com/rtomayko/tilt/issues/92
+    alias_method :e_note, :pull_request
+
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
     #
