@@ -287,7 +287,7 @@ module Hub
             name, owner = arg, nil
             owner, name = name.split('/', 2) if name.index('/')
             project = github_project(name, owner || github_user)
-            ssh ||= args[0] != 'submodule' && project.owner == github_user(project.host) { }
+            ssh ||= args[0] != 'submodule' && project.owner == github_user(project.host)
             args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
           end
           break
@@ -818,7 +818,7 @@ module Hub
 
     def github_user host = nil, &block
       host ||= (local_repo(false) || Context::LocalRepo).default_host
-      api_client.config.username(host, &block)
+      api_client.username_via_auth_dance(host, &block)
     end
 
     def custom_command? cmd
