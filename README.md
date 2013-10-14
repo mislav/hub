@@ -53,9 +53,9 @@ git version 1.7.6
 hub version 1.8.3
 ~~~
 
-#### Windows "Git Bash" (mysysgit) note
+#### Windows "Git Bash" (msysGit) note
 
-Avoid aliasing hub as `git` due to the fact that mysysgit automatically
+Avoid aliasing hub as `git` due to the fact that msysGit automatically
 configures your prompt to include git information, and you want to avoid slowing
 that down. See [Is your shell prompt slow?](#is-your-shell-prompt-slow)
 
