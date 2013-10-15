@@ -127,9 +127,15 @@ func (gh *GitHub) repo() octokat.Repo {
 	return octokat.Repo{Name: project.Name, UserName: project.Owner}
 }
 
-func findOrCreateToken(user, password string) (string, error) {
+func findOrCreateToken(user, password, twoFactorCode string) (string, error) {
 	client := octokat.NewClient().WithLogin(user, password)
-	auths, err := client.Authorizations(nil)
+	options := &octokat.Options{}
+	if twoFactorCode != "" {
+		headers := octokat.Headers{"X-GitHub-OTP": twoFactorCode}
+		options.Headers = headers
+	}
+
+	auths, err := client.Authorizations(options)
 	if err != nil {
 		return "", err
 	}
@@ -147,9 +153,9 @@ func findOrCreateToken(user, password string) (string, error) {
 		authParam.Scopes = append(authParam.Scopes, "repo")
 		authParam.Note = "gh"
 		authParam.NoteURL = OAuthAppURL
-		options := octokat.Options{Params: authParam}
+		options.Params = authParam
 
-		auth, err := client.CreateAuthorization(&options)
+		auth, err := client.CreateAuthorization(options)
 		if err != nil {
 			return "", err
 		}

@@ -9,6 +9,7 @@ import (
 	"github.com/jingweno/gh/utils"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 type Config struct {
@@ -40,6 +41,14 @@ func (c *Config) FetchPassword() string {
 	return string(pass)
 }
 
+func (c *Config) FetchTwoFactorCode() string {
+	var code string
+	fmt.Print("two-factor authentication code: ")
+	fmt.Scanln(&code)
+
+	return code
+}
+
 func (c *Config) FetchCredentials() {
 	var changed bool
 	if c.User == "" {
@@ -49,7 +58,16 @@ func (c *Config) FetchCredentials() {
 
 	if c.Token == "" {
 		password := c.FetchPassword()
-		token, err := findOrCreateToken(c.User, password)
+		token, err := findOrCreateToken(c.User, password, "")
+		// TODO: return an two factor auth failure error
+		if err != nil {
+			re := regexp.MustCompile("two-factor authentication OTP code")
+			if re.MatchString(fmt.Sprintf("%s", err)) {
+				code := c.FetchTwoFactorCode()
+				token, err = findOrCreateToken(c.User, password, code)
+			}
+		}
+
 		utils.Check(err)
 
 		c.Token = token
