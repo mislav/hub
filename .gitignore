@@ -1,3 +1,4 @@
 gh
 *.test
 target
+.vagrant
