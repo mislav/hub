@@ -44,5 +44,5 @@ func OriginRemote() (*GitRemote, error) {
 		}
 	}
 
-	return nil, errors.New("Can't find git remote orign (push)")
+	return nil, errors.New("Can't find git remote origin (push)")
 }

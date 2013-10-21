@@ -65,7 +65,7 @@ func create(command *Command, args *Args) {
 	gh := github.NewWithoutProject()
 	if gh.IsRepositoryExist(project) {
 		fmt.Printf("%s already exists on %s\n", project, github.GitHubHost)
-		msg = "set remmote origin"
+		msg = "set remote origin"
 	} else {
 		if !args.Noop {
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
