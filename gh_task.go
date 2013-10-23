@@ -8,10 +8,10 @@ import (
 	"runtime"
 )
 
-// Releases gh
+// Cross-compiles gh
 //
-// Release gh for current operating system. The build artifacts will be in target/VERSION
-func TaskRelease(t *tasking.T) {
+// Cross-compiles gh for current operating system. The build artifacts will be in target/VERSION
+func TaskCrossCompile(t *tasking.T) {
 	t.Log("Updating goxc...")
 	err := t.Exec("go get -u github.com/laher/goxc")
 	if err != nil {
