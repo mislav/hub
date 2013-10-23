@@ -431,10 +431,23 @@ module Hub
                File.exist?('/dev/null') ? '/dev/null' : 'NUL'
 
       def askpass
+        noecho $stdin do |input|
+          input.gets.chomp
+        end
+      end
+
+      def noecho io
+        require 'io/console'
+        io.noecho { yield io }
+      rescue LoadError
+        fallback_noecho io
+      end
+
+      def fallback_noecho io
         tty_state = `stty -g 2>#{NULL}`
         system 'stty raw -echo -icanon isig' if $?.success?
         pass = ''
-        while char = getbyte($stdin) and !(char == 13 or char == 10)
+        while char = getbyte(io) and !(char == 13 or char == 10)
           if char == 127 or char == 8
             pass[-1,1] = '' unless pass.empty?
           else
