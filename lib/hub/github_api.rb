@@ -431,25 +431,40 @@ module Hub
                File.exist?('/dev/null') ? '/dev/null' : 'NUL'
 
       def askpass
-        if $stdin.respond_to? :noecho
-          $stdin.noecho(&:gets).strip
+        noecho $stdin do |input|
+          input.gets.chomp
+        end
+      end
+
+      def noecho io
+        require_ioconsole
+        if io.respond_to? :noecho
+          io.noecho { yield io }
         else
-          begin
-            tty_state = `stty -g 2>#{NULL}`
-            system 'stty raw -echo -icanon isig' if $?.success?
-            pass = ''
-            while char = getbyte($stdin) and !(char == 13 or char == 10)
-              if char == 127 or char == 8
-                pass[-1,1] = '' unless pass.empty?
-              else
-                pass << char.chr
-              end
-            end
-            pass
-          ensure
-            system "stty #{tty_state}" unless tty_state.empty?
+          fallback_noecho io
+        end
+      end
+
+      def require_ioconsole
+        require 'io/console'
+      rescue LoadError
+        nil
+      end
+
+      def fallback_noecho io
+        tty_state = `stty -g 2>#{NULL}`
+        system 'stty raw -echo -icanon isig' if $?.success?
+        pass = ''
+        while char = getbyte(io) and !(char == 13 or char == 10)
+          if char == 127 or char == 8
+            pass[-1,1] = '' unless pass.empty?
+          else
+            pass << char.chr
           end
         end
+        pass
+      ensure
+        system "stty #{tty_state}" unless tty_state.empty?
       end
 
       def getbyte(io)
