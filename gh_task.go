@@ -26,10 +26,10 @@ func TaskRelease(t *tasking.T) {
 		return
 	}
 
-	t.Log("Building gh...")
+	t.Log("Cross-compiling gh...")
 	err = t.Exec("goxc", "-wd=.", "-os="+runtime.GOOS, "-c="+runtime.GOOS)
 	if err != nil {
-		t.Errorf("Can't build gh: %s\n", err)
+		t.Errorf("Can't cross-compile gh: %s\n", err)
 		return
 	}
 }
