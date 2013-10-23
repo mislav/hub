@@ -29,7 +29,7 @@ func TaskBuild(t *tasking.T) {
 	t.Log("Building gh...")
 	err = t.Exec("goxc", "-wd=.", "-os="+runtime.GOOS, "-c="+runtime.GOOS)
 	if err != nil {
-		t.Error("Can't build gh: %s\n", err)
+		t.Errorf("Can't build gh: %s\n", err)
 		return
 	}
 }
