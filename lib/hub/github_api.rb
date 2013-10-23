@@ -431,7 +431,7 @@ module Hub
                File.exist?('/dev/null') ? '/dev/null' : 'NUL'
 
       def askpass
-        if RUBY_VERSION.to_f >= 1.9
+        if $stdin.respond_to? :noecho
           $stdin.noecho(&:gets).strip
         else
           begin
