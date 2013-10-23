@@ -7,17 +7,17 @@ import (
 	"os"
 )
 
-var cmdIssues = &Command{
-	Run:   issues,
-	Usage: "issues",
-	Short: "List the issues on GitHub",
+var cmdIssue = &Command{
+	Run:   issue,
+	Usage: "issue",
+	Short: "Manipulate issues on GitHub",
 	Long:  `Lists summary of the open issues for the project that the "origin" remove points to.`,
 }
 
 /*
-  $ gh issues
+  $ gh issue
 */
-func issues(cmd *Command, args *Args) {
+func issue(cmd *Command, args *Args) {
 
 	gh := github.New()
 
