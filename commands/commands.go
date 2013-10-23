@@ -74,6 +74,7 @@ var GitHub = []*Command{
 	cmdBrowse,
 	cmdCompare,
 	cmdRelease,
+	cmdIssues,
 }
 
 func All() []*Command {
