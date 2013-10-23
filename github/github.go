@@ -188,3 +188,13 @@ func NewWithoutProject() *GitHub {
 
 	return &GitHub{nil, c}
 }
+
+func (gh *GitHub) Issues() ([]octokat.Issue, error) {
+	client := gh.client()
+	issues, err := client.Issues(gh.repo(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return issues, nil
+}
