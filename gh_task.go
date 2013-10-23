@@ -8,10 +8,10 @@ import (
 	"runtime"
 )
 
-// Builds gh
+// Releases gh
 //
-// Build gh for current operating system
-func TaskBuild(t *tasking.T) {
+// Release gh for current operating system. The build artifacts will be in target/VERSION
+func TaskRelease(t *tasking.T) {
 	t.Log("Updating goxc...")
 	err := t.Exec("go get -u github.com/laher/goxc")
 	if err != nil {
