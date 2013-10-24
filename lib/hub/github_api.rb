@@ -8,7 +8,6 @@ rescue LoadError
   nil
 end
 
-
 module Hub
   # Client for the GitHub v3 API.
   #
