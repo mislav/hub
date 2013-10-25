@@ -33,7 +33,7 @@ $ brew install hub
 
 ### `rake install` from source
 
-This is the preferred installation method without when no package manager that
+This is the preferred installation method when no package manager that
 supports hub is available:
 
 ~~~ sh
