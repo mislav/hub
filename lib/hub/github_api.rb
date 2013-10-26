@@ -2,11 +2,6 @@ require 'uri'
 require 'yaml'
 require 'forwardable'
 require 'fileutils'
-begin
-  require 'io/console'
-rescue LoadError
-  nil
-end
 
 module Hub
   # Client for the GitHub v3 API.
@@ -442,11 +437,10 @@ module Hub
       end
 
       def noecho io
-        if io.respond_to? :noecho
-          io.noecho { yield io }
-        else
-          fallback_noecho io
-        end
+        require 'io/console'
+        io.noecho { yield io }
+      rescue LoadError
+        fallback_noecho io
       end
 
       def fallback_noecho io
