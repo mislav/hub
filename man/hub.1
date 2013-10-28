@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "July 2013" "GITHUB" "Git Manual"
+.TH "HUB" "1" "October 2013" "GITHUB" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -64,7 +64,7 @@
 \fBgit pull\-request\fR [\fB\-f\fR] [\fB\-m\fR \fIMESSAGE\fR|\fB\-F\fR \fIFILE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR]
 .
 .br
-\fBgit ci\-status\fR [\fICOMMIT\fR]
+\fBgit ci\-status\fR [\fB\-v\fR] [\fICOMMIT\fR]
 .
 .SH "DESCRIPTION"
 hub enhances various git commands to ease most common workflows with GitHub\.
@@ -155,11 +155,14 @@ Without \fIMESSAGE\fR or \fIFILE\fR, a text editor will open in which title and 
 If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
 .
 .TP
-\fBgit ci\-status\fR [\fICOMMIT\fR]
+\fBgit ci\-status\fR [\fB\-v\fR] [\fICOMMIT\fR]
 Looks up the SHA for \fICOMMIT\fR in GitHub Status API and displays the latest status\. Exits with one of:
 .
 .br
 success (0), error (1), failure (1), pending (2), no status (3)
+.
+.IP
+If \fB\-v\fR is given, additionally print the URL to CI build results\.
 .
 .SH "CONFIGURATION"
 Hub will prompt for GitHub username & password the first time it needs to access the API and exchange it for an OAuth token, which it saves in "~/\.config/hub"\.
