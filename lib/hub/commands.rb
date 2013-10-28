@@ -77,7 +77,23 @@ module Hub
     # $ hub ci-status origin/master
     def ci_status(args)
       args.shift
-      ref = args.words.first || 'HEAD'
+      ref = nil
+      verbose = false
+      while arg = args.shift
+        case arg
+        when '-v'
+          verbose = true
+        else
+          unless ref == nil
+            abort "Aborted: only one revision supported."
+          end
+          ref = arg
+        end
+      end
+
+      if ref == nil
+        ref = 'HEAD'
+      end
 
       unless head_project = local_repo.current_project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
@@ -89,7 +105,13 @@ module Hub
 
       statuses = api_client.statuses(head_project, sha)
       status = statuses.first
-      ref_state = status ? status['state'] : 'no status'
+      if status
+        ref_state = status['state']
+        ref_target_url = verbose ? status['target_url'] : nil
+      else
+        ref_state = 'no status'
+        ref_target_url = nil
+      end
 
       exit_code = case ref_state
         when 'success'          then 0
@@ -98,7 +120,11 @@ module Hub
         else 3
         end
 
-      $stdout.puts ref_state
+      if ref_target_url
+        $stdout.puts "%s: %s" % [ref_state, ref_target_url]
+      else
+        $stdout.puts ref_state
+      end
       exit exit_code
     end
 
