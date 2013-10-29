@@ -194,9 +194,11 @@ Pull request message can also be passed via stdin with <code>-F -</code>.</p>
 <p>If instead of normal <var>TITLE</var> an issue number is given with <code>-i</code>, the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
 of title you can paste a full URL to an issue on GitHub.</p></dd>
-<dt><code>git ci-status</code> [<var>COMMIT</var>]</dt><dd><p>Looks up the SHA for <var>COMMIT</var> in GitHub Status API and displays the latest
+<dt><code>git ci-status</code> [<var>COMMIT</var>] [<code>-v</code>]</dt><dd><p>Looks up the SHA for <var>COMMIT</var> in GitHub Status API and displays the latest
 status. Exits with one of:<br />
-success (0), error (1), failure (1), pending (2), no status (3)</p></dd>
+success (0), error (1), failure (1), pending (2), no status (3)</p>
+
+<p>If <code>-v</code> is given, the full URL to the CI build will be printed.</p></dd>
 </dl>
 
 
