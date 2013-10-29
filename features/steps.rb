@@ -175,7 +175,10 @@ Given(/^the remote commit states of "(.*?)" "(.*?)" are:$/) do |proj, ref, json_
 end
 
 Given(/^the remote commit state of "(.*?)" "(.*?)" is "(.*?)"$/) do |proj, ref, status|
-  step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ { :state => \"#{status}\" } ]"
+  step %{the remote commit states of "#{proj}" "#{ref}" are:}, <<-EOS
+    [ { :state => \"#{status}\",
+        :target_url => 'https://travis-ci.org/#{proj}/builds/1234567' } ]
+    EOS
 end
 
 Given(/^the remote commit state of "(.*?)" "(.*?)" is nil$/) do |proj, ref|
