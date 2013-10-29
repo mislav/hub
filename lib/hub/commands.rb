@@ -72,8 +72,10 @@ module Hub
 
 
     # $ hub ci-status
+    # $ hub ci-status -v
     # $ hub ci-status 6f6d9797f9d6e56c3da623a97cfc3f45daf9ae5f
     # $ hub ci-status master
+    # $ hub ci-status master -v
     # $ hub ci-status origin/master
     def ci_status(args)
       args.shift

@@ -28,7 +28,7 @@ hub(1) -- git + hub = github
 `git compare` [`-u`] [<USER>] [<START>...]<END>  
 `git fork` [`--no-remote`]  
 `git pull-request` [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]  
-`git ci-status` [<COMMIT>]
+`git ci-status` [<COMMIT>] [`-v`]
 
 ## DESCRIPTION
 
