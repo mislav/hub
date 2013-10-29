@@ -426,6 +426,9 @@ $ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
 <pre><code>$ hub ci-status [commit]
 &gt; (prints CI state of commit and exits with appropriate code)
 &gt; One of: success (0), error (1), failure (1), pending (2), no status (3)
+
+$ hub ci-status -v [commit]
+&gt; (as above, also prints CI URL if available)
 </code></pre>
 
 <h3 id="git-help">git help</h3>
@@ -453,7 +456,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>July 2013</li>
+    <li class='tc'>October 2013</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
