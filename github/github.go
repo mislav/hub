@@ -1,7 +1,6 @@
 package github
 
 import (
-	"errors"
 	"fmt"
 	"github.com/jingweno/octokat"
 	"github.com/octokit/go-octokit"
@@ -110,18 +109,17 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 	return &statuses[0], nil
 }
 
-func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokat.Repository, err error) {
-	client := gh.client()
+func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokit.Repository, err error) {
 	config := gh.Config
-	r := octokat.Repo{Name: name, UserName: config.User}
-	repo, err = client.Repository(r, nil)
-	if repo != nil && err == nil {
-		msg := fmt.Sprintf("Error creating fork: %s exists on %s", repo.FullName, GitHubHost)
-		err = errors.New(msg)
+	project := Project{Name: name, Owner: config.User}
+	if gh.IsRepositoryExist(project) {
+		err = fmt.Errorf("Error creating fork: %s exists on %s", repo.FullName, GitHubHost)
 		return
 	}
 
-	repo, err = client.Fork(octokat.Repo{Name: name, UserName: owner}, nil)
+	client := gh.octokit()
+	repoService, err := client.Repositories(&octokit.ForksURL, octokit.M{"owner": owner, "repo": name})
+	repo, err = repoService.Create(nil)
 
 	return
 }
