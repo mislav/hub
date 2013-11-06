@@ -55,10 +55,7 @@ func init() {
   [ attached pull request to issue #123 ]
 */
 func pullRequest(cmd *Command, args *Args) {
-	var (
-		title, body string
-		err         error
-	)
+	var title, body string
 	if args.ParamsSize() == 1 {
 		title = args.RemoveParam(0)
 	}
@@ -66,7 +63,10 @@ func pullRequest(cmd *Command, args *Args) {
 	gh := github.New()
 	repo := gh.Project.LocalRepoWith(flagPullRequestBase, flagPullRequestHead)
 	if title == "" && flagPullRequestIssue == "" {
-		title, body, err = writePullRequestTitleAndBody(repo)
+		t, b, err := writePullRequestTitleAndBody(repo)
+		utils.Check(err)
+		title = t
+		body = b
 	}
 
 	if title == "" && flagPullRequestIssue == "" {
@@ -79,14 +79,16 @@ func pullRequest(cmd *Command, args *Args) {
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		if title != "" {
-			pullRequestURL, err = gh.CreatePullRequest(repo.Base, repo.Head, title, body)
+			pr, err := gh.CreatePullRequest(repo.Base, repo.Head, title, body)
+			utils.Check(err)
+			pullRequestURL = pr.HTMLURL
 		}
-		utils.Check(err)
 
 		if flagPullRequestIssue != "" {
-			pullRequestURL, err = gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
+			pr, err := gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
+			utils.Check(err)
+			pullRequestURL = pr.HTMLURL
 		}
-		utils.Check(err)
 	}
 
 	args.Replace("echo", "", pullRequestURL)

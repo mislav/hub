@@ -31,7 +31,7 @@ func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
 	return
 }
 
-func (gh *GitHub) CreatePullRequest(base, head, title, body string) (url string, err error) {
+func (gh *GitHub) CreatePullRequest(base, head, title, body string) (pr *octokit.PullRequest, err error) {
 	client := gh.octokit()
 	prService, err := client.PullRequests(&octokit.PullRequestsURL, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
 	if err != nil {
@@ -44,12 +44,10 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (url string,
 		err = result.Err
 	}
 
-	url = pr.HTMLURL
-
 	return
 }
 
-func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (url string, err error) {
+func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (pr *octokit.PullRequest, err error) {
 	client := gh.octokit()
 	prService, err := client.PullRequests(&octokit.PullRequestsURL, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
 	if err != nil {
@@ -61,8 +59,6 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (url strin
 	if result.HasError() {
 		err = result.Err
 	}
-
-	url = pr.HTMLURL
 
 	return
 }
