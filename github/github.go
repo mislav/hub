@@ -47,11 +47,16 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, e
 	return pullRequest.HTMLURL, nil
 }
 
-func (gh *GitHub) Repository(project Project) (*octokat.Repository, error) {
-	client := gh.client()
-	repo := octokat.Repo{Name: project.Name, UserName: project.Owner}
+func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err error) {
+	client := gh.octokit()
+	repoService, err := client.Repositories(&octokit.RepositoryURL, octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
 
-	return client.Repository(repo, nil)
+	repo, err = repoService.Get()
+
+	return
 }
 
 // TODO: detach GitHub from Project
@@ -61,16 +66,24 @@ func (gh *GitHub) IsRepositoryExist(project Project) bool {
 	return err == nil && repo != nil
 }
 
-func (gh *GitHub) CreateRepository(project Project, description, homepage string, isPrivate bool) (*octokat.Repository, error) {
-	params := octokat.RepositoryParams{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
-	var org string
+func (gh *GitHub) CreateRepository(project Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
+	var repoURL octokit.Hyperlink
 	if project.Owner != gh.Config.FetchUser() {
-		org = project.Owner
+		repoURL = octokit.OrgRepositoriesURL
+	} else {
+		repoURL = octokit.UserRepositoriesURL
 	}
 
-	client := gh.client()
-	options := octokat.Options{Params: params}
-	return client.CreateRepository(org, &options)
+	client := gh.octokit()
+	repoService, err := client.Repositories(&repoURL, octokit.M{"org": project.Owner})
+	if err != nil {
+		return
+	}
+
+	params := octokat.Repository{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
+	repo, err = repoService.Create(params)
+
+	return
 }
 
 func (gh *GitHub) Releases() ([]octokat.Release, error) {
@@ -175,7 +188,11 @@ func (gh *GitHub) client() *octokat.Client {
 }
 
 func (gh *GitHub) octokit() *octokit.Client {
-	return octokit.NewClient()
+	config := gh.Config
+	config.FetchCredentials()
+	tokenAuth := octokit.TokenAuth{AccessToken: config.Token}
+
+	return octokit.NewClient(tokenAuth)
 }
 
 func New() *GitHub {
