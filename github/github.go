@@ -103,7 +103,7 @@ func (gh *GitHub) CreateRepository(project Project, description, homepage string
 		return
 	}
 
-	params := octokat.Repository{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
+	params := octokit.Repository{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
 	repo, result := repoService.Create(params)
 	if result.HasError() {
 		err = result.Err
