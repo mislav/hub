@@ -53,7 +53,10 @@ func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err err
 		return
 	}
 
-	repo, err = repoService.Get()
+	repo, result := repoService.Get()
+	if result.HasError() {
+		err = result.Err
+	}
 
 	return
 }
@@ -80,7 +83,10 @@ func (gh *GitHub) CreateRepository(project Project, description, homepage string
 	}
 
 	params := octokat.Repository{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
-	repo, err = repoService.Create(params)
+	repo, result := repoService.Create(params)
+	if result.HasError() {
+		err = result.Err
+	}
 
 	return
 }
@@ -112,14 +118,18 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokit.Repository, err error) {
 	config := gh.Config
 	project := Project{Name: name, Owner: config.User}
-	if gh.IsRepositoryExist(project) {
-		err = fmt.Errorf("Error creating fork: %s exists on %s", repo.FullName, GitHubHost)
+	r, err := gh.Repository(project)
+	if err == nil && r != nil {
+		err = fmt.Errorf("Error creating fork: %s exists on %s", r.FullName, GitHubHost)
 		return
 	}
 
 	client := gh.octokit()
 	repoService, err := client.Repositories(&octokit.ForksURL, octokit.M{"owner": owner, "repo": name})
-	repo, err = repoService.Create(nil)
+	repo, result := repoService.Create(nil)
+	if result.HasError() {
+		err = result.Err
+	}
 
 	return
 }
