@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/utils"
-	"github.com/jingweno/octokat"
+	"github.com/octokit/go-octokit"
 )
 
 var cmdMerge = &Command{
@@ -45,7 +45,7 @@ func transformMergeArgs(args *Args) error {
 	return nil
 }
 
-func fetchAndMerge(args *Args, pullRequest *octokat.PullRequest) error {
+func fetchAndMerge(args *Args, pullRequest *octokit.PullRequest) error {
 	user, branch := parseUserBranchFromPR(pullRequest)
 	url, err := convertToGitURL(pullRequest.HTMLURL, user, pullRequest.Head.Repo.Private)
 	if err != nil {

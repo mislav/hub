@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/bmizerany/assert"
-	"github.com/jingweno/octokat"
+	"github.com/octokit/go-octokit"
 	"testing"
 )
 
@@ -14,15 +14,15 @@ func TestFetchAndMerge(t *testing.T) {
 	args := NewArgs([]string{"merge", url})
 
 	userLogin := "jingweno"
-	user := octokat.User{Login: userLogin}
+	user := octokit.User{Login: userLogin}
 
 	repoPrivate := true
-	repo := octokat.Repository{Private: repoPrivate}
+	repo := octokit.Repository{Private: repoPrivate}
 
 	headRef := "new-feature"
-	head := octokat.Commit{Ref: headRef, Repo: repo, Label: "jingweno:new-feature"}
+	head := octokit.Commit{Ref: headRef, Repo: repo, Label: "jingweno:new-feature"}
 
-	pullRequest := octokat.PullRequest{Number: number, Title: title, HTMLURL: url, User: user, Head: head}
+	pullRequest := octokit.PullRequest{Number: number, Title: title, HTMLURL: url, User: user, Head: head}
 
 	err := fetchAndMerge(args, &pullRequest)
 	assert.Equal(t, nil, err)

@@ -16,34 +16,55 @@ type GitHub struct {
 	Config  *Config
 }
 
-func (gh *GitHub) PullRequest(id string) (*octokat.PullRequest, error) {
-	client := gh.client()
-
-	return client.PullRequest(gh.repo(), id, nil)
-}
-
-func (gh *GitHub) CreatePullRequest(base, head, title, body string) (string, error) {
-	client := gh.client()
-	params := octokat.PullRequestParams{Base: base, Head: head, Title: title, Body: body}
-	options := octokat.Options{Params: params}
-	pullRequest, err := client.CreatePullRequest(gh.repo(), &options)
+func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
+	client := gh.octokit()
+	prService, err := client.PullRequests(&octokit.PullRequestsURL, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name, "number": id})
 	if err != nil {
-		return "", err
+		return
 	}
 
-	return pullRequest.HTMLURL, nil
-}
-
-func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (string, error) {
-	client := gh.client()
-	params := octokat.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
-	options := octokat.Options{Params: params}
-	pullRequest, err := client.CreatePullRequest(gh.repo(), &options)
-	if err != nil {
-		return "", err
+	pr, result := prService.Get()
+	if result.HasError() {
+		err = result.Err
 	}
 
-	return pullRequest.HTMLURL, nil
+	return
+}
+
+func (gh *GitHub) CreatePullRequest(base, head, title, body string) (url string, err error) {
+	client := gh.octokit()
+	prService, err := client.PullRequests(&octokit.PullRequestsURL, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
+	if err != nil {
+		return
+	}
+
+	params := octokit.PullRequestParams{Base: base, Head: head, Title: title, Body: body}
+	pr, result := prService.Create(params)
+	if result.HasError() {
+		err = result.Err
+	}
+
+	url = pr.HTMLURL
+
+	return
+}
+
+func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (url string, err error) {
+	client := gh.octokit()
+	prService, err := client.PullRequests(&octokit.PullRequestsURL, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
+	if err != nil {
+		return
+	}
+
+	params := octokit.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
+	pr, result := prService.Create(params)
+	if result.HasError() {
+		err = result.Err
+	}
+
+	url = pr.HTMLURL
+
+	return
 }
 
 func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err error) {
