@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/jingweno/octokat"
+	"github.com/octokit/go-octokit"
 )
 
 const (
@@ -171,6 +172,10 @@ func (gh *GitHub) client() *octokat.Client {
 	config.FetchCredentials()
 
 	return octokat.NewClient().WithToken(config.Token)
+}
+
+func (gh *GitHub) octokit() *octokit.Client {
+	return octokit.NewClient()
 }
 
 func New() *GitHub {
