@@ -93,7 +93,7 @@ func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
 		return nil, nil
 	}
 
-	return &statuses[len(statuses)-1], nil
+	return &statuses[0], nil
 }
 
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokat.Repository, err error) {
