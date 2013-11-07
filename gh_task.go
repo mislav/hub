@@ -20,8 +20,8 @@ func TaskCrossCompileAll(t *tasking.T) {
 		return
 	}
 
-	// for darwin
-	t.Log("Compiling for darwin...")
+	// for current
+	t.Logf("Compiling for %s...\n", runtime.GOOS)
 	TaskCrossCompile(t)
 	if t.Failed() {
 		return
@@ -47,7 +47,7 @@ func TaskCrossCompile(t *tasking.T) {
 		return
 	}
 
-	t.Log("Cross-compiling gh for mac...")
+	t.Logf("Cross-compiling gh for %s...\n", runtime.GOOS)
 	err = t.Exec("goxc", "-wd=.", "-os="+runtime.GOOS, "-c="+runtime.GOOS)
 	if err != nil {
 		t.Errorf("Can't cross-compile gh: %s\n", err)

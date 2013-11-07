@@ -1,5 +1,5 @@
 {
-  "FormatVersion": "0.8",
+  "FormatVersion": "0.9",
   "ArtifactsDest": "target",
   "Arch": "386,amd64",
   "Os": "darwin,linux,windows",
