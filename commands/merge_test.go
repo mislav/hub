@@ -2,7 +2,7 @@ package commands
 
 import (
 	"github.com/bmizerany/assert"
-	"github.com/octokit/go-octokit"
+	"github.com/octokit/go-octokit/octokit"
 	"testing"
 )
 

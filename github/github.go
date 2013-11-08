@@ -2,7 +2,7 @@ package github
 
 import (
 	"fmt"
-	"github.com/octokit/go-octokit"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
