@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/utils"
-	"github.com/jingweno/octokat"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 var cmdCheckout = &Command{
@@ -46,7 +46,7 @@ func transformCheckoutArgs(args *Args) error {
 	return nil
 }
 
-func buildArgsFromPullRequest(args *Args, pullRequest *octokat.PullRequest) error {
+func buildArgsFromPullRequest(args *Args, pullRequest *octokit.PullRequest) error {
 	user, branch := parseUserBranchFromPR(pullRequest)
 
 	args.RemoveParam(0) // Remove the pull request URL
