@@ -2,7 +2,6 @@ package github
 
 import (
 	"fmt"
-	"github.com/jingweno/octokat"
 	"github.com/octokit/go-octokit"
 )
 
@@ -108,14 +107,20 @@ func (gh *GitHub) CreateRepository(project Project, description, homepage string
 	return
 }
 
-func (gh *GitHub) Releases() ([]octokat.Release, error) {
-	client := gh.client()
-	releases, err := client.Releases(gh.repo(), nil)
+func (gh *GitHub) Releases() (releases []octokit.Release, err error) {
+	client := gh.octokit()
+	releasesService, err := client.Releases(nil, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
 	if err != nil {
-		return nil, err
+		return
 	}
 
-	return releases, nil
+	releases, result := releasesService.GetAll()
+	if result.HasError() {
+		err = result.Err
+		return
+	}
+
+	return
 }
 
 func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
@@ -180,11 +185,6 @@ func (gh *GitHub) ExpandRemoteUrl(owner, name string, isSSH bool) (url string) {
 	return project.GitURL(name, owner, isSSH)
 }
 
-func (gh *GitHub) repo() octokat.Repo {
-	project := gh.Project
-	return octokat.Repo{Name: project.Name, UserName: project.Owner}
-}
-
 func findOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
 	client := octokit.NewClient(basicAuth)
@@ -222,13 +222,6 @@ func findOrCreateToken(user, password, twoFactorCode string) (token string, err 
 	}
 
 	return
-}
-
-func (gh *GitHub) client() *octokat.Client {
-	config := gh.Config
-	config.FetchCredentials()
-
-	return octokat.NewClient().WithToken(config.Token)
 }
 
 func (gh *GitHub) octokit() *octokit.Client {
