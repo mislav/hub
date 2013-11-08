@@ -154,6 +154,22 @@ func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octok
 	return
 }
 
+func (gh *GitHub) Issues() (issues []octokit.Issue, err error) {
+	client := gh.octokit()
+	issuesService, err := client.Issues(&octokit.RepoIssuesURL, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
+	if err != nil {
+		return
+	}
+
+	issues, result := issuesService.GetAll()
+	if result.HasError() {
+		err = result.Err
+		return
+	}
+
+	return
+}
+
 func (gh *GitHub) ExpandRemoteUrl(owner, name string, isSSH bool) (url string) {
 	project := gh.Project
 	if owner == "origin" {
@@ -237,14 +253,4 @@ func NewWithoutProject() *GitHub {
 	c.FetchUser()
 
 	return &GitHub{nil, c}
-}
-
-func (gh *GitHub) Issues() ([]octokat.Issue, error) {
-	client := gh.client()
-	issues, err := client.Issues(gh.repo(), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return issues, nil
 }
