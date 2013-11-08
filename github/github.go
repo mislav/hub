@@ -166,20 +166,20 @@ func (gh *GitHub) repo() octokat.Repo {
 	return octokat.Repo{Name: project.Name, UserName: project.Owner}
 }
 
-func findOrCreateToken(user, password, twoFactorCode string) (string, error) {
-	client := octokat.NewClient().WithLogin(user, password)
-	options := &octokat.Options{}
-	if twoFactorCode != "" {
-		headers := octokat.Headers{"X-GitHub-OTP": twoFactorCode}
-		options.Headers = headers
-	}
-
-	auths, err := client.Authorizations(options)
+func findOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
+	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
+	client := octokit.NewClient(basicAuth)
+	authsService, err := client.Authorizations(nil, nil)
 	if err != nil {
-		return "", err
+		return
 	}
 
-	var token string
+	auths, result := authsService.GetAll()
+	if result.HasError() {
+		err = result.Err
+		return
+	}
+
 	for _, auth := range auths {
 		if auth.NoteURL == OAuthAppURL {
 			token = auth.Token
@@ -188,21 +188,21 @@ func findOrCreateToken(user, password, twoFactorCode string) (string, error) {
 	}
 
 	if token == "" {
-		authParam := octokat.AuthorizationParams{}
+		authParam := octokit.AuthorizationParams{}
 		authParam.Scopes = append(authParam.Scopes, "repo")
 		authParam.Note = "gh"
 		authParam.NoteURL = OAuthAppURL
-		options.Params = authParam
 
-		auth, err := client.CreateAuthorization(options)
-		if err != nil {
-			return "", err
+		auth, result := authsService.Create(authParam)
+		if result.HasError() {
+			err = result.Err
+			return
 		}
 
 		token = auth.Token
 	}
 
-	return token, nil
+	return
 }
 
 func (gh *GitHub) client() *octokat.Client {
