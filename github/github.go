@@ -118,18 +118,21 @@ func (gh *GitHub) Releases() ([]octokat.Release, error) {
 	return releases, nil
 }
 
-func (gh *GitHub) CiStatus(sha string) (*octokat.Status, error) {
-	client := gh.client()
-	statuses, err := client.Statuses(gh.repo(), sha, nil)
-	if err != nil {
-		return nil, err
+func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
+	client := gh.octokit()
+	statusesService, err := client.Statuses(nil, octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name, "ref": sha})
+
+	statuses, result := statusesService.GetAll()
+	if result.HasError() {
+		err = result.Err
+		return
 	}
 
-	if len(statuses) == 0 {
-		return nil, nil
+	if len(statuses) > 0 {
+		status = &statuses[0]
 	}
 
-	return &statuses[0], nil
+	return
 }
 
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokit.Repository, err error) {

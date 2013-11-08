@@ -61,7 +61,7 @@ func ciStatus(cmd *Command, args *Args) {
 
 func fetchCiStatus(ref string) (state, targetURL, desc string, exitCode int, err error) {
 	gh := github.New()
-	status, err := gh.CiStatus(ref)
+	status, err := gh.CIStatus(ref)
 	if err != nil {
 		return
 	}
