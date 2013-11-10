@@ -10,13 +10,13 @@ class Gh < Formula
 
   homepage "https://github.com/jingweno/gh"
   head "https://github.com/jingweno/gh.git"
-  url "https://github.com/jingweno/gh/releases/download/v#{VERSION}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.tar.gz"
+  url "https://github.com/jingweno/gh/releases/download/v#{VERSION}/gh_#{VERSION}-snapshot_darwin_#{ARCH}.zip"
   version VERSION
 
   def install
     bin.install "gh"
-    bash_completion.install "etc/gh.bash_completion.sh"
-    zsh_completion.install "etc/gh.zsh_completion" => "_gh"
+    bash_completion.install "gh.bash_completion.sh"
+    zsh_completion.install "gh.zsh_completion" => "_gh"
   end
 
   def caveats; <<-EOS.undent
