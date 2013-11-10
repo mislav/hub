@@ -11,12 +11,6 @@
     "Exclude": "*.go"
   },
   "TaskSettings": {
-    "archive": {
-      "os": {
-        "linux": "TarGz",
-        "darwin": "TarGz"
-      }
-    },
     "downloads-page": {
       "fileheader": "",
       "filename": ""
