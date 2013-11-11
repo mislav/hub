@@ -22,7 +22,7 @@ func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
 	}
 
 	client := gh.octokit()
-	pr, result := client.PullRequests(url).Get()
+	pr, result := client.PullRequests(url).One()
 	if result.HasError() {
 		err = result.Err
 	}
@@ -69,7 +69,7 @@ func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err err
 	}
 
 	client := gh.octokit()
-	repo, result := client.Repositories(url).Get()
+	repo, result := client.Repositories(url).One()
 	if result.HasError() {
 		err = result.Err
 	}
@@ -114,7 +114,7 @@ func (gh *GitHub) Releases() (releases []octokit.Release, err error) {
 	}
 
 	client := gh.octokit()
-	releases, result := client.Releases(url).GetAll()
+	releases, result := client.Releases(url).All()
 	if result.HasError() {
 		err = result.Err
 		return
@@ -130,7 +130,7 @@ func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
 	}
 
 	client := gh.octokit()
-	statuses, result := client.Statuses(url).GetAll()
+	statuses, result := client.Statuses(url).All()
 	if result.HasError() {
 		err = result.Err
 		return
@@ -173,7 +173,7 @@ func (gh *GitHub) Issues() (issues []octokit.Issue, err error) {
 	}
 
 	client := gh.octokit()
-	issues, result := client.Issues(url).GetAll()
+	issues, result := client.Issues(url).All()
 	if result.HasError() {
 		err = result.Err
 		return
@@ -202,7 +202,7 @@ func findOrCreateToken(user, password, twoFactorCode string) (token string, err 
 	client := octokit.NewClient(basicAuth)
 	authsService := client.Authorizations(url)
 
-	auths, result := authsService.GetAll()
+	auths, result := authsService.All()
 	if result.HasError() {
 		err = result.Err
 		return
