@@ -27,11 +27,11 @@ git_prefix = lambda {
 }
 
 git_distributed_zsh_completion = lambda {
-  git_prefix.call + 'share/zsh/site-functions/_git'
+  git_prefix.call + 'share/git-core/contrib/completion/git-completion.zsh'
 }
 
 git_distributed_bash_completion = lambda {
-  git_prefix.call + 'etc/bash_completion.d/git-completion.bash'
+  git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash'
 }
 
 link_completion = Proc.new { |from, name|
@@ -113,7 +113,7 @@ World Module.new {
 
   def tmux_wait_for_completion
     # bash can be pretty slow
-    sleep 0.4
+    sleep 0.6
   end
 
   def tmux_completion_menu

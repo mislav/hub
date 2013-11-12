@@ -20,6 +20,11 @@ Feature: bash tab-completion
     When I press <Tab> again
     Then the completion menu should offer "-F -b -f -h -i -m"
 
+  Scenario: Doesn't offer already used pull-request flags
+    When I type "git pull-request -F myfile -h mybranch -" and press <Tab>
+    When I press <Tab> again
+    Then the completion menu should offer "-b -f -i -m"
+
   Scenario: Browse to issues
     When I type "git browse -- i" and press <Tab>
     Then the command should expand to "git browse -- issues"
