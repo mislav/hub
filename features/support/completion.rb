@@ -31,11 +31,14 @@ git_distributed_zsh_completion = lambda {
 }
 
 git_distributed_bash_completion = lambda {
-  git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash'
+  [ git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash',
+    Pathname.new('/etc/bash_completion.d/git'),
+    Pathname.new('/usr/share/bash-completion/completions/git'),
+    Pathname.new('/usr/share/bash-completion/git'),
+  ].detect {|p| p.exist? }
 }
 
 link_completion = Proc.new { |from, name|
-  name ||= from.basename
   raise ArgumentError, from.to_s unless File.exist?(from)
   FileUtils.ln_s(from, cpldir + name, :force => true)
 }
@@ -162,8 +165,12 @@ Given(/^I'm using ((?:zsh|git)-distributed) base git completions$/) do |type|
     (cpldir + '_git').exist?.should be_false
   when 'git-distributed'
     if 'zsh' == shell
-      link_completion.call(git_distributed_zsh_completion.call)
-      link_completion.call(git_distributed_bash_completion.call)
+      if git_distributed_zsh_completion.call.exist?
+        link_completion.call(git_distributed_zsh_completion.call, '_git')
+        link_completion.call(git_distributed_bash_completion.call, 'git-completion.bash')
+      else
+        warn "warning: git-distributed zsh completion wasn't found; using zsh-distributed instead"
+      end
     end
   else
     raise ArgumentError, type
