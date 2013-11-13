@@ -5,7 +5,6 @@ rvm:
   - 1.9.2
   - 1.9.3
   - 2.0.0
-
 notifications:
-  email: false
-  
+  email:
+    - mislav.marohnic@gmail.com
