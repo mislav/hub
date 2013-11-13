@@ -437,6 +437,7 @@ module Hub
     def git_editor
       # possible: ~/bin/vi, $SOME_ENVIRONMENT_VARIABLE, "C:\Program Files\Vim\gvim.exe" --nofork
       editor = git_command 'var GIT_EDITOR'
+      editor.gsub!(/\$(\w+|\{\w+\})/) { ENV[$1.tr('{}', '')] }
       editor = ENV[$1] if editor =~ /^\$(\w+)$/
       editor = File.expand_path editor if (editor =~ /^[~.]/ or editor.index('/')) and editor !~ /["']/
       # avoid shellsplitting "C:\Program Files"
