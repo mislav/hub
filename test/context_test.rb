@@ -50,6 +50,20 @@ class ContextTest < Test::Unit::TestCase
     end
   end
 
+  def test_editor_with_embedded_env_variable
+    stub_command_output 'var GIT_EDITOR', '$EDITOR -w'
+    with_env('EDITOR', 'subl') do
+      assert_equal %w'subl -w', context.git_editor
+    end
+  end
+
+  def test_editor_with_curly_brackets_embedded_env_variable
+    stub_command_output 'var GIT_EDITOR', 'my${EDITOR}2 -w'
+    with_env('EDITOR', 'subl') do
+      assert_equal %w'mysubl2 -w', context.git_editor
+    end
+  end
+
   private
 
   def stub_command_output(cmd, value)
