@@ -131,7 +131,7 @@ World Module.new {
 
   def tmux_wait_for_completion
     # bash can be pretty slow
-    sleep 0.6
+    sleep 1
   end
 
   def tmux_completion_menu
@@ -188,8 +188,12 @@ When(/^I press <Tab> again$/) do
   tmux_send_keys('Tab')
 end
 
-Then(/^the completion menu should offer "([^"]+?)"$/) do |items|
+Then(/^the completion menu should offer "([^"]+?)"( unsorted)?$/) do |items, unsorted|
   menu = tmux_completion_menu_basic
+  if unsorted
+    menu.sort!
+    items = items.split(' ').sort.join(' ')
+  end
   menu.join(' ').should eq(items)
 end
 
