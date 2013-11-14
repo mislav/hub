@@ -1,6 +1,4 @@
 #!/bin/bash
 
-set -v
-
 script/bootstrap
 godep go build -v ./...
