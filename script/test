@@ -20,8 +20,21 @@ check_warnings() {
   fi
 }
 
+if tmux -V; then
+  if [ -n "$CI" ]; then
+    git --version
+    bash --version | head -1
+    zsh --version
+    echo
+  fi
+  profile="all"
+else
+  echo "warning: skipping shell completion tests (install tmux to enable)" >&2
+  profile="default"
+fi
+
 run rake test
-run cucumber features
+run cucumber -p "$profile"
 
 check_warnings
 

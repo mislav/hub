@@ -39,8 +39,10 @@ Before do
 
   FileUtils.mkdir_p ENV['HOME']
 
+  # increase process exit timeout from the default of 3 seconds
+  @aruba_timeout_seconds = 5
+
   if defined?(RUBY_ENGINE) and RUBY_ENGINE == 'jruby'
-    @aruba_timeout_seconds = 5
     @aruba_io_wait_seconds = 0.1
   else
     @aruba_io_wait_seconds = 0.02

@@ -31,11 +31,14 @@ git_distributed_zsh_completion = lambda {
 }
 
 git_distributed_bash_completion = lambda {
-  git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash'
+  [ git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash',
+    Pathname.new('/etc/bash_completion.d/git'),
+    Pathname.new('/usr/share/bash-completion/completions/git'),
+    Pathname.new('/usr/share/bash-completion/git'),
+  ].detect {|p| p.exist? }
 }
 
 link_completion = Proc.new { |from, name|
-  name ||= from.basename
   raise ArgumentError, from.to_s unless File.exist?(from)
   FileUtils.ln_s(from, cpldir + name, :force => true)
 }
@@ -70,6 +73,18 @@ setup_tmp_home = lambda { |shell|
   end
 }
 
+$tmux = nil
+
+Before('@completion') do
+  unless $tmux
+    $tmux = %w[tmux -L hub-test]
+    system(*($tmux + %w[new-session -ds hub]))
+    at_exit do
+      system(*($tmux + %w[kill-server]))
+    end
+  end
+end
+
 After('@completion') do
   tmux_kill_pane
 end
@@ -83,7 +98,9 @@ World Module.new {
 
   define_method(:tmux_pane) do
     return @tmux_pane if tmux_pane?
-    @tmux_pane = `tmux new-window -dP -n test -c "#{tmpdir}" 'env HOME="#{tmpdir}" #{shell}'`.chomp
+    Dir.chdir(tmpdir) do
+      @tmux_pane = `#{$tmux.join(' ')} new-window -dP -n test 'env HOME="#{tmpdir}" #{shell}'`.chomp
+    end
   end
 
   def tmux_pane?
@@ -91,15 +108,16 @@ World Module.new {
   end
 
   def tmux_pane_contents
-    `tmux capture-pane -p -t #{tmux_pane}`.rstrip
+    system(*($tmux + ['capture-pane', '-t', tmux_pane]))
+    `#{$tmux.join(' ')} show-buffer`.rstrip
   end
 
   def tmux_send_keys(*keys)
-    system 'tmux', 'send-keys', '-t', tmux_pane, *keys
+    system(*($tmux + ['send-keys', '-t', tmux_pane, *keys]))
   end
 
   def tmux_kill_pane
-    system 'tmux', 'kill-pane', '-t', tmux_pane if tmux_pane?
+    system(*($tmux + ['kill-pane', '-t', tmux_pane])) if tmux_pane?
   end
 
   def tmux_wait_for_prompt
@@ -107,13 +125,13 @@ World Module.new {
     while tmux_pane_contents !~ /\$\Z/
       sleep 0.01
       num_waited += 1
-      raise "timeout while waiting for shell prompt" if num_waited > 100
+      raise "timeout while waiting for shell prompt" if num_waited > 150
     end
   end
 
   def tmux_wait_for_completion
     # bash can be pretty slow
-    sleep 0.6
+    sleep 1
   end
 
   def tmux_completion_menu
@@ -147,8 +165,12 @@ Given(/^I'm using ((?:zsh|git)-distributed) base git completions$/) do |type|
     (cpldir + '_git').exist?.should be_false
   when 'git-distributed'
     if 'zsh' == shell
-      link_completion.call(git_distributed_zsh_completion.call)
-      link_completion.call(git_distributed_bash_completion.call)
+      if git_distributed_zsh_completion.call.exist?
+        link_completion.call(git_distributed_zsh_completion.call, '_git')
+        link_completion.call(git_distributed_bash_completion.call, 'git-completion.bash')
+      else
+        warn "warning: git-distributed zsh completion wasn't found; using zsh-distributed instead"
+      end
     end
   else
     raise ArgumentError, type
@@ -166,8 +188,12 @@ When(/^I press <Tab> again$/) do
   tmux_send_keys('Tab')
 end
 
-Then(/^the completion menu should offer "([^"]+?)"$/) do |items|
+Then(/^the completion menu should offer "([^"]+?)"( unsorted)?$/) do |items, unsorted|
   menu = tmux_completion_menu_basic
+  if unsorted
+    menu.sort!
+    items = items.split(' ').sort.join(' ')
+  end
   menu.join(' ').should eq(items)
 end
 
