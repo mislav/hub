@@ -125,7 +125,7 @@ World Module.new {
     while tmux_pane_contents !~ /\$\Z/
       sleep 0.01
       num_waited += 1
-      raise "timeout while waiting for shell prompt" if num_waited > 100
+      raise "timeout while waiting for shell prompt" if num_waited > 150
     end
   end
 
