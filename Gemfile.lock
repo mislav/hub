@@ -33,6 +33,7 @@ GEM
       bouncy-castle-java (>= 1.5.0146.1)
     json (1.8.0)
     json (1.8.0-java)
+    minitest (5.0.5)
     multi_json (1.7.7)
     mustache (0.99.4)
     rack (1.4.1)
@@ -65,6 +66,7 @@ DEPENDENCIES
   hub!
   jruby-openssl
   json
+  minitest
   rake
   ronn
   sinatra

@@ -1,6 +1,6 @@
 require 'helper'
 
-class ContextTest < Test::Unit::TestCase
+class ContextTest < Minitest::Test
   class Context
     include Hub::Context
 
