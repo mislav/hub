@@ -1,0 +1,50 @@
+{
+	"ImportPath": "github.com/jingweno/gh",
+	"GoVersion": "go1.1.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
+			"Comment": "null-185",
+			"Rev": "6478cc9340cbbe6c04511280c5007722269108e9"
+		},
+		{
+			"ImportPath": "github.com/bmizerany/assert",
+			"Comment": "release.r60-6-ge17e998",
+			"Rev": "e17e99893cb6509f428e1728281c2ad60a6b31e3"
+		},
+		{
+			"ImportPath": "github.com/howeyc/gopass",
+			"Rev": "4cf66881dcc3d6f0071eb6473d95c39e460de696"
+		},
+		{
+			"ImportPath": "github.com/jtacoma/uritemplates",
+			"Comment": "0.1-14-g0a85813",
+			"Rev": "0a85813ecac22e3cbe916ab9480b33f2f4a06b2e"
+		},
+		{
+			"ImportPath": "github.com/kballard/go-shellquote",
+			"Rev": "e842a11b24c6abfb3dd27af69a17f482e4b483c2"
+		},
+		{
+			"ImportPath": "github.com/kr/pretty",
+			"Comment": "go.weekly.2011-12-22-18-gbc9499c",
+			"Rev": "bc9499caa0f45ee5edb2f0209fbd61fbf3d9018f"
+		},
+		{
+			"ImportPath": "github.com/kr/text",
+			"Rev": "6807e777504f54ad073ecef66747de158294b639"
+		},
+		{
+			"ImportPath": "github.com/lostisland/go-sawyer",
+			"Rev": "6570b8bacd2bc3d74897b2be63e88fe419276104"
+		},
+		{
+			"ImportPath": "github.com/octokit/go-octokit/octokit",
+			"Comment": "v0.4.0-18-g00bc554",
+			"Rev": "00bc55436cc2f34fba4207d970c3f994e6c61065"
+		}
+	]
+}
