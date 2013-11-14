@@ -8,10 +8,12 @@ import (
 	"runtime"
 )
 
-// Cross-compiles gh for all supported platforms.
+// NAME
+//    cross-compile-all - cross-compiles gh for all supported platforms.
 //
-// Cross-compiles gh for all supported platforms. The build artifacts
-// will be in target/VERSION. This only works on darwin with Vagrant setup.
+// DESCRIPTION
+//    Cross-compiles gh for all supported platforms. Build artifacts will be in target/VERSION.
+//    This only works on darwin with Vagrant setup.
 func TaskCrossCompileAll(t *tasking.T) {
 	t.Log("Removing build target...")
 	err := os.RemoveAll("target")
@@ -36,9 +38,11 @@ func TaskCrossCompileAll(t *tasking.T) {
 	}
 }
 
-// Cross-compiles gh for current operating system.
+// NAME
+//    cross-compile - cross-compiles gh for current platform.
 //
-// Cross-compiles gh for current operating system. The build artifacts will be in target/VERSION
+// DESCRIPTION
+//    Cross-compiles gh for current platform. Build artifacts will be in target/VERSION
 func TaskCrossCompile(t *tasking.T) {
 	t.Log("Updating goxc...")
 	err := t.Exec("go get -u github.com/laher/goxc")
