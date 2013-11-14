@@ -1,5 +1,4 @@
 #!/bin/bash
 
-go get -d -v ./...
-go get -u github.com/bmizerany/assert
-go get -u github.com/jingweno/gotask
+go get github.com/kr/godep
+go get github.com/jingweno/gotask
