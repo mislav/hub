@@ -7,4 +7,6 @@ rvm:
   - 2.0.0
 notifications:
   email:
-    - mislav.marohnic@gmail.com
+    recipients:
+      - mislav.marohnic@gmail.com
+    on_success: never
