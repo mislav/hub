@@ -1,5 +1,5 @@
 require 'helper'
-require 'webmock/test_unit'
+require 'webmock/minitest'
 require 'rbconfig'
 require 'yaml'
 require 'forwardable'
@@ -19,7 +19,7 @@ WebMock::BodyPattern.class_eval do
   end
 end
 
-class HubTest < Test::Unit::TestCase
+class HubTest < Minitest::Test
   extend Forwardable
 
   if defined? WebMock::API
@@ -286,6 +286,11 @@ class HubTest < Test::Unit::TestCase
 
     expected = "https://git.my.org/api/v3/defunkt/hub/pull/1\n"
     assert_output expected, "pull-request -m hereyougo -f"
+  end
+
+  def test_pullrequest_alias
+    out = hub('e-note')
+    assert_equal hub('pull-request'), out
   end
 
   def test_version

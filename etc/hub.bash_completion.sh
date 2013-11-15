@@ -54,11 +54,10 @@ EOF
   # hub browse [-u] [--|[USER/]REPOSITORY] [SUBPAGE]
   _git_browse() {
     local i c=2 u=-u repo subpage
-    local -A subpages
-    subpages["/"]="commits issues tree wiki pulls branches stargazers
+    local subpages_="commits issues tree wiki pulls branches stargazers
       contributors network network/ graphs graphs/"
-    subpages["/network"]="members"
-    subpages["/graphs"]="commit-activity code-frequency punch-card"
+    local subpages_network="members"
+    local subpages_graphs="commit-activity code-frequency punch-card"
     while [ $c -lt $cword ]; do
       i="${words[c]}"
       case "$i" in
@@ -81,10 +80,11 @@ EOF
       case "$cur" in
         */*)
           local pfx="${cur%/*}" cur_="${cur#*/}"
-          __gitcomp "${subpages[/$pfx]}" "$pfx/" "$cur_"
+          local subpages_var="subpages_$pfx"
+          __gitcomp "${!subpages_var}" "$pfx/" "$cur_"
           ;;
         *)
-          __gitcomp "$u ${subpages[/]}"
+          __gitcomp "$u ${subpages_}"
           ;;
       esac
     else
@@ -184,8 +184,9 @@ EOF
       case "$i" in
         -d|-h)
           ((c++))
-          ;;&
-        -p|-d|-h)
+          flags=${flags/$i/}
+          ;;
+        -p)
           flags=${flags/$i/}
           ;;
         *)
@@ -232,8 +233,9 @@ EOF
       case "$i" in
         -m|-F|-i|-b|-h)
           ((c++))
-          ;;&
-        -f|-m|-F|-i|-b|-h)
+          flags=${flags/$i/}
+          ;;
+        -f)
           flags=${flags/$i/}
           ;;
       esac
@@ -248,7 +250,10 @@ EOF
         # Uncomment the following line when 'owner/repo:[TAB]' misbehaved
         #_get_comp_words_by_ref -n : cur
         __gitcomp_nl "$(__hub_heads)"
-        __ltrim_colon_completions "$cur"
+        # __ltrim_colon_completions "$cur"
+        ;;
+      -F)
+        COMPREPLY=( "$cur"* )
         ;;
       -f|*)
         __gitcomp "$flags"

@@ -1,3 +1,6 @@
+before_install:
+ - sudo apt-get update -qq
+ - sudo apt-get install -qq tmux zsh
 script: script/test
 language: ruby
 rvm:
@@ -5,3 +8,8 @@ rvm:
   - 1.9.2
   - 1.9.3
   - 2.0.0
+notifications:
+  email:
+    recipients:
+      - mislav.marohnic@gmail.com
+    on_success: never

@@ -31,9 +31,7 @@ task :default => [:test, :features]
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
-  t.ruby_opts << '-rubygems'
   t.pattern = 'test/**/*_test.rb'
-  t.verbose = false
 end
 
 task :features do
@@ -104,15 +102,24 @@ end
 desc "Build standalone script"
 task :standalone => "hub"
 
-desc "Install standalone script and man pages"
+desc %{Install standalone script and man page.
+On Unix-based OS, installs into PREFIX (default: `/usr/local`).
+On Windows, installs into Ruby's main bin directory.}
 task :install => "hub" do
-  prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+  require 'rbconfig'
+  if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+    bindir = RbConfig::CONFIG['bindir']
+    File.open(File.join(bindir, 'hub.bat'), 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
+    FileUtils.cp 'hub', bindir
+  else
+    prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
-  FileUtils.mkdir_p "#{prefix}/bin"
-  FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
+    FileUtils.mkdir_p "#{prefix}/bin"
+    FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
 
-  FileUtils.mkdir_p "#{prefix}/share/man/man1"
-  FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
+    FileUtils.mkdir_p "#{prefix}/share/man/man1"
+    FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
+  end
 end
 
 #

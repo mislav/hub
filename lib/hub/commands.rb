@@ -78,6 +78,7 @@ module Hub
     def ci_status(args)
       args.shift
       ref = args.words.first || 'HEAD'
+      verbose = args.include?('-v')
 
       unless head_project = local_repo.current_project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
@@ -89,7 +90,13 @@ module Hub
 
       statuses = api_client.statuses(head_project, sha)
       status = statuses.first
-      ref_state = status ? status['state'] : 'no status'
+      if status
+        ref_state = status['state']
+        ref_target_url = status['target_url']
+      else
+        ref_state = 'no status'
+        ref_target_url = nil
+      end
 
       exit_code = case ref_state
         when 'success'          then 0
@@ -98,7 +105,11 @@ module Hub
         else 3
         end
 
-      $stdout.puts ref_state
+      if verbose and ref_target_url
+        $stdout.puts "%s: %s" % [ref_state, ref_target_url]
+      else
+        $stdout.puts ref_state
+      end
       exit exit_code
     end
 
@@ -242,6 +253,12 @@ module Hub
     else
       delete_editmsg
     end
+
+    # $ hub e-note
+    # $ hub e-note "My humble contribution"
+    # $ hub e-note -i 92
+    # $ hub e-note https://github.com/rtomayko/tilt/issues/92
+    alias_method :e_note, :pull_request
 
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.

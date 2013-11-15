@@ -418,3 +418,16 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
     Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
+
+  Scenario: Enterprise host
+    Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    Given the GitHub API server:
+      """
+      post('/api/v3/repos/mislav/coral/pulls') {
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m enterprisey`
+    Then the output should contain exactly "the://url\n"

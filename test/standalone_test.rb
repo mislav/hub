@@ -3,7 +3,7 @@ require 'hub/standalone'
 require 'fileutils'
 require 'stringio'
 
-class StandaloneTest < Test::Unit::TestCase
+class StandaloneTest < Minitest::Test
   include FileUtils
 
   def setup
