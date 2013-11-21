@@ -53,6 +53,12 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles/tree/experimental" should be run
 
+  Scenario: Current branch, with file path
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And I am on the "feature" branch with upstream "origin/experimental"
+    When I successfully run `hub browse -- tree bin/dotfile#L10-15`
+    Then "open https://github.com/mislav/dotfiles/tree/experimental/bin/dotfile#L10-15" should be run
+
   Scenario: Default branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And the default branch for "origin" is "develop"
