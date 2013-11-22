@@ -116,6 +116,11 @@ World Module.new {
     system(*($tmux + ['send-keys', '-t', tmux_pane, *keys]))
   end
 
+  def tmux_send_tab
+    @last_pane_contents = tmux_pane_contents
+    tmux_send_keys('Tab')
+  end
+
   def tmux_kill_pane
     system(*($tmux + ['kill-pane', '-t', tmux_pane])) if tmux_pane?
   end
@@ -123,15 +128,25 @@ World Module.new {
   def tmux_wait_for_prompt
     num_waited = 0
     while tmux_pane_contents !~ /\$\Z/
+      raise "timeout while waiting for shell prompt" if num_waited > 300
       sleep 0.01
       num_waited += 1
-      raise "timeout while waiting for shell prompt" if num_waited > 150
     end
   end
 
   def tmux_wait_for_completion
-    # bash can be pretty slow
-    sleep 1
+    num_waited = 0
+    raise "tmux_send_tab not called first" unless defined? @last_pane_contents
+    while tmux_pane_contents == @last_pane_contents
+      if num_waited > 300
+        if block_given? then return yield
+        else
+          raise "timeout while waiting for completions to expand"
+        end
+      end
+      sleep 0.01
+      num_waited += 1
+    end
   end
 
   def tmux_completion_menu
@@ -181,11 +196,11 @@ When(/^I type "(.+?)" and press <Tab>$/) do |string|
   tmux_wait_for_prompt
   @last_command = string
   tmux_send_keys(string)
-  tmux_send_keys('Tab')
+  tmux_send_tab
 end
 
 When(/^I press <Tab> again$/) do
-  tmux_send_keys('Tab')
+  tmux_send_tab
 end
 
 Then(/^the completion menu should offer "([^"]+?)"( unsorted)?$/) do |items, unsorted|
