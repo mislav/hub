@@ -381,6 +381,16 @@ class HubTest < Minitest::Test
     end
   end
 
+  def test_hub_browse_file_with_no_path
+    stub_repo_url "git@github.com:mauricerkelly/hub.git"
+    assert_equal "https://github.com/mauricerkelly/hub/blob/master\n", hub("browse -u -- -f")
+  end
+
+  def test_hub_browse_file_with_path
+    stub_repo_url "git@github.com:mauricerkelly/hub.git"
+    assert_equal "https://github.com/mauricerkelly/hub/blob/master/lib/hub.rb\n", hub("browse -u -- -f lib/hub.rb")
+  end
+
   def test_custom_browser
     with_browser_env("custom") do
       assert_browser("custom")
