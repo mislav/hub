@@ -1,6 +1,7 @@
 require 'shellwords'
 require 'forwardable'
 require 'uri'
+require 'pathname'
 
 module Hub
   # Methods for inspecting the environment, such as reading git config,
@@ -428,6 +429,21 @@ module Hub
 
     def git_dir
       git_command 'rev-parse -q --git-dir'
+    end
+
+    def root_dir
+      File.dirname(git_dir)
+    end
+
+    def intra_repo_path
+      git_pathname = Pathname::new(root_dir)
+      if (root_dir == '.') then
+        root_dir
+      else
+        current_pathname = Pathname::new(current_dir)
+        current_pathname.relative_path_from(git_pathname).to_s
+      end
+          
     end
 
     def is_repo?

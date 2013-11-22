@@ -643,6 +643,9 @@ module Hub
     #
     # $ hub browse github-services wiki
     # > open https://github.com/YOUR_LOGIN/github-services/wiki
+    #
+    # $ hub browse github-services -- -f lib/github-services.rb
+    # > open https://github.com/YOUR_LOGIN/github-services/blob/master/lib/github-services.rb
     def browse(args)
       args.shift
       browse_command(args) do
@@ -669,6 +672,20 @@ module Hub
           "/commits/#{branch_in_url(branch)}"
         when 'tree', NilClass
           "/tree/#{branch_in_url(branch)}" if branch and !branch.master?
+        when '-f'
+          filepath = args.shift
+          if filepath != nil
+            filepath = "/#{filepath}"
+          end
+
+          internal_path = intra_repo_path
+          if internal_path == '.'
+            internal_path = ''
+          else
+            internal_path = "/#{internal_path}"
+          end
+
+          "/blob/#{branch_in_url(branch)}#{internal_path}#{filepath}"
         else
           "/#{subpage}"
         end
@@ -997,7 +1014,7 @@ help
     # All calls to `puts` in after hooks or commands are paged,
     # git-style.
     def puts(*args)
-      page_stdout
+      # page_stdout
       super
     end
 
