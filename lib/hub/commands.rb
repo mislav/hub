@@ -644,6 +644,9 @@ module Hub
     #
     # $ hub browse github-services wiki
     # > open https://github.com/YOUR_LOGIN/github-services/wiki
+    #
+    # $ hub browse -- tree file_path
+    # > open https://github.com/CURRENT_REPO/CURRENT_BRANCH/file_path
     def browse(args)
       args.shift
       browse_command(args) do
@@ -669,7 +672,9 @@ module Hub
         when 'commits'
           "/commits/#{branch_in_url(branch)}"
         when 'tree', NilClass
-          "/tree/#{branch_in_url(branch)}" if branch and !branch.master?
+          file_path = args.shift
+          file_path = "/" + file_path if file_path
+          "/tree/#{branch_in_url(branch)}#{file_path}" if branch and (!branch.master? || file_path)
         else
           "/#{subpage}"
         end

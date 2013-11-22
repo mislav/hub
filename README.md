@@ -296,6 +296,9 @@ superpowers:
     $ git browse schacon/ticgit commit/SHA
     > open https://github.com/schacon/ticgit/commit/SHA
 
+    $ git browse schacon/ticgit tree FILE_PATH
+    > open https://github.com/schacon/ticgit/FILE_PATH
+
     $ git browse resque
     > open https://github.com/YOUR_USER/resque
 
