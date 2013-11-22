@@ -1,4 +1,4 @@
-require 'test/unit'
+require 'minitest/autorun'
 require 'hub'
 
 # We're checking for `open` in our tests
@@ -28,7 +28,7 @@ Hub::Commands.extend Module.new {
   end
 }
 
-class Test::Unit::TestCase
+class Minitest::Test
   # Shortcut for creating a `Hub` instance. Pass it what you would
   # normally pass `hub` on the command line, e.g.
   #
