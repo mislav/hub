@@ -49,7 +49,8 @@ preamble
     end
 
     def ruby_executable
-      if File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
+      if File.executable? '/usr/bin/env' then '/usr/bin/env ruby'
+      elsif File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
       else
         require 'rbconfig'
         File.join RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']
