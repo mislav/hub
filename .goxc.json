@@ -1,29 +1,28 @@
 {
-  "ConfigVersion": "0.9",
-  "ArtifactsDest": "target",
-  "Arch": "386,amd64",
-  "Os": "darwin,linux,windows",
-  "PackageVersion": "0.25.0",
-  "PrereleaseInfo": "snapshot",
-  "Verbosity": "v",
-  "Resources": {
-    "Include": "INSTALL*,README*,LICENSE*",
-    "Exclude": "*.go"
-  },
-  "TaskSettings": {
-    "downloads-page": {
-      "fileheader": "",
-      "filename": ""
-    },
-    "pkg-build": {
-      "metadata": {
-        "description": "Fast GitHub command line client",
-        "maintainer": "Jingwen Owen Ou (http://owenou.com)"
-      },
-      "metadata-deb": {
-        "Depends": "",
-        "Homepage": "http://owenou.com/gh"
-      }
-    }
-  }
+	"ArtifactsDest": "target",
+	"Arch": "386,amd64",
+	"Os": "darwin,linux,windows",
+	"ResourcesInclude": "INSTALL*,README*,LICENSE*",
+	"ResourcesExclude": "*.go",
+	"MainDirsExclude": "Godeps",
+	"PackageVersion": "0.25.0",
+	"PrereleaseInfo": "snapshot",
+	"Verbosity": "v",
+	"TaskSettings": {
+		"downloads-page": {
+			"fileheader": "",
+			"filename": ""
+		},
+		"pkg-build": {
+			"metadata": {
+				"description": "Fast GitHub command line client",
+				"maintainer": "Jingwen Owen Ou (http://owenou.com)"
+			},
+			"metadata-deb": {
+				"Depends": "",
+				"Homepage": "http://owenou.com/gh"
+			}
+		}
+	},
+	"ConfigVersion": "0.9"
 }
