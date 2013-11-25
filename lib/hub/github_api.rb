@@ -88,6 +88,26 @@ module Hub
       res.data
     end
 
+    # Public: Fetch a pull request's patch
+    def pullrequest_patch project, pull_id
+      res = get "https://%s/repos/%s/%s/pulls/%d" %
+        [api_host(project.host), project.owner, project.name, pull_id] do |req|
+          req["Accept"] = "application/vnd.github.patch"
+        end
+      res.error! unless res.success?
+      res.body
+    end
+
+    # Public: Fetch a pull request's patch
+    def commit_patch project, sha
+      res = get "https://%s/repos/%s/%s/commits/%s" %
+        [api_host(project.host), project.owner, project.name, sha] do |req|
+          req["Accept"] = "application/vnd.github.patch"
+        end
+      res.error! unless res.success?
+      res.body
+    end
+
     # Returns parsed data from the new pull request.
     def create_pullrequest options
       project = options.fetch(:project)

@@ -479,8 +479,18 @@ module Hub
         ext = gist ? '.txt' : '.patch'
         url += ext unless File.extname(url) == ext
         patch_file = File.join(tmp_dir, "#{gist ? 'gist-' : ''}#{File.basename(url)}")
-        # TODO: remove dependency on curl
-        args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
+        if url =~ %r{github\.com/(.*)/pull/(\d+)}
+          project = github_project($1)
+          patch = api_client.pullrequest_patch(project, $2)
+          File.open(patch_file, 'w') { |file| file.write(patch) }
+        elsif url =~%r{github\.com/(.*)/commit/(\w+)}
+          project = github_project($1)
+          patch = api_client.commit_patch(project, $2)
+          File.open(patch_file, 'w') { |file| file.write(patch) }
+        else
+          # TODO: remove dependency on curl
+          args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
+        end
         args[idx] = patch_file
       end
     end

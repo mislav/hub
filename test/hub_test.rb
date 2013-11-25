@@ -140,17 +140,22 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_am_pull_request
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/55").
+      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
+      to_return(:status => 200, :body => "", :headers => {})
     with_tmpdir('/tmp/') do
-      assert_commands "curl -#LA 'hub #{Hub::Version}' https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch",
-                      "git am --signoff /tmp/55.patch -p2",
+      assert_commands "git am --signoff /tmp/55.patch -p2",
                       "am --signoff https://github.com/defunkt/hub/pull/55#comment_123 -p2"
 
       cmd = Hub("am https://github.com/defunkt/hub/pull/55/files").command
-      assert_includes '/pull/55.patch', cmd
+      assert_includes '/tmp/55.patch', cmd
     end
   end
 
   def test_am_no_tmpdir
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/55").
+      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
+      to_return(:status => 200, :body => "", :headers => {})
     with_tmpdir(nil) do
       cmd = Hub("am https://github.com/defunkt/hub/pull/55").command
       assert_includes '/tmp/55.patch', cmd
@@ -158,11 +163,12 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_am_commit_url
+    stub_request(:get, "https://api.github.com/repos/davidbalbert/hub/commits/fdb9921").
+      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
+      to_return(:status => 200, :body => "", :headers => {})
     with_tmpdir('/tmp/') do
       url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
-
-      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.patch -o /tmp/fdb9921.patch",
-                      "git am --signoff /tmp/fdb9921.patch -p2",
+      assert_commands "git am --signoff /tmp/fdb9921.patch -p2",
                       "am --signoff #{url} -p2"
     end
   end
@@ -182,22 +188,26 @@ class HubTest < Test::Unit::TestCase
   end
 
   def test_apply_pull_request
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/55").
+      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
+      to_return(:status => 200, :body => "", :headers => {})
     with_tmpdir('/tmp/') do
-      assert_commands "curl -#LA 'hub #{Hub::Version}' https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch",
-                      "git apply /tmp/55.patch -p2",
+      assert_commands "git apply /tmp/55.patch -p2",
                       "apply https://github.com/defunkt/hub/pull/55 -p2"
 
       cmd = Hub("apply https://github.com/defunkt/hub/pull/55/files").command
-      assert_includes '/pull/55.patch', cmd
+      assert_includes '/tmp/55.patch', cmd
     end
   end
 
   def test_apply_commit_url
+    stub_request(:get, "https://api.github.com/repos/davidbalbert/hub/commits/fdb9921").
+      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
+      to_return(:status => 200, :body => "", :headers => {})
     with_tmpdir('/tmp/') do
       url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
 
-      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.patch -o /tmp/fdb9921.patch",
-                      "git apply /tmp/fdb9921.patch -p2",
+      assert_commands "git apply /tmp/fdb9921.patch -p2",
                       "apply #{url} -p2"
     end
   end
