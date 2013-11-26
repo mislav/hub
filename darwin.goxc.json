@@ -1,8 +1,5 @@
 {
   "ConfigVersion": "0.9",
   "BuildConstraints": "darwin",
-  "Resources": {
-    "Include": "INSTALL*,README*,LICENSE*,etc/gh.*",
-    "Exclude": "*.go"
-  }
+  "ResourcesInclude": "INSTALL*,README*,LICENSE*,etc/gh.*"
 }
