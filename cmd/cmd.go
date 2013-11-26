@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/jingweno/gh/utils"
+	"github.com/kballard/go-shellquote"
 	"os"
 	"os/exec"
 	"strings"
@@ -52,8 +54,16 @@ func (cmd *Cmd) Exec() error {
 	return c.Run()
 }
 
-func New(name string) *Cmd {
-	return &Cmd{Name: name, Args: make([]string, 0)}
+func New(cmd string) *Cmd {
+	cmds, err := shellquote.Split(cmd)
+	utils.Check(err)
+
+	name := cmds[0]
+	args := make([]string, 0)
+	for _, arg := range cmds[1:] {
+		args = append(args, arg)
+	}
+	return &Cmd{Name: name, Args: args}
 }
 
 func NewWithArray(cmd []string) *Cmd {

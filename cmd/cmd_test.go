@@ -5,6 +5,13 @@ import (
 	"testing"
 )
 
+func TestNew(t *testing.T) {
+	execCmd := New("vim --noplugin")
+	assert.Equal(t, "vim", execCmd.Name)
+	assert.Equal(t, 1, len(execCmd.Args))
+	assert.Equal(t, "--noplugin", execCmd.Args[0])
+}
+
 func TestWithArg(t *testing.T) {
 	execCmd := New("git")
 	execCmd.WithArg("log").WithArg("--no-color")
