@@ -31,7 +31,7 @@ func TaskCrossCompileAll(t *tasking.T) {
 
 	// for linux
 	t.Log("Compiling for linux...")
-	err = t.Exec("vagrant ssh -c 'cd ~/src/github.com/jingweno/gh && git pull origin master && gotask cross-compile'")
+	err = t.Exec("vagrant ssh -c 'cd ~/src/github.com/jingweno/gh && git pull origin master && go get -u ./... && gotask cross-compile'")
 	if err != nil {
 		t.Errorf("Can't compile on linux: %s\n", err)
 		return
