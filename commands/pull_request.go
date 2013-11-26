@@ -105,12 +105,12 @@ func writePullRequestTitleAndBody(repo *github.Repo) (title, body string, err er
 		return
 	}
 
-	editorPath, err := git.EditorPath()
+	editor, err := git.Editor()
 	if err != nil {
 		return
 	}
 
-	err = editTitleAndBody(editorPath, messageFile)
+	err = editTitleAndBody(editor, messageFile)
 	if err != nil {
 		return
 	}
@@ -154,10 +154,10 @@ func writePullRequestChanges(repo *github.Repo, messageFile string) error {
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
 
-func editTitleAndBody(editorPath, messageFile string) error {
-	editCmd := cmd.New(editorPath)
+func editTitleAndBody(editor, messageFile string) error {
+	editCmd := cmd.New(editor)
 	r := regexp.MustCompile("[mg]?vi[m]$")
-	if r.MatchString(editorPath) {
+	if r.MatchString(editor) {
 		editCmd.WithArg("-c")
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}

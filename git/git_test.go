@@ -23,13 +23,6 @@ func TestGitEditor(t *testing.T) {
 	}
 }
 
-func TestGitEditorPath(t *testing.T) {
-	gitEditorPath, err := EditorPath()
-	if err == nil {
-		assert.NotEqual(t, "", gitEditorPath)
-	}
-}
-
 func TestGitRemote(t *testing.T) {
 	gitRemote, _ := OriginRemote()
 	assert.Equal(t, "origin", gitRemote.Name)
