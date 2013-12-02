@@ -53,12 +53,12 @@ func TaskCrossCompile(t *tasking.T) {
 
 	// TODO: use a dependency manager that has versioning
 	//if runtime.GOOS != "windows" {
-		//t.Log("Updating dependencies...")
-		//err = t.Exec("go get -u ./...")
-		//if err != nil {
-			//t.Errorf("Can't update goxc: %s\n", err)
-			//return
-		//}
+	//t.Log("Updating dependencies...")
+	//err = t.Exec("go get -u ./...")
+	//if err != nil {
+	//t.Errorf("Can't update goxc: %s\n", err)
+	//return
+	//}
 	//}
 
 	t.Logf("Cross-compiling gh for %s...\n", runtime.GOOS)
