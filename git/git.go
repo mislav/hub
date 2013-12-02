@@ -78,6 +78,15 @@ func RefList(a, b string) ([]string, error) {
 	return output, nil
 }
 
+func Show(sha string) (string, error) {
+	output, err := execGitCmd("show", "-s", "--format=%w(78,0,0)%s%+b", sha)
+	if err != nil {
+		return "", errors.New("Can't show commit for %s" + sha)
+	}
+
+	return output[0], nil
+}
+
 func Log(sha1, sha2 string) (string, error) {
 	execCmd := cmd.New("git")
 	execCmd.WithArg("log").WithArg("--no-color")
@@ -121,7 +130,10 @@ func execGitCmd(input ...string) (outputs []string, err error) {
 
 	out, err := cmd.ExecOutput()
 	for _, line := range strings.Split(out, "\n") {
-		outputs = append(outputs, string(line))
+		line = strings.TrimSpace(line)
+		if line != "" {
+			outputs = append(outputs, string(line))
+		}
 	}
 
 	return outputs, err
