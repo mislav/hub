@@ -166,7 +166,6 @@ func writePullRequestChanges(repo *github.Repo, messageFile string) error {
 # Write a message for this pull request. The first block
 # of the text is the title and the rest is description.%s
 `
-
 	message = fmt.Sprintf(message, defaultMsg, repo.FullBase(), repo.FullHead(), commitSummary)
 
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
