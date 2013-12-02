@@ -68,6 +68,16 @@ func Ref(ref string) (string, error) {
 	return output[0], nil
 }
 
+func RefList(a, b string) ([]string, error) {
+	ref := fmt.Sprintf("%s...%s", a, b)
+	output, err := execGitCmd("rev-list", "--cherry-pick", "--right-only", "--no-merges", ref)
+	if err != nil {
+		return nil, errors.New("Can't load rev-list for %s" + ref)
+	}
+
+	return output, nil
+}
+
 func Log(sha1, sha2 string) (string, error) {
 	execCmd := cmd.New("git")
 	execCmd.WithArg("log").WithArg("--no-color")
