@@ -126,30 +126,48 @@ func writePullRequestTitleAndBody(repo *github.Repo) (title, body string, err er
 }
 
 func writePullRequestChanges(repo *github.Repo, messageFile string) error {
-	message := `
+	commits, err := git.RefList(repo.Base, repo.Head)
+	if err != nil {
+		return err
+	}
+
+	var defaultMsg, commitSummary string
+	if len(commits) == 1 {
+		defaultMsg, err = git.Show(commits[0])
+		if err != nil {
+			return err
+		}
+		defaultMsg = fmt.Sprintf("%s\n", defaultMsg)
+	} else if len(commits) > 1 {
+		commitLogs, err := git.Log(repo.Base, repo.Head)
+		if err != nil {
+			return err
+		}
+
+		if len(commitLogs) > 0 {
+			startRegexp := regexp.MustCompilePOSIX("^")
+			endRegexp := regexp.MustCompilePOSIX(" +$")
+
+			commitLogs = strings.TrimSpace(commitLogs)
+			commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
+			commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
+			commitSummary = `
+#
+# Changes:
+#
+%s`
+			commitSummary = fmt.Sprintf(commitSummary, commitLogs)
+		}
+	}
+
+	message := `%s
 # Requesting a pull to %s from %s
 #
 # Write a message for this pull request. The first block
 # of the text is the title and the rest is description.%s
 `
-	startRegexp := regexp.MustCompilePOSIX("^")
-	endRegexp := regexp.MustCompilePOSIX(" +$")
 
-	commitLogs, _ := git.Log(repo.Base, repo.Head)
-	var changesMsg string
-	if len(commitLogs) > 0 {
-		commitLogs = strings.TrimSpace(commitLogs)
-		commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
-		commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
-		changesMsg = `
-#
-# Changes:
-#
-%s`
-		changesMsg = fmt.Sprintf(changesMsg, commitLogs)
-	}
-
-	message = fmt.Sprintf(message, repo.FullBase(), repo.FullHead(), changesMsg)
+	message = fmt.Sprintf(message, defaultMsg, repo.FullBase(), repo.FullHead(), commitSummary)
 
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
