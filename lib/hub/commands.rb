@@ -443,8 +443,9 @@ module Hub
 
         idx = args.index url_arg
         args.delete_at idx
-        args.insert idx, merge_head, '--no-ff', '-m',
-                    "Merge pull request ##{pull_id} from #{merge_head}\n\n#{pull_data['title']}"
+        args.insert idx, merge_head, '-m', "Merge pull request ##{pull_id} from #{merge_head}\n\n#{pull_data['title']}"
+        idx = args.index '-m'
+        args.insert idx, '--no-ff' unless args.include?('--ff-only')
       end
     end
 
