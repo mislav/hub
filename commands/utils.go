@@ -5,7 +5,7 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"github.com/octokit/go-octokit/octokit"
+	"github.com/jingweno/go-octokit/octokit"
 	"os"
 	"regexp"
 	"strings"

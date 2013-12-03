@@ -1,3 +1,5 @@
+// Package mediatype contains helpers for parsing media type strings.  Uses
+// RFC4288 as a guide.
 package mediatype
 
 import (
@@ -5,6 +7,39 @@ import (
 	"strings"
 )
 
+/*
+A MediaType is a parsed representation of a media type string.
+
+  application/vnd.github.raw+json; version=3; charset=utf-8
+
+This gets broken up into the various fields:
+
+- Type: application/vnd.github.raw+json
+- MainType: application
+- SubType: vnd.github.raw
+- Suffix: json
+- Vendor: github
+- Version: raw
+- Format: json
+- Params:
+    version: 3
+    charset: utf-8
+
+There are a few special behaviors that prioritize custom media types for APIs:
+
+If an API identifies with an "application/vnd" type, the Vendor and Version
+fields are parsed from the remainder.  The Version's semantic meaning depends on
+the application.
+
+If it's not an "application/vnd" type, the Version field is taken from the
+"version" parameter.
+
+The Format is taken from the Suffix by default.  If not available, it is guessed
+by looking for common strings anywhere in the media type.  For instance,
+"application/json" will identify as the "json" Format.
+
+The Format is used to get an Encoder and a Decoder.
+*/
 type MediaType struct {
 	full     string
 	Type     string
@@ -17,6 +52,7 @@ type MediaType struct {
 	Params   map[string]string
 }
 
+// Parse builds a *MediaType from a given media type string.
 func Parse(v string) (*MediaType, error) {
 	mt, params, err := mime.ParseMediaType(v)
 	if err != nil {
@@ -30,10 +66,13 @@ func Parse(v string) (*MediaType, error) {
 	})
 }
 
+// String returns the full string representation of the MediaType.
 func (m *MediaType) String() string {
 	return m.full
 }
 
+// IsVendor determines if this MediaType is associated with commercially
+// available products.
 func (m *MediaType) IsVendor() bool {
 	return len(m.Vendor) > 0
 }

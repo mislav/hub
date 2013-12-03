@@ -95,7 +95,15 @@ func (l *Link) Expand(m M) (*url.URL, error) {
 	return l.Href.Expand(m)
 }
 
-// The HyperFieldDecoder
+// The HyperFieldDecoder gets link relations from a resource by reflecting on
+// its Hyperlink properties.  The relation name is taken either from the name
+// of the field, or a "rel" struct tag.
+//
+//   type Foo struct {
+//     Url         Hyperlink `rel:"self" json:"url"`
+//     CommentsUrl Hyperlink `rel:"comments" json:"comments_url"`
+//   }
+//
 func HyperFieldDecoder(res interface{}) Relations {
 	rels := make(Relations)
 	t := reflect.TypeOf(res).Elem()

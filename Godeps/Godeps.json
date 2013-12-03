@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/jingweno/gh",
-	"GoVersion": "go1.1.2",
+	"GoVersion": "go1.2",
 	"Packages": [
 		"./..."
 	],
@@ -18,6 +18,11 @@
 		{
 			"ImportPath": "github.com/howeyc/gopass",
 			"Rev": "4cf66881dcc3d6f0071eb6473d95c39e460de696"
+		},
+		{
+			"ImportPath": "github.com/jingweno/go-octokit/octokit",
+			"Comment": "v0.4.0-22-gcc97681",
+			"Rev": "cc97681bc2fdc6e33ac50d02b59d0c786be10809"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",
@@ -39,12 +44,7 @@
 		},
 		{
 			"ImportPath": "github.com/lostisland/go-sawyer",
-			"Rev": "6570b8bacd2bc3d74897b2be63e88fe419276104"
-		},
-		{
-			"ImportPath": "github.com/octokit/go-octokit/octokit",
-			"Comment": "v0.4.0-18-g00bc554",
-			"Rev": "00bc55436cc2f34fba4207d970c3f994e6c61065"
+			"Rev": "5dec856d77069d70c2951c6b8f4f4ef00ea444d9"
 		}
 	]
 }

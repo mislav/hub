@@ -1,6 +1,0 @@
-language: go
-go:
-- 1.1.2
-install:
-- script/build
-script: script/test

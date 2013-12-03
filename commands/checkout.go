@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/utils"
-	"github.com/octokit/go-octokit/octokit"
+	"github.com/jingweno/go-octokit/octokit"
 )
 
 var cmdCheckout = &Command{
