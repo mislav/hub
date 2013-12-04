@@ -110,10 +110,10 @@ func executeCommands(cmds []*cmd.Cmd) error {
 
 func expandAlias(args *Args) {
 	cmd := args.Command
-	expandedCmd, err := git.Config(fmt.Sprintf("alias.%s", cmd))
+	expandedCmd, err := git.Alias(cmd)
 	if err == nil && expandedCmd != "" {
 		words, err := shellquote.Split(expandedCmd)
-		if err != nil {
+		if err == nil && len(words) > 0 {
 			args.Command = words[0]
 			args.PrependParams(words[1:]...)
 		}

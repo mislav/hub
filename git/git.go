@@ -112,6 +112,10 @@ func Config(name string) (string, error) {
 	return output[0], nil
 }
 
+func Alias(name string) (string, error) {
+	return Config(fmt.Sprintf("alias.%s", name))
+}
+
 func Spawn(command string, args ...string) error {
 	cmd := cmd.New("git")
 	cmd.WithArg(command)
