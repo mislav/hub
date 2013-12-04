@@ -14,6 +14,7 @@ Feature: hub fork
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
     And "git remote add -f mislav git@github.com:mislav/dotfiles.git" should be run
+    And "git config remote.pushdefault mislav" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: --no-remote
