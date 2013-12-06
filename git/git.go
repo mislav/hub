@@ -50,13 +50,22 @@ func Editor() (string, error) {
 	return output[0], nil
 }
 
-func Head() (*Branch, error) {
+func Head() (string, error) {
 	output, err := execGitCmd("symbolic-ref", "-q", "HEAD")
 	if err != nil {
-		return nil, errors.New("Can't load git HEAD")
+		return "", errors.New("Can't load git HEAD")
 	}
 
-	return &Branch{output[0]}, nil
+	return output[0], nil
+}
+
+func SymbolicFullName(name string) (string, error) {
+	output, err := execGitCmd("rev-parse", "--symbolic-full-name", name)
+	if err != nil {
+		return "", errors.New("Unknown revision or path not in the working tree: " + name)
+	}
+
+	return output[0], nil
 }
 
 func Ref(ref string) (string, error) {
@@ -72,7 +81,7 @@ func RefList(a, b string) ([]string, error) {
 	ref := fmt.Sprintf("%s...%s", a, b)
 	output, err := execGitCmd("rev-list", "--cherry-pick", "--right-only", "--no-merges", ref)
 	if err != nil {
-		return nil, errors.New("Can't load rev-list for %s" + ref)
+		return []string{}, fmt.Errorf("Can't load rev-list for %s", ref)
 	}
 
 	return output, nil

@@ -2,6 +2,7 @@ package github
 
 import (
 	"github.com/bmizerany/assert"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
@@ -88,4 +89,27 @@ func TestMustMatchGitHubURL(t *testing.T) {
 	assert.Equal(t, "https://github.com/jingweno/gh", url[0])
 	assert.Equal(t, "jingweno", url[1])
 	assert.Equal(t, "gh", url[2])
+}
+
+func TestNewProjectFromURL(t *testing.T) {
+	u, _ := url.Parse("ssh://git@github.com/jingweno/gh.git")
+	p, err := NewProjectFromURL(u)
+
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "gh", p.Name)
+	assert.Equal(t, "jingweno", p.Owner)
+
+	u, _ = url.Parse("git://github.com/jingweno/gh.git")
+	p, err = NewProjectFromURL(u)
+
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "gh", p.Name)
+	assert.Equal(t, "jingweno", p.Owner)
+
+	u, _ = url.Parse("https://github.com/jingweno/gh")
+	p, err = NewProjectFromURL(u)
+
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "gh", p.Name)
+	assert.Equal(t, "jingweno", p.Owner)
 }

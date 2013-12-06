@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"github.com/jingweno/go-octokit/octokit"
+	"os"
 )
 
 const (
@@ -62,7 +63,7 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (pr *octok
 	return
 }
 
-func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err error) {
+func (gh *GitHub) Repository(project *Project) (repo *octokit.Repository, err error) {
 	url, err := octokit.RepositoryURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
 		return
@@ -78,13 +79,13 @@ func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err err
 }
 
 // TODO: detach GitHub from Project
-func (gh *GitHub) IsRepositoryExist(project Project) bool {
+func (gh *GitHub) IsRepositoryExist(project *Project) bool {
 	repo, err := gh.Repository(project)
 
 	return err == nil && repo != nil
 }
 
-func (gh *GitHub) CreateRepository(project Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
+func (gh *GitHub) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
 	var repoURL octokit.Hyperlink
 	if project.Owner != gh.Config.FetchUser() {
 		repoURL = octokit.OrgRepositoriesURL
@@ -145,7 +146,7 @@ func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
 
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokit.Repository, err error) {
 	config := gh.Config
-	project := Project{Name: name, Owner: config.User}
+	project := &Project{Name: name, Owner: config.User}
 	r, err := gh.Repository(project)
 	if err == nil && r != nil {
 		err = fmt.Errorf("Error creating fork: %s exists on %s", r.FullName, GitHubHost)
@@ -233,12 +234,19 @@ func findOrCreateToken(user, password, twoFactorCode string) (token string, err 
 	return
 }
 
-func (gh *GitHub) octokit() *octokit.Client {
+func (gh *GitHub) octokit() (c *octokit.Client) {
 	config := gh.Config
 	config.FetchCredentials()
 	tokenAuth := octokit.TokenAuth{AccessToken: config.Token}
 
-	return octokit.NewClient(tokenAuth)
+	host := os.Getenv("GH_API_HOST")
+	if host == "" {
+		c = octokit.NewClient(tokenAuth)
+	} else {
+		c = octokit.NewClientWith(host, nil, tokenAuth)
+	}
+
+	return
 }
 
 func New() *GitHub {

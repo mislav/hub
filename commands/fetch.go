@@ -42,7 +42,7 @@ func fetch(command *Command, args *Args) {
 func tranformFetchArgs(args *Args) error {
 	names := parseRemoteNames(args)
 	gh := github.New()
-	projects := []github.Project{}
+	projects := []*github.Project{}
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
 		if ownerRegexp.MatchString(name) && !hasGitRemote(name) {

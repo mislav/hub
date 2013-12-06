@@ -9,13 +9,14 @@ import (
 	"github.com/jingweno/gh/utils"
 	"io/ioutil"
 	"os"
+	"reflect"
 	"regexp"
 	"strings"
 )
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-	Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-d HEAD] [TITLE]",
+	Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-d HEAD] [-m MESSAGE] [TITLE]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -34,12 +35,13 @@ of title you can paste a full URL to an issue on GitHub.
 `,
 }
 
-var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue string
+var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue, flagPullRequestMessage string
 
 func init() {
 	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "d", "", "HEAD")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestMessage, "m", "", "MESSAGE")
 }
 
 /*
@@ -51,19 +53,95 @@ func init() {
   # explicit pull base & head:
   $ gh pull-request -b jingweno:master -h jingweno:feature
 
+  $ gh pull-request -m "title\n\nbody"
+  [ create pull request with title & body  ]
+
   $ gh pull-request -i 123
+  [ attached pull request to issue #123 ]
+
+  $ gh pull-request https://github.com/jingweno/gh/pull/123
   [ attached pull request to issue #123 ]
 */
 func pullRequest(cmd *Command, args *Args) {
-	var title, body string
-	if args.ParamsSize() == 1 {
-		title = args.RemoveParam(0)
+	localRepo := github.LocalRepo()
+
+	currentBranch, err := localRepo.CurrentBranch()
+	if err != nil {
+		utils.Check(fmt.Errorf("Aborted: not currently on any branch."))
 	}
 
-	gh := github.New()
-	repo := gh.Project.LocalRepoWith(flagPullRequestBase, flagPullRequestHead)
+	baseProject, err := localRepo.MainProject()
+	if err != nil {
+		utils.Check(fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository."))
+	}
+
+	headProject, err := localRepo.CurrentProject()
+	utils.Check(err)
+
+	gh := github.NewWithoutProject()
+	gh.Project = baseProject
+
+	var base, head string
+	if flagPullRequestBase != "" {
+		base = flagPullRequestBase
+	}
+	if flagPullRequestHead != "" {
+		head = flagPullRequestHead
+	}
+	if args.ParamsSize() == 1 {
+		arg := args.RemoveParam(0)
+		u, e := github.ParseURL(arg)
+		r := regexp.MustCompile(`^issues\/(\d+)`)
+		p := u.ProjectPath()
+		if e == nil && r.MatchString(p) {
+			flagPullRequestIssue = r.FindStringSubmatch(p)[1]
+		}
+	}
+
+	if base == "" {
+		masterBranch, err := localRepo.MasterBranch()
+		utils.Check(err)
+		base = masterBranch.ShortName()
+	}
+
+	trackedBranch, tberr := currentBranch.Upstream()
+	if head == "" {
+		if err == nil {
+			if trackedBranch.IsRemote() {
+				if reflect.DeepEqual(baseProject, headProject) && base == trackedBranch.ShortName() {
+					e := fmt.Errorf(`Aborted: head branch is the same as base ("%s")`, base)
+					e = fmt.Errorf("%s\n(use `-h <branch>` to specify an explicit pull request head)", e)
+					utils.Check(e)
+				}
+			} else {
+				// the current branch tracking another branch
+				// pretend there's no upstream at all
+				tberr = fmt.Errorf("No upstream found for current branch")
+			}
+		}
+
+		if tberr == nil {
+			head = trackedBranch.ShortName()
+		} else {
+			head = currentBranch.ShortName()
+		}
+	}
+
+	// when no tracking, assume remote branch is published under active user's fork
+	if tberr != nil && gh.Config.User != headProject.Owner {
+		headProject = github.NewProjectFromNameAndOwner(headProject.Name, "")
+	}
+
+	var title, body string
+	if flagPullRequestMessage != "" {
+		title, body = readMsg(flagPullRequestMessage)
+	}
+
+	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
+	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
+
 	if title == "" && flagPullRequestIssue == "" {
-		t, b, err := writePullRequestTitleAndBody(repo)
+		t, b, err := writePullRequestTitleAndBody(base, head, fullBase, fullHead)
 		utils.Check(err)
 		title = t
 		body = b
@@ -75,17 +153,17 @@ func pullRequest(cmd *Command, args *Args) {
 
 	var pullRequestURL string
 	if args.Noop {
-		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", repo.FullBase(), repo.FullHead()), "")
+		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", fullBase, fullHead), "")
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		if title != "" {
-			pr, err := gh.CreatePullRequest(repo.Base, repo.Head, title, body)
+			pr, err := gh.CreatePullRequest(base, fullHead, title, body)
 			utils.Check(err)
 			pullRequestURL = pr.HTMLURL
 		}
 
 		if flagPullRequestIssue != "" {
-			pr, err := gh.CreatePullRequestForIssue(repo.Base, repo.Head, flagPullRequestIssue)
+			pr, err := gh.CreatePullRequestForIssue(base, fullHead, flagPullRequestIssue)
 			utils.Check(err)
 			pullRequestURL = pr.HTMLURL
 		}
@@ -94,13 +172,14 @@ func pullRequest(cmd *Command, args *Args) {
 	args.Replace("echo", "", pullRequestURL)
 }
 
-func writePullRequestTitleAndBody(repo *github.Repo) (title, body string, err error) {
+func writePullRequestTitleAndBody(base, head, fullBase, fullHead string) (title, body string, err error) {
 	messageFile, err := git.PullReqMsgFile()
 	if err != nil {
 		return
 	}
+	defer os.Remove(messageFile)
 
-	err = writePullRequestChanges(repo, messageFile)
+	err = writePullRequestChanges(base, head, fullBase, fullHead, messageFile)
 	if err != nil {
 		return
 	}
@@ -112,6 +191,7 @@ func writePullRequestTitleAndBody(repo *github.Repo) (title, body string, err er
 
 	err = editTitleAndBody(editor, messageFile)
 	if err != nil {
+		err = fmt.Errorf("error using text editor for pull request message")
 		return
 	}
 
@@ -120,26 +200,21 @@ func writePullRequestTitleAndBody(repo *github.Repo) (title, body string, err er
 		return
 	}
 
-	err = os.Remove(messageFile)
-
 	return
 }
 
-func writePullRequestChanges(repo *github.Repo, messageFile string) error {
-	commits, err := git.RefList(repo.Base, repo.Head)
-	if err != nil {
-		return err
-	}
+func writePullRequestChanges(base, head, fullBase, fullHead string, messageFile string) error {
+	commits, _ := git.RefList(base, head)
 
 	var defaultMsg, commitSummary string
 	if len(commits) == 1 {
-		defaultMsg, err = git.Show(commits[0])
+		defaultMsg, err := git.Show(commits[0])
 		if err != nil {
 			return err
 		}
 		defaultMsg = fmt.Sprintf("%s\n", defaultMsg)
 	} else if len(commits) > 1 {
-		commitLogs, err := git.Log(repo.Base, repo.Head)
+		commitLogs, err := git.Log(base, head)
 		if err != nil {
 			return err
 		}
@@ -166,7 +241,7 @@ func writePullRequestChanges(repo *github.Repo, messageFile string) error {
 # Write a message for this pull request. The first block
 # of the text is the title and the rest is description.%s
 `
-	message = fmt.Sprintf(message, defaultMsg, repo.FullBase(), repo.FullHead(), commitSummary)
+	message = fmt.Sprintf(message, defaultMsg, fullBase, fullHead, commitSummary)
 
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
 }
@@ -236,4 +311,14 @@ func readLine(r *bufio.Reader) (string, error) {
 	}
 
 	return string(ln), err
+}
+
+func readMsg(msg string) (title, body string) {
+	split := strings.SplitN(msg, "\n\n", 2)
+	title = strings.TrimSpace(split[0])
+	if len(split) > 1 {
+		body = strings.TrimSpace(split[1])
+	}
+
+	return
 }

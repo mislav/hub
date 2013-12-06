@@ -95,7 +95,11 @@ func CurrentConfig() *Config {
 }
 
 func loadConfig() (Config, error) {
-	return loadFrom(DefaultConfigFile)
+	configFile := os.Getenv("GH_CONFIG")
+	if configFile == "" {
+		configFile = DefaultConfigFile
+	}
+	return loadFrom(configFile)
 }
 
 func loadFrom(filename string) (Config, error) {

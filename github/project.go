@@ -58,8 +58,10 @@ func (p *Project) LocalRepoWith(base, head string) *Repo {
 	}
 	if head == "" {
 		headBranch, err := git.Head()
-		utils.Check(err)
-		head = headBranch.ShortName()
+		if err != nil {
+			utils.Check(fmt.Errorf("Aborted: not currently on any branch."))
+		}
+		head = Branch(headBranch).ShortName()
 	}
 
 	return &Repo{base, head, p}
@@ -73,13 +75,13 @@ func CurrentProject() *Project {
 	remote, err := git.OriginRemote()
 	utils.Check(err)
 
-	owner, name := parseOwnerAndName(remote.URL)
+	owner, name := parseOwnerAndName(remote.URL.String())
 
 	return &Project{name, owner}
 }
 
 func NewProjectFromURL(url *url.URL) (*Project, error) {
-	if url.Host != GitHubHost || url.Scheme != "https" {
+	if !KnownHosts().Include(url.Host) {
 		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
 	}
 
@@ -88,10 +90,12 @@ func NewProjectFromURL(url *url.URL) (*Project, error) {
 		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
 	}
 
-	return &Project{Name: parts[2], Owner: parts[1]}, nil
+	name := strings.TrimRight(parts[2], ".git")
+
+	return &Project{Name: name, Owner: parts[1]}, nil
 }
 
-func NewProjectFromNameAndOwner(name, owner string) Project {
+func NewProjectFromNameAndOwner(name, owner string) *Project {
 	if strings.Contains(owner, "/") {
 		result := strings.SplitN(owner, "/", 2)
 		owner = result[0]
@@ -110,7 +114,7 @@ func NewProjectFromNameAndOwner(name, owner string) Project {
 		name, _ = utils.DirName()
 	}
 
-	return Project{Name: name, Owner: owner}
+	return &Project{Name: name, Owner: owner}
 }
 
 func parseOwnerAndName(remote string) (owner string, name string) {
