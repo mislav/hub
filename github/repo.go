@@ -35,6 +35,7 @@ func (r *GitHubRepo) remotesByName(name string) (*git.Remote, error) {
 func (r *GitHubRepo) CurrentBranch() (branch Branch, err error) {
 	head, err := git.Head()
 	if err != nil {
+		err = fmt.Errorf("Aborted: not currently on any branch.")
 		return
 	}
 
@@ -61,6 +62,7 @@ func (r *GitHubRepo) MasterBranch() (branch Branch, err error) {
 func (r *GitHubRepo) MainProject() (project *Project, err error) {
 	origin, err := r.remotesByName("origin")
 	if err != nil {
+		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
 		return
 	}
 

@@ -66,14 +66,10 @@ func pullRequest(cmd *Command, args *Args) {
 	localRepo := github.LocalRepo()
 
 	currentBranch, err := localRepo.CurrentBranch()
-	if err != nil {
-		utils.Check(fmt.Errorf("Aborted: not currently on any branch."))
-	}
+	utils.Check(err)
 
 	baseProject, err := localRepo.MainProject()
-	if err != nil {
-		utils.Check(fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository."))
-	}
+	utils.Check(err)
 
 	headProject, err := localRepo.CurrentProject()
 	utils.Check(err)
