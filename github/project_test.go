@@ -30,6 +30,28 @@ func TestNewProjectOwnerAndName(t *testing.T) {
 	assert.Equal(t, "gh/foo", project.Name)
 }
 
+func TestNewProjectFromString(t *testing.T) {
+	DefaultConfigFile = "./test_support/clone_gh"
+	config := Config{User: "jingweno", Token: "123"}
+	SaveConfig(&config)
+	defer os.RemoveAll(filepath.Dir(DefaultConfigFile))
+
+	project := NewProjectFromString("jingweno/gh")
+
+	assert.Equal(t, "jingweno", project.Owner)
+	assert.Equal(t, "gh", project.Name)
+
+	project = NewProjectFromString("gh")
+
+	assert.Equal(t, "jingweno", project.Owner)
+	assert.Equal(t, "gh", project.Name)
+
+	project = NewProjectFromString("jingweno/gh/foo")
+
+	assert.Equal(t, "jingweno", project.Owner)
+	assert.Equal(t, "gh/foo", project.Name)
+}
+
 func TestWebURL(t *testing.T) {
 	project := Project{"foo", "bar"}
 	url := project.WebURL("", "", "baz")

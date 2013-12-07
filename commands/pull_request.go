@@ -35,14 +35,23 @@ of title you can paste a full URL to an issue on GitHub.
 `,
 }
 
-var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue, flagPullRequestMessage, flagPullRequestFile string
+var (
+	flagPullRequestBase,
+	flagPullRequestHead,
+	flagPullRequestIssue,
+	flagPullRequestMessage,
+	flagPullRequestFile string
+	flagPullRequestForce bool
+)
 
 func init() {
 	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "", "BASE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestMessage, "m", "", "MESSAGE")
+	cmdPullRequest.Flag.BoolVar(&flagPullRequestForce, "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "F", "", "FILE")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "file", "", "FILE")
 }
 
 /*
@@ -79,14 +88,15 @@ func pullRequest(cmd *Command, args *Args) {
 	gh.Project = baseProject
 
 	var (
-		base, head    string
-		explicitOwner bool
+		base, head           string
+		force, explicitOwner bool
 	)
+	force = flagPullRequestForce
 	if flagPullRequestBase != "" {
 		if strings.Contains(flagPullRequestBase, ":") {
 			split := strings.SplitN(flagPullRequestBase, ":", 2)
 			base = split[1]
-			baseProject.Owner = split[0]
+			baseProject = github.NewProjectFromString(split[0])
 		} else {
 			base = flagPullRequestBase
 		}
@@ -96,7 +106,7 @@ func pullRequest(cmd *Command, args *Args) {
 		if strings.Contains(flagPullRequestHead, ":") {
 			split := strings.SplitN(flagPullRequestHead, ":", 2)
 			head = split[1]
-			headProject.Owner = split[0]
+			headProject = github.NewProjectFromString(split[0])
 			explicitOwner = true
 		} else {
 			head = flagPullRequestHead
@@ -144,7 +154,7 @@ func pullRequest(cmd *Command, args *Args) {
 
 	// when no tracking, assume remote branch is published under active user's fork
 	if tberr != nil && !explicitOwner && gh.Config.User != headProject.Owner {
-		headProject = github.NewProjectFromNameAndOwner(headProject.Name, "")
+		headProject = github.NewProjectFromString(headProject.Name)
 	}
 
 	var title, body string
@@ -169,8 +179,15 @@ func pullRequest(cmd *Command, args *Args) {
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
+	commits, _ := git.RefList(base, head)
+	if !force && tberr == nil && len(commits) > 0 {
+		err = fmt.Errorf("Aborted: %d commits are not yet pushed to %s", len(commits), trackedBranch.LongName())
+		err = fmt.Errorf("%s\n(use `-f` to force submit a pull request anyway)", err)
+		utils.Check(err)
+	}
+
 	if title == "" && flagPullRequestIssue == "" {
-		t, b, err := writePullRequestTitleAndBody(base, head, fullBase, fullHead)
+		t, b, err := writePullRequestTitleAndBody(base, head, fullBase, fullHead, commits)
 		utils.Check(err)
 		title = t
 		body = b
@@ -201,14 +218,14 @@ func pullRequest(cmd *Command, args *Args) {
 	args.Replace("echo", "", pullRequestURL)
 }
 
-func writePullRequestTitleAndBody(base, head, fullBase, fullHead string) (title, body string, err error) {
+func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
 	messageFile, err := git.PullReqMsgFile()
 	if err != nil {
 		return
 	}
 	defer os.Remove(messageFile)
 
-	err = writePullRequestChanges(base, head, fullBase, fullHead, messageFile)
+	err = writePullRequestChanges(base, head, fullBase, fullHead, commits, messageFile)
 	if err != nil {
 		return
 	}
@@ -232,9 +249,7 @@ func writePullRequestTitleAndBody(base, head, fullBase, fullHead string) (title,
 	return
 }
 
-func writePullRequestChanges(base, head, fullBase, fullHead string, messageFile string) error {
-	commits, _ := git.RefList(base, head)
-
+func writePullRequestChanges(base, head, fullBase, fullHead string, commits []string, messageFile string) error {
 	var defaultMsg, commitSummary string
 	if len(commits) == 1 {
 		defaultMsg, err := git.Show(commits[0])

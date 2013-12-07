@@ -14,6 +14,11 @@ func (b Branch) ShortName() string {
 	return reg.ReplaceAllString(string(b), "")
 }
 
+func (b Branch) LongName() string {
+	reg := regexp.MustCompile("refs/(remotes/)?")
+	return reg.ReplaceAllString(string(b), "")
+}
+
 func (b Branch) Upstream() (u Branch, err error) {
 	name, err := git.SymbolicFullName(fmt.Sprintf("%s@{upstream}", b.ShortName()))
 	if err != nil {

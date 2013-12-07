@@ -95,6 +95,32 @@ func NewProjectFromURL(url *url.URL) (*Project, error) {
 	return &Project{Name: name, Owner: parts[1]}, nil
 }
 
+// NewProjectFromURL creates a new Project from a string
+//
+// If the string is in the format of OWNER/NAME, it's split and used as the owner and name of the Project.
+// Otherwise the string is used as the name of the Project and the current user is used as the owner.
+// If the string is empty, the current dir name is used as the name of the Project.
+func NewProjectFromString(nameAndOwner string) *Project {
+	var name, owner string
+	if strings.Contains(nameAndOwner, "/") {
+		result := strings.SplitN(nameAndOwner, "/", 2)
+		owner = result[0]
+		name = result[1]
+	} else {
+		name = nameAndOwner
+	}
+
+	if owner == "" {
+		owner = CurrentConfig().FetchUser()
+	}
+
+	if name == "" {
+		name, _ = utils.DirName()
+	}
+
+	return &Project{Name: name, Owner: owner}
+}
+
 func NewProjectFromNameAndOwner(name, owner string) *Project {
 	if strings.Contains(owner, "/") {
 		result := strings.SplitN(owner, "/", 2)
