@@ -1,6 +1,7 @@
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq tmux zsh git
+install: script/cached-bundle install --deployment
 script: script/test
 language: ruby
 rvm:
@@ -13,3 +14,8 @@ notifications:
     recipients:
       - mislav.marohnic@gmail.com
     on_success: never
+env:
+  global:
+    - AMAZON_S3_BUCKET=ci-cache
+    - AMAZON_ACCESS_KEY_ID=AKIAJQCVTDEWQHRPBPGQ
+    - secure: "XAZv5xyNjWt7F9hG0MZhDANVJ5h/ajEZvfJOEIZRQlE3X5x6oVgI8blLh/MmlRSF0kIyLckcn6t2ccjSOvwN2hca5bwZSjIqoKbJyNe2cmkxfi2432vEOu3Ve6PT5hZWX4R5RgT+xWyMjIJcdF3gUMP7ErXl64aEncBzeW6OoXM="
