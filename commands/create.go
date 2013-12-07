@@ -61,7 +61,7 @@ func create(command *Command, args *Args) {
 	}
 
 	var msg string
-	project := github.NewProjectFromNameAndOwner(name, "")
+	project := github.NewProjectFromOwnerAndName("", name)
 	gh := github.NewWithoutProject()
 	if gh.IsRepositoryExist(project) {
 		fmt.Printf("%s already exists on %s\n", project, github.GitHubHost)
@@ -70,7 +70,7 @@ func create(command *Command, args *Args) {
 		if !args.Noop {
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
 			utils.Check(err)
-			project = github.NewProjectFromNameAndOwner("", repo.FullName)
+			project = github.NewProjectFromOwnerAndName(repo.FullName, "")
 		}
 		msg = "created repository"
 	}

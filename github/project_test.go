@@ -14,42 +14,33 @@ func TestNewProjectOwnerAndName(t *testing.T) {
 	SaveConfig(&config)
 	defer os.RemoveAll(filepath.Dir(DefaultConfigFile))
 
-	project := NewProjectFromNameAndOwner("", "jingweno/gh")
+	project := NewProjectFromOwnerAndName("", "mojombo/gh")
+	assert.Equal(t, "mojombo", project.Owner)
+	assert.Equal(t, "gh", project.Name)
 
+	project = NewProjectFromOwnerAndName("progmob", "mojombo/gh")
+	assert.Equal(t, "progmob", project.Owner)
+	assert.Equal(t, "gh", project.Name)
+
+	project = NewProjectFromOwnerAndName("mojombo/jekyll", "gh")
+	assert.Equal(t, "mojombo", project.Owner)
+	assert.Equal(t, "gh", project.Name)
+
+	project = NewProjectFromOwnerAndName("mojombo/gh", "")
+	assert.Equal(t, "mojombo", project.Owner)
+	assert.Equal(t, "gh", project.Name)
+
+	project = NewProjectFromOwnerAndName("", "gh")
 	assert.Equal(t, "jingweno", project.Owner)
 	assert.Equal(t, "gh", project.Name)
 
-	project = NewProjectFromNameAndOwner("gh", "")
-
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromNameAndOwner("", "jingweno/gh/foo")
-
+	project = NewProjectFromOwnerAndName("", "jingweno/gh/foo")
 	assert.Equal(t, "jingweno", project.Owner)
 	assert.Equal(t, "gh/foo", project.Name)
-}
 
-func TestNewProjectFromString(t *testing.T) {
-	DefaultConfigFile = "./test_support/clone_gh"
-	config := Config{User: "jingweno", Token: "123"}
-	SaveConfig(&config)
-	defer os.RemoveAll(filepath.Dir(DefaultConfigFile))
-
-	project := NewProjectFromString("jingweno/gh")
-
-	assert.Equal(t, "jingweno", project.Owner)
+	project = NewProjectFromOwnerAndName("mojombo", "gh")
+	assert.Equal(t, "mojombo", project.Owner)
 	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromString("gh")
-
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromString("jingweno/gh/foo")
-
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh/foo", project.Name)
 }
 
 func TestWebURL(t *testing.T) {

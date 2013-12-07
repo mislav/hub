@@ -46,13 +46,13 @@ func tranformFetchArgs(args *Args) error {
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
 		if ownerRegexp.MatchString(name) && !hasGitRemote(name) {
-			project := github.NewProjectFromNameAndOwner("", name)
+			project := github.NewProjectFromOwnerAndName("", name)
 			repo, err := gh.Repository(project)
 			if err != nil {
 				continue
 			}
 
-			project = github.NewProjectFromNameAndOwner("", repo.FullName)
+			project = github.NewProjectFromOwnerAndName(repo.FullName, "")
 			projects = append(projects, project)
 		}
 	}

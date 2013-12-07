@@ -7,6 +7,7 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"io"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -84,9 +85,6 @@ func pullRequest(cmd *Command, args *Args) {
 	headProject, err := localRepo.CurrentProject()
 	utils.Check(err)
 
-	gh := github.NewWithoutProject()
-	gh.Project = baseProject
-
 	var (
 		base, head           string
 		force, explicitOwner bool
@@ -96,7 +94,11 @@ func pullRequest(cmd *Command, args *Args) {
 		if strings.Contains(flagPullRequestBase, ":") {
 			split := strings.SplitN(flagPullRequestBase, ":", 2)
 			base = split[1]
-			baseProject.Owner = split[0]
+			var name string
+			if !strings.Contains(split[0], "/") {
+				name = baseProject.Name
+			}
+			baseProject = github.NewProjectFromOwnerAndName(split[0], name)
 		} else {
 			base = flagPullRequestBase
 		}
@@ -106,7 +108,7 @@ func pullRequest(cmd *Command, args *Args) {
 		if strings.Contains(flagPullRequestHead, ":") {
 			split := strings.SplitN(flagPullRequestHead, ":", 2)
 			head = split[1]
-			headProject.Owner = split[0]
+			headProject = github.NewProjectFromOwnerAndName(split[0], headProject.Name)
 			explicitOwner = true
 		} else {
 			head = flagPullRequestHead
@@ -152,9 +154,12 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
+	gh := github.NewWithoutProject()
+	gh.Project = baseProject
+
 	// when no tracking, assume remote branch is published under active user's fork
 	if tberr != nil && !explicitOwner && gh.Config.User != headProject.Owner {
-		headProject = github.NewProjectFromString(headProject.Name)
+		headProject = github.NewProjectFromOwnerAndName("", headProject.Name)
 	}
 
 	var title, body string
@@ -333,13 +338,17 @@ func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) 
 		line, err = readLine(reader)
 	}
 
+	if err == io.EOF {
+		err = nil
+	}
+
 	title = strings.Join(titleParts, " ")
 	title = strings.TrimSpace(title)
 
 	body = strings.Join(bodyParts, "\n")
 	body = strings.TrimSpace(body)
 
-	return title, body, nil
+	return
 }
 
 func readLine(r *bufio.Reader) (string, error) {
