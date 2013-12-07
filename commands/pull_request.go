@@ -96,7 +96,7 @@ func pullRequest(cmd *Command, args *Args) {
 		if strings.Contains(flagPullRequestBase, ":") {
 			split := strings.SplitN(flagPullRequestBase, ":", 2)
 			base = split[1]
-			baseProject = github.NewProjectFromString(split[0])
+			baseProject.Owner = split[0]
 		} else {
 			base = flagPullRequestBase
 		}
@@ -106,7 +106,7 @@ func pullRequest(cmd *Command, args *Args) {
 		if strings.Contains(flagPullRequestHead, ":") {
 			split := strings.SplitN(flagPullRequestHead, ":", 2)
 			head = split[1]
-			headProject = github.NewProjectFromString(split[0])
+			headProject.Owner = split[0]
 			explicitOwner = true
 		} else {
 			head = flagPullRequestHead
