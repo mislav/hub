@@ -1,6 +1,6 @@
 before_install:
  - sudo apt-get update -qq
- - sudo apt-get install -qq tmux zsh
+ - sudo apt-get install -qq tmux zsh git
 script: script/test
 language: ruby
 rvm:
