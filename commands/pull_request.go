@@ -16,7 +16,7 @@ import (
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-	Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-d HEAD] [-m MESSAGE] [TITLE]",
+	Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-h HEAD] [-m MESSAGE] [TITLE]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -35,13 +35,14 @@ of title you can paste a full URL to an issue on GitHub.
 `,
 }
 
-var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue, flagPullRequestMessage string
+var flagPullRequestBase, flagPullRequestHead, flagPullRequestIssue, flagPullRequestMessage, flagPullRequestFile string
 
 func init() {
-	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "master", "BASE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "d", "", "HEAD")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "", "BASE")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestMessage, "m", "", "MESSAGE")
+	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "F", "", "FILE")
 }
 
 /*
@@ -77,13 +78,31 @@ func pullRequest(cmd *Command, args *Args) {
 	gh := github.NewWithoutProject()
 	gh.Project = baseProject
 
-	var base, head string
+	var (
+		base, head    string
+		explicitOwner bool
+	)
 	if flagPullRequestBase != "" {
-		base = flagPullRequestBase
+		if strings.Contains(flagPullRequestBase, ":") {
+			split := strings.SplitN(flagPullRequestBase, ":", 2)
+			base = split[1]
+			baseProject.Owner = split[0]
+		} else {
+			base = flagPullRequestBase
+		}
 	}
+
 	if flagPullRequestHead != "" {
-		head = flagPullRequestHead
+		if strings.Contains(flagPullRequestHead, ":") {
+			split := strings.SplitN(flagPullRequestHead, ":", 2)
+			head = split[1]
+			headProject.Owner = split[0]
+			explicitOwner = true
+		} else {
+			head = flagPullRequestHead
+		}
 	}
+
 	if args.ParamsSize() == 1 {
 		arg := args.RemoveParam(0)
 		u, e := github.ParseURL(arg)
@@ -124,13 +143,27 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	// when no tracking, assume remote branch is published under active user's fork
-	if tberr != nil && gh.Config.User != headProject.Owner {
+	if tberr != nil && !explicitOwner && gh.Config.User != headProject.Owner {
 		headProject = github.NewProjectFromNameAndOwner(headProject.Name, "")
 	}
 
 	var title, body string
 	if flagPullRequestMessage != "" {
 		title, body = readMsg(flagPullRequestMessage)
+	}
+
+	if flagPullRequestFile != "" {
+		var (
+			content []byte
+			err     error
+		)
+		if flagPullRequestFile == "-" {
+			content, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			content, err = ioutil.ReadFile(flagPullRequestFile)
+		}
+		utils.Check(err)
+		title, body = readMsg(string(content))
 	}
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)

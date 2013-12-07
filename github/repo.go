@@ -51,7 +51,8 @@ func (r *GitHubRepo) MasterBranch() (branch Branch, err error) {
 
 	name, err := git.SymbolicFullName(origin.Name)
 	if err != nil {
-		return
+		name = "refs/head/master"
+		err = nil
 	}
 
 	branch = Branch(name)
@@ -66,7 +67,12 @@ func (r *GitHubRepo) MainProject() (project *Project, err error) {
 		return
 	}
 
-	return NewProjectFromURL(origin.URL)
+	project, err = NewProjectFromURL(origin.URL)
+	if err != nil {
+		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
+	}
+
+	return
 }
 
 func (r *GitHubRepo) CurrentProject() (project *Project, err error) {

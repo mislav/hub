@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 type Remote struct {
@@ -24,7 +25,9 @@ func Remotes() (remotes []Remote, err error) {
 	for _, o := range output {
 		if re.MatchString(o) {
 			match := re.FindStringSubmatch(o)
-			remotesMap[match[1]] = match[2]
+			k := strings.TrimSpace(match[1])
+			v := strings.TrimSpace(match[2])
+			remotesMap[k] = v
 		}
 	}
 
