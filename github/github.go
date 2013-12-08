@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	GitHubHost    string = "github.com"
-	GitHubApiURL  string = "https://api.github.com"
-	OAuthAppURL   string = "http://owenou.com/gh"
+	GitHubHost   string = "github.com"
+	GitHubApiURL string = "https://api.github.com"
+	OAuthAppURL  string = "http://owenou.com/gh"
 )
 
 type GitHub struct {

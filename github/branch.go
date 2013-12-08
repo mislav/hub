@@ -7,38 +7,40 @@ import (
 	"strings"
 )
 
-type Branch string
+type Branch struct {
+	Name string
+}
 
-func (b Branch) ShortName() string {
+func (b *Branch) ShortName() string {
 	reg := regexp.MustCompile("^refs/(remotes/)?.+?/")
-	return reg.ReplaceAllString(string(b), "")
+	return reg.ReplaceAllString(b.Name, "")
 }
 
-func (b Branch) LongName() string {
+func (b *Branch) LongName() string {
 	reg := regexp.MustCompile("refs/(remotes/)?")
-	return reg.ReplaceAllString(string(b), "")
+	return reg.ReplaceAllString(b.Name, "")
 }
 
-func (b Branch) Upstream() (u Branch, err error) {
+func (b *Branch) Upstream() (u *Branch, err error) {
 	name, err := git.SymbolicFullName(fmt.Sprintf("%s@{upstream}", b.ShortName()))
 	if err != nil {
 		return
 	}
 
-	u = Branch(name)
+	u = &Branch{name}
 
 	return
 }
 
-func (b Branch) RemoteName() string {
+func (b *Branch) RemoteName() (n string) {
 	reg := regexp.MustCompile("^refs/remotes/([^/]+)")
-	if reg.MatchString(string(b)) {
-		return reg.FindStringSubmatch(string(b))[1]
+	if reg.MatchString(b.Name) {
+		n = reg.FindStringSubmatch(b.Name)[1]
 	}
 
-	return ""
+	return
 }
 
-func (b Branch) IsRemote() bool {
-	return strings.HasPrefix(string(b), "refs/remotes")
+func (b *Branch) IsRemote() bool {
+	return strings.HasPrefix(b.Name, "refs/remotes")
 }

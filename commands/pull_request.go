@@ -89,40 +89,21 @@ func pullRequest(cmd *Command, args *Args) {
 		base, head           string
 		force, explicitOwner bool
 	)
+
 	force = flagPullRequestForce
+
 	if flagPullRequestBase != "" {
-		if strings.Contains(flagPullRequestBase, ":") {
-			split := strings.SplitN(flagPullRequestBase, ":", 2)
-			base = split[1]
-			var name string
-			if !strings.Contains(split[0], "/") {
-				name = baseProject.Name
-			}
-			baseProject = github.NewProject(split[0], name, baseProject.Host)
-		} else {
-			base = flagPullRequestBase
-		}
+		baseProject, base = parsePullRequestProject(baseProject, flagPullRequestBase)
 	}
 
 	if flagPullRequestHead != "" {
-		if strings.Contains(flagPullRequestHead, ":") {
-			split := strings.SplitN(flagPullRequestHead, ":", 2)
-			head = split[1]
-			headProject = github.NewProject(split[0], headProject.Name, headProject.Host)
-			explicitOwner = true
-		} else {
-			head = flagPullRequestHead
-		}
+		headProject, head = parsePullRequestProject(headProject, flagPullRequestHead)
+		explicitOwner = strings.Contains(flagPullRequestHead, ":")
 	}
 
 	if args.ParamsSize() == 1 {
 		arg := args.RemoveParam(0)
-		u, e := github.ParseURL(arg)
-		r := regexp.MustCompile(`^issues\/(\d+)`)
-		p := u.ProjectPath()
-		if e == nil && r.MatchString(p) {
-			flagPullRequestIssue = r.FindStringSubmatch(p)[1]
-		}
+		flagPullRequestIssue = parsePullRequestIssueNumber(arg)
 	}
 
 	if base == "" {
@@ -131,37 +112,36 @@ func pullRequest(cmd *Command, args *Args) {
 		base = masterBranch.ShortName()
 	}
 
-	trackedBranch, tberr := currentBranch.Upstream()
+	trackedBranch, _ := currentBranch.Upstream()
 	if head == "" {
-		if err == nil {
-			if trackedBranch.IsRemote() {
-				if reflect.DeepEqual(baseProject, headProject) && base == trackedBranch.ShortName() {
-					e := fmt.Errorf(`Aborted: head branch is the same as base ("%s")`, base)
-					e = fmt.Errorf("%s\n(use `-h <branch>` to specify an explicit pull request head)", e)
-					utils.Check(e)
-				}
-			} else {
-				// the current branch tracking another branch
-				// pretend there's no upstream at all
-				tberr = fmt.Errorf("No upstream found for current branch")
+		if trackedBranch != nil && trackedBranch.IsRemote() {
+			if reflect.DeepEqual(baseProject, headProject) && base == trackedBranch.ShortName() {
+				e := fmt.Errorf(`Aborted: head branch is the same as base ("%s")`, base)
+				e = fmt.Errorf("%s\n(use `-h <branch>` to specify an explicit pull request head)", e)
+				utils.Check(e)
 			}
+		} else {
+			// the current branch tracking another branch
+			// pretend there's no upstream at all
+			trackedBranch = nil
 		}
 
-		if tberr == nil {
-			head = trackedBranch.ShortName()
-		} else {
+		if trackedBranch == nil {
 			head = currentBranch.ShortName()
+		} else {
+			head = trackedBranch.ShortName()
 		}
 	}
 
 	client := github.NewClient(baseProject)
 
 	// when no tracking, assume remote branch is published under active user's fork
-	if tberr != nil && !explicitOwner && client.Credentials.User != headProject.Owner {
+	if trackedBranch == nil && !explicitOwner && client.Credentials.User != headProject.Owner {
 		headProject = github.NewProject("", headProject.Name, headProject.Host)
 	}
 
 	var title, body string
+
 	if flagPullRequestMessage != "" {
 		title, body = readMsg(flagPullRequestMessage)
 	}
@@ -184,7 +164,7 @@ func pullRequest(cmd *Command, args *Args) {
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
 	commits, _ := git.RefList(base, head)
-	if !force && tberr == nil && len(commits) > 0 {
+	if !force && trackedBranch != nil && len(commits) > 0 {
 		err = fmt.Errorf("Aborted: %d commits are not yet pushed to %s", len(commits), trackedBranch.LongName())
 		err = fmt.Errorf("%s\n(use `-f` to force submit a pull request anyway)", err)
 		utils.Check(err)
@@ -373,4 +353,36 @@ func readMsg(msg string) (title, body string) {
 	}
 
 	return
+}
+
+func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {
+	p = context
+	ref = s
+
+	if strings.Contains(s, ":") {
+		split := strings.SplitN(s, ":", 2)
+		ref = split[1]
+		var name string
+		if !strings.Contains(split[0], "/") {
+			name = context.Name
+		}
+		p = github.NewProject(split[0], name, context.Host)
+	}
+
+	return
+}
+
+func parsePullRequestIssueNumber(url string) string {
+	u, e := github.ParseURL(url)
+	if e != nil {
+		return ""
+	}
+
+	r := regexp.MustCompile(`^issues\/(\d+)`)
+	p := u.ProjectPath()
+	if r.MatchString(p) {
+		return r.FindStringSubmatch(p)[1]
+	}
+
+	return ""
 }

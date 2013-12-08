@@ -62,7 +62,7 @@ func (p *Project) LocalRepoWith(base, head string) *Repo {
 		if err != nil {
 			utils.Check(fmt.Errorf("Aborted: not currently on any branch."))
 		}
-		head = Branch(headBranch).ShortName()
+		head = (&Branch{headBranch}).ShortName()
 	}
 
 	return &Repo{base, head, p}

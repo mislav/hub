@@ -32,18 +32,18 @@ func (r *GitHubRepo) remotesByName(name string) (*git.Remote, error) {
 	return nil, fmt.Errorf("No git remote with name %s", name)
 }
 
-func (r *GitHubRepo) CurrentBranch() (branch Branch, err error) {
+func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 	head, err := git.Head()
 	if err != nil {
 		err = fmt.Errorf("Aborted: not currently on any branch.")
 		return
 	}
 
-	branch = Branch(head)
+	branch = &Branch{head}
 	return
 }
 
-func (r *GitHubRepo) MasterBranch() (branch Branch, err error) {
+func (r *GitHubRepo) MasterBranch() (branch *Branch, err error) {
 	origin, err := r.remotesByName("origin")
 	if err != nil {
 		return
@@ -55,7 +55,7 @@ func (r *GitHubRepo) MasterBranch() (branch Branch, err error) {
 		err = nil
 	}
 
-	branch = Branch(name)
+	branch = &Branch{name}
 
 	return
 }
