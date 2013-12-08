@@ -10,12 +10,13 @@ import (
 
 var cmdCiStatus = &Command{
 	Run:   ciStatus,
-	Usage: "ci-status [COMMIT]",
+	Usage: "ci-status [-v] [COMMIT]",
 	Short: "Show CI status of a commit",
-	Long: `Looks up the SHA for COMMIT in GitHub Status API and displays the latest
-status. If no COMMIT is provided, HEAD will be used. Exits with one of:
-
+	Long: `Looks up the SHA for <COMMIT> in GitHub Status API and displays the latest
+status. Exits with one of:
 success (0), error (1), failure (1), pending (2), no status (3)
+
+If "-v" is given, additionally print the URL to CI build results.
 `,
 }
 
@@ -28,6 +29,10 @@ func init() {
 /*
   $ gh ci-status
   > (prints CI state of HEAD and exits with appropriate code)
+  > One of: success (0), error (1), failure (1), pending (2), no status (3)
+
+  $ gh ci-status -v
+  > (prints CI state of HEAD, the URL to the CI build results and exits with appropriate code)
   > One of: success (0), error (1), failure (1), pending (2), no status (3)
 
   $ gh ci-status BRANCH
