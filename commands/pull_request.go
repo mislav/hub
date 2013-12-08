@@ -17,7 +17,7 @@ import (
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-	Usage: "pull-request [-f] [-i ISSUE] [-b BASE] [-h HEAD] [-m MESSAGE] [TITLE]",
+	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-b <BASE>] [-h <HEAD>] ",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -25,12 +25,13 @@ Both base and head of the pull request can be explicitly given in one of
 the following formats: "branch", "owner:branch", "owner/repo:branch".
 This command will abort operation if it detects that the current topic
 branch has local commits that are not yet pushed to its upstream branch
-on the remote. To skip this check, use -f.
+on the remote. To skip this check, use "-f".
 
-If TITLE is omitted, a text editor will open in which title and body of
-the pull request can be entered in the same manner as git commit message.
+Without <MESSAGE> or <FILE>, a text editor will open in which title and body
+of the pull request can be entered in the same manner as git commit message.
+Pull request message can also be passed via stdin with "-F -".
 
-If instead of normal TITLE an issue number is given with -i, the pull
+If instead of normal <TITLE> an issue number is given with "-i", the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
 of title you can paste a full URL to an issue on GitHub.
 `,
@@ -72,6 +73,9 @@ func init() {
 
   $ gh pull-request https://github.com/jingweno/gh/pull/123
   [ attached pull request to issue #123 ]
+
+  $ gh pull-request -F FILE
+  [ create pull request with title & body from FILE ]
 */
 func pullRequest(cmd *Command, args *Args) {
 	localRepo := github.LocalRepo()
