@@ -13,6 +13,7 @@ import (
 type Project struct {
 	Name  string
 	Owner string
+	Host  string
 }
 
 func (p Project) String() string {
@@ -77,24 +78,59 @@ func CurrentProject() *Project {
 
 	owner, name := parseOwnerAndName(remote.URL.String())
 
-	return &Project{name, owner}
+	return &Project{Name: name, Owner: owner}
 }
 
-func NewProjectFromURL(url *url.URL) (*Project, error) {
+func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	if !KnownHosts().Include(url.Host) {
-		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
+		err = fmt.Errorf("Invalid GitHub URL: %s", url)
+		return
 	}
 
 	parts := strings.SplitN(url.Path, "/", 4)
 	if len(parts) < 2 {
-		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
+		err = fmt.Errorf("Invalid GitHub URL: %s", url)
+		return
 	}
 
 	name := strings.TrimRight(parts[2], ".git")
+	p = &Project{Name: name, Owner: parts[1], Host: url.Host}
 
-	return &Project{Name: name, Owner: parts[1]}, nil
+	return
 }
 
+func NewProject(owner, name, host string) *Project {
+	if strings.Contains(owner, "/") {
+		result := strings.SplitN(owner, "/", 2)
+		owner = result[0]
+		if name == "" {
+			name = result[1]
+		}
+	} else if strings.Contains(name, "/") {
+		result := strings.SplitN(name, "/", 2)
+		if owner == "" {
+			owner = result[0]
+		}
+		name = result[1]
+	}
+
+	if host == "" {
+		host = GitHubHost
+	}
+
+	if owner == "" {
+		c := CurrentConfigs().PromptFor(host)
+		owner = c.User
+	}
+
+	if name == "" {
+		name, _ = utils.DirName()
+	}
+
+	return &Project{Name: name, Owner: owner}
+}
+
+// Deprecated:
 // NewProjectFromOwnerAndName creates a new Project from a specified owner and name
 //
 // If the owner or the name string is in the format of OWNER/NAME, it's split and used as the owner and name of the Project.

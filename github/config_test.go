@@ -15,7 +15,7 @@ func TestSaveConfig(t *testing.T) {
 	err := saveTo(file, &config)
 	assert.Equal(t, nil, err)
 
-	config, err = loadFrom(file)
+	err = loadFrom(file, &config)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "jingweno", config.User)
 	assert.Equal(t, "123", config.Token)
@@ -24,7 +24,7 @@ func TestSaveConfig(t *testing.T) {
 	err = saveTo(file, &newConfig)
 	assert.Equal(t, nil, err)
 
-	config, err = loadFrom(file)
+	err = loadFrom(file, &config)
 	assert.Equal(t, "foo", config.User)
 	assert.Equal(t, "456", config.Token)
 }

@@ -98,7 +98,7 @@ func pullRequest(cmd *Command, args *Args) {
 			if !strings.Contains(split[0], "/") {
 				name = baseProject.Name
 			}
-			baseProject = github.NewProjectFromOwnerAndName(split[0], name)
+			baseProject = github.NewProject(split[0], name, baseProject.Host)
 		} else {
 			base = flagPullRequestBase
 		}
@@ -108,7 +108,7 @@ func pullRequest(cmd *Command, args *Args) {
 		if strings.Contains(flagPullRequestHead, ":") {
 			split := strings.SplitN(flagPullRequestHead, ":", 2)
 			head = split[1]
-			headProject = github.NewProjectFromOwnerAndName(split[0], headProject.Name)
+			headProject = github.NewProject(split[0], headProject.Name, headProject.Host)
 			explicitOwner = true
 		} else {
 			head = flagPullRequestHead
@@ -154,11 +154,10 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	gh := github.NewWithoutProject()
-	gh.Project = baseProject
+	client := github.NewClient(baseProject)
 
 	// when no tracking, assume remote branch is published under active user's fork
-	if tberr != nil && !explicitOwner && gh.Config.User != headProject.Owner {
+	if tberr != nil && !explicitOwner && client.Config.User != headProject.Owner {
 		headProject = github.NewProjectFromOwnerAndName("", headProject.Name)
 	}
 
@@ -208,13 +207,13 @@ func pullRequest(cmd *Command, args *Args) {
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		if title != "" {
-			pr, err := gh.CreatePullRequest(base, fullHead, title, body)
+			pr, err := client.CreatePullRequest(base, fullHead, title, body)
 			utils.Check(err)
 			pullRequestURL = pr.HTMLURL
 		}
 
 		if flagPullRequestIssue != "" {
-			pr, err := gh.CreatePullRequestForIssue(base, fullHead, flagPullRequestIssue)
+			pr, err := client.CreatePullRequestForIssue(base, fullHead, flagPullRequestIssue)
 			utils.Check(err)
 			pullRequestURL = pr.HTMLURL
 		}

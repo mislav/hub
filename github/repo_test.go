@@ -6,7 +6,7 @@ import (
 )
 
 func TestFullBaseAndFullHead(t *testing.T) {
-	project := Project{"name", "owner"}
+	project := Project{Name: "name", Owner: "owner"}
 	repo := Repo{"base", "head", &project}
 
 	assert.Equal(t, "owner:base", repo.FullBase())

@@ -3,16 +3,11 @@ package github
 import (
 	"github.com/bmizerany/assert"
 	"net/url"
-	"os"
-	"path/filepath"
 	"testing"
 )
 
 func TestNewProjectOwnerAndName(t *testing.T) {
-	DefaultConfigFile = "./test_support/clone_gh"
-	config := Config{User: "jingweno", Token: "123"}
-	SaveConfig(&config)
-	defer os.RemoveAll(filepath.Dir(DefaultConfigFile))
+	CreateTestConfig("jingweno", "123")
 
 	project := NewProjectFromOwnerAndName("", "mojombo/gh")
 	assert.Equal(t, "mojombo", project.Owner)
@@ -44,7 +39,7 @@ func TestNewProjectOwnerAndName(t *testing.T) {
 }
 
 func TestWebURL(t *testing.T) {
-	project := Project{"foo", "bar"}
+	project := Project{Name: "foo", Owner: "bar"}
 	url := project.WebURL("", "", "baz")
 	assert.Equal(t, "https://github.com/bar/foo/baz", url)
 
@@ -53,7 +48,7 @@ func TestWebURL(t *testing.T) {
 }
 
 func TestGitURL(t *testing.T) {
-	project := Project{"foo", "bar"}
+	project := Project{Name: "foo", Owner: "bar"}
 	url := project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "git://github.com/jingweno/gh.git", url)
 

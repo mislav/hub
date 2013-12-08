@@ -1,14 +1,11 @@
 package github
 
 import (
-	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/howeyc/gopass"
 	"github.com/jingweno/gh/utils"
-	"os"
-	"path/filepath"
+	"io/ioutil"
 	"regexp"
 )
 
@@ -75,17 +72,14 @@ func (c *Config) FetchCredentials() {
 	}
 
 	if changed {
-		err := SaveConfig(c)
+		err := saveTo(configsFile(), c)
 		utils.Check(err)
 	}
 }
 
-var (
-	DefaultConfigFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
-)
-
 func CurrentConfig() *Config {
-	config, err := loadConfig()
+	var config Config
+	err := loadFrom(configsFile(), &config)
 	if err != nil {
 		config = Config{}
 	}
@@ -94,59 +88,13 @@ func CurrentConfig() *Config {
 	return &config
 }
 
-func loadConfig() (Config, error) {
-	configFile := os.Getenv("GH_CONFIG")
-	if configFile == "" {
-		configFile = DefaultConfigFile
-	}
-	return loadFrom(configFile)
-}
+// Public for testing purpose
+func CreateTestConfig(user, token string) *Config {
+	f, _ := ioutil.TempFile("", "test-config")
+	defaultConfigsFile = f.Name()
 
-func loadFrom(filename string) (Config, error) {
-	f, err := os.Open(filename)
-	if err != nil {
-		return Config{}, err
-	}
+	config := Config{User: "jingweno", Token: "123"}
+	saveTo(f.Name(), &config)
 
-	return doLoadFrom(f)
-}
-
-func doLoadFrom(f *os.File) (Config, error) {
-	defer f.Close()
-
-	reader := bufio.NewReader(f)
-	dec := json.NewDecoder(reader)
-
-	var c Config
-	err := dec.Decode(&c)
-	if err != nil {
-		return Config{}, err
-	}
-
-	return c, nil
-}
-
-func SaveConfig(config *Config) error {
-	return saveTo(DefaultConfigFile, config)
-}
-
-func saveTo(filename string, config *Config) error {
-	err := os.MkdirAll(filepath.Dir(filename), 0771)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-
-	return doSaveTo(f, config)
-}
-
-func doSaveTo(f *os.File, config *Config) error {
-	defer f.Close()
-
-	enc := json.NewEncoder(f)
-	return enc.Encode(config)
+	return &config
 }

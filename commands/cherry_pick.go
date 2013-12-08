@@ -2,6 +2,7 @@ package commands
 
 import (
 	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/utils"
 	"regexp"
 )
 
@@ -67,7 +68,8 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 	if ownerWithShaRegexp.MatchString(ref) {
 		matches := ownerWithShaRegexp.FindStringSubmatch(ref)
 		sha = matches[2]
-		project = github.CurrentProject()
+		project, err := github.LocalRepo().CurrentProject()
+		utils.Check(err)
 		project.Owner = matches[1]
 	}
 

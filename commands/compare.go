@@ -36,7 +36,8 @@ func init() {
   > open https://github.com/other-user/REPO/compare/patch
 */
 func compare(command *Command, args *Args) {
-	project := github.CurrentProject()
+	project, err := github.LocalRepo().CurrentProject()
+	utils.Check(err)
 
 	var r string
 	if args.IsParamsEmpty() {

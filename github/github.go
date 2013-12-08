@@ -249,12 +249,21 @@ func (gh *GitHub) octokit() (c *octokit.Client) {
 	return
 }
 
-func New() *GitHub {
-	project := CurrentProject()
-	c := CurrentConfig()
-	c.FetchUser()
+//func (gh *GitHub) apiHost() string {
+//gh.
+//}
 
-	return &GitHub{project, c}
+func New() *GitHub {
+	p, _ := LocalRepo().CurrentProject()
+
+	return NewClient(p)
+}
+
+func NewClient(p *Project) *GitHub {
+	gh := NewWithoutProject()
+	gh.Project = p
+
+	return gh
 }
 
 // TODO: detach project from GitHub

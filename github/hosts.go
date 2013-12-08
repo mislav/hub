@@ -2,7 +2,9 @@ package github
 
 import (
 	"fmt"
+	"github.com/jingweno/gh/git"
 	"os"
+	"strings"
 )
 
 type Hosts []string
@@ -18,16 +20,23 @@ func (h Hosts) Include(host string) bool {
 }
 
 func KnownHosts() (hosts Hosts) {
-	host := os.Getenv("GITHUB_HOST")
-	var mainHost string
-	if host != "" {
-		mainHost = host
-	} else {
-		mainHost = GitHubHost
+	ghHosts, _ := git.Config("gh.host")
+	for _, ghHost := range strings.Split(ghHosts, "\n") {
+		hosts = append(hosts, ghHost)
 	}
 
-	hosts = append(hosts, mainHost)
-	hosts = append(hosts, fmt.Sprintf("ssh.%s", mainHost))
+	defaultHost := defaultHost()
+	hosts = append(hosts, defaultHost)
+	hosts = append(hosts, fmt.Sprintf("ssh.%s", defaultHost))
 
 	return
+}
+
+func defaultHost() string {
+	defaultHost := os.Getenv("GITHUB_HOST")
+	if defaultHost == "" {
+		defaultHost = GitHubHost
+	}
+
+	return defaultHost
 }
