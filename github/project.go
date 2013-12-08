@@ -127,7 +127,7 @@ func NewProject(owner, name, host string) *Project {
 		name, _ = utils.DirName()
 	}
 
-	return &Project{Name: name, Owner: owner}
+	return &Project{Name: name, Owner: owner, Host: host}
 }
 
 // Deprecated:

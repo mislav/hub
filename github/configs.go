@@ -116,11 +116,11 @@ func configsFile() string {
 }
 
 func CurrentConfigs() *Configs {
-	var configs Configs
-	err := loadFrom(configsFile(), &configs)
+	var c []Credentials
+	err := loadFrom(configsFile(), &c)
 	if err != nil {
-		configs = Configs{make([]Credentials, 0)}
+		c = make([]Credentials, 0)
 	}
 
-	return &configs
+	return &Configs{c}
 }

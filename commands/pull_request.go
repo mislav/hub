@@ -157,8 +157,8 @@ func pullRequest(cmd *Command, args *Args) {
 	client := github.NewClient(baseProject)
 
 	// when no tracking, assume remote branch is published under active user's fork
-	if tberr != nil && !explicitOwner && client.Config.User != headProject.Owner {
-		headProject = github.NewProjectFromOwnerAndName("", headProject.Name)
+	if tberr != nil && !explicitOwner && client.Credentials.User != headProject.Owner {
+		headProject = github.NewProject("", headProject.Name, headProject.Host)
 	}
 
 	var title, body string
