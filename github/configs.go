@@ -25,8 +25,8 @@ type Configs struct {
 }
 
 func (c *Configs) PromptFor(host string) *Credentials {
-	t := c.Find(host)
-	if t == nil {
+	cc := c.Find(host)
+	if cc == nil {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
 		token, err := findOrCreateToken(user, pass, "")
@@ -39,13 +39,13 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		}
 		utils.Check(err)
 
-		cc := Credentials{Host: host, User: user, AccessToken: token}
-		c.Credentials = append(c.Credentials, cc)
-		err = saveTo(configsFile(), c)
+		cc = &Credentials{Host: host, User: user, AccessToken: token}
+		c.Credentials = append(c.Credentials, *cc)
+		err = saveTo(configsFile(), c.Credentials)
 		utils.Check(err)
 	}
 
-	return t
+	return cc
 }
 
 func (c *Configs) PromptForUser() string {
