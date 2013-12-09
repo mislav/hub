@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/howeyc/gopass"
 	"github.com/jingweno/gh/utils"
+	"io"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -103,7 +104,15 @@ func loadFrom(filename string, v interface{}) error {
 	defer f.Close()
 
 	dec := json.NewDecoder(f)
-	return dec.Decode(v)
+	for {
+		if err := dec.Decode(v); err == io.EOF {
+			break
+		} else if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func configsFile() string {
