@@ -247,7 +247,7 @@ func (gh *GitHub) octokit() (c *octokit.Client) {
 func (gh *GitHub) requestURL(u *url.URL) (uu *url.URL) {
 	uu = u
 	if gh.Project.Host != GitHubHost {
-		uu, _ = url.Parse(fmt.Sprintf("/api/v3%s", u.Path))
+		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
 	}
 
 	return
