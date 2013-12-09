@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	ReleasesURL = Hyperlink("/repos/{owner}/{repo}/releases{/id}")
+	ReleasesURL = Hyperlink("repos/{owner}/{repo}/releases{/id}")
 )
 
 type Release struct {

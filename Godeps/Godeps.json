@@ -6,6 +6,11 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "code.google.com/p/go-netrc/netrc",
+			"Comment": "null-12",
+			"Rev": "0da3cb9c37e02c4eddb0775a45d2d49a694d302c"
+		},
+		{
 			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
 			"Comment": "null-185",
 			"Rev": "6478cc9340cbbe6c04511280c5007722269108e9"
@@ -21,8 +26,8 @@
 		},
 		{
 			"ImportPath": "github.com/jingweno/go-octokit/octokit",
-			"Comment": "v0.4.0-22-gcc97681",
-			"Rev": "cc97681bc2fdc6e33ac50d02b59d0c786be10809"
+			"Comment": "v0.4.0-27-g1dbe02b",
+			"Rev": "1dbe02be6d8bd53eaf3869d97b1746ff82e2a807"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",

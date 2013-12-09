@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	StatusesURL = Hyperlink("/repos/{owner}/{repo}/statuses/{ref}")
+	StatusesURL = Hyperlink("repos/{owner}/{repo}/statuses/{ref}")
 )
 
 // Create a StatusesService with the base url.URL

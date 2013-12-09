@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	RootURL = Hyperlink("/")
+	RootURL = Hyperlink("")
 )
 
 func (c *Client) Rel(name string, m map[string]interface{}) (*url.URL, error) {

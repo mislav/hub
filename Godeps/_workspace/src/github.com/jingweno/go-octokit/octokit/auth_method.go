@@ -1,8 +1,12 @@
 package octokit
 
 import (
+	"code.google.com/p/go-netrc/netrc"
 	"encoding/base64"
 	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
 )
 
 // See http://developer.github.com/v3/auth/
@@ -18,6 +22,23 @@ type BasicAuth struct {
 
 func (b BasicAuth) String() string {
 	return fmt.Sprintf("Basic %s", hashAuth(b.Login, b.Password))
+}
+
+type NetrcAuth struct {
+	NetrcPath string
+}
+
+func (n NetrcAuth) String() string {
+	netrcPath := n.NetrcPath
+	if netrcPath == "" {
+		netrcPath = filepath.Join(os.Getenv("HOME"), ".netrc")
+	}
+	apiURL, _ := url.Parse(gitHubAPIURL)
+	credentials, err := netrc.FindMachine(netrcPath, apiURL.Host)
+	if err != nil {
+		panic(fmt.Errorf("netrc error (%s): %v", apiURL.Host, err))
+	}
+	return fmt.Sprintf("Basic %s", hashAuth(credentials.Login, credentials.Password))
 }
 
 func hashAuth(u, p string) string {

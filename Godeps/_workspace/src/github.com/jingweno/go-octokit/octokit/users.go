@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	CurrentUserURL = Hyperlink("/user")
-	UserURL        = Hyperlink("/users{/user}")
+	CurrentUserURL = Hyperlink("user")
+	UserURL        = Hyperlink("users{/user}")
 )
 
 // Create a UsersService with the base url.URL

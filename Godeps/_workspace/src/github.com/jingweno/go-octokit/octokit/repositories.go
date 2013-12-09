@@ -7,10 +7,10 @@ import (
 )
 
 var (
-	RepositoryURL       = Hyperlink("/repos/{owner}/{repo}")
-	ForksURL            = Hyperlink("/repos/{owner}/{repo}/forks")
-	UserRepositoriesURL = Hyperlink("/user/repos")
-	OrgRepositoriesURL  = Hyperlink("/orgs/{org}/repos")
+	RepositoryURL       = Hyperlink("repos/{owner}/{repo}")
+	ForksURL            = Hyperlink("repos/{owner}/{repo}/forks")
+	UserRepositoriesURL = Hyperlink("user/repos")
+	OrgRepositoriesURL  = Hyperlink("orgs/{org}/repos")
 )
 
 // Create a RepositoriesService with the base url.URL
