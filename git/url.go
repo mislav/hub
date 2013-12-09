@@ -7,7 +7,7 @@ import (
 )
 
 func ParseURL(rawurl string) (u *url.URL, err error) {
-	sshGitRegexp := regexp.MustCompile(`(\w+)@([\w.]+):([\w\/]+)(\.git)?`)
+	sshGitRegexp := regexp.MustCompile(`(.+)@(.+):(.+)(\.git)?`)
 	if sshGitRegexp.MatchString(rawurl) {
 		match := sshGitRegexp.FindStringSubmatch(rawurl)
 		user := match[1]
