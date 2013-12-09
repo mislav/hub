@@ -100,24 +100,24 @@ func TestMustMatchGitHubURL(t *testing.T) {
 }
 
 func TestNewProjectFromURL(t *testing.T) {
-	u, _ := url.Parse("ssh://git@github.com/jingweno/gh.git")
+	u, _ := url.Parse("ssh://git@github.com/octokit/go-octokit.git")
 	p, err := NewProjectFromURL(u)
 
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "gh", p.Name)
-	assert.Equal(t, "jingweno", p.Owner)
+	assert.Equal(t, "go-octokit", p.Name)
+	assert.Equal(t, "octokit", p.Owner)
 
-	u, _ = url.Parse("git://github.com/jingweno/gh.git")
+	u, _ = url.Parse("git://github.com/octokit/go-octokit.git")
 	p, err = NewProjectFromURL(u)
 
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "gh", p.Name)
-	assert.Equal(t, "jingweno", p.Owner)
+	assert.Equal(t, "go-octokit", p.Name)
+	assert.Equal(t, "octokit", p.Owner)
 
-	u, _ = url.Parse("https://github.com/jingweno/gh")
+	u, _ = url.Parse("https://github.com/octokit/go-octokit")
 	p, err = NewProjectFromURL(u)
 
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "gh", p.Name)
-	assert.Equal(t, "jingweno", p.Owner)
+	assert.Equal(t, "go-octokit", p.Name)
+	assert.Equal(t, "octokit", p.Owner)
 }

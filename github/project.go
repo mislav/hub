@@ -93,7 +93,7 @@ func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 		return
 	}
 
-	name := strings.TrimRight(parts[2], ".git")
+	name := strings.TrimSuffix(parts[2], ".git")
 	p = &Project{Name: name, Owner: parts[1], Host: url.Host}
 
 	return
