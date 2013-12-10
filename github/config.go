@@ -1,3 +1,5 @@
+// TODO: remove it in favour of Configs
+
 package github
 
 import (

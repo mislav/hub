@@ -72,6 +72,7 @@ func useHttpProtocol() bool {
 	return false
 }
 
+// TODO: remove it
 func (p *Project) LocalRepoWith(base, head string) *Repo {
 	if base == "" {
 		base = "master"

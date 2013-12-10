@@ -105,6 +105,7 @@ func (r *GitHubRepo) UpstreamProject() (project *Project, err error) {
 	return
 }
 
+// TODO: remove it
 type Repo struct {
 	Base    string
 	Head    string

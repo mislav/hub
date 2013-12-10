@@ -16,7 +16,7 @@ const (
 type GitHub struct {
 	Project     *Project
 	Credentials *Credentials
-	Config      *Config
+	Config      *Config // TODO: remove this
 }
 
 func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
@@ -271,18 +271,19 @@ func (gh *GitHub) apiEndpoint() string {
 	return endpoint
 }
 
+func NewClient(p *Project) *GitHub {
+	c := CurrentConfigs().PromptFor(p.Host)
+	return &GitHub{Project: p, Credentials: c}
+}
+
+// TODO: remove it
 func New() *GitHub {
 	p, _ := LocalRepo().CurrentProject()
 
 	return NewClient(p)
 }
 
-func NewClient(p *Project) *GitHub {
-	c := CurrentConfigs().PromptFor(p.Host)
-	return &GitHub{Project: p, Credentials: c}
-}
-
-// TODO: detach project from GitHub
+// TODO: remove it
 func NewWithoutProject() *GitHub {
 	c := CurrentConfig()
 	c.FetchUser()
