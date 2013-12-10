@@ -141,7 +141,8 @@ func pullRequest(cmd *Command, args *Args) {
 
 	// when no tracking, assume remote branch is published under active user's fork
 	if trackedBranch == nil && !explicitOwner && client.Credentials.User != headProject.Owner {
-		headProject = github.NewProject("", headProject.Name, headProject.Host)
+		// disable this on gh
+		//headProject = github.NewProject("", headProject.Name, headProject.Host)
 	}
 
 	var title, body string
