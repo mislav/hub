@@ -52,7 +52,9 @@ func browse(command *Command, args *Args) {
 		subpage = args.RemoveParam(0)
 	}
 
-	project := github.CurrentProject()
+	project, err := github.LocalRepo().CurrentProject()
+	utils.Check(err)
+
 	if subpage == "tree" || subpage == "commits" {
 		repo := project.LocalRepo()
 		subpage = utils.ConcatPaths(subpage, repo.Head)

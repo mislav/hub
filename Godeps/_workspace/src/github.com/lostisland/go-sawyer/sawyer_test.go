@@ -2,6 +2,7 @@ package sawyer
 
 import (
 	"github.com/bmizerany/assert"
+	"github.com/lostisland/go-sawyer/hypermedia"
 	"net/url"
 	"testing"
 )
@@ -98,4 +99,33 @@ func TestResolveClientQueryWithClientQuery(t *testing.T) {
 	}
 
 	assert.Equal(t, "http://api.github.com/foo?a=1&b=2&c=3&d=4", u)
+}
+
+func TestResolveClientRelativeReference(t *testing.T) {
+	client, err := NewFromString("http://github.enterprise.com/api/v3/", nil)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	u, err := client.ResolveReferenceString("users")
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	assert.Equal(t, "http://github.enterprise.com/api/v3/users", u)
+}
+
+func TestResolveClientRelativeHyperlink(t *testing.T) {
+	client, err := NewFromString("http://github.enterprise.com/api/v3/", nil)
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+	link := hypermedia.Hyperlink("repos/{repo}")
+	expanded, err := link.Expand(hypermedia.M{"repo": "foo"})
+
+	u, err := client.ResolveReferenceString(expanded.String())
+	if err != nil {
+		t.Fatal(err.Error())
+	}
+
+	assert.Equal(t, "http://github.enterprise.com/api/v3/repos/foo", u)
 }

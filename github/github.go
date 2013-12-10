@@ -3,16 +3,20 @@ package github
 import (
 	"fmt"
 	"github.com/jingweno/go-octokit/octokit"
+	"net/url"
+	"os"
 )
 
 const (
-	GitHubHost  string = "github.com"
-	OAuthAppURL string = "http://owenou.com/gh"
+	GitHubHost   string = "github.com"
+	GitHubApiURL string = "https://api.github.com"
+	OAuthAppURL  string = "http://owenou.com/gh"
 )
 
 type GitHub struct {
-	Project *Project
-	Config  *Config
+	Project     *Project
+	Credentials *Credentials
+	Config      *Config // TODO: remove this
 }
 
 func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
@@ -22,7 +26,7 @@ func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
 	}
 
 	client := gh.octokit()
-	pr, result := client.PullRequests(url).One()
+	pr, result := client.PullRequests(gh.requestURL(url)).One()
 	if result.HasError() {
 		err = result.Err
 	}
@@ -38,7 +42,7 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (pr *octokit
 
 	client := gh.octokit()
 	params := octokit.PullRequestParams{Base: base, Head: head, Title: title, Body: body}
-	pr, result := client.PullRequests(url).Create(params)
+	pr, result := client.PullRequests(gh.requestURL(url)).Create(params)
 	if result.HasError() {
 		err = result.Err
 	}
@@ -54,7 +58,7 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (pr *octok
 
 	client := gh.octokit()
 	params := octokit.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
-	pr, result := client.PullRequests(url).Create(params)
+	pr, result := client.PullRequests(gh.requestURL(url)).Create(params)
 	if result.HasError() {
 		err = result.Err
 	}
@@ -62,14 +66,14 @@ func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (pr *octok
 	return
 }
 
-func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err error) {
+func (gh *GitHub) Repository(project *Project) (repo *octokit.Repository, err error) {
 	url, err := octokit.RepositoryURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
 		return
 	}
 
 	client := gh.octokit()
-	repo, result := client.Repositories(url).One()
+	repo, result := client.Repositories(gh.requestURL(url)).One()
 	if result.HasError() {
 		err = result.Err
 	}
@@ -78,15 +82,15 @@ func (gh *GitHub) Repository(project Project) (repo *octokit.Repository, err err
 }
 
 // TODO: detach GitHub from Project
-func (gh *GitHub) IsRepositoryExist(project Project) bool {
+func (gh *GitHub) IsRepositoryExist(project *Project) bool {
 	repo, err := gh.Repository(project)
 
 	return err == nil && repo != nil
 }
 
-func (gh *GitHub) CreateRepository(project Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
+func (gh *GitHub) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
 	var repoURL octokit.Hyperlink
-	if project.Owner != gh.Config.FetchUser() {
+	if project.Owner != gh.Credentials.User {
 		repoURL = octokit.OrgRepositoriesURL
 	} else {
 		repoURL = octokit.UserRepositoriesURL
@@ -98,8 +102,13 @@ func (gh *GitHub) CreateRepository(project Project, description, homepage string
 	}
 
 	client := gh.octokit()
-	params := octokit.Repository{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
-	repo, result := client.Repositories(url).Create(params)
+	params := octokit.Repository{
+		Name:        project.Name,
+		Description: description,
+		Homepage:    homepage,
+		Private:     isPrivate,
+	}
+	repo, result := client.Repositories(gh.requestURL(url)).Create(params)
 	if result.HasError() {
 		err = result.Err
 	}
@@ -114,7 +123,7 @@ func (gh *GitHub) Releases() (releases []octokit.Release, err error) {
 	}
 
 	client := gh.octokit()
-	releases, result := client.Releases(url).All()
+	releases, result := client.Releases(gh.requestURL(url)).All()
 	if result.HasError() {
 		err = result.Err
 		return
@@ -130,7 +139,7 @@ func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
 	}
 
 	client := gh.octokit()
-	statuses, result := client.Statuses(url).All()
+	statuses, result := client.Statuses(gh.requestURL(url)).All()
 	if result.HasError() {
 		err = result.Err
 		return
@@ -145,7 +154,7 @@ func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
 
 func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokit.Repository, err error) {
 	config := gh.Config
-	project := Project{Name: name, Owner: config.User}
+	project := &Project{Name: name, Owner: config.User}
 	r, err := gh.Repository(project)
 	if err == nil && r != nil {
 		err = fmt.Errorf("Error creating fork: %s exists on %s", r.FullName, GitHubHost)
@@ -158,7 +167,7 @@ func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octok
 	}
 
 	client := gh.octokit()
-	repo, result := client.Repositories(url).Create(nil)
+	repo, result := client.Repositories(gh.requestURL(url)).Create(nil)
 	if result.HasError() {
 		err = result.Err
 	}
@@ -173,7 +182,7 @@ func (gh *GitHub) Issues() (issues []octokit.Issue, err error) {
 	}
 
 	client := gh.octokit()
-	issues, result := client.Issues(url).All()
+	issues, result := client.Issues(gh.requestURL(url)).All()
 	if result.HasError() {
 		err = result.Err
 		return
@@ -233,26 +242,51 @@ func findOrCreateToken(user, password, twoFactorCode string) (token string, err 
 	return
 }
 
-func (gh *GitHub) octokit() *octokit.Client {
-	config := gh.Config
-	config.FetchCredentials()
-	tokenAuth := octokit.TokenAuth{AccessToken: config.Token}
+func (gh *GitHub) octokit() (c *octokit.Client) {
+	tokenAuth := octokit.TokenAuth{AccessToken: gh.Credentials.AccessToken}
+	c = octokit.NewClientWith(gh.apiEndpoint(), nil, tokenAuth)
 
-	return octokit.NewClient(tokenAuth)
+	return
 }
 
+func (gh *GitHub) requestURL(u *url.URL) (uu *url.URL) {
+	uu = u
+	if gh.Project.Host != GitHubHost {
+		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
+	}
+
+	return
+}
+
+func (gh *GitHub) apiEndpoint() string {
+	endpoint := os.Getenv("GH_API_HOST")
+	if endpoint == "" {
+		endpoint = gh.Project.Host
+	}
+
+	if endpoint == GitHubHost {
+		endpoint = GitHubApiURL
+	}
+
+	return endpoint
+}
+
+func NewClient(p *Project) *GitHub {
+	c := CurrentConfigs().PromptFor(p.Host)
+	return &GitHub{Project: p, Credentials: c}
+}
+
+// TODO: remove it
 func New() *GitHub {
-	project := CurrentProject()
-	c := CurrentConfig()
-	c.FetchUser()
+	p, _ := LocalRepo().CurrentProject()
 
-	return &GitHub{project, c}
+	return NewClient(p)
 }
 
-// TODO: detach project from GitHub
+// TODO: remove it
 func NewWithoutProject() *GitHub {
 	c := CurrentConfig()
 	c.FetchUser()
 
-	return &GitHub{nil, c}
+	return &GitHub{Project: nil, Config: c}
 }

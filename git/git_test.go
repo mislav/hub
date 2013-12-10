@@ -26,12 +26,7 @@ func TestGitEditor(t *testing.T) {
 func TestGitRemote(t *testing.T) {
 	gitRemote, _ := OriginRemote()
 	assert.Equal(t, "origin", gitRemote.Name)
-	assert.T(t, strings.Contains(gitRemote.URL, "gh"))
-}
-
-func TestGitHead(t *testing.T) {
-	gitHead, _ := Head()
-	assert.NotEqual(t, "", gitHead)
+	assert.T(t, strings.Contains(gitRemote.URL.String(), "gh"))
 }
 
 func TestGitLog(t *testing.T) {

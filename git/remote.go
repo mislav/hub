@@ -2,37 +2,49 @@ package git
 
 import (
 	"errors"
+	"net/url"
 	"regexp"
+	"strings"
 )
 
-type GitRemote struct {
+type Remote struct {
 	Name string
-	URL  string
+	URL  *url.URL
 }
 
-func Remotes() ([]*GitRemote, error) {
-	r := regexp.MustCompile("(.+)\t(.+github.com.+) \\(push\\)")
+func Remotes() (remotes []Remote, err error) {
+	re := regexp.MustCompile(`(.+)\s+(.+)\s+\((push|fetch)\)`)
+
 	output, err := execGitCmd("remote", "-v")
 	if err != nil {
-		return nil, errors.New("Can't load git remote")
+		err = errors.New("Can't load git remote")
+		return
 	}
 
-	remotes := make([]*GitRemote, 0)
+	remotesMap := make(map[string]string)
 	for _, o := range output {
-		if r.MatchString(o) {
-			match := r.FindStringSubmatch(o)
-			remotes = append(remotes, &GitRemote{Name: match[1], URL: match[2]})
+		if re.MatchString(o) {
+			match := re.FindStringSubmatch(o)
+			k := strings.TrimSpace(match[1])
+			v := strings.TrimSpace(match[2])
+			remotesMap[k] = v
 		}
 	}
 
-	if len(remotes) == 0 {
-		return nil, errors.New("Can't find git remote (push)")
+	for k, v := range remotesMap {
+		url, e := ParseURL(v)
+		if e != nil {
+			err = e
+			return
+		}
+
+		remotes = append(remotes, Remote{Name: k, URL: url})
 	}
 
-	return remotes, nil
+	return
 }
 
-func OriginRemote() (*GitRemote, error) {
+func OriginRemote() (*Remote, error) {
 	remotes, err := Remotes()
 	if err != nil {
 		return nil, err
@@ -40,9 +52,9 @@ func OriginRemote() (*GitRemote, error) {
 
 	for _, r := range remotes {
 		if r.Name == "origin" {
-			return r, nil
+			return &r, nil
 		}
 	}
 
-	return nil, errors.New("Can't find git remote origin (push)")
+	return nil, errors.New("Can't find git remote origin")
 }

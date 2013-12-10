@@ -10,18 +10,29 @@ import (
 
 var cmdCiStatus = &Command{
 	Run:   ciStatus,
-	Usage: "ci-status [COMMIT]",
+	Usage: "ci-status [-v] [COMMIT]",
 	Short: "Show CI status of a commit",
-	Long: `Looks up the SHA for COMMIT in GitHub Status API and displays the latest
-status. If no COMMIT is provided, HEAD will be used. Exits with one of:
-
+	Long: `Looks up the SHA for <COMMIT> in GitHub Status API and displays the latest
+status. Exits with one of:
 success (0), error (1), failure (1), pending (2), no status (3)
+
+If "-v" is given, additionally print the URL to CI build results.
 `,
+}
+
+var flagCiStatusVerbose bool
+
+func init() {
+	cmdCiStatus.Flag.BoolVar(&flagCiStatusVerbose, "v", false, "VERBOSE")
 }
 
 /*
   $ gh ci-status
   > (prints CI state of HEAD and exits with appropriate code)
+  > One of: success (0), error (1), failure (1), pending (2), no status (3)
+
+  $ gh ci-status -v
+  > (prints CI state of HEAD, the URL to the CI build results and exits with appropriate code)
   > One of: success (0), error (1), failure (1), pending (2), no status (3)
 
   $ gh ci-status BRANCH
@@ -38,30 +49,34 @@ func ciStatus(cmd *Command, args *Args) {
 		ref = args.RemoveParam(0)
 	}
 
-	ref, err := git.Ref(ref)
+	localRepo := github.LocalRepo()
+	headProject, err := localRepo.CurrentProject()
 	utils.Check(err)
 
-	args.Replace("", "")
+	sha, err := git.Ref(ref)
+	if err != nil {
+		err = fmt.Errorf("Aborted: no revision could be determined from '%s'", ref)
+	}
+	utils.Check(err)
+
 	if args.Noop {
-		fmt.Printf("Would request CI status for %s\n", ref)
+		fmt.Printf("Would request CI status for %s\n", sha)
 	} else {
-		state, targetURL, desc, exitCode, err := fetchCiStatus(ref)
+		state, targetURL, exitCode, err := fetchCiStatus(headProject, sha)
 		utils.Check(err)
-		fmt.Println(state)
-		if targetURL != "" {
-			fmt.Println(targetURL)
-		}
-		if desc != "" {
-			fmt.Println(desc)
+		if flagCiStatusVerbose && targetURL != "" {
+			fmt.Printf("%s: %s\n", state, targetURL)
+		} else {
+			fmt.Println(state)
 		}
 
 		os.Exit(exitCode)
 	}
 }
 
-func fetchCiStatus(ref string) (state, targetURL, desc string, exitCode int, err error) {
-	gh := github.New()
-	status, err := gh.CIStatus(ref)
+func fetchCiStatus(p *github.Project, sha string) (state, targetURL string, exitCode int, err error) {
+	gh := github.NewClient(p)
+	status, err := gh.CIStatus(sha)
 	if err != nil {
 		return
 	}
@@ -71,7 +86,6 @@ func fetchCiStatus(ref string) (state, targetURL, desc string, exitCode int, err
 	} else {
 		state = status.State
 		targetURL = status.TargetURL
-		desc = status.Description
 	}
 
 	switch state {

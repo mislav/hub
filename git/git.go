@@ -1,7 +1,6 @@
 package git
 
 import (
-	"errors"
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"path/filepath"
@@ -11,7 +10,7 @@ import (
 func Version() (string, error) {
 	output, err := execGitCmd("version")
 	if err != nil {
-		return "", errors.New("Can't load git version")
+		return "", fmt.Errorf("Can't load git version")
 	}
 
 	return output[0], nil
@@ -20,7 +19,7 @@ func Version() (string, error) {
 func Dir() (string, error) {
 	output, err := execGitCmd("rev-parse", "-q", "--git-dir")
 	if err != nil {
-		return "", errors.New("Not a git repository (or any of the parent directories): .git")
+		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
 	}
 
 	gitDir := output[0]
@@ -44,25 +43,34 @@ func PullReqMsgFile() (string, error) {
 func Editor() (string, error) {
 	output, err := execGitCmd("var", "GIT_EDITOR")
 	if err != nil {
-		return "", errors.New("Can't load git var: GIT_EDITOR")
+		return "", fmt.Errorf("Can't load git var: GIT_EDITOR")
 	}
 
 	return output[0], nil
 }
 
-func Head() (*Branch, error) {
+func Head() (string, error) {
 	output, err := execGitCmd("symbolic-ref", "-q", "HEAD")
 	if err != nil {
-		return nil, errors.New("Can't load git HEAD")
+		return "", fmt.Errorf("Can't load git HEAD")
 	}
 
-	return &Branch{output[0]}, nil
+	return output[0], nil
+}
+
+func SymbolicFullName(name string) (string, error) {
+	output, err := execGitCmd("rev-parse", "--symbolic-full-name", name)
+	if err != nil {
+		return "", fmt.Errorf("Unknown revision or path not in the working tree: %s", name)
+	}
+
+	return output[0], nil
 }
 
 func Ref(ref string) (string, error) {
 	output, err := execGitCmd("rev-parse", "-q", ref)
 	if err != nil {
-		return "", errors.New("Unknown revision or path not in the working tree: " + ref)
+		return "", fmt.Errorf("Unknown revision or path not in the working tree: %s", ref)
 	}
 
 	return output[0], nil
@@ -72,7 +80,7 @@ func RefList(a, b string) ([]string, error) {
 	ref := fmt.Sprintf("%s...%s", a, b)
 	output, err := execGitCmd("rev-list", "--cherry-pick", "--right-only", "--no-merges", ref)
 	if err != nil {
-		return nil, errors.New("Can't load rev-list for %s" + ref)
+		return []string{}, fmt.Errorf("Can't load rev-list for %s", ref)
 	}
 
 	return output, nil
@@ -81,7 +89,7 @@ func RefList(a, b string) ([]string, error) {
 func Show(sha string) (string, error) {
 	output, err := execGitCmd("show", "-s", "--format=%w(78,0,0)%s%+b", sha)
 	if err != nil {
-		return "", errors.New("Can't show commit for %s" + sha)
+		return "", fmt.Errorf("Can't show commit for %s", sha)
 	}
 
 	return output[0], nil
@@ -97,7 +105,7 @@ func Log(sha1, sha2 string) (string, error) {
 
 	outputs, err := execCmd.ExecOutput()
 	if err != nil {
-		return "", errors.New("Can't load git log " + sha1 + ".." + sha2)
+		return "", fmt.Errorf("Can't load git log %s..%s", sha1, sha2)
 	}
 
 	return outputs, nil

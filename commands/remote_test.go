@@ -4,12 +4,12 @@ import (
 	"github.com/bmizerany/assert"
 	"github.com/jingweno/gh/github"
 	"os"
-	"path/filepath"
 	"regexp"
 	"testing"
 )
 
 func TestTransformRemoteArgs(t *testing.T) {
+	os.Setenv("GH_PROTOCOL", "git")
 	args := NewArgs([]string{"remote", "add", "jingweno"})
 	transformRemoteArgs(args)
 
@@ -28,10 +28,7 @@ func TestTransformRemoteArgs(t *testing.T) {
 	reg = regexp.MustCompile("^git@github.com:jingweno/.+\\.git$")
 	assert.T(t, reg.MatchString(args.GetParam(2)))
 
-	github.DefaultConfigFile = "./test_support/gh"
-	config := github.Config{User: "jingweno", Token: "123"}
-	github.SaveConfig(&config)
-	defer os.RemoveAll(filepath.Dir(github.DefaultConfigFile))
+	github.CreateTestConfig("jingweno", "123")
 
 	args = NewArgs([]string{"remote", "add", "origin"})
 	transformRemoteArgs(args)

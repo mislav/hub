@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"strings"
 )
@@ -40,7 +40,8 @@ func transformPushArgs(args *Args) {
 	args.ReplaceParam(0, remotes[0])
 
 	if len(refs) == 0 {
-		head, err := git.Head()
+		localRepo := github.LocalRepo()
+		head, err := localRepo.CurrentBranch()
 		utils.Check(err)
 		refs = []string{head.ShortName()}
 		args.AppendParams(refs...)

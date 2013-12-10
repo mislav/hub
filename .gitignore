@@ -2,3 +2,4 @@ gh
 *.test
 target
 .vagrant
+/tmp

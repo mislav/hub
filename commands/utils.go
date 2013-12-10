@@ -50,7 +50,7 @@ func fetchPullRequest(id string) (*octokit.PullRequest, error) {
 
 	if pullRequest.Head.Repo.ID == 0 {
 		user := pullRequest.User.Login
-		return nil, fmt.Errorf("%s's fork is not available anymore", user)
+		return nil, fmt.Errorf("Error: %s's fork is not available anymore", user)
 	}
 
 	return pullRequest, nil

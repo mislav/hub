@@ -2,8 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"github.com/jingweno/go-octokit/octokit"
+	"regexp"
 )
 
 var cmdMerge = &Command{
@@ -29,36 +30,51 @@ func merge(command *Command, args *Args) {
 }
 
 func transformMergeArgs(args *Args) error {
-	id := parsePullRequestId(args.FirstParam())
-	if id != "" {
-		pullRequest, err := fetchPullRequest(id)
-		if err != nil {
-			return err
-		}
-
-		err = fetchAndMerge(args, pullRequest)
-		if err != nil {
-			return err
-		}
+	words := args.Words()
+	if len(words) == 0 {
+		return nil
 	}
 
-	return nil
-}
+	mergeUrl := words[0]
+	url, err := github.ParseURL(mergeUrl)
+	if err != nil {
+		return nil
+	}
 
-func fetchAndMerge(args *Args, pullRequest *octokit.PullRequest) error {
-	user, branch := parseUserBranchFromPR(pullRequest)
-	url, err := convertToGitURL(pullRequest.HTMLURL, user, pullRequest.Head.Repo.Private)
+	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
+	projectPath := url.ProjectPath()
+	if !pullURLRegex.MatchString(projectPath) {
+		return nil
+	}
+
+	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
+	gh := github.NewClient(url.Project)
+	pullRequest, err := gh.PullRequest(id)
 	if err != nil {
 		return err
 	}
 
-	args.RemoveParam(0) // Remove the pull request URL
+	user, branch := parseUserBranchFromPR(pullRequest)
+	if pullRequest.Head.Repo.ID == 0 {
+		return fmt.Errorf("Error: %s's fork is not available anymore", user)
+	}
 
+	u := url.GitURL("", user, pullRequest.Head.Repo.Private)
 	mergeHead := fmt.Sprintf("%s/%s", user, branch)
 	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
-	args.Before("git", "fetch", url, ref)
-	mergeMsg := fmt.Sprintf("Merge pull request #%v from %s\n\n%s", pullRequest.Number, mergeHead, pullRequest.Title)
-	args.AppendParams(mergeHead, "--no-ff", "-m", mergeMsg)
+	args.Before("git", "fetch", u, ref)
+
+	// Remove pull request URL
+	idx := args.IndexOfParam(mergeUrl)
+	args.RemoveParam(idx)
+
+	mergeMsg := fmt.Sprintf(`"Merge pull request #%v from %s\n\n%s"`, id, mergeHead, pullRequest.Title)
+	args.AppendParams(mergeHead, "-m", mergeMsg)
+
+	if args.IndexOfParam("--ff-only") == -1 {
+		i := args.IndexOfParam("-m")
+		args.InsertParam(i, "--no-ff")
+	}
 
 	return nil
 }

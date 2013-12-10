@@ -6,6 +6,7 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -13,6 +14,7 @@ import (
 type Project struct {
 	Name  string
 	Owner string
+	Host  string
 }
 
 func (p Project) String() string {
@@ -43,23 +45,44 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 		owner = p.Owner
 	}
 
-	if isSSH {
-		url = fmt.Sprintf("git@%s:%s/%s.git", GitHubHost, owner, name)
+	if useHttpProtocol() {
+		url = fmt.Sprintf("https://%s/%s/%s.git", p.Host, owner, name)
+	} else if isSSH {
+		url = fmt.Sprintf("git@%s:%s/%s.git", p.Host, owner, name)
 	} else {
-		url = fmt.Sprintf("git://%s.git", utils.ConcatPaths(GitHubHost, owner, name))
+		url = fmt.Sprintf("git://%s/%s/%s.git", p.Host, owner, name)
 	}
 
 	return url
 }
 
+func useHttpProtocol() bool {
+	https := os.Getenv("GH_PROTOCOL")
+	if https == "https" {
+		return true
+	} else if https != "" {
+		return false
+	}
+
+	https, _ = git.Config("gh.protocol")
+	if https == "https" {
+		return true
+	}
+
+	return false
+}
+
+// TODO: remove it
 func (p *Project) LocalRepoWith(base, head string) *Repo {
 	if base == "" {
 		base = "master"
 	}
 	if head == "" {
 		headBranch, err := git.Head()
-		utils.Check(err)
-		head = headBranch.ShortName()
+		if err != nil {
+			utils.Check(fmt.Errorf("Aborted: not currently on any branch."))
+		}
+		head = (&Branch{headBranch}).ShortName()
 	}
 
 	return &Repo{base, head, p}
@@ -73,32 +96,78 @@ func CurrentProject() *Project {
 	remote, err := git.OriginRemote()
 	utils.Check(err)
 
-	owner, name := parseOwnerAndName(remote.URL)
+	owner, name := parseOwnerAndName(remote.URL.String())
 
-	return &Project{name, owner}
+	return &Project{Name: name, Owner: owner}
 }
 
-func NewProjectFromURL(url *url.URL) (*Project, error) {
-	if url.Host != GitHubHost || url.Scheme != "https" {
-		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
+func NewProjectFromURL(url *url.URL) (p *Project, err error) {
+	if !KnownHosts().Include(url.Host) {
+		err = fmt.Errorf("Invalid GitHub URL: %s", url)
+		return
 	}
 
 	parts := strings.SplitN(url.Path, "/", 4)
 	if len(parts) < 2 {
-		return nil, fmt.Errorf("Invalid GitHub URL: %s", url)
+		err = fmt.Errorf("Invalid GitHub URL: %s", url)
+		return
 	}
 
-	return &Project{Name: parts[2], Owner: parts[1]}, nil
+	name := strings.TrimSuffix(parts[2], ".git")
+	p = &Project{Name: name, Owner: parts[1], Host: url.Host}
+
+	return
 }
 
-func NewProjectFromNameAndOwner(name, owner string) Project {
+func NewProject(owner, name, host string) *Project {
 	if strings.Contains(owner, "/") {
 		result := strings.SplitN(owner, "/", 2)
 		owner = result[0]
-		name = result[1]
+		if name == "" {
+			name = result[1]
+		}
 	} else if strings.Contains(name, "/") {
+		result := strings.SplitN(name, "/", 2)
+		if owner == "" {
+			owner = result[0]
+		}
+		name = result[1]
+	}
+
+	if host == "" {
+		host = GitHubHost
+	}
+
+	if owner == "" {
+		c := CurrentConfigs().PromptFor(host)
+		owner = c.User
+	}
+
+	if name == "" {
+		name, _ = utils.DirName()
+	}
+
+	return &Project{Name: name, Owner: owner, Host: host}
+}
+
+// Deprecated:
+// NewProjectFromOwnerAndName creates a new Project from a specified owner and name
+//
+// If the owner or the name string is in the format of OWNER/NAME, it's split and used as the owner and name of the Project.
+// If the owner string is empty, the current user is used as the name of the Project.
+// If the name string is empty, the current dir name is used as the name of the Project.
+func NewProjectFromOwnerAndName(owner, name string) *Project {
+	if strings.Contains(owner, "/") {
 		result := strings.SplitN(owner, "/", 2)
 		owner = result[0]
+		if name == "" {
+			name = result[1]
+		}
+	} else if strings.Contains(name, "/") {
+		result := strings.SplitN(name, "/", 2)
+		if owner == "" {
+			owner = result[0]
+		}
 		name = result[1]
 	}
 
@@ -110,7 +179,7 @@ func NewProjectFromNameAndOwner(name, owner string) Project {
 		name, _ = utils.DirName()
 	}
 
-	return Project{Name: name, Owner: owner}
+	return &Project{Name: name, Owner: owner}
 }
 
 func parseOwnerAndName(remote string) (owner string, name string) {
