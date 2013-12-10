@@ -90,7 +90,7 @@ func (gh *GitHub) IsRepositoryExist(project *Project) bool {
 
 func (gh *GitHub) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
 	var repoURL octokit.Hyperlink
-	if project.Owner != gh.Config.FetchUser() {
+	if project.Owner != gh.Credentials.User {
 		repoURL = octokit.OrgRepositoriesURL
 	} else {
 		repoURL = octokit.UserRepositoriesURL
@@ -102,7 +102,12 @@ func (gh *GitHub) CreateRepository(project *Project, description, homepage strin
 	}
 
 	client := gh.octokit()
-	params := octokit.Repository{Name: project.Name, Description: description, Homepage: homepage, Private: isPrivate}
+	params := octokit.Repository{
+		Name:        project.Name,
+		Description: description,
+		Homepage:    homepage,
+		Private:     isPrivate,
+	}
 	repo, result := client.Repositories(gh.requestURL(url)).Create(params)
 	if result.HasError() {
 		err = result.Err

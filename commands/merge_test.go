@@ -3,10 +3,13 @@ package commands
 import (
 	"github.com/bmizerany/assert"
 	"github.com/jingweno/go-octokit/octokit"
+	"os"
 	"testing"
 )
 
 func TestFetchAndMerge(t *testing.T) {
+	os.Setenv("GH_PROTOCOL", "git")
+
 	url := "https://github.com/jingweno/gh/pull/73"
 	number := 73
 	title := "title"

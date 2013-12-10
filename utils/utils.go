@@ -60,5 +60,7 @@ func DirName() (string, error) {
 		return "", err
 	}
 
-	return filepath.Base(dir), nil
+	name := filepath.Base(dir)
+	name = strings.Replace(name, " ", "-", -1)
+	return name, nil
 }

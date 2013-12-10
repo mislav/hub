@@ -3,11 +3,13 @@ package commands
 import (
 	"github.com/bmizerany/assert"
 	"github.com/jingweno/gh/github"
+	"os"
 	"regexp"
 	"testing"
 )
 
 func TestTransformRemoteArgs(t *testing.T) {
+	os.Setenv("GH_PROTOCOL", "git")
 	args := NewArgs([]string{"remote", "add", "jingweno"})
 	transformRemoteArgs(args)
 

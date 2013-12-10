@@ -6,6 +6,7 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -44,13 +45,31 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 		owner = p.Owner
 	}
 
-	if isSSH {
-		url = fmt.Sprintf("git@%s:%s/%s.git", GitHubHost, owner, name)
+	if useHttpProtocol() {
+		url = fmt.Sprintf("https://%s/%s/%s.git", p.Host, owner, name)
+	} else if isSSH {
+		url = fmt.Sprintf("git@%s:%s/%s.git", p.Host, owner, name)
 	} else {
-		url = fmt.Sprintf("git://%s.git", utils.ConcatPaths(GitHubHost, owner, name))
+		url = fmt.Sprintf("git://%s/%s/%s.git", p.Host, owner, name)
 	}
 
 	return url
+}
+
+func useHttpProtocol() bool {
+	https := os.Getenv("GH_PROTOCOL")
+	if https == "https" {
+		return true
+	} else if https != "" {
+		return false
+	}
+
+	https, _ = git.Config("gh.protocol")
+	if https == "https" {
+		return true
+	}
+
+	return false
 }
 
 func (p *Project) LocalRepoWith(base, head string) *Repo {

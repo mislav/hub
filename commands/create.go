@@ -5,6 +5,8 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"regexp"
+	"strings"
 )
 
 var cmdCreate = &Command{
@@ -49,30 +51,49 @@ func init() {
   > git remote add origin git@github.com:sinatra/recipes.git
 */
 func create(command *Command, args *Args) {
-	var (
-		name string
-		err  error
-	)
-	if args.IsParamsEmpty() {
-		name, err = utils.DirName()
+	_, err := git.Dir()
+	if err != nil {
+		err = fmt.Errorf("'create' must be run from inside a git repository")
 		utils.Check(err)
-	} else {
-		name = args.FirstParam()
 	}
 
-	var msg string
-	project := github.NewProjectFromOwnerAndName("", name)
-	gh := github.NewWithoutProject()
-	if gh.IsRepositoryExist(project) {
-		fmt.Printf("%s already exists on %s\n", project, github.GitHubHost)
-		msg = "set remote origin"
+	var newRepoName string
+	if args.IsParamsEmpty() {
+		newRepoName, err = utils.DirName()
+		utils.Check(err)
 	} else {
+		reg := regexp.MustCompile("^[^-]")
+		if !reg.MatchString(args.FirstParam()) {
+			err = fmt.Errorf("invalid argument: %s", args.FirstParam())
+			utils.Check(err)
+		}
+		newRepoName = args.FirstParam()
+	}
+
+	configs := github.CurrentConfigs()
+	credentials := configs.PromptFor(github.DefaultHost())
+
+	owner := credentials.User
+	if strings.Contains(newRepoName, "/") {
+		split := strings.SplitN(newRepoName, "/", 2)
+		owner = split[0]
+		newRepoName = split[1]
+	}
+
+	project := github.NewProject(owner, newRepoName, credentials.Host)
+	gh := github.NewClient(project)
+
+	var action string
+	if gh.IsRepositoryExist(project) {
+		fmt.Printf("%s already exists on %s\n", project, project.Host)
+		action = "set remote origin"
+	} else {
+		action = "created repository"
 		if !args.Noop {
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
 			utils.Check(err)
-			project = github.NewProjectFromOwnerAndName(repo.FullName, "")
+			project = github.NewProject(repo.FullName, "", project.Host)
 		}
-		msg = "created repository"
 	}
 
 	remote, _ := git.OriginRemote()
@@ -83,5 +104,5 @@ func create(command *Command, args *Args) {
 		args.Replace("git", "remote", "-v")
 	}
 
-	args.After("echo", fmt.Sprintf("%s:", msg), project.String())
+	args.After("echo", fmt.Sprintf("%s:", action), project.String())
 }

@@ -3,10 +3,13 @@ package commands
 import (
 	"github.com/bmizerany/assert"
 	"github.com/jingweno/gh/github"
+	"os"
 	"testing"
 )
 
 func TestTransformCloneArgs(t *testing.T) {
+	os.Setenv("GH_PROTOCOL", "git")
+
 	github.CreateTestConfig("jingweno", "123")
 
 	args := NewArgs([]string{"clone", "foo/gh"})

@@ -68,7 +68,7 @@ func transformCloneArgs(args *Args) {
 				isSSH = true
 			}
 
-			project := github.Project{Name: name, Owner: owner}
+			project := github.NewProject(owner, name, "")
 			url := project.GitURL(name, owner, isSSH)
 			args.ReplaceParam(i, url)
 
