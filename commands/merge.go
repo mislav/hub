@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"github.com/jingweno/go-octokit/octokit"
 	"regexp"
 )
 
@@ -76,26 +75,6 @@ func transformMergeArgs(args *Args) error {
 		i := args.IndexOfParam("-m")
 		args.InsertParam(i, "--no-ff")
 	}
-
-	return nil
-}
-
-func fetchAndMerge(args *Args, project *github.Project, pullRequest *octokit.PullRequest) error {
-	user, branch := parseUserBranchFromPR(pullRequest)
-	if pullRequest.Head.Repo.ID == 0 {
-		return fmt.Errorf("Error: %s's fork is not available anymore", user)
-	}
-
-	u := project.GitURL("", user, pullRequest.Head.Repo.Private)
-
-	args.RemoveParam(0) // Remove pull request URL
-
-	mergeHead := fmt.Sprintf("%s/%s", user, branch)
-	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
-	args.Before("git", "fetch", u, ref)
-
-	mergeMsg := fmt.Sprintf(`"Merge pull request #%v from %s\n\n%s"`, pullRequest.Number, mergeHead, pullRequest.Title)
-	args.AppendParams(mergeHead, "--no-ff", "-m", mergeMsg)
 
 	return nil
 }
