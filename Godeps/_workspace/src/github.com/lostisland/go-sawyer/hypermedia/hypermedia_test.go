@@ -57,11 +57,18 @@ func TestHALRelations(t *testing.T) {
 	assert.Equal(t, "/foo", rel.Path)
 }
 
-func TestExpand(t *testing.T) {
+func TestExpandAbsoluteUrls(t *testing.T) {
 	link := Hyperlink("/foo/bar{/arg}")
 	u, err := link.Expand(M{"arg": "baz", "foo": "bar"})
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "/foo/bar/baz", u.String())
+}
+
+func TestExpandRelativePaths(t *testing.T) {
+	link := Hyperlink("foo/bar{/arg}")
+	u, err := link.Expand(M{"arg": "baz", "foo": "bar"})
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "foo/bar/baz", u.String())
 }
 
 func TestExpandNil(t *testing.T) {

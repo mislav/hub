@@ -34,7 +34,7 @@ func (l Hyperlink) Expand(m M) (*url.URL, error) {
 		return nil, err
 	}
 
-	return url.ParseRequestURI(expanded)
+	return url.Parse(expanded)
 }
 
 // M represents a map of values to expand a Hyperlink.
