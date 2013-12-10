@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/cmd"
+	"strings"
 )
 
 type Args struct {
@@ -12,6 +13,17 @@ type Args struct {
 	beforeChain []*cmd.Cmd
 	afterChain  []*cmd.Cmd
 	Noop        bool
+}
+
+func (a *Args) Words() []string {
+	aa := make([]string, 0)
+	for _, p := range a.Params {
+		if !strings.HasPrefix(p, "-") {
+			aa = append(aa, p)
+		}
+	}
+
+	return aa
 }
 
 func (a *Args) Before(command ...string) {

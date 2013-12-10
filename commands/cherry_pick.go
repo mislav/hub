@@ -58,7 +58,7 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 		projectPath := url.ProjectPath()
 		if commitRegex.MatchString(projectPath) {
 			sha = commitRegex.FindStringSubmatch(projectPath)[1]
-			project = &url.Project
+			project = url.Project
 
 			return
 		}

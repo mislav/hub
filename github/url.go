@@ -7,7 +7,7 @@ import (
 
 type URL struct {
 	url.URL
-	Project
+	*Project
 }
 
 func (url URL) ProjectPath() (projectPath string) {
@@ -30,5 +30,5 @@ func ParseURL(rawurl string) (*URL, error) {
 		return nil, err
 	}
 
-	return &URL{Project: *project, URL: *url}, nil
+	return &URL{Project: project, URL: *url}, nil
 }
