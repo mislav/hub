@@ -3,7 +3,9 @@ go:
   - 1.2
 install:
   - script/bootstrap
+  - bundle install
 script:
   - export PATH="$HOME/gopath/bin:$PATH"
   - script/build
   - script/test
+  - bundle exec rake features
