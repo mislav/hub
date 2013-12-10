@@ -2,12 +2,16 @@
 # Usage: s3-put <FILE> <S3_BUCKET>[:<PATH>] [<CONTENT_TYPE>]
 #
 # Uploads a file to the Amazon S3 service.
+# Outputs the URL for the newly uploaded file.
 #
-# Depends on AWS credentials being set via env:
+# Requirements:
 # - AMAZON_ACCESS_KEY_ID
 # - AMAZON_SECRET_ACCESS_KEY
+# - openssl
+# - curl
 #
-# Outputs the URL of the newly uploaded file.
+# Author: Mislav Marohnić
+
 set -e
 
 authorization() {

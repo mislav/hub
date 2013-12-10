@@ -3,12 +3,18 @@
 #
 # After running `bundle`, caches the `vendor/bundle` directory to S3.
 # On the next run, restores the cached directory before running `bundle`.
+# When `Gemfile.lock` changes, the cache gets rebuilt.
 #
 # Requirements:
+# - Gemfile.lock
 # - TRAVIS_REPO_SLUG
 # - TRAVIS_RUBY_VERSION
 # - AMAZON_S3_BUCKET
 # - script/s3-put
+# - bundle
+# - curl
+#
+# Author: Mislav Marohnić
 
 set -e
 
