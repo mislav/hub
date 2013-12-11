@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
 	"os"
@@ -24,45 +23,6 @@ func isDir(file string) bool {
 	}
 
 	return fi.IsDir()
-}
-
-func parsePullRequestId(rawurl string) (id string) {
-	url, err := github.ParseURL(rawurl)
-	if err != nil {
-		return
-	}
-
-	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
-	projectPath := url.ProjectPath()
-	if pullURLRegex.MatchString(projectPath) {
-		id = pullURLRegex.FindStringSubmatch(projectPath)[1]
-	}
-
-	return
-}
-
-func fetchPullRequest(id string) (*octokit.PullRequest, error) {
-	gh := github.New()
-	pullRequest, err := gh.PullRequest(id)
-	if err != nil {
-		return nil, err
-	}
-
-	if pullRequest.Head.Repo.ID == 0 {
-		user := pullRequest.User.Login
-		return nil, fmt.Errorf("Error: %s's fork is not available anymore", user)
-	}
-
-	return pullRequest, nil
-}
-
-func convertToGitURL(pullRequestURL, user string, isSSH bool) (string, error) {
-	url, err := github.ParseURL(pullRequestURL)
-	if err != nil {
-		return "", err
-	}
-
-	return url.GitURL("", user, isSSH), nil
 }
 
 func parseUserBranchFromPR(pullRequest *octokit.PullRequest) (user string, branch string) {

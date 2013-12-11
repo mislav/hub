@@ -35,8 +35,8 @@ func transformMergeArgs(args *Args) error {
 		return nil
 	}
 
-	mergeUrl := words[0]
-	url, err := github.ParseURL(mergeUrl)
+	mergeURL := words[0]
+	url, err := github.ParseURL(mergeURL)
 	if err != nil {
 		return nil
 	}
@@ -65,7 +65,7 @@ func transformMergeArgs(args *Args) error {
 	args.Before("git", "fetch", u, ref)
 
 	// Remove pull request URL
-	idx := args.IndexOfParam(mergeUrl)
+	idx := args.IndexOfParam(mergeURL)
 	args.RemoveParam(idx)
 
 	mergeMsg := fmt.Sprintf(`"Merge pull request #%v from %s\n\n%s"`, id, mergeHead, pullRequest.Title)

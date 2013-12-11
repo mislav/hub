@@ -14,7 +14,7 @@ type GitHubRepo struct {
 	remotes []git.Remote
 }
 
-func (r *GitHubRepo) remotesByName(name string) (*git.Remote, error) {
+func (r *GitHubRepo) RemotesByName(name string) (*git.Remote, error) {
 	if r.remotes == nil {
 		remotes, err := git.Remotes()
 		if err != nil {
@@ -44,7 +44,7 @@ func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 }
 
 func (r *GitHubRepo) MasterBranch() (branch *Branch, err error) {
-	origin, err := r.remotesByName("origin")
+	origin, err := r.RemotesByName("origin")
 	if err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (r *GitHubRepo) MasterBranch() (branch *Branch, err error) {
 }
 
 func (r *GitHubRepo) MainProject() (project *Project, err error) {
-	origin, err := r.remotesByName("origin")
+	origin, err := r.RemotesByName("origin")
 	if err != nil {
 		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
 		return
@@ -95,7 +95,7 @@ func (r *GitHubRepo) UpstreamProject() (project *Project, err error) {
 		return
 	}
 
-	remote, err := r.remotesByName(upstream.RemoteName())
+	remote, err := r.RemotesByName(upstream.RemoteName())
 	if err != nil {
 		return
 	}
