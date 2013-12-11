@@ -90,7 +90,7 @@ func CurrentConfig() *Config {
 	return &config
 }
 
-// Public for testing purpose
+// TODO: remove it
 func CreateTestConfig(user, token string) *Config {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()

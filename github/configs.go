@@ -135,6 +135,7 @@ func CurrentConfigs() *Configs {
 	return &Configs{c}
 }
 
+// Public for testing purpose
 func CreateTestConfigs(user, token string) []Credentials {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()
