@@ -6,6 +6,7 @@ import (
 	"github.com/howeyc/gopass"
 	"github.com/jingweno/gh/utils"
 	"io"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -132,4 +133,17 @@ func CurrentConfigs() *Configs {
 	}
 
 	return &Configs{c}
+}
+
+// Public for testing purpose
+func CreateTestConfigs(user, token string) []Credentials {
+	f, _ := ioutil.TempFile("", "test-config")
+	defaultConfigsFile = f.Name()
+
+	c := []Credentials{
+		{User: "jingweno", AccessToken: "123", Host: GitHubHost},
+	}
+	saveTo(f.Name(), &c)
+
+	return c
 }

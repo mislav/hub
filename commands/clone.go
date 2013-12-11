@@ -41,36 +41,37 @@ func transformCloneArgs(args *Args) {
 	isSSH := parseClonePrivateFlag(args)
 	hasValueRegxp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
-	var skipNext bool
-	for i, a := range args.Params {
-		if skipNext {
-			skipNext = false
-			continue
-		}
+	for i := 0; i < args.ParamsSize(); i++ {
+		a := args.Params[i]
 
 		if strings.HasPrefix(a, "-") {
 			if hasValueRegxp.MatchString(a) {
-				skipNext = true
+				i++
 			}
-			continue
-		}
+		} else {
+			if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
+				name, owner := parseCloneNameAndOwner(a)
+				var credentials *github.Credentials
+				if owner == "" {
+					configs := github.CurrentConfigs()
+					credentials = configs.PromptFor(github.DefaultHost())
+					owner = credentials.User
+				}
 
-		if github.MatchURL(a) != nil {
-			break
-		}
+				var host string
+				if credentials != nil {
+					host = credentials.Host
+				}
 
-		if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
-			name, owner := parseCloneNameAndOwner(a)
-			config := github.CurrentConfig()
-			isSSH = isSSH || args.Command != "submodule" && owner == config.User
-			if owner == "" {
-				owner = config.User
-				isSSH = true
+				project := github.NewProject(owner, name, host)
+				isSSH = isSSH ||
+					args.Command != "submodule" &&
+						credentials != nil &&
+						project.Owner == credentials.User
+
+				url := project.GitURL(name, owner, isSSH)
+				args.ReplaceParam(i, url)
 			}
-
-			project := github.NewProject(owner, name, "")
-			url := project.GitURL(name, owner, isSSH)
-			args.ReplaceParam(i, url)
 
 			break
 		}
