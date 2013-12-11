@@ -41,40 +41,41 @@ func fetch(command *Command, args *Args) {
 
 func tranformFetchArgs(args *Args) error {
 	names := parseRemoteNames(args)
+	localRepo := github.LocalRepo()
+
 	gh := github.New()
-	projects := []*github.Project{}
+	projects := make(map[*github.Project]bool)
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
-		if ownerRegexp.MatchString(name) && !hasGitRemote(name) {
-			project := github.NewProjectFromOwnerAndName("", name)
-			repo, err := gh.Repository(project)
+		if ownerRegexp.MatchString(name) {
+			_, err := localRepo.RemotesByName(name)
 			if err != nil {
-				continue
-			}
+				project := github.NewProject(name, "", "")
+				repo, err := gh.Repository(project)
+				if err != nil {
+					continue
+				}
 
-			project = github.NewProjectFromOwnerAndName(repo.FullName, "")
-			projects = append(projects, project)
+				projects[project] = repo.Private
+			}
 		}
 	}
 
-	for _, project := range projects {
-		var isSSH bool
-		if project.Owner == gh.Config.FetchUser() {
-			isSSH = true
-		}
-		args.Before("git", "remote", "add", project.Owner, project.GitURL("", "", isSSH))
+	for project, private := range projects {
+		args.Before("git", "remote", "add", project.Owner, project.GitURL("", "", private))
 	}
 
 	return nil
 }
 
 func parseRemoteNames(args *Args) (names []string) {
+	words := args.Words()
 	if i := args.IndexOfParam("--multiple"); i != -1 {
 		if args.ParamsSize() > 1 {
-			names = args.Params[1:]
+			names = words
 		}
-	} else {
-		remoteName := args.FirstParam()
+	} else if len(words) > 0 {
+		remoteName := words[0]
 		remoteNameRegexp := regexp.MustCompile("^\\w+(,\\w+)$")
 		if remoteNameRegexp.MatchString(remoteName) {
 			i := args.IndexOfParam(remoteName)
