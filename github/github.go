@@ -152,16 +152,8 @@ func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
 	return
 }
 
-func (gh *GitHub) ForkRepository(name, owner string, noRemote bool) (repo *octokit.Repository, err error) {
-	config := gh.Config
-	project := &Project{Name: name, Owner: config.User}
-	r, err := gh.Repository(project)
-	if err == nil && r != nil {
-		err = fmt.Errorf("Error creating fork: %s exists on %s", r.FullName, GitHubHost)
-		return
-	}
-
-	url, err := octokit.ForksURL.Expand(octokit.M{"owner": owner, "repo": name})
+func (gh *GitHub) ForkRepository(project *Project) (repo *octokit.Repository, err error) {
+	url, err := octokit.ForksURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
 		return
 	}
