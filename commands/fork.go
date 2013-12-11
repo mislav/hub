@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"os"
+	"reflect"
 )
 
 var cmdFork = &Command{
@@ -30,23 +32,39 @@ func init() {
   [ repo forked on GitHub ]
 */
 func fork(cmd *Command, args *Args) {
-	gh := github.New()
-	project := gh.Project
+	localRepo := github.LocalRepo()
 
-	var forkURL string
-	if args.Noop {
-		args.Before(fmt.Sprintf("Would request a fork to %s:%s", project.Owner, project.Name), "")
-		forkURL = "FORK_URL"
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	configs := github.CurrentConfigs()
+	credentials := configs.PromptFor(project.Host)
+	forkProject := github.NewProject(credentials.User, project.Name, project.Host)
+
+	client := github.NewClient(project)
+	existingRepo, err := client.Repository(forkProject)
+	if err == nil {
+		var parentURL *github.URL
+		if parent := existingRepo.Parent; parent != nil {
+			parentURL, _ = github.ParseURL(parent.HTMLURL)
+		}
+		if parentURL == nil || !reflect.DeepEqual(parentURL.Project, project) {
+			err = fmt.Errorf("Error creating fork: %s already exists on %s",
+				forkProject, forkProject.Host)
+			utils.Check(err)
+		}
 	} else {
-		repo, err := gh.ForkRepository(project.Name, project.Owner, flagForkNoRemote)
-		utils.Check(err)
-
-		forkURL = repo.SSHURL
+		if !args.Noop {
+			_, err := client.ForkRepository(project)
+			utils.Check(err)
+		}
 	}
 
-	if !flagForkNoRemote {
-		newRemote := gh.Config.User
-		args.Replace("git", "remote", "add", "-f", newRemote, forkURL)
-		args.After("echo", fmt.Sprintf("New remote: %s", newRemote))
+	if flagForkNoRemote {
+		os.Exit(0)
+	} else {
+		u := forkProject.GitURL("", "", true)
+		args.Replace("git", "remote", "add", "-f", forkProject.Owner, u)
+		args.After("echo", fmt.Sprintf("new remote: %s", forkProject.Owner))
 	}
 }
