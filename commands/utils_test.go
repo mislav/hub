@@ -5,17 +5,6 @@ import (
 	"testing"
 )
 
-func TestParsePullRequestId(t *testing.T) {
-	url := "https://github.com/jingweno/gh/pull/73"
-	assert.Equal(t, "73", parsePullRequestId(url))
-
-	url = "https://github.com/jingweno/gh/pull/"
-	assert.Equal(t, "", parsePullRequestId(url))
-
-	url = "https://github.com/octokit/go-octokit/pull/41/files"
-	assert.Equal(t, "41", parsePullRequestId(url))
-}
-
 func TestParseRepoNameOwner(t *testing.T) {
 	owner, repo, match := parseRepoNameOwner("jingweno")
 
