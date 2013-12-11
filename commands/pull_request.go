@@ -241,11 +241,11 @@ func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits
 func writePullRequestChanges(base, head, fullBase, fullHead string, commits []string, messageFile string) error {
 	var defaultMsg, commitSummary string
 	if len(commits) == 1 {
-		defaultMsg, err := git.Show(commits[0])
+		msg, err := git.Show(commits[0])
 		if err != nil {
 			return err
 		}
-		defaultMsg = fmt.Sprintf("%s\n", defaultMsg)
+		defaultMsg = fmt.Sprintf("%s\n", msg)
 	} else if len(commits) > 1 {
 		commitLogs, err := git.Log(base, head)
 		if err != nil {
