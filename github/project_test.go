@@ -40,12 +40,21 @@ func TestNewProjectOwnerAndName(t *testing.T) {
 }
 
 func TestWebURL(t *testing.T) {
-	project := Project{Name: "foo", Owner: "bar"}
+	project := Project{Name: "foo", Owner: "bar", Host: "github.com"}
 	url := project.WebURL("", "", "baz")
 	assert.Equal(t, "https://github.com/bar/foo/baz", url)
 
 	url = project.WebURL("1", "2", "")
 	assert.Equal(t, "https://github.com/2/1", url)
+
+	url = project.WebURL("hub.wiki", "defunkt", "")
+	assert.Equal(t, "https://github.com/defunkt/hub/wiki", url)
+
+	url = project.WebURL("hub.wiki", "defunkt", "commits")
+	assert.Equal(t, "https://github.com/defunkt/hub/wiki/_history", url)
+
+	url = project.WebURL("hub.wiki", "defunkt", "pages")
+	assert.Equal(t, "https://github.com/defunkt/hub/wiki/_pages", url)
 }
 
 func TestGitURL(t *testing.T) {
