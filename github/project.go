@@ -29,7 +29,25 @@ func (p *Project) WebURL(name, owner, path string) string {
 		name = p.Name
 	}
 
-	url := fmt.Sprintf("https://%s", utils.ConcatPaths(GitHubHost, owner, name))
+	ownerWithName := fmt.Sprintf("%s/%s", owner, name)
+	if strings.Contains(ownerWithName, ".wiki") {
+		ownerWithName = strings.TrimSuffix(ownerWithName, ".wiki")
+		if path != "wiki" {
+			if strings.HasPrefix(path, "commits") {
+				path = "_history"
+			} else if path != "" {
+				path = fmt.Sprintf("_%s", path)
+			}
+
+			if path != "" {
+				path = utils.ConcatPaths("wiki", path)
+			} else {
+				path = "wiki"
+			}
+		}
+	}
+
+	url := fmt.Sprintf("https://%s", utils.ConcatPaths(p.Host, ownerWithName))
 	if path != "" {
 		url = utils.ConcatPaths(url, path)
 	}
