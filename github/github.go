@@ -193,15 +193,15 @@ func (gh *GitHub) ExpandRemoteUrl(owner, name string, isSSH bool) (url string) {
 	return project.GitURL(name, owner, isSSH)
 }
 
-func findOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
+func (gh *GitHub) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	url, err := octokit.AuthorizationsURL.Expand(nil)
 	if err != nil {
 		return
 	}
 
 	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
-	client := octokit.NewClient(basicAuth)
-	authsService := client.Authorizations(url)
+	client := octokit.NewClientWith(gh.apiEndpoint(), nil, basicAuth)
+	authsService := client.Authorizations(gh.requestURL(url))
 
 	auths, result := authsService.All()
 	if result.HasError() {

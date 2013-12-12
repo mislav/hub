@@ -57,13 +57,15 @@ func (c *Config) FetchCredentials() {
 
 	if c.Token == "" {
 		password := c.FetchPassword()
-		token, err := findOrCreateToken(c.User, password, "")
+
+		client := &GitHub{Project: &Project{Host: GitHubHost}}
+		token, err := client.FindOrCreateToken(c.User, password, "")
 		// TODO: return an two factor auth failure error
 		if err != nil {
 			re := regexp.MustCompile("two-factor authentication OTP code")
 			if re.MatchString(fmt.Sprintf("%s", err)) {
 				code := c.FetchTwoFactorCode()
-				token, err = findOrCreateToken(c.User, password, code)
+				token, err = client.FindOrCreateToken(c.User, password, code)
 			}
 		}
 

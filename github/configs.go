@@ -1,6 +1,7 @@
 package github
 
 import (
+	"code.google.com/p/go.crypto/ssh/terminal"
 	"encoding/json"
 	"fmt"
 	"github.com/howeyc/gopass"
@@ -31,12 +32,14 @@ func (c *Configs) PromptFor(host string) *Credentials {
 	if cc == nil {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
-		token, err := findOrCreateToken(user, pass, "")
+
+		client := &GitHub{Project: &Project{Host: host}}
+		token, err := client.FindOrCreateToken(user, pass, "")
 		if err != nil {
 			re := regexp.MustCompile("two-factor authentication OTP code")
 			if re.MatchString(fmt.Sprintf("%s", err)) {
 				code := c.PromptForOTP()
-				token, err = findOrCreateToken(user, pass, code)
+				token, err = client.FindOrCreateToken(user, pass, code)
 			}
 		}
 		utils.Check(err)
@@ -58,9 +61,15 @@ func (c *Configs) PromptForUser() string {
 	return user
 }
 
-func (c *Configs) PromptForPassword(host, user string) string {
+func (c *Configs) PromptForPassword(host, user string) (pass string) {
 	fmt.Printf("%s password for %s (never stored): ", host, user)
-	return string(gopass.GetPasswd())
+	if terminal.IsTerminal(int(os.Stdout.Fd())) {
+		pass = string(gopass.GetPasswd())
+	} else {
+		fmt.Scanln(&pass)
+	}
+
+	return
 }
 
 func (c *Configs) PromptForOTP() string {
