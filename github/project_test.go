@@ -57,7 +57,7 @@ func TestWebURL(t *testing.T) {
 	assert.Equal(t, "https://github.com/defunkt/hub/wiki/_pages", url)
 }
 
-func TestGitURL(t *testing.T) {
+func TestGitURLGitHub(t *testing.T) {
 	os.Setenv("GH_PROTOCOL", "https")
 	project := Project{Name: "foo", Owner: "bar", Host: "github.com"}
 
@@ -70,6 +70,21 @@ func TestGitURL(t *testing.T) {
 
 	url = project.GitURL("gh", "jingweno", true)
 	assert.Equal(t, "git@github.com:jingweno/gh.git", url)
+}
+
+func TestGitURLEnterprise(t *testing.T) {
+	project := Project{Name: "foo", Owner: "bar", Host: "https://github.corporate.com"}
+
+	os.Setenv("GH_PROTOCOL", "https")
+	url := project.GitURL("gh", "jingweno", false)
+	assert.Equal(t, "https://github.corporate.com/jingweno/gh.git", url)
+
+	os.Setenv("GH_PROTOCOL", "git")
+	url = project.GitURL("gh", "jingweno", false)
+	assert.Equal(t, "git://github.corporate.com/jingweno/gh.git", url)
+
+	url = project.GitURL("gh", "jingweno", true)
+	assert.Equal(t, "git@github.corporate.com:jingweno/gh.git", url)
 }
 
 func TestParseOwnerAndName(t *testing.T) {
