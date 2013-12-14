@@ -11,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 )
 
 var (
@@ -147,13 +148,38 @@ func CurrentConfigs() *Configs {
 func (c *Configs) DefaultCredentials() (credentials *Credentials) {
 	if GitHubHostEnv != "" {
 		credentials = c.PromptFor(GitHubHostEnv)
-	} else if len(c.Credentials) == 1 {
-		credentials = &c.Credentials[0]
+	} else if len(c.Credentials) > 0 {
+		credentials = c.selectCredentials()
 	} else {
 		credentials = c.PromptFor(DefaultHost())
 	}
 
 	return
+}
+
+func (c *Configs) selectCredentials() *Credentials {
+	options := len(c.Credentials)
+
+	if options == 1 {
+		return &c.Credentials[0]
+	}
+
+	prompt := "Select host:\n"
+	for idx, creds := range c.Credentials {
+		prompt += fmt.Sprintf(" %d. %s\n", idx+1, creds.Host)
+	}
+	prompt += fmt.Sprint("> ")
+
+	fmt.Printf(prompt)
+	var index string
+	fmt.Scanln(&index)
+
+	i, err := strconv.Atoi(index)
+	if err != nil || i < 1 || i > options {
+		utils.Check(fmt.Errorf("Error: must enter a number [1-%d]", options))
+	}
+
+	return &c.Credentials[i-1]
 }
 
 // Public for testing purpose
