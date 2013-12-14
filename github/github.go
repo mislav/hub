@@ -258,9 +258,20 @@ func (gh *GitHub) apiEndpoint() string {
 
 	if endpoint == GitHubHost {
 		endpoint = GitHubApiURL
+	} else {
+		endpoint = absolute(endpoint)
 	}
 
 	return endpoint
+}
+
+func absolute(endpoint string) string {
+	u, _ := url.Parse(endpoint)
+
+	if u.Scheme == "" {
+		u.Scheme = "https"
+	}
+	return u.String()
 }
 
 func NewClient(p *Project) *GitHub {
