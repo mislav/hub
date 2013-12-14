@@ -47,7 +47,7 @@ func alias(command *Command, args *Args) {
 	}
 
 	if !validShell {
-		err := fmt.Errorf("Unsupported shell. Supported shell: %s.", strings.Join(shells, ", "))
+		err := fmt.Errorf("gh alias: unsupported shell\nsupported shells: %s", strings.Join(shells, " "))
 		utils.Check(err)
 	}
 
@@ -67,13 +67,22 @@ func alias(command *Command, args *Args) {
 			profile = "~/.zshrc"
 		case "ksh":
 			profile = "~/.profile"
+		case "fish":
+			profile = "~/.config/fish/config.fish"
 		default:
 			profile = "your profile"
 		}
 
-		msg := fmt.Sprintf("# Wrap git automatically by adding the following to %s\n", profile)
+		msg := fmt.Sprintf("# Wrap git automatically by adding the following to %s:\n", profile)
 		fmt.Println(msg)
-		fmt.Println("eval  \"$(gh alias -s)\"")
+
+		var eval string
+		if shell == "fish" {
+			eval = `eval (gh alias -s)`
+		} else {
+			eval = `eval "$(gh alias -s)"`
+		}
+		fmt.Println(eval)
 	}
 
 	os.Exit(0)
