@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+var (
+	GitHubHostEnv = os.Getenv("GITHUB_HOST")
+)
+
 type Hosts []string
 
 func (h Hosts) Include(host string) bool {
@@ -33,7 +37,7 @@ func KnownHosts() (hosts Hosts) {
 }
 
 func DefaultHost() string {
-	defaultHost := os.Getenv("GITHUB_HOST")
+	defaultHost := GitHubHostEnv
 	if defaultHost == "" {
 		defaultHost = GitHubHost
 	}

@@ -144,6 +144,18 @@ func CurrentConfigs() *Configs {
 	return &Configs{c}
 }
 
+func (c *Configs) DefaultCredentials() (credentials *Credentials) {
+	if GitHubHostEnv != "" {
+		credentials = c.PromptFor(GitHubHostEnv)
+	} else if len(c.Credentials) == 1 {
+		credentials = &c.Credentials[0]
+	} else {
+		credentials = c.PromptFor(DefaultHost())
+	}
+
+	return
+}
+
 // Public for testing purpose
 func CreateTestConfigs(user, token string) []Credentials {
 	f, _ := ioutil.TempFile("", "test-config")

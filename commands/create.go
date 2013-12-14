@@ -71,7 +71,7 @@ func create(command *Command, args *Args) {
 	}
 
 	configs := github.CurrentConfigs()
-	credentials := configs.PromptFor(github.DefaultHost())
+	credentials := configs.DefaultCredentials()
 
 	owner := credentials.User
 	if strings.Contains(newRepoName, "/") {
