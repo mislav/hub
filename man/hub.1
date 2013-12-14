@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "October 2013" "GITHUB" "Git Manual"
+.TH "HUB" "1" "December 2013" "GITHUB" "Git Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -55,7 +55,7 @@
 \fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
 .
 .br
-\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR
+\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [[\fISTART\fR\.\.\.]\fIEND\fR]
 .
 .br
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
@@ -137,8 +137,8 @@ Create a new public GitHub repository from the current git repository and add re
 Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
 .
 .TP
-\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [\fISTART\fR\.\.\.]\fIEND\fR
-Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If a range with two dots (\fBa\.\.b\fR) is given, it will be transformed into one with three dots\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
+\fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [[\fISTART\fR\.\.\.]\fIEND\fR]
+Open a GitHub compare view page in the system\'s default web browser\. \fISTART\fR to \fIEND\fR are branch names, tag names, or commit SHA1s specifying the range of history to compare\. If a range with two dots (\fBa\.\.b\fR) is given, it will be transformed into one with three dots\. If \fISTART\fR is omitted, GitHub will compare against the base branch (the default is "master")\. If \fIEND\fR is omitted, GitHub compare view is opened for the current branch\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
 .
 .TP
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
