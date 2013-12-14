@@ -9,13 +9,15 @@ import (
 
 var cmdCompare = &Command{
 	Run:   compare,
-	Usage: "compare [USER] [<START>...]<END>",
+	Usage: "compare [-u] [USER] [<START>...]<END>",
 	Short: "Open a compare page on GitHub",
 	Long: `Open a GitHub compare view page in the system's default web browser.
-START to END are branch names, tag names, or commit SHA1s specifying
-the range of history to compare. If a range with two dots (a..b) is given,
-it will be transformed into one with three dots. If START is omitted,
+<START> to <END> are branch names, tag names, or commit SHA1s specifying
+the range of history to compare. If a range with two dots ("a..b") is given,
+it will be transformed into one with three dots. If <START> is omitted,
 GitHub will compare against the base branch (the default is "master").
+If <END> is omitted, GitHub compare view is opened for the current branch.
+With "-u", outputs the URL rather than opening the browser.
 `,
 }
 
@@ -61,7 +63,7 @@ func compare(command *Command, args *Args) {
 		}
 
 		if printUsage {
-			err = fmt.Errorf("Usage: gh compare [USER] [<START>...]<END>")
+			err = fmt.Errorf(command.FormattedUsage())
 			utils.Check(err)
 		} else {
 			r = upstream.ShortName()
