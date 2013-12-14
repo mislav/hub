@@ -24,10 +24,14 @@ type Command struct {
 
 func (c *Command) PrintUsage() {
 	if c.Runnable() {
-		fmt.Printf("Usage: git %s\n\n", c.Usage)
+		fmt.Printf("%s\n\n", c.FormattedUsage())
 	}
 
 	fmt.Println(strings.Trim(c.Long, "\n"))
+}
+
+func (c *Command) FormattedUsage() string {
+	return fmt.Sprintf("Usage: git %s", c.Usage)
 }
 
 func (c *Command) Name() string {

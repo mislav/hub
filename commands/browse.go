@@ -79,7 +79,7 @@ func browse(command *Command, args *Args) {
 	}
 
 	if project == nil {
-		err := fmt.Errorf("Usage: gh browse [-p] [<USER>/]<REPOSITORY>")
+		err := fmt.Errorf(command.FormattedUsage())
 		utils.Check(err)
 	}
 
