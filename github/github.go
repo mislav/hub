@@ -8,9 +8,9 @@ import (
 )
 
 const (
-	GitHubHost   string = "github.com"
-	GitHubApiURL string = "https://api.github.com"
-	OAuthAppURL  string = "http://owenou.com/gh"
+	GitHubHost    string = "github.com"
+	GitHubApiHost string = "api.github.com"
+	OAuthAppURL   string = "http://owenou.com/gh"
 )
 
 type GitHub struct {
@@ -251,26 +251,24 @@ func (gh *GitHub) requestURL(u *url.URL) (uu *url.URL) {
 }
 
 func (gh *GitHub) apiEndpoint() string {
-	endpoint := os.Getenv("GH_API_HOST")
-	if endpoint == "" {
-		endpoint = gh.Project.Host
+	host := os.Getenv("GH_API_HOST")
+	if host == "" {
+		host = gh.Project.Host
 	}
 
-	if endpoint == GitHubHost {
-		endpoint = GitHubApiURL
-	} else {
-		endpoint = absolute(endpoint)
+	if host == GitHubHost {
+		host = GitHubApiHost
 	}
 
-	return endpoint
+	return absolute(host)
 }
 
 func absolute(endpoint string) string {
 	u, _ := url.Parse(endpoint)
-
 	if u.Scheme == "" {
 		u.Scheme = "https"
 	}
+
 	return u.String()
 }
 
