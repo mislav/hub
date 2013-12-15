@@ -151,7 +151,7 @@ func (c *Configs) DefaultCredentials() (credentials *Credentials) {
 	} else if len(c.Credentials) > 0 {
 		credentials = c.selectCredentials()
 	} else {
-		credentials = c.PromptFor(DefaultHost())
+		credentials = c.PromptFor(defaultHost())
 	}
 
 	return

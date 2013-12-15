@@ -23,20 +23,20 @@ func (h Hosts) Include(host string) bool {
 	return false
 }
 
-func KnownHosts() (hosts Hosts) {
+func knownHosts() (hosts Hosts) {
 	ghHosts, _ := git.Config("gh.host")
 	for _, ghHost := range strings.Split(ghHosts, "\n") {
 		hosts = append(hosts, ghHost)
 	}
 
-	defaultHost := DefaultHost()
+	defaultHost := defaultHost()
 	hosts = append(hosts, defaultHost)
 	hosts = append(hosts, fmt.Sprintf("ssh.%s", defaultHost))
 
 	return
 }
 
-func DefaultHost() string {
+func defaultHost() string {
 	defaultHost := GitHubHostEnv
 	if defaultHost == "" {
 		defaultHost = GitHubHost

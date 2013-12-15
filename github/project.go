@@ -127,7 +127,7 @@ func CurrentProject() *Project {
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	if !KnownHosts().Include(url.Host) {
+	if !knownHosts().Include(url.Host) {
 		err = fmt.Errorf("Invalid GitHub URL: %s", url)
 		return
 	}
