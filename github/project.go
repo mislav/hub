@@ -117,6 +117,7 @@ func (p *Project) LocalRepo() *Repo {
 	return p.LocalRepoWith("", "")
 }
 
+// TODO: remove it
 func CurrentProject() *Project {
 	remote, err := git.OriginRemote()
 	utils.Check(err)
