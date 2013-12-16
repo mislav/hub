@@ -1,8 +1,10 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"regexp"
 )
 
 var cmdRemote = &Command{
@@ -29,36 +31,51 @@ then uses your GitHub login.
   > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
 */
 func remote(command *Command, args *Args) {
-	if args.ParamsSize() >= 2 && (args.FirstParam() == "add" || args.FirstParam() == "set-url") {
+	if !args.IsParamsEmpty() && (args.FirstParam() == "add" || args.FirstParam() == "set-url") {
 		transformRemoteArgs(args)
 	}
 }
 
 func transformRemoteArgs(args *Args) {
 	ownerWithName := args.LastParam()
-	owner, name, match := parseRepoNameOwner(ownerWithName)
-	if !match {
+	owner, name := parseRepoNameOwner(ownerWithName)
+	if owner == "" {
 		return
 	}
 
-	var err error
+	localRepo := github.LocalRepo()
+	var repoName string
 	if name == "" {
-		name, err = utils.DirName()
-		utils.Check(err)
+		project, err := localRepo.MainProject()
+		if err == nil {
+			repoName = project.Name
+		} else {
+			repoName, err = utils.DirName()
+			utils.Check(err)
+		}
+		name = repoName
 	}
 
+	words := args.Words()
 	isPriavte := parseRemotePrivateFlag(args)
-
-	if owner == "origin" {
-		owner = github.CurrentConfig().FetchUser()
-	} else if args.ParamsSize() > 2 {
-		// `git remote add jingweno foo/bar`
+	if len(words) == 2 && words[1] == "origin" {
+		// gh add origin
+		credentials := github.CurrentConfigs().DefaultCredentials()
+		owner = credentials.User
+		name = repoName
+	} else if len(words) == 2 {
+		// gh remote add jingweno foo/bar
+		if idx := args.IndexOfParam(words[1]); idx != -1 {
+			args.ReplaceParam(idx, owner)
+		}
+	} else {
 		args.RemoveParam(args.ParamsSize() - 1)
 	}
 
 	project := github.NewProject(owner, name, "")
+	// for GitHub Enterprise
+	isPriavte = isPriavte || project.Host != github.GitHubHost
 	url := project.GitURL(name, owner, isPriavte)
-
 	args.AppendParams(url)
 }
 
@@ -69,4 +86,23 @@ func parseRemotePrivateFlag(args *Args) bool {
 	}
 
 	return false
+}
+
+func parseRepoNameOwner(nameWithOwner string) (owner, name string) {
+	ownerRe := fmt.Sprintf("^(%s)$", OwnerRe)
+	ownerRegexp := regexp.MustCompile(ownerRe)
+	if ownerRegexp.MatchString(nameWithOwner) {
+		owner = ownerRegexp.FindStringSubmatch(nameWithOwner)[1]
+		return
+	}
+
+	nameWithOwnerRe := fmt.Sprintf("^(%s)\\/(%s)$", OwnerRe, NameRe)
+	nameWithOwnerRegexp := regexp.MustCompile(nameWithOwnerRe)
+	if nameWithOwnerRegexp.MatchString(nameWithOwner) {
+		result := nameWithOwnerRegexp.FindStringSubmatch(nameWithOwner)
+		owner = result[1]
+		name = result[2]
+	}
+
+	return
 }
