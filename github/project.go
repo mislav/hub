@@ -63,31 +63,38 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 		owner = p.Owner
 	}
 
+	host := rawHost(p.Host)
+
 	if useHttpProtocol() {
-		url = fmt.Sprintf("https://%s/%s/%s.git", p.Host, owner, name)
+		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
 	} else if isSSH {
-		url = fmt.Sprintf("git@%s:%s/%s.git", p.Host, owner, name)
+		url = fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
 	} else {
-		url = fmt.Sprintf("git://%s/%s/%s.git", p.Host, owner, name)
+		url = fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
 	}
 
 	return url
 }
 
+// Remove the scheme from host when the credential url is absolute.
+func rawHost(host string) string {
+	u, err := url.Parse(host)
+	utils.Check(err)
+
+	if u.IsAbs() {
+		return u.Host
+	} else {
+		return u.Path
+	}
+}
+
 func useHttpProtocol() bool {
 	https := os.Getenv("GH_PROTOCOL")
-	if https == "https" {
-		return true
-	} else if https != "" {
-		return false
+	if https == "" {
+		https, _ = git.Config("gh.protocol")
 	}
 
-	https, _ = git.Config("gh.protocol")
-	if https == "https" {
-		return true
-	}
-
-	return false
+	return https == "https"
 }
 
 // TODO: remove it
@@ -110,6 +117,7 @@ func (p *Project) LocalRepo() *Repo {
 	return p.LocalRepoWith("", "")
 }
 
+// TODO: remove it
 func CurrentProject() *Project {
 	remote, err := git.OriginRemote()
 	utils.Check(err)
@@ -120,7 +128,7 @@ func CurrentProject() *Project {
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	if !KnownHosts().Include(url.Host) {
+	if !knownHosts().Include(url.Host) {
 		err = fmt.Errorf("Invalid GitHub URL: %s", url)
 		return
 	}

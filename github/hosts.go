@@ -7,6 +7,10 @@ import (
 	"strings"
 )
 
+var (
+	GitHubHostEnv = os.Getenv("GITHUB_HOST")
+)
+
 type Hosts []string
 
 func (h Hosts) Include(host string) bool {
@@ -19,21 +23,21 @@ func (h Hosts) Include(host string) bool {
 	return false
 }
 
-func KnownHosts() (hosts Hosts) {
+func knownHosts() (hosts Hosts) {
 	ghHosts, _ := git.Config("gh.host")
 	for _, ghHost := range strings.Split(ghHosts, "\n") {
 		hosts = append(hosts, ghHost)
 	}
 
-	defaultHost := DefaultHost()
+	defaultHost := defaultHost()
 	hosts = append(hosts, defaultHost)
 	hosts = append(hosts, fmt.Sprintf("ssh.%s", defaultHost))
 
 	return
 }
 
-func DefaultHost() string {
-	defaultHost := os.Getenv("GITHUB_HOST")
+func defaultHost() string {
+	defaultHost := GitHubHostEnv
 	if defaultHost == "" {
 		defaultHost = GitHubHost
 	}
