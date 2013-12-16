@@ -161,7 +161,7 @@ func NewProject(owner, name, host string) *Project {
 	}
 
 	if host == "" {
-		host = GitHubHost
+		host = defaultHost()
 	}
 
 	if owner == "" {

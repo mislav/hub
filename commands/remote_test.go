@@ -8,8 +8,20 @@ import (
 	"testing"
 )
 
+func TestParseRepoNameOwner(t *testing.T) {
+	owner, repo := parseRepoNameOwner("jingweno")
+	assert.Equal(t, "jingweno", owner)
+	assert.Equal(t, "", repo)
+
+	owner, repo = parseRepoNameOwner("jingweno/gh")
+	assert.Equal(t, "jingweno", owner)
+	assert.Equal(t, "gh", repo)
+}
+
 func TestTransformRemoteArgs(t *testing.T) {
 	os.Setenv("GH_PROTOCOL", "git")
+	github.CreateTestConfigs("jingweno", "123")
+
 	args := NewArgs([]string{"remote", "add", "jingweno"})
 	transformRemoteArgs(args)
 
@@ -27,8 +39,6 @@ func TestTransformRemoteArgs(t *testing.T) {
 	assert.Equal(t, "jingweno", args.GetParam(1))
 	reg = regexp.MustCompile("^git@github.com:jingweno/.+\\.git$")
 	assert.T(t, reg.MatchString(args.GetParam(2)))
-
-	github.CreateTestConfig("jingweno", "123")
 
 	args = NewArgs([]string{"remote", "add", "origin"})
 	transformRemoteArgs(args)
