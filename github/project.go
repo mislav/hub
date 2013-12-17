@@ -104,13 +104,13 @@ func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	}
 
 	parts := strings.SplitN(url.Path, "/", 4)
-	if len(parts) < 2 {
+	if len(parts) <= 2 {
 		err = fmt.Errorf("Invalid GitHub URL: %s", url)
 		return
 	}
 
 	name := strings.TrimSuffix(parts[2], ".git")
-	p = &Project{Name: name, Owner: parts[1], Host: url.Host}
+	p = NewProject(parts[1], name, url.Host)
 
 	return
 }

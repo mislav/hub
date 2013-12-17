@@ -119,4 +119,9 @@ func TestNewProjectFromURL(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "go-octokit", p.Name)
 	assert.Equal(t, "octokit", p.Owner)
+
+	u, _ = url.Parse("origin/master")
+	_, err = NewProjectFromURL(u)
+
+	assert.NotEqual(t, nil, err)
 }
