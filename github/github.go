@@ -14,6 +14,8 @@ const (
 )
 
 type GitHub struct {
+	// TODO: Detach Project from GitHub
+	// make it an mandatory for every method call
 	Project     *Project
 	Credentials *Credentials
 }
@@ -80,7 +82,6 @@ func (gh *GitHub) Repository(project *Project) (repo *octokit.Repository, err er
 	return
 }
 
-// TODO: detach GitHub from Project
 func (gh *GitHub) IsRepositoryExist(project *Project) bool {
 	repo, err := gh.Repository(project)
 

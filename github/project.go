@@ -97,36 +97,6 @@ func useHttpProtocol() bool {
 	return https == "https"
 }
 
-// TODO: remove it
-func (p *Project) LocalRepoWith(base, head string) *Repo {
-	if base == "" {
-		base = "master"
-	}
-	if head == "" {
-		headBranch, err := git.Head()
-		if err != nil {
-			utils.Check(fmt.Errorf("Aborted: not currently on any branch."))
-		}
-		head = (&Branch{headBranch}).ShortName()
-	}
-
-	return &Repo{base, head, p}
-}
-
-func (p *Project) LocalRepo() *Repo {
-	return p.LocalRepoWith("", "")
-}
-
-// TODO: remove it
-func CurrentProject() *Project {
-	remote, err := git.OriginRemote()
-	utils.Check(err)
-
-	owner, name := parseOwnerAndName(remote.URL.String())
-
-	return &Project{Name: name, Owner: owner}
-}
-
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	if !knownHosts().Include(url.Host) {
 		err = fmt.Errorf("Invalid GitHub URL: %s", url)
