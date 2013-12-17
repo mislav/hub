@@ -43,7 +43,6 @@ func tranformFetchArgs(args *Args) error {
 	names := parseRemoteNames(args)
 	localRepo := github.LocalRepo()
 
-	gh := github.New()
 	projects := make(map[*github.Project]bool)
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
@@ -51,6 +50,7 @@ func tranformFetchArgs(args *Args) error {
 			_, err := localRepo.RemotesByName(name)
 			if err != nil {
 				project := github.NewProject(name, "", "")
+				gh := github.NewClient(project)
 				repo, err := gh.Repository(project)
 				if err != nil {
 					continue

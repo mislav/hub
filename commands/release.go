@@ -18,7 +18,11 @@ points to.
 }
 
 func release(cmd *Command, args *Args) {
-	gh := github.New()
+	localRepo := github.LocalRepo()
+	project, err := localRepo.CurrentProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project)
 	if args.Noop {
 		fmt.Printf("Would request list of releases for %s\n", gh.Project)
 	} else {

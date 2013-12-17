@@ -18,10 +18,11 @@ var cmdIssue = &Command{
   $ gh issue
 */
 func issue(cmd *Command, args *Args) {
+	localRepo := github.LocalRepo()
+	project, err := localRepo.CurrentProject()
+	utils.Check(err)
 
-	gh := github.New()
-
-	// list all issues
+	gh := github.NewClient(project)
 
 	if args.Noop {
 		fmt.Printf("Would request list of issues for %s\n", gh.Project)

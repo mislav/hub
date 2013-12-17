@@ -15,7 +15,7 @@ const (
 
 type GitHub struct {
 	// TODO: Detach Project from GitHub
-	// make it an mandatory for every method call
+	// It only cares about host & credentials
 	Project     *Project
 	Credentials *Credentials
 }
@@ -265,9 +265,4 @@ func absolute(endpoint string) string {
 func NewClient(p *Project) *GitHub {
 	c := CurrentConfigs().PromptFor(p.Host)
 	return &GitHub{Project: p, Credentials: c}
-}
-
-func New() *GitHub {
-	p, _ := LocalRepo().CurrentProject()
-	return NewClient(p)
 }
