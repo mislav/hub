@@ -97,36 +97,6 @@ func useHttpProtocol() bool {
 	return https == "https"
 }
 
-// TODO: remove it
-func (p *Project) LocalRepoWith(base, head string) *Repo {
-	if base == "" {
-		base = "master"
-	}
-	if head == "" {
-		headBranch, err := git.Head()
-		if err != nil {
-			utils.Check(fmt.Errorf("Aborted: not currently on any branch."))
-		}
-		head = (&Branch{headBranch}).ShortName()
-	}
-
-	return &Repo{base, head, p}
-}
-
-func (p *Project) LocalRepo() *Repo {
-	return p.LocalRepoWith("", "")
-}
-
-// TODO: remove it
-func CurrentProject() *Project {
-	remote, err := git.OriginRemote()
-	utils.Check(err)
-
-	owner, name := parseOwnerAndName(remote.URL.String())
-
-	return &Project{Name: name, Owner: owner}
-}
-
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	if !knownHosts().Include(url.Host) {
 		err = fmt.Errorf("Invalid GitHub URL: %s", url)
@@ -174,38 +144,6 @@ func NewProject(owner, name, host string) *Project {
 	}
 
 	return &Project{Name: name, Owner: owner, Host: host}
-}
-
-// Deprecated:
-// NewProjectFromOwnerAndName creates a new Project from a specified owner and name
-//
-// If the owner or the name string is in the format of OWNER/NAME, it's split and used as the owner and name of the Project.
-// If the owner string is empty, the current user is used as the name of the Project.
-// If the name string is empty, the current dir name is used as the name of the Project.
-func NewProjectFromOwnerAndName(owner, name string) *Project {
-	if strings.Contains(owner, "/") {
-		result := strings.SplitN(owner, "/", 2)
-		owner = result[0]
-		if name == "" {
-			name = result[1]
-		}
-	} else if strings.Contains(name, "/") {
-		result := strings.SplitN(name, "/", 2)
-		if owner == "" {
-			owner = result[0]
-		}
-		name = result[1]
-	}
-
-	if owner == "" {
-		owner = CurrentConfig().FetchUser()
-	}
-
-	if name == "" {
-		name, _ = utils.DirName()
-	}
-
-	return &Project{Name: name, Owner: owner}
 }
 
 func parseOwnerAndName(remote string) (owner string, name string) {

@@ -81,7 +81,7 @@ func create(command *Command, args *Args) {
 	}
 
 	project := github.NewProject(owner, newRepoName, credentials.Host)
-	gh := github.NewClient(project)
+	gh := github.NewClient(project.Host)
 
 	var action string
 	if gh.IsRepositoryExist(project) {

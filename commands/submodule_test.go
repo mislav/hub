@@ -7,7 +7,7 @@ import (
 )
 
 func TestTransformSubmoduleArgs(t *testing.T) {
-	github.CreateTestConfig("jingweno", "123")
+	github.CreateTestConfigs("jingweno", "123")
 
 	args := NewArgs([]string{"submodule", "add", "jingweno/gh", "vendor/gh"})
 	transformSubmoduleArgs(args)

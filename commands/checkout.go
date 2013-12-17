@@ -56,8 +56,8 @@ func transformCheckoutArgs(args *Args) error {
 	}
 
 	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
-	gh := github.NewClient(url.Project)
-	pullRequest, err := gh.PullRequest(id)
+	gh := github.NewClient(url.Project.Host)
+	pullRequest, err := gh.PullRequest(url.Project, id)
 	if err != nil {
 		return err
 	}

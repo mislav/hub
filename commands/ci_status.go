@@ -75,8 +75,8 @@ func ciStatus(cmd *Command, args *Args) {
 }
 
 func fetchCiStatus(p *github.Project, sha string) (state, targetURL string, exitCode int, err error) {
-	gh := github.NewClient(p)
-	status, err := gh.CIStatus(sha)
+	gh := github.NewClient(p.Host)
+	status, err := gh.CIStatus(p, sha)
 	if err != nil {
 		return
 	}

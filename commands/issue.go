@@ -18,15 +18,16 @@ var cmdIssue = &Command{
   $ gh issue
 */
 func issue(cmd *Command, args *Args) {
+	localRepo := github.LocalRepo()
+	project, err := localRepo.CurrentProject()
+	utils.Check(err)
 
-	gh := github.New()
-
-	// list all issues
+	gh := github.NewClient(project.Host)
 
 	if args.Noop {
-		fmt.Printf("Would request list of issues for %s\n", gh.Project)
+		fmt.Printf("Would request list of issues for %s\n", project)
 	} else {
-		issues, err := gh.Issues()
+		issues, err := gh.Issues(project)
 		utils.Check(err)
 		for _, issue := range issues {
 			var url string

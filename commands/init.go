@@ -38,9 +38,8 @@ func transformInitArgs(args *Args) error {
 		return err
 	}
 
-	owner := github.CurrentConfig().FetchUser()
-	project := github.NewProject(owner, name, "")
-	url := project.GitURL(name, owner, true)
+	project := github.NewProject("", name, "")
+	url := project.GitURL("", "", true)
 	args.After("git", "remote", "add", "origin", url)
 
 	return nil

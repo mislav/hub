@@ -10,7 +10,7 @@ import (
 
 func TestTransformInitArgs(t *testing.T) {
 	os.Setenv("GH_PROTOCOL", "git")
-	github.CreateTestConfig("jingweno", "123")
+	github.CreateTestConfigs("jingweno", "123")
 
 	args := NewArgs([]string{"init"})
 	err := transformInitArgs(args)

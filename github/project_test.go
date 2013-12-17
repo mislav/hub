@@ -7,38 +7,6 @@ import (
 	"testing"
 )
 
-func TestNewProjectOwnerAndName(t *testing.T) {
-	CreateTestConfig("jingweno", "123")
-
-	project := NewProjectFromOwnerAndName("", "mojombo/gh")
-	assert.Equal(t, "mojombo", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromOwnerAndName("progmob", "mojombo/gh")
-	assert.Equal(t, "progmob", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromOwnerAndName("mojombo/jekyll", "gh")
-	assert.Equal(t, "mojombo", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromOwnerAndName("mojombo/gh", "")
-	assert.Equal(t, "mojombo", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromOwnerAndName("", "gh")
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-
-	project = NewProjectFromOwnerAndName("", "jingweno/gh/foo")
-	assert.Equal(t, "jingweno", project.Owner)
-	assert.Equal(t, "gh/foo", project.Name)
-
-	project = NewProjectFromOwnerAndName("mojombo", "gh")
-	assert.Equal(t, "mojombo", project.Owner)
-	assert.Equal(t, "gh", project.Name)
-}
-
 func TestWebURL(t *testing.T) {
 	project := Project{Name: "foo", Owner: "bar", Host: "github.com"}
 	url := project.WebURL("", "", "baz")
