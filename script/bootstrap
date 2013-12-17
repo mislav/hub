@@ -3,3 +3,4 @@
 go get code.google.com/p/go.tools/cmd/cover
 go get github.com/kr/godep
 go get github.com/jingweno/gotask
+go get github.com/laher/goxc
