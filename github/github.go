@@ -16,7 +16,6 @@ const (
 type GitHub struct {
 	Project     *Project
 	Credentials *Credentials
-	Config      *Config // TODO: remove this
 }
 
 func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
@@ -183,16 +182,6 @@ func (gh *GitHub) Issues() (issues []octokit.Issue, err error) {
 	return
 }
 
-func (gh *GitHub) ExpandRemoteUrl(owner, name string, isSSH bool) (url string) {
-	project := gh.Project
-	if owner == "origin" {
-		config := gh.Config
-		owner = config.FetchUser()
-	}
-
-	return project.GitURL(name, owner, isSSH)
-}
-
 func (gh *GitHub) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	url, err := octokit.AuthorizationsURL.Expand(nil)
 	if err != nil {
@@ -277,17 +266,7 @@ func NewClient(p *Project) *GitHub {
 	return &GitHub{Project: p, Credentials: c}
 }
 
-// TODO: remove it
 func New() *GitHub {
 	p, _ := LocalRepo().CurrentProject()
-
 	return NewClient(p)
-}
-
-// TODO: remove it
-func NewWithoutProject() *GitHub {
-	c := CurrentConfig()
-	c.FetchUser()
-
-	return &GitHub{Project: nil, Config: c}
 }
