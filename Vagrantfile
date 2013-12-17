@@ -59,6 +59,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "linux" do |linux|
     linux.vm.box = "precise64"
     linux.vm.box_url = "http://files.vagrantup.com/precise64.box"
+    linux.vm.synced_folder "#{src_path}/src/github.com/jingweno/gh/target", "/home/vagrant/target"
     linux.vm.provision :shell, :inline => bootstrap("linux")
   end
 

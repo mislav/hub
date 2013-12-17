@@ -31,9 +31,24 @@ func TaskCrossCompileAll(t *tasking.T) {
 
 	// for linux
 	t.Log("Compiling for linux...")
-	err = t.Exec("vagrant ssh -c 'rm -rf ~/gocode && go get github.com/jingweno/gh && cd ~/gocode/src/github.com/jingweno/gh && ./script/bootstrap && gotask cross-compile'")
+	t.Log("Downloading gh...")
+	err = t.Exec("vagrant ssh -c 'rm -rf ~/gocode && go get github.com/jingweno/gh'")
 	if err != nil {
-		t.Errorf("Can't compile on linux: %s\n", err)
+		t.Errorf("Can't download gh on linux: %s\n", err)
+		return
+	}
+
+	t.Log("Cross-compiling gh...")
+	err = t.Exec("vagrant ssh -c 'cd ~/gocode/src/github.com/jingweno/gh && ./script/bootstrap && GOPATH=`godep path`:$GOPATH gotask cross-compile'")
+	if err != nil {
+		t.Errorf("Can't cross-compile gh on linux: %s\n", err)
+		return
+	}
+
+	t.Log("Moving build artifacts...")
+	err = t.Exec("vagrant ssh -c 'cp -R ~/gocode/src/github.com/jingweno/gh/target/* ~/target/'")
+	if err != nil {
+		t.Errorf("Can't cross-compile gh on linux: %s\n", err)
 		return
 	}
 }
@@ -50,16 +65,6 @@ func TaskCrossCompile(t *tasking.T) {
 		t.Errorf("Can't update goxc: %s\n", err)
 		return
 	}
-
-	// TODO: use a dependency manager that has versioning
-	//if runtime.GOOS != "windows" {
-	//t.Log("Updating dependencies...")
-	//err = t.Exec("go get -u ./...")
-	//if err != nil {
-	//t.Errorf("Can't update goxc: %s\n", err)
-	//return
-	//}
-	//}
 
 	t.Logf("Cross-compiling gh for %s...\n", runtime.GOOS)
 	err = t.Exec("goxc", "-wd=.", "-os="+runtime.GOOS, "-c="+runtime.GOOS)
