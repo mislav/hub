@@ -137,7 +137,7 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	client := github.NewClient(baseProject)
+	client := github.NewClient(baseProject.Host)
 
 	// when no tracking, assume remote branch is published under active user's fork
 	if trackedBranch == nil && !explicitOwner && client.Credentials.User != headProject.Owner {
@@ -192,13 +192,13 @@ func pullRequest(cmd *Command, args *Args) {
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		if title != "" {
-			pr, err := client.CreatePullRequest(base, fullHead, title, body)
+			pr, err := client.CreatePullRequest(baseProject, base, fullHead, title, body)
 			utils.Check(err)
 			pullRequestURL = pr.HTMLURL
 		}
 
 		if flagPullRequestIssue != "" {
-			pr, err := client.CreatePullRequestForIssue(base, fullHead, flagPullRequestIssue)
+			pr, err := client.CreatePullRequestForIssue(baseProject, base, fullHead, flagPullRequestIssue)
 			utils.Check(err)
 			pullRequestURL = pr.HTMLURL
 		}

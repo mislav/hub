@@ -6,12 +6,12 @@ import (
 )
 
 func TestApiEndpoint(t *testing.T) {
-	gh := &GitHub{Project: &Project{Name: "foo", Owner: "bar", Host: "github.com"}}
+	gh := &GitHub{Credentials: &Credentials{Host: "github.com"}}
 	assert.Equal(t, "https://api.github.com", gh.apiEndpoint())
 
-	gh = &GitHub{Project: &Project{Name: "foo", Owner: "bar", Host: "github.corporate.com"}}
+	gh = &GitHub{Credentials: &Credentials{Host: "github.corporate.com"}}
 	assert.Equal(t, "https://github.corporate.com", gh.apiEndpoint())
 
-	gh = &GitHub{Project: &Project{Name: "foo", Owner: "bar", Host: "http://github.corporate.com"}}
+	gh = &GitHub{Credentials: &Credentials{Host: "http://github.corporate.com"}}
 	assert.Equal(t, "http://github.corporate.com", gh.apiEndpoint())
 }

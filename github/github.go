@@ -14,14 +14,11 @@ const (
 )
 
 type GitHub struct {
-	// TODO: Detach Project from GitHub
-	// It only cares about host & credentials
-	Project     *Project
 	Credentials *Credentials
 }
 
-func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name, "number": id})
+func (gh *GitHub) PullRequest(project *Project, id string) (pr *octokit.PullRequest, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
 	if err != nil {
 		return
 	}
@@ -35,8 +32,8 @@ func (gh *GitHub) PullRequest(id string) (pr *octokit.PullRequest, err error) {
 	return
 }
 
-func (gh *GitHub) CreatePullRequest(base, head, title, body string) (pr *octokit.PullRequest, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
+func (gh *GitHub) CreatePullRequest(project *Project, base, head, title, body string) (pr *octokit.PullRequest, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
 		return
 	}
@@ -51,8 +48,8 @@ func (gh *GitHub) CreatePullRequest(base, head, title, body string) (pr *octokit
 	return
 }
 
-func (gh *GitHub) CreatePullRequestForIssue(base, head, issue string) (pr *octokit.PullRequest, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
+func (gh *GitHub) CreatePullRequestForIssue(project *Project, base, head, issue string) (pr *octokit.PullRequest, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
 		return
 	}
@@ -116,8 +113,8 @@ func (gh *GitHub) CreateRepository(project *Project, description, homepage strin
 	return
 }
 
-func (gh *GitHub) Releases() (releases []octokit.Release, err error) {
-	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
+func (gh *GitHub) Releases(project *Project) (releases []octokit.Release, err error) {
+	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
 		return
 	}
@@ -132,8 +129,8 @@ func (gh *GitHub) Releases() (releases []octokit.Release, err error) {
 	return
 }
 
-func (gh *GitHub) CIStatus(sha string) (status *octokit.Status, err error) {
-	url, err := octokit.StatusesURL.Expand(octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name, "ref": sha})
+func (gh *GitHub) CIStatus(project *Project, sha string) (status *octokit.Status, err error) {
+	url, err := octokit.StatusesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "ref": sha})
 	if err != nil {
 		return
 	}
@@ -167,8 +164,8 @@ func (gh *GitHub) ForkRepository(project *Project) (repo *octokit.Repository, er
 	return
 }
 
-func (gh *GitHub) Issues() (issues []octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": gh.Project.Owner, "repo": gh.Project.Name})
+func (gh *GitHub) Issues(project *Project) (issues []octokit.Issue, err error) {
+	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
 		return
 	}
@@ -233,7 +230,7 @@ func (gh *GitHub) octokit() (c *octokit.Client) {
 
 func (gh *GitHub) requestURL(u *url.URL) (uu *url.URL) {
 	uu = u
-	if gh.Project.Host != GitHubHost {
+	if gh.Credentials.Host != GitHubHost {
 		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
 	}
 
@@ -243,7 +240,7 @@ func (gh *GitHub) requestURL(u *url.URL) (uu *url.URL) {
 func (gh *GitHub) apiEndpoint() string {
 	host := os.Getenv("GH_API_HOST")
 	if host == "" {
-		host = gh.Project.Host
+		host = gh.Credentials.Host
 	}
 
 	if host == GitHubHost {
@@ -262,7 +259,7 @@ func absolute(endpoint string) string {
 	return u.String()
 }
 
-func NewClient(p *Project) *GitHub {
-	c := CurrentConfigs().PromptFor(p.Host)
-	return &GitHub{Project: p, Credentials: c}
+func NewClient(host string) *GitHub {
+	c := CurrentConfigs().PromptFor(host)
+	return &GitHub{Credentials: c}
 }

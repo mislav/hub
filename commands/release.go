@@ -22,11 +22,11 @@ func release(cmd *Command, args *Args) {
 	project, err := localRepo.CurrentProject()
 	utils.Check(err)
 
-	gh := github.NewClient(project)
+	gh := github.NewClient(project.Host)
 	if args.Noop {
-		fmt.Printf("Would request list of releases for %s\n", gh.Project)
+		fmt.Printf("Would request list of releases for %s\n", project)
 	} else {
-		releases, err := gh.Releases()
+		releases, err := gh.Releases(project)
 		utils.Check(err)
 		var outputs []string
 		for _, release := range releases {

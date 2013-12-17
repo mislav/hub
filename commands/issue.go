@@ -22,12 +22,12 @@ func issue(cmd *Command, args *Args) {
 	project, err := localRepo.CurrentProject()
 	utils.Check(err)
 
-	gh := github.NewClient(project)
+	gh := github.NewClient(project.Host)
 
 	if args.Noop {
-		fmt.Printf("Would request list of issues for %s\n", gh.Project)
+		fmt.Printf("Would request list of issues for %s\n", project)
 	} else {
-		issues, err := gh.Issues()
+		issues, err := gh.Issues(project)
 		utils.Check(err)
 		for _, issue := range issues {
 			var url string

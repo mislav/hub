@@ -34,8 +34,10 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
 
-		client := &GitHub{Project: &Project{Host: host}}
+		// Create GitHub with a stub Credentials
+		client := &GitHub{Credentials: &Credentials{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
+		// TODO: return a two-factor error
 		if err != nil {
 			re := regexp.MustCompile("two-factor authentication OTP code")
 			if re.MatchString(fmt.Sprintf("%s", err)) {

@@ -50,7 +50,7 @@ func tranformFetchArgs(args *Args) error {
 			_, err := localRepo.RemotesByName(name)
 			if err != nil {
 				project := github.NewProject(name, "", "")
-				gh := github.NewClient(project)
+				gh := github.NewClient(project.Host)
 				repo, err := gh.Repository(project)
 				if err != nil {
 					continue

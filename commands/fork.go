@@ -41,7 +41,7 @@ func fork(cmd *Command, args *Args) {
 	credentials := configs.PromptFor(project.Host)
 	forkProject := github.NewProject(credentials.User, project.Name, project.Host)
 
-	client := github.NewClient(project)
+	client := github.NewClient(project.Host)
 	existingRepo, err := client.Repository(forkProject)
 	if err == nil {
 		var parentURL *github.URL
