@@ -34,8 +34,8 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
 
-		// Create GitHub with a stub Credentials
-		client := &GitHub{Credentials: &Credentials{Host: host}}
+		// Create Client with a stub Credentials
+		client := &Client{Credentials: &Credentials{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
 		// TODO: return a two-factor error
 		if err != nil {
