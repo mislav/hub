@@ -25,7 +25,7 @@
 		}
 	},
 	"Env": [
-		"GOPATH=Godeps/_workspace"
+		"GOPATH=./Godeps/_workspace"
 	],
 	"ConfigVersion": "0.9"
 }
