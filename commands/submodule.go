@@ -29,10 +29,11 @@ func submodule(command *Command, args *Args) {
 }
 
 func transformSubmoduleArgs(args *Args) {
-	if args.FirstParam() != "add" {
+	var idx int
+	if idx = args.IndexOfParam("add"); idx == -1 {
 		return
 	}
-	args.RemoveParam(0)
+	args.RemoveParam(idx)
 	transformCloneArgs(args)
-	args.InsertParam(0, "add")
+	args.InsertParam(idx, "add")
 }
