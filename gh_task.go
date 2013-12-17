@@ -60,7 +60,7 @@ func TaskCrossCompileAll(t *tasking.T) {
 //    Cross-compiles gh for current platform. Build artifacts will be in target/VERSION
 func TaskCrossCompile(t *tasking.T) {
 	t.Log("Updating goxc...")
-	err := t.Exec("go get -u github.com/laher/goxc")
+	err := t.Exec("go get github.com/laher/goxc")
 	if err != nil {
 		t.Errorf("Can't update goxc: %s\n", err)
 		return
