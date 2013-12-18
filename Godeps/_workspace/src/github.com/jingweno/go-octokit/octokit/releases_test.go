@@ -75,3 +75,26 @@ func TestCreateRelease(t *testing.T) {
 	assert.T(t, !result.HasError())
 	assert.Equal(t, "v1.0.0", release.TagName)
 }
+
+func TestUpdateRelease(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/repos/octokit/Hello-World/releases/123", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PATCH")
+		testBody(t, r, "{\"tag_name\":\"v1.0.0\",\"target_commitish\":\"master\"}\n")
+		respondWithJSON(w, loadFixture("create_release.json"))
+	})
+
+	url, err := ReleasesURL.Expand(M{"owner": "octokit", "repo": "Hello-World", "id": "123"})
+	assert.Equal(t, nil, err)
+
+	params := Release{
+		TagName:         "v1.0.0",
+		TargetCommitish: "master",
+	}
+	release, result := client.Releases(url).Update(params)
+
+	assert.T(t, !result.HasError())
+	assert.Equal(t, "v1.0.0", release.TagName)
+}

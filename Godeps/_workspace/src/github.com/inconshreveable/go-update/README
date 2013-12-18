@@ -1,0 +1,137 @@
+PACKAGE DOCUMENTATION
+
+package update
+    import "github.com/inconshreveable/go-update"
+
+    Package update allows a program to "self-update", replacing its
+    executable file with new bytes.
+
+    Package update provides the facility to create user experiences like
+    auto-updating or user-approved updates which manifest as user prompts in
+    commercial applications with copy similar to "Restart to being using the
+    new version of X".
+
+    Updating your program to a new version is as easy as:
+
+	err := update.FromUrl("http://release.example.com/2.0/myprogram")
+	if err != nil {
+		fmt.Printf("Update failed: %v", err)
+	}
+
+    The most low-level API is FromStream() which updates the current
+    executable with the bytes read from an io.Reader.
+
+    Additional APIs are provided for common update strategies which include
+    updating from a file with FromFile() and updating from the internet with
+    FromUrl().
+
+    Using the more advaced Download.UpdateFromUrl() API gives you the
+    ability to resume an interrupted download to enable large updates to
+    complete even over intermittent or slow connections. This API also
+    enables more fine-grained control over how the update is downloaded from
+    the internet as well as access to download progress,
+
+
+VARIABLES
+
+var (
+    // Returned when the remote server indicates that no download is available
+    UpdateUnavailable error
+)
+
+
+FUNCTIONS
+
+func FromFile(filepath string) (err error)
+    FromFile reads the contents of the given file and uses them to update
+    the current program's executable file by calling FromStream().
+
+func FromStream(newBinary io.Reader) (err error)
+    FromStream reads the contents of the supplied io.Reader newBinary and
+    uses them to update the current program's executable file.
+
+    FromStream performs the following actions to ensure a cross-platform
+    safe update:
+
+    - Renames the current program's executable file from
+    /path/to/program-name to /path/to/.program-name.old
+
+    - Opens the now-empty path /path/to/program-name with mode 0755 and
+    copies the contents of newBinary into the file.
+
+    - If the copy is successful, it erases /path/to/.program.old. If this
+    operation fails, no error is reported.
+
+    - If the copy is unsuccessful, it attempts to rename
+    /path/to/.program-name.old back to /path/to/program-name. If this
+    operation fails, the error is not reported in order to not mask the
+    error that caused the rename recovery attempt.
+
+func FromUrl(url string) error
+    FromUrl downloads the contents of the given url and uses them to update
+    the current program's executable file. It is a convenience function
+    which is equivalent to
+
+	NewDownload().UpdateFromUrl(url)
+
+    See Download.UpdateFromUrl for more details.
+
+
+TYPES
+
+type Download struct {
+    // net/http.Client to use when downloading the update.
+    // If nil, a default http.Client is used
+    HttpClient *http.Client
+
+    // Path on the file system to dowload the update to
+    // If empty, a temporary file is used.
+    // After the download begins, this path will be set
+    // so that the client can use it to resume aborted
+    // downloads
+    Path string
+
+    // Progress returns the percentage of the download
+    // completed as an integer between 0 and 100
+    Progress chan (int)
+
+    // HTTP Method to use in the download request. Default is "GET"
+    Method string
+}
+    Type Download encapsulates the necessary parameters and state needed to
+    download an update from the internet. Create an instance with the
+    NewDownload() factory function.
+
+
+func NewDownload() *Download
+    NewDownload initializes a new Download object
+
+
+func (d *Download) UpdateFromUrl(url string) (err error)
+    UpdateFromUrl downloads the given url from the internet to a file on
+    disk and then calls FromStream() to update the current program's
+    executable file with the contents of that file.
+
+    If the update is successful, the downloaded file will be erased from
+    disk. Otherwise, it will remain in d.Path to allow the download to
+    resume later or be skipped entirely.
+
+    Only HTTP/1.1 servers that implement the Range header are supported.
+
+    UpdateFromUrl() uses HTTP status codes to determine what action to take.
+
+    - The HTTP server should return 200 or 206 for the update to be
+    downloaded.
+
+    - The HTTP server should return 204 if no update is available at this
+    time. This will cause UpdateFromUrl to return the error
+    UpdateUnavailable.
+
+    - If the HTTP server returns a 3XX redirect, it will be followed
+    according to d.HttpClient's redirect policy.
+
+    - Any other HTTP status code will cause UpdateFromUrl to return an
+    error.
+
+
+

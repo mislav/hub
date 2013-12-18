@@ -10,27 +10,32 @@ type Request struct {
 }
 
 func (r *Request) Head(output interface{}) (resp *Response, err error) {
-	resp, err = r.do("HEAD", nil, output)
+	resp, err = r.do(sawyer.HeadMethod, nil, output)
 	return
 }
 
 func (r *Request) Get(output interface{}) (resp *Response, err error) {
-	resp, err = r.do("GET", nil, output)
+	resp, err = r.do(sawyer.GetMethod, nil, output)
 	return
 }
 
 func (r *Request) Post(input interface{}, output interface{}) (resp *Response, err error) {
-	resp, err = r.do("POST", input, output)
+	resp, err = r.do(sawyer.PostMethod, input, output)
 	return
 }
 
 func (r *Request) Put(input interface{}, output interface{}) (resp *Response, err error) {
-	resp, err = r.do("PUT", input, output)
+	resp, err = r.do(sawyer.PutMethod, input, output)
 	return
 }
 
 func (r *Request) Delete(output interface{}) (resp *Response, err error) {
-	resp, err = r.do("DELETE", nil, output)
+	resp, err = r.do(sawyer.DeleteMethod, nil, output)
+	return
+}
+
+func (r *Request) Patch(input interface{}, output interface{}) (resp *Response, err error) {
+	resp, err = r.do(sawyer.PatchMethod, input, output)
 	return
 }
 
@@ -50,6 +55,8 @@ func (r *Request) do(method string, input interface{}, output interface{}) (resp
 		r.sawyerReq.SetBody(mtype, input)
 		sawyerResp = r.sawyerReq.Put()
 	case sawyer.PatchMethod:
+		mtype, _ := mediatype.Parse(defaultMediaType)
+		r.sawyerReq.SetBody(mtype, input)
 		sawyerResp = r.sawyerReq.Patch()
 	case sawyer.DeleteMethod:
 		sawyerResp = r.sawyerReq.Delete()

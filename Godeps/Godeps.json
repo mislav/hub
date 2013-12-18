@@ -6,6 +6,11 @@
 	],
 	"Deps": [
 		{
+			"ImportPath": "bitbucket.org/kardianos/osext",
+			"Comment": "null-9",
+			"Rev": "364fb577de68fb646c4cb39cc0e09c887ee16376"
+		},
+		{
 			"ImportPath": "code.google.com/p/go-netrc/netrc",
 			"Comment": "null-12",
 			"Rev": "0da3cb9c37e02c4eddb0775a45d2d49a694d302c"
@@ -25,9 +30,13 @@
 			"Rev": "4cf66881dcc3d6f0071eb6473d95c39e460de696"
 		},
 		{
+			"ImportPath": "github.com/inconshreveable/go-update",
+			"Rev": "3f0466666779bd2143f368a207b0641f0ed536e8"
+		},
+		{
 			"ImportPath": "github.com/jingweno/go-octokit/octokit",
-			"Comment": "v0.4.0-27-g1dbe02b",
-			"Rev": "1dbe02be6d8bd53eaf3869d97b1746ff82e2a807"
+			"Comment": "v0.4.0-41-g85bc6b5",
+			"Rev": "85bc6b536f8e8cb24d4db262e4dfea3d7d2d8138"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",

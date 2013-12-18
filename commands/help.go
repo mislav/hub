@@ -86,6 +86,7 @@ GitHub Commands:
    issue          Manipulate issues (beta)
 
 See 'git help <command>' for more information on a specific command.
+Run 'git update' to update to the latest version of gh.
 `
 
 func printUsage() {

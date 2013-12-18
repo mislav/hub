@@ -31,6 +31,16 @@ func (i *IssuesService) All() (issues []Issue, result *Result) {
 	return
 }
 
+func (i *IssuesService) Create(params interface{}) (issue *Issue, result *Result) {
+	result = i.client.post(i.URL, params, &issue)
+	return
+}
+
+func (i *IssuesService) Update(params interface{}) (issue *Issue, result *Result) {
+	result = i.client.patch(i.URL, params, &issue)
+	return
+}
+
 type Issue struct {
 	*hypermedia.HALResource
 
@@ -68,4 +78,13 @@ type Issue struct {
 	CreatedAt time.Time  `json:"created_at,omitempty"`
 	ClosedAt  *time.Time `json:"closed_at,omitempty"`
 	UpdatedAt time.Time  `json:"updated_at,omitempty"`
+}
+
+type IssueParams struct {
+	Title     string   `json:"title,omitempty"`
+	Body      string   `json:"body,omitempty"`
+	Assignee  string   `json:"assignee,omitempty"`
+	State     string   `json:"state,omitempty"`
+	Milestone uint64   `json:"milestone,omitempty"`
+	Labels    []string `json:"labels,omitempty"`
 }
