@@ -45,6 +45,52 @@ func TestIssuesService_One(t *testing.T) {
 	validateIssue(t, *issue)
 }
 
+func TestIssuesService_Create(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/repos/octocat/Hello-World/issues", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "POST")
+		testBody(t, r, "{\"title\":\"title\",\"body\":\"body\"}\n")
+		respondWithJSON(w, loadFixture("issue.json"))
+	})
+
+	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World"})
+	assert.Equal(t, nil, err)
+
+	params := IssueParams{
+		Title: "title",
+		Body:  "body",
+	}
+	issue, result := client.Issues(url).Create(params)
+
+	assert.T(t, !result.HasError())
+	validateIssue(t, *issue)
+}
+
+func TestIssuesService_Update(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/repos/octocat/Hello-World/issues/1347", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "PATCH")
+		testBody(t, r, "{\"title\":\"title\",\"body\":\"body\"}\n")
+		respondWithJSON(w, loadFixture("issue.json"))
+	})
+
+	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World", "number": 1347})
+	assert.Equal(t, nil, err)
+
+	params := IssueParams{
+		Title: "title",
+		Body:  "body",
+	}
+	issue, result := client.Issues(url).Update(params)
+
+	assert.T(t, !result.HasError())
+	validateIssue(t, *issue)
+}
+
 func validateIssue(t *testing.T, issue Issue) {
 
 	assert.Equal(t, "https://api.github.com/repos/octocat/Hello-World/issues/1347", issue.URL)

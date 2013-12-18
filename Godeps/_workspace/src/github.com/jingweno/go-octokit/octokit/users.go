@@ -44,6 +44,7 @@ func (u *UsersService) All() (users []User, result *Result) {
 type User struct {
 	*hypermedia.HALResource
 
+	SiteAdmin         bool       `json:"site_admin,omitempty"`
 	Login             string     `json:"login,omitempty"`
 	ID                int        `json:"id,omitempty"`
 	AvatarURL         string     `json:"avatar_url,omitempty"`
@@ -57,7 +58,6 @@ type User struct {
 	Hireable          bool       `json:"hireable,omitempty"`
 	Bio               string     `json:"bio,omitempty"`
 	PublicRepos       int        `json:"public_repos,omitempty"`
-	PublicGists       int        `json:"public_gists,omitempty"`
 	Followers         int        `json:"followers,omitempty"`
 	Following         int        `json:"following,omitempty"`
 	HTMLURL           string     `json:"html_url,omitempty"`

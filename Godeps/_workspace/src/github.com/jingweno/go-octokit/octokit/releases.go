@@ -63,6 +63,11 @@ func (r *ReleasesService) Create(params interface{}) (release *Release, result *
 	return
 }
 
+func (r *ReleasesService) Update(params interface{}) (release *Release, result *Result) {
+	result = r.client.patch(r.URL, params, &release)
+	return
+}
+
 type ReleaseParams struct {
 	TagName         string `json:"tag_name,omitempty"`
 	TargetCommitish string `json:"target_commitish,omitempty"`

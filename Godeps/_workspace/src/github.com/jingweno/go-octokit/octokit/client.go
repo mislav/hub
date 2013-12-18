@@ -44,65 +44,49 @@ func (c *Client) NewRequest(urlStr string) (req *Request, err error) {
 }
 
 func (c *Client) head(url *url.URL, output interface{}) (result *Result) {
-	req, err := c.NewRequest(url.String())
-	if err != nil {
-		result = newResult(nil, err)
-		return
-	}
-
-	resp, err := req.Head(output)
-	result = newResult(resp, err)
-
-	return
+	return sendRequest(c, url, func(req *Request) (*Response, error) {
+		return req.Head(output)
+	})
 }
 
 func (c *Client) get(url *url.URL, output interface{}) (result *Result) {
-	req, err := c.NewRequest(url.String())
-	if err != nil {
-		result = newResult(nil, err)
-		return
-	}
-
-	resp, err := req.Get(output)
-	result = newResult(resp, err)
-
-	return
+	return sendRequest(c, url, func(req *Request) (*Response, error) {
+		return req.Get(output)
+	})
 }
 
 func (c *Client) post(url *url.URL, input interface{}, output interface{}) (result *Result) {
-	req, err := c.NewRequest(url.String())
-	if err != nil {
-		result = newResult(nil, err)
-		return
-	}
-
-	resp, err := req.Post(input, output)
-	result = newResult(resp, err)
-
-	return
+	return sendRequest(c, url, func(req *Request) (*Response, error) {
+		return req.Post(input, output)
+	})
 }
 
-func (c *Client) put(url *url.URL, input interface{}, output interface{}) (result *Result) {
-	req, err := c.NewRequest(url.String())
-	if err != nil {
-		result = newResult(nil, err)
-		return
-	}
-
-	resp, err := req.Put(input, output)
-	result = newResult(resp, err)
-
-	return
+func (c *Client) put(url *url.URL, input interface{}, output interface{}) *Result {
+	return sendRequest(c, url, func(req *Request) (*Response, error) {
+		return req.Put(input, output)
+	})
 }
 
 func (c *Client) delete(url *url.URL, output interface{}) (result *Result) {
+	return sendRequest(c, url, func(req *Request) (*Response, error) {
+		return req.Delete(output)
+	})
+}
+
+func (c *Client) patch(url *url.URL, input interface{}, output interface{}) (result *Result) {
+	return sendRequest(c, url, func(req *Request) (*Response, error) {
+		return req.Patch(input, output)
+	})
+}
+
+func sendRequest(c *Client, url *url.URL, fn func(r *Request) (*Response, error)) (result *Result) {
 	req, err := c.NewRequest(url.String())
 	if err != nil {
 		result = newResult(nil, err)
 		return
 	}
 
-	resp, err := req.Delete(output)
+	resp, err := fn(req)
 	result = newResult(resp, err)
 
 	return

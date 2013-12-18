@@ -25,10 +25,10 @@ func TestUsersService_GetCurrentUser(t *testing.T) {
 	assert.Equal(t, "jingweno", user.Login)
 	assert.Equal(t, "jingweno@gmail.com", user.Email)
 	assert.Equal(t, "User", user.Type)
-	assert.Equal(t, 3, user.Following)
-	assert.Equal(t, 19, user.Followers)
-	assert.Equal(t, 80, user.PublicRepos)
-	assert.Equal(t, 25, user.PublicGists)
+	assert.Equal(t, 17, user.Following)
+	assert.Equal(t, 28, user.Followers)
+	assert.Equal(t, 90, user.PublicRepos)
+	assert.Equal(t, false, user.SiteAdmin)
 	assert.Equal(t, "https://api.github.com/users/jingweno/repos", string(user.ReposURL))
 }
 
