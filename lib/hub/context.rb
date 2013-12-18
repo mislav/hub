@@ -3,6 +3,7 @@ require 'forwardable'
 require 'uri'
 
 require_relative 'context/git_reader'
+require_relative 'context/git_reader_methods'
 
 module Hub
   # Methods for inspecting the environment, such as reading git config,
@@ -11,19 +12,6 @@ module Hub
     extend Forwardable
 
     NULL = defined?(File::NULL) ? File::NULL : File.exist?('/dev/null') ? '/dev/null' : 'NUL'
-
-    # Shells out to git to get output of its commands
-    module GitReaderMethods
-      extend Forwardable
-
-      def_delegator :git_reader, :read_config, :git_config
-      def_delegator :git_reader, :read, :git_command
-
-      def self.extended(base)
-        base.extend Forwardable
-        base.def_delegators :'self.class', :git_config, :git_command
-      end
-    end
 
     class Error < RuntimeError; end
     class FatalError < Error; end
@@ -398,7 +386,7 @@ module Hub
 
     module System
       # Cross-platform web browser command; respects the value set in $BROWSER.
-      # 
+      #
       # Returns an array, e.g.: ['open']
       def browser_launcher
         browser = ENV['BROWSER'] || (
