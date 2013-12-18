@@ -7,6 +7,8 @@ require_relative 'context/git_reader_methods'
 require_relative 'context/system'
 require_relative 'context/local_repo'
 require_relative 'context/github_url'
+require_relative 'context/branch'
+require_relative 'context/remote'
 
 module Hub
   # Methods for inspecting the environment, such as reading git config,
@@ -53,78 +55,6 @@ module Hub
       else
         # FIXME: duplicates functionality of LocalRepo#master_branch
         Branch.new nil, 'refs/heads/master'
-      end
-    end
-
-    class Branch < Struct.new(:local_repo, :name)
-      alias to_s name
-
-      def short_name
-        name.sub(%r{^refs/(remotes/)?.+?/}, '')
-      end
-
-      def master?
-        master_name = if local_repo then local_repo.master_branch.short_name
-        else 'master'
-        end
-        short_name == master_name
-      end
-
-      def upstream
-        if branch = local_repo.git_command("rev-parse --symbolic-full-name #{short_name}@{upstream}")
-          Branch.new local_repo, branch
-        end
-      end
-
-      def remote?
-        name.index('refs/remotes/') == 0
-      end
-
-      def remote_name
-        name =~ %r{^refs/remotes/([^/]+)} and $1 or
-          raise Error, "can't get remote name from #{name.inspect}"
-      end
-    end
-
-    class Remote < Struct.new(:local_repo, :name)
-      alias to_s name
-
-      def ==(other)
-        other.respond_to?(:to_str) ? name == other.to_str : super
-      end
-
-      def project
-        urls.each_value { |url|
-          if valid = GithubProject.from_url(url, local_repo)
-            return valid
-          end
-        }
-        nil
-      end
-
-      def urls
-        return @urls if defined? @urls
-        @urls = {}
-        local_repo.git_command('remote -v').to_s.split("\n").map do |line|
-          next if line !~ /^(.+?)\t(.+) \((.+)\)$/
-          remote, uri, type = $1, $2, $3
-          next if remote != self.name
-          if uri =~ %r{^[\w-]+://} or uri =~ %r{^([^/]+?):}
-            uri = "ssh://#{$1}/#{$'}" if $1
-            begin
-              @urls[type] = uri_parse(uri)
-            rescue URI::InvalidURIError
-            end
-          end
-        end
-        @urls
-      end
-
-      def uri_parse uri
-        uri = URI.parse uri
-        uri.host = local_repo.ssh_config.get_value(uri.host, 'hostname') { uri.host }
-        uri.user = local_repo.ssh_config.get_value(uri.host, 'user') { uri.user }
-        uri
       end
     end
 
