@@ -90,6 +90,7 @@ func All() []*Command {
 	all = append(all, cmdAlias)
 	all = append(all, cmdVersion)
 	all = append(all, cmdHelp)
+	all = append(all, cmdUpdate)
 
 	return all
 }
