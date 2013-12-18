@@ -25,7 +25,6 @@ module Hub
     # Options:
     # - config: an object that implements:
     #   - username(host)
-    #   - api_token(host, user)
     #   - password(host, user)
     #   - oauth_token(host, user)
     def initialize config, options
@@ -377,15 +376,6 @@ module Hub
         entry = @data.entry_for_user(normalize_host(host), old_username)
         entry['user'] = new_username
         @data.save
-      end
-
-      def api_token host, user
-        host = normalize_host host
-        @data.fetch_value host, user, :api_token do
-          if block_given? then yield
-          else prompt "#{host} API token for #{user}"
-          end
-        end
       end
 
       def password host, user
