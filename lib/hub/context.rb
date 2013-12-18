@@ -7,6 +7,7 @@ require_relative 'context/git_reader_methods'
 require_relative 'context/system'
 require_relative 'context/local_repo'
 require_relative 'context/github_url'
+require_relative 'context/github_project'
 require_relative 'context/branch'
 require_relative 'context/remote'
 
@@ -76,7 +77,7 @@ module Hub
         project.name = name
         project
       else
-        GithubProject.new(local_repo(false), owner, name)
+        GitHubProject.new(local_repo(false), owner, name)
       end
     end
 
@@ -86,7 +87,7 @@ module Hub
     end
 
     def resolve_github_url(url)
-      GithubURL.resolve(url, local_repo) if url =~ /^https?:/
+      GitHubURL.resolve(url, local_repo) if url =~ /^https?:/
     end
 
     # legacy setting

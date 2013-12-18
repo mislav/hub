@@ -9,7 +9,7 @@ module Hub
 
       def project
         urls.each_value { |url|
-          if valid = GithubProject.from_url(url, local_repo)
+          if valid = GitHubProject.from_url(url, local_repo)
             return valid
           end
         }

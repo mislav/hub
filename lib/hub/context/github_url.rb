@@ -1,6 +1,6 @@
 module Hub
   module Context
-    class GithubURL < URI::HTTPS
+    class GitHubURL < URI::HTTPS
       extend Forwardable
 
       attr_reader :project
@@ -9,7 +9,7 @@ module Hub
 
       def self.resolve(url, local_repo)
         u = URI(url)
-        if %[http https].include? u.scheme and project = GithubProject.from_url(u, local_repo)
+        if %[http https].include? u.scheme and project = GitHubProject.from_url(u, local_repo)
           self.new(u.scheme, u.userinfo, u.host, u.port, u.registry,
                    u.path, u.opaque, u.query, u.fragment, project)
         end
