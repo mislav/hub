@@ -19,7 +19,7 @@ var cmdUpdate = &Command{
 	Run:   update,
 	Usage: "update",
 	Short: "Update gh",
-	Long: `Update gh with the latest version.
+	Long: `Update gh to the latest version.
 
 Examples:
   git update
@@ -48,7 +48,7 @@ func doUpdate() (err error) {
 	downloadURL := fmt.Sprintf("https://github.com/jingweno/gh/releases/download/%s/gh_%s-snapshot_%s_%s.zip", tagName, version, runtime.GOOS, runtime.GOARCH)
 	path, err := downloadFile(downloadURL)
 	if err != nil {
-		err = fmt.Errorf("Can't download update %s to %s", downloadURL, path)
+		err = fmt.Errorf("Can't download update from %s to %s", downloadURL, path)
 		return
 	}
 
