@@ -43,8 +43,12 @@ func doUpdate() (err error) {
 	latestRelease := releases[0]
 	tagName := latestRelease.TagName
 	version := strings.TrimPrefix(tagName, "v")
+	if version == Version {
+		err = fmt.Errorf("You're already on the latest version: %s", Version)
+		return
+	}
 
-	fmt.Printf("Updating gh to release %s...\n", tagName)
+	fmt.Printf("Updating gh to release %s...\n", version)
 	downloadURL := fmt.Sprintf("https://github.com/jingweno/gh/releases/download/%s/gh_%s-snapshot_%s_%s.zip", tagName, version, runtime.GOOS, runtime.GOARCH)
 	path, err := downloadFile(downloadURL)
 	if err != nil {
