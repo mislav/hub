@@ -14,9 +14,8 @@ module Hub
 
     NULL = defined?(File::NULL) ? File::NULL : File.exist?('/dev/null') ? '/dev/null' : 'NUL'
 
-    class Error < RuntimeError; end
-    class FatalError < Error; end
-
+    Error = Class.new(RuntimeError)
+    FatalError = Class.new(Error)
     private
 
     def git_reader
