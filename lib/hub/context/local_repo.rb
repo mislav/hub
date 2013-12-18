@@ -91,7 +91,7 @@ module Hub
       def_delegators :'self.class', :default_host, :main_host
 
       def ssh_config
-        @ssh_config ||= SshConfig.new
+        @ssh_config ||= SSHConfig.new
       end
     end
   end
