@@ -6,7 +6,7 @@ module Hub
   # augment a git command, is kept in the `Hub::Commands` module.
   class Runner
     attr_reader :args
-    
+
     def initialize(*args)
       @args = Args.new(args)
       Commands.run(@args)
@@ -39,8 +39,8 @@ module Hub
     end
 
     # Runs the target git command with an optional callback. Replaces
-    # the current process. 
-    # 
+    # the current process.
+    #
     # If `args` is empty, this will skip calling the git command. This
     # allows commands to print an error message and cancel their own
     # execution if they don't make sense.
