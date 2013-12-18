@@ -3,6 +3,7 @@ package commands
 import (
 	"archive/zip"
 	"fmt"
+	updater "github.com/inconshreveable/go-update"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"io"
@@ -55,9 +56,10 @@ func doUpdate() (err error) {
 		return
 	}
 
-	fmt.Println(exec)
-
-	//https://github.com/jingweno/gh/releases/download/v0.26.0/gh_0.26.0-snapshot_darwin_amd64.zip
+	err, _ = updater.FromFile(exec)
+	if err == nil {
+		fmt.Printf("Updated gh to release %s!\n", tagName)
+	}
 
 	return
 }
