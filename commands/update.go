@@ -78,46 +78,49 @@ func unzipExecutable(path string) (exec string, err error) {
 	}
 	defer rc.Close()
 
-	dir := filepath.Dir(path)
 	for _, file := range rc.File {
-		frc, e := file.Open()
-		if e != nil {
-			err = fmt.Errorf("Can't open zip entry %s when reading: %s", file.Name, err)
-			return
-		}
-		defer frc.Close()
-
 		if !strings.HasPrefix(file.Name, "gh") {
 			continue
 		}
 
-		dest := filepath.Join(dir, filepath.Base(file.Name))
-		f, e := os.Create(dest)
-		if e != nil {
-			err = e
-			return
-		}
-		defer f.Close()
-
-		copied, e := io.Copy(f, frc)
-		if e != nil {
-			err = e
-			return
-		}
-
-		if uint32(copied) != file.UncompressedSize {
-			err = fmt.Errorf("Zip entry %s is corrupted", file.Name)
-			return
-		}
-
-		exec = f.Name()
-
+		dir := filepath.Dir(path)
+		exec, err = unzipFile(file, dir)
 		break
 	}
 
-	if exec == "" {
-		err = fmt.Errorf("No gh executable is found")
+	if exec == "" && err == nil {
+		err = fmt.Errorf("No gh executable is found in %s", path)
 	}
+
+	return
+}
+
+func unzipFile(file *zip.File, to string) (exec string, err error) {
+	frc, err := file.Open()
+	if err != nil {
+		err = fmt.Errorf("Can't open zip entry %s when reading: %s", file.Name, err)
+		return
+	}
+	defer frc.Close()
+
+	dest := filepath.Join(to, filepath.Base(file.Name))
+	f, err := os.Create(dest)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+
+	copied, err := io.Copy(f, frc)
+	if err != nil {
+		return
+	}
+
+	if uint32(copied) != file.UncompressedSize {
+		err = fmt.Errorf("Zip entry %s is corrupted", file.Name)
+		return
+	}
+
+	exec = f.Name()
 
 	return
 }
@@ -135,6 +138,9 @@ func downloadFile(url string) (path string, err error) {
 	defer file.Close()
 
 	resp, err := http.Get(url)
+	if err != nil {
+		return
+	}
 	defer resp.Body.Close()
 
 	_, err = io.Copy(file, resp.Body)
