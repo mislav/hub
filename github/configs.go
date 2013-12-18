@@ -1,7 +1,6 @@
 package github
 
 import (
-	"code.google.com/p/go.crypto/ssh/terminal"
 	"encoding/json"
 	"fmt"
 	"github.com/howeyc/gopass"
@@ -66,7 +65,7 @@ func (c *Configs) PromptForUser() string {
 
 func (c *Configs) PromptForPassword(host, user string) (pass string) {
 	fmt.Printf("%s password for %s (never stored): ", host, user)
-	if terminal.IsTerminal(int(os.Stdout.Fd())) {
+	if isTerminal(os.Stdout.Fd()) {
 		pass = string(gopass.GetPasswd())
 	} else {
 		fmt.Scanln(&pass)

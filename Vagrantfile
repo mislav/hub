@@ -49,6 +49,7 @@ def bootstrap(box)
   echo '#{profile}' >> /home/vagrant/.profile
 
   chown -R vagrant:vagrant /home/vagrant/gocode
+  go get github.com/jingweno/gotask
 
   echo "\nRun: vagrant ssh #{box} -c 'cd project/path; go test ./...'"
   SCRIPT
@@ -59,7 +60,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define "linux" do |linux|
     linux.vm.box = "precise64"
     linux.vm.box_url = "http://files.vagrantup.com/precise64.box"
-    linux.vm.synced_folder "#{src_path}/src/github.com/jingweno/gh/target", "/home/vagrant/target"
+    linux.vm.synced_folder "#{src_path}/src/github.com/jingweno/gh", "/home/vagrant/gocode/src/github.com/jingweno/gh"
     linux.vm.provision :shell, :inline => bootstrap("linux")
   end
 
