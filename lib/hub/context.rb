@@ -28,13 +28,12 @@ module Hub
     private :git_config, :git_command
 
     def local_repo(fatal = true)
-      @local_repo ||= begin
+      @local_repo ||=
         if is_repo?
           LocalRepo.new git_reader, current_dir
         elsif fatal
           raise FatalError, "Not a git repository"
         end
-      end
     end
 
     repo_methods = [
@@ -55,7 +54,6 @@ module Hub
         Branch.new nil, 'refs/heads/master'
       end
     end
-
 
     class GithubURL < URI::HTTPS
       extend Forwardable
