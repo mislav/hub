@@ -186,9 +186,6 @@ class HubTest < Minitest::Test
       to_return(:body => Hub::JSON.generate(:files => {
         'file.diff' => {
           :raw_url => "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff"
-        },
-        'file2.diff' => {
-          :raw_url => "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file2.diff"
         }
       }))
 
