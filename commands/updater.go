@@ -29,12 +29,28 @@ type Updater struct {
 	CurrentVersion string
 }
 
-func (update *Updater) WantUpdate() bool {
-	if update.CurrentVersion == "dev" || readTime(updateTimestampPath).After(time.Now()) {
+func (updater *Updater) PromptForUpdate() (err error) {
+	if updater.wantUpdate() {
+		fmt.Println("Would you like to check for updates?")
+		fmt.Print("Type Y to update gh: ")
+		var confirm string
+		fmt.Scan(&confirm)
+
+		if confirm == "Y" || confirm == "y" {
+			err = updater.Update()
+		}
+	}
+
+	return
+}
+
+func (updater *Updater) wantUpdate() bool {
+	if updater.CurrentVersion == "dev" || readTime(updateTimestampPath).After(time.Now()) {
 		return false
 	}
 
-	wait := 12*time.Hour + randDuration(8*time.Hour)
+	// the next update is in about 14 days
+	wait := 13*24*time.Hour + randDuration(24*time.Hour)
 	return writeTime(updateTimestampPath, time.Now().Add(wait))
 }
 
@@ -174,7 +190,7 @@ func readTime(path string) time.Time {
 	if err != nil {
 		return time.Now().Add(1000 * time.Hour)
 	}
-	t, err := time.Parse(time.RFC3339, string(p))
+	t, err := time.Parse(time.RFC3339, strings.TrimSpace(string(p)))
 	if err != nil {
 		return time.Now().Add(1000 * time.Hour)
 	}

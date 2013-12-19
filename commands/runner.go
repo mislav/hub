@@ -44,6 +44,12 @@ func (r *Runner) Execute() ExecError {
 		return newExecError(nil)
 	}
 
+	updater := NewUpdater()
+	err := updater.PromptForUpdate()
+	if err != nil {
+		return newExecError(err)
+	}
+
 	expandAlias(args)
 	slurpGlobalFlags(args)
 
@@ -78,7 +84,7 @@ func (r *Runner) Execute() ExecError {
 		}
 	}
 
-	err := git.Spawn(args.Command, args.Params...)
+	err = git.Spawn(args.Command, args.Params...)
 	return newExecError(err)
 }
 
