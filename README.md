@@ -345,10 +345,26 @@ superpowers:
 Configuration
 -------------
 
+### GitHub 2-factor authentication
+
+To use Hub with a GitHub account enabled for 2FA, edit "~/.config/hub"
+manually. Populate it with your username and a 
+[Personal Access Token](https://github.com/settings/applications) (not
+your github.com password). Example (YAML):
+
+~~~ yaml
+---
+github.com:
+- oauth_token: abc123
+  user: schacon
+~~~
+
 ### GitHub OAuth authentication
 
 Hub will prompt for GitHub username & password the first time it needs to access
-the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
+the API. If you do not use 2-factor authentication, Hub will exchange it
+for an OAuth token, which it saves in "~/.config/hub". For 2FA, see
+above.
 
 ### HTTPS instead of git protocol
 
