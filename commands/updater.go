@@ -90,7 +90,7 @@ func (updater *Updater) PromptForUpdate() (err error) {
 func (updater *Updater) Update() (err error) {
 	releaseName, version := updater.latestReleaseNameAndVersion()
 	if version == "" {
-		err = fmt.Errorf("There is no newer version of gh available.")
+		fmt.Println("There is no newer version of gh available.")
 		return
 	}
 
