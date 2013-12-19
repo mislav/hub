@@ -1,4 +1,7 @@
 Feature: hub clone
+  Background:
+    Given I am "mislav" on github.com with OAuth token "OTOKEN"
+
   Scenario: Clone a public repo
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/rtomayko/ronn.git"

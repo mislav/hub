@@ -104,6 +104,12 @@ Given(/^the GitHub API server:$/) do |endpoints_str|
   set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
 end
 
+Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|
+  address ||= 'localhost:8888'
+  set_env 'HTTP_PROXY', address
+  set_env 'HTTPS_PROXY', address
+end
+
 Then(/^shell$/) do
   in_current_dir do
     system '/bin/bash -i'
