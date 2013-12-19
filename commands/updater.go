@@ -5,6 +5,7 @@ import (
 	"fmt"
 	goupdate "github.com/inconshreveable/go-update"
 	"github.com/jingweno/gh/github"
+	"github.com/jingweno/go-octokit/octokit"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -33,22 +34,7 @@ type Updater struct {
 	CurrentVersion string
 }
 
-func (updater *Updater) PromptForUpdate() (err error) {
-	if updater.wantUpdate() {
-		fmt.Println("Would you like to check for updates?")
-		fmt.Print("Type Y to update gh: ")
-		var confirm string
-		fmt.Scan(&confirm)
-
-		if confirm == "Y" || confirm == "y" {
-			err = updater.Update()
-		}
-	}
-
-	return
-}
-
-func (updater *Updater) wantUpdate() bool {
+func (updater *Updater) timeToUpdate() bool {
 	if updater.CurrentVersion == "dev" || readTime(updateTimestampPath).After(time.Now()) {
 		return false
 	}
@@ -58,24 +44,68 @@ func (updater *Updater) wantUpdate() bool {
 	return writeTime(updateTimestampPath, time.Now().Add(wait))
 }
 
-func (updater *Updater) Update() (err error) {
+func (updater *Updater) latestRelease() (r *octokit.Release) {
 	client := github.NewClient(updater.Host)
 	releases, err := client.Releases(github.NewProject("jingweno", "gh", updater.Host))
 	if err != nil {
-		err = fmt.Errorf("Error fetching releases: %s", err)
 		return
 	}
 
-	latestRelease := releases[0]
-	tagName := latestRelease.TagName
-	version := strings.TrimPrefix(tagName, "v")
+	if len(releases) > 0 {
+		r = &releases[0]
+	}
+
+	return
+}
+
+func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
+	if latestRelease := updater.latestRelease(); latestRelease != nil {
+		name = latestRelease.TagName
+		version = strings.TrimPrefix(name, "v")
+	}
+
+	return
+}
+
+func (updater *Updater) PromptForUpdate() (err error) {
+	if !updater.timeToUpdate() {
+		return
+	}
+
+	releaseName, version := updater.latestReleaseNameAndVersion()
+	if version != "" && version != updater.CurrentVersion {
+		fmt.Println("There is a newer version of gh available.")
+		fmt.Print("Type Y to update: ")
+		var confirm string
+		fmt.Scan(&confirm)
+
+		if confirm == "Y" || confirm == "y" {
+			err = updater.updateTo(releaseName, version)
+		}
+	}
+
+	return
+}
+
+func (updater *Updater) Update() (err error) {
+	releaseName, version := updater.latestReleaseNameAndVersion()
+	if version == "" {
+		err = fmt.Errorf("There is no newer version of gh available.")
+		return
+	}
+
 	if version == updater.CurrentVersion {
-		fmt.Printf("You're already on the latest version: %s\n", updater.CurrentVersion)
-		return
+		fmt.Printf("You're already on the latest version: %s\n", version)
+	} else {
+		err = updater.updateTo(releaseName, version)
 	}
 
+	return
+}
+
+func (updater *Updater) updateTo(releaseName, version string) (err error) {
 	fmt.Printf("Updating gh to %s...\n", version)
-	downloadURL := fmt.Sprintf("https://%s/jingweno/gh/releases/download/%s/gh_%s_%s_%s.zip", updater.Host, tagName, version, runtime.GOOS, runtime.GOARCH)
+	downloadURL := fmt.Sprintf("https://%s/jingweno/gh/releases/download/%s/gh_%s_%s_%s.zip", updater.Host, releaseName, version, runtime.GOOS, runtime.GOARCH)
 	path, err := downloadFile(downloadURL)
 	if err != nil {
 		return
