@@ -168,14 +168,17 @@ func pullRequest(cmd *Command, args *Args) {
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
-	commits, _ := git.RefList(base, head)
-	if !force && trackedBranch != nil && len(commits) > 0 {
-		err = fmt.Errorf("Aborted: %d commits are not yet pushed to %s", len(commits), trackedBranch.LongName())
-		err = fmt.Errorf("%s\n(use `-f` to force submit a pull request anyway)", err)
-		utils.Check(err)
+	if !force && trackedBranch != nil {
+		remoteCommits, _ := git.RefList(trackedBranch.LongName(), "")
+		if len(remoteCommits) > 0 {
+			err = fmt.Errorf("Aborted: %d commits are not yet pushed to %s", len(remoteCommits), trackedBranch.LongName())
+			err = fmt.Errorf("%s\n(use `-f` to force submit a pull request anyway)", err)
+			utils.Check(err)
+		}
 	}
 
 	if title == "" && flagPullRequestIssue == "" {
+		commits, _ := git.RefList(base, head)
 		t, b, err := writePullRequestTitleAndBody(base, head, fullBase, fullHead, commits)
 		utils.Check(err)
 		title = t
