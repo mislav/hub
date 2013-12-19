@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/utils"
 	"github.com/kballard/go-shellquote"
 	"os/exec"
 	"syscall"
@@ -44,6 +45,10 @@ func (r *Runner) Execute() ExecError {
 		return newExecError(nil)
 	}
 
+	updater := NewUpdater()
+	err := updater.PromptForUpdate()
+	utils.Check(err)
+
 	expandAlias(args)
 	slurpGlobalFlags(args)
 
@@ -78,7 +83,7 @@ func (r *Runner) Execute() ExecError {
 		}
 	}
 
-	err := git.Spawn(args.Command, args.Params...)
+	err = git.Spawn(args.Command, args.Params...)
 	return newExecError(err)
 }
 
