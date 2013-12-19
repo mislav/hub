@@ -23,7 +23,7 @@ preamble
     end
 
     def build io
-      io.puts "#!#{ruby_executable}"
+      io.puts "#!#{ruby_shebang}"
       io << PREAMBLE
 
       each_source_file do |filename|
@@ -53,6 +53,16 @@ preamble
       else
         require 'rbconfig'
         File.join RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']
+      end
+    end
+
+    def ruby_shebang
+      ruby = ruby_executable
+      `#{ruby_executable} --disable-gems -e0 2>/dev/null`
+      if $?.success?
+        "#{ruby} --disable-gems"
+      else
+        ruby
       end
     end
   end
