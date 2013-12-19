@@ -9,7 +9,7 @@ module Hub
 # This file is generated code. DO NOT send patches for it.
 #
 # Original source files with comments are at:
-# https://github.com/defunkt/hub
+# https://github.com/github/hub
 #
 
 preamble
