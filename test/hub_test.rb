@@ -90,6 +90,11 @@ class HubTest < Minitest::Test
       'rev-parse -q --git-dir' => '.git'
   end
 
+  def teardown
+    super
+    WebMock.reset!
+  end
+
   def test_cherry_pick
     assert_forwarded "cherry-pick a319d88"
   end
