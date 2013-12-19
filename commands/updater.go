@@ -21,7 +21,11 @@ var (
 )
 
 func NewUpdater() *Updater {
-	return &Updater{Host: github.GitHubHost, CurrentVersion: Version}
+	version := os.Getenv("GH_VERSION")
+	if version == "" {
+		version = Version
+	}
+	return &Updater{Host: github.GitHubHost, CurrentVersion: version}
 }
 
 type Updater struct {
