@@ -181,11 +181,25 @@ class HubTest < Minitest::Test
   end
 
   def test_am_gist
+    stub_request(:get, "https://api.github.com/gists/8da7fb575debd88c54cf").
+      with(:headers => {'Authorization'=>'token OTOKEN'}).
+      to_return(:body => Hub::JSON.generate(:files => {
+        'file.diff' => {
+          :raw_url => "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff"
+        },
+        'file2.diff' => {
+          :raw_url => "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file2.diff"
+        }
+      }))
+
+    stub_request(:get, "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff").
+      with(:headers => {'Accept'=>'*/*'}).
+      to_return(:status => 200)
+
     with_tmpdir('/tmp/') do
       url = 'https://gist.github.com/8da7fb575debd88c54cf'
 
-      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.txt -o /tmp/gist-8da7fb575debd88c54cf.txt",
-                      "git am --signoff /tmp/gist-8da7fb575debd88c54cf.txt -p2",
+      assert_commands "git am --signoff /tmp/gist-8da7fb575debd88c54cf.txt -p2",
                       "am --signoff #{url} -p2"
     end
   end
@@ -220,11 +234,21 @@ class HubTest < Minitest::Test
   end
 
   def test_apply_gist
-    with_tmpdir('/tmp/') do
-      url = 'https://gist.github.com/8da7fb575debd88c54cf'
+    stub_request(:get, "https://api.github.com/gists/8da7fb575debd88c54cf").
+      with(:headers => {'Authorization'=>'token OTOKEN'}).
+      to_return(:body => Hub::JSON.generate(:files => {
+        'file.diff' => {
+          :raw_url => "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff"
+        }
+      }))
 
-      assert_commands "curl -#LA 'hub #{Hub::Version}' #{url}.txt -o /tmp/gist-8da7fb575debd88c54cf.txt",
-                      "git apply /tmp/gist-8da7fb575debd88c54cf.txt -p2",
+    stub_request(:get, "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff").
+      to_return(:status => 200)
+
+    with_tmpdir('/tmp/') do
+      url = 'https://gist.github.com/mislav/8da7fb575debd88c54cf'
+
+      assert_commands "git apply /tmp/gist-8da7fb575debd88c54cf.txt -p2",
                       "apply #{url} -p2"
     end
   end
