@@ -45,7 +45,7 @@ class HubTest < Minitest::Test
     super
     COMMANDS.replace %w[open groff]
     Hub::Context::PWD.replace '/path/to/hub'
-    Hub::SshConfig::CONFIG_FILES.replace []
+    Hub::SSHConfig::CONFIG_FILES.replace []
 
     @prompt_stubs = prompt_stubs = []
     @password_prompt_stubs = password_prompt_stubs = []
@@ -546,7 +546,7 @@ class HubTest < Minitest::Test
       config_file.close
 
       begin
-        Hub::SshConfig::CONFIG_FILES.replace [config_file.path]
+        Hub::SSHConfig::CONFIG_FILES.replace [config_file.path]
         yield
       ensure
         config_file.unlink

@@ -1,3 +1,5 @@
+require 'delegate'
+
 module Hub
   # The Args class exists to make it more convenient to work with
   # command line arguments intended for git from within the Hub
@@ -5,12 +7,13 @@ module Hub
   #
   # The ARGV array is converted into an Args instance by the Hub
   # instance when instantiated.
-  class Args < Array
+  class Args < SimpleDelegator
     attr_accessor :executable
 
     def initialize(*args)
       super
-      @executable = ENV["GIT"] || "git"
+
+      @executable = ENV['GIT'] || 'git'
       @skip = @noop = false
       @original_args = args.first
       @chain = [nil]
@@ -19,18 +22,19 @@ module Hub
     # Adds an `after` callback.
     # A callback can be a command or a proc.
     def after(cmd_or_args = nil, args = nil, &block)
-      @chain.insert(-1, normalize_callback(cmd_or_args, args, block))
+      @chain << normalize_callback(cmd_or_args, args, block)
     end
 
     # Adds a `before` callback.
     # A callback can be a command or a proc.
     def before(cmd_or_args = nil, args = nil, &block)
-      @chain.insert(@chain.index(nil), normalize_callback(cmd_or_args, args, block))
+      @chain.insert(
+        @chain.index(nil), normalize_callback(cmd_or_args, args, block))
     end
 
     # Tells if there are multiple (chained) commands or not.
     def chained?
-      @chain.size > 1
+      @chain.any?
     end
 
     # Returns an array of all commands.
@@ -89,11 +93,12 @@ module Hub
 
     # Tests if arguments were modified since instantiation
     def changed?
-      chained? or self != @original_args
+      chained? || self != @original_args
     end
 
     def has_flag?(*flags)
-      pattern = flags.flatten.map { |f| Regexp.escape(f) }.join('|')
+      pattern = flags.flat_map { |f| Regexp.escape(f) }.join('|')
+
       !grep(/^#{pattern}(?:=|$)/).empty?
     end
 
@@ -109,7 +114,7 @@ module Hub
       elsif cmd_or_args
         cmd_or_args
       else
-        raise ArgumentError, "command or block required"
+        raise ArgumentError, 'command or block required'
       end
     end
   end
