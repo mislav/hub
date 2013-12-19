@@ -28,7 +28,13 @@ preamble
 
       each_source_file do |filename|
         File.open(filename, 'r') do |source|
-          source.each_line {|line| io << line if line !~ /^\s*#/ }
+          source.each_line do |line|
+            next if line =~ /^\s*#/
+            if line.include?(' VERSION =')
+              line.sub!(/'(.+?)'/, "'#{detailed_version}'")
+            end
+            io << line
+          end
         end
         io.puts ''
       end
@@ -46,6 +52,12 @@ preamble
           end
         end
       end
+    end
+
+    def detailed_version
+      version = `git describe --tags HEAD 2>/dev/null`.chomp
+      version = Hub::VERSION if version.empty?
+      version.sub(/^v/, '')
     end
 
     def ruby_executable
