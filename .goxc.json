@@ -6,7 +6,6 @@
 	"ResourcesExclude": "*.go",
 	"MainDirsExclude": "Godeps",
 	"PackageVersion": "0.26.0",
-	"PrereleaseInfo": "snapshot",
 	"Verbosity": "v",
 	"TaskSettings": {
 		"downloads-page": {
