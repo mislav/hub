@@ -88,6 +88,38 @@ module Hub
       res.data
     end
 
+    # Public: Fetch a pull request's patch
+    def pullrequest_patch project, pull_id
+      res = get "https://%s/repos/%s/%s/pulls/%d" %
+        [api_host(project.host), project.owner, project.name, pull_id] do |req|
+          req["Accept"] = "application/vnd.github.v3.patch"
+        end
+      res.error! unless res.success?
+      res.body
+    end
+
+    # Public: Fetch the patch from a commit
+    def commit_patch project, sha
+      res = get "https://%s/repos/%s/%s/commits/%s" %
+        [api_host(project.host), project.owner, project.name, sha] do |req|
+          req["Accept"] = "application/vnd.github.v3.patch"
+        end
+      res.error! unless res.success?
+      res.body
+    end
+
+    # Public: Fetch the first raw blob from a gist
+    def gist_raw gist_id
+      res = get("https://%s/gists/%s" % [api_host('github.com'), gist_id])
+      res.error! unless res.success?
+      raw_url = res.data['files'].values.first['raw_url']
+      res = get(raw_url) do |req|
+        req['Accept'] = '*/*'
+      end
+      res.error! unless res.success?
+      res.body
+    end
+
     # Returns parsed data from the new pull request.
     def create_pullrequest options
       project = options.fetch(:project)
@@ -200,7 +232,7 @@ module Hub
 
       def request_uri url
         str = url.request_uri
-        str = '/api/v3' << str if url.host != 'api.github.com'
+        str = '/api/v3' << str if url.host != 'api.github.com' && url.host != 'gist.github.com'
         str
       end
 
@@ -293,8 +325,15 @@ module Hub
       end
     end
 
+    module GistAuth
+      def apply_authentication(req, url)
+        super unless url.host == 'gist.github.com'
+      end
+    end
+
     include HttpMethods
     include OAuth
+    include GistAuth
 
     # Filesystem store suitable for Configuration
     class FileStore

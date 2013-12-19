@@ -489,16 +489,29 @@ module Hub
     def am(args)
       if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
         idx = args.index(url)
-        gist = $1 == 'gist.'
-        # strip the fragment part of the url
-        url = url.sub(/#.+/, '')
-        # strip extra path from "pull/42/files", "pull/42/commits"
-        url = url.sub(%r{(/pull/\d+)/\w*$}, '\1') unless gist
-        ext = gist ? '.txt' : '.patch'
-        url += ext unless File.extname(url) == ext
-        patch_file = File.join(tmp_dir, "#{gist ? 'gist-' : ''}#{File.basename(url)}")
-        # TODO: remove dependency on curl
-        args.before 'curl', ['-#LA', "hub #{Hub::Version}", url, '-o', patch_file]
+        if $1 == 'gist.'
+          path_parts = $'.sub(/#.*/, '').split('/')
+          gist_id = path_parts.last
+          patch_name = "gist-#{gist_id}.txt"
+          patch = api_client.gist_raw(gist_id)
+        else
+          gh_url = resolve_github_url(url)
+          case gh_url.project_path
+          when /^pull\/(\d+)/
+            pull_id = $1.to_i
+            patch_name = "#{pull_id}.patch"
+            patch = api_client.pullrequest_patch(gh_url.project, pull_id)
+          when /^commit\/([a-f0-9]{7,40})/
+            commit_sha = $1
+            patch_name = "#{commit_sha}.patch"
+            patch = api_client.commit_patch(gh_url.project, commit_sha)
+          else
+            raise ArgumentError, url
+          end
+        end
+
+        patch_file = File.join(tmp_dir, patch_name)
+        File.open(patch_file, 'w') { |file| file.write(patch) }
         args[idx] = patch_file
       end
     end
