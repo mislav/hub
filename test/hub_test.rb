@@ -146,8 +146,9 @@ class HubTest < Minitest::Test
 
   def test_am_pull_request
     stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/55").
-      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
-      to_return(:status => 200, :body => "", :headers => {})
+      with(:headers => {'Accept'=>'application/vnd.github.v3.patch', 'Authorization'=>'token OTOKEN'}).
+      to_return(:status => 200)
+
     with_tmpdir('/tmp/') do
       assert_commands "git am --signoff /tmp/55.patch -p2",
                       "am --signoff https://github.com/defunkt/hub/pull/55#comment_123 -p2"
@@ -159,8 +160,8 @@ class HubTest < Minitest::Test
 
   def test_am_no_tmpdir
     stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/55").
-      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
-      to_return(:status => 200, :body => "", :headers => {})
+      to_return(:status => 200)
+
     with_tmpdir(nil) do
       cmd = Hub("am https://github.com/defunkt/hub/pull/55").command
       assert_includes '/tmp/55.patch', cmd
@@ -169,8 +170,9 @@ class HubTest < Minitest::Test
 
   def test_am_commit_url
     stub_request(:get, "https://api.github.com/repos/davidbalbert/hub/commits/fdb9921").
-      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
-      to_return(:status => 200, :body => "", :headers => {})
+      with(:headers => {'Accept'=>'application/vnd.github.v3.patch', 'Authorization'=>'token OTOKEN'}).
+      to_return(:status => 200)
+
     with_tmpdir('/tmp/') do
       url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
       assert_commands "git am --signoff /tmp/fdb9921.patch -p2",
@@ -194,8 +196,8 @@ class HubTest < Minitest::Test
 
   def test_apply_pull_request
     stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/55").
-      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
-      to_return(:status => 200, :body => "", :headers => {})
+      to_return(:status => 200)
+
     with_tmpdir('/tmp/') do
       assert_commands "git apply /tmp/55.patch -p2",
                       "apply https://github.com/defunkt/hub/pull/55 -p2"
@@ -207,8 +209,8 @@ class HubTest < Minitest::Test
 
   def test_apply_commit_url
     stub_request(:get, "https://api.github.com/repos/davidbalbert/hub/commits/fdb9921").
-      with(:headers => {'Accept'=>'application/vnd.github.patch', 'Authorization'=>'token OTOKEN', 'User-Agent'=>"Hub #{Hub::Version}"}).
-      to_return(:status => 200, :body => "", :headers => {})
+      to_return(:status => 200)
+
     with_tmpdir('/tmp/') do
       url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
 
