@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -141,22 +140,17 @@ func (client *Client) CreateRelease(project *Project, params octokit.ReleasePara
 	return
 }
 
-func (client *Client) UploadReleaseAsset(release *octokit.Release, asset *os.File, fi os.FileInfo) (err error) {
+func (client *Client) UploadReleaseAsset(release *octokit.Release, asset *os.File, fi os.FileInfo, contentType string) (err error) {
 	uploadUrl, err := octokit.Hyperlink(release.UploadURL).Expand(octokit.M{"name": fi.Name()})
 	utils.Check(err)
 
 	c := client.octokit()
 
-	content, err := ioutil.ReadAll(asset)
-	utils.Check(err)
-
-	contentType := http.DetectContentType(content)
-
-	fmt.Printf("-- Uploading %s to %s\n", contentType, uploadUrl.String())
 	request, err := http.NewRequest("POST", uploadUrl.String(), asset)
 	utils.Check(err)
 
 	request.Header.Add("Content-Type", contentType)
+	request.ContentLength = fi.Size()
 
 	if c.AuthMethod != nil {
 		request.Header.Add("Authorization", c.AuthMethod.String())
@@ -170,8 +164,8 @@ func (client *Client) UploadReleaseAsset(release *octokit.Release, asset *os.Fil
 	response, err := httpClient.Do(request)
 	utils.Check(err)
 
-	if response.Status != "201" {
-		return fmt.Errorf("Error uploading the release asset, status %s", response.Status)
+	if response.StatusCode != 201 {
+		return fmt.Errorf("Error uploading the release asset %s, status %s", fi.Name(), response.Status)
 	}
 	return nil
 }

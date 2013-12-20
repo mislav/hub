@@ -1,10 +1,13 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -92,6 +95,8 @@ func release(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		uploadReleaseAssets(gh, finalRelease, assetsDir)
+
+		fmt.Printf("Release created: %s", finalRelease.HTMLURL)
 	})
 }
 
@@ -128,16 +133,35 @@ func getAssetsDirectory(assetsDir, tag string) (string, error) {
 func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir string) {
 	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
 		if !fi.IsDir() {
-			fmt.Printf("- Uploading asset %s\n", fi.Name())
+			contentType := detectContentType(path, fi)
 
 			file, err := os.Open(path)
 			utils.Check(err)
 			defer file.Close()
 
-			err = gh.UploadReleaseAsset(release, file, fi)
+			err = gh.UploadReleaseAsset(release, file, fi, contentType)
 			utils.Check(err)
 		}
 
 		return nil
 	})
+}
+
+func detectContentType(path string, fi os.FileInfo) string {
+	file, err := os.Open(path)
+	utils.Check(err)
+	defer file.Close()
+
+	fileHeader := &bytes.Buffer{}
+	headerSize := int64(512)
+	if fi.Size() < headerSize {
+		headerSize = fi.Size()
+	}
+
+	// The content type detection only uses 512 bytes at most.
+	// This way we avoid copying the whole content for big files.
+	_, err = io.CopyN(fileHeader, file, headerSize)
+	utils.Check(err)
+
+	return http.DetectContentType(fileHeader.Bytes())
 }
