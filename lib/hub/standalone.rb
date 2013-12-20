@@ -56,8 +56,14 @@ preamble
 
     def detailed_version
       version = `git describe --tags HEAD 2>/dev/null`.chomp
-      version = Hub::VERSION if version.empty?
-      version.sub(/^v/, '')
+      if version.empty?
+        version = Hub::VERSION
+        head_sha = `git rev-parse --short HEAD 2>/dev/null`.chomp
+        version += "-g#{head_sha}" unless head_sha.empty?
+        version
+      else
+        version.sub(/^v/, '')
+      end
     end
 
     def ruby_executable
