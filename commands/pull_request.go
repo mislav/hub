@@ -145,25 +145,8 @@ func pullRequest(cmd *Command, args *Args) {
 		//headProject = github.NewProject("", headProject.Name, headProject.Host)
 	}
 
-	var title, body string
-
-	if flagPullRequestMessage != "" {
-		title, body = readMsg(flagPullRequestMessage)
-	}
-
-	if flagPullRequestFile != "" {
-		var (
-			content []byte
-			err     error
-		)
-		if flagPullRequestFile == "-" {
-			content, err = ioutil.ReadAll(os.Stdin)
-		} else {
-			content, err = ioutil.ReadFile(flagPullRequestFile)
-		}
-		utils.Check(err)
-		title, body = readMsg(string(content))
-	}
+	title, body := utils.GetTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
+	utils.Check(err)
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
@@ -179,10 +162,8 @@ func pullRequest(cmd *Command, args *Args) {
 
 	if title == "" && flagPullRequestIssue == "" {
 		commits, _ := git.RefList(base, head)
-		t, b, err := writePullRequestTitleAndBody(base, head, fullBase, fullHead, commits)
+		title, body, err = writePullRequestTitleAndBody(base, head, fullBase, fullHead, commits)
 		utils.Check(err)
-		title = t
-		body = b
 	}
 
 	if title == "" && flagPullRequestIssue == "" {
@@ -211,34 +192,9 @@ func pullRequest(cmd *Command, args *Args) {
 }
 
 func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
-	messageFile, err := git.PullReqMsgFile()
-	if err != nil {
-		return
-	}
-	defer os.Remove(messageFile)
-
-	err = writePullRequestChanges(base, head, fullBase, fullHead, commits, messageFile)
-	if err != nil {
-		return
-	}
-
-	editor, err := git.Editor()
-	if err != nil {
-		return
-	}
-
-	err = editTitleAndBody(editor, messageFile)
-	if err != nil {
-		err = fmt.Errorf("error using text editor for pull request message")
-		return
-	}
-
-	title, body, err = readTitleAndBody(messageFile)
-	if err != nil {
-		return
-	}
-
-	return
+	return utils.GetTitleAndBodyFromEditor(func(messageFile string) error {
+		writePullRequestChanges(base, head, fullBase, fullHead, commits, messageFile)
+	})
 }
 
 func writePullRequestChanges(base, head, fullBase, fullHead string, commits []string, messageFile string) error {
@@ -280,87 +236,6 @@ func writePullRequestChanges(base, head, fullBase, fullHead string, commits []st
 	message = fmt.Sprintf(message, defaultMsg, fullBase, fullHead, commitSummary)
 
 	return ioutil.WriteFile(messageFile, []byte(message), 0644)
-}
-
-func editTitleAndBody(editor, messageFile string) error {
-	editCmd := cmd.New(editor)
-	r := regexp.MustCompile("[mg]?vi[m]$")
-	if r.MatchString(editor) {
-		editCmd.WithArg("-c")
-		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
-	}
-	editCmd.WithArg(messageFile)
-
-	return editCmd.Exec()
-}
-
-func readTitleAndBody(messageFile string) (title, body string, err error) {
-	f, err := os.Open(messageFile)
-	defer f.Close()
-	if err != nil {
-		return "", "", err
-	}
-
-	reader := bufio.NewReader(f)
-
-	return readTitleAndBodyFrom(reader)
-}
-
-func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) {
-	r := regexp.MustCompile("\\S")
-	var titleParts, bodyParts []string
-
-	line, err := readLine(reader)
-	for err == nil {
-		if strings.HasPrefix(line, "#") {
-			break
-		}
-
-		if len(bodyParts) == 0 && r.MatchString(line) {
-			titleParts = append(titleParts, line)
-		} else {
-			bodyParts = append(bodyParts, line)
-		}
-
-		line, err = readLine(reader)
-	}
-
-	if err == io.EOF {
-		err = nil
-	}
-
-	title = strings.Join(titleParts, " ")
-	title = strings.TrimSpace(title)
-
-	body = strings.Join(bodyParts, "\n")
-	body = strings.TrimSpace(body)
-
-	return
-}
-
-func readLine(r *bufio.Reader) (string, error) {
-	var (
-		isPrefix = true
-		err      error
-		line, ln []byte
-	)
-
-	for isPrefix && err == nil {
-		line, isPrefix, err = r.ReadLine()
-		ln = append(ln, line...)
-	}
-
-	return string(ln), err
-}
-
-func readMsg(msg string) (title, body string) {
-	split := strings.SplitN(msg, "\n\n", 2)
-	title = strings.TrimSpace(split[0])
-	if len(split) > 1 {
-		body = strings.TrimSpace(split[1])
-	}
-
-	return
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {
