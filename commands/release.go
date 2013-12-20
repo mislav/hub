@@ -22,7 +22,7 @@ var (
 
 	cmdRelease = &Command{
 		Run:   release,
-		Usage: "release TAG [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>]",
+		Usage: "release [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] TAG",
 		Short: "Create a new release in GitHub",
 		Long: `Create a new release in GitHub for the project that the "origin" remote points to.
 - It requires the name of the tag to release as a first argument.
