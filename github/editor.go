@@ -55,7 +55,7 @@ func GetTitleAndBodyFromEditor(fn func(messageFile string) error) (title, body s
 
 	err = editTitleAndBody(editor, messageFile)
 	if err != nil {
-		err = fmt.Errorf("error using text editor for release message")
+		err = fmt.Errorf("error using text editor for title/body message")
 		return
 	}
 
