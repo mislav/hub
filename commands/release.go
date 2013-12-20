@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"github.com/jingweno/go-octokit/octokit"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -29,7 +31,7 @@ var (
 	flagReleaseDraft,
 	flagReleasePrerelease bool
 
-	//flagReleaseAssetsDir,
+	flagReleaseAssetsDir,
 	flagReleaseMessage,
 	flagReleaseFile string
 )
@@ -38,12 +40,12 @@ func init() {
 	cmdRelease.Flag.BoolVar(&flagReleaseDraft, "d", false, "DRAFT")
 	cmdRelease.Flag.BoolVar(&flagReleasePrerelease, "p", false, "PRERELEASE")
 	cmdRelease.Flag.StringVar(&flagReleaseAssetsDir, "a", "", "ASSETS_DIR")
-	cmrRelease.Flag.StringVar(&flagReleaseMessage, "m", "", "MESSAGE")
-	cmrRelease.Flag.StringVar(&flagReleaseFile, "f", "", "FILE")
+	cmdRelease.Flag.StringVar(&flagReleaseMessage, "m", "", "MESSAGE")
+	cmdRelease.Flag.StringVar(&flagReleaseFile, "f", "", "FILE")
 }
 
 func releases(cmd *Command, args *Args) {
-	runInLocalRepo(func(localRepo *github.LocalRepo, project *github.Project, gh *github.Client) {
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would request list of releases for %s\n", project)
 		} else {
@@ -63,27 +65,33 @@ func releases(cmd *Command, args *Args) {
 func release(cmd *Command, args *Args) {
 	tag := args.LastParam()
 
+	assetsDir, err := getAssetsDirectory(flagReleaseAssetsDir, tag)
+	utils.Check(err)
+
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		currentBranch, err := localRepo.CurrentBranch()
 		utils.Check(err)
 
-		title, body, err := utils.GetTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
+		title, body, err := github.GetTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
 		utils.Check(err)
 
 		if title == "" {
-			title, body, err := utils.GetTitleAndBodyFromEditor(nil)
+			title, body, err = github.GetTitleAndBodyFromEditor(nil)
 			utils.Check(err)
 		}
 
 		params := octokit.ReleaseParams{
 			TagName:         tag,
-			TargetCommitish: currentBranch,
+			TargetCommitish: currentBranch.ShortName(),
 			Name:            title,
 			Body:            body,
 			Draft:           flagReleaseDraft,
 			Prerelease:      flagReleasePrerelease}
 
-		gh.CreateRelease(project, params)
+		finalRelease, err := gh.CreateRelease(project, params)
+		utils.Check(err)
+
+		uploadReleaseAssets(gh, finalRelease, assetsDir)
 	})
 }
 
@@ -96,4 +104,40 @@ func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Projec
 	fn(localRepo, project, client)
 
 	os.Exit(0)
+}
+
+func getAssetsDirectory(assetsDir, tag string) (string, error) {
+	if assetsDir == "" {
+		pwd, err := os.Getwd()
+		utils.Check(err)
+
+		assetsDir = filepath.Join(pwd, "releases", tag)
+	}
+
+	if !utils.IsDir(assetsDir) {
+		return "", fmt.Errorf("The assets directory doesn't exist: %s", assetsDir)
+	}
+
+	if utils.IsEmptyDir(assetsDir) {
+		return "", fmt.Errorf("The assets directory is empty: %s", assetsDir)
+	}
+
+	return assetsDir, nil
+}
+
+func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir string) {
+	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
+		if !fi.IsDir() {
+			fmt.Printf("- Uploading asset %s\n", fi.Name())
+
+			file, err := os.Open(path)
+			utils.Check(err)
+			defer file.Close()
+
+			err = gh.UploadReleaseAsset(release, file, fi)
+			utils.Check(err)
+		}
+
+		return nil
+	})
 }
