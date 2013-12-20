@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 )
 
 var (
@@ -147,20 +148,29 @@ func getAssetsDirectory(assetsDir, tag string) (string, error) {
 }
 
 func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir string) {
+	var wg sync.WaitGroup
+
 	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
 		if !fi.IsDir() {
-			contentType := detectContentType(path, fi)
+			wg.Add(1)
 
-			file, err := os.Open(path)
-			utils.Check(err)
-			defer file.Close()
+			go func() {
+				defer wg.Done()
+				contentType := detectContentType(path, fi)
 
-			err = gh.UploadReleaseAsset(release, file, fi, contentType)
-			utils.Check(err)
+				file, err := os.Open(path)
+				utils.Check(err)
+				defer file.Close()
+
+				err = gh.UploadReleaseAsset(release, file, fi, contentType)
+				utils.Check(err)
+			}()
 		}
 
 		return nil
 	})
+
+	wg.Wait()
 }
 
 func detectContentType(path string, fi os.FileInfo) string {
