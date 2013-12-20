@@ -7,6 +7,7 @@ require 'rake/testtask'
 def command?(util)
   Rake::Task[:load_path].invoke
   context = Object.new
+  require 'uri'
   require 'hub/context'
   context.extend Hub::Context
   context.send(:command?, util)

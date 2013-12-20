@@ -1,6 +1,6 @@
 require 'shellwords'
 require 'forwardable'
-require 'uri'
+require 'delegate'
 
 module Hub
   # Methods for inspecting the environment, such as reading git config,
@@ -272,7 +272,7 @@ module Hub
       end
     end
 
-    class GithubURL < URI::HTTPS
+    class GithubURL < DelegateClass(URI::HTTP)
       extend Forwardable
 
       attr_reader :project
@@ -282,16 +282,15 @@ module Hub
       def self.resolve(url, local_repo)
         u = URI(url)
         if %[http https].include? u.scheme and project = GithubProject.from_url(u, local_repo)
-          self.new(u.scheme, u.userinfo, u.host, u.port, u.registry,
-                   u.path, u.opaque, u.query, u.fragment, project)
+          self.new(u, project)
         end
       rescue URI::InvalidURIError
         nil
       end
 
-      def initialize(*args)
-        @project = args.pop
-        super(*args)
+      def initialize(uri, project)
+        @project = project
+        super(uri)
       end
 
       # segment of path after the project owner and name
