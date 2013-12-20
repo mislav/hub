@@ -1,5 +1,4 @@
 require 'forwardable'
-require 'fileutils'
 
 module Hub
   # Client for the GitHub v3 API.
@@ -381,8 +380,16 @@ module Hub
       end
 
       def save
-        FileUtils.mkdir_p File.dirname(@filename)
+        mkdir_p File.dirname(@filename)
         File.open(@filename, 'w', 0600) {|f| f << yaml_dump(@data) }
+      end
+
+      def mkdir_p(dir)
+        dir.split('/').inject do |parent, name|
+          d = File.join(parent, name)
+          Dir.mkdir(d) unless File.exist?(d)
+          d
+        end
       end
 
       def yaml_load(string)
