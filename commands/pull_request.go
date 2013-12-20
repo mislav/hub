@@ -1,15 +1,11 @@
 package commands
 
 import (
-	"bufio"
 	"fmt"
-	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"io"
 	"io/ioutil"
-	"os"
 	"reflect"
 	"regexp"
 	"strings"
@@ -145,7 +141,7 @@ func pullRequest(cmd *Command, args *Args) {
 		//headProject = github.NewProject("", headProject.Name, headProject.Host)
 	}
 
-	title, body := utils.GetTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
+	title, body, err := github.GetTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
 	utils.Check(err)
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
@@ -192,8 +188,8 @@ func pullRequest(cmd *Command, args *Args) {
 }
 
 func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
-	return utils.GetTitleAndBodyFromEditor(func(messageFile string) error {
-		writePullRequestChanges(base, head, fullBase, fullHead, commits, messageFile)
+	return github.GetTitleAndBodyFromEditor(func(messageFile string) error {
+		return writePullRequestChanges(base, head, fullBase, fullHead, commits, messageFile)
 	})
 }
 
