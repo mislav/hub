@@ -7,6 +7,7 @@ require 'rake/testtask'
 def command?(util)
   Rake::Task[:load_path].invoke
   context = Object.new
+  require 'uri'
   require 'hub/context'
   context.extend Hub::Context
   context.send(:command?, util)
@@ -95,6 +96,7 @@ end
 
 file "hub" => FileList.new("lib/hub.rb", "lib/hub/*.rb", "man/hub.1") do |task|
   Rake::Task[:load_path].invoke
+  require 'hub/version'
   require 'hub/standalone'
   Hub::Standalone.save(task.name)
 end
