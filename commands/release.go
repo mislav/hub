@@ -17,7 +17,7 @@ var (
 
 	cmdRelease = &Command{
 		Run:   release,
-		Usage: "release TAG [-d] [-p] [-a <ASSETS_DIR>]",
+		Usage: "release TAG [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>]",
 		Short: "Create a new release in GitHub",
 		Long: `Create a new release in GitHub for the project that the "origin" remote points to.
 - It requires the name of the tag to release as a first argument.
@@ -28,17 +28,22 @@ var (
 
 	flagReleaseDraft,
 	flagReleasePrerelease bool
-	flagReleaseAssetsDir string
+
+	//flagReleaseAssetsDir,
+	flagReleaseMessage,
+	flagReleaseFile string
 )
 
 func init() {
 	cmdRelease.Flag.BoolVar(&flagReleaseDraft, "d", false, "DRAFT")
 	cmdRelease.Flag.BoolVar(&flagReleasePrerelease, "p", false, "PRERELEASE")
 	cmdRelease.Flag.StringVar(&flagReleaseAssetsDir, "a", "", "ASSETS_DIR")
+	cmrRelease.Flag.StringVar(&flagReleaseMessage, "m", "", "MESSAGE")
+	cmrRelease.Flag.StringVar(&flagReleaseFile, "f", "", "FILE")
 }
 
 func releases(cmd *Command, args *Args) {
-	runInLocalRepo(func(project *github.Project, gh *github.Client) {
+	runInLocalRepo(func(localRepo *github.LocalRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would request list of releases for %s\n", project)
 		} else {
@@ -57,15 +62,38 @@ func releases(cmd *Command, args *Args) {
 
 func release(cmd *Command, args *Args) {
 	tag := args.LastParam()
+
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+		currentBranch, err := localRepo.CurrentBranch()
+		utils.Check(err)
+
+		title, body, err := utils.GetTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
+		utils.Check(err)
+
+		if title == "" {
+			title, body, err := utils.GetTitleAndBodyFromEditor(nil)
+			utils.Check(err)
+		}
+
+		params := octokit.ReleaseParams{
+			TagName:         tag,
+			TargetCommitish: currentBranch,
+			Name:            title,
+			Body:            body,
+			Draft:           flagReleaseDraft,
+			Prerelease:      flagReleasePrerelease}
+
+		gh.CreateRelease(project, params)
+	})
 }
 
-func runInLocalRepo(fn func(project *github.Project, client *github.Client)) {
+func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
 	localRepo := github.LocalRepo()
 	project, err := localRepo.CurrentProject()
 	utils.Check(err)
 
 	client := github.NewClient(project.Host)
-	fn(project, client)
+	fn(localRepo, project, client)
 
 	os.Exit(0)
 }

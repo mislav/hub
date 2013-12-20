@@ -123,6 +123,21 @@ func (client *Client) Releases(project *Project) (releases []octokit.Release, er
 	return
 }
 
+func (client *Client) CreateRelease(project *github.Project, params octokit.ReleaseParams) (release octokit.Release, err error) {
+	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
+
+	release, result := client.octokit().Releases(client.requestURL(url)).Create(params)
+	if result.HasError() {
+		err = result.Err
+		return
+	}
+
+	return
+}
+
 func (client *Client) CIStatus(project *Project, sha string) (status *octokit.Status, err error) {
 	url, err := octokit.StatusesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "ref": sha})
 	if err != nil {
