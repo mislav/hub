@@ -190,7 +190,7 @@ class HubTest < Minitest::Test
       }))
 
     stub_request(:get, "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff").
-      with(:headers => {'Accept'=>'*/*'}).
+      with(:headers => {'Accept'=>'text/plain'}).
       to_return(:status => 200)
 
     with_tmpdir('/tmp/') do
