@@ -1,5 +1,10 @@
+prevent_require = lambda do |name|
+  $" << "#{name}.rb"
+  require name # hax to avoid Ruby 2.0.0 bug
+end
+
 unless defined?(CGI)
-  $" << 'cgi.rb'
+  prevent_require.call 'cgi'
 
   module CGI
     ESCAPE_RE = /[^a-zA-Z0-9 .~_-]/
@@ -19,7 +24,7 @@ unless defined?(CGI)
 end
 
 unless defined?(URI)
-  $" << 'uri.rb'
+  prevent_require.call 'uri'
 
   Kernel.module_eval do
     def URI(str)
