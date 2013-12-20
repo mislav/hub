@@ -1,4 +1,3 @@
-require 'yaml'
 require 'forwardable'
 require 'fileutils'
 
@@ -378,12 +377,47 @@ module Hub
 
       def load
         existing_data = File.read(@filename)
-        @data.update YAML.load(existing_data) unless existing_data.strip.empty?
+        @data.update yaml_load(existing_data) unless existing_data.strip.empty?
       end
 
       def save
         FileUtils.mkdir_p File.dirname(@filename)
-        File.open(@filename, 'w', 0600) {|f| f << YAML.dump(@data) }
+        File.open(@filename, 'w', 0600) {|f| f << yaml_dump(@data) }
+      end
+
+      def yaml_load(string)
+        hash = {}
+        host = nil
+        string.split("\n").each do |line|
+          case line
+          when /^---\s*$/, /^\s*(?:#|$)/
+            # ignore
+          when /^(.+):\s*$/
+            host = hash[$1] = []
+          when /^([- ]) (.+?): (.+)/
+            key, value = $2, $3
+            host << {} if $1 == '-'
+            host.last[key] = value
+          else
+            raise "unsupported YAML line: #{line}"
+          end
+        end
+        hash
+      end
+
+      def yaml_dump(data)
+        yaml = ['---']
+        data.each do |host, values|
+          yaml << "#{host}:"
+          values.each do |hash|
+            dash = '-'
+            hash.each do |key, value|
+              yaml << "#{dash} #{key}: #{value}"
+              dash = ' '
+            end
+          end
+        end
+        yaml.join("\n")
       end
     end
 
