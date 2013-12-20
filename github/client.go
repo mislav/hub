@@ -165,7 +165,7 @@ func (client *Client) UploadReleaseAsset(release *octokit.Release, asset *os.Fil
 	utils.Check(err)
 
 	if response.StatusCode != 201 {
-		return fmt.Errorf("Error uploading the release asset %s, status %s", fi.Name(), response.Status)
+		return fmt.Errorf("Error uploading the release asset %s, %s", fi.Name(), response.Status)
 	}
 	return nil
 }
