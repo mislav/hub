@@ -7,6 +7,7 @@ import (
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -74,18 +75,19 @@ func release(cmd *Command, args *Args) {
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		currentBranch, err := localRepo.CurrentBranch()
 		utils.Check(err)
+		branchName := currentBranch.ShortName()
 
 		title, body, err := github.GetTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
 		utils.Check(err)
 
 		if title == "" {
-			title, body, err = github.GetTitleAndBodyFromEditor(nil)
+			title, body, err = writeReleaseTitleAndBody(project, tag, branchName)
 			utils.Check(err)
 		}
 
 		params := octokit.ReleaseParams{
 			TagName:         tag,
-			TargetCommitish: currentBranch.ShortName(),
+			TargetCommitish: branchName,
 			Name:            title,
 			Body:            body,
 			Draft:           flagReleaseDraft,
@@ -97,6 +99,20 @@ func release(cmd *Command, args *Args) {
 		uploadReleaseAssets(gh, finalRelease, assetsDir)
 
 		fmt.Printf("Release created: %s", finalRelease.HTMLURL)
+	})
+}
+
+func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string) (string, string, error) {
+	return github.GetTitleAndBodyFromEditor(func(messageFile string) error {
+		message := `
+# Creating release %s for %s from %s
+#
+# Write a message for this release. The first block
+# of the text is the title and the rest is description.
+`
+		message = fmt.Sprintf(message, tag, project.Name, currentBranch)
+
+		return ioutil.WriteFile(messageFile, []byte(message), 0644)
 	})
 }
 
