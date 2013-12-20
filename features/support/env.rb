@@ -11,6 +11,8 @@ Before do
   unset_bundler_env_vars
   # have bin/hub load code from the current project
   set_env 'RUBYLIB', lib_dir
+  # speed up load time by skipping RubyGems
+  set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
   set_env 'PATH', "#{bin_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
