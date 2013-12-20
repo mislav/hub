@@ -6,6 +6,6 @@ elif [ "$1" = "--exec-path" ]; then
 elif [ "$1" = "--html-path" ]; then
   echo "/usr/share/doc/git-doc"
 else
-  echo "ERROR: git was called, but wasn't supposed to:" git $*
+  echo "ERROR: git was called, but wasn't supposed to:" git $* >&2
   exit 1
 fi
