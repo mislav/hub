@@ -51,8 +51,12 @@ hub enhances various git commands to ease most common workflows with GitHub.
   * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:
     Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
     <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
-    your GitHub login. With `-p`, clone private repositories over SSH.
-    For repositories under your GitHub login, `-p` is implicit.
+    your GitHub login.
+
+    If the repository is private or the current user has push access to the
+    repository, hub will use the ssh protocol for cloning. Use `-p` to select
+    the ssh protocol unconditionally. HTTPS protocol can be used instead by
+    setting "hub.protocol" (see <CONFIGURATION>).
 
   * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:
     Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with

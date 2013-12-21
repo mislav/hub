@@ -118,8 +118,12 @@ variable.  With <code>-s</code>, outputs shell script suitable for <code>eval</c
 <var>REPOSITORY</var> is the current working directory's basename.</p></dd>
 <dt><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
-your GitHub login. With <code>-p</code>, clone private repositories over SSH.
-For repositories under your GitHub login, <code>-p</code> is implicit.</p></dd>
+your GitHub login.</p>
+
+<p>If the repository is private or the current user has push access to the
+repository, hub will use the ssh protocol for cloning. Use <code>-p</code> to select
+the ssh protocol unconditionally. HTTPS protocol can be used instead by
+setting "hub.protocol" (see <var>CONFIGURATION</var>).</p></dd>
 <dt><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]</dt><dd><p>Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
 <span class="man-ref">git-remote<span class="s">(1)</span></span>. When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote

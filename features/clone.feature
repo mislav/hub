@@ -3,16 +3,37 @@ Feature: hub clone
     Given I am "mislav" on github.com with OAuth token "OTOKEN"
 
   Scenario: Clone a public repo
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/rtomayko/ronn.git"
     And there should be no output
 
   Scenario: Clone a public repo with period in name
+    Given the GitHub API server:
+      """
+      get('/repos/hookio/hook.js') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub clone hookio/hook.js`
     Then it should clone "git://github.com/hookio/hook.js.git"
     And there should be no output
 
   Scenario: Clone a public repo that starts with a period
+    Given the GitHub API server:
+      """
+      get('/repos/zhuangya/.vim') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub clone zhuangya/.vim`
     Then it should clone "git://github.com/zhuangya/.vim.git"
     And there should be no output
@@ -24,6 +45,13 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Clone command aliased
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `git config --global alias.c "clone --bare"`
     And I successfully run `hub c rtomayko/ronn`
     Then "git clone --bare git://github.com/rtomayko/ronn.git" should be run
@@ -74,22 +102,53 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Clone my repo
-    Given I am "mislav" on GitHub.com
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => true }
+      }
+      """
     When I successfully run `hub clone dotfiles`
     Then it should clone "git@github.com:mislav/dotfiles.git"
     And there should be no output
 
   Scenario: Clone my repo with arguments
-    Given I am "mislav" on GitHub.com
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => true }
+      }
+      """
     When I successfully run `hub clone --bare -o master dotfiles`
     Then "git clone --bare -o master git@github.com:mislav/dotfiles.git" should be run
     And there should be no output
 
+  Scenario: Clone repo to which I have push access to
+    Given the GitHub API server:
+      """
+      get('/repos/sstephenson/rbenv') {
+        json :private => false,
+             :permissions => { :push => true }
+      }
+      """
+    When I successfully run `hub clone sstephenson/rbenv`
+    Then "git clone git@github.com:sstephenson/rbenv.git" should be run
+    And there should be no output
+
   Scenario: Clone my Enterprise repo
-    Given I am "mifi" on git.my.org
+    Given I am "mifi" on git.my.org with OAuth token "FITOKEN"
     And $GITHUB_HOST is "git.my.org"
-    When I successfully run `hub clone myrepo`
-    Then it should clone "git@git.my.org:mifi/myrepo.git"
+    Given the GitHub API server:
+      """
+      get('/api/v3/repos/myorg/myrepo') {
+        json :private => true,
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub clone myorg/myrepo`
+    Then it should clone "git@git.my.org:myorg/myrepo.git"
     And there should be no output
 
   Scenario: Clone from existing directory is a local clone

@@ -284,7 +284,10 @@ module Hub
             name, owner = arg, nil
             owner, name = name.split('/', 2) if name.index('/')
             project = github_project(name, owner || github_user)
-            ssh ||= args[0] != 'submodule' && project.owner == github_user(project.host)
+            unless ssh || args[0] == 'submodule' || args.noop? || https_protocol?
+              repo_info = api_client.repo_info(project)
+              ssh = repo_info.success? && (repo_info.data['private'] || repo_info.data['permissions']['push'])
+            end
             args[idx] = project.git_url(:private => ssh, :https => https_protocol?)
           end
           break
