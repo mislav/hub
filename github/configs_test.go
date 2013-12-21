@@ -9,17 +9,17 @@ import (
 )
 
 func TestSaveCredentials(t *testing.T) {
-	file := "./test_support/test"
-	defer os.RemoveAll(filepath.Dir(file))
+	file, _ := ioutil.TempFile("", "test-gh-config-")
+	defer os.RemoveAll(file.Name())
 
 	ccreds := Credentials{Host: "github.com", User: "jingweno", AccessToken: "123"}
 	c := Configs{Credentials: []Credentials{ccreds}}
 
-	err := saveTo(file, &c)
+	err := saveTo(file.Name(), &c)
 	assert.Equal(t, nil, err)
 
-	var cc *Configs
-	err = loadFrom(file, &cc)
+	cc := &Configs{}
+	err = loadFrom(file.Name(), cc)
 	assert.Equal(t, nil, err)
 
 	creds := cc.Credentials[0]
@@ -29,22 +29,19 @@ func TestSaveCredentials(t *testing.T) {
 }
 
 func TestReadAndSaveDeprecatedConfiguration(t *testing.T) {
-	file := "./test_support/test"
-	defer os.RemoveAll(filepath.Dir(file))
+	file, _ := ioutil.TempFile("", "test-gh-config-")
+	defer os.RemoveAll(file.Name())
+	defaultConfigsFile = file.Name()
 
-	ccreds := Credentials{Host: "github.com", User: "jingweno", AccessToken: "123"}
-	c := Configs{Credentials: []Credentials{ccreds}}
+	file.WriteString(`[{"host":"github.com","user":"jingweno","access_token":"123"}]`)
+	file.Close()
 
-	err := saveTo(file, &c)
-	assert.Equal(t, nil, err)
-
-	var cc *Configs
-	err = loadFrom(file, &cc)
-	assert.Equal(t, nil, err)
+	CurrentConfigs()
 
 	expectedConfig := `{"autoupdate":false,"credentials":[{"host":"github.com","user":"jingweno","access_token":"123"}]}
 `
-	f, _ := os.Open(file)
+
+	f, _ := os.Open(file.Name())
 	content, _ := ioutil.ReadAll(f)
 	assert.Equal(t, expectedConfig, string(content))
 }

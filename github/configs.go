@@ -109,7 +109,17 @@ func saveTo(filename string, v interface{}) error {
 	return enc.Encode(v)
 }
 
-func loadFrom(filename string, v interface{}) error {
+func loadFrom(filename string, c *Configs) error {
+	return loadFromFile(filename, c)
+}
+
+// Function to load deprecated configuration.
+// It's not intended to be used.
+func loadFromDeprecated(filename string, c *[]Credentials) error {
+	return loadFromFile(filename, c)
+}
+
+func loadFromFile(filename string, v interface{}) error {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -146,7 +156,7 @@ func CurrentConfigs() *Configs {
 	if err != nil {
 		// Try deprecated configuration
 		var creds []Credentials
-		err := loadFrom(configsFile(), &creds)
+		err := loadFromDeprecated(configsFile(), &creds)
 		if err != nil {
 			creds = make([]Credentials, 0)
 		}
