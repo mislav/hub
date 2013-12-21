@@ -411,7 +411,7 @@ module Hub
           when /^([- ]) (.+?): (.+)/
             key, value = $2, $3
             host << {} if $1 == '-'
-            host.last[key] = value
+            host.last[key] = value.gsub(/^'|'$/, '')
           else
             raise "unsupported YAML line: #{line}"
           end
