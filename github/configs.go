@@ -24,7 +24,8 @@ type Credentials struct {
 }
 
 type Configs struct {
-	Credentials []Credentials
+	Autoupdate  bool          `json:"autoupdate"`
+	Credentials []Credentials `json:"credentials"`
 }
 
 func (c *Configs) PromptFor(host string) *Credentials {
@@ -48,7 +49,7 @@ func (c *Configs) PromptFor(host string) *Credentials {
 
 		cc = &Credentials{Host: host, User: user, AccessToken: token}
 		c.Credentials = append(c.Credentials, *cc)
-		err = saveTo(configsFile(), c.Credentials)
+		err = saveTo(configsFile(), c)
 		utils.Check(err)
 	}
 
@@ -108,7 +109,17 @@ func saveTo(filename string, v interface{}) error {
 	return enc.Encode(v)
 }
 
-func loadFrom(filename string, v interface{}) error {
+func loadFrom(filename string, c *Configs) error {
+	return loadFromFile(filename, c)
+}
+
+// Function to load deprecated configuration.
+// It's not intended to be used.
+func loadFromDeprecated(filename string, c *[]Credentials) error {
+	return loadFromFile(filename, c)
+}
+
+func loadFromFile(filename string, v interface{}) error {
 	f, err := os.Open(filename)
 	if err != nil {
 		return err
@@ -137,13 +148,23 @@ func configsFile() string {
 }
 
 func CurrentConfigs() *Configs {
-	var c []Credentials
-	err := loadFrom(configsFile(), &c)
+	c := &Configs{}
+
+	configFile := configsFile()
+	err := loadFrom(configFile, c)
+
 	if err != nil {
-		c = make([]Credentials, 0)
+		// Try deprecated configuration
+		var creds []Credentials
+		err := loadFromDeprecated(configsFile(), &creds)
+		if err != nil {
+			creds = make([]Credentials, 0)
+		}
+		c.Credentials = creds
+		saveTo(configFile, c)
 	}
 
-	return &Configs{c}
+	return c
 }
 
 func (c *Configs) DefaultCredentials() (credentials *Credentials) {
@@ -184,14 +205,16 @@ func (c *Configs) selectCredentials() *Credentials {
 }
 
 // Public for testing purpose
-func CreateTestConfigs(user, token string) []Credentials {
+func CreateTestConfigs(user, token string) *Configs {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()
 
-	c := []Credentials{
+	creds := []Credentials{
 		{User: "jingweno", AccessToken: "123", Host: GitHubHost},
 	}
-	saveTo(f.Name(), &c)
+
+	c := &Configs{Credentials: creds}
+	saveTo(f.Name(), c)
 
 	return c
 }
