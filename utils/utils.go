@@ -64,9 +64,3 @@ func DirName() (string, error) {
 	name = strings.Replace(name, " ", "-", -1)
 	return name, nil
 }
-
-func IsEmptyDir(path string) bool {
-	fullPath := filepath.Join(path, "*")
-	match, _ := filepath.Glob(fullPath)
-	return match == nil
-}

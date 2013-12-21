@@ -140,7 +140,7 @@ func getAssetsDirectory(assetsDir, tag string) (string, error) {
 		return "", fmt.Errorf("The assets directory doesn't exist: %s", assetsDir)
 	}
 
-	if utils.IsEmptyDir(assetsDir) {
+	if isEmptyDir(assetsDir) {
 		return "", fmt.Errorf("The assets directory is empty: %s", assetsDir)
 	}
 

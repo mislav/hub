@@ -50,11 +50,3 @@ func assertAssetsDirSelected(t *testing.T, expectedDir, flagDir string) {
 	assert.Equal(t, nil, err)
 	assert.T(t, os.SameFile(fiExpected, fiAssets))
 }
-
-func createTempDir(t *testing.T) string {
-	dir, err := ioutil.TempDir("", "gh-test-")
-	if err != nil {
-		t.Fatal(err)
-	}
-	return dir
-}
