@@ -24,7 +24,8 @@ type Credentials struct {
 }
 
 type Configs struct {
-	Credentials []Credentials
+	Autoupdate  bool          `json:"autoupdate"`
+	Credentials []Credentials `json:"credentials"`
 }
 
 func (c *Configs) PromptFor(host string) *Credentials {
@@ -48,7 +49,7 @@ func (c *Configs) PromptFor(host string) *Credentials {
 
 		cc = &Credentials{Host: host, User: user, AccessToken: token}
 		c.Credentials = append(c.Credentials, *cc)
-		err = saveTo(configsFile(), c.Credentials)
+		err = saveTo(configsFile(), c)
 		utils.Check(err)
 	}
 
@@ -137,13 +138,21 @@ func configsFile() string {
 }
 
 func CurrentConfigs() *Configs {
-	var c []Credentials
-	err := loadFrom(configsFile(), &c)
+	c := &Configs{}
+
+	err := loadFrom(configsFile(), c)
+
 	if err != nil {
-		c = make([]Credentials, 0)
+		// Try deprecated configuration
+		var creds []Credentials
+		err := loadFrom(configsFile(), &creds)
+		if err != nil {
+			creds = make([]Credentials, 0)
+		}
+		c.Credentials = creds
 	}
 
-	return &Configs{c}
+	return c
 }
 
 func (c *Configs) DefaultCredentials() (credentials *Credentials) {
@@ -184,14 +193,16 @@ func (c *Configs) selectCredentials() *Credentials {
 }
 
 // Public for testing purpose
-func CreateTestConfigs(user, token string) []Credentials {
+func CreateTestConfigs(user, token string) *Configs {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()
 
-	c := []Credentials{
+	creds := []Credentials{
 		{User: "jingweno", AccessToken: "123", Host: GitHubHost},
 	}
-	saveTo(f.Name(), &c)
+
+	c := &Configs{Credentials: creds}
+	saveTo(f.Name(), c)
 
 	return c
 }
