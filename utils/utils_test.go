@@ -19,18 +19,6 @@ func TestConcatPaths(t *testing.T) {
 	assert.Equal(t, "foo/bar/baz", ConcatPaths("foo", "bar", "baz"))
 }
 
-func TestIsDir(t *testing.T) {
-	dir := createTempDir(t)
-	defer os.RemoveAll(dir)
-
-	assert.T(t, IsDir(dir))
-
-	file, _ := ioutil.TempFile(dir, "gh-utils-test-")
-	assert.Equal(t, false, IsDir(file.Name()))
-
-	assert.Equal(t, false, IsDir(""))
-}
-
 func TestDirIsNotEmpty(t *testing.T) {
 	dir := createTempDir(t)
 	defer os.RemoveAll(dir)

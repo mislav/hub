@@ -136,7 +136,7 @@ func getAssetsDirectory(assetsDir, tag string) (string, error) {
 		assetsDir = filepath.Join(pwd, "releases", tag)
 	}
 
-	if !utils.IsDir(assetsDir) {
+	if !isDir(assetsDir) {
 		return "", fmt.Errorf("The assets directory doesn't exist: %s", assetsDir)
 	}
 

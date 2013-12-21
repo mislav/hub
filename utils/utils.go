@@ -65,14 +65,6 @@ func DirName() (string, error) {
 	return name, nil
 }
 
-func IsDir(path string) bool {
-	fi, err := os.Stat(path)
-	if err != nil || !fi.IsDir() {
-		return false
-	}
-	return true
-}
-
 func IsEmptyDir(path string) bool {
 	fullPath := filepath.Join(path, "*")
 	match, _ := filepath.Glob(fullPath)
