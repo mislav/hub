@@ -1,6 +1,7 @@
-Feature: hub browse
+Feature: hub compare
   Background:
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And I am "mislav" on github.com with OAuth token "OTOKEN"
 
   Scenario: Compare branch
     When I successfully run `hub compare refactor`
@@ -27,6 +28,7 @@ Feature: hub browse
 
   Scenario: No args, has upstream branch
     Given I am on the "feature" branch with upstream "origin/experimental"
+    And git "push.default" is set to "upstream"
     When I successfully run `hub compare`
     Then there should be no output
     And "open https://github.com/mislav/dotfiles/compare/experimental" should be run

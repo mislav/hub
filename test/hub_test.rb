@@ -87,7 +87,10 @@ class HubTest < Minitest::Test
       'config --get --bool hub.http-clone' => 'false',
       'config --get hub.protocol' => nil,
       'config --get-all hub.host' => nil,
+      'config --get push.default' => nil,
       'rev-parse -q --git-dir' => '.git'
+
+    stub_remote_branch('origin/master')
   end
 
   def teardown
@@ -297,11 +300,12 @@ class HubTest < Minitest::Test
   end
 
   def test_pullrequest_from_branch_tracking_local
+    stub_config_value 'push.default', 'upstream'
     stub_branch('refs/heads/feature')
     stub_tracking('feature', 'refs/heads/master')
 
     stub_request(:post, "https://api.github.com/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "tpw:feature", 'title' => "hereyougo" }).
+      with(:body => {'base' => "master", 'head' => "defunkt:feature", 'title' => "hereyougo" }).
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
@@ -312,6 +316,7 @@ class HubTest < Minitest::Test
     stub_hub_host('git.my.org')
     stub_repo_url('git@git.my.org:defunkt/hub.git')
     stub_branch('refs/heads/feature')
+    stub_remote_branch('origin/feature')
     stub_tracking_nothing('feature')
     stub_command_output "rev-list --cherry-pick --right-only --no-merges origin/feature...", nil
     edit_hub_config do |data|
@@ -319,7 +324,7 @@ class HubTest < Minitest::Test
     end
 
     stub_request(:post, "https://git.my.org/api/v3/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "myfiname:feature", 'title' => "hereyougo" }).
+      with(:body => {'base' => "master", 'head' => "defunkt:feature", 'title' => "hereyougo" }).
       to_return(:body => mock_pullreq_response(1, 'api/v3/defunkt/hub', 'git.my.org'))
 
     expected = "https://git.my.org/api/v3/defunkt/hub/pull/1\n"
@@ -485,6 +490,10 @@ class HubTest < Minitest::Test
 
     def stub_tracking_nothing(from = 'master')
       stub_tracking(from, nil)
+    end
+
+    def stub_remote_branch(branch, sha = 'abc123')
+      stub_command_output "rev-parse -q --verify refs/remotes/#{branch}", sha
     end
 
     def stub_remotes_group(name, value)

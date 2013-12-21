@@ -99,7 +99,7 @@ module Hub
 
     repo_methods = [
       :current_branch,
-      :current_project, :upstream_project,
+      :remote_branch_and_project,
       :repo_owner, :repo_host,
       :remotes, :remotes_group, :origin_remote
     ]
@@ -141,15 +141,13 @@ module Hub
         remote = origin_remote and remote.project
       end
 
-      def upstream_project
-        if branch = current_branch and upstream = branch.upstream and upstream.remote?
-          remote = remote_by_name upstream.remote_name
-          remote.project
+      def remote_branch_and_project(username_fetcher)
+        project = main_project
+        if project and branch = current_branch
+          branch = branch.push_target(username_fetcher.call(project.host))
+          project = remote_by_name(branch.remote_name).project if branch && branch.remote?
         end
-      end
-
-      def current_project
-        upstream_project || main_project
+        [branch, project]
       end
 
       def current_branch
@@ -165,14 +163,23 @@ module Hub
         Branch.new(self, default_branch || 'refs/heads/master')
       end
 
+      ORIGIN_NAMES = %w[ upstream github origin ]
+
       def remotes
         @remotes ||= begin
           # TODO: is there a plumbing command to get a list of remotes?
           list = git_command('remote').to_s.split("\n")
-          # force "origin" to be first in the list
-          main = list.delete('origin') and list.unshift(main)
+          list = ORIGIN_NAMES.inject([]) { |sorted, name|
+            sorted << list.delete(name)
+          }.compact.concat(list)
           list.map { |name| Remote.new self, name }
         end
+      end
+
+      def remotes_for_publish(owner_name)
+        list = ORIGIN_NAMES.map {|n| remote_by_name(n) }
+        list << remotes.find {|r| r.project.owner == owner_name }
+        list.compact.uniq.reverse
       end
 
       def remotes_group(name)
@@ -316,6 +323,21 @@ module Hub
       def upstream
         if branch = local_repo.git_command("rev-parse --symbolic-full-name #{short_name}@{upstream}")
           Branch.new local_repo, branch
+        end
+      end
+
+      def push_target(owner_name)
+        push_default = local_repo.git_config('push.default')
+        if %w[upstream tracking].include?(push_default)
+          upstream
+        else
+          short = short_name
+          refs = local_repo.remotes_for_publish(owner_name).map { |remote|
+            "refs/remotes/#{remote}/#{short}"
+          }
+          if branch = refs.detect {|ref| local_repo.git_command("rev-parse -q --verify #{ref}") }
+            Branch.new(local_repo, branch)
+          end
         end
       end
 

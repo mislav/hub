@@ -23,7 +23,7 @@ Feature: hub pull-request
       """
       post('/repos/Manganeez/repo/pulls') {
         assert :base  => 'master',
-               :head  => 'mislav:master',
+               :head  => 'Manganeez:master',
                :title => 'here we go'
         json :html_url => "https://github.com/Manganeez/repo/pull/12"
       }
@@ -375,4 +375,51 @@ Feature: hub pull-request
       }
       """
     When I successfully run `hub pull-request -m enterprisey`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request from branch on the same remote
+    Given the "origin" remote has url "git://github.com/github/coral.git"
+    And the "mislav" remote has url "git://github.com/mislav/coral.git"
+    And I am on the "feature" branch pushed to "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'github:feature',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request from branch on the personal fork
+    Given the "origin" remote has url "git://github.com/github/coral.git"
+    And the "doge" remote has url "git://github.com/mislav/coral.git"
+    And I am on the "feature" branch pushed to "doge/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:feature',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request to "upstream" remote
+    Given the "upstream" remote has url "git://github.com/github/coral.git"
+    And I am on the "master" branch pushed to "origin/master"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:master',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
