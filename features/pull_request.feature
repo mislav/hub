@@ -23,7 +23,7 @@ Feature: hub pull-request
       """
       post('/repos/Manganeez/repo/pulls') {
         assert :base  => 'master',
-               :head  => 'mislav:master',
+               :head  => 'Manganeez:master',
                :title => 'here we go'
         json :html_url => "https://github.com/Manganeez/repo/pull/12"
       }
@@ -342,7 +342,11 @@ Feature: hub pull-request
       }
       """
     When I successfully run `hub pull-request -i 92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/coral/pull/92
+      Warning: Issue to pull request conversion is deprecated and might not work in the future.\n
+      """
 
   Scenario: Convert issue URL to pull request
     Given I am on the "feature" branch with upstream "origin/feature"
@@ -354,70 +358,11 @@ Feature: hub pull-request
       }
       """
     When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
-
-  Scenario: Error when there are unpushed commits
-    Given I am on the "feature" branch with upstream "origin/feature"
-    When I make 2 commits
-    And I run `hub pull-request`
-    Then the stderr should contain exactly:
+    Then the output should contain exactly:
       """
-      Aborted: 2 commits are not yet pushed to origin/feature
-      (use `-f` to force submit a pull request anyway)\n
+      https://github.com/mislav/coral/pull/92
+      Warning: Issue to pull request conversion is deprecated and might not work in the future.\n
       """
-
-  Scenario: Ignore unpushed commits with `-f`
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :head => 'mislav:feature'
-        json :html_url => "the://url"
-      }
-      """
-    When I make 2 commits
-    And I successfully run `hub pull-request -f -m message`
-    Then the output should contain exactly "the://url\n"
-
-  Scenario: Pull request fails on the server
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        status 422
-        json(:message => "I haz fail!")
-      }
-      """
-    When I run `hub pull-request -m message`
-    Then the stderr should contain exactly:
-      """
-      Error creating pull request: Unprocessable Entity (HTTP 422)
-      I haz fail!\n
-      """
-
-  Scenario: Convert issue to pull request
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
-        json :html_url => "https://github.com/mislav/coral/pull/92"
-      }
-      """
-    When I successfully run `hub pull-request -i 92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
-
-  Scenario: Convert issue URL to pull request
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
-        json :html_url => "https://github.com/mislav/coral/pull/92"
-      }
-      """
-    When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
 
   Scenario: Enterprise host
     Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
@@ -430,4 +375,51 @@ Feature: hub pull-request
       }
       """
     When I successfully run `hub pull-request -m enterprisey`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request from branch on the same remote
+    Given the "origin" remote has url "git://github.com/github/coral.git"
+    And the "mislav" remote has url "git://github.com/mislav/coral.git"
+    And I am on the "feature" branch pushed to "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'github:feature',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request from branch on the personal fork
+    Given the "origin" remote has url "git://github.com/github/coral.git"
+    And the "doge" remote has url "git://github.com/mislav/coral.git"
+    And I am on the "feature" branch pushed to "doge/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:feature',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request to "upstream" remote
+    Given the "upstream" remote has url "git://github.com/github/coral.git"
+    And I am on the "master" branch pushed to "origin/master"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:master',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"

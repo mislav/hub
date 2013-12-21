@@ -12,6 +12,10 @@ Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
   run_silent %(git config --global --add hub.host "#{host}")
 end
 
+Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
+  run_silent %(git config #{key} "#{value}")
+end
+
 Given(/^the "([^"]*)" remote has url "([^"]*)"$/) do |remote_name, url|
   remotes = run_silent('git remote').split("\n")
   unless remotes.include? remote_name
@@ -62,7 +66,7 @@ When(/^I make (a|\d+) commits?$/) do |num|
   num.times { empty_commit }
 end
 
-Given(/^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/) do |name, upstream|
+Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/) do |name, type, upstream|
   empty_commit
   if upstream
     full_upstream = ".git/refs/remotes/#{upstream}"
@@ -71,7 +75,8 @@ Given(/^I am on the "([^"]+)" branch(?: with upstream "([^"]+)")?$/) do |name, u
       FileUtils.cp '.git/refs/heads/master', full_upstream
     end
   end
-  run_silent %(git checkout --quiet -B #{name} --track #{upstream})
+  track = type == 'pushed to' ? '--no-track' : '--track'
+  run_silent %(git checkout --quiet -B #{name} #{track} #{upstream})
 end
 
 Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|

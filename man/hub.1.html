@@ -118,8 +118,12 @@ variable.  With <code>-s</code>, outputs shell script suitable for <code>eval</c
 <var>REPOSITORY</var> is the current working directory's basename.</p></dd>
 <dt><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
 <var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
-your GitHub login. With <code>-p</code>, clone private repositories over SSH.
-For repositories under your GitHub login, <code>-p</code> is implicit.</p></dd>
+your GitHub login.</p>
+
+<p>If the repository is private or the current user has push access to the
+repository, hub will use the ssh protocol for cloning. Use <code>-p</code> to select
+the ssh protocol unconditionally. HTTPS protocol can be used instead by
+setting "hub.protocol" (see <var>CONFIGURATION</var>).</p></dd>
 <dt><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]</dt><dd><p>Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
 <span class="man-ref">git-remote<span class="s">(1)</span></span>. When /<var>REPOSITORY</var> is omitted, the basename of the
 current working directory is used. With <code>-p</code>, use private remote
@@ -192,9 +196,9 @@ on the remote. To skip this check, use <code>-f</code>.</p>
 of the pull request can be entered in the same manner as git commit message.
 Pull request message can also be passed via stdin with <code>-F -</code>.</p>
 
-<p>If instead of normal <var>TITLE</var> an issue number is given with <code>-i</code>, the pull
-request will be attached to an existing GitHub issue. Alternatively, instead
-of title you can paste a full URL to an issue on GitHub.</p></dd>
+<p>Issue to pull request conversion via <code>-i &lt;ISSUE></code> or <var>ISSUE-URL</var>
+arguments is deprecated and will likely be removed from the future versions
+of both hub and GitHub API.</p></dd>
 <dt><code>git ci-status</code> [<code>-v</code>] [<var>COMMIT</var>]</dt><dd><p>Looks up the SHA for <var>COMMIT</var> in GitHub Status API and displays the latest
 status. Exits with one of:<br />
 success (0), error (1), failure (1), pending (2), no status (3)</p>
@@ -291,15 +295,15 @@ $ git cherry-pick mislav@SHA
 <h3 id="git-am-git-apply">git am, git apply</h3>
 
 <pre><code>$ git am https://github.com/defunkt/hub/pull/55
-&gt; curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+[ downloads patch via API ]
 &gt; git am /tmp/55.patch
 
 $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
-&gt; curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+[ downloads patch via API ]
 &gt; git am --ignore-whitespace /tmp/fdb9921.patch
 
 $ git apply https://gist.github.com/8da7fb575debd88c54cf
-&gt; curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+[ downloads patch via API ]
 &gt; git apply /tmp/gist-8da7fb575debd88c54cf.txt
 </code></pre>
 
@@ -319,9 +323,6 @@ $ git pull-request
 
 # explicit title, pull base &amp; head:
 $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:feature
-
-$ git pull-request -i 123
-[ attached pull request to issue #123 ]
 </code></pre>
 
 <h3 id="git-checkout">git checkout</h3>

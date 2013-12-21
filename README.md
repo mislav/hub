@@ -205,15 +205,15 @@ superpowers:
 ### git am, git apply
 
     $ git am https://github.com/defunkt/hub/pull/55
-    > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    [ downloads patch via API ]
     > git am /tmp/55.patch
 
     $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
-    > curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+    [ downloads patch via API ]
     > git am --ignore-whitespace /tmp/fdb9921.patch
 
     $ git apply https://gist.github.com/8da7fb575debd88c54cf
-    > curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+    [ downloads patch via API ]
     > git apply /tmp/gist-8da7fb575debd88c54cf.txt
 
 ### git fork
@@ -231,9 +231,6 @@ superpowers:
 
     # explicit title, pull base & head:
     $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:feature
-
-    $ git pull-request -i 123
-    [ attached pull request to issue #123 ]
 
 ### git checkout
 
@@ -365,33 +362,6 @@ $ git config --global hub.protocol https
 $ git clone defunkt/repl
 < https clone >
 ~~~
-
-
-Contributing
-------------
-
-These instructions assume that _you already have hub installed_ and aliased as
-`git` (see "Aliasing").
-
-1. Clone hub:  
-    `git clone github/hub && cd hub`
-1. Ensure Bundler is installed:  
-    `which bundle || gem install bundler`
-1. Install development dependencies:  
-    `bundle install`
-2. Verify that existing tests pass:  
-    `bundle exec rake`
-3. Create a topic branch:  
-    `git checkout -b feature`
-4. **Make your changes.** (It helps a lot if you write tests first.)
-5. Verify that tests still pass:  
-    `bundle exec rake`
-6. Fork hub on GitHub (adds a remote named "YOUR_USER"):  
-    `git fork`
-7. Push to your fork:  
-    `git push -u YOUR_USER feature`
-8. Open a pull request describing your changes:  
-    `git pull-request`
 
 
 Meta
