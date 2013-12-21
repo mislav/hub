@@ -80,7 +80,7 @@ module Hub
       ref = args.words.first || 'HEAD'
       verbose = args.include?('-v')
 
-      unless head_project = local_repo.current_project
+      unless project = local_repo.main_project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
       end
 
@@ -88,7 +88,7 @@ module Hub
         abort "Aborted: no revision could be determined from '#{ref}'"
       end
 
-      statuses = api_client.statuses(head_project, sha)
+      statuses = api_client.statuses(project, sha)
       status = statuses.first
       if status
         ref_state = status['state']
