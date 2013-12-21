@@ -152,7 +152,7 @@ Opens a pull request on GitHub for the project that the "origin" remote points t
 Without \fIMESSAGE\fR or \fIFILE\fR, a text editor will open in which title and body of the pull request can be entered in the same manner as git commit message\. Pull request message can also be passed via stdin with \fB\-F \-\fR\.
 .
 .IP
-If instead of normal \fITITLE\fR an issue number is given with \fB\-i\fR, the pull request will be attached to an existing GitHub issue\. Alternatively, instead of title you can paste a full URL to an issue on GitHub\.
+Issue to pull request conversion via \fB\-i <ISSUE>\fR or \fIISSUE\-URL\fR arguments is deprecated and will likely be removed from the future versions of both hub and GitHub API\.
 .
 .TP
 \fBgit ci\-status\fR [\fB\-v\fR] [\fICOMMIT\fR]
@@ -313,9 +313,6 @@ $ git pull\-request
 
 # explicit title, pull base & head:
 $ git pull\-request \-m "Implemented feature X" \-b defunkt:master \-h mislav:feature
-
-$ git pull\-request \-i 123
-[ attached pull request to issue #123 ]
 .
 .fi
 .

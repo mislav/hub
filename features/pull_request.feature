@@ -342,7 +342,11 @@ Feature: hub pull-request
       }
       """
     When I successfully run `hub pull-request -i 92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/coral/pull/92
+      Warning: Issue to pull request conversion is deprecated and might not work in the future.\n
+      """
 
   Scenario: Convert issue URL to pull request
     Given I am on the "feature" branch with upstream "origin/feature"
@@ -354,7 +358,11 @@ Feature: hub pull-request
       }
       """
     When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/coral/pull/92
+      Warning: Issue to pull request conversion is deprecated and might not work in the future.\n
+      """
 
   Scenario: Enterprise host
     Given the "origin" remote has url "git@git.my.org:mislav/coral.git"

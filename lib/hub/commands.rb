@@ -115,7 +115,6 @@ module Hub
 
     # $ hub pull-request
     # $ hub pull-request "My humble contribution"
-    # $ hub pull-request -i 92
     # $ hub pull-request https://github.com/rtomayko/tilt/issues/92
     def pull_request(args)
       args.shift
@@ -171,6 +170,10 @@ module Hub
             abort "invalid argument: #{arg}"
           end
         end
+      end
+
+      if options[:issue]
+        warn "Warning: Issue to pull request conversion is deprecated and might not work in the future."
       end
 
       options[:project] = base_project
