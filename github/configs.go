@@ -140,7 +140,8 @@ func configsFile() string {
 func CurrentConfigs() *Configs {
 	c := &Configs{}
 
-	err := loadFrom(configsFile(), c)
+	configFile := configsFile()
+	err := loadFrom(configFile, c)
 
 	if err != nil {
 		// Try deprecated configuration
@@ -148,6 +149,8 @@ func CurrentConfigs() *Configs {
 		err := loadFrom(configsFile(), &creds)
 		if err != nil {
 			creds = make([]Credentials, 0)
+		} else {
+			saveTo(configFile, c)
 		}
 		c.Credentials = creds
 	}
