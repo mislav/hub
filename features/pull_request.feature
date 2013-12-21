@@ -356,69 +356,6 @@ Feature: hub pull-request
     When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
     Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
 
-  Scenario: Error when there are unpushed commits
-    Given I am on the "feature" branch with upstream "origin/feature"
-    When I make 2 commits
-    And I run `hub pull-request`
-    Then the stderr should contain exactly:
-      """
-      Aborted: 2 commits are not yet pushed to origin/feature
-      (use `-f` to force submit a pull request anyway)\n
-      """
-
-  Scenario: Ignore unpushed commits with `-f`
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :head => 'mislav:feature'
-        json :html_url => "the://url"
-      }
-      """
-    When I make 2 commits
-    And I successfully run `hub pull-request -f -m message`
-    Then the output should contain exactly "the://url\n"
-
-  Scenario: Pull request fails on the server
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        status 422
-        json(:message => "I haz fail!")
-      }
-      """
-    When I run `hub pull-request -m message`
-    Then the stderr should contain exactly:
-      """
-      Error creating pull request: Unprocessable Entity (HTTP 422)
-      I haz fail!\n
-      """
-
-  Scenario: Convert issue to pull request
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
-        json :html_url => "https://github.com/mislav/coral/pull/92"
-      }
-      """
-    When I successfully run `hub pull-request -i 92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
-
-  Scenario: Convert issue URL to pull request
-    Given I am on the "feature" branch with upstream "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
-        json :html_url => "https://github.com/mislav/coral/pull/92"
-      }
-      """
-    When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
-    Then the output should contain exactly "https://github.com/mislav/coral/pull/92\n"
-
   Scenario: Enterprise host
     Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
