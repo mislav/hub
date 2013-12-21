@@ -484,7 +484,7 @@ module Hub
     end
 
     # $ hub am https://github.com/defunkt/hub/pull/55
-    # > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    # ... downloads patch via API ...
     # > git am /tmp/55.patch
     def am(args)
       if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
@@ -517,7 +517,7 @@ module Hub
     end
 
     # $ hub apply https://github.com/defunkt/hub/pull/55
-    # > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    # ... downloads patch via API ...
     # > git apply /tmp/55.patch
     alias_method :apply, :am
 

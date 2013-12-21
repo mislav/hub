@@ -205,15 +205,15 @@ superpowers:
 ### git am, git apply
 
     $ git am https://github.com/defunkt/hub/pull/55
-    > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    [ downloads patch via API ]
     > git am /tmp/55.patch
 
     $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
-    > curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+    [ downloads patch via API ]
     > git am --ignore-whitespace /tmp/fdb9921.patch
 
     $ git apply https://gist.github.com/8da7fb575debd88c54cf
-    > curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+    [ downloads patch via API ]
     > git apply /tmp/gist-8da7fb575debd88c54cf.txt
 
 ### git fork
