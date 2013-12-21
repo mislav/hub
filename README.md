@@ -364,33 +364,6 @@ $ git clone defunkt/repl
 ~~~
 
 
-Contributing
-------------
-
-These instructions assume that _you already have hub installed_ and aliased as
-`git` (see "Aliasing").
-
-1. Clone hub:  
-    `git clone github/hub && cd hub`
-1. Ensure Bundler is installed:  
-    `which bundle || gem install bundler`
-1. Install development dependencies:  
-    `bundle install`
-2. Verify that existing tests pass:  
-    `bundle exec rake`
-3. Create a topic branch:  
-    `git checkout -b feature`
-4. **Make your changes.** (It helps a lot if you write tests first.)
-5. Verify that tests still pass:  
-    `bundle exec rake`
-6. Fork hub on GitHub (adds a remote named "YOUR_USER"):  
-    `git fork`
-7. Push to your fork:  
-    `git push -u YOUR_USER feature`
-8. Open a pull request describing your changes:  
-    `git pull-request`
-
-
 Meta
 ----
 
