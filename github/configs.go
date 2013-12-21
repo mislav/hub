@@ -149,10 +149,9 @@ func CurrentConfigs() *Configs {
 		err := loadFrom(configsFile(), &creds)
 		if err != nil {
 			creds = make([]Credentials, 0)
-		} else {
-			saveTo(configFile, c)
 		}
 		c.Credentials = creds
+		saveTo(configFile, c)
 	}
 
 	return c
