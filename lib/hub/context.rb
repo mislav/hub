@@ -178,7 +178,7 @@ module Hub
 
       def remotes_for_publish(owner_name)
         list = ORIGIN_NAMES.map {|n| remote_by_name(n) }
-        list << remotes.find {|r| r.project.owner == owner_name }
+        list << remotes.find {|r| p = r.project and p.owner == owner_name }
         list.compact.uniq.reverse
       end
 
