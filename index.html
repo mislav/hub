@@ -125,16 +125,17 @@
 <pre><span class="comment"># install on OS X</span>
 $ <a href="http://brew.sh/">brew</a> install hub
 
-<span class="comment"># other systems</span>
-$ curl http://hub.github.com/standalone -sLo <strong>~/bin/hub</strong>
-$ chmod +x <strong>~/bin/hub</strong>
+<span class="comment"># install from source</span>
+$ git clone <strong>https://github.com/github/hub.git</strong>
+$ cd hub
+$ <strong>rake install</strong> prefix=/usr/local
 
 <span class="comment"># alias it as git</span>
 $ alias git=hub
 
 $ git version
 git version 1.7.9
-hub version 1.8.4 <span class="comment"># ← it works!</span>
+hub version 1.11.0 <span class="comment"># ← it works!</span>
 </pre>
 </section>
 
@@ -180,7 +181,7 @@ $ git <strong>fork</strong>
 <span class="result">→ git remote add YOUR_USER git://github.com/YOUR_USER/hub.git</span>
 
 <span class="comment"># push the changes to your new remote</span>
-$ git push -u YOUR_USER feature
+$ git push YOUR_USER feature
 <span class="comment"># open a pull request for the topic branch you've just pushed</span>
 $ git <strong>pull-request</strong>
 <span class="result">→ (opens a text editor for your pull request message)</span>
@@ -229,7 +230,7 @@ $ git init
 $ git add . &amp;&amp; git commit -m "It begins."
 $ git <strong>create -d "My new thing"</strong>
 <span class="result">→ (creates a new project on GitHub with the name of current directory)</span>
-$ git push -u origin master
+$ git push origin master
 </pre>
 </section>
 
@@ -246,7 +247,7 @@ is supported.
 $ git config --global --add hub.host <strong>my.example.org</strong>
 
 <span class="comment"># open a pull request for a branch, put its URL to the clipboard</span>
-$ git push -u origin feature
+$ git push origin feature
 $ git <strong>pull-request | pbcopy</strong>
 <span class="result">→ (URL ready for pasting in a chat room)</span>
 
