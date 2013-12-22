@@ -173,7 +173,7 @@ task :homebrew do
     sh "git checkout -q -B #{branch}"
     sh "git commit -m 'hub v#{Hub::VERSION}' -- #{formula_file}"
     sh "git push -u mislav #{branch}"
-    sh "hub pull-request 'upgrade hub to v#{Hub::VERSION}'"
+    sh "hub pull-request -m 'upgrade hub to v#{Hub::VERSION}'"
 
     sh "git checkout -q master"
   end
