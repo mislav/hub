@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "December 2013" "GITHUB" "Git Manual"
+.TH "HUB" "1" "December 2013" "GITHUB" "Hub Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -432,13 +432,13 @@ $ git compare other\-user patch
 .
 .nf
 
-$ hub submodule add wycats/bundler vendor/bundler
+$ git submodule add wycats/bundler vendor/bundler
 > git submodule add git://github\.com/wycats/bundler\.git vendor/bundler
 
-$ hub submodule add \-p wycats/bundler vendor/bundler
+$ git submodule add \-p wycats/bundler vendor/bundler
 > git submodule add git@github\.com:wycats/bundler\.git vendor/bundler
 
-$ hub submodule add \-b ryppl \-\-name pip ryppl/pip vendor/pip
+$ git submodule add \-b ryppl \-\-name pip ryppl/pip vendor/pip
 > git submodule add \-b ryppl \-\-name pip git://github\.com/ryppl/pip\.git vendor/pip
 .
 .fi
@@ -447,7 +447,7 @@ $ hub submodule add \-b ryppl \-\-name pip ryppl/pip vendor/pip
 .
 .nf
 
-$ hub ci\-status [commit]
+$ git ci\-status [commit]
 > (prints CI state of commit and exits with appropriate code)
 > One of: success (0), error (1), failure (1), pending (2), no status (3)
 .

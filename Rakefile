@@ -70,7 +70,7 @@ if command? :ronn
 
   # generate man page with ronn
   compile_ronn = lambda { |destination, type, contents|
-    File.popen("ronn --pipe --#{type} --organization=GITHUB --manual='Git Manual'", 'w+') { |io|
+    File.popen("ronn --pipe --#{type} --organization=GITHUB --manual='Hub Manual'", 'w+') { |io|
       io.write contents
       io.close_write
       File.open(destination, 'w') { |f| f << io.read }

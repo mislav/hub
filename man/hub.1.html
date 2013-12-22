@@ -65,7 +65,7 @@
 
   <ol class='man-decor man-head man head'>
     <li class='tl'>hub(1)</li>
-    <li class='tc'>Git Manual</li>
+    <li class='tc'>Hub Manual</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
@@ -415,19 +415,19 @@ $ git compare other-user patch
 
 <h3 id="git-submodule">git submodule</h3>
 
-<pre><code>$ hub submodule add wycats/bundler vendor/bundler
+<pre><code>$ git submodule add wycats/bundler vendor/bundler
 &gt; git submodule add git://github.com/wycats/bundler.git vendor/bundler
 
-$ hub submodule add -p wycats/bundler vendor/bundler
+$ git submodule add -p wycats/bundler vendor/bundler
 &gt; git submodule add git@github.com:wycats/bundler.git vendor/bundler
 
-$ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
+$ git submodule add -b ryppl --name pip ryppl/pip vendor/pip
 &gt; git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
 </code></pre>
 
 <h3 id="git-ci-status">git ci-status</h3>
 
-<pre><code>$ hub ci-status [commit]
+<pre><code>$ git ci-status [commit]
 &gt; (prints CI state of commit and exits with appropriate code)
 &gt; One of: success (0), error (1), failure (1), pending (2), no status (3)
 </code></pre>
