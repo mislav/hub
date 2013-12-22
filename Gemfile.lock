@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    hub (1.10.6)
+    hub (1.11.0)
 
 GEM
   remote: https://rubygems.org/
