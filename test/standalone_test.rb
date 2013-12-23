@@ -3,7 +3,7 @@ require 'hub/standalone'
 require 'fileutils'
 require 'stringio'
 
-class StandaloneTest < Test::Unit::TestCase
+class StandaloneTest < Minitest::Test
   include FileUtils
 
   def setup
@@ -36,7 +36,11 @@ class StandaloneTest < Test::Unit::TestCase
 
   def test_standalone_save
     Hub::Standalone.save("hub")
-    assert File.size('./hub') > 100
+    output = `RUBYOPT= RUBYLIB= ./hub version 2>&1`
+    assert_equal <<-OUT, output
+git version 1.7.0.4
+hub version #{Hub::VERSION}
+    OUT
   end
 
   def test_standalone_save_permission_denied

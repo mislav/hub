@@ -65,6 +65,18 @@ module Hub
             end
           end
         end
+
+        def assert_basic_auth(*expected)
+          require 'rack/auth/basic'
+          auth = Rack::Auth::Basic::Request.new(env)
+          if auth.credentials != expected
+            halt 401, json(
+              :message => "expected %p; got %p" % [
+                expected, auth.credentials
+              ]
+            )
+          end
+        end
       end
 
       new(klass.new).start

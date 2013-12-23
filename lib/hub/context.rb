@@ -1,6 +1,6 @@
 require 'shellwords'
 require 'forwardable'
-require 'uri'
+require 'delegate'
 
 module Hub
   # Methods for inspecting the environment, such as reading git config,
@@ -99,7 +99,7 @@ module Hub
 
     repo_methods = [
       :current_branch,
-      :current_project, :upstream_project,
+      :remote_branch_and_project,
       :repo_owner, :repo_host,
       :remotes, :remotes_group, :origin_remote
     ]
@@ -141,15 +141,13 @@ module Hub
         remote = origin_remote and remote.project
       end
 
-      def upstream_project
-        if branch = current_branch and upstream = branch.upstream and upstream.remote?
-          remote = remote_by_name upstream.remote_name
-          remote.project
+      def remote_branch_and_project(username_fetcher)
+        project = main_project
+        if project and branch = current_branch
+          branch = branch.push_target(username_fetcher.call(project.host))
+          project = remote_by_name(branch.remote_name).project if branch && branch.remote?
         end
-      end
-
-      def current_project
-        upstream_project || main_project
+        [branch, project]
       end
 
       def current_branch
@@ -165,14 +163,23 @@ module Hub
         Branch.new(self, default_branch || 'refs/heads/master')
       end
 
+      ORIGIN_NAMES = %w[ upstream github origin ]
+
       def remotes
         @remotes ||= begin
           # TODO: is there a plumbing command to get a list of remotes?
           list = git_command('remote').to_s.split("\n")
-          # force "origin" to be first in the list
-          main = list.delete('origin') and list.unshift(main)
+          list = ORIGIN_NAMES.inject([]) { |sorted, name|
+            sorted << list.delete(name)
+          }.compact.concat(list)
           list.map { |name| Remote.new self, name }
         end
+      end
+
+      def remotes_for_publish(owner_name)
+        list = ORIGIN_NAMES.map {|n| remote_by_name(n) }
+        list << remotes.find {|r| p = r.project and p.owner == owner_name }
+        list.compact.uniq.reverse
       end
 
       def remotes_group(name)
@@ -269,7 +276,7 @@ module Hub
       end
     end
 
-    class GithubURL < URI::HTTPS
+    class GithubURL < DelegateClass(URI::HTTP)
       extend Forwardable
 
       attr_reader :project
@@ -279,16 +286,15 @@ module Hub
       def self.resolve(url, local_repo)
         u = URI(url)
         if %[http https].include? u.scheme and project = GithubProject.from_url(u, local_repo)
-          self.new(u.scheme, u.userinfo, u.host, u.port, u.registry,
-                   u.path, u.opaque, u.query, u.fragment, project)
+          self.new(u, project)
         end
       rescue URI::InvalidURIError
         nil
       end
 
-      def initialize(*args)
-        @project = args.pop
-        super(*args)
+      def initialize(uri, project)
+        @project = project
+        super(uri)
       end
 
       # segment of path after the project owner and name
@@ -314,6 +320,21 @@ module Hub
       def upstream
         if branch = local_repo.git_command("rev-parse --symbolic-full-name #{short_name}@{upstream}")
           Branch.new local_repo, branch
+        end
+      end
+
+      def push_target(owner_name)
+        push_default = local_repo.git_config('push.default')
+        if %w[upstream tracking].include?(push_default)
+          upstream
+        else
+          short = short_name
+          refs = local_repo.remotes_for_publish(owner_name).map { |remote|
+            "refs/remotes/#{remote}/#{short}"
+          }
+          if branch = refs.detect {|ref| local_repo.git_command("rev-parse -q --verify #{ref}") }
+            Branch.new(local_repo, branch)
+          end
         end
       end
 
@@ -434,6 +455,7 @@ module Hub
     def git_editor
       # possible: ~/bin/vi, $SOME_ENVIRONMENT_VARIABLE, "C:\Program Files\Vim\gvim.exe" --nofork
       editor = git_command 'var GIT_EDITOR'
+      editor.gsub!(/\$(\w+|\{\w+\})/) { ENV[$1.tr('{}', '')] }
       editor = ENV[$1] if editor =~ /^\$(\w+)$/
       editor = File.expand_path editor if (editor =~ /^[~.]/ or editor.index('/')) and editor !~ /["']/
       # avoid shellsplitting "C:\Program Files"

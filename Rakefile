@@ -7,6 +7,7 @@ require 'rake/testtask'
 def command?(util)
   Rake::Task[:load_path].invoke
   context = Object.new
+  require 'uri'
   require 'hub/context'
   context.extend Hub::Context
   context.send(:command?, util)
@@ -31,9 +32,7 @@ task :default => [:test, :features]
 
 Rake::TestTask.new do |t|
   t.libs << 'test'
-  t.ruby_opts << '-rubygems'
   t.pattern = 'test/**/*_test.rb'
-  t.verbose = false
 end
 
 task :features do
@@ -71,7 +70,7 @@ if command? :ronn
 
   # generate man page with ronn
   compile_ronn = lambda { |destination, type, contents|
-    File.popen("ronn --pipe --#{type} --organization=GITHUB --manual='Git Manual'", 'w+') { |io|
+    File.popen("ronn --pipe --#{type} --organization=GITHUB --manual='Hub Manual'", 'w+') { |io|
       io.write contents
       io.close_write
       File.open(destination, 'w') { |f| f << io.read }
@@ -97,6 +96,7 @@ end
 
 file "hub" => FileList.new("lib/hub.rb", "lib/hub/*.rb", "man/hub.1") do |task|
   Rake::Task[:load_path].invoke
+  require 'hub/version'
   require 'hub/standalone'
   Hub::Standalone.save(task.name)
 end
@@ -104,15 +104,24 @@ end
 desc "Build standalone script"
 task :standalone => "hub"
 
-desc "Install standalone script and man pages"
+desc %{Install standalone script and man page.
+On Unix-based OS, installs into PREFIX (default: `/usr/local`).
+On Windows, installs into Ruby's main bin directory.}
 task :install => "hub" do
-  prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+  require 'rbconfig'
+  if RbConfig::CONFIG['host_os'] =~ /mswin|mingw/
+    bindir = RbConfig::CONFIG['bindir']
+    File.open(File.join(bindir, 'hub.bat'), 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
+    FileUtils.cp 'hub', bindir
+  else
+    prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
 
-  FileUtils.mkdir_p "#{prefix}/bin"
-  FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
+    FileUtils.mkdir_p "#{prefix}/bin"
+    FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
 
-  FileUtils.mkdir_p "#{prefix}/share/man/man1"
-  FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
+    FileUtils.mkdir_p "#{prefix}/share/man/man1"
+    FileUtils.cp "man/hub.1", "#{prefix}/share/man/man1"
+  end
 end
 
 #
@@ -152,7 +161,7 @@ task :homebrew do
     sh 'git pull -q origin master'
 
     formula_file = 'Library/Formula/hub.rb'
-    sha = `curl -fsSL https://github.com/github/hub/tarball/v#{Hub::VERSION} | shasum`.split(/\s+/).first
+    sha = `curl -fsSL https://github.com/github/hub/archive/v#{Hub::VERSION}.tar.gz | shasum`.split(/\s+/).first
     abort unless $?.success? and sha.length == 40
 
     formula = File.read formula_file
@@ -164,7 +173,7 @@ task :homebrew do
     sh "git checkout -q -B #{branch}"
     sh "git commit -m 'hub v#{Hub::VERSION}' -- #{formula_file}"
     sh "git push -u mislav #{branch}"
-    sh "hub pull-request 'upgrade hub to v#{Hub::VERSION}'"
+    sh "hub pull-request -m 'upgrade hub to v#{Hub::VERSION}'"
 
     sh "git checkout -q master"
   end

@@ -31,16 +31,21 @@ Installing on OS X is easiest with Homebrew:
 $ brew install hub
 ~~~
 
-### Standalone
+### `rake install` from source
 
-`hub` is easily installed as a standalone script:
+This is the preferred installation method when no package manager that
+supports hub is available:
 
 ~~~ sh
-$ curl http://hub.github.com/standalone -sLo ~/bin/hub &&
-  chmod +x ~/bin/hub
+# Download or clone the project from GitHub:
+$ git clone git://github.com/github/hub.git
+$ cd hub
+$ rake install
 ~~~
 
-Assuming "~/bin/" is in your `$PATH`, you're ready to roll:
+On a Unix-based OS, this installs under `PREFIX`, which is `/usr/local` by default.
+
+Now you should be ready to roll:
 
 ~~~ sh
 $ hub version
@@ -48,12 +53,9 @@ git version 1.7.6
 hub version 1.8.3
 ~~~
 
-#### On Windows
+#### Windows "Git Bash" (msysGit) note
 
-If you have mysysgit, open "Git Bash" and follow the steps above but put the
-`hub` executable in `/bin` instead of `~/bin`.
-
-Avoid aliasing hub as `git` due to the fact that mysysgit automatically
+Avoid aliasing hub as `git` due to the fact that msysGit automatically
 configures your prompt to include git information, and you want to avoid slowing
 that down. See [Is your shell prompt slow?](#is-your-shell-prompt-slow)
 
@@ -77,16 +79,6 @@ $ hub hub standalone > ~/bin/hub && chmod +x ~/bin/hub
 
 This installs a standalone version which doesn't require RubyGems to
 run, so it's faster.
-
-### Source
-
-You can also install from source:
-
-~~~ sh
-$ git clone git://github.com/github/hub.git
-$ cd hub
-$ rake install prefix=/usr/local
-~~~
 
 ### Help! It's slow!
 
@@ -213,15 +205,15 @@ superpowers:
 ### git am, git apply
 
     $ git am https://github.com/defunkt/hub/pull/55
-    > curl https://github.com/defunkt/hub/pull/55.patch -o /tmp/55.patch
+    [ downloads patch via API ]
     > git am /tmp/55.patch
 
     $ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
-    > curl https://github.com/davidbalbert/hub/commit/fdb9921.patch -o /tmp/fdb9921.patch
+    [ downloads patch via API ]
     > git am --ignore-whitespace /tmp/fdb9921.patch
 
     $ git apply https://gist.github.com/8da7fb575debd88c54cf
-    > curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
+    [ downloads patch via API ]
     > git apply /tmp/gist-8da7fb575debd88c54cf.txt
 
 ### git fork
@@ -239,9 +231,6 @@ superpowers:
 
     # explicit title, pull base & head:
     $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:feature
-
-    $ git pull-request -i 123
-    [ attached pull request to issue #123 ]
 
 ### git checkout
 
@@ -326,18 +315,18 @@ superpowers:
 
 ### git submodule
 
-    $ hub submodule add wycats/bundler vendor/bundler
+    $ git submodule add wycats/bundler vendor/bundler
     > git submodule add git://github.com/wycats/bundler.git vendor/bundler
 
-    $ hub submodule add -p wycats/bundler vendor/bundler
+    $ git submodule add -p wycats/bundler vendor/bundler
     > git submodule add git@github.com:wycats/bundler.git vendor/bundler
 
-    $ hub submodule add -b ryppl --name pip ryppl/pip vendor/pip
+    $ git submodule add -b ryppl --name pip ryppl/pip vendor/pip
     > git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
 
 ### git ci-status
 
-    $ hub ci-status [commit]
+    $ git ci-status [commit]
     > (prints CI state of commit and exits with appropriate code)
     > One of: success (0), error (1), failure (1), pending (2), no status (3)
 
@@ -373,33 +362,6 @@ $ git config --global hub.protocol https
 $ git clone defunkt/repl
 < https clone >
 ~~~
-
-
-Contributing
-------------
-
-These instructions assume that _you already have hub installed_ and aliased as
-`git` (see "Aliasing").
-
-1. Clone hub:  
-    `git clone github/hub && cd hub`
-1. Ensure Bundler is installed:  
-    `which bundle || gem install bundler`
-1. Install development dependencies:  
-    `bundle install`
-2. Verify that existing tests pass:  
-    `bundle exec rake`
-3. Create a topic branch:  
-    `git checkout -b feature`
-4. **Make your changes.** (It helps a lot if you write tests first.)
-5. Verify that tests still pass:  
-    `bundle exec rake`
-6. Fork hub on GitHub (adds a remote named "YOUR_USER"):  
-    `git fork`
-7. Push to your fork:  
-    `git push -u YOUR_USER feature`
-8. Open a pull request describing your changes:  
-    `git pull-request`
 
 
 Meta

@@ -9,7 +9,7 @@ module Hub
 # This file is generated code. DO NOT send patches for it.
 #
 # Original source files with comments are at:
-# https://github.com/defunkt/hub
+# https://github.com/github/hub
 #
 
 preamble
@@ -23,12 +23,18 @@ preamble
     end
 
     def build io
-      io.puts "#!#{ruby_executable}"
+      io.puts "#!#{ruby_shebang}"
       io << PREAMBLE
 
       each_source_file do |filename|
         File.open(filename, 'r') do |source|
-          source.each_line {|line| io << line if line !~ /^\s*#/ }
+          source.each_line do |line|
+            next if line =~ /^\s*#/
+            if line.include?(' VERSION =')
+              line.sub!(/'(.+?)'/, "'#{detailed_version}'")
+            end
+            io << line
+          end
         end
         io.puts ''
       end
@@ -48,11 +54,33 @@ preamble
       end
     end
 
+    def detailed_version
+      version = `git describe --tags HEAD 2>/dev/null`.chomp
+      if version.empty?
+        version = Hub::VERSION
+        head_sha = `git rev-parse --short HEAD 2>/dev/null`.chomp
+        version += "-g#{head_sha}" unless head_sha.empty?
+        version
+      else
+        version.sub(/^v/, '')
+      end
+    end
+
     def ruby_executable
       if File.executable? '/usr/bin/ruby' then '/usr/bin/ruby'
       else
         require 'rbconfig'
         File.join RbConfig::CONFIG['bindir'], RbConfig::CONFIG['ruby_install_name']
+      end
+    end
+
+    def ruby_shebang
+      ruby = ruby_executable
+      `#{ruby_executable} --disable-gems -e0 2>/dev/null`
+      if $?.success?
+        "#{ruby} --disable-gems"
+      else
+        ruby
       end
     end
   end
