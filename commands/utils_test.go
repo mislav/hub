@@ -12,7 +12,7 @@ func TestDirIsNotEmpty(t *testing.T) {
 	defer os.RemoveAll(dir)
 	ioutil.TempFile(dir, "gh-utils-test-")
 
-	assert.Equal(t, false, isEmptyDir(dir))
+	assert.T(t, !isEmptyDir(dir))
 }
 
 func TestDirIsEmpty(t *testing.T) {
