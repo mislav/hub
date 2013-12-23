@@ -1,4 +1,4 @@
-#!/usr/bin/ruby --disable-gems
+#!/usr/bin/env ruby
 #
 # This file is generated code. DO NOT send patches for it.
 #
@@ -2394,7 +2394,7 @@ end
 module Hub
   class Runner
     attr_reader :args
-    
+
     def initialize(*args)
       @args = Args.new(args)
       Commands.run(@args)
