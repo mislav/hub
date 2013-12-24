@@ -387,8 +387,7 @@ module Hub
 
       def uri_parse uri
         uri = URI.parse uri
-        uri.host = local_repo.ssh_config.get_value(uri.host, 'hostname') { uri.host }
-        uri.user = local_repo.ssh_config.get_value(uri.host, 'user') { uri.user }
+        uri.host = local_repo.ssh_config.get_value(uri.host, :HostName) { uri.host }
         uri
       end
     end
