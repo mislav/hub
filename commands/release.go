@@ -156,13 +156,16 @@ func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir 
 
 			go func() {
 				defer wg.Done()
+				uploadUrl, err := release.UploadURL.Expand(octokit.M{"name": fi.Name()})
+				utils.Check(err)
+
 				contentType := detectContentType(path, fi)
 
 				file, err := os.Open(path)
 				utils.Check(err)
 				defer file.Close()
 
-				err = gh.UploadReleaseAsset(release, file, fi, contentType)
+				err = gh.UploadReleaseAsset(uploadUrl, file, contentType)
 				utils.Check(err)
 			}()
 		}

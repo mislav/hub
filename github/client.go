@@ -2,9 +2,7 @@ package github
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
-	"net/http"
 	"net/url"
 	"os"
 )
@@ -119,7 +117,6 @@ func (client *Client) Releases(project *Project) (releases []octokit.Release, er
 	releases, result := client.octokit().Releases(client.requestURL(url)).All()
 	if result.HasError() {
 		err = result.Err
-		return
 	}
 
 	return
@@ -134,38 +131,16 @@ func (client *Client) CreateRelease(project *Project, params octokit.ReleasePara
 	release, result := client.octokit().Releases(client.requestURL(url)).Create(params)
 	if result.HasError() {
 		err = result.Err
-		return
 	}
 
 	return
 }
 
-func (client *Client) UploadReleaseAsset(release *octokit.Release, asset *os.File, fi os.FileInfo, contentType string) (err error) {
-	uploadUrl, err := octokit.Hyperlink(release.UploadURL).Expand(octokit.M{"name": fi.Name()})
-	utils.Check(err)
-
+func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, contentType string) (err error) {
 	c := client.octokit()
-
-	request, err := http.NewRequest("POST", uploadUrl.String(), asset)
-	utils.Check(err)
-
-	request.Header.Add("Content-Type", contentType)
-	request.ContentLength = fi.Size()
-
-	if c.AuthMethod != nil {
-		request.Header.Add("Authorization", c.AuthMethod.String())
-	}
-
-	if basicAuth, ok := c.AuthMethod.(octokit.BasicAuth); ok && basicAuth.OneTimePassword != "" {
-		request.Header.Add("X-GitHub-OTP", basicAuth.OneTimePassword)
-	}
-
-	httpClient := &http.Client{}
-	response, err := httpClient.Do(request)
-	utils.Check(err)
-
-	if response.StatusCode != 201 {
-		err = fmt.Errorf("Error uploading the release asset %s, %s", fi.Name(), response.Status)
+	result := c.Uploads(uploadUrl).UploadAsset(asset, contentType)
+	if result.HasError() {
+		err = result.Err
 	}
 	return
 }
