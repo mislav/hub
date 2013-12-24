@@ -194,12 +194,10 @@ module Hub
         remotes.find {|r| r.name == remote_name }
       end
 
-      def known_hosts
-        hosts = git_config('hub.host', :all).to_s.split("\n")
-        hosts << default_host
-        # support ssh.github.com
-        # https://help.github.com/articles/using-ssh-over-the-https-port
-        hosts << "ssh.#{default_host}"
+      def known_host?(host)
+        default = default_host
+        default == host || "ssh.#{default}" == host ||
+          git_config('hub.host', :all).to_s.split("\n").include?(host)
       end
 
       def self.default_host
@@ -220,7 +218,7 @@ module Hub
 
     class GithubProject < Struct.new(:local_repo, :owner, :name, :host)
       def self.from_url(url, local_repo)
-        if local_repo.known_hosts.include? url.host
+        if local_repo.known_host?(url.host)
           _, owner, name = url.path.split('/', 4)
           GithubProject.new(local_repo, owner, name.sub(/\.git$/, ''), url.host)
         end
