@@ -69,6 +69,11 @@ func releases(cmd *Command, args *Args) {
 }
 
 func release(cmd *Command, args *Args) {
+	if args.IsParamsEmpty() {
+		utils.Check(fmt.Errorf("Missed argument TAG"))
+		return
+	}
+
 	tag := args.LastParam()
 
 	assetsDir, err := getAssetsDirectory(flagReleaseAssetsDir, tag)
