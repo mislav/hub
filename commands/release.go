@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 var (
@@ -99,7 +100,7 @@ func release(cmd *Command, args *Args) {
 
 		uploadReleaseAssets(gh, finalRelease, assetsDir)
 
-		fmt.Printf("Release created: %s", finalRelease.HTMLURL)
+		fmt.Printf("\n\nRelease created: %s", finalRelease.HTMLURL)
 	})
 }
 
@@ -149,13 +150,28 @@ func getAssetsDirectory(assetsDir, tag string) (string, error) {
 
 func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir string) {
 	var wg sync.WaitGroup
+	var totalAssets, countAssets uint64
+
+	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
+		if !fi.IsDir() {
+			totalAssets += 1
+		}
+		return nil
+	})
 
 	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
 		if !fi.IsDir() {
 			wg.Add(1)
 
 			go func() {
-				defer wg.Done()
+				defer func() {
+					atomic.AddUint64(&countAssets, uint64(1))
+					printUploadProgress(&countAssets, totalAssets)
+					wg.Done()
+				}()
+
+				printUploadProgress(&countAssets, totalAssets)
+
 				uploadUrl, err := release.UploadURL.Expand(octokit.M{"name": fi.Name()})
 				utils.Check(err)
 
@@ -193,4 +209,9 @@ func detectContentType(path string, fi os.FileInfo) string {
 	utils.Check(err)
 
 	return http.DetectContentType(fileHeader.Bytes())
+}
+
+func printUploadProgress(count *uint64, total uint64) {
+	out := fmt.Sprintf("Uploading assets (%d/%d)", atomic.LoadUint64(count), total)
+	fmt.Print("\r" + out)
 }
