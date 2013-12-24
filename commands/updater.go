@@ -74,12 +74,18 @@ func (updater *Updater) PromptForUpdate() (err error) {
 
 	releaseName, version := updater.latestReleaseNameAndVersion()
 	if version != "" && version != updater.CurrentVersion {
-		fmt.Println("There is a newer version of gh available.")
-		fmt.Print("Type Y to update: ")
-		var confirm string
-		fmt.Scan(&confirm)
+		update := github.CurrentConfigs().Autoupdate
 
-		if confirm == "Y" || confirm == "y" {
+		if !update {
+			fmt.Println("There is a newer version of gh available.")
+			fmt.Print("Type Y to update: ")
+			var confirm string
+			fmt.Scan(&confirm)
+
+			update = confirm == "Y" || confirm == "y"
+		}
+
+		if update {
 			err = updater.updateTo(releaseName, version)
 		}
 	}
