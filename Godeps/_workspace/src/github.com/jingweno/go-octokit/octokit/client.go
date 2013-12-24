@@ -5,6 +5,7 @@ import (
 	"github.com/lostisland/go-sawyer/hypermedia"
 	"net/http"
 	"net/url"
+	"os"
 )
 
 func NewClient(authMethod AuthMethod) *Client {
@@ -24,19 +25,9 @@ type Client struct {
 }
 
 func (c *Client) NewRequest(urlStr string) (req *Request, err error) {
-	sawyerReq, err := c.sawyerClient.NewRequest(urlStr)
+	sawyerReq, err := c.newSawyerRequest(urlStr)
 	if err != nil {
 		return
-	}
-
-	sawyerReq.Header.Add("Accept", defaultMediaType)
-	sawyerReq.Header.Add("User-Agent", c.UserAgent)
-	if c.AuthMethod != nil {
-		sawyerReq.Header.Add("Authorization", c.AuthMethod.String())
-	}
-
-	if basicAuth, ok := c.AuthMethod.(BasicAuth); ok && basicAuth.OneTimePassword != "" {
-		sawyerReq.Header.Add("X-GitHub-OTP", basicAuth.OneTimePassword)
 	}
 
 	req = &Request{sawyerReq: sawyerReq}
@@ -79,6 +70,43 @@ func (c *Client) patch(url *url.URL, input interface{}, output interface{}) (res
 	})
 }
 
+func (c *Client) upload(uploadUrl *url.URL, asset *os.File, contentType string) (result *Result) {
+	req, err := c.newSawyerRequest(uploadUrl.String())
+	if err != nil {
+		result = newResult(nil, err)
+		return
+	}
+
+	fi, err := asset.Stat()
+	if err != nil {
+		result = newResult(nil, err)
+		return
+	}
+
+	req.Header.Add("Content-Type", contentType)
+	req.ContentLength = fi.Size()
+
+	req.Body = asset
+	sawyerResp := req.Post()
+
+	resp, err := NewResponse(sawyerResp)
+	return newResult(resp, err)
+}
+
+func (c *Client) newSawyerRequest(urlStr string) (sawyerReq *sawyer.Request, err error) {
+	sawyerReq, err = c.sawyerClient.NewRequest(urlStr)
+	if err != nil {
+		return
+	}
+
+	sawyerReq.Header.Add("Accept", defaultMediaType)
+	sawyerReq.Header.Add("User-Agent", c.UserAgent)
+
+	c.addAuthenticationHeaders(sawyerReq.Header)
+
+	return
+}
+
 func sendRequest(c *Client, url *url.URL, fn func(r *Request) (*Response, error)) (result *Result) {
 	req, err := c.NewRequest(url.String())
 	if err != nil {
@@ -90,4 +118,14 @@ func sendRequest(c *Client, url *url.URL, fn func(r *Request) (*Response, error)
 	result = newResult(resp, err)
 
 	return
+}
+
+func (c *Client) addAuthenticationHeaders(header http.Header) {
+	if c.AuthMethod != nil {
+		header.Add("Authorization", c.AuthMethod.String())
+	}
+
+	if basicAuth, ok := c.AuthMethod.(BasicAuth); ok && basicAuth.OneTimePassword != "" {
+		header.Add("X-GitHub-OTP", basicAuth.OneTimePassword)
+	}
 }
