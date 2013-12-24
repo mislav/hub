@@ -104,7 +104,7 @@ func release(cmd *Command, args *Args) {
 }
 
 func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string) (string, string, error) {
-	return github.GetTitleAndBodyFromEditor(func(messageFile string) error {
+	return github.GetTitleAndBodyFromEditor("RELEASE", func(messageFile string) error {
 		message := `
 # Creating release %s for %s from %s
 #

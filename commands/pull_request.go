@@ -188,7 +188,7 @@ func pullRequest(cmd *Command, args *Args) {
 }
 
 func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
-	return github.GetTitleAndBodyFromEditor(func(messageFile string) error {
+	return github.GetTitleAndBodyFromEditor("PULLREQ", func(messageFile string) error {
 		return writePullRequestChanges(base, head, fullBase, fullHead, commits, messageFile)
 	})
 }

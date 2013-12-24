@@ -22,3 +22,8 @@ A body continues
 	assert.Equal(t, "A title A title continues", title)
 	assert.Equal(t, "A body\nA body continues", body)
 }
+
+func TestGetMessageFile(t *testing.T) {
+	gitPullReqMsgFile, _ := getMessageFile("PULLREQ")
+	assert.T(t, strings.Contains(gitPullReqMsgFile, "PULLREQ_EDITMSG"))
+}

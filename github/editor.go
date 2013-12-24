@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -34,8 +35,8 @@ func GetTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string,
 	return
 }
 
-func GetTitleAndBodyFromEditor(fn func(messageFile string) error) (title, body string, err error) {
-	messageFile, err := git.PullReqMsgFile()
+func GetTitleAndBodyFromEditor(about string, fn func(messageFile string) error) (title, body string, err error) {
+	messageFile, err := getMessageFile(about)
 	if err != nil {
 		return
 	}
@@ -146,4 +147,13 @@ func readMsg(msg string) (title, body string) {
 	}
 
 	return
+}
+
+func getMessageFile(about string) (string, error) {
+	gitDir, err := git.Dir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", about)), nil
 }
