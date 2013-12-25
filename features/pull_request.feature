@@ -210,6 +210,31 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+  Scenario: Diff in pull request
+    Given the text editor adds:
+      """
+      Title
+
+      Body
+      # Changes:
+      # ...
+      #
+      diff --git a/a.txt b/a.txt
+      some diff stuff here that shouldn't
+      be in the pull request.
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Title',
+               :body  => 'Body'
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I run `hub pull-request -v`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
   Scenario: Error when implicit head is the same as base
     Given I am on the "master" branch with upstream "origin/master"
     When I run `hub pull-request`

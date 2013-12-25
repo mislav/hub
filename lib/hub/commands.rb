@@ -158,6 +158,8 @@ module Hub
           head_project, options[:head] = from_github_ref.call(head, head_project)
         when '-i'
           options[:issue] = args.shift
+        when '-v', '--verbose'
+          options[:verbose] = true
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
@@ -224,7 +226,11 @@ module Hub
             [format, base_branch, remote_branch]
         end
 
-        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message|
+        if options[:verbose]
+          diff = git_command "diff --no-color %s...%s" % [base_branch, remote_branch]
+        end
+
+        options[:title], options[:body] = pullrequest_editmsg(commit_summary, diff) { |msg, initial_message|
           initial_message ||= default_message
           msg.puts initial_message if initial_message
           msg.puts ""
@@ -1049,7 +1055,7 @@ help
       # fork might not available, such as in JRuby
     end
 
-    def pullrequest_editmsg(changes)
+    def pullrequest_editmsg(changes, diff)
       message_file = pullrequest_editmsg_file
 
       if valid_editmsg_file?(message_file)
@@ -1062,6 +1068,10 @@ help
         if changes
           msg.puts "#\n# Changes:\n#"
           msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
+        end
+        if diff
+          msg.puts "#\n"
+          msg.puts diff
         end
       }
 
@@ -1101,6 +1111,7 @@ help
       title, body = '', ''
       File.open(file, 'r') { |msg|
         msg.each_line do |line|
+          break if line.index('diff --git ') == 0
           next if line.index('#') == 0
           ((body.empty? and line =~ /\S/) ? title : body) << line
         end
