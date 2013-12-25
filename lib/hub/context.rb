@@ -175,6 +175,10 @@ module Hub
         File.read(File.join(git_dir, *parts))
       end
 
+      def file_exist?(*parts)
+        File.exist?(File.join(git_dir, *parts))
+      end
+
       def master_branch
         if remote = origin_remote
           default_branch = git_command("rev-parse --symbolic-full-name #{remote}")
@@ -352,7 +356,7 @@ module Hub
           refs = local_repo.remotes_for_publish(owner_name).map { |remote|
             "refs/remotes/#{remote}/#{short}"
           }
-          if branch = refs.detect {|ref| local_repo.git_command("rev-parse -q --verify #{ref}") }
+          if branch = refs.detect {|ref| local_repo.file_exist?(ref) }
             Branch.new(local_repo, branch)
           end
         end

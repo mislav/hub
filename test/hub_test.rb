@@ -65,6 +65,7 @@ class HubTest < Minitest::Test
 
     Hub::Context::LocalRepo.class_eval do
       undef file_read
+      undef file_exist?
 
       define_method(:file_read) do |*args|
         name = File.join(*args)
@@ -73,6 +74,11 @@ class HubTest < Minitest::Test
         else
           raise Errno::ENOENT
         end
+      end
+
+      define_method(:file_exist?) do |*args|
+        name = File.join(*args)
+        !!repo_file_read[name]
       end
     end
 
@@ -507,7 +513,7 @@ class HubTest < Minitest::Test
     end
 
     def stub_remote_branch(branch, sha = 'abc123')
-      stub_command_output "rev-parse -q --verify refs/remotes/#{branch}", sha
+      @repo_file_read["refs/remotes/#{branch}"] = sha
     end
 
     def stub_remotes_group(name, value)
