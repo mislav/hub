@@ -15,6 +15,12 @@ Gem::Specification.new do |s|
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
 
+  # include only files in version control
+  git_dir = File.expand_path('../.git', __FILE__)
+  if File.directory?(git_dir)
+    s.files &= `git --git-dir='#{git_dir}' ls-files -z`.split("\0")
+  end
+
   s.executables       = %w( hub )
   s.description       = <<desc
   `hub` is a command line utility which adds GitHub knowledge to `git`.
