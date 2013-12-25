@@ -102,7 +102,6 @@ class HubTest < Minitest::Test
       'remote' => "mislav\norigin",
       'remote -v' => "origin\tgit://github.com/defunkt/hub.git (fetch)\nmislav\tgit://github.com/mislav/hub.git (fetch)",
       'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
-      'rev-parse --symbolic-full-name origin' => 'refs/remotes/origin/master',
       'config --get --bool hub.http-clone' => 'false',
       'config --get hub.protocol' => nil,
       'config --get-all hub.host' => nil,

@@ -162,8 +162,12 @@ module Hub
       end
 
       def current_branch
-        @current_branch ||= begin
-          head = file_read('HEAD')
+        @current_branch ||= branch_at_ref('HEAD')
+      end
+
+      def branch_at_ref(*parts)
+        begin
+          head = file_read(*parts)
         rescue Errno::ENOENT
           return nil
         else
@@ -181,9 +185,9 @@ module Hub
 
       def master_branch
         if remote = origin_remote
-          default_branch = git_command("rev-parse --symbolic-full-name #{remote}")
+          default_branch = branch_at_ref("refs/remotes/#{remote}/HEAD")
         end
-        Branch.new(self, default_branch || 'refs/heads/master')
+        default_branch || Branch.new(self, 'refs/heads/master')
       end
 
       ORIGIN_NAMES = %w[ upstream github origin ]
