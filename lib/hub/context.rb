@@ -18,7 +18,8 @@ module Hub
         @executable = executable || 'git'
         # caches output when shelling out to git
         read_proc ||= lambda { |cache, cmd|
-          result = %x{#{command_to_string(cmd)} 2>#{NULL}}.chomp
+          str = command_to_string(cmd)
+          result = silence_stderr { %x{#{str}}.chomp }
           cache[cmd] = $?.success? && !result.empty? ? result : nil
         }
         @cache = Hash.new(&read_proc)
@@ -60,6 +61,14 @@ module Hub
       def command_to_string(cmd)
         full_cmd = to_exec(cmd)
         full_cmd.respond_to?(:shelljoin) ? full_cmd.shelljoin : full_cmd.join(' ')
+      end
+
+      def silence_stderr
+        oldio = STDERR.dup
+        STDERR.reopen(NULL)
+        yield
+      ensure
+        STDERR.reopen(oldio)
       end
     end
 
