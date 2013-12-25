@@ -31,15 +31,6 @@ func Dir() (string, error) {
 	return gitDir, nil
 }
 
-func PullReqMsgFile() (string, error) {
-	gitDir, err := Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(gitDir, "PULLREQ_EDITMSG"), nil
-}
-
 func Editor() (string, error) {
 	output, err := execGitCmd("var", "GIT_EDITOR")
 	if err != nil {

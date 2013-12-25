@@ -17,7 +17,7 @@ type Release struct {
 	URL             string     `json:"url,omitempty"`
 	HTMLURL         string     `json:"html_url,omitempty"`
 	AssetsURL       string     `json:"assets_url,omitempty"`
-	UploadURL       string     `json:"upload_url,omitempty"`
+	UploadURL       Hyperlink  `json:"upload_url,omitempty"`
 	TagName         string     `json:"tag_name,omitempty"`
 	TargetCommitish string     `json:"target_commitish,omitempty"`
 	Name            string     `json:"name,omitempty"`

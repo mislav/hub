@@ -36,7 +36,7 @@
 		{
 			"ImportPath": "github.com/jingweno/go-octokit/octokit",
 			"Comment": "v0.4.0-41-g85bc6b5",
-			"Rev": "85bc6b536f8e8cb24d4db262e4dfea3d7d2d8138"
+			"Rev": "74f0495a72d8a2dfce059ebf718fd60dd3800f41"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",

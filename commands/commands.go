@@ -77,6 +77,7 @@ var GitHub = []*Command{
 	cmdCiStatus,
 	cmdBrowse,
 	cmdCompare,
+	cmdReleases,
 	cmdRelease,
 	cmdIssue,
 }

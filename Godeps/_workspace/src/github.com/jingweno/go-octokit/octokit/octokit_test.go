@@ -59,6 +59,10 @@ func respondWithJSON(w http.ResponseWriter, s string) {
 	respondWith(w, s)
 }
 
+func respondWithStatus(w http.ResponseWriter, statusCode int) {
+	w.WriteHeader(statusCode)
+}
+
 func respondWith(w http.ResponseWriter, s string) {
 	fmt.Fprint(w, s)
 }
