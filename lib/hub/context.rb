@@ -194,12 +194,17 @@ module Hub
 
       def remotes
         @remotes ||= begin
-          # TODO: is there a plumbing command to get a list of remotes?
-          list = git_command('remote').to_s.split("\n")
-          list = ORIGIN_NAMES.inject([]) { |sorted, name|
-            sorted << list.delete(name)
-          }.compact.concat(list)
-          list.map { |name| Remote.new self, name }
+          names = []
+          url_memo = Hash.new {|h,k| names << k; h[k]=[] }
+          git_command('remote -v').to_s.split("\n").map do |line|
+            next if line !~ /^(.+?)\t(.+) \(/
+            name, url = $1, $2
+            url_memo[name] << url
+          end
+          ((ORIGIN_NAMES + names) & names).map do |name|
+            urls = url_memo[name].uniq
+            Remote.new(self, name, urls)
+          end
         end
       end
 
@@ -376,7 +381,7 @@ module Hub
       end
     end
 
-    class Remote < Struct.new(:local_repo, :name)
+    class Remote < Struct.new(:local_repo, :name, :raw_urls)
       alias to_s name
 
       def ==(other)
@@ -384,7 +389,7 @@ module Hub
       end
 
       def project
-        urls.each_value { |url|
+        urls.each { |url|
           if valid = GithubProject.from_url(url, local_repo)
             return valid
           end
@@ -393,21 +398,21 @@ module Hub
       end
 
       def urls
-        return @urls if defined? @urls
-        @urls = {}
-        local_repo.git_command('remote -v').to_s.split("\n").map do |line|
-          next if line !~ /^(.+?)\t(.+) \((.+)\)$/
-          remote, uri, type = $1, $2, $3
-          next if remote != self.name
-          if uri =~ %r{^[\w-]+://} or uri =~ %r{^([^/]+?):}
-            uri = "ssh://#{$1}/#{$'}" if $1
+        @urls ||= raw_urls.map do |url|
+          with_normalized_url(url) do |normalized|
             begin
-              @urls[type] = uri_parse(uri)
+              uri_parse(normalized)
             rescue URI::InvalidURIError
             end
           end
         end
-        @urls
+      end
+
+      def with_normalized_url(url)
+        if url =~ %r{^[\w-]+://} || url =~ %r{^([^/]+?):}
+          url = "ssh://#{$1}/#{$'}" if $1
+          yield url
+        end
       end
 
       def uri_parse uri

@@ -99,7 +99,6 @@ class HubTest < Minitest::Test
     end
 
     @git_reader.stub! \
-      'remote' => "mislav\norigin",
       'remote -v' => "origin\tgit://github.com/defunkt/hub.git (fetch)\nmislav\tgit://github.com/mislav/hub.git (fetch)",
       'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
       'config --get --bool hub.http-clone' => 'false',
@@ -520,7 +519,7 @@ class HubTest < Minitest::Test
     end
 
     def stub_no_remotes
-      stub_command_output 'remote', nil
+      stub_command_output 'remote -v', nil
     end
 
     def stub_no_git_repo
