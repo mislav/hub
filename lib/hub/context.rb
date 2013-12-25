@@ -18,7 +18,8 @@ module Hub
         @executable = executable || 'git'
         # caches output when shelling out to git
         read_proc ||= lambda { |cache, cmd|
-          result = %x{#{command_to_string(cmd)} 2>#{NULL}}.chomp
+          str = command_to_string(cmd)
+          result = silence_stderr { %x{#{str}}.chomp }
           cache[cmd] = $?.success? && !result.empty? ? result : nil
         }
         @cache = Hash.new(&read_proc)
@@ -61,6 +62,14 @@ module Hub
         full_cmd = to_exec(cmd)
         full_cmd.respond_to?(:shelljoin) ? full_cmd.shelljoin : full_cmd.join(' ')
       end
+
+      def silence_stderr
+        oldio = STDERR.dup
+        STDERR.reopen(NULL)
+        yield
+      ensure
+        STDERR.reopen(oldio)
+      end
     end
 
     module GitReaderMethods
@@ -88,17 +97,19 @@ module Hub
     private :git_config, :git_command
 
     def local_repo(fatal = true)
-      @local_repo ||= begin
-        if is_repo?
-          LocalRepo.new git_reader, current_dir
+      return nil if defined?(@local_repo) && @local_repo == false
+      @local_repo =
+        if git_dir = git_command('rev-parse -q --git-dir')
+          LocalRepo.new(git_reader, current_dir, git_dir)
         elsif fatal
           raise FatalError, "Not a git repository"
+        else
+          false
         end
-      end
     end
 
     repo_methods = [
-      :current_branch,
+      :current_branch, :git_dir,
       :remote_branch_and_project,
       :repo_owner, :repo_host,
       :remotes, :remotes_group, :origin_remote
@@ -116,7 +127,7 @@ module Hub
       end
     end
 
-    class LocalRepo < Struct.new(:git_reader, :dir)
+    class LocalRepo < Struct.new(:git_reader, :dir, :git_dir)
       include GitReaderMethods
 
       def name
@@ -151,28 +162,49 @@ module Hub
       end
 
       def current_branch
-        if branch = git_command('symbolic-ref -q HEAD')
-          Branch.new self, branch
+        @current_branch ||= branch_at_ref('HEAD')
+      end
+
+      def branch_at_ref(*parts)
+        begin
+          head = file_read(*parts)
+        rescue Errno::ENOENT
+          return nil
+        else
+          Branch.new(self, head.rstrip) if head.sub!('ref: ', '')
         end
+      end
+
+      def file_read(*parts)
+        File.read(File.join(git_dir, *parts))
+      end
+
+      def file_exist?(*parts)
+        File.exist?(File.join(git_dir, *parts))
       end
 
       def master_branch
         if remote = origin_remote
-          default_branch = git_command("rev-parse --symbolic-full-name #{remote}")
+          default_branch = branch_at_ref("refs/remotes/#{remote}/HEAD")
         end
-        Branch.new(self, default_branch || 'refs/heads/master')
+        default_branch || Branch.new(self, 'refs/heads/master')
       end
 
       ORIGIN_NAMES = %w[ upstream github origin ]
 
       def remotes
         @remotes ||= begin
-          # TODO: is there a plumbing command to get a list of remotes?
-          list = git_command('remote').to_s.split("\n")
-          list = ORIGIN_NAMES.inject([]) { |sorted, name|
-            sorted << list.delete(name)
-          }.compact.concat(list)
-          list.map { |name| Remote.new self, name }
+          names = []
+          url_memo = Hash.new {|h,k| names << k; h[k]=[] }
+          git_command('remote -v').to_s.split("\n").map do |line|
+            next if line !~ /^(.+?)\t(.+) \(/
+            name, url = $1, $2
+            url_memo[name] << url
+          end
+          ((ORIGIN_NAMES + names) & names).map do |name|
+            urls = url_memo[name].uniq
+            Remote.new(self, name, urls)
+          end
         end
       end
 
@@ -194,12 +226,10 @@ module Hub
         remotes.find {|r| r.name == remote_name }
       end
 
-      def known_hosts
-        hosts = git_config('hub.host', :all).to_s.split("\n")
-        hosts << default_host
-        # support ssh.github.com
-        # https://help.github.com/articles/using-ssh-over-the-https-port
-        hosts << "ssh.#{default_host}"
+      def known_host?(host)
+        default = default_host
+        default == host || "ssh.#{default}" == host ||
+          git_config('hub.host', :all).to_s.split("\n").include?(host)
       end
 
       def self.default_host
@@ -220,7 +250,7 @@ module Hub
 
     class GithubProject < Struct.new(:local_repo, :owner, :name, :host)
       def self.from_url(url, local_repo)
-        if local_repo.known_hosts.include? url.host
+        if local_repo.known_host?(url.host)
           _, owner, name = url.path.split('/', 4)
           GithubProject.new(local_repo, owner, name.sub(/\.git$/, ''), url.host)
         end
@@ -335,7 +365,7 @@ module Hub
           refs = local_repo.remotes_for_publish(owner_name).map { |remote|
             "refs/remotes/#{remote}/#{short}"
           }
-          if branch = refs.detect {|ref| local_repo.git_command("rev-parse -q --verify #{ref}") }
+          if branch = refs.detect {|ref| local_repo.file_exist?(ref) }
             Branch.new(local_repo, branch)
           end
         end
@@ -351,7 +381,7 @@ module Hub
       end
     end
 
-    class Remote < Struct.new(:local_repo, :name)
+    class Remote < Struct.new(:local_repo, :name, :raw_urls)
       alias to_s name
 
       def ==(other)
@@ -359,7 +389,7 @@ module Hub
       end
 
       def project
-        urls.each_value { |url|
+        urls.each { |url|
           if valid = GithubProject.from_url(url, local_repo)
             return valid
           end
@@ -368,27 +398,29 @@ module Hub
       end
 
       def urls
-        return @urls if defined? @urls
-        @urls = {}
-        local_repo.git_command('remote -v').to_s.split("\n").map do |line|
-          next if line !~ /^(.+?)\t(.+) \((.+)\)$/
-          remote, uri, type = $1, $2, $3
-          next if remote != self.name
-          if uri =~ %r{^[\w-]+://} or uri =~ %r{^([^/]+?):}
-            uri = "ssh://#{$1}/#{$'}" if $1
+        @urls ||= raw_urls.map do |url|
+          with_normalized_url(url) do |normalized|
             begin
-              @urls[type] = uri_parse(uri)
+              uri_parse(normalized)
             rescue URI::InvalidURIError
             end
           end
         end
-        @urls
+      end
+
+      def with_normalized_url(url)
+        if url =~ %r{^[\w-]+://} || url =~ %r{^([^/]+?):}
+          url = "ssh://#{$1}/#{$'}" if $1
+          yield url
+        end
       end
 
       def uri_parse uri
         uri = URI.parse uri
-        uri.host = local_repo.ssh_config.get_value(uri.host, 'hostname') { uri.host }
-        uri.user = local_repo.ssh_config.get_value(uri.host, 'user') { uri.user }
+        if uri.host != local_repo.default_host
+          ssh = local_repo.ssh_config
+          uri.host = ssh.get_value(uri.host, :HostName) { uri.host }
+        end
         uri
       end
     end
@@ -447,12 +479,8 @@ module Hub
       PWD
     end
 
-    def git_dir
-      git_command 'rev-parse -q --git-dir'
-    end
-
     def is_repo?
-      !!git_dir
+      !!local_repo(false)
     end
 
     def git_editor

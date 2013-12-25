@@ -58,6 +58,7 @@ module Hub
         if cmd.respond_to?(:call) then cmd.call
         elsif i == commands.length - 1
           # last command in chain
+          STDOUT.flush; STDERR.flush
           exec(*cmd)
         else
           exit($?.exitstatus) unless system(*cmd)

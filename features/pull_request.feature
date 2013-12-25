@@ -57,6 +57,7 @@ Feature: hub pull-request
       hub: Specifying pull request title without a flag is deprecated.
       Please use one of `-m' or `-F' options.\n
       """
+    And the stdout should contain exactly "the://url\n"
 
   Scenario: Non-existing base
     Given the GitHub API server:
