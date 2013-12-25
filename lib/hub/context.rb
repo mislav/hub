@@ -97,17 +97,19 @@ module Hub
     private :git_config, :git_command
 
     def local_repo(fatal = true)
-      @local_repo ||= begin
-        if is_repo?
-          LocalRepo.new git_reader, current_dir
+      return nil if defined?(@local_repo) && @local_repo == false
+      @local_repo =
+        if git_dir = git_command('rev-parse -q --git-dir')
+          LocalRepo.new(git_reader, current_dir, git_dir)
         elsif fatal
           raise FatalError, "Not a git repository"
+        else
+          false
         end
-      end
     end
 
     repo_methods = [
-      :current_branch,
+      :current_branch, :git_dir,
       :remote_branch_and_project,
       :repo_owner, :repo_host,
       :remotes, :remotes_group, :origin_remote
@@ -125,7 +127,7 @@ module Hub
       end
     end
 
-    class LocalRepo < Struct.new(:git_reader, :dir)
+    class LocalRepo < Struct.new(:git_reader, :dir, :git_dir)
       include GitReaderMethods
 
       def name
@@ -160,9 +162,17 @@ module Hub
       end
 
       def current_branch
-        if branch = git_command('symbolic-ref -q HEAD')
-          Branch.new self, branch
+        @current_branch ||= begin
+          head = file_read('HEAD')
+        rescue Errno::ENOENT
+          return nil
+        else
+          Branch.new(self, head.rstrip) if head.sub!('ref: ', '')
         end
+      end
+
+      def file_read(*parts)
+        File.read(File.join(git_dir, *parts))
       end
 
       def master_branch
@@ -456,12 +466,8 @@ module Hub
       PWD
     end
 
-    def git_dir
-      git_command 'rev-parse -q --git-dir'
-    end
-
     def is_repo?
-      !!git_dir
+      !!local_repo(false)
     end
 
     def git_editor
