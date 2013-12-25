@@ -13,5 +13,3 @@ group :development do
   gem 'ronn', :platform => :mri
   gem 'ruby-prof'
 end
-
-gemspec

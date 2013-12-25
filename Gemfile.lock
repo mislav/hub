@@ -1,8 +1,3 @@
-PATH
-  remote: .
-  specs:
-    hub (1.11.0)
-
 GEM
   remote: https://rubygems.org/
   specs:
@@ -66,7 +61,6 @@ PLATFORMS
 DEPENDENCIES
   aruba (~> 0.5.3)
   cucumber (~> 1.3.9)
-  hub!
   jruby-openssl
   json
   minitest

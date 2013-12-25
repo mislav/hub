@@ -10,15 +10,10 @@ Gem::Specification.new do |s|
   s.authors           = [ "Chris Wanstrath", "Mislav Marohnić" ]
   s.license           = "MIT"
 
-  s.add_development_dependency 'rake'
-  s.add_development_dependency 'webmock'
-
   s.files             = %w( README.md Rakefile LICENSE )
   s.files            += Dir.glob("lib/**/*")
   s.files            += Dir.glob("bin/**/*")
   s.files            += Dir.glob("man/**/*")
-  s.files            += Dir.glob("script/**/*")
-  s.files            += Dir.glob("test/**/*")
 
   s.executables       = %w( hub )
   s.description       = <<desc
