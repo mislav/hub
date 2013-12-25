@@ -164,6 +164,8 @@ func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir 
 		return nil
 	})
 
+	printUploadProgress(&countAssets, totalAssets)
+
 	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
 		if !fi.IsDir() {
 			wg.Add(1)
@@ -174,8 +176,6 @@ func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir 
 					printUploadProgress(&countAssets, totalAssets)
 					wg.Done()
 				}()
-
-				printUploadProgress(&countAssets, totalAssets)
 
 				uploadUrl, err := release.UploadURL.Expand(octokit.M{"name": fi.Name()})
 				utils.Check(err)
