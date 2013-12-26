@@ -347,6 +347,17 @@ Configuration
 Hub will prompt for GitHub username & password the first time it needs to access
 the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 
+Should this method fail, you can create the config file yourself by 
+[creating an oauth token](https://github.com/settings/applications) and storing
+it in "~/.config/hub" as follows:
+
+~~~ yaml
+---
+github.com:
+- user: GITHUB_USERNAME
+  oauth_token: OAUTH_TOKEN
+~~~
+
 ### HTTPS instead of git protocol
 
 If you prefer using the HTTPS protocol for GitHub repositories instead of the git
