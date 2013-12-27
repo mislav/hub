@@ -221,6 +221,26 @@ Given(/^the text editor adds:$/) do |text|
   BASH
 end
 
+Given(/^the text editor adds "([^"]+)" and checks:$/) do |text, diff|
+  text_editor_script <<-BASH
+    file="$3"
+    diff=$(cat <<'EOF'
+#{diff}
+EOF
+)
+    if grep -Fxq "$diff" $file
+    then
+      contents="$(cat "$file" 2>/dev/null || true)"
+      { echo "#{text}"
+        echo
+        echo "$contents"
+      } > "$file"
+    else
+      exit 1
+    fi
+  BASH
+end
+
 When(/^I pass in:$/) do |input|
   type(input)
   @interactive.stdin.close

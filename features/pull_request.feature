@@ -211,17 +211,20 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Verbose flag displays diff in editor
-    Given the text editor adds:
+    Given the text editor adds "Title" and checks:
       """
-      Title
-
-      Body
+      diff --git a/a b/a
+      new file mode 100644
+      index 0000000..980a0d5
+      --- /dev/null
+      +++ b/a
+      @@ -0,0 +1 @@
+      +Hello World!
       """
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        assert :title => 'Title',
-               :body  => 'Body'
+        assert :title => 'Title'
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
