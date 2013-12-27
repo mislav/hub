@@ -210,18 +210,12 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
-  Scenario: Diff in pull request
+  Scenario: Verbose flag displays diff in editor
     Given the text editor adds:
       """
       Title
 
       Body
-      # Changes:
-      # ...
-      #
-      diff --git a/a.txt b/a.txt
-      some diff stuff here that shouldn't
-      be in the pull request.
       """
     Given the GitHub API server:
       """
@@ -231,6 +225,9 @@ Feature: hub pull-request
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
+    Given the default branch for "origin" is "master"
+    Given I commit file "a" with "Hello World!"
+    And I am on the "feature" branch pushed to "origin/feature"
     When I run `hub pull-request -v`
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist

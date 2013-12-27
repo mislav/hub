@@ -61,6 +61,16 @@ Given(/^there is a commit named "([^"]+)"$/) do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
+Given(/^I commit file "([^"]+)" with "([^"]+)"$/) do |filename, content|
+  in_current_dir do
+    File.open(filename, 'w') do |f|
+      f.puts content
+    end
+  end
+  run_silent %(git add #{filename})
+  run_silent %(git commit --allow-empty-message -m "")
+end
+
 When(/^I make (a|\d+) commits?$/) do |num|
   num = num == 'a' ? 1 : num.to_i
   num.times { empty_commit }
