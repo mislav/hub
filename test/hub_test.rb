@@ -49,6 +49,7 @@ class HubTest < Minitest::Test
 
     @prompt_stubs = prompt_stubs = []
     @password_prompt_stubs = password_prompt_stubs = []
+    @repo_file_read = repo_file_read = {}
 
     Hub::GitHubAPI::Configuration.class_eval do
       undef prompt
@@ -59,6 +60,25 @@ class HubTest < Minitest::Test
       end
       define_method :prompt_password do |host, user|
         password_prompt_stubs.shift.call(host, user)
+      end
+    end
+
+    Hub::Context::LocalRepo.class_eval do
+      undef file_read
+      undef file_exist?
+
+      define_method(:file_read) do |*args|
+        name = File.join(*args)
+        if value = repo_file_read[name]
+          value.dup
+        else
+          raise Errno::ENOENT
+        end
+      end
+
+      define_method(:file_exist?) do |*args|
+        name = File.join(*args)
+        !!repo_file_read[name]
       end
     end
 
@@ -79,17 +99,15 @@ class HubTest < Minitest::Test
     end
 
     @git_reader.stub! \
-      'remote' => "mislav\norigin",
-      'symbolic-ref -q HEAD' => 'refs/heads/master',
       'remote -v' => "origin\tgit://github.com/defunkt/hub.git (fetch)\nmislav\tgit://github.com/mislav/hub.git (fetch)",
       'rev-parse --symbolic-full-name master@{upstream}' => 'refs/remotes/origin/master',
-      'rev-parse --symbolic-full-name origin' => 'refs/remotes/origin/master',
       'config --get --bool hub.http-clone' => 'false',
       'config --get hub.protocol' => nil,
       'config --get-all hub.host' => nil,
       'config --get push.default' => nil,
       'rev-parse -q --git-dir' => '.git'
 
+    stub_branch('refs/heads/master')
     stub_remote_branch('origin/master')
   end
 
@@ -480,7 +498,7 @@ class HubTest < Minitest::Test
     end
 
     def stub_branch(value)
-      stub_command_output 'symbolic-ref -q HEAD', value
+      @repo_file_read['HEAD'] = "ref: #{value}\n"
     end
 
     def stub_tracking(from, upstream, remote_branch = nil)
@@ -493,7 +511,7 @@ class HubTest < Minitest::Test
     end
 
     def stub_remote_branch(branch, sha = 'abc123')
-      stub_command_output "rev-parse -q --verify refs/remotes/#{branch}", sha
+      @repo_file_read["refs/remotes/#{branch}"] = sha
     end
 
     def stub_remotes_group(name, value)
@@ -501,7 +519,7 @@ class HubTest < Minitest::Test
     end
 
     def stub_no_remotes
-      stub_command_output 'remote', nil
+      stub_command_output 'remote -v', nil
     end
 
     def stub_no_git_repo
