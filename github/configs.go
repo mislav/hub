@@ -26,6 +26,7 @@ type Credentials struct {
 type Configs struct {
 	Autoupdate  bool          `json:"autoupdate"`
 	Credentials []Credentials `json:"credentials"`
+	ReportCrash string        `json:"crashreport,omitempty"`
 }
 
 func (c *Configs) PromptFor(host string) *Credentials {
@@ -202,6 +203,10 @@ func (c *Configs) selectCredentials() *Credentials {
 	}
 
 	return &c.Credentials[i-1]
+}
+
+func (c *Configs) Save() error {
+	return saveTo(configsFile(), c)
 }
 
 // Public for testing purpose
