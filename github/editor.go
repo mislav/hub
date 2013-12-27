@@ -35,15 +35,15 @@ func GetTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string,
 	return
 }
 
-func GetTitleAndBodyFromEditor(about string, fn func(messageFile string) error) (title, body string, err error) {
+func GetTitleAndBodyFromEditor(about, message string) (title, body string, err error) {
 	messageFile, err := getMessageFile(about)
 	if err != nil {
 		return
 	}
 	defer os.Remove(messageFile)
 
-	if fn != nil {
-		err = fn(messageFile)
+	if message != "" {
+		err = ioutil.WriteFile(messageFile, []byte(message), 0644)
 		if err != nil {
 			return
 		}

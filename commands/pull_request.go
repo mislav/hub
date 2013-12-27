@@ -5,7 +5,6 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"io/ioutil"
 	"reflect"
 	"regexp"
 	"strings"
@@ -188,23 +187,24 @@ func pullRequest(cmd *Command, args *Args) {
 }
 
 func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
-	return github.GetTitleAndBodyFromEditor("PULLREQ", func(messageFile string) error {
-		return writePullRequestChanges(base, head, fullBase, fullHead, commits, messageFile)
-	})
+	message, err := pullRequestChangesMessage(base, head, fullBase, fullHead, commits)
+	utils.Check(err)
+
+	return github.GetTitleAndBodyFromEditor("PULLREQ", message)
 }
 
-func writePullRequestChanges(base, head, fullBase, fullHead string, commits []string, messageFile string) error {
+func pullRequestChangesMessage(base, head, fullBase, fullHead string, commits []string) (string, error) {
 	var defaultMsg, commitSummary string
 	if len(commits) == 1 {
 		msg, err := git.Show(commits[0])
 		if err != nil {
-			return err
+			return "", err
 		}
 		defaultMsg = fmt.Sprintf("%s\n", msg)
 	} else if len(commits) > 1 {
 		commitLogs, err := git.Log(base, head)
 		if err != nil {
-			return err
+			return "", err
 		}
 
 		if len(commitLogs) > 0 {
@@ -231,7 +231,7 @@ func writePullRequestChanges(base, head, fullBase, fullHead string, commits []st
 `
 	message = fmt.Sprintf(message, defaultMsg, fullBase, fullHead, commitSummary)
 
-	return ioutil.WriteFile(messageFile, []byte(message), 0644)
+	return message, nil
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {

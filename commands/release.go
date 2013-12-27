@@ -7,7 +7,6 @@ import (
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -110,17 +109,15 @@ func release(cmd *Command, args *Args) {
 }
 
 func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string) (string, string, error) {
-	return github.GetTitleAndBodyFromEditor("RELEASE", func(messageFile string) error {
-		message := `
+	message := `
 # Creating release %s for %s from %s
 #
 # Write a message for this release. The first block
 # of the text is the title and the rest is description.
 `
-		message = fmt.Sprintf(message, tag, project.Name, currentBranch)
+	message = fmt.Sprintf(message, tag, project.Name, currentBranch)
 
-		return ioutil.WriteFile(messageFile, []byte(message), 0644)
-	})
+	return github.GetTitleAndBodyFromEditor("RELEASE", message)
 }
 
 func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
