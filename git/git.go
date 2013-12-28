@@ -3,6 +3,8 @@ package git
 import (
 	"fmt"
 	"github.com/jingweno/gh/cmd"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -31,6 +33,47 @@ func Dir() (string, error) {
 	return gitDir, nil
 }
 
+func HasFile(segments ...string) bool {
+	dir, err := Dir()
+	if err != nil {
+		return false
+	}
+
+	s := []string{dir}
+	s = append(s, segments...)
+	path := filepath.Join(s...)
+	if _, err := os.Stat(path); err == nil {
+		return true
+	}
+
+	return false
+}
+
+func BranchAtRef(refs ...string) (name string, err error) {
+	dir, err := Dir()
+	if err != nil {
+		return
+	}
+
+	segments := []string{dir}
+	segments = append(segments, refs...)
+	path := filepath.Join(segments...)
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return
+	}
+
+	n := string(b)
+	if strings.HasPrefix(n, "ref: ") {
+		name = strings.TrimPrefix(n, "ref: ")
+		name = strings.TrimSpace(name)
+	} else {
+		err = fmt.Errorf("No branch info in %s: %s", path, n)
+	}
+
+	return
+}
+
 func PullReqMsgFile() (string, error) {
 	gitDir, err := Dir()
 	if err != nil {
@@ -50,12 +93,7 @@ func Editor() (string, error) {
 }
 
 func Head() (string, error) {
-	output, err := execGitCmd("symbolic-ref", "-q", "HEAD")
-	if err != nil {
-		return "", fmt.Errorf("Can't load git HEAD")
-	}
-
-	return output[0], nil
+	return BranchAtRef("HEAD")
 }
 
 func SymbolicFullName(name string) (string, error) {
@@ -109,6 +147,10 @@ func Log(sha1, sha2 string) (string, error) {
 	}
 
 	return outputs, nil
+}
+
+func Remotes() ([]string, error) {
+	return execGitCmd("remote", "-v")
 }
 
 func Config(name string) (string, error) {

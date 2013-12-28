@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/jingweno/gh/git"
+	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
 	"os"
@@ -36,7 +36,7 @@ func parseUserBranchFromPR(pullRequest *octokit.PullRequest) (user string, branc
 }
 
 func hasGitRemote(name string) bool {
-	remotes, err := git.Remotes()
+	remotes, err := github.Remotes()
 	utils.Check(err)
 	for _, remote := range remotes {
 		if remote.Name == name {

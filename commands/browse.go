@@ -57,6 +57,7 @@ func browse(command *Command, args *Args) {
 	var (
 		project *github.Project
 		branch  *github.Branch
+		err     error
 	)
 	localRepo := github.LocalRepo()
 	if flagBrowseProject != "" {
@@ -65,17 +66,8 @@ func browse(command *Command, args *Args) {
 		project = github.NewProject("", flagBrowseProject, "")
 	} else {
 		// gh browse
-		p, err := localRepo.CurrentProject()
+		branch, project, err = localRepo.RemoteBranchAndProject("")
 		utils.Check(err)
-		project = p
-
-		currentBranch, err := localRepo.CurrentBranch()
-		utils.Check(err)
-
-		upstream, err := currentBranch.Upstream()
-		if err == nil {
-			branch = upstream
-		}
 	}
 
 	if project == nil {
@@ -83,8 +75,7 @@ func browse(command *Command, args *Args) {
 		utils.Check(err)
 	}
 
-	master, err := localRepo.MasterBranch()
-	utils.Check(err)
+	master := localRepo.MasterBranch()
 	if branch == nil {
 		branch = master
 	}
