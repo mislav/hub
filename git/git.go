@@ -49,14 +49,14 @@ func HasFile(segments ...string) bool {
 	return false
 }
 
-func BranchAtRef(refs ...string) (name string, err error) {
+func BranchAtRef(paths ...string) (name string, err error) {
 	dir, err := Dir()
 	if err != nil {
 		return
 	}
 
 	segments := []string{dir}
-	segments = append(segments, refs...)
+	segments = append(segments, paths...)
 	path := filepath.Join(segments...)
 	b, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -64,8 +64,9 @@ func BranchAtRef(refs ...string) (name string, err error) {
 	}
 
 	n := string(b)
-	if strings.HasPrefix(n, "ref: ") {
-		name = strings.TrimPrefix(n, "ref: ")
+	refPrefix := "ref: "
+	if strings.HasPrefix(n, refPrefix) {
+		name = strings.TrimPrefix(n, refPrefix)
 		name = strings.TrimSpace(name)
 	} else {
 		err = fmt.Errorf("No branch info in %s: %s", path, n)
