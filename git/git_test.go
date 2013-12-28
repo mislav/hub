@@ -11,11 +11,6 @@ func TestGitDir(t *testing.T) {
 	assert.T(t, strings.Contains(gitDir, ".git"))
 }
 
-func TestGitPullReqMsgFile(t *testing.T) {
-	gitPullReqMsgFile, _ := PullReqMsgFile()
-	assert.T(t, strings.Contains(gitPullReqMsgFile, "PULLREQ_EDITMSG"))
-}
-
 func TestGitEditor(t *testing.T) {
 	gitEditor, err := Editor()
 	if err == nil {

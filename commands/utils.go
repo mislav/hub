@@ -5,6 +5,7 @@ import (
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -45,4 +46,10 @@ func hasGitRemote(name string) bool {
 	}
 
 	return false
+}
+
+func isEmptyDir(path string) bool {
+	fullPath := filepath.Join(path, "*")
+	match, _ := filepath.Glob(fullPath)
+	return match == nil
 }

@@ -117,9 +117,31 @@ func (client *Client) Releases(project *Project) (releases []octokit.Release, er
 	releases, result := client.octokit().Releases(client.requestURL(url)).All()
 	if result.HasError() {
 		err = result.Err
+	}
+
+	return
+}
+
+func (client *Client) CreateRelease(project *Project, params octokit.ReleaseParams) (release *octokit.Release, err error) {
+	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
 		return
 	}
 
+	release, result := client.octokit().Releases(client.requestURL(url)).Create(params)
+	if result.HasError() {
+		err = result.Err
+	}
+
+	return
+}
+
+func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, contentType string) (err error) {
+	c := client.octokit()
+	result := c.Uploads(uploadUrl).UploadAsset(asset, contentType)
+	if result.HasError() {
+		err = result.Err
+	}
 	return
 }
 

@@ -74,15 +74,6 @@ func BranchAtRef(refs ...string) (name string, err error) {
 	return
 }
 
-func PullReqMsgFile() (string, error) {
-	gitDir, err := Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(gitDir, "PULLREQ_EDITMSG"), nil
-}
-
 func Editor() (string, error) {
 	output, err := execGitCmd("var", "GIT_EDITOR")
 	if err != nil {
