@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -34,7 +35,7 @@ func (c *Command) Call(args *Args) (err error) {
 			args.Params = args.Params[1:]
 		} else {
 			fmt.Printf("error: Unknown subcommand: %s\n", subCommandName)
-			c.PrintUsage()
+			c.printShortCommands()
 			os.Exit(1)
 		}
 	}
@@ -69,14 +70,26 @@ func (c *Command) Use(name string, subCommand *Command) {
 
 func (c *Command) PrintUsage() {
 	if c.Runnable() {
-		fmt.Printf("%s\n\n", c.FormattedUsage())
+		fmt.Printf("usage: %s\n\n", c.FormattedUsage())
 	}
 
 	fmt.Println(strings.Trim(c.Long, "\n"))
 }
 
 func (c *Command) FormattedUsage() string {
-	return fmt.Sprintf("Usage: git %s", c.Usage)
+	return fmt.Sprintf("%s %s", execName(), c.Usage)
+}
+
+func (c *Command) printShortCommands() {
+	if c.Runnable() {
+		fmt.Printf("usage: %s\n", c.FormattedUsage())
+	}
+	if c.subCommands != nil && len(c.subCommands) > 0 {
+		for _, s := range c.subCommands {
+			fmt.Printf("   or: %s\n", s.FormattedUsage())
+		}
+	}
+	fmt.Println()
 }
 
 func (c *Command) Name() string {
@@ -138,4 +151,8 @@ func All() []*Command {
 	all = append(all, cmdUpdate)
 
 	return all
+}
+
+func execName() string {
+	return filepath.Base(os.Args[0])
 }
