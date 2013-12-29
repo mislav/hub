@@ -72,6 +72,10 @@ func (a *Args) LastParam() string {
 	return a.Params[a.ParamsSize()-1]
 }
 
+func (a *Args) HasSubcommand() bool {
+	return !a.IsParamsEmpty() && a.Params[0][0] != '-'
+}
+
 func (a *Args) InsertParam(i int, items ...string) {
 	if i < 0 || (i != 0 && i > a.ParamsSize()-1) {
 		panic(fmt.Sprintf("Index %d is out of bound", i))

@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"flag"
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
@@ -59,21 +58,14 @@ func (r *Runner) Execute() ExecError {
 				cmd.Flag.Usage = func() {
 					cmd.PrintUsage()
 				}
-				if err := cmd.Flag.Parse(args.Params); err != nil {
-					if err == flag.ErrHelp {
-						return newExecError(nil)
-					} else {
-						return newExecError(err)
-					}
-				}
-
-				args.Params = cmd.Flag.Args()
 			}
 
-			cmd.Run(cmd, args)
+			err := cmd.Call(args)
+			if err != nil {
+				return newExecError(err)
+			}
 
 			cmds := args.Commands()
-			var err error
 			if args.Noop {
 				printCommands(cmds)
 			} else {

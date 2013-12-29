@@ -3,6 +3,7 @@ package commands
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -20,6 +21,50 @@ type Command struct {
 	Short        string
 	Long         string
 	GitExtension bool
+
+	subCommands map[string]*Command
+}
+
+func (c *Command) Call(args *Args) (err error) {
+	runCommand := c
+	if len(c.subCommands) > 0 && args.HasSubcommand() {
+		subCommandName := args.FirstParam()
+		if subCommand, ok := c.subCommands[subCommandName]; ok {
+			runCommand = subCommand
+			args.Params = args.Params[1:]
+		} else {
+			fmt.Printf("error: Unknown subcommand: %s\n", subCommandName)
+			c.PrintUsage()
+			os.Exit(1)
+		}
+	}
+
+	if err = c.parseArguments(args); err != nil {
+		return
+	}
+
+	runCommand.Run(runCommand, args)
+	return
+}
+
+func (c *Command) parseArguments(args *Args) (err error) {
+	if err := c.Flag.Parse(args.Params); err != nil {
+		if err == flag.ErrHelp {
+			return nil
+		} else {
+			return err
+		}
+	}
+
+	args.Params = c.Flag.Args()
+	return
+}
+
+func (c *Command) Use(name string, subCommand *Command) {
+	if c.subCommands == nil {
+		c.subCommands = make(map[string]*Command)
+	}
+	c.subCommands[name] = subCommand
 }
 
 func (c *Command) PrintUsage() {
@@ -77,7 +122,6 @@ var GitHub = []*Command{
 	cmdCiStatus,
 	cmdBrowse,
 	cmdCompare,
-	cmdReleases,
 	cmdRelease,
 	cmdIssue,
 }

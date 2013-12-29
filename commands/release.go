@@ -16,15 +16,15 @@ import (
 )
 
 var (
-	cmdReleases = &Command{
-		Run:   releases,
-		Usage: "releases",
+	cmdRelease = &Command{
+		Run:   release,
+		Usage: "release",
 		Short: "Retrieve releases from GitHub",
 		Long:  `Retrieve releases from GitHub for the project that the "origin" remote points to.`}
 
-	cmdRelease = &Command{
-		Run:   release,
-		Usage: "release [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] TAG",
+	cmdCreateRelease = &Command{
+		Run:   createRelease,
+		Usage: "release create [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] TAG",
 		Short: "Create a new release in GitHub",
 		Long: `Create a new release in GitHub for the project that the "origin" remote points to.
 - It requires the name of the tag to release as a first argument.
@@ -42,6 +42,8 @@ var (
 )
 
 func init() {
+	cmdRelease.Use("create", cmdCreateRelease)
+
 	cmdRelease.Flag.BoolVar(&flagReleaseDraft, "d", false, "DRAFT")
 	cmdRelease.Flag.BoolVar(&flagReleasePrerelease, "p", false, "PRERELEASE")
 	cmdRelease.Flag.StringVar(&flagReleaseAssetsDir, "a", "", "ASSETS_DIR")
@@ -49,7 +51,7 @@ func init() {
 	cmdRelease.Flag.StringVar(&flagReleaseFile, "f", "", "FILE")
 }
 
-func releases(cmd *Command, args *Args) {
+func release(cmd *Command, args *Args) {
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would request list of releases for %s\n", project)
@@ -67,7 +69,7 @@ func releases(cmd *Command, args *Args) {
 	})
 }
 
-func release(cmd *Command, args *Args) {
+func createRelease(cmd *Command, args *Args) {
 	if args.IsParamsEmpty() {
 		utils.Check(fmt.Errorf("Missed argument TAG"))
 		return
