@@ -23,7 +23,7 @@ If "-v" is given, additionally print the URL to CI build results.
 var flagCiStatusVerbose bool
 
 func init() {
-	cmdCiStatus.Flag.BoolVar(&flagCiStatusVerbose, "v", false, "VERBOSE")
+	cmdCiStatus.Flag.BoolVarP(&flagCiStatusVerbose, "verbose", "v", false, "VERBOSE")
 
 	CmdRunner.Use(cmdCiStatus)
 }

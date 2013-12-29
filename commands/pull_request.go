@@ -42,13 +42,12 @@ var (
 )
 
 func init() {
-	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "", "BASE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestMessage, "m", "", "MESSAGE")
-	cmdPullRequest.Flag.BoolVar(&flagPullRequestForce, "f", false, "FORCE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "F", "", "FILE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "file", "", "FILE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestBase, "base", "b", "", "BASE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 
 	CmdRunner.Use(cmdPullRequest)
 }

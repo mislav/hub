@@ -2,8 +2,8 @@ package commands
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
+	flag "github.com/ogier/pflag"
 	"os"
 	"path/filepath"
 	"strings"

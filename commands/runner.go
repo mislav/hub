@@ -1,12 +1,12 @@
 package commands
 
 import (
-	"flag"
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 	"github.com/kballard/go-shellquote"
+	flag "github.com/ogier/pflag"
 	"os"
 	"os/exec"
 	"strings"

@@ -21,7 +21,7 @@ variable. With -s, outputs shell script suitable for eval.
 var flagAliasScript bool
 
 func init() {
-	cmdAlias.Flag.BoolVar(&flagAliasScript, "s", false, "SCRIPT")
+	cmdAlias.Flag.BoolVarP(&flagAliasScript, "script", "s", false, "SCRIPT")
 	CmdRunner.Use(cmdAlias)
 }
 
