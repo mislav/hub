@@ -36,13 +36,14 @@ func (c *Command) Call(args *Args) (err error) {
 		return
 	}
 
-	if err = runCommand.parseArguments(args); err != nil {
-		if err == flag.ErrHelp {
-			return nil
+	if !c.GitExtension {
+		err = runCommand.parseArguments(args)
+		if err != nil {
+			return
 		}
-	} else {
-		runCommand.Run(runCommand, args)
 	}
+
+	runCommand.Run(runCommand, args)
 
 	return
 }

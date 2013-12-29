@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"flag"
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
@@ -87,7 +88,7 @@ func (r *Runner) Call(cmd *Command, args *Args) ExecError {
 	}
 
 	err := cmd.Call(args)
-	if err != nil {
+	if err != nil && err != flag.ErrHelp {
 		return newExecError(err)
 	}
 
