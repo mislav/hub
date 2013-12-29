@@ -17,8 +17,17 @@ func (b *Branch) ShortName() string {
 }
 
 func (b *Branch) LongName() string {
-	reg := regexp.MustCompile("refs/(remotes/)?")
+	reg := regexp.MustCompile("^refs/(remotes/)?")
 	return reg.ReplaceAllString(b.Name, "")
+}
+
+func (b *Branch) RemoteName() string {
+	reg := regexp.MustCompile("^refs/remotes/([^/]+)")
+	if reg.MatchString(b.Name) {
+		return reg.FindStringSubmatch(b.Name)[1]
+	}
+
+	return ""
 }
 
 func (b *Branch) Upstream() (u *Branch, err error) {
@@ -28,15 +37,6 @@ func (b *Branch) Upstream() (u *Branch, err error) {
 	}
 
 	u = &Branch{name}
-
-	return
-}
-
-func (b *Branch) RemoteName() (n string) {
-	reg := regexp.MustCompile("^refs/remotes/([^/]+)")
-	if reg.MatchString(b.Name) {
-		n = reg.FindStringSubmatch(b.Name)[1]
-	}
 
 	return
 }

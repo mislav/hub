@@ -18,9 +18,12 @@ func TestBranch_LongName(t *testing.T) {
 	assert.Equal(t, "origin/master", b.LongName())
 }
 
-func TestBranch_RemoveName(t *testing.T) {
+func TestBranch_RemoteName(t *testing.T) {
 	b := Branch{"refs/remotes/origin/master"}
 	assert.Equal(t, "origin", b.RemoteName())
+
+	b = Branch{"refs/head/master"}
+	assert.Equal(t, "", b.RemoteName())
 }
 
 func TestBranch_IsRemote(t *testing.T) {

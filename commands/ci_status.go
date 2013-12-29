@@ -50,7 +50,7 @@ func ciStatus(cmd *Command, args *Args) {
 	}
 
 	localRepo := github.LocalRepo()
-	headProject, err := localRepo.CurrentProject()
+	project, err := localRepo.MainProject()
 	utils.Check(err)
 
 	sha, err := git.Ref(ref)
@@ -62,7 +62,7 @@ func ciStatus(cmd *Command, args *Args) {
 	if args.Noop {
 		fmt.Printf("Would request CI status for %s\n", sha)
 	} else {
-		state, targetURL, exitCode, err := fetchCiStatus(headProject, sha)
+		state, targetURL, exitCode, err := fetchCiStatus(project, sha)
 		utils.Check(err)
 		if flagCiStatusVerbose && targetURL != "" {
 			fmt.Printf("%s: %s\n", state, targetURL)

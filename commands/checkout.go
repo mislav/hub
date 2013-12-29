@@ -76,7 +76,7 @@ func transformCheckoutArgs(args *Args) error {
 	}
 
 	repo := github.LocalRepo()
-	_, err = repo.RemotesByName(user)
+	_, err = repo.RemoteByName(user)
 	if err == nil {
 		args.Before("git", "remote", "set-branches", "--add", user, branch)
 		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)

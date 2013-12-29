@@ -29,7 +29,7 @@ type Configs struct {
 }
 
 func (c *Configs) PromptFor(host string) *Credentials {
-	cc := c.Find(host)
+	cc := c.find(host)
 	if cc == nil {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
@@ -83,7 +83,7 @@ func (c *Configs) PromptForOTP() string {
 	return code
 }
 
-func (c *Configs) Find(host string) *Credentials {
+func (c *Configs) find(host string) *Credentials {
 	for _, t := range c.Credentials {
 		if t.Host == host {
 			return &t

@@ -47,7 +47,7 @@ func tranformFetchArgs(args *Args) error {
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
 		if ownerRegexp.MatchString(name) {
-			_, err := localRepo.RemotesByName(name)
+			_, err := localRepo.RemoteByName(name)
 			if err != nil {
 				project := github.NewProject(name, "", "")
 				gh := github.NewClient(project.Host)
