@@ -23,6 +23,7 @@ var (
 		Long:  `Retrieve releases from GitHub for the project that the "origin" remote points to.`}
 
 	cmdCreateRelease = &Command{
+		Key:   "create",
 		Run:   createRelease,
 		Usage: "release create [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] TAG",
 		Short: "Create a new release in GitHub",
@@ -42,13 +43,15 @@ var (
 )
 
 func init() {
-	cmdRelease.Use("create", cmdCreateRelease)
+	cmdRelease.Use(cmdCreateRelease)
 
 	cmdRelease.Flag.BoolVar(&flagReleaseDraft, "d", false, "DRAFT")
 	cmdRelease.Flag.BoolVar(&flagReleasePrerelease, "p", false, "PRERELEASE")
 	cmdRelease.Flag.StringVar(&flagReleaseAssetsDir, "a", "", "ASSETS_DIR")
 	cmdRelease.Flag.StringVar(&flagReleaseMessage, "m", "", "MESSAGE")
 	cmdRelease.Flag.StringVar(&flagReleaseFile, "f", "", "FILE")
+
+	CmdRunner.Use(cmdRelease)
 }
 
 func release(cmd *Command, args *Args) {

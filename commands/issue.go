@@ -14,6 +14,10 @@ var cmdIssue = &Command{
 	Long:  `Lists summary of the open issues for the project that the "origin" remove points to.`,
 }
 
+func init() {
+	CmdRunner.Use(cmdIssue)
+}
+
 /*
   $ gh issue
 */

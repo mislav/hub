@@ -22,6 +22,7 @@ var flagAliasScript bool
 
 func init() {
 	cmdAlias.Flag.BoolVar(&flagAliasScript, "s", false, "SCRIPT")
+	CmdRunner.Use(cmdAlias)
 }
 
 func alias(command *Command, args *Args) {

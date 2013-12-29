@@ -27,6 +27,8 @@ var (
 
 func init() {
 	cmdCompare.Flag.BoolVar(&flagCompareURLOnly, "u", false, "URL only")
+
+	CmdRunner.Use(cmdCompare)
 }
 
 /*

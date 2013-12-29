@@ -29,6 +29,8 @@ var (
 func init() {
 	cmdBrowse.Flag.BoolVar(&flagBrowseURLOnly, "u", false, "URL only")
 	cmdBrowse.Flag.StringVar(&flagBrowseProject, "p", "", "PROJECT")
+
+	CmdRunner.Use(cmdBrowse)
 }
 
 /*

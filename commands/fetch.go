@@ -17,6 +17,10 @@ remotes are only added if they correspond to valid forks on GitHub.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdFetch)
+}
+
 /*
   $ gh fetch jingweno
   > git remote add jingweno git://github.com/jingweno/REPO.git

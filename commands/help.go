@@ -14,6 +14,8 @@ var cmdHelp = &Command{
 
 func init() {
 	cmdHelp.Run = runHelp // break init loop
+
+	CmdRunner.Use(cmdHelp)
 }
 
 func runHelp(cmd *Command, args *Args) {
@@ -26,7 +28,7 @@ func runHelp(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("too many arguments"))
 	}
 
-	for _, cmd := range All() {
+	for _, cmd := range CmdRunner.All() {
 		if cmd.Name() == args.FirstParam() {
 			cmd.PrintUsage()
 			os.Exit(0)

@@ -49,6 +49,8 @@ func init() {
 	cmdPullRequest.Flag.BoolVar(&flagPullRequestForce, "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "F", "", "FILE")
 	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "file", "", "FILE")
+
+	CmdRunner.Use(cmdPullRequest)
 }
 
 /*

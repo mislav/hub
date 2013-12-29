@@ -6,6 +6,7 @@ import (
 	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 	"github.com/kballard/go-shellquote"
+	"os"
 	"os/exec"
 	"strings"
 	"syscall"
@@ -35,11 +36,28 @@ func newExecError(err error) ExecError {
 }
 
 type Runner struct {
-	Args []string
+	commands map[string]*Command
+}
+
+func NewRunner() *Runner {
+	return &Runner{commands: make(map[string]*Command)}
+}
+
+func (r *Runner) All() map[string]*Command {
+	return r.commands
+}
+
+func (r *Runner) Use(command *Command) {
+	r.commands[command.Name()] = command
+}
+
+func (r *Runner) Lookup(name string) *Command {
+	return r.commands[name]
 }
 
 func (r *Runner) Execute() ExecError {
-	args := NewArgs(r.Args)
+	args := NewArgs(os.Args[1:])
+
 	if args.Command == "" {
 		printUsage()
 		return newExecError(nil)
@@ -52,31 +70,34 @@ func (r *Runner) Execute() ExecError {
 	expandAlias(args)
 	slurpGlobalFlags(args)
 
-	for _, cmd := range All() {
-		if cmd.Name() == args.Command && cmd.Runnable() {
-			if !cmd.GitExtension {
-				cmd.Flag.Usage = func() {
-					cmd.PrintUsage()
-				}
-			}
-
-			err := cmd.Call(args)
-			if err != nil {
-				return newExecError(err)
-			}
-
-			cmds := args.Commands()
-			if args.Noop {
-				printCommands(cmds)
-			} else {
-				err = executeCommands(cmds)
-			}
-
-			return newExecError(err)
-		}
+	cmd := r.Lookup(args.Command)
+	if cmd != nil && cmd.Runnable() {
+		return r.Call(cmd, args)
 	}
 
 	err = git.Spawn(args.Command, args.Params...)
+	return newExecError(err)
+}
+
+func (r *Runner) Call(cmd *Command, args *Args) ExecError {
+	if !cmd.GitExtension {
+		cmd.Flag.Usage = func() {
+			cmd.PrintUsage()
+		}
+	}
+
+	err := cmd.Call(args)
+	if err != nil {
+		return newExecError(err)
+	}
+
+	cmds := args.Commands()
+	if args.Noop {
+		printCommands(cmds)
+	} else {
+		err = executeCommands(cmds)
+	}
+
 	return newExecError(err)
 }
 

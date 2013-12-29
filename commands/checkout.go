@@ -19,6 +19,10 @@ set with BRANCH.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdCheckout)
+}
+
 /**
   $ gh checkout https://github.com/jingweno/gh/pull/73
   > git remote add -f -t feature git://github:com/foo/gh.git

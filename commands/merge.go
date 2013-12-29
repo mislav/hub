@@ -17,6 +17,10 @@ ID and title, similar to the GitHub Merge Button.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdMerge)
+}
+
 /*
   $ gh merge https://github.com/jingweno/gh/pull/73
   > git fetch git://github.com/jingweno/gh.git +refs/heads/feature:refs/remotes/jingweno/feature

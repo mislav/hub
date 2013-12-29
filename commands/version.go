@@ -16,6 +16,10 @@ var cmdVersion = &Command{
 	Long:  `Shows git version and gh client version.`,
 }
 
+func init() {
+	CmdRunner.Use(cmdVersion)
+}
+
 func runVersion(cmd *Command, args *Args) {
 	gitVersion, err := git.Version()
 	utils.Check(err)

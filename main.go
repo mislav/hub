@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-	runner := commands.Runner{Args: os.Args[1:]}
-	err := runner.Execute()
+	err := commands.CmdRunner.Execute()
 	os.Exit(err.ExitCode)
 }

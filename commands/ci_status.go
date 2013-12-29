@@ -24,6 +24,8 @@ var flagCiStatusVerbose bool
 
 func init() {
 	cmdCiStatus.Flag.BoolVar(&flagCiStatusVerbose, "v", false, "VERBOSE")
+
+	CmdRunner.Use(cmdCiStatus)
 }
 
 /*

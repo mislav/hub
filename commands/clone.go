@@ -18,6 +18,10 @@ For repositories under your GitHub login, -p is implicit.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdClone)
+}
+
 /**
   $ gh clone jingweno/gh
   > git clone git://github.com/jingweno/gh.git
