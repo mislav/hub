@@ -8,6 +8,7 @@ import (
 	"github.com/jingweno/gh/utils"
 	"github.com/kballard/go-shellquote"
 	"os/exec"
+	"strings"
 	"syscall"
 )
 
@@ -117,10 +118,27 @@ func expandAlias(args *Args) {
 	cmd := args.Command
 	expandedCmd, err := git.Alias(cmd)
 	if err == nil && expandedCmd != "" {
-		words, err := shellquote.Split(expandedCmd)
-		if err == nil && len(words) > 0 {
+		words, e := splitAliasCmd(expandedCmd)
+		if e == nil {
 			args.Command = words[0]
 			args.PrependParams(words[1:]...)
 		}
 	}
+}
+
+func splitAliasCmd(cmd string) ([]string, error) {
+	if cmd == "" {
+		return nil, fmt.Errorf("alias can't be empty")
+	}
+
+	if strings.HasPrefix(cmd, "!") {
+		return nil, fmt.Errorf("alias starting with ! can't be split")
+	}
+
+	words, err := shellquote.Split(cmd)
+	if err != nil {
+		return nil, err
+	}
+
+	return words, nil
 }
