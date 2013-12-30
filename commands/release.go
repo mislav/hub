@@ -43,14 +43,13 @@ var (
 )
 
 func init() {
+	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
+	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
+	cmdCreateRelease.Flag.StringVarP(&flagReleaseAssetsDir, "assets", "a", "", "ASSETS_DIR")
+	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
+	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
+
 	cmdRelease.Use(cmdCreateRelease)
-
-	cmdRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
-	cmdRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
-	cmdRelease.Flag.StringVarP(&flagReleaseAssetsDir, "assets", "a", "", "ASSETS_DIR")
-	cmdRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
-	cmdRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
-
 	CmdRunner.Use(cmdRelease)
 }
 
