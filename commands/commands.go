@@ -49,6 +49,8 @@ func (c *Command) Call(args *Args) (err error) {
 }
 
 func (c *Command) parseArguments(args *Args) (err error) {
+	c.Flag.SetInterspersed(true)
+
 	if !c.GitExtension {
 		c.Flag.Usage = c.PrintUsage
 	}
