@@ -31,6 +31,7 @@ type Command struct {
 func (c *Command) Call(args *Args) (err error) {
 	runCommand, err := lookupCommand(c, args)
 	if err != nil {
+		fmt.Println(err)
 		return
 	}
 
@@ -90,7 +91,6 @@ func (c *Command) subCommandsUsage() string {
 			key = printUsageBuffer(s, buffer, key)
 		}
 	}
-	buffer.WriteString("\n")
 
 	return buffer.String()
 }
