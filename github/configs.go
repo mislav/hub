@@ -56,15 +56,24 @@ func (c *Configs) PromptFor(host string) *Credentials {
 	return cc
 }
 
-func (c *Configs) PromptForUser() string {
-	var user string
+func (c *Configs) PromptForUser() (user string) {
+	user = os.Getenv("GITHUB_USER")
+	if user != "" {
+		return
+	}
+
 	fmt.Printf("%s username: ", GitHubHost)
 	fmt.Scanln(&user)
 
-	return user
+	return
 }
 
 func (c *Configs) PromptForPassword(host, user string) (pass string) {
+	pass = os.Getenv("GITHUB_PASSWORD")
+	if pass != "" {
+		return
+	}
+
 	fmt.Printf("%s password for %s (never stored): ", host, user)
 	if isTerminal(os.Stdout.Fd()) {
 		pass = string(gopass.GetPasswd())
