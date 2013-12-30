@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	flag "github.com/ogier/pflag"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -78,7 +76,7 @@ func (c *Command) PrintUsage() {
 }
 
 func (c *Command) FormattedUsage() string {
-	return fmt.Sprintf("%s %s", execName(), c.Usage)
+	return fmt.Sprintf("git %s", c.Usage)
 }
 
 func (c *Command) subCommandsUsage() string {
@@ -118,10 +116,6 @@ func (c *Command) Runnable() bool {
 
 func (c *Command) List() bool {
 	return c.Short != ""
-}
-
-func execName() string {
-	return filepath.Base(os.Args[0])
 }
 
 func lookupCommand(c *Command, args *Args) (runCommand *Command, err error) {

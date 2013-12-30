@@ -88,8 +88,8 @@ func TestCommandUsageSubCommands(t *testing.T) {
 
 	usage := c.subCommandsUsage()
 
-	expected := `usage: commands.test foo
-   or: commands.test foo bar
+	expected := `usage: git foo
+   or: git foo bar
 
 `
 	assert.Equal(t, expected, usage)
@@ -104,7 +104,7 @@ func TestCommandUsageSubCommandsPrintOnlyRunnables(t *testing.T) {
 
 	usage := c.subCommandsUsage()
 
-	expected := `usage: commands.test foo bar
+	expected := `usage: git foo bar
 
 `
 	assert.Equal(t, expected, usage)
