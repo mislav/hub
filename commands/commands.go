@@ -49,6 +49,10 @@ func (c *Command) Call(args *Args) (err error) {
 }
 
 func (c *Command) parseArguments(args *Args) (err error) {
+	if !c.GitExtension {
+		c.Flag.Usage = c.PrintUsage
+	}
+
 	if err = c.Flag.Parse(args.Params); err == nil {
 		args.Params = c.Flag.Args()
 	}

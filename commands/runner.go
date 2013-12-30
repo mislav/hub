@@ -81,14 +81,11 @@ func (r *Runner) Execute() ExecError {
 }
 
 func (r *Runner) Call(cmd *Command, args *Args) ExecError {
-	if !cmd.GitExtension {
-		cmd.Flag.Usage = func() {
-			cmd.PrintUsage()
-		}
-	}
-
 	err := cmd.Call(args)
-	if err != nil && err != flag.ErrHelp {
+	if err != nil {
+		if err == flag.ErrHelp {
+			err = nil
+		}
 		return newExecError(err)
 	}
 
