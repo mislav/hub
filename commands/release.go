@@ -54,7 +54,7 @@ func init() {
 }
 
 func release(cmd *Command, args *Args) {
-	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+	RunInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would request list of releases for %s\n", project)
 		} else {
@@ -82,7 +82,7 @@ func createRelease(cmd *Command, args *Args) {
 	assetsDir, err := getAssetsDirectory(flagReleaseAssetsDir, tag)
 	utils.Check(err)
 
-	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+	RunInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		currentBranch, err := localRepo.CurrentBranch()
 		utils.Check(err)
 		branchName := currentBranch.ShortName()
@@ -122,17 +122,6 @@ func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string
 	message = fmt.Sprintf(message, tag, project.Name, currentBranch)
 
 	return github.GetTitleAndBodyFromEditor("RELEASE", message)
-}
-
-func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
-	localRepo := github.LocalRepo()
-	project, err := localRepo.CurrentProject()
-	utils.Check(err)
-
-	client := github.NewClient(project.Host)
-	fn(localRepo, project, client)
-
-	os.Exit(0)
 }
 
 func getAssetsDirectory(assetsDir, tag string) (string, error) {

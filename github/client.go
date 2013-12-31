@@ -206,6 +206,27 @@ func (client *Client) Issues(project *Project) (issues []octokit.Issue, err erro
 	return
 }
 
+func (client *Client) CreateIssue(project *Project, title, body string, labels []string) (issue *octokit.Issue, err error) {
+	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
+
+	params := octokit.IssueParams{
+		Title:  title,
+		Body:   body,
+		Labels: labels,
+	}
+
+	issue, result := client.octokit().Issues(client.requestURL(url)).Create(params)
+	if result.HasError() {
+		err = result.Err
+		return
+	}
+
+	return
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	url, e := octokit.AuthorizationsURL.Expand(nil)
 	if e != nil {
