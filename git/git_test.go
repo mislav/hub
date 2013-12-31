@@ -39,7 +39,7 @@ func TestGitRefList(t *testing.T) {
 }
 
 func TestGitShow(t *testing.T) {
-	output, err := Show("ce20e63ad00751bfed5d08072b11cf1b43af1995")
+	output, err := Show("8494cd083d5e5817f4aa75fb8a3973ecfd39f2f8")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "Add Git.RefList", output)
+	assert.Equal(t, "Fix typo in git show format\n\nIt's possible that comments are multiple lines", output)
 }
