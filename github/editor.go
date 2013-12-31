@@ -2,6 +2,7 @@ package github
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
@@ -35,47 +36,74 @@ func GetTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string,
 	return
 }
 
-func GetTitleAndBodyFromEditor(about, message string) (title, body string, err error) {
-	messageFile, err := getMessageFile(about)
-	if err != nil {
-		return
-	}
-	defer os.Remove(messageFile)
-
-	if message != "" {
-		err = ioutil.WriteFile(messageFile, []byte(message), 0644)
-		if err != nil {
-			return
-		}
-	}
-
-	editor, err := git.Editor()
+func NewEditor(topic, message string) (editor *Editor, err error) {
+	messageFile, err := getMessageFile(topic)
 	if err != nil {
 		return
 	}
 
-	err = editTitleAndBody(editor, messageFile)
+	program, err := git.Editor()
 	if err != nil {
-		err = fmt.Errorf("error using text editor for title/body message")
 		return
 	}
 
-	title, body, err = readTitleAndBody(messageFile)
-	if err != nil {
-		return
+	editor = &Editor{
+		Program: program,
+		File:    messageFile,
+		Message: message,
+		doEdit:  doTextEditorEdit,
 	}
 
 	return
 }
 
-func editTitleAndBody(editor, messageFile string) error {
-	editCmd := cmd.New(editor)
+type Editor struct {
+	Program string
+	File    string
+	Message string
+	doEdit  func(program, file string) error
+}
+
+func (e *Editor) Edit() (content []byte, err error) {
+	if e.Message != "" {
+		err = ioutil.WriteFile(e.File, []byte(e.Message), 0644)
+		if err != nil {
+			return
+		}
+	}
+	defer os.Remove(e.File)
+
+	err = e.doEdit(e.Program, e.File)
+	if err != nil {
+		err = fmt.Errorf("error using text editor for editing message")
+		return
+	}
+
+	content, err = ioutil.ReadFile(e.File)
+
+	return
+}
+
+func (e *Editor) EditTitleAndBody() (title, body string, err error) {
+	content, err := e.Edit()
+	if err != nil {
+		return
+	}
+
+	reader := bufio.NewReader(bytes.NewReader(content))
+	title, body, err = readTitleAndBodyFrom(reader)
+
+	return
+}
+
+func doTextEditorEdit(program, file string) error {
+	editCmd := cmd.New(program)
 	r := regexp.MustCompile("[mg]?vi[m]$")
-	if r.MatchString(editor) {
+	if r.MatchString(program) {
 		editCmd.WithArg("-c")
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}
-	editCmd.WithArg(messageFile)
+	editCmd.WithArg(file)
 
 	return editCmd.Exec()
 }

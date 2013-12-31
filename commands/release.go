@@ -121,7 +121,12 @@ func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string
 `
 	message = fmt.Sprintf(message, tag, project.Name, currentBranch)
 
-	return github.GetTitleAndBodyFromEditor("RELEASE", message)
+	editor, err := github.NewEditor("RELEASE", message)
+	if err != nil {
+		return "", "", err
+	}
+
+	return editor.EditTitleAndBody()
 }
 
 func getAssetsDirectory(assetsDir, tag string) (string, error) {

@@ -92,5 +92,10 @@ func writeIssueTitleAndBody(project *github.Project) (string, string, error) {
 `
 	message = fmt.Sprintf(message, project.Name)
 
-	return github.GetTitleAndBodyFromEditor("ISSUE", message)
+	editor, err := github.NewEditor("ISSUE", message)
+	if err != nil {
+		return "", "", err
+	}
+
+	return editor.EditTitleAndBody()
 }
