@@ -53,3 +53,27 @@ func isEmptyDir(path string) bool {
 	match, _ := filepath.Glob(fullPath)
 	return match == nil
 }
+
+func RunInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
+	localRepo := github.LocalRepo()
+	project, err := localRepo.CurrentProject()
+	utils.Check(err)
+
+	client := github.NewClient(project.Host)
+	fn(localRepo, project, client)
+
+	os.Exit(0)
+}
+
+type listFlag []string
+
+func (l *listFlag) String() string {
+	return strings.Join([]string(*l), ",")
+}
+
+func (l *listFlag) Set(value string) error {
+	for _, flag := range strings.Split(value, ",") {
+		*l = append(*l, flag)
+	}
+	return nil
+}

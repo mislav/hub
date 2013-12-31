@@ -85,7 +85,7 @@ GitHub Commands:
    compare        Open a compare page on GitHub
    ci-status      Show the CI status of a commit
    release        List or create releases (beta)
-   issue          Manipulate issues (beta)
+   issue          List or create issues (beta)
 
 See 'git help <command>' for more information on a specific command.
 Run 'git update' to update to the latest version of gh.
