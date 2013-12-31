@@ -91,7 +91,7 @@ func (e *Editor) EditTitleAndBody() (title, body string, err error) {
 	}
 
 	reader := bufio.NewReader(bytes.NewReader(content))
-	title, body, err = readTitleAndBodyFrom(reader)
+	title, body, err = readTitleAndBody(reader)
 
 	return
 }
@@ -108,7 +108,7 @@ func doTextEditorEdit(program, file string) error {
 	return editCmd.Exec()
 }
 
-func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) {
+func readTitleAndBody(reader *bufio.Reader) (title, body string, err error) {
 	r := regexp.MustCompile("\\S")
 	var titleParts, bodyParts []string
 
