@@ -132,7 +132,7 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	title, body, err := github.GetTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
+	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
 	utils.Check(err)
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)

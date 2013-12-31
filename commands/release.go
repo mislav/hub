@@ -54,7 +54,7 @@ func init() {
 }
 
 func release(cmd *Command, args *Args) {
-	RunInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would request list of releases for %s\n", project)
 		} else {
@@ -82,12 +82,12 @@ func createRelease(cmd *Command, args *Args) {
 	assetsDir, err := getAssetsDirectory(flagReleaseAssetsDir, tag)
 	utils.Check(err)
 
-	RunInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		currentBranch, err := localRepo.CurrentBranch()
 		utils.Check(err)
 		branchName := currentBranch.ShortName()
 
-		title, body, err := github.GetTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
+		title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
 		utils.Check(err)
 
 		if title == "" {

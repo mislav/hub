@@ -41,7 +41,7 @@ func init() {
   $ gh issue
 */
 func issue(cmd *Command, args *Args) {
-	RunInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would request list of issues for %s\n", project)
 		} else {
@@ -63,11 +63,11 @@ func issue(cmd *Command, args *Args) {
 }
 
 func createIssue(cmd *Command, args *Args) {
-	RunInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would create an issue for %s\n", project)
 		} else {
-			title, body, err := github.GetTitleAndBodyFromFlags(flagIssueMessage, flagIssueFile)
+			title, body, err := getTitleAndBodyFromFlags(flagIssueMessage, flagIssueFile)
 			utils.Check(err)
 
 			if title == "" {

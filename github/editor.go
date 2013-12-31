@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/cmd"
 	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/utils"
 	"io"
 	"io/ioutil"
 	"os"
@@ -14,27 +13,6 @@ import (
 	"regexp"
 	"strings"
 )
-
-func GetTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string, err error) {
-	if messageFlag != "" {
-		title, body = readMsg(messageFlag)
-	} else if fileFlag != "" {
-		var (
-			content []byte
-			err     error
-		)
-
-		if fileFlag == "-" {
-			content, err = ioutil.ReadAll(os.Stdin)
-		} else {
-			content, err = ioutil.ReadFile(fileFlag)
-		}
-		utils.Check(err)
-		title, body = readMsg(string(content))
-	}
-
-	return
-}
 
 func NewEditor(topic, message string) (editor *Editor, err error) {
 	messageFile, err := getMessageFile(topic)
@@ -153,16 +131,6 @@ func readLine(r *bufio.Reader) (string, error) {
 	}
 
 	return string(ln), err
-}
-
-func readMsg(msg string) (title, body string) {
-	split := strings.SplitN(msg, "\n\n", 2)
-	title = strings.TrimSpace(split[0])
-	if len(split) > 1 {
-		body = strings.TrimSpace(split[1])
-	}
-
-	return
 }
 
 func getMessageFile(about string) (string, error) {
