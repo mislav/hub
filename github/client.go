@@ -192,37 +192,29 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 }
 
 func (client *Client) Issues(project *Project) (issues []octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
-	}
+	var result *octokit.Result
 
-	issues, result := client.octokit().Issues(client.requestURL(url)).All()
-	if result.HasError() {
-		err = result.Err
-		return
-	}
+	err = client.issuesService(project, func(service *octokit.IssuesService) error {
+		issues, result = service.All()
+		return resultError(result)
+	})
 
 	return
 }
 
 func (client *Client) CreateIssue(project *Project, title, body string, labels []string) (issue *octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
-	}
-
 	params := octokit.IssueParams{
 		Title:  title,
 		Body:   body,
 		Labels: labels,
 	}
 
-	issue, result := client.octokit().Issues(client.requestURL(url)).Create(params)
-	if result.HasError() {
-		err = result.Err
-		return
-	}
+	var result *octokit.Result
+
+	err = client.issuesService(project, func(service *octokit.IssuesService) error {
+		issue, result = service.Create(params)
+		return resultError(result)
+	})
 
 	return
 }
@@ -310,4 +302,21 @@ func absolute(endpoint string) string {
 func NewClient(host string) *Client {
 	c := CurrentConfigs().PromptFor(host)
 	return &Client{Credentials: c}
+}
+
+func (client *Client) issuesService(project *Project, fn func(service *octokit.IssuesService) error) (err error) {
+	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
+
+	service := client.octokit().Issues(client.requestURL(url))
+	return fn(service)
+}
+
+func resultError(result *octokit.Result) (err error) {
+	if result != nil && result.HasError() {
+		err = result.Err
+	}
+	return
 }
