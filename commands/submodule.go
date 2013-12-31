@@ -1,5 +1,7 @@
 package commands
 
+import "fmt"
+
 var cmdSubmodule = &Command{
 	Run:          submodule,
 	GitExtension: true,
