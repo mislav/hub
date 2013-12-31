@@ -153,3 +153,22 @@ func TestSubCommandCall(t *testing.T) {
 	c.Call(args)
 	assert.Equal(t, "baz", result)
 }
+
+func TestSubCommandsUsage(t *testing.T) {
+	// with subcommand
+	f1 := func(c *Command, args *Args) {}
+	f2 := func(c *Command, args *Args) {}
+
+	c := &Command{Usage: "foo", Run: f1}
+	s := &Command{Key: "bar", Usage: "foo bar", Run: f2}
+	c.Use(s)
+
+	usage := c.subCommandsUsage()
+	assert.Equal(t, "usage: git foo\n   or: git foo bar\n", usage)
+
+	// no subcommand
+	cc := &Command{Usage: "foo", Run: f1}
+
+	usage = cc.subCommandsUsage()
+	assert.Equal(t, "usage: git foo\n", usage)
+}
