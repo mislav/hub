@@ -1,4 +1,6 @@
 #!/bin/bash
 
 script/bootstrap
+go get github.com/jingweno/gotask
+go get github.com/laher/goxc
 gotask cross-compile
