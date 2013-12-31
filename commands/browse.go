@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"net/url"
 	"reflect"
 	"strings"
 )
@@ -90,23 +91,28 @@ func browse(command *Command, args *Args) {
 	if subpage == "commits" {
 		subpage = fmt.Sprintf("commits/%s", branchInURL(branch))
 	} else if subpage == "tree" || subpage == "" {
-		if !reflect.DeepEqual(branch, master) {
+		if !reflect.DeepEqual(branch, master) && branch.IsRemote() {
 			subpage = fmt.Sprintf("tree/%s", branchInURL(branch))
 		}
 	}
 
-	url := project.WebURL("", "", subpage)
+	pageUrl := project.WebURL("", "", subpage)
 	launcher, err := utils.BrowserLauncher()
 	utils.Check(err)
 
 	if flagBrowseURLOnly {
-		args.Replace("echo", url)
+		args.Replace("echo", pageUrl)
 	} else {
 		args.Replace(launcher[0], "", launcher[1:]...)
-		args.AppendParams(url)
+		args.AppendParams(pageUrl)
 	}
 }
 
 func branchInURL(branch *github.Branch) string {
-	return strings.Replace(branch.ShortName(), ".", "/", -1)
+	parts := strings.Split(strings.Replace(branch.ShortName(), ".", "/", -1), "/")
+	newPath := make([]string, len(parts))
+	for i, s := range parts {
+		newPath[i] = url.QueryEscape(s)
+	}
+	return strings.Join(newPath, "/")
 }
