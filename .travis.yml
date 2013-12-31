@@ -1,4 +1,6 @@
 before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq zsh git
   - rvm use 2.1.0 --install --binary --fuzzy
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - ruby --version
