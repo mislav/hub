@@ -13,6 +13,19 @@ const (
 	OAuthAppURL   string = "http://owenou.com/gh"
 )
 
+type ClientError struct {
+	error
+}
+
+func (e *ClientError) Error() string {
+	return e.error.Error()
+}
+
+func (e *ClientError) Is2FAError() bool {
+	re, ok := e.error.(*octokit.ResponseError)
+	return ok && re.Type == octokit.ErrorOneTimePasswordRequired
+}
+
 type Client struct {
 	Credentials *Credentials
 }
@@ -194,8 +207,9 @@ func (client *Client) Issues(project *Project) (issues []octokit.Issue, err erro
 }
 
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
-	url, err := octokit.AuthorizationsURL.Expand(nil)
-	if err != nil {
+	url, e := octokit.AuthorizationsURL.Expand(nil)
+	if e != nil {
+		err = &ClientError{e}
 		return
 	}
 
@@ -205,12 +219,12 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 	auths, result := authsService.All()
 	if result.HasError() {
-		err = result.Err
+		err = &ClientError{result.Err}
 		return
 	}
 
 	for _, auth := range auths {
-		if auth.NoteURL == OAuthAppURL {
+		if auth.App.URL == OAuthAppURL {
 			token = auth.Token
 			break
 		}
@@ -224,7 +238,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 		auth, result := authsService.Create(authParam)
 		if result.HasError() {
-			err = result.Err
+			err = &ClientError{result.Err}
 			return
 		}
 

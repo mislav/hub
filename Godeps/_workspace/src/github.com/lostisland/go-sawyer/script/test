@@ -1,3 +1,6 @@
 script/fmt
-go test -race -v "$@" ./mediatype
-go test -race -v "$@" .
+
+packages=". ./hypermedia ./mediatype ./mediaheader"
+
+go test -i       $packages
+go test -race -v $packages

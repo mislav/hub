@@ -118,7 +118,7 @@ func getResponseErrorType(resp *http.Response) ResponseErrorType {
 
 	case code == http.StatusUnauthorized:
 		header := resp.Header.Get("X-GitHub-OTP")
-		r := regexp.MustCompile(`(?i)required; (\\w+)`)
+		r := regexp.MustCompile(`(?i)required; (\w+)`)
 		if r.MatchString(header) {
 			return ErrorOneTimePasswordRequired
 		}

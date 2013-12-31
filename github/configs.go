@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 )
 
@@ -37,10 +36,8 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		// Create Client with a stub Credentials
 		client := &Client{Credentials: &Credentials{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
-		// TODO: return a two-factor error
 		if err != nil {
-			re := regexp.MustCompile("two-factor authentication OTP code")
-			if re.MatchString(fmt.Sprintf("%s", err)) {
+			if ce, ok := err.(*ClientError); ok && ce.Is2FAError() {
 				code := c.PromptForOTP()
 				token, err = client.FindOrCreateToken(user, pass, code)
 			}
@@ -56,15 +53,24 @@ func (c *Configs) PromptFor(host string) *Credentials {
 	return cc
 }
 
-func (c *Configs) PromptForUser() string {
-	var user string
+func (c *Configs) PromptForUser() (user string) {
+	user = os.Getenv("GITHUB_USER")
+	if user != "" {
+		return
+	}
+
 	fmt.Printf("%s username: ", GitHubHost)
 	fmt.Scanln(&user)
 
-	return user
+	return
 }
 
 func (c *Configs) PromptForPassword(host, user string) (pass string) {
+	pass = os.Getenv("GITHUB_PASSWORD")
+	if pass != "" {
+		return
+	}
+
 	fmt.Printf("%s password for %s (never stored): ", host, user)
 	if isTerminal(os.Stdout.Fd()) {
 		pass = string(gopass.GetPasswd())
