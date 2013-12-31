@@ -115,7 +115,11 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 	}
 	repo, result := client.octokit().Repositories(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = fmt.Errorf("Error creating repository: %s", result.Err)
+		if result.Response == nil || result.Response.StatusCode == 500 {
+			err = fmt.Errorf("Error creating repository: Internal Server Error (HTTP 500)")
+		} else {
+			err = fmt.Errorf("Error creating repository: %v", result.Err)
+		}
 	}
 
 	return
