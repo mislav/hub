@@ -16,7 +16,7 @@ install:
 script:
   - script/build
   - script/test
-  - bundle exec rake features PROFILE=all
+  - script/ruby-test
 env:
   global:
     - AMAZON_S3_BUCKET=gh-bundler-cache
