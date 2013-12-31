@@ -83,24 +83,21 @@ func (c *Command) FormattedUsage() string {
 func (c *Command) subCommandsUsage() string {
 	buffer := bytes.NewBufferString("")
 
-	key := "usage"
-
-	key = printUsageBuffer(c, buffer, key)
-	if c.subCommands != nil && len(c.subCommands) > 0 {
-		for _, s := range c.subCommands {
-			key = printUsageBuffer(s, buffer, key)
-		}
+	usage := "usage"
+	usage = printUsageBuffer(c, buffer, usage)
+	for _, s := range c.subCommands {
+		usage = printUsageBuffer(s, buffer, usage)
 	}
 
 	return buffer.String()
 }
 
-func printUsageBuffer(c *Command, b *bytes.Buffer, key string) string {
+func printUsageBuffer(c *Command, b *bytes.Buffer, usage string) string {
 	if c.Runnable() {
-		b.WriteString(fmt.Sprintf("%s: %s\n", key, c.FormattedUsage()))
-		key = "   or"
+		b.WriteString(fmt.Sprintf("%s: %s\n", usage, c.FormattedUsage()))
+		usage = "   or"
 	}
-	return key
+	return usage
 }
 
 func (c *Command) Name() string {
