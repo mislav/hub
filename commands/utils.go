@@ -4,10 +4,24 @@ import (
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
 	"github.com/jingweno/go-octokit/octokit"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+type listFlag []string
+
+func (l *listFlag) String() string {
+	return strings.Join([]string(*l), ",")
+}
+
+func (l *listFlag) Set(value string) error {
+	for _, flag := range strings.Split(value, ",") {
+		*l = append(*l, flag)
+	}
+	return nil
+}
 
 func isDir(file string) bool {
 	f, err := os.Open(file)
@@ -54,7 +68,39 @@ func isEmptyDir(path string) bool {
 	return match == nil
 }
 
-func RunInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
+func getTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string, err error) {
+	if messageFlag != "" {
+		title, body = readMsg(messageFlag)
+	} else if fileFlag != "" {
+		var (
+			content []byte
+			err     error
+		)
+
+		if fileFlag == "-" {
+			content, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			content, err = ioutil.ReadFile(fileFlag)
+		}
+		utils.Check(err)
+
+		title, body = readMsg(string(content))
+	}
+
+	return
+}
+
+func readMsg(msg string) (title, body string) {
+	split := strings.SplitN(msg, "\n\n", 2)
+	title = strings.TrimSpace(split[0])
+	if len(split) > 1 {
+		body = strings.TrimSpace(split[1])
+	}
+
+	return
+}
+
+func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
 	localRepo := github.LocalRepo()
 	project, err := localRepo.CurrentProject()
 	utils.Check(err)
@@ -63,17 +109,4 @@ func RunInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Projec
 	fn(localRepo, project, client)
 
 	os.Exit(0)
-}
-
-type listFlag []string
-
-func (l *listFlag) String() string {
-	return strings.Join([]string(*l), ",")
-}
-
-func (l *listFlag) Set(value string) error {
-	for _, flag := range strings.Split(value, ",") {
-		*l = append(*l, flag)
-	}
-	return nil
 }
