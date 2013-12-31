@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/howeyc/gopass"
 	"github.com/jingweno/gh/utils"
-	"github.com/jingweno/go-octokit/octokit"
 	"io"
 	"io/ioutil"
 	"os"
@@ -38,7 +37,7 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		client := &Client{Credentials: &Credentials{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
 		if err != nil {
-			if re, ok := err.(*octokit.ResponseError); ok && re.Type == octokit.ErrorOneTimePasswordRequired {
+			if ce, ok := err.(*ClientError); ok && ce.Is2FAError() {
 				code := c.PromptForOTP()
 				token, err = client.FindOrCreateToken(user, pass, code)
 			}
