@@ -1,4 +1,9 @@
 before_install:
+  - rvm use 2.1.0 --install --binary --fuzzy
+  - export BUNDLE_GEMFILE=$PWD/Gemfile
+  - ruby --version
+  - rvm --version
+  - gem --version
   - sudo apt-get update -qq
   - sudo apt-get install -qq tmux zsh git
 language: go
@@ -7,11 +12,6 @@ go:
 install:
   - script/bootstrap
   - export PATH="$HOME/gopath/bin:$PATH"
-  - rvm use 2.1.0 --install --binary --fuzzy
-  - export BUNDLE_GEMFILE=$PWD/Gemfile
-  - ruby --version
-  - rvm --version
-  - gem --version
   - script/cached-bundle install --deployment --without development
 script:
   - script/build
