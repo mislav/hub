@@ -35,8 +35,8 @@
 		},
 		{
 			"ImportPath": "github.com/jingweno/go-octokit/octokit",
-			"Comment": "v0.4.0-41-g85bc6b5",
-			"Rev": "74f0495a72d8a2dfce059ebf718fd60dd3800f41"
+			"Comment": "v0.4.0-46-g30737cb",
+			"Rev": "30737cb1e9207e1a7633e3d7539951c5c3d93058"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",
@@ -58,7 +58,7 @@
 		},
 		{
 			"ImportPath": "github.com/lostisland/go-sawyer",
-			"Rev": "ec1b99a1915d53f09d40d0c87caf60460b7f8728"
+			"Rev": "cb3f837f5ac26e080a9002dcb4d2e8472e623916"
 		}
 	]
 }

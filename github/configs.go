@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"github.com/howeyc/gopass"
 	"github.com/jingweno/gh/utils"
+	"github.com/jingweno/go-octokit/octokit"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strconv"
 )
 
@@ -37,10 +37,8 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		// Create Client with a stub Credentials
 		client := &Client{Credentials: &Credentials{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
-		// TODO: return a two-factor error
 		if err != nil {
-			re := regexp.MustCompile("two-factor authentication OTP code")
-			if re.MatchString(fmt.Sprintf("%s", err)) {
+			if re, ok := err.(*octokit.ResponseError); ok && re.Type == octokit.ErrorOneTimePasswordRequired {
 				code := c.PromptForOTP()
 				token, err = client.FindOrCreateToken(user, pass, code)
 			}
