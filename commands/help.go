@@ -84,8 +84,7 @@ GitHub Commands:
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
    ci-status      Show the CI status of a commit
-   releases       List releases for this repo (beta)
-   release        Create releases for this repo (beta)
+   release        List or create releases (beta)
    issue          Manipulate issues (beta)
 
 See 'git help <command>' for more information on a specific command.
