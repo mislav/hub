@@ -5,8 +5,13 @@ install:
   - script/bootstrap
   - export PATH="$HOME/gopath/bin:$PATH"
   - ruby -v
-  - bundle install
+  - script/cached-bundle install --deployment --without development
 script:
   - script/build
   - script/test
   - bundle exec rake features
+env:
+  global:
+    - AMAZON_S3_BUCKET=gh-ci-cache
+    - AMAZON_ACCESS_KEY_ID=AKIAIJR3XZXZC6W44DWA
+    - secure: Erd5l/uRvYlim+EW45Edz22lB2SNEPBCA3utk0wv6ZVgz/Ybs6p68dzpEqFFwxhHz8vaYT+lYXonZvV6fXk3sd826cl69mzSQJl/b/AJdCM5ubX9pYenghrA0xQ83J81mTBYxh4ghMH7TBNv0eHuow2RFuNhWlPsS1ziBTZzmP0=
