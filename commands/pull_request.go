@@ -132,7 +132,7 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	title, body, err := github.GetTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
+	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
 	utils.Check(err)
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
@@ -183,9 +183,16 @@ func pullRequest(cmd *Command, args *Args) {
 
 func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
 	message, err := pullRequestChangesMessage(base, head, fullBase, fullHead, commits)
-	utils.Check(err)
+	if err != nil {
+		return
+	}
 
-	return github.GetTitleAndBodyFromEditor("PULLREQ", message)
+	editor, err := github.NewEditor("PULLREQ", message)
+	if err != nil {
+		return
+	}
+
+	return editor.EditTitleAndBody()
 }
 
 func pullRequestChangesMessage(base, head, fullBase, fullHead string, commits []string) (string, error) {
