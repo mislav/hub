@@ -1,7 +1,5 @@
 package commands
 
-import "fmt"
-
 var cmdSubmodule = &Command{
 	Run:          submodule,
 	GitExtension: true,
@@ -29,7 +27,6 @@ func init() {
 **/
 
 func submodule(command *Command, args *Args) {
-	fmt.Println(args)
 	if !args.IsParamsEmpty() {
 		transformSubmoduleArgs(args)
 	}
@@ -38,12 +35,9 @@ func submodule(command *Command, args *Args) {
 func transformSubmoduleArgs(args *Args) {
 	var idx int
 	if idx = args.IndexOfParam("add"); idx == -1 {
-		fmt.Println("`add` not found, skipping")
 		return
 	}
-	fmt.Println("`add` found")
 	args.RemoveParam(idx)
 	transformCloneArgs(args)
 	args.InsertParam(idx, "add")
-	fmt.Println(args)
 }
