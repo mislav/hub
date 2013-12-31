@@ -108,18 +108,6 @@ func doTextEditorEdit(program, file string) error {
 	return editCmd.Exec()
 }
 
-func readTitleAndBody(messageFile string) (title, body string, err error) {
-	f, err := os.Open(messageFile)
-	defer f.Close()
-	if err != nil {
-		return "", "", err
-	}
-
-	reader := bufio.NewReader(f)
-
-	return readTitleAndBodyFrom(reader)
-}
-
 func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) {
 	r := regexp.MustCompile("\\S")
 	var titleParts, bodyParts []string
