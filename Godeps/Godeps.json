@@ -59,6 +59,10 @@
 		{
 			"ImportPath": "github.com/lostisland/go-sawyer",
 			"Rev": "cb3f837f5ac26e080a9002dcb4d2e8472e623916"
+		},
+		{
+			"ImportPath": "https://github.com/ogier/pflag",
+			"Rev": "fc2d9a0ef658fa4e4c319939fd6f4b6becfccb48"
 		}
 	]
 }

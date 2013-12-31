@@ -29,9 +29,11 @@ var (
 )
 
 func init() {
-	cmdCreate.Flag.BoolVar(&flagCreatePrivate, "p", false, "PRIVATE")
-	cmdCreate.Flag.StringVar(&flagCreateDescription, "d", "", "DESCRIPTION")
-	cmdCreate.Flag.StringVar(&flagCreateHomepage, "h", "", "HOMEPAGE")
+	cmdCreate.Flag.BoolVarP(&flagCreatePrivate, "private", "p", false, "PRIVATE")
+	cmdCreate.Flag.StringVarP(&flagCreateDescription, "description", "d", "", "DESCRIPTION")
+	cmdCreate.Flag.StringVarP(&flagCreateHomepage, "homepage", "h", "", "HOMEPAGE")
+
+	CmdRunner.Use(cmdCreate)
 }
 
 /*

@@ -16,6 +16,10 @@ Examples:
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdUpdate)
+}
+
 func update(cmd *Command, args *Args) {
 	updater := NewUpdater()
 	err := updater.Update()

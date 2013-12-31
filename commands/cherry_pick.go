@@ -18,6 +18,10 @@ prior to the cherry-pick attempt.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdCherryPick)
+}
+
 /*
   $ gh cherry-pick https://github.com/jingweno/gh/commit/a319d88#comments
   > git remote add -f jingweno git://github.com/jingweno/gh.git

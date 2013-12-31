@@ -21,6 +21,8 @@ var flagForkNoRemote bool
 
 func init() {
 	cmdFork.Flag.BoolVar(&flagForkNoRemote, "no-remote", false, "")
+
+	CmdRunner.Use(cmdFork)
 }
 
 /*

@@ -20,6 +20,10 @@ then uses your GitHub login.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdRemote)
+}
+
 /*
   $ gh remote add jingweno
   > git remote add jingweno git://github.com/jingweno/THIS_REPO.git
