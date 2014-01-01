@@ -21,23 +21,29 @@ func NewUpdater() *Updater {
 	if version == "" {
 		version = Version
 	}
-	return &Updater{Host: github.DefaultHost(), CurrentVersion: version}
+
+	timestampPath := filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
+	return &Updater{
+		Host:           github.DefaultHost(),
+		CurrentVersion: version,
+		timestampPath:  timestampPath,
+	}
 }
 
 type Updater struct {
 	Host           string
 	CurrentVersion string
+	timestampPath  string
 }
 
 func (updater *Updater) timeToUpdate() bool {
-	updateTimestampPath := filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
-	if updater.CurrentVersion == "dev" || readTime(updateTimestampPath).After(time.Now()) {
+	if updater.CurrentVersion == "dev" || readTime(updater.timestampPath).After(time.Now()) {
 		return false
 	}
 
 	// the next update is in about 14 days
 	wait := 13*24*time.Hour + randDuration(24*time.Hour)
-	return writeTime(updateTimestampPath, time.Now().Add(wait))
+	return writeTime(updater.timestampPath, time.Now().Add(wait))
 }
 
 func (updater *Updater) PromptForUpdate() (err error) {
@@ -212,10 +218,12 @@ func readTime(path string) time.Time {
 	if err != nil {
 		return time.Now().Add(1000 * time.Hour)
 	}
+
 	t, err := time.Parse(time.RFC3339, strings.TrimSpace(string(p)))
 	if err != nil {
-		return time.Now().Add(1000 * time.Hour)
+		return time.Time{}
 	}
+
 	return t
 }
 

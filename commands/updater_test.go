@@ -45,3 +45,27 @@ func TestUpdater_unzipExecutable(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "gh", filepath.Base(exec))
 }
+
+func TestUpdater_timeToUpdate(t *testing.T) {
+	// file doesn't exist
+	timestampDir, _ := ioutil.TempDir("", "timestampDir-test")
+	timestampPath := filepath.Join(timestampDir, "gh-update")
+	updater := Updater{timestampPath: timestampPath}
+
+	assert.T(t, updater.timeToUpdate())
+	timestamp, err := ioutil.ReadFile(timestampPath)
+	assert.Equal(t, nil, err)
+	assert.NotEqual(t, "", string(timestamp))
+
+	// invalid timestamp format
+	timestampFile, _ := ioutil.TempFile("", "timestampFile-test")
+	updater = Updater{timestampPath: timestampFile.Name()}
+	assert.T(t, updater.timeToUpdate())
+	timestamp, err = ioutil.ReadFile(timestampFile.Name())
+	assert.Equal(t, nil, err)
+	assert.NotEqual(t, "", string(timestamp))
+
+	// dev version
+	updater = Updater{CurrentVersion: "dev"}
+	assert.T(t, !updater.timeToUpdate())
+}
