@@ -224,13 +224,12 @@ func (client *Client) CreateIssue(project *Project, title, body string, labels [
 }
 
 func (client *Client) GhLatestTagName() (tagName string, err error) {
-	c := octokit.NewClientWith(client.apiEndpoint(), nil, nil)
-
 	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": "jingweno", "repo": "gh"})
 	if err != nil {
 		return
 	}
 
+	c := octokit.NewClientWith(client.apiEndpoint(), nil, nil)
 	releases, result := c.Releases(client.requestURL(url)).All()
 	if result.HasError() {
 		err = fmt.Errorf("Error getting gh release: %s", result.Err)
