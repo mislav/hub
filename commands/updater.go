@@ -5,7 +5,6 @@ import (
 	"fmt"
 	goupdate "github.com/inconshreveable/go-update"
 	"github.com/jingweno/gh/github"
-	"github.com/jingweno/go-octokit/octokit"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -15,10 +14,6 @@ import (
 	"runtime"
 	"strings"
 	"time"
-)
-
-var (
-	updateTimestampPath = filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
 )
 
 func NewUpdater() *Updater {
@@ -35,6 +30,7 @@ type Updater struct {
 }
 
 func (updater *Updater) timeToUpdate() bool {
+	updateTimestampPath := filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
 	if updater.CurrentVersion == "dev" || readTime(updateTimestampPath).After(time.Now()) {
 		return false
 	}
@@ -44,25 +40,10 @@ func (updater *Updater) timeToUpdate() bool {
 	return writeTime(updateTimestampPath, time.Now().Add(wait))
 }
 
-func (updater *Updater) latestRelease() (r *octokit.Release) {
-	client := github.NewClient(updater.Host)
-	releases, err := client.Releases(github.NewProject("jingweno", "gh", updater.Host))
-	if err != nil {
-		return
-	}
-
-	if len(releases) > 0 {
-		r = &releases[0]
-	}
-
-	return
-}
-
 func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
-	if latestRelease := updater.latestRelease(); latestRelease != nil {
-		name = latestRelease.TagName
-		version = strings.TrimPrefix(name, "v")
-	}
+	c := github.Client{}
+	name, _ = c.GhLatestTagName()
+	version = strings.TrimPrefix(name, "v")
 
 	return
 }
