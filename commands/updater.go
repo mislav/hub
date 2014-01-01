@@ -40,15 +40,6 @@ func (updater *Updater) timeToUpdate() bool {
 	return writeTime(updateTimestampPath, time.Now().Add(wait))
 }
 
-func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
-	// Create Client with a stub Credentials
-	c := github.Client{Credentials: &github.Credentials{Host: updater.Host}}
-	name, _ = c.GhLatestTagName()
-	version = strings.TrimPrefix(name, "v")
-
-	return
-}
-
 func (updater *Updater) PromptForUpdate() (err error) {
 	if !updater.timeToUpdate() {
 		return
@@ -87,6 +78,15 @@ func (updater *Updater) Update() (err error) {
 	} else {
 		err = updater.updateTo(releaseName, version)
 	}
+
+	return
+}
+
+func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
+	// Create Client with a stub Credentials
+	c := github.Client{Credentials: &github.Credentials{Host: updater.Host}}
+	name, _ = c.GhLatestTagName()
+	version = strings.TrimPrefix(name, "v")
 
 	return
 }
