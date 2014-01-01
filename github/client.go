@@ -38,7 +38,7 @@ func (client *Client) PullRequest(project *Project, id string) (pr *octokit.Pull
 
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).One()
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error getting pull request: %s", result.Err)
 	}
 
 	return
@@ -53,7 +53,7 @@ func (client *Client) CreatePullRequest(project *Project, base, head, title, bod
 	params := octokit.PullRequestParams{Base: base, Head: head, Title: title, Body: body}
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error creating pull request: %s", result.Err)
 	}
 
 	return
@@ -68,7 +68,7 @@ func (client *Client) CreatePullRequestForIssue(project *Project, base, head, is
 	params := octokit.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error creating pull request: %s", result.Err)
 	}
 
 	return
@@ -82,7 +82,7 @@ func (client *Client) Repository(project *Project) (repo *octokit.Repository, er
 
 	repo, result := client.octokit().Repositories(client.requestURL(url)).One()
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error getting repository: %s", result.Err)
 	}
 
 	return
@@ -115,7 +115,11 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 	}
 	repo, result := client.octokit().Repositories(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = result.Err
+		if result.Response == nil || result.Response.StatusCode == 500 {
+			err = fmt.Errorf("Error creating repository: Internal Server Error (HTTP 500)")
+		} else {
+			err = fmt.Errorf("Error creating repository: %v", result.Err)
+		}
 	}
 
 	return
@@ -129,7 +133,7 @@ func (client *Client) Releases(project *Project) (releases []octokit.Release, er
 
 	releases, result := client.octokit().Releases(client.requestURL(url)).All()
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error getting release: %s", result.Err)
 	}
 
 	return
@@ -143,7 +147,7 @@ func (client *Client) CreateRelease(project *Project, params octokit.ReleasePara
 
 	release, result := client.octokit().Releases(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error creating release: %s", result.Err)
 	}
 
 	return
@@ -153,7 +157,7 @@ func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, con
 	c := client.octokit()
 	result := c.Uploads(uploadUrl).UploadAsset(asset, contentType)
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error uploading asset: %s", result.Err)
 	}
 	return
 }
@@ -166,7 +170,7 @@ func (client *Client) CIStatus(project *Project, sha string) (status *octokit.St
 
 	statuses, result := client.octokit().Statuses(client.requestURL(url)).All()
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error getting CI status: %s", result.Err)
 		return
 	}
 
@@ -185,7 +189,7 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 
 	repo, result := client.octokit().Repositories(client.requestURL(url)).Create(nil)
 	if result.HasError() {
-		err = result.Err
+		err = fmt.Errorf("Error forking repository: %s", result.Err)
 	}
 
 	return
