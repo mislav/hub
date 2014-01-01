@@ -34,7 +34,7 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		pass := c.PromptForPassword(host, user)
 
 		// Create Client with a stub Credentials
-		client := &Client{Credentials: &Credentials{Host: host}}
+		client := Client{Credentials: &Credentials{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
 		if err != nil {
 			if ce, ok := err.(*ClientError); ok && ce.Is2FAError() {
@@ -179,7 +179,7 @@ func (c *Configs) DefaultCredentials() (credentials *Credentials) {
 	} else if len(c.Credentials) > 0 {
 		credentials = c.selectCredentials()
 	} else {
-		credentials = c.PromptFor(defaultHost())
+		credentials = c.PromptFor(DefaultHost())
 	}
 
 	return

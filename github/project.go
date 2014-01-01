@@ -131,7 +131,7 @@ func NewProject(owner, name, host string) *Project {
 	}
 
 	if host == "" {
-		host = defaultHost()
+		host = DefaultHost()
 	}
 
 	if owner == "" {
