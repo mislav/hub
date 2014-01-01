@@ -41,7 +41,8 @@ func (updater *Updater) timeToUpdate() bool {
 }
 
 func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
-	c := github.Client{}
+	// Create Client with a stub Credentials
+	c := github.Client{Credentials: &github.Credentials{Host: github.DefaultHost()}}
 	name, _ = c.GhLatestTagName()
 	version = strings.TrimPrefix(name, "v")
 
