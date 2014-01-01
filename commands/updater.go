@@ -21,7 +21,7 @@ func NewUpdater() *Updater {
 	if version == "" {
 		version = Version
 	}
-	return &Updater{Host: github.GitHubHost, CurrentVersion: version}
+	return &Updater{Host: github.DefaultHost(), CurrentVersion: version}
 }
 
 type Updater struct {
@@ -42,7 +42,7 @@ func (updater *Updater) timeToUpdate() bool {
 
 func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
 	// Create Client with a stub Credentials
-	c := github.Client{Credentials: &github.Credentials{Host: github.DefaultHost()}}
+	c := github.Client{Credentials: &github.Credentials{Host: updater.Host}}
 	name, _ = c.GhLatestTagName()
 	version = strings.TrimPrefix(name, "v")
 
