@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"flag"
+	"bytes"
 	"fmt"
+	flag "github.com/ogier/pflag"
 	"strings"
 )
 
@@ -10,37 +11,100 @@ var (
 	NameRe          = "[\\w.][\\w.-]*"
 	OwnerRe         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
 	NameWithOwnerRe = fmt.Sprintf("^(?:%s|%s\\/%s)$", NameRe, OwnerRe, NameRe)
+
+	CmdRunner = NewRunner()
 )
 
 type Command struct {
 	Run  func(cmd *Command, args *Args)
 	Flag flag.FlagSet
 
+	Key          string
 	Usage        string
 	Short        string
 	Long         string
 	GitExtension bool
+
+	subCommands map[string]*Command
+}
+
+func (c *Command) Call(args *Args) (err error) {
+	runCommand, err := lookupCommand(c, args)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if !c.GitExtension {
+		err = runCommand.parseArguments(args)
+		if err != nil {
+			return
+		}
+	}
+
+	runCommand.Run(runCommand, args)
+
+	return
+}
+
+func (c *Command) parseArguments(args *Args) (err error) {
+	c.Flag.SetInterspersed(true)
+
+	if !c.GitExtension {
+		c.Flag.Usage = c.PrintUsage
+	}
+
+	if err = c.Flag.Parse(args.Params); err == nil {
+		args.Params = c.Flag.Args()
+	}
+
+	return
+}
+
+func (c *Command) Use(subCommand *Command) {
+	if c.subCommands == nil {
+		c.subCommands = make(map[string]*Command)
+	}
+	c.subCommands[subCommand.Name()] = subCommand
 }
 
 func (c *Command) PrintUsage() {
 	if c.Runnable() {
-		fmt.Printf("%s\n\n", c.FormattedUsage())
+		fmt.Printf("usage: %s\n\n", c.FormattedUsage())
 	}
 
 	fmt.Println(strings.Trim(c.Long, "\n"))
 }
 
 func (c *Command) FormattedUsage() string {
-	return fmt.Sprintf("Usage: git %s", c.Usage)
+	return fmt.Sprintf("git %s", c.Usage)
+}
+
+func (c *Command) subCommandsUsage() string {
+	buffer := bytes.NewBufferString("")
+
+	usage := "usage"
+	usage = printUsageBuffer(c, buffer, usage)
+	for _, s := range c.subCommands {
+		usage = printUsageBuffer(s, buffer, usage)
+	}
+
+	return buffer.String()
+}
+
+func printUsageBuffer(c *Command, b *bytes.Buffer, usage string) string {
+	if c.Runnable() {
+		b.WriteString(fmt.Sprintf("%s: %s\n", usage, c.FormattedUsage()))
+		usage = "   or"
+	}
+	return usage
 }
 
 func (c *Command) Name() string {
-	name := c.Usage
-	i := strings.Index(name, " ")
-	if i >= 0 {
-		name = name[:i]
+	if c.Key != "" {
+		return c.Key
 	}
-	return name
+	return strings.Split(c.Usage, " ")[0]
 }
 
 func (c *Command) Runnable() bool {
@@ -51,47 +115,18 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
-var Basic = []*Command{
-	cmdInit,
-}
+func lookupCommand(c *Command, args *Args) (runCommand *Command, err error) {
+	if len(c.subCommands) > 0 && args.HasSubcommand() {
+		subCommandName := args.FirstParam()
+		if subCommand, ok := c.subCommands[subCommandName]; ok {
+			runCommand = subCommand
+			args.Params = args.Params[1:]
+		} else {
+			err = fmt.Errorf("error: Unknown subcommand: %s\n%s", subCommandName, c.subCommandsUsage())
+		}
+	} else {
+		runCommand = c
+	}
 
-var Branching = []*Command{
-	cmdCheckout,
-	cmdMerge,
-	cmdApply,
-	cmdCherryPick,
-}
-
-var Remote = []*Command{
-	cmdClone,
-	cmdFetch,
-	cmdPush,
-	cmdRemote,
-	cmdSubmodule,
-}
-
-var GitHub = []*Command{
-	cmdPullRequest,
-	cmdFork,
-	cmdCreate,
-	cmdCiStatus,
-	cmdBrowse,
-	cmdCompare,
-	cmdReleases,
-	cmdRelease,
-	cmdIssue,
-}
-
-func All() []*Command {
-	all := make([]*Command, 0)
-	all = append(all, Basic...)
-	all = append(all, Branching...)
-	all = append(all, Remote...)
-	all = append(all, GitHub...)
-	all = append(all, cmdAlias)
-	all = append(all, cmdVersion)
-	all = append(all, cmdHelp)
-	all = append(all, cmdUpdate)
-
-	return all
+	return
 }

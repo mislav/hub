@@ -11,6 +11,10 @@ assumes   your   GitHub  login.  With  -p,  use  private  remote
 "git@github.com:USER/REPOSITORY.git".`,
 }
 
+func init() {
+	CmdRunner.Use(cmdSubmodule)
+}
+
 /**
   $ gh submodule add jingweno/gh vendor/gh
   > git submodule add git://github.com/jingweno/gh.git vendor/gh

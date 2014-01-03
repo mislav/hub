@@ -20,6 +20,10 @@ patch to the working copy.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdApply)
+}
+
 /*
   $ gh apply https://github.com/jingweno/gh/pull/55
   > curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch

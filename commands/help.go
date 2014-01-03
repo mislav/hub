@@ -14,6 +14,8 @@ var cmdHelp = &Command{
 
 func init() {
 	cmdHelp.Run = runHelp // break init loop
+
+	CmdRunner.Use(cmdHelp)
 }
 
 func runHelp(cmd *Command, args *Args) {
@@ -26,7 +28,7 @@ func runHelp(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("too many arguments"))
 	}
 
-	for _, cmd := range All() {
+	for _, cmd := range CmdRunner.All() {
 		if cmd.Name() == args.FirstParam() {
 			cmd.PrintUsage()
 			os.Exit(0)
@@ -82,9 +84,8 @@ GitHub Commands:
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
    ci-status      Show the CI status of a commit
-   releases       List releases for this repo (beta)
-   release        Create releases for this repo (beta)
-   issue          Manipulate issues (beta)
+   release        List or create releases (beta)
+   issue          List or create issues (beta)
 
 See 'git help <command>' for more information on a specific command.
 Run 'git update' to update to the latest version of gh.

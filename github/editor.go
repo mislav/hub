@@ -1,159 +1,143 @@
 package github
 
 import (
-	"bufio"
-	"fmt"
-	"github.com/jingweno/gh/cmd"
-	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/utils"
-	"io"
-	"io/ioutil"
-	"os"
-	"path/filepath"
-	"regexp"
-	"strings"
+  "bufio"
+  "bytes"
+  "fmt"
+  "github.com/jingweno/gh/cmd"
+  "github.com/jingweno/gh/git"
+  "io"
+  "io/ioutil"
+  "os"
+  "path/filepath"
+  "regexp"
+  "strings"
 )
 
-func GetTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string, err error) {
-	if messageFlag != "" {
-		title, body = readMsg(messageFlag)
-	} else if fileFlag != "" {
-		var (
-			content []byte
-			err     error
-		)
+func NewEditor(topic, message string) (editor *Editor, err error) {
+  messageFile, err := getMessageFile(topic)
+  if err != nil {
+    return
+  }
 
-		if fileFlag == "-" {
-			content, err = ioutil.ReadAll(os.Stdin)
-		} else {
-			content, err = ioutil.ReadFile(fileFlag)
-		}
-		utils.Check(err)
-		title, body = readMsg(string(content))
-	}
+  program, err := git.Editor()
+  if err != nil {
+    return
+  }
 
-	return
+  editor = &Editor{
+    Program: program,
+    File:    messageFile,
+    Message: message,
+    doEdit:  doTextEditorEdit,
+  }
+
+  return
 }
 
-func GetTitleAndBodyFromEditor(about, message string) (title, body string, err error) {
-	messageFile, err := getMessageFile(about)
-	if err != nil {
-		return
-	}
-	defer os.Remove(messageFile)
-
-	if message != "" {
-		err = ioutil.WriteFile(messageFile, []byte(message), 0644)
-		if err != nil {
-			return
-		}
-	}
-
-	editor, err := git.Editor()
-	if err != nil {
-		return
-	}
-
-	err = editTitleAndBody(editor, messageFile)
-	if err != nil {
-		err = fmt.Errorf("error using text editor for title/body message")
-		return
-	}
-
-	title, body, err = readTitleAndBody(messageFile)
-	if err != nil {
-		return
-	}
-
-	return
+type Editor struct {
+  Program string
+  File    string
+  Message string
+  doEdit  func(program, file string) error
 }
 
-func editTitleAndBody(editor, messageFile string) error {
-	editCmd := cmd.New(editor)
-	r := regexp.MustCompile("[mg]?vi[m]$")
-	if r.MatchString(editor) {
-		editCmd.WithArg("-c")
-		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
-	}
-	editCmd.WithArg(messageFile)
+func (e *Editor) Edit() (content []byte, err error) {
+  if e.Message != "" {
+    err = ioutil.WriteFile(e.File, []byte(e.Message), 0644)
+    if err != nil {
+      return
+    }
+  }
+  defer os.Remove(e.File)
 
-	return editCmd.Exec()
+  err = e.doEdit(e.Program, e.File)
+  if err != nil {
+    err = fmt.Errorf("error using text editor for editing message")
+    return
+  }
+
+  content, err = ioutil.ReadFile(e.File)
+
+  return
 }
 
-func readTitleAndBody(messageFile string) (title, body string, err error) {
-	f, err := os.Open(messageFile)
-	defer f.Close()
-	if err != nil {
-		return "", "", err
-	}
+func (e *Editor) EditTitleAndBody() (title, body string, err error) {
+  content, err := e.Edit()
+  if err != nil {
+    return
+  }
 
-	reader := bufio.NewReader(f)
+  reader := bufio.NewReader(bytes.NewReader(content))
+  title, body, err = readTitleAndBody(reader)
 
-	return readTitleAndBodyFrom(reader)
+  return
 }
 
-func readTitleAndBodyFrom(reader *bufio.Reader) (title, body string, err error) {
-	r := regexp.MustCompile("\\S")
-	var titleParts, bodyParts []string
+func doTextEditorEdit(program, file string) error {
+  editCmd := cmd.New(program)
+  r := regexp.MustCompile("[mg]?vi[m]$")
+  if r.MatchString(program) {
+    editCmd.WithArg("-c")
+    editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
+  }
+  editCmd.WithArg(file)
 
-	line, err := readLine(reader)
-	for err == nil {
-		if strings.HasPrefix(line, "#") {
-			break
-		}
+  return editCmd.Exec()
+}
 
-		if len(bodyParts) == 0 && r.MatchString(line) {
-			titleParts = append(titleParts, line)
-		} else {
-			bodyParts = append(bodyParts, line)
-		}
+func readTitleAndBody(reader *bufio.Reader) (title, body string, err error) {
+  r := regexp.MustCompile("\\S")
+  var titleParts, bodyParts []string
 
-		line, err = readLine(reader)
-	}
+  line, err := readLine(reader)
+  for err == nil {
+    if strings.HasPrefix(line, "#") {
+      break
+    }
 
-	if err == io.EOF {
-		err = nil
-	}
+    if len(bodyParts) == 0 && r.MatchString(line) {
+      titleParts = append(titleParts, line)
+    } else {
+      bodyParts = append(bodyParts, line)
+    }
 
-	title = strings.Join(titleParts, " ")
-	title = strings.TrimSpace(title)
+    line, err = readLine(reader)
+  }
 
-	body = strings.Join(bodyParts, "\n")
-	body = strings.TrimSpace(body)
+  if err == io.EOF {
+    err = nil
+  }
 
-	return
+  title = strings.Join(titleParts, " ")
+  title = strings.TrimSpace(title)
+
+  body = strings.Join(bodyParts, "\n")
+  body = strings.TrimSpace(body)
+
+  return
 }
 
 func readLine(r *bufio.Reader) (string, error) {
-	var (
-		isPrefix = true
-		err      error
-		line, ln []byte
-	)
+  var (
+    isPrefix = true
+    err      error
+    line, ln []byte
+  )
 
-	for isPrefix && err == nil {
-		line, isPrefix, err = r.ReadLine()
-		ln = append(ln, line...)
-	}
+  for isPrefix && err == nil {
+    line, isPrefix, err = r.ReadLine()
+    ln = append(ln, line...)
+  }
 
-	return string(ln), err
-}
-
-func readMsg(msg string) (title, body string) {
-	split := strings.SplitN(msg, "\n\n", 2)
-	title = strings.TrimSpace(split[0])
-	if len(split) > 1 {
-		body = strings.TrimSpace(split[1])
-	}
-
-	return
+  return string(ln), err
 }
 
 func getMessageFile(about string) (string, error) {
-	gitDir, err := git.Dir()
-	if err != nil {
-		return "", err
-	}
+  gitDir, err := git.Dir()
+  if err != nil {
+    return "", err
+  }
 
-	return filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", about)), nil
+  return filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", about)), nil
 }

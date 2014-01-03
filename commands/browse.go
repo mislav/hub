@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
+	"net/url"
 	"reflect"
 	"strings"
 )
@@ -27,8 +28,10 @@ var (
 )
 
 func init() {
-	cmdBrowse.Flag.BoolVar(&flagBrowseURLOnly, "u", false, "URL only")
-	cmdBrowse.Flag.StringVar(&flagBrowseProject, "p", "", "PROJECT")
+	cmdBrowse.Flag.BoolVarP(&flagBrowseURLOnly, "url-only", "u", false, "URL only")
+	cmdBrowse.Flag.StringVarP(&flagBrowseProject, "project", "p", "", "PROJECT")
+
+	CmdRunner.Use(cmdBrowse)
 }
 
 /*
@@ -57,6 +60,7 @@ func browse(command *Command, args *Args) {
 	var (
 		project *github.Project
 		branch  *github.Branch
+		err     error
 	)
 	localRepo := github.LocalRepo()
 	if flagBrowseProject != "" {
@@ -65,17 +69,8 @@ func browse(command *Command, args *Args) {
 		project = github.NewProject("", flagBrowseProject, "")
 	} else {
 		// gh browse
-		p, err := localRepo.CurrentProject()
+		branch, project, err = localRepo.RemoteBranchAndProject("")
 		utils.Check(err)
-		project = p
-
-		currentBranch, err := localRepo.CurrentBranch()
-		utils.Check(err)
-
-		upstream, err := currentBranch.Upstream()
-		if err == nil {
-			branch = upstream
-		}
 	}
 
 	if project == nil {
@@ -83,8 +78,7 @@ func browse(command *Command, args *Args) {
 		utils.Check(err)
 	}
 
-	master, err := localRepo.MasterBranch()
-	utils.Check(err)
+	master := localRepo.MasterBranch()
 	if branch == nil {
 		branch = master
 	}
@@ -97,23 +91,28 @@ func browse(command *Command, args *Args) {
 	if subpage == "commits" {
 		subpage = fmt.Sprintf("commits/%s", branchInURL(branch))
 	} else if subpage == "tree" || subpage == "" {
-		if !reflect.DeepEqual(branch, master) {
+		if !reflect.DeepEqual(branch, master) && branch.IsRemote() {
 			subpage = fmt.Sprintf("tree/%s", branchInURL(branch))
 		}
 	}
 
-	url := project.WebURL("", "", subpage)
+	pageUrl := project.WebURL("", "", subpage)
 	launcher, err := utils.BrowserLauncher()
 	utils.Check(err)
 
 	if flagBrowseURLOnly {
-		args.Replace("echo", url)
+		args.Replace("echo", pageUrl)
 	} else {
 		args.Replace(launcher[0], "", launcher[1:]...)
-		args.AppendParams(url)
+		args.AppendParams(pageUrl)
 	}
 }
 
 func branchInURL(branch *github.Branch) string {
-	return strings.Replace(branch.ShortName(), ".", "/", -1)
+	parts := strings.Split(strings.Replace(branch.ShortName(), ".", "/", -1), "/")
+	newPath := make([]string, len(parts))
+	for i, s := range parts {
+		newPath[i] = url.QueryEscape(s)
+	}
+	return strings.Join(newPath, "/")
 }

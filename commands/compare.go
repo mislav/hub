@@ -26,7 +26,9 @@ var (
 )
 
 func init() {
-	cmdCompare.Flag.BoolVar(&flagCompareURLOnly, "u", false, "URL only")
+	cmdCompare.Flag.BoolVarP(&flagCompareURLOnly, "url-only", "u", false, "URL only")
+
+	CmdRunner.Use(cmdCompare)
 }
 
 /*
@@ -42,33 +44,22 @@ func init() {
 func compare(command *Command, args *Args) {
 	localRepo := github.LocalRepo()
 	var (
+		branch  *github.Branch
 		project *github.Project
 		r       string
 		err     error
 	)
+
+	branch, project, err = localRepo.RemoteBranchAndProject("")
+	utils.Check(err)
+
 	if args.IsParamsEmpty() {
-		current, err := localRepo.CurrentBranch()
-		utils.Check(err)
-
-		var printUsage bool
-		upstream, err := current.Upstream()
-
-		if err == nil {
-			master, err := localRepo.MasterBranch()
-			if err != nil || master.ShortName() == upstream.ShortName() {
-				printUsage = true
-			}
-		} else {
-			printUsage = true
-		}
-
-		if printUsage {
+		master := localRepo.MasterBranch()
+		if master.ShortName() == branch.ShortName() {
 			err = fmt.Errorf(command.FormattedUsage())
 			utils.Check(err)
 		} else {
-			r = upstream.ShortName()
-			project, err = localRepo.CurrentProject()
-			utils.Check(err)
+			r = branch.ShortName()
 		}
 	} else {
 		r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))

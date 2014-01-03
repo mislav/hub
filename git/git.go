@@ -3,6 +3,8 @@ package git
 import (
 	"fmt"
 	"github.com/jingweno/gh/cmd"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -31,6 +33,48 @@ func Dir() (string, error) {
 	return gitDir, nil
 }
 
+func HasFile(segments ...string) bool {
+	dir, err := Dir()
+	if err != nil {
+		return false
+	}
+
+	s := []string{dir}
+	s = append(s, segments...)
+	path := filepath.Join(s...)
+	if _, err := os.Stat(path); err == nil {
+		return true
+	}
+
+	return false
+}
+
+func BranchAtRef(paths ...string) (name string, err error) {
+	dir, err := Dir()
+	if err != nil {
+		return
+	}
+
+	segments := []string{dir}
+	segments = append(segments, paths...)
+	path := filepath.Join(segments...)
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return
+	}
+
+	n := string(b)
+	refPrefix := "ref: "
+	if strings.HasPrefix(n, refPrefix) {
+		name = strings.TrimPrefix(n, refPrefix)
+		name = strings.TrimSpace(name)
+	} else {
+		err = fmt.Errorf("No branch info in %s: %s", path, n)
+	}
+
+	return
+}
+
 func Editor() (string, error) {
 	output, err := execGitCmd("var", "GIT_EDITOR")
 	if err != nil {
@@ -41,12 +85,7 @@ func Editor() (string, error) {
 }
 
 func Head() (string, error) {
-	output, err := execGitCmd("symbolic-ref", "-q", "HEAD")
-	if err != nil {
-		return "", fmt.Errorf("Can't load git HEAD")
-	}
-
-	return output[0], nil
+	return BranchAtRef("HEAD")
 }
 
 func SymbolicFullName(name string) (string, error) {
@@ -78,12 +117,13 @@ func RefList(a, b string) ([]string, error) {
 }
 
 func Show(sha string) (string, error) {
-	output, err := execGitCmd("show", "-s", "--format=%w(78,0,0)%s%+b", sha)
-	if err != nil {
-		return "", fmt.Errorf("Can't show commit for %s", sha)
-	}
+	cmd := cmd.New("git")
+	cmd.WithArg("show").WithArg("-s").WithArg("--format=%w(78,0,0)%s%n%+b").WithArg(sha)
 
-	return output[0], nil
+	output, err := cmd.ExecOutput()
+	output = strings.TrimSpace(output)
+
+	return output, err
 }
 
 func Log(sha1, sha2 string) (string, error) {
@@ -100,6 +140,10 @@ func Log(sha1, sha2 string) (string, error) {
 	}
 
 	return outputs, nil
+}
+
+func Remotes() ([]string, error) {
+	return execGitCmd("remote", "-v")
 }
 
 func Config(name string) (string, error) {

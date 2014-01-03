@@ -42,13 +42,14 @@ var (
 )
 
 func init() {
-	cmdPullRequest.Flag.StringVar(&flagPullRequestBase, "b", "", "BASE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestHead, "h", "", "HEAD")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestIssue, "i", "", "ISSUE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestMessage, "m", "", "MESSAGE")
-	cmdPullRequest.Flag.BoolVar(&flagPullRequestForce, "f", false, "FORCE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "F", "", "FILE")
-	cmdPullRequest.Flag.StringVar(&flagPullRequestFile, "file", "", "FILE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestBase, "base", "b", "", "BASE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
+
+	CmdRunner.Use(cmdPullRequest)
 }
 
 /*
@@ -81,12 +82,14 @@ func pullRequest(cmd *Command, args *Args) {
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
 
-	headProject, err := localRepo.CurrentProject()
+	client := github.NewClient(baseProject.Host)
+
+	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(client.Credentials.User)
 	utils.Check(err)
 
 	var (
-		base, head           string
-		force, explicitOwner bool
+		base, head string
+		force      bool
 	)
 
 	force = flagPullRequestForce
@@ -97,7 +100,6 @@ func pullRequest(cmd *Command, args *Args) {
 
 	if flagPullRequestHead != "" {
 		headProject, head = parsePullRequestProject(headProject, flagPullRequestHead)
-		explicitOwner = strings.Contains(flagPullRequestHead, ":")
 	}
 
 	if args.ParamsSize() == 1 {
@@ -106,23 +108,21 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	if base == "" {
-		masterBranch, err := localRepo.MasterBranch()
-		utils.Check(err)
+		masterBranch := localRepo.MasterBranch()
 		base = masterBranch.ShortName()
 	}
 
-	trackedBranch, _ := currentBranch.Upstream()
 	if head == "" {
-		if trackedBranch != nil && trackedBranch.IsRemote() {
+		if !trackedBranch.IsRemote() {
+			// the current branch tracking another branch
+			// pretend there's no upstream at all
+			trackedBranch = nil
+		} else {
 			if reflect.DeepEqual(baseProject, headProject) && base == trackedBranch.ShortName() {
 				e := fmt.Errorf(`Aborted: head branch is the same as base ("%s")`, base)
 				e = fmt.Errorf("%s\n(use `-h <branch>` to specify an explicit pull request head)", e)
 				utils.Check(e)
 			}
-		} else {
-			// the current branch tracking another branch
-			// pretend there's no upstream at all
-			trackedBranch = nil
 		}
 
 		if trackedBranch == nil {
@@ -132,15 +132,7 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	client := github.NewClient(baseProject.Host)
-
-	// when no tracking, assume remote branch is published under active user's fork
-	if trackedBranch == nil && !explicitOwner && client.Credentials.User != headProject.Owner {
-		// disable this on gh
-		//headProject = github.NewProject("", headProject.Name, headProject.Host)
-	}
-
-	title, body, err := github.GetTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
+	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
 	utils.Check(err)
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
@@ -184,13 +176,23 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	args.Replace("echo", "", pullRequestURL)
+	if flagPullRequestIssue != "" {
+		args.After("echo", "Warning: Issue to pull request conversion is deprecated and might not work in the future.")
+	}
 }
 
 func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
 	message, err := pullRequestChangesMessage(base, head, fullBase, fullHead, commits)
-	utils.Check(err)
+	if err != nil {
+		return
+	}
 
-	return github.GetTitleAndBodyFromEditor("PULLREQ", message)
+	editor, err := github.NewEditor("PULLREQ", message)
+	if err != nil {
+		return
+	}
+
+	return editor.EditTitleAndBody()
 }
 
 func pullRequestChangesMessage(base, head, fullBase, fullHead string, commits []string) (string, error) {

@@ -15,6 +15,10 @@ var cmdPush = &Command{
 multiple git-push(1) commands.`,
 }
 
+func init() {
+	CmdRunner.Use(cmdPush)
+}
+
 /*
   $ gh push origin,staging,qa bert_timeout
   > git push origin bert_timeout

@@ -29,14 +29,14 @@ func knownHosts() (hosts Hosts) {
 		hosts = append(hosts, ghHost)
 	}
 
-	defaultHost := defaultHost()
+	defaultHost := DefaultHost()
 	hosts = append(hosts, defaultHost)
 	hosts = append(hosts, fmt.Sprintf("ssh.%s", defaultHost))
 
 	return
 }
 
-func defaultHost() string {
+func DefaultHost() string {
 	defaultHost := GitHubHostEnv
 	if defaultHost == "" {
 		defaultHost = GitHubHost

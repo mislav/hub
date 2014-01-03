@@ -16,6 +16,10 @@ REPOSITORY is the current working directory's basename.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdInit)
+}
+
 /*
   $ gh init -g
   > git init

@@ -19,6 +19,10 @@ set with BRANCH.
 `,
 }
 
+func init() {
+	CmdRunner.Use(cmdCheckout)
+}
+
 /**
   $ gh checkout https://github.com/jingweno/gh/pull/73
   > git remote add -f -t feature git://github:com/foo/gh.git
@@ -76,7 +80,7 @@ func transformCheckoutArgs(args *Args) error {
 	}
 
 	repo := github.LocalRepo()
-	_, err = repo.RemotesByName(user)
+	_, err = repo.RemoteByName(user)
 	if err == nil {
 		args.Before("git", "remote", "set-branches", "--add", user, branch)
 		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)

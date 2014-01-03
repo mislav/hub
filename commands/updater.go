@@ -5,7 +5,6 @@ import (
 	"fmt"
 	goupdate "github.com/inconshreveable/go-update"
 	"github.com/jingweno/gh/github"
-	"github.com/jingweno/go-octokit/octokit"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -17,54 +16,34 @@ import (
 	"time"
 )
 
-var (
-	updateTimestampPath = filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
-)
-
 func NewUpdater() *Updater {
 	version := os.Getenv("GH_VERSION")
 	if version == "" {
 		version = Version
 	}
-	return &Updater{Host: github.GitHubHost, CurrentVersion: version}
+
+	timestampPath := filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
+	return &Updater{
+		Host:           github.DefaultHost(),
+		CurrentVersion: version,
+		timestampPath:  timestampPath,
+	}
 }
 
 type Updater struct {
 	Host           string
 	CurrentVersion string
+	timestampPath  string
 }
 
 func (updater *Updater) timeToUpdate() bool {
-	if updater.CurrentVersion == "dev" || readTime(updateTimestampPath).After(time.Now()) {
+	if updater.CurrentVersion == "dev" || readTime(updater.timestampPath).After(time.Now()) {
 		return false
 	}
 
 	// the next update is in about 14 days
 	wait := 13*24*time.Hour + randDuration(24*time.Hour)
-	return writeTime(updateTimestampPath, time.Now().Add(wait))
-}
-
-func (updater *Updater) latestRelease() (r *octokit.Release) {
-	client := github.NewClient(updater.Host)
-	releases, err := client.Releases(github.NewProject("jingweno", "gh", updater.Host))
-	if err != nil {
-		return
-	}
-
-	if len(releases) > 0 {
-		r = &releases[0]
-	}
-
-	return
-}
-
-func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
-	if latestRelease := updater.latestRelease(); latestRelease != nil {
-		name = latestRelease.TagName
-		version = strings.TrimPrefix(name, "v")
-	}
-
-	return
+	return writeTime(updater.timestampPath, time.Now().Add(wait))
 }
 
 func (updater *Updater) PromptForUpdate() (err error) {
@@ -105,6 +84,15 @@ func (updater *Updater) Update() (err error) {
 	} else {
 		err = updater.updateTo(releaseName, version)
 	}
+
+	return
+}
+
+func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
+	// Create Client with a stub Credentials
+	c := github.Client{Credentials: &github.Credentials{Host: updater.Host}}
+	name, _ = c.GhLatestTagName()
+	version = strings.TrimPrefix(name, "v")
 
 	return
 }
@@ -230,10 +218,12 @@ func readTime(path string) time.Time {
 	if err != nil {
 		return time.Now().Add(1000 * time.Hour)
 	}
+
 	t, err := time.Parse(time.RFC3339, strings.TrimSpace(string(p)))
 	if err != nil {
-		return time.Now().Add(1000 * time.Hour)
+		return time.Time{}
 	}
+
 	return t
 }
 

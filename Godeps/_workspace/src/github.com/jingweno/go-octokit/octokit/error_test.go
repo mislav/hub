@@ -26,6 +26,40 @@ func TestResponseError_Error_400(t *testing.T) {
 	assert.Equal(t, ErrorBadRequest, e.Type)
 }
 
+func TestResponseError_Error_401(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusUnauthorized)
+		respondWith(w, `{"message":"Unauthorized"}`)
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Tf(t, strings.Contains(err.Error(), "401 - Unauthorized"), "%s", err.Error())
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorUnauthorized, e.Type)
+
+	mux.HandleFunc("/error_2fa", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		head.Set("X-GitHub-OTP", "required; app")
+		w.WriteHeader(http.StatusUnauthorized)
+		respondWith(w, `{"message":"Unauthorized"}`)
+	})
+
+	req, _ = client.NewRequest("error_2fa")
+	_, err = req.Get(nil)
+	assert.Tf(t, strings.Contains(err.Error(), "401 - Unauthorized"), "%s", err.Error())
+
+	e = err.(*ResponseError)
+	assert.Equal(t, ErrorOneTimePasswordRequired, e.Type)
+}
+
 func TestResponseError_Error_422_error(t *testing.T) {
 	setup()
 	defer tearDown()

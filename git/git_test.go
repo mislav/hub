@@ -18,12 +18,6 @@ func TestGitEditor(t *testing.T) {
 	}
 }
 
-func TestGitRemote(t *testing.T) {
-	gitRemote, _ := OriginRemote()
-	assert.Equal(t, "origin", gitRemote.Name)
-	assert.T(t, strings.Contains(gitRemote.URL.String(), "gh"))
-}
-
 func TestGitLog(t *testing.T) {
 	log, err := Log("e357a98a1a580b09d4f1d9bf613a6a51e131ef6e", "49e984e2fe86f68c386aeb133b390d39e4264ec1")
 	assert.Equal(t, nil, err)
@@ -45,7 +39,7 @@ func TestGitRefList(t *testing.T) {
 }
 
 func TestGitShow(t *testing.T) {
-	output, err := Show("ce20e63ad00751bfed5d08072b11cf1b43af1995")
+	output, err := Show("f6ba909952aea75d69a9b6e1563a84ec3220ab9c")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "Add Git.RefList", output)
+	assert.Equal(t, "Fix typo in git show format\n\nIt's possible that comments are multiple lines", output)
 }

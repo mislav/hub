@@ -1,4 +1,4 @@
 #!/bin/bash
 
 script/bootstrap
-godep go build -o gh
+godep go install
