@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jingweno/gh/utils"
 	"os"
+	"reflect"
 	"runtime"
 	"strings"
 )
@@ -63,7 +64,7 @@ func report(reportedError error, stack string) {
 }
 
 func reportTitleAndBody(reportedError error, stack string) (title, body string, err error) {
-	message := "Crash report - %v\n\nError: %v\nStack:\n\n```\n%s\n```\n\nRuntime:\n\n```\n%s\n```\n\n"
+	message := "Crash report - %v\n\nError (%s): `%v`\n\nStack:\n\n```\n%s\n```\n\nRuntime:\n\n```\n%s\n```\n\n"
 	message += `
 # Creating crash report:
 #
@@ -72,7 +73,9 @@ func reportTitleAndBody(reportedError error, stack string) (title, body string, 
 # but knowing a little bit more about it would really help us to solve this problem.
 # Feel free to modify the title and the description for this issue.
 `
-	message = fmt.Sprintf(message, reportedError, reportedError, stack, runtimeInfo())
+
+	errType := reflect.TypeOf(reportedError).String()
+	message = fmt.Sprintf(message, reportedError, errType, reportedError, stack, runtimeInfo())
 
 	editor, err := NewEditor("CRASH_REPORT", message)
 	if err != nil {
