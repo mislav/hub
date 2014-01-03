@@ -3,5 +3,8 @@
 # hub(1)
 # alias git=hub
 
+# Trap interrupts to quit without an ugly stack trace.
+Signal.trap("INT") { abort }
+
 require 'hub'
 Hub::Runner.execute(*ARGV)
