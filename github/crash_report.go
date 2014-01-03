@@ -1,10 +1,17 @@
 package github
 
 import (
+	"bytes"
 	"fmt"
+	"github.com/jingweno/gh/utils"
 	"os"
 	"runtime"
 	"strings"
+)
+
+var (
+	ghProjectOwner = "jingweno"
+	ghProjectName  = "gh"
 )
 
 func ReportCrash(err error) {
@@ -17,7 +24,7 @@ func ReportCrash(err error) {
 
 		switch config.ReportCrash {
 		case "always":
-			report(err, stack, config)
+			report(err, stack)
 		case "never":
 			printError(err, stack)
 		default:
@@ -28,7 +35,7 @@ func ReportCrash(err error) {
 
 			always := isOption(confirm, "a", "always")
 			if always || isOption(confirm, "y", "yes") {
-				report(err, stack, config)
+				report(err, stack)
 			}
 
 			saveReportConfiguration(config, confirm, always)
@@ -41,30 +48,50 @@ func isOption(confirm, short, long string) bool {
 	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
 }
 
-func report(err error, stack string, config *Configs) {
-	message := "Crash report - %v\n\nError: %v\nStack:\n\n```\n%s\n```\n"
+func report(reportedError error, stack string) {
+	title, body, err := reportTitleAndBody(reportedError, stack)
+	utils.Check(err)
+
+	project := NewProject(ghProjectOwner, ghProjectName, GitHubHost)
+
+	gh := NewClient(project.Host)
+
+	issue, err := gh.CreateIssue(project, title, body, []string{"Crash Report"})
+	utils.Check(err)
+
+	fmt.Println(issue.HTMLURL)
+}
+
+func reportTitleAndBody(reportedError error, stack string) (title, body string, err error) {
+	message := "Crash report - %v\n\nError: %v\nStack:\n\n```\n%s\n```\n\nRuntime:\n\n```\n%s\n```\n\n"
 	message += `
 # Creating crash report:
 #
-# Now it's the time to be specific. We're not including information about
-# the command that you were executing, but knowing a little bit more about it
-# would really help us to solve this problem. Feel free to modify the title
-# and the description with the error and the stack trace.
+# This information will be posted as a new issue under jingweno/gh.
+# We're NOT including any information about the command that you were executing,
+# but knowing a little bit more about it would really help us to solve this problem.
+# Feel free to modify the title and the description for this issue.
 `
-	message = fmt.Sprintf(message, err, stack)
+	message = fmt.Sprintf(message, reportedError, reportedError, stack, runtimeInfo())
 
 	editor, err := NewEditor("CRASH_REPORT", message)
 	if err != nil {
-		return
+		return "", "", err
 	}
 
-	editor.EditTitleAndBody()
+	return editor.EditTitleAndBody()
+}
+
+func runtimeInfo() string {
+	return fmt.Sprintf("GOOS: %s\nGOARCH: %s", runtime.GOOS, runtime.GOARCH)
 }
 
 func formatStack(buf []byte) string {
-	stack := strings.Split(string(buf), "\n")
+	buf = bytes.Trim(buf, "\x00")
 
+	stack := strings.Split(string(buf), "\n")
 	stack = append(stack[0:1], stack[3:]...)
+
 	return strings.Join(stack, "\n")
 }
 
