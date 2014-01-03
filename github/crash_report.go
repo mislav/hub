@@ -5,7 +5,6 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"time"
 )
 
 func ReportCrash(err error) {
@@ -43,7 +42,7 @@ func isOption(confirm, short, long string) bool {
 }
 
 func report(err error, stack string, config *Configs) {
-	message := "Crash report - %v\nError: %v\nStack:\n```\n%s\n```\n"
+	message := "Crash report - %v\n\nError: %v\nStack:\n\n```\n%s\n```\n"
 	message += `
 # Creating crash report:
 #
@@ -52,9 +51,14 @@ func report(err error, stack string, config *Configs) {
 # would really help us to solve this problem. Feel free to modify the title
 # and the description with the error and the stack trace.
 `
-	message = fmt.Sprintf(message, time.Now(), err, stack)
+	message = fmt.Sprintf(message, err, stack)
 
-	GetTitleAndBodyFromEditor("CRASHREPORT", message)
+	editor, err := NewEditor("CRASH_REPORT", message)
+	if err != nil {
+		return
+	}
+
+	editor.EditTitleAndBody()
 }
 
 func formatStack(buf []byte) string {
