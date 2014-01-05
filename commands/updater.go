@@ -53,7 +53,11 @@ func (updater *Updater) PromptForUpdate() (err error) {
 
 	releaseName, version := updater.latestReleaseNameAndVersion()
 	if version != "" && version != updater.CurrentVersion {
-		update := github.CurrentConfigs().Autoupdate
+		updateConf := github.CurrentConfigs().Autoupdate
+		if updateConf == "never" {
+			return
+		}
+		update := updateConf == "yes"
 
 		if !update {
 			fmt.Println("There is a newer version of gh available.")

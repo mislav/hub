@@ -23,7 +23,7 @@ type Credentials struct {
 }
 
 type Configs struct {
-	Autoupdate  bool          `json:"autoupdate"`
+	Autoupdate  string        `json:"autoupdate,omitempty"`
 	Credentials []Credentials `json:"credentials"`
 }
 

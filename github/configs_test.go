@@ -38,7 +38,7 @@ func TestReadAndSaveDeprecatedConfiguration(t *testing.T) {
 
 	CurrentConfigs()
 
-	expectedConfig := `{"autoupdate":false,"credentials":[{"host":"github.com","user":"jingweno","access_token":"123"}]}
+	expectedConfig := `{"credentials":[{"host":"github.com","user":"jingweno","access_token":"123"}]}
 `
 
 	f, _ := os.Open(file.Name())
@@ -50,12 +50,12 @@ func TestSaveAutoupdate(t *testing.T) {
 	file := "./test_support/test"
 	defer os.RemoveAll(filepath.Dir(file))
 
-	c := Configs{Autoupdate: true}
+	c := Configs{Autoupdate: "yes"}
 
 	err := saveTo(file, &c)
 	assert.Equal(t, nil, err)
 
 	var cc Configs
 	err = loadFrom(file, &cc)
-	assert.T(t, cc.Autoupdate)
+	assert.Equal(t, "yes", cc.Autoupdate)
 }
