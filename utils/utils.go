@@ -2,7 +2,7 @@ package utils
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -12,8 +12,7 @@ import (
 
 func Check(err error) {
 	if err != nil {
-		fmt.Printf("%v\n", err)
-		os.Exit(1)
+		log.Fatalf("fatal: %v\n", err)
 	}
 }
 
