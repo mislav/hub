@@ -2,6 +2,7 @@ package github
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/jingweno/gh/utils"
 	"os"
@@ -17,7 +18,11 @@ const (
 
 func CaptureCrash() {
 	if rec := recover(); rec != nil {
-		reportCrash(rec.(error))
+		if err, ok := rec.(error); ok {
+			reportCrash(err)
+		} else if err, ok := rec.(string); ok {
+			reportCrash(errors.New(err))
+		}
 	}
 }
 
