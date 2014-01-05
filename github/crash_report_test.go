@@ -7,8 +7,10 @@ import (
 	"testing"
 )
 
-func TestStackRemoveSelfCaller(t *testing.T) {
+func TestStackRemoveSelfAndPanic(t *testing.T) {
 	actual := `goroutine 1 [running]:
+runtime.panic(0x2bca00, 0x665b8a)
+	/usr/local/go/src/pkg/runtime/panic.c:266 +0xb6
 github.com/jingweno/gh/github.ReportCrash(0xc2000b5000, 0xc2000b49c0)
 	/Users/calavera/github/go/src/github.com/jingweno/gh/github/crash_report.go:16 +0x97
 github.com/jingweno/gh/commands.create(0x47f8a0, 0xc2000cf770)

@@ -15,7 +15,13 @@ var (
 	ghProjectName  = "gh"
 )
 
-func ReportCrash(err error) {
+func CaptureCrash() {
+	if rec := recover(); rec != nil {
+		reportCrash(rec.(error))
+	}
+}
+
+func reportCrash(err error) {
 	if err != nil {
 		config := CurrentConfigs()
 
@@ -93,7 +99,7 @@ func formatStack(buf []byte) string {
 	buf = bytes.Trim(buf, "\x00")
 
 	stack := strings.Split(string(buf), "\n")
-	stack = append(stack[0:1], stack[3:]...)
+	stack = append(stack[0:1], stack[5:]...)
 
 	return strings.Join(stack, "\n")
 }
