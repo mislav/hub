@@ -27,33 +27,35 @@ func CaptureCrash() {
 }
 
 func reportCrash(err error) {
-	if err != nil {
-		config := CurrentConfigs()
-
-		buf := make([]byte, 10000)
-		runtime.Stack(buf, false)
-		stack := formatStack(buf)
-
-		switch config.ReportCrash {
-		case "always":
-			report(err, stack)
-		case "never":
-			printError(err, stack)
-		default:
-			printError(err, stack)
-			fmt.Print("Would you like to open an issue? ([Y]es/[N]o/[A]lways/N[e]ver): ")
-			var confirm string
-			fmt.Scan(&confirm)
-
-			always := isOption(confirm, "a", "always")
-			if always || isOption(confirm, "y", "yes") {
-				report(err, stack)
-			}
-
-			saveReportConfiguration(config, confirm, always)
-		}
-		os.Exit(1)
+	if err == nil {
+		return
 	}
+
+	config := CurrentConfigs()
+
+	buf := make([]byte, 10000)
+	runtime.Stack(buf, false)
+	stack := formatStack(buf)
+
+	switch config.ReportCrash {
+	case "always":
+		report(err, stack)
+	case "never":
+		printError(err, stack)
+	default:
+		printError(err, stack)
+		fmt.Print("Would you like to open an issue? ([Y]es/[N]o/[A]lways/N[e]ver): ")
+		var confirm string
+		fmt.Scan(&confirm)
+
+		always := isOption(confirm, "a", "always")
+		if always || isOption(confirm, "y", "yes") {
+			report(err, stack)
+		}
+
+		saveReportConfiguration(config, confirm, always)
+	}
+	os.Exit(1)
 }
 
 func isOption(confirm, short, long string) bool {
