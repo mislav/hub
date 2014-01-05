@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var (
+const (
 	ghProjectOwner = "jingweno"
 	ghProjectName  = "gh"
 )
