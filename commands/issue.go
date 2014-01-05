@@ -11,15 +11,21 @@ var (
 		Run:   issue,
 		Usage: "issue",
 		Short: "List issues on GitHub",
-		Long:  `List summary of the open issues for the project that the "origin" remove points to.`,
+		Long:  `List summary of the open issues for the project that the "origin" remote points to.`,
 	}
 
 	cmdCreateIssue = &Command{
 		Key:   "create",
 		Run:   createIssue,
-		Usage: "issue create [-m <MESSAGE>|-f <FILE>] -l LABEL1,LABEL2",
+		Usage: "issue create [-m <MESSAGE>|-f <FILE>] [-l <LABEL-1>,<LABEL-2>...,<LABEL-N>]",
 		Short: "Create an issue on GitHub",
-		Long:  `Create an issue for the project that the "origin" remove points to.`,
+		Long: `Create an issue for the project that the "origin" remote points to.
+
+Without <MESSAGE> or <FILE>, a text editor will open in which title and body
+of the release can be entered in the same manner as git commit message.
+
+Specify one or more labels via "-a".
+`,
 	}
 
 	flagIssueMessage,
