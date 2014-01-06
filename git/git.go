@@ -165,10 +165,7 @@ func UnsetGlobalConfig(name string) error {
 }
 
 func gitGetConfig(args ...string) (string, error) {
-	cmd := []string{"config"}
-	cmd = append(cmd, args...)
-
-	output, err := execGitCmd(cmd...)
+	output, err := execGitCmd(gitConfigCommand(args)...)
 	if err != nil {
 		return "", fmt.Errorf("Unknown config %s", args[len(args)-1])
 	}
@@ -177,10 +174,12 @@ func gitGetConfig(args ...string) (string, error) {
 }
 
 func gitConfig(args ...string) ([]string, error) {
-	cmd := []string{"config"}
-	cmd = append(cmd, args...)
+	return execGitCmd(gitConfigCommand(args)...)
+}
 
-	return execGitCmd(cmd...)
+func gitConfigCommand(args []string) []string {
+	cmd := []string{"config"}
+	return append(cmd, args...)
 }
 
 func Alias(name string) (string, error) {
