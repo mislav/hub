@@ -43,3 +43,15 @@ func TestGitShow(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "Fix typo in git show format\n\nIt's possible that comments are multiple lines", output)
 }
+
+func TestGitConfig(t *testing.T) {
+	defer UnsetGlobalConfig("gh.test")
+
+	v, err := GlobalConfig("gh.test")
+	assert.NotEqual(t, nil, err)
+
+	SetGlobalConfig("gh.test", "1")
+	v, err = GlobalConfig("gh.test")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "1", v)
+}
