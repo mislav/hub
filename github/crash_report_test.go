@@ -2,8 +2,7 @@ package github
 
 import (
 	"github.com/bmizerany/assert"
-	"io/ioutil"
-	"os"
+	"github.com/jingweno/gh/git"
 	"testing"
 )
 
@@ -53,18 +52,8 @@ func TestDoesntSaveNoReportOption(t *testing.T) {
 }
 
 func checkSavedReportCrashOption(t *testing.T, always bool, confirm, expected string) {
-	file, _ := ioutil.TempFile("", "test-gh-config-")
-	defer os.RemoveAll(file.Name())
-	defaultConfigsFile = file.Name()
+	defer git.UnsetGlobalConfig(ghReportCrashConfig)
 
-	ccreds := Credentials{Host: "github.com", User: "jingweno", AccessToken: "123"}
-	c := Configs{Credentials: []Credentials{ccreds}}
-
-	saveReportConfiguration(&c, confirm, always)
-
-	cc := &Configs{}
-	err := loadFrom(file.Name(), cc)
-	assert.Equal(t, nil, err)
-
-	assert.Equal(t, expected, cc.ReportCrash)
+	saveReportConfiguration(confirm, always)
+	assert.Equal(t, expected, reportCrashConfig())
 }

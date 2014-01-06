@@ -25,7 +25,6 @@ type Credentials struct {
 type Configs struct {
 	Autoupdate  bool          `json:"autoupdate"`
 	Credentials []Credentials `json:"credentials"`
-	ReportCrash string        `json:"crashreport,omitempty"`
 }
 
 func (c *Configs) PromptFor(host string) *Credentials {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/utils"
 	"os"
 	"reflect"
@@ -12,8 +13,9 @@ import (
 )
 
 const (
-	ghProjectOwner = "jingweno"
-	ghProjectName  = "gh"
+	ghReportCrashConfig = "gh.reportCrash"
+	ghProjectOwner      = "jingweno"
+	ghProjectName       = "gh"
 )
 
 func CaptureCrash() {
@@ -31,13 +33,11 @@ func reportCrash(err error) {
 		return
 	}
 
-	config := CurrentConfigs()
-
 	buf := make([]byte, 10000)
 	runtime.Stack(buf, false)
 	stack := formatStack(buf)
 
-	switch config.ReportCrash {
+	switch reportCrashConfig() {
 	case "always":
 		report(err, stack)
 	case "never":
@@ -53,7 +53,7 @@ func reportCrash(err error) {
 			report(err, stack)
 		}
 
-		saveReportConfiguration(config, confirm, always)
+		saveReportConfiguration(confirm, always)
 	}
 	os.Exit(1)
 }
@@ -116,12 +116,19 @@ func printError(err error, stack string) {
 	fmt.Println(stack)
 }
 
-func saveReportConfiguration(config *Configs, confirm string, always bool) {
+func saveReportConfiguration(confirm string, always bool) {
 	if always {
-		config.ReportCrash = "always"
-		config.Save()
+		git.SetGlobalConfig(ghReportCrashConfig, "always")
 	} else if isOption(confirm, "e", "never") {
-		config.ReportCrash = "never"
-		config.Save()
+		git.SetGlobalConfig(ghReportCrashConfig, "never")
 	}
+}
+
+func reportCrashConfig() (opt string) {
+	opt = os.Getenv("GH_REPORT_CRASH")
+	if opt == "" {
+		opt, _ = git.GlobalConfig(ghReportCrashConfig)
+	}
+
+	return
 }

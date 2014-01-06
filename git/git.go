@@ -147,12 +147,40 @@ func Remotes() ([]string, error) {
 }
 
 func Config(name string) (string, error) {
-	output, err := execGitCmd("config", name)
+	return gitGetConfig(name)
+}
+
+func GlobalConfig(name string) (string, error) {
+	return gitGetConfig("--global", name)
+}
+
+func SetGlobalConfig(name, value string) error {
+	_, err := gitConfig("--global", name, value)
+	return err
+}
+
+func UnsetGlobalConfig(name string) error {
+	_, err := gitConfig("--global", "--unset", name)
+	return err
+}
+
+func gitGetConfig(args ...string) (string, error) {
+	cmd := []string{"config"}
+	cmd = append(cmd, args...)
+
+	output, err := execGitCmd(cmd...)
 	if err != nil {
-		return "", fmt.Errorf("Unknown config %s", name)
+		return "", fmt.Errorf("Unknown config %s", args[len(args)-1])
 	}
 
 	return output[0], nil
+}
+
+func gitConfig(args ...string) ([]string, error) {
+	cmd := []string{"config"}
+	cmd = append(cmd, args...)
+
+	return execGitCmd(cmd...)
 }
 
 func Alias(name string) (string, error) {
