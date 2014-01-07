@@ -1,3 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Usage: bootstrap
+#
+# Install all dependencies
+#
+# Author: Jingwen Owen Ou
 
 go get github.com/kr/godep

@@ -1,4 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Usage: install
+#
+# Run go install with godep
+#
+# Author: Jingwen Owen Ou
 
 script/bootstrap
 godep go install

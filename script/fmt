@@ -1,3 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Usage: build
+#
+# Run go fmt with godep
+#
+# Author: Jingwen Owen Ou
 
 godep go fmt ./...
