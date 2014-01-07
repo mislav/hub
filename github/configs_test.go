@@ -4,7 +4,6 @@ import (
 	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -44,18 +43,4 @@ func TestReadAndSaveDeprecatedConfiguration(t *testing.T) {
 	f, _ := os.Open(file.Name())
 	content, _ := ioutil.ReadAll(f)
 	assert.Equal(t, expectedConfig, string(content))
-}
-
-func TestSaveAutoupdate(t *testing.T) {
-	file := "./test_support/test"
-	defer os.RemoveAll(filepath.Dir(file))
-
-	c := Configs{Autoupdate: "yes"}
-
-	err := saveTo(file, &c)
-	assert.Equal(t, nil, err)
-
-	var cc Configs
-	err = loadFrom(file, &cc)
-	assert.Equal(t, "yes", cc.Autoupdate)
 }

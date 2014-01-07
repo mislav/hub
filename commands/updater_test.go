@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/bmizerany/assert"
+	"github.com/jingweno/gh/git"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -68,4 +69,31 @@ func TestUpdater_timeToUpdate(t *testing.T) {
 	// dev version
 	updater = Updater{CurrentVersion: "dev"}
 	assert.T(t, !updater.timeToUpdate())
+}
+
+func TestSaveAlwaysAutoUpdateOption(t *testing.T) {
+	checkSavedAutoUpdateOption(t, true, "a", "always")
+	checkSavedAutoUpdateOption(t, true, "always", "always")
+}
+
+func TestSaveNeverAutoUpdateOption(t *testing.T) {
+	checkSavedAutoUpdateOption(t, false, "e", "never")
+	checkSavedAutoUpdateOption(t, false, "never", "never")
+}
+
+func TestDoesntSaveYesAutoUpdateOption(t *testing.T) {
+	checkSavedAutoUpdateOption(t, false, "y", "")
+	checkSavedAutoUpdateOption(t, false, "yes", "")
+}
+
+func TestDoesntSaveNoAutoUpdateOption(t *testing.T) {
+	checkSavedAutoUpdateOption(t, false, "n", "")
+	checkSavedAutoUpdateOption(t, false, "no", "")
+}
+
+func checkSavedAutoUpdateOption(t *testing.T, always bool, confirm, expected string) {
+	defer git.UnsetGlobalConfig(ghAutoUpdateConfig)
+
+	saveAutoUpdateConfiguration(confirm, always)
+	assert.Equal(t, expected, autoUpdateConfig())
 }
