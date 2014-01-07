@@ -54,6 +54,7 @@ func TaskPackage(t *tasking.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	ghPath := filepath.Join(gopath, "src", "github.com", "jingweno", "gh")
 	t.Logf("Copying source from %s to %s\n", pwd, ghPath)
 	err = copyDir(pwd, ghPath)
@@ -82,6 +83,33 @@ func TaskPackage(t *tasking.T) {
 		}
 	}
 	err = copyBuildArtifacts(source, target)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	buildHomebrewBottle(t, target)
+}
+
+func buildHomebrewBottle(t *tasking.T, target string) {
+	err := t.Exec("brew", "list", "gh")
+	if err == nil {
+		err := t.Exec("brew", "uninstall", "gh")
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	err = t.Exec("brew", "install", "--build-from-source", "--build-bottle", "gh")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = os.Chdir(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = t.Exec("brew", "bottle", "gh")
 	if err != nil {
 		t.Fatal(err)
 	}
