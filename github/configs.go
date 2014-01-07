@@ -210,6 +210,10 @@ func (c *Configs) selectCredentials() *Credentials {
 	return &c.Credentials[i-1]
 }
 
+func (c *Configs) Save() error {
+	return saveTo(configsFile(), c)
+}
+
 // Public for testing purpose
 func CreateTestConfigs(user, token string) *Configs {
 	f, _ := ioutil.TempFile("", "test-config")

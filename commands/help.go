@@ -83,9 +83,9 @@ GitHub Commands:
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
-   ci-status      Show the CI status of a commit
    release        List or create releases (beta)
    issue          List or create issues (beta)
+   ci-status      Show the CI status of a commit
 
 See 'git help <command>' for more information on a specific command.
 Run 'git update' to update to the latest version of gh.
