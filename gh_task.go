@@ -75,23 +75,35 @@ func TaskPackage(t *tasking.T) {
 	source := filepath.Join(ghPath, "target")
 	target := filepath.Join(pwd, "target")
 	t.Logf("Copying build artifacts from %s to %s...\n", source, target)
-	_, err = os.Stat(target)
-	if err != nil {
-		err = os.Mkdir(target, 0777)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
-	err = copyBuildArtifacts(source, target)
+	err = mkdirAll(target)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	buildHomebrewBottle(t, target)
+	err = copyBuildArtifacts(source, target)
+	if err != nil {
+		t.Fatal(err)
+	}
 }
 
-func buildHomebrewBottle(t *tasking.T, target string) {
-	err := t.Exec("brew", "list", "gh")
+// NAME
+//    bottle - build homebrew bottle for gh
+//
+// DESCRIPTION
+//    Build homebrew bottle for gh into PWD/target.
+func TaskBottle(t *tasking.T) {
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	target := filepath.Join(pwd, "target")
+	err = mkdirAll(target)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = t.Exec("brew", "list", "gh")
 	if err == nil {
 		err := t.Exec("brew", "uninstall", "gh")
 		if err != nil {
@@ -219,4 +231,8 @@ func findBuildArtifacts(root string) (artifacts []string) {
 	})
 
 	return
+}
+
+func mkdirAll(dir string) error {
+	return os.MkdirAll(dir, 0777)
 }
