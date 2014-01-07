@@ -4,7 +4,9 @@ import (
 	"archive/zip"
 	"fmt"
 	goupdate "github.com/inconshreveable/go-update"
+	"github.com/jingweno/gh/git"
 	"github.com/jingweno/gh/github"
+	"github.com/jingweno/gh/utils"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -15,6 +17,8 @@ import (
 	"strings"
 	"time"
 )
+
+const ghAutoUpdateConfig = "gh.autoUpdate"
 
 func NewUpdater() *Updater {
 	version := os.Getenv("GH_VERSION")
@@ -53,19 +57,23 @@ func (updater *Updater) PromptForUpdate() (err error) {
 
 	releaseName, version := updater.latestReleaseNameAndVersion()
 	if version != "" && version != updater.CurrentVersion {
-		update := github.CurrentConfigs().Autoupdate
-
-		if !update {
+		switch autoUpdateConfig() {
+		case "always":
+			err = updater.updateTo(releaseName, version)
+		case "never":
+			return
+		default:
 			fmt.Println("There is a newer version of gh available.")
-			fmt.Print("Type Y to update: ")
+			fmt.Print("Would you like to update? ([Y]es/[N]o/[A]lways/N[e]ver): ")
 			var confirm string
 			fmt.Scan(&confirm)
 
-			update = confirm == "Y" || confirm == "y"
-		}
+			always := utils.IsOption(confirm, "a", "always")
+			if always || utils.IsOption(confirm, "y", "yes") {
+				err = updater.updateTo(releaseName, version)
+			}
 
-		if update {
-			err = updater.updateTo(releaseName, version)
+			saveAutoUpdateConfiguration(confirm, always)
 		}
 	}
 
@@ -229,4 +237,21 @@ func readTime(path string) time.Time {
 
 func writeTime(path string, t time.Time) bool {
 	return ioutil.WriteFile(path, []byte(t.Format(time.RFC3339)), 0644) == nil
+}
+
+func saveAutoUpdateConfiguration(confirm string, always bool) {
+	if always {
+		git.SetGlobalConfig(ghAutoUpdateConfig, "always")
+	} else if utils.IsOption(confirm, "e", "never") {
+		git.SetGlobalConfig(ghAutoUpdateConfig, "never")
+	}
+}
+
+func autoUpdateConfig() (opt string) {
+	opt = os.Getenv("GH_AUTOUPDATE")
+	if opt == "" {
+		opt, _ = git.GlobalConfig(ghAutoUpdateConfig)
+	}
+
+	return
 }

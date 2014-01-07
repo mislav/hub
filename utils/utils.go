@@ -64,3 +64,7 @@ func DirName() (string, error) {
 	name = strings.Replace(name, " ", "-", -1)
 	return name, nil
 }
+
+func IsOption(confirm, short, long string) bool {
+	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
+}

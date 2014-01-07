@@ -48,18 +48,14 @@ func reportCrash(err error) {
 		var confirm string
 		fmt.Scan(&confirm)
 
-		always := isOption(confirm, "a", "always")
-		if always || isOption(confirm, "y", "yes") {
+		always := utils.IsOption(confirm, "a", "always")
+		if always || utils.IsOption(confirm, "y", "yes") {
 			report(err, stack)
 		}
 
 		saveReportConfiguration(confirm, always)
 	}
 	os.Exit(1)
-}
-
-func isOption(confirm, short, long string) bool {
-	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
 }
 
 func report(reportedError error, stack string) {
@@ -119,7 +115,7 @@ func printError(err error, stack string) {
 func saveReportConfiguration(confirm string, always bool) {
 	if always {
 		git.SetGlobalConfig(ghReportCrashConfig, "always")
-	} else if isOption(confirm, "e", "never") {
+	} else if utils.IsOption(confirm, "e", "never") {
 		git.SetGlobalConfig(ghReportCrashConfig, "never")
 	}
 }
