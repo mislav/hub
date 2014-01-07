@@ -29,14 +29,15 @@ end
 def bootstrap(box)
   install = INSTALL[box]
   archive = GO_ARCHIVES[box]
+  vagrant_home = "/home/vagrant"
 
   profile = <<-PROFILE
-    export GOROOT=$HOME/go
-    export GOPATH=$HOME/gocode
-    export PATH=$PATH:$HOME/go/bin:$GOPATH/bin
+    export GOROOT=#{vagrant_home}/go
+    export GOPATH=#{vagrant_home}/gocode
+    export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
     export CDPATH=.:$GOPATH/src/github.com:$GOPATH/src/code.google.com/p:$GOPATH/src/bitbucket.org:$GOPATH/src/launchpad.net
-
   PROFILE
+
   <<-SCRIPT
   #{install}
 
@@ -44,11 +45,14 @@ def bootstrap(box)
     curl -O# https://go.googlecode.com/files/#{archive}
   fi
   tar -C /home/vagrant -xzf #{archive}
-  chown -R vagrant:vagrant /home/vagrant/go
+  chown -R vagrant:vagrant #{vagrant_home}/go
 
-  echo '#{profile}' >> /home/vagrant/.profile
+  if ! grep -q GOPATH #{vagrant_home}/.profile; then
+    echo '#{profile}' >> #{vagrant_home}/.profile
+  fi
+  source #{vagrant_home}/.profile
 
-  chown -R vagrant:vagrant /home/vagrant/gocode
+  chown -R vagrant:vagrant #{vagrant_home}/gocode
   go get github.com/jingweno/gotask
 
   echo "\nRun: vagrant ssh #{box} -c 'cd project/path; go test ./...'"
