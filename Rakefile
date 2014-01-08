@@ -115,6 +115,7 @@ task :install => "hub" do
     FileUtils.cp 'hub', bindir
   else
     prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+    prefix = File.join(ENV["DESTDIR"], prefix) if ENV["DESTDIR"]
 
     FileUtils.mkdir_p "#{prefix}/bin"
     FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
