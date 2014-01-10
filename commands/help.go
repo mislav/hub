@@ -12,7 +12,10 @@ var cmdHelp = &Command{
 	Long:  `Shows usage for a command.`,
 }
 
+var flagAll bool
+
 func init() {
+	cmdHelp.Flag.BoolVarP(&flagAll, "all", "a", false, "all")
 	cmdHelp.Run = runHelp // break init loop
 
 	CmdRunner.Use(cmdHelp)
