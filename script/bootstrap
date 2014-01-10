@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Usage: bootstrap
+#
+# Install all dependencies
+#
+# Author: Jingwen Owen Ou
 
-go get code.google.com/p/go.tools/cmd/cover
 go get github.com/kr/godep

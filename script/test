@@ -1,4 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Usage: build
+#
+# Run go test with godep
+#
+# Author: Jingwen Owen Ou
 
+go get code.google.com/p/go.tools/cmd/cover
 script/fmt
 godep go test -cover -v ./...

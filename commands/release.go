@@ -20,18 +20,25 @@ var (
 		Run:   release,
 		Usage: "release",
 		Short: "Retrieve releases from GitHub",
-		Long:  `Retrieve releases from GitHub for the project that the "origin" remote points to.`}
+		Long:  `Retrieves releases from GitHub for the project that the "origin" remote points to.`}
 
 	cmdCreateRelease = &Command{
 		Key:   "create",
 		Run:   createRelease,
-		Usage: "release create [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] TAG",
+		Usage: "release create [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] <TAG>",
 		Short: "Create a new release in GitHub",
-		Long: `Create a new release in GitHub for the project that the "origin" remote points to.
-- It requires the name of the tag to release as a first argument.
-- The assets to include in the release are taken from releases/TAG or from the directory specified by -a.
-- Use the flag -d to create a draft.
-- Use the flag -p to create a prerelease.
+		Long: `Creates a new release in GitHub for the project that the "origin" remote points to.
+It requires the name of the tag to release as a first argument.
+
+Specify the assets to include in the release from a directory via "-a". Without
+"-a", it finds assets from "releases/TAG" of the current directory.
+
+Without <MESSAGE> or <FILE>, a text editor will open in which title and body
+of the release can be entered in the same manner as git commit message.
+
+If "-d" is given, it creates a draft release.
+
+If "-p" is given, it creates a pre-release.
 `}
 
 	flagReleaseDraft,

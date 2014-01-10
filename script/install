@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Usage: build
+# Usage: install
 #
-# Run go build with godep
+# Run go install with godep
 #
 # Author: Jingwen Owen Ou
 
 script/bootstrap
-godep go build -o gh
+godep go install

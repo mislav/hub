@@ -12,7 +12,7 @@ import (
 
 func Check(err error) {
 	if err != nil {
-		log.Fatalf("fatal: %v", err)
+		log.Fatalf("fatal: %v\n", err)
 	}
 }
 
@@ -63,4 +63,8 @@ func DirName() (string, error) {
 	name := filepath.Base(dir)
 	name = strings.Replace(name, " ", "-", -1)
 	return name, nil
+}
+
+func IsOption(confirm, short, long string) bool {
+	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
 }

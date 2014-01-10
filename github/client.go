@@ -223,6 +223,29 @@ func (client *Client) CreateIssue(project *Project, title, body string, labels [
 	return
 }
 
+func (client *Client) GhLatestTagName() (tagName string, err error) {
+	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": "jingweno", "repo": "gh"})
+	if err != nil {
+		return
+	}
+
+	c := octokit.NewClientWith(client.apiEndpoint(), nil, nil)
+	releases, result := c.Releases(client.requestURL(url)).All()
+	if result.HasError() {
+		err = fmt.Errorf("Error getting gh release: %s", result.Err)
+		return
+	}
+
+	if len(releases) == 0 {
+		err = fmt.Errorf("No gh release is available")
+		return
+	}
+
+	tagName = releases[0].TagName
+
+	return
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	url, e := octokit.AuthorizationsURL.Expand(nil)
 	if e != nil {
@@ -274,7 +297,7 @@ func (client *Client) octokit() (c *octokit.Client) {
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	uu = u
-	if client.Credentials.Host != GitHubHost {
+	if client.Credentials != nil && client.Credentials.Host != GitHubHost {
 		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
 	}
 
@@ -283,7 +306,7 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 
 func (client *Client) apiEndpoint() string {
 	host := os.Getenv("GH_API_HOST")
-	if host == "" {
+	if host == "" && client.Credentials != nil {
 		host = client.Credentials.Host
 	}
 

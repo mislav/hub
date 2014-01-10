@@ -23,8 +23,5 @@
 			}
 		}
 	},
-	"Env": [
-		"GOPATH=./Godeps/_workspace"
-	],
 	"ConfigVersion": "0.9"
 }
