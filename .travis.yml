@@ -5,7 +5,7 @@ before_install:
   - rvm --version
   - gem --version
   - sudo apt-get update -qq
-  - sudo apt-get install -qq bash-completion tmux zsh git
+  - sudo apt-get install -qq curl tmux zsh git
 language: go
 go:
   - 1.2

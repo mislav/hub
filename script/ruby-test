@@ -21,6 +21,8 @@ check_warnings() {
 }
 
 if tmux -V; then
+  curl https://github.com/git/git/blob/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
+
   if [ -n "$CI" ]; then
     git --version
     bash --version | head -1
