@@ -22,6 +22,11 @@ func init() {
 }
 
 func runHelp(cmd *Command, args *Args) {
+	if flagAll {
+		args.InsertParam(0, "-a")
+		return
+	}
+
 	if args.IsParamsEmpty() {
 		printUsage()
 		os.Exit(0)
