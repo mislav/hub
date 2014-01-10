@@ -1,11 +1,11 @@
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq zsh git
   - rvm use 2.1.0 --install --binary --fuzzy
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - ruby --version
   - rvm --version
   - gem --version
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq tmux zsh git
 language: go
 go:
   - 1.2
@@ -16,7 +16,7 @@ install:
 script:
   - script/build
   - script/test
-  - bundle exec rake features
+  - script/ruby-test
 env:
   global:
     - AMAZON_S3_BUCKET=gh-bundler-cache
