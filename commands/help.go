@@ -2,38 +2,42 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/utils"
 	"os"
+	"strings"
 )
 
 var cmdHelp = &Command{
-	Usage: "help [command]",
-	Short: "Show help",
-	Long:  `Shows usage for a command.`,
+	Usage:        "help [command]",
+	Short:        "Show help",
+	Long:         `Shows usage for a command.`,
+	GitExtension: true,
 }
 
-var flagAll bool
+var (
+	customCommands = []string{
+		"alias",
+		"create",
+		"browse",
+		"compare",
+		"fork",
+		"pull-request",
+		"ci-status",
+		"release",
+		"issue",
+		"update",
+	}
+)
 
 func init() {
-	cmdHelp.Flag.BoolVarP(&flagAll, "all", "a", false, "all")
-	cmdHelp.Run = runHelp // break init loop
+	cmdHelp.Run = runHelp
 
 	CmdRunner.Use(cmdHelp)
 }
 
 func runHelp(cmd *Command, args *Args) {
-	if flagAll {
-		args.InsertParam(0, "-a")
-		return
-	}
-
 	if args.IsParamsEmpty() {
 		printUsage()
 		os.Exit(0)
-	}
-
-	if args.ParamsSize() > 1 {
-		utils.Check(fmt.Errorf("too many arguments"))
 	}
 
 	for _, cmd := range CmdRunner.All() {
@@ -43,8 +47,24 @@ func runHelp(cmd *Command, args *Args) {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "Unknown help topic: %q. Run 'git help'.\n", args.FirstParam())
-	os.Exit(2)
+	if parseHelpAllFlag(args) {
+		args.After("echo", "\ngh custom commands\n")
+		args.After("echo", " ", strings.Join(customCommands, "  "))
+	}
+}
+
+func parseHelpAllFlag(args *Args) bool {
+	i := args.IndexOfParam("-a")
+	if i != -1 {
+		return true
+	}
+
+	i = args.IndexOfParam("--all")
+	if i != -1 {
+		return true
+	}
+
+	return false
 }
 
 var helpText = `usage: git [--version] [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
