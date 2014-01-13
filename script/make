@@ -7,7 +7,7 @@
 
 set -e
 
-BUILD_DIR=`mktemp -d`
+BUILD_DIR=`mktemp -d -t gh.XXXXXX`
 GODEPPATH=`pwd`/Godeps/_workspace
 GHSOURCE=$BUILD_DIR/src/github.com/jingweno/gh
 
