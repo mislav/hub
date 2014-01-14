@@ -29,6 +29,22 @@ Feature: hub ci-status
     Then the output should contain exactly "success\n"
     And the exit status should be 0
 
+  Scenario: Fetch specified remote commit SHA
+    Given there is a commit named "the_sha"
+    Given the "mislav" remote has url "https://github.com/mislav/pencilbox.git"
+    Given the remote commit state of "mislav/pencilbox" "the_sha" is "success"
+    When I run `hub ci-status -r mislav the_sha`
+    Then the output should contain exactly "success\n"
+    And the exit status should be 0
+
+  Scenario: Fetch specified remote commit SHA with URL
+    Given there is a commit named "the_sha"
+    Given the "mislav" remote has url "https://github.com/mislav/pencilbox.git"
+    Given the remote commit state of "mislav/pencilbox" "the_sha" is "success"
+    When I run `hub ci-status -r mislav the_sha -v`
+    Then the output should contain "success: https://travis-ci.org/mislav/pencilbox/builds/1234567"
+    And the exit status should be 0
+
   Scenario: Exit status 1 for 'error' and 'failure'
     Given the remote commit state of "michiels/pencilbox" "HEAD" is "error"
     When I run `hub ci-status`

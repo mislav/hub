@@ -77,10 +77,20 @@ module Hub
     # $ hub ci-status origin/master
     def ci_status(args)
       args.shift
-      ref = args.words.first || 'HEAD'
-      verbose = args.include?('-v')
+      verbose = !!args.delete('-v')
+      ref = 'HEAD'
+      project = local_repo.main_project
 
-      unless project = local_repo.main_project
+      while arg = args.shift
+        case arg
+        when '-r'
+          project = local_repo.remote_by_name(args.shift).project
+        else
+          ref = arg
+        end
+      end
+
+      unless project
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
       end
 
