@@ -114,7 +114,8 @@ task :install => "hub" do
     File.open(File.join(bindir, 'hub.bat'), 'w') { |f| f.write('@"ruby.exe" "%~dpn0" %*') }
     FileUtils.cp 'hub', bindir
   else
-    prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+    prefix = (ENV['DESTDIR'] || ENV['destdir'] || '') +
+      (ENV['PREFIX'] || ENV['prefix'] || '/usr/local')
 
     FileUtils.mkdir_p "#{prefix}/bin"
     FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
