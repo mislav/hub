@@ -102,6 +102,33 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+  Scenario: Text editor adds title and body with multiple lines
+    Given the text editor adds:
+      """
+
+
+      This title is on the third line
+
+
+      This body
+
+
+      has multiple
+      lines.
+
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'This title is on the third line',
+               :body  => "This body\n\n\nhas multiple\nlines."
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
   Scenario: Failed pull request preserves previous message
     Given the text editor adds:
       """
