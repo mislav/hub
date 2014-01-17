@@ -1102,7 +1102,7 @@ help
       File.open(file, 'r') { |msg|
         msg.each_line do |line|
           next if line.index('#') == 0
-          ((body.empty? and line =~ /\S/) ? title : body) << line
+          ((title.empty? and line =~ /\S/) ? title : body) << line
         end
       }
       title.tr!("\n", ' ')
