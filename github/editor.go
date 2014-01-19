@@ -4,14 +4,15 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"github.com/jingweno/gh/cmd"
-	"github.com/jingweno/gh/git"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/jingweno/gh/cmd"
+	"github.com/jingweno/gh/git"
 )
 
 func NewEditor(topic, message string) (editor *Editor, err error) {
@@ -68,6 +69,7 @@ func (e *Editor) EditTitleAndBody() (title, body string, err error) {
 		return
 	}
 
+	content = bytes.TrimSpace(content)
 	reader := bufio.NewReader(bytes.NewReader(content))
 	title, body, err = readTitleAndBody(reader)
 
