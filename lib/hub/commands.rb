@@ -998,7 +998,7 @@ help
     # included after the __END__ of the file so we can grab it using
     # DATA.
     def hub_raw_manpage
-      if File.exists? file = File.dirname(__FILE__) + '/../../man/hub.1'
+      if File.exist? file = File.dirname(__FILE__) + '/../../man/hub.1'
         File.read(file)
       else
         DATA.read
@@ -1085,7 +1085,7 @@ help
     # the pullrequest_editmsg_file, which newer hub would pick up and
     # misinterpret as a message which should be reused after a failed PR.
     def valid_editmsg_file?(message_file)
-      File.exists?(message_file) &&
+      File.exist?(message_file) &&
         File.mtime(message_file) > File.mtime(__FILE__)
     end
 
