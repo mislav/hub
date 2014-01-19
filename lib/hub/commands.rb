@@ -717,7 +717,7 @@ module Hub
           end
         end
 
-        project.web_url "/compare/#{range}"
+        project.web_url "/compare/#{range.tr('/', ';')}"
       end
     end
 

@@ -8,6 +8,11 @@ Feature: hub compare
     Then there should be no output
     And "open https://github.com/mislav/dotfiles/compare/refactor" should be run
 
+  Scenario: Compare complex branch
+    When I successfully run `hub compare feature/foo`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/feature;foo" should be run
+
   Scenario: No args, no upstream
     When I run `hub compare`
     Then the exit status should be 1
