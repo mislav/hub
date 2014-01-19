@@ -2,9 +2,11 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/jingweno/gh/github"
 	"github.com/jingweno/gh/utils"
-	"regexp"
 )
 
 var cmdCompare = &Command{
@@ -71,6 +73,7 @@ func compare(command *Command, args *Args) {
 		}
 	}
 
+	r = strings.Replace(r, "/", ";", -1)
 	subpage := utils.ConcatPaths("compare", r)
 	url := project.WebURL("", "", subpage)
 	launcher, err := utils.BrowserLauncher()
