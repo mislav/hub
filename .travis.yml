@@ -12,7 +12,7 @@ go:
 install:
   - script/bootstrap
   - export PATH="$HOME/gopath/bin:$PATH"
-  - script/cached-bundle install --deployment --without development
+  - script/cached-bundle install --deployment --without development --jobs 3 --retry 3
 script:
   - script/build
   - script/test
