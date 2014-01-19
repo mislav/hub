@@ -1,7 +1,7 @@
 before_install:
  - sudo apt-get update -qq
  - sudo apt-get install -qq tmux zsh git
-install: script/cached-bundle install --deployment --without development
+install: script/cached-bundle install --deployment --without development --jobs 3 --retry 3
 script: script/test
 language: ruby
 rvm:
