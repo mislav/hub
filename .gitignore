@@ -1,4 +1,6 @@
 *.swp
 *~
 /hub
+.bundle
+vendor/bundle/
 tmp/
