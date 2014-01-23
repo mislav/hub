@@ -397,6 +397,10 @@ module Hub
         nil
       end
 
+      def github_url
+        urls.detect {|url| local_repo.known_host?(url.host) }
+      end
+
       def urls
         @urls ||= raw_urls.map do |url|
           with_normalized_url(url) do |normalized|

@@ -556,8 +556,10 @@ module Hub
       if args.include?('--no-remote')
         exit
       else
+        origin_url = project.remote.github_url
         url = forked_project.git_url(:private => true, :https => https_protocol?)
-        args.replace %W"remote add -f #{forked_project.owner} #{url}"
+        args.replace %W"remote add -f #{forked_project.owner} #{origin_url}"
+        args.after %W"remote set-url #{forked_project.owner} #{url}"
         args.after 'echo', ['new remote:', forked_project.owner]
       end
     rescue GitHubAPI::Exceptions
