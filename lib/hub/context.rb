@@ -219,7 +219,7 @@ module Hub
       end
 
       def origin_remote
-        remotes.first
+        remotes.detect {|r| r.urls.any? }
       end
 
       def remote_by_name(remote_name)
@@ -409,7 +409,7 @@ module Hub
             rescue URI::InvalidURIError
             end
           end
-        end
+        end.compact
       end
 
       def with_normalized_url(url)

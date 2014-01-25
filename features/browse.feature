@@ -112,3 +112,9 @@ Feature: hub browse
       Warning: the `-p` flag has no effect anymore\n
       """
     But "open https://github.com/defunkt/hub" should be run
+
+  Scenario: Repo with remote with local path
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And the "upstream" remote has url "../path/to/another/repo.git"
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles" should be run
