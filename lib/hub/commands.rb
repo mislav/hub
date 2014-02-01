@@ -672,7 +672,8 @@ module Hub
           branch = master_branch
         else
           # $ hub browse
-          branch, project = remote_branch_and_project(method(:github_user))
+          prefer_upstream = current_branch.master?
+          branch, project = remote_branch_and_project(method(:github_user), prefer_upstream)
           branch ||= master_branch
         end
 

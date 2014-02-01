@@ -70,6 +70,14 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles" should be run
 
+  Scenario: Default branch in upstream repo as opposed to fork
+    Given I am in "git://github.com/jashkenas/coffee-script.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/coffee-script.git"
+    And the default branch for "origin" is "master"
+    And I am on the "master" branch pushed to "mislav/master"
+    When I successfully run `hub browse`
+    Then "open https://github.com/jashkenas/coffee-script" should be run
+
   Scenario: Current branch with special chars
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And I am on the "fix-bug-#123" branch with upstream "origin/fix-bug-#123"
