@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# Usage: make
+#
+# Build gh without downloading any dependency
+#
+# Author: Jingwen Owen Ou
+
+set -e
+
+BUILD_DIR=`mktemp -d -t gh.XXXXXX`
+GODEPPATH=`pwd`/Godeps/_workspace
+GHSOURCE=$BUILD_DIR/src/github.com/jingweno/gh
+
+export GOPATH=$BUILD_DIR:$GODEPPATH
+
+mkdir -p $GHSOURCE
+cp -R `pwd`/. $GHSOURCE
+go build -o gh

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Usage: make
+#
+# Package gh for release
+#
+# Author: Jingwen Owen Ou
+
+go get github.com/kr/godep
+go get github.com/jingweno/gotask
+GOPATH=`godep path`:$GOPATH gotask package

@@ -1,15 +1,22 @@
 before_install:
- - sudo apt-get update -qq
- - sudo apt-get install -qq tmux zsh git
-install: script/cached-bundle install --deployment --without development --jobs 3 --retry 3
-script: script/test
-language: ruby
-rvm:
-  - 1.8.7
-  - 1.9.2
-  - 1.9.3
-  - 2.0.0
-  - 2.1.0
+  - rvm use 2.1.0 --install --binary --fuzzy
+  - export BUNDLE_GEMFILE=$PWD/Gemfile
+  - ruby --version
+  - rvm --version
+  - gem --version
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq tmux zsh git
+language: go
+go:
+  - 1.2
+install:
+  - script/bootstrap
+  - export PATH="$HOME/gopath/bin:$PATH"
+  - script/cached-bundle install --deployment --without development --jobs 3 --retry 3
+script:
+  - script/build
+  - script/test
+  - script/ruby-test
 notifications:
   email:
     recipients:

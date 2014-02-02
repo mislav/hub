@@ -1,0 +1,12 @@
+{
+  "ConfigVersion": "0.9",
+  "BuildConstraints": "linux",
+  "TaskSettings": {
+    "archive-tar-gz": {
+      "platforms": "!linux"
+    },
+    "archive-zip": {
+      "platforms": "linux"
+    }
+  }
+}
