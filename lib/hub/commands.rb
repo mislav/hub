@@ -664,22 +664,27 @@ module Hub
       browse_command(args) do
         dest = args.shift
         dest = nil if dest == '--'
+        # $ hub browse -- wiki
+        subpage = args.shift
 
         if dest
           # $ hub browse pjhyett/github-services
           # $ hub browse github-services
           project = github_project dest
           branch = master_branch
+        elsif subpage && !%w[commits tree blob settings].include?(subpage)
+          branch = master_branch
+          project = local_repo.main_project
         else
           # $ hub browse
-          branch, project = remote_branch_and_project(method(:github_user))
+          prefer_upstream = current_branch.master?
+          branch, project = remote_branch_and_project(method(:github_user), prefer_upstream)
           branch ||= master_branch
         end
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
 
-        # $ hub browse -- wiki
-        path = case subpage = args.shift
+        path = case subpage
         when 'commits'
           "/commits/#{branch_in_url(branch)}"
         when 'tree', NilClass

@@ -70,6 +70,14 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles" should be run
 
+  Scenario: Default branch in upstream repo as opposed to fork
+    Given I am in "git://github.com/jashkenas/coffee-script.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/coffee-script.git"
+    And the default branch for "origin" is "master"
+    And I am on the "master" branch pushed to "mislav/master"
+    When I successfully run `hub browse`
+    Then "open https://github.com/jashkenas/coffee-script" should be run
+
   Scenario: Current branch with special chars
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And I am on the "fix-bug-#123" branch with upstream "origin/fix-bug-#123"
@@ -82,6 +90,22 @@ Feature: hub browse
     And I am on the "feature" branch with upstream "origin/experimental"
     When I successfully run `hub browse -- commits`
     Then "open https://github.com/mislav/dotfiles/commits/experimental" should be run
+
+  Scenario: Issues subpage ignores tracking configuration
+    Given I am in "git://github.com/jashkenas/coffee-script.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/coffee-script.git"
+    And git "push.default" is set to "upstream"
+    And I am on the "feature" branch with upstream "mislav/experimental"
+    When I successfully run `hub browse -- issues`
+    Then "open https://github.com/jashkenas/coffee-script/issues" should be run
+
+  Scenario: Issues subpage ignores current branch
+    Given I am in "git://github.com/jashkenas/coffee-script.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/coffee-script.git"
+    And I am on the "feature" branch pushed to "mislav/feature"
+    When I successfully run `hub browse -- issues`
+    Then there should be no output
+    # Then "open https://github.com/jashkenas/coffee-script/issues" should be run
 
   Scenario: Complex branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo

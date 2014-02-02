@@ -152,10 +152,10 @@ module Hub
         remote = origin_remote and remote.project
       end
 
-      def remote_branch_and_project(username_fetcher)
+      def remote_branch_and_project(username_fetcher, prefer_upstream = false)
         project = main_project
         if project and branch = current_branch
-          branch = branch.push_target(username_fetcher.call(project.host))
+          branch = branch.push_target(username_fetcher.call(project.host), prefer_upstream)
           project = remote_by_name(branch.remote_name).project if branch && branch.remote?
         end
         [branch, project]
@@ -356,7 +356,7 @@ module Hub
         end
       end
 
-      def push_target(owner_name)
+      def push_target(owner_name, prefer_upstream = false)
         push_default = local_repo.git_config('push.default')
         if %w[upstream tracking].include?(push_default)
           upstream
@@ -365,6 +365,7 @@ module Hub
           refs = local_repo.remotes_for_publish(owner_name).map { |remote|
             "refs/remotes/#{remote}/#{short}"
           }
+          refs.reverse! if prefer_upstream
           if branch = refs.detect {|ref| local_repo.file_exist?(ref) }
             Branch.new(local_repo, branch)
           end
