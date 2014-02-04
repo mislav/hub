@@ -1,7 +1,7 @@
 require 'fileutils'
 
 Given(/^HTTPS is preferred$/) do
-  run_silent %(git config --global hub.protocol https)
+  run_silent %(git config --global gh.protocol https)
 end
 
 Given(/^there are no remotes$/) do
@@ -9,7 +9,7 @@ Given(/^there are no remotes$/) do
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
-  run_silent %(git config --global --add hub.host "#{host}")
+  run_silent %(git config --global --add gh.host "#{host}")
 end
 
 Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
