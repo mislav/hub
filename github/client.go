@@ -3,8 +3,10 @@ package github
 import (
 	"fmt"
 	"github.com/jingweno/go-octokit/octokit"
+	"net/http"
 	"net/url"
 	"os"
+	"strings"
 )
 
 const (
@@ -288,9 +290,32 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	return
 }
 
+// An implementation of http.ProxyFromEnvironment that isn't broken
+func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
+	proxy := os.Getenv("http_proxy")
+	if proxy == "" {
+		proxy = os.Getenv("HTTP_PROXY")
+	}
+	if proxy == "" {
+		return nil, nil
+	}
+	proxyURL, err := url.Parse(proxy)
+	if err != nil || !strings.HasPrefix(proxyURL.Scheme, "http") {
+		if proxyURL, err := url.Parse("http://" + proxy); err == nil {
+			return proxyURL, nil
+		}
+	}
+	if err != nil {
+		return nil, fmt.Errorf("invalid proxy address %q: %v", proxy, err)
+	}
+	return proxyURL, nil
+}
+
 func (client *Client) octokit() (c *octokit.Client) {
 	tokenAuth := octokit.TokenAuth{AccessToken: client.Credentials.AccessToken}
-	c = octokit.NewClientWith(client.apiEndpoint(), nil, tokenAuth)
+	tr := &http.Transport{Proxy: proxyFromEnvironment}
+	httpClient := &http.Client{Transport: tr}
+	c = octokit.NewClientWith(client.apiEndpoint(), httpClient, tokenAuth)
 
 	return
 }
