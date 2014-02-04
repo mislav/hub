@@ -1,6 +1,8 @@
 # based on <github.com/jnicklas/capybara/blob/ab62b27/lib/capybara/server.rb>
 require 'net/http'
 require 'rack/handler/webrick'
+require 'json'
+require 'sinatra/base'
 
 module Hub
   class LocalServer
@@ -34,17 +36,30 @@ module Hub
 
       def type_match? env
         type = env['CONTENT_TYPE'] and
-          type.split(/\s*[;,]\s*/, 2).first.downcase == 'application/json'
+          type.split(/\s*[;,]\s*/, 2).first.downcase =~ /[\/+]json$/
+      end
+    end
+
+    class App < Sinatra::Base
+      def invoke
+        res = super
+        content_type :json unless response.content_type
+        response.body = '{}' if blank_response?(response.body) ||
+          (response.body.respond_to?(:[]) && blank_response?(response.body[0]))
+        res
+      end
+
+      def blank_response?(obj)
+        obj.nil? || (obj.respond_to?(:empty?) && obj.empty?)
       end
     end
 
     def self.start_sinatra(&block)
-      require 'json'
-      require 'sinatra/base'
-      klass = Class.new(Sinatra::Base)
+      klass = Class.new(App)
       klass.use JsonParamsParser
       klass.set :environment, :test
       klass.disable :protection
+      klass.error(404, 401) { content_type :json; nil }
       klass.class_eval(&block)
       klass.helpers do
         def json(value)
