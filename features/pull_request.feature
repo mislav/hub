@@ -238,6 +238,31 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+  Scenario: Verbose flag displays diff in editor
+    Given the text editor adds "Title" and checks:
+      """
+      diff --git a/a b/a
+      new file mode 100644
+      index 0000000..980a0d5
+      --- /dev/null
+      +++ b/a
+      @@ -0,0 +1 @@
+      +Hello World!
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Title'
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    Given the default branch for "origin" is "master"
+    Given I commit file "a" with "Hello World!"
+    And I am on the "feature" branch pushed to "origin/feature"
+    When I run `hub pull-request -v`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
   Scenario: Error when implicit head is the same as base
     Given I am on the "master" branch with upstream "origin/master"
     When I run `hub pull-request`

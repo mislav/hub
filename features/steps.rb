@@ -61,6 +61,16 @@ Given(/^there is a commit named "([^"]+)"$/) do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
+Given(/^I commit file "([^"]+)" with "([^"]+)"$/) do |filename, content|
+  in_current_dir do
+    File.open(filename, 'w') do |f|
+      f.puts content
+    end
+  end
+  run_silent %(git add #{filename})
+  run_silent %(git commit --allow-empty-message -m "")
+end
+
 When(/^I make (a|\d+) commits?$/) do |num|
   num = num == 'a' ? 1 : num.to_i
   num.times { empty_commit }
@@ -208,6 +218,26 @@ Given(/^the text editor adds:$/) do |text|
       echo
       echo "$contents"
     } > "$file"
+  BASH
+end
+
+Given(/^the text editor adds "([^"]+)" and checks:$/) do |text, diff|
+  text_editor_script <<-BASH
+    file="$3"
+    diff=$(cat <<'EOF'
+#{diff}
+EOF
+)
+    if grep -Fxq "$diff" $file
+    then
+      contents="$(cat "$file" 2>/dev/null || true)"
+      { echo "#{text}"
+        echo
+        echo "$contents"
+      } > "$file"
+    else
+      exit 1
+    fi
   BASH
 end
 
