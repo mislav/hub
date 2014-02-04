@@ -18,10 +18,7 @@ script:
   - script/test
   - script/ruby-test
 notifications:
-  email:
-    recipients:
-      - mislav.marohnic@gmail.com
-    on_success: never
+  email: false
 env:
   global:
     - AMAZON_S3_BUCKET=ci-cache
