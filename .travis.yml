@@ -10,12 +10,10 @@ language: go
 go:
   - 1.2
 install:
-  - script/bootstrap
-  - export PATH="$HOME/gopath/bin:$PATH"
   - script/cached-bundle install --deployment --without development --jobs 3 --retry 3
 script:
-  - script/build
-  - script/test
+  - make
+  - make hub
   - script/ruby-test
 notifications:
   email: false
