@@ -5,7 +5,7 @@
 	"ResourcesInclude": "INSTALL*,README*,LICENSE*",
 	"ResourcesExclude": "*.go",
 	"MainDirsExclude": "Godeps",
-	"PackageVersion": "1.0.0",
+	"PackageVersion": "2.0.0",
 	"Verbosity": "v",
 	"TaskSettings": {
 		"downloads-page": {
