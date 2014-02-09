@@ -380,6 +380,9 @@ GitHub simpler:
 * [eg](http://www.gnome.org/~newren/eg/)
 * [github-gem](https://github.com/defunkt/github-gem)
 
+###Project using hub
+
+* [vim-mahewin-hub](https://github.com/hobbestigrou/vim-mahewin-hub)
 
 [speed]: http://gist.github.com/284823
 [gc]: https://twitter.com/brynary/status/49560668994674688
