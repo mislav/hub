@@ -1,36 +1,14 @@
 package github
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
 
 	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
-type TestRepo struct {
-	Pwd string
-}
-
-func (g *TestRepo) Setup() {
-	g.Pwd, _ = os.Getwd()
-	fixturePath := filepath.Join(g.Pwd, "..", "fixtures", "test.git")
-	os.Chdir(fixturePath)
-}
-
-func (g *TestRepo) TearDown() {
-	os.Chdir(g.Pwd)
-}
-
-func setupRepo() *TestRepo {
-	repo := &TestRepo{}
-	repo.Setup()
-
-	return repo
-}
-
 func TestOriginRemote(t *testing.T) {
-	repo := setupRepo()
+	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
 	gitRemote, _ := OriginRemote()

@@ -1,37 +1,15 @@
 package git
 
 import (
-	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
-type TestRepo struct {
-	Pwd string
-}
-
-func (g *TestRepo) Setup() {
-	g.Pwd, _ = os.Getwd()
-	fixturePath := filepath.Join(g.Pwd, "..", "fixtures", "test.git")
-	os.Chdir(fixturePath)
-}
-
-func (g *TestRepo) TearDown() {
-	os.Chdir(g.Pwd)
-}
-
-func setupRepo() *TestRepo {
-	repo := &TestRepo{}
-	repo.Setup()
-
-	return repo
-}
-
 func TestGitDir(t *testing.T) {
-	repo := setupRepo()
+	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
 	gitDir, _ := Dir()
@@ -46,7 +24,7 @@ func TestGitEditor(t *testing.T) {
 }
 
 func TestGitLog(t *testing.T) {
-	repo := setupRepo()
+	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
 	log, err := Log("1dbff497d642562805323c5c2cccd4adc4a83b36", "5196494806847d5233d877517a79b6ce8b33f5f7")
@@ -55,7 +33,7 @@ func TestGitLog(t *testing.T) {
 }
 
 func TestGitRef(t *testing.T) {
-	repo := setupRepo()
+	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
 	ref := "1dbff497d642562805323c5c2cccd4adc4a83b36"
@@ -65,7 +43,7 @@ func TestGitRef(t *testing.T) {
 }
 
 func TestGitRefList(t *testing.T) {
-	repo := setupRepo()
+	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
 	refList, err := RefList("1dbff497d642562805323c5c2cccd4adc4a83b36", "5196494806847d5233d877517a79b6ce8b33f5f7")
@@ -76,7 +54,7 @@ func TestGitRefList(t *testing.T) {
 }
 
 func TestGitShow(t *testing.T) {
-	repo := setupRepo()
+	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
 	output, err := Show("5196494806847d5233d877517a79b6ce8b33f5f7")
