@@ -30,8 +30,7 @@ var (
 		Long: `Creates a new release in GitHub for the project that the "origin" remote points to.
 It requires the name of the tag to release as a first argument.
 
-Specify the assets to include in the release from a directory via "-a". Without
-"-a", it finds assets from "releases/TAG" of the current directory.
+Specify the assets to include in the release from a directory via "-a".
 
 Without <MESSAGE> or <FILE>, a text editor will open in which title and body
 of the release can be entered in the same manner as git commit message.
@@ -44,7 +43,7 @@ If "-p" is given, it creates a pre-release.
 	flagReleaseDraft,
 	flagReleasePrerelease bool
 
-	flagReleaseAssetsDir,
+	flagReleaseAssets,
 	flagReleaseMessage,
 	flagReleaseFile string
 )
@@ -52,7 +51,7 @@ If "-p" is given, it creates a pre-release.
 func init() {
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
-	cmdCreateRelease.Flag.StringVarP(&flagReleaseAssetsDir, "assets", "a", "", "ASSETS_DIR")
+	cmdCreateRelease.Flag.StringVarP(&flagReleaseAssets, "attach", "a", "", "ATTACH_ASSETS")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
 
@@ -86,9 +85,6 @@ func createRelease(cmd *Command, args *Args) {
 
 	tag := args.LastParam()
 
-	assetsDir, err := getAssetsDirectory(flagReleaseAssetsDir, tag)
-	utils.Check(err)
-
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		currentBranch, err := localRepo.CurrentBranch()
 		utils.Check(err)
@@ -113,7 +109,7 @@ func createRelease(cmd *Command, args *Args) {
 		finalRelease, err := gh.CreateRelease(project, params)
 		utils.Check(err)
 
-		uploadReleaseAssets(gh, finalRelease, assetsDir)
+		uploadReleaseAssets(gh, finalRelease)
 
 		fmt.Printf("\n\nRelease created: %s", finalRelease.HTMLURL)
 	})
@@ -136,67 +132,63 @@ func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string
 	return editor.EditTitleAndBody()
 }
 
-func getAssetsDirectory(assetsDir, tag string) (string, error) {
-	if assetsDir == "" {
-		pwd, err := os.Getwd()
-		utils.Check(err)
-
-		assetsDir = filepath.Join(pwd, "releases", tag)
+func uploadReleaseAssets(gh *github.Client, release *octokit.Release) {
+	if flagReleaseAssets == "" {
+		return
 	}
 
-	if !isDir(assetsDir) {
-		return "", fmt.Errorf("The assets directory doesn't exist: %s", assetsDir)
-	}
+	assetInfo, err := os.Stat(flagReleaseAssets)
+	utils.Check(err)
 
-	if isEmptyDir(assetsDir) {
-		return "", fmt.Errorf("The assets directory is empty: %s", assetsDir)
-	}
-
-	return assetsDir, nil
-}
-
-func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir string) {
 	var wg sync.WaitGroup
 	var totalAssets, countAssets uint64
 
-	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
-		if !fi.IsDir() {
-			totalAssets += 1
-		}
-		return nil
-	})
+	notifyProgress := func() {
+		atomic.AddUint64(&countAssets, uint64(1))
+		printUploadProgress(&countAssets, totalAssets)
+		wg.Done()
+	}
 
-	printUploadProgress(&countAssets, totalAssets)
+	if assetInfo.IsDir() {
+		filepath.Walk(flagReleaseAssets, func(path string, fi os.FileInfo, err error) error {
+			if !fi.IsDir() {
+				totalAssets += 1
+			}
+			return nil
+		})
 
-	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
-		if !fi.IsDir() {
-			wg.Add(1)
+		printUploadProgress(&countAssets, totalAssets)
 
-			go func() {
-				defer func() {
-					atomic.AddUint64(&countAssets, uint64(1))
-					printUploadProgress(&countAssets, totalAssets)
-					wg.Done()
-				}()
-
-				uploadUrl, err := release.UploadURL.Expand(octokit.M{"name": fi.Name()})
-				utils.Check(err)
-
-				contentType := detectContentType(path, fi)
-
-				file, err := os.Open(path)
-				utils.Check(err)
-				defer file.Close()
-
-				err = gh.UploadReleaseAsset(uploadUrl, file, contentType)
-				utils.Check(err)
-			}()
-		}
-
-		return nil
-	})
+		filepath.Walk(flagReleaseAssets, func(path string, fi os.FileInfo, err error) error {
+			if !fi.IsDir() {
+				wg.Add(1)
+				go uploadAsset(gh, release, fi, path, notifyProgress)
+			}
+			return nil
+		})
+	} else {
+		totalAssets = 1
+		printUploadProgress(&countAssets, totalAssets)
+		wg.Add(1)
+		uploadAsset(gh, release, assetInfo, flagReleaseAssets, notifyProgress)
+	}
 
 	wg.Wait()
+}
+
+func uploadAsset(gh *github.Client, release *octokit.Release, fi os.FileInfo, path string, notifyProgress func()) {
+	defer notifyProgress()
+	uploadUrl, err := release.UploadURL.Expand(octokit.M{"name": fi.Name()})
+	utils.Check(err)
+
+	contentType := detectContentType(path, fi)
+
+	file, err := os.Open(path)
+	utils.Check(err)
+	defer file.Close()
+
+	err = gh.UploadReleaseAsset(uploadUrl, file, contentType)
+	utils.Check(err)
 }
 
 func detectContentType(path string, fi os.FileInfo) string {
