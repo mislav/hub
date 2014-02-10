@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/jingweno/gh/github"
+	"github.com/github/hub/github"
 	"regexp"
 	"strings"
 )

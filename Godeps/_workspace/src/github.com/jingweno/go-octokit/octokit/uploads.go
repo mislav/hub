@@ -1,8 +1,8 @@
 package octokit
 
 import (
+	"io"
 	"net/url"
-	"os"
 )
 
 // Create an UploadsService with the base url.URL
@@ -15,6 +15,6 @@ type UploadsService struct {
 	URL    *url.URL
 }
 
-func (u *UploadsService) UploadAsset(asset *os.File, contentType string) (result *Result) {
-	return u.client.upload(u.URL, asset, contentType)
+func (u *UploadsService) UploadAsset(asset io.ReadCloser, contentType string, contentLength int64) (result *Result) {
+	return u.client.upload(u.URL, asset, contentType, contentLength)
 }

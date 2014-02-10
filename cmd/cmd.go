@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/utils"
+	"github.com/github/hub/utils"
 	"github.com/kballard/go-shellquote"
 	"os"
 	"os/exec"

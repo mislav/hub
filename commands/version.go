@@ -2,8 +2,8 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/utils"
+	"github.com/github/hub/git"
+	"github.com/github/hub/utils"
 	"os"
 )
 

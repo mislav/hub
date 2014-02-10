@@ -3,9 +3,9 @@ package octokit
 import (
 	"github.com/lostisland/go-sawyer"
 	"github.com/lostisland/go-sawyer/hypermedia"
+	"io"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 func NewClient(authMethod AuthMethod) *Client {
@@ -70,21 +70,15 @@ func (c *Client) patch(url *url.URL, input interface{}, output interface{}) (res
 	})
 }
 
-func (c *Client) upload(uploadUrl *url.URL, asset *os.File, contentType string) (result *Result) {
+func (c *Client) upload(uploadUrl *url.URL, asset io.ReadCloser, contentType string, contentLength int64) (result *Result) {
 	req, err := c.newSawyerRequest(uploadUrl.String())
 	if err != nil {
 		result = newResult(nil, err)
 		return
 	}
 
-	fi, err := asset.Stat()
-	if err != nil {
-		result = newResult(nil, err)
-		return
-	}
-
 	req.Header.Add("Content-Type", contentType)
-	req.ContentLength = fi.Size()
+	req.ContentLength = contentLength
 
 	req.Body = asset
 	sawyerResp := req.Post()

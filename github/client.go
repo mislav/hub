@@ -2,11 +2,12 @@ package github
 
 import (
 	"fmt"
-	"github.com/jingweno/go-octokit/octokit"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/jingweno/go-octokit/octokit"
 )
 
 const (
@@ -157,7 +158,12 @@ func (client *Client) CreateRelease(project *Project, params octokit.ReleasePara
 
 func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, contentType string) (err error) {
 	c := client.octokit()
-	result := c.Uploads(uploadUrl).UploadAsset(asset, contentType)
+	fileInfo, err := asset.Stat()
+	if err != nil {
+		return
+	}
+
+	result := c.Uploads(uploadUrl).UploadAsset(asset, contentType, fileInfo.Size())
 	if result.HasError() {
 		err = fmt.Errorf("Error uploading asset: %s", result.Err)
 	}

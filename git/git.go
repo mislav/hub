@@ -2,11 +2,12 @@ package git
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/cmd"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/github/hub/cmd"
 )
 
 func Version() (string, error) {
