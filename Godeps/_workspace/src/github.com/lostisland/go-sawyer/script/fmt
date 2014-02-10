@@ -1,0 +1,10 @@
+#!/bin/bash
+gofmt -w -l "$@" *.go
+
+# don't run gofmt in these directories
+ignored=(/bin/ /docs/ /log/ /script/ /tmp/)
+for i in */ ; do
+  if [[ ! ${ignored[*]} =~ "/$i" ]]; then
+    gofmt -w -l "$@" "${i%?}"
+  fi
+done
