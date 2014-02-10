@@ -2,6 +2,7 @@ package github
 
 import (
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -13,7 +14,8 @@ type TestRepo struct {
 
 func (g *TestRepo) Setup() {
 	g.Pwd, _ = os.Getwd()
-	os.Chdir("../fixtures/test.git")
+	fixturePath := filepath.Join(g.Pwd, "..", "fixtures", "test.git")
+	os.Chdir(fixturePath)
 }
 
 func (g *TestRepo) TearDown() {
