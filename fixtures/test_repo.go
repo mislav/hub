@@ -1,33 +1,73 @@
 package fixtures
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/github/hub/cmd"
 )
 
+var pwd string
+
+func init() {
+	// need to cache it before all tests run
+	pwd, _ = os.Getwd()
+}
+
 type TestRepo struct {
-	Pwd string
+	pwd    string
+	dir    string
+	Remote string
 }
 
-func (g *TestRepo) Setup() {
-	g.Pwd, _ = os.Getwd()
-	fixturePath := filepath.Join(g.Pwd, "..", "fixtures", "test.git")
-	err := os.Chdir(fixturePath)
+func (r *TestRepo) Setup() (err error) {
+	r.dir, err = ioutil.TempDir("", "test-repo")
 	if err != nil {
-		panic(err)
+		return
 	}
+	targetPath := filepath.Join(r.dir, "test.git")
+
+	err = r.clone(r.Remote, targetPath)
+	if err != nil {
+		return
+	}
+
+	return os.Chdir(targetPath)
 }
 
-func (g *TestRepo) TearDown() {
-	err := os.Chdir(g.Pwd)
+func (r *TestRepo) clone(repo, dir string) error {
+	cmd := cmd.New("git").WithArgs("clone", repo, dir)
+	output, err := cmd.ExecOutput()
 	if err != nil {
-		panic(err)
+		err = fmt.Errorf("error cloning %s to %s: %s", repo, dir, output)
 	}
+
+	return err
+}
+
+func (r *TestRepo) TearDown() error {
+	err := os.Remove(r.dir)
+	if err != nil {
+		return err
+	}
+
+	err = os.Chdir(r.pwd)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func SetupTestRepo() *TestRepo {
-	repo := &TestRepo{}
-	repo.Setup()
+	remotePath := filepath.Join(pwd, "..", "fixtures", "test.git")
+	repo := &TestRepo{pwd: pwd, Remote: remotePath}
+	err := repo.Setup()
+	if err != nil {
+		panic(err)
+	}
 
 	return repo
 }

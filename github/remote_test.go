@@ -13,5 +13,5 @@ func TestOriginRemote(t *testing.T) {
 
 	gitRemote, _ := OriginRemote()
 	assert.Equal(t, "origin", gitRemote.Name)
-	assert.Equal(t, "https://github.com/test/test.git.git", gitRemote.URL.String())
+	assert.Equal(t, repo.Remote, gitRemote.URL.String())
 }
