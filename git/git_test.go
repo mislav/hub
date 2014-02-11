@@ -27,7 +27,7 @@ func TestGitLog(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	log, err := Log("1dbff497d642562805323c5c2cccd4adc4a83b36", "5196494806847d5233d877517a79b6ce8b33f5f7")
+	log, err := Log("08f4b7b6513dffc6245857e497cfd6101dc47818", "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06")
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, "", log)
 }
@@ -36,7 +36,7 @@ func TestGitRef(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	ref := "1dbff497d642562805323c5c2cccd4adc4a83b36"
+	ref := "08f4b7b6513dffc6245857e497cfd6101dc47818"
 	gitRef, err := Ref(ref)
 	assert.Equal(t, nil, err)
 	assert.Equal(t, ref, gitRef)
@@ -46,20 +46,20 @@ func TestGitRefList(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	refList, err := RefList("1dbff497d642562805323c5c2cccd4adc4a83b36", "5196494806847d5233d877517a79b6ce8b33f5f7")
+	refList, err := RefList("08f4b7b6513dffc6245857e497cfd6101dc47818", "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 1, len(refList))
 
-	assert.Equal(t, "5196494806847d5233d877517a79b6ce8b33f5f7", refList[0])
+	assert.Equal(t, "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06", refList[0])
 }
 
 func TestGitShow(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	output, err := Show("5196494806847d5233d877517a79b6ce8b33f5f7")
+	output, err := Show("9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "Test comment\n\nMore comment", output)
+	assert.Equal(t, "First comment\n\nMore comment", output)
 }
 
 func TestGitConfig(t *testing.T) {
