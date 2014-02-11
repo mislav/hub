@@ -1,13 +1,17 @@
 package github
 
 import (
-	"github.com/bmizerany/assert"
-	"strings"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
 func TestOriginRemote(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
 	gitRemote, _ := OriginRemote()
 	assert.Equal(t, "origin", gitRemote.Name)
-	assert.T(t, strings.Contains(gitRemote.URL.String(), "gh"))
+	assert.Equal(t, repo.Remote, gitRemote.URL.String())
 }

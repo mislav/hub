@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/utils"
+	"github.com/github/hub/utils"
 	"os"
 	"path/filepath"
 	"strings"

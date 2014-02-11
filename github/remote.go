@@ -2,7 +2,7 @@ package github
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/git"
+	"github.com/github/hub/git"
 	"net/url"
 	"regexp"
 	"strings"

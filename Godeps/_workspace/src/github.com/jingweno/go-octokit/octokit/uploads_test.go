@@ -33,7 +33,7 @@ func TestUploadsService_UploadAsset(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	open, _ := os.Open(file.Name())
-	result := client.Uploads(url).UploadAsset(open, "text/plain")
+	result := client.Uploads(url).UploadAsset(open, "text/plain", fi.Size())
 	fmt.Println(result)
 	assert.T(t, !result.HasError())
 

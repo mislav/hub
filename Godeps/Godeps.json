@@ -1,5 +1,5 @@
 {
-	"ImportPath": "github.com/jingweno/gh",
+	"ImportPath": "github.com/github/hub",
 	"GoVersion": "go1.2",
 	"Packages": [
 		"./..."
@@ -35,8 +35,8 @@
 		},
 		{
 			"ImportPath": "github.com/jingweno/go-octokit/octokit",
-			"Comment": "v0.4.0-46-g30737cb",
-			"Rev": "30737cb1e9207e1a7633e3d7539951c5c3d93058"
+			"Comment": "v0.4.0-49-gc08264b",
+			"Rev": "c08264b452c4a2960650be6bf0e33408c62c9bf1"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",
@@ -61,7 +61,7 @@
 			"Rev": "cb3f837f5ac26e080a9002dcb4d2e8472e623916"
 		},
 		{
-			"ImportPath": "https://github.com/ogier/pflag",
+			"ImportPath": "github.com/ogier/pflag",
 			"Rev": "fc2d9a0ef658fa4e4c319939fd6f4b6becfccb48"
 		}
 	]

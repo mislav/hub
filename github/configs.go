@@ -3,8 +3,8 @@ package github
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/github/hub/utils"
 	"github.com/howeyc/gopass"
-	"github.com/jingweno/gh/utils"
 	"io"
 	"io/ioutil"
 	"os"

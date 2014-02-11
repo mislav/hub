@@ -1,12 +1,17 @@
 package git
 
 import (
-	"github.com/bmizerany/assert"
 	"strings"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
 func TestGitDir(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
 	gitDir, _ := Dir()
 	assert.T(t, strings.Contains(gitDir, ".git"))
 }
@@ -19,29 +24,42 @@ func TestGitEditor(t *testing.T) {
 }
 
 func TestGitLog(t *testing.T) {
-	log, err := Log("e357a98a1a580b09d4f1d9bf613a6a51e131ef6e", "49e984e2fe86f68c386aeb133b390d39e4264ec1")
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	log, err := Log("08f4b7b6513dffc6245857e497cfd6101dc47818", "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06")
 	assert.Equal(t, nil, err)
 	assert.NotEqual(t, "", log)
 }
 
 func TestGitRef(t *testing.T) {
-	gitRef, err := Ref("1c1077c052d32a83aa13a8afaa4a9630d2f28ef6")
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	ref := "08f4b7b6513dffc6245857e497cfd6101dc47818"
+	gitRef, err := Ref(ref)
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "1c1077c052d32a83aa13a8afaa4a9630d2f28ef6", gitRef)
+	assert.Equal(t, ref, gitRef)
 }
 
 func TestGitRefList(t *testing.T) {
-	refList, err := RefList("e357a98a1a580b09d4f1d9bf613a6a51e131ef6e", "49e984e2fe86f68c386aeb133b390d39e4264ec1")
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	refList, err := RefList("08f4b7b6513dffc6245857e497cfd6101dc47818", "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, 1, len(refList))
 
-	assert.Equal(t, "49e984e2fe86f68c386aeb133b390d39e4264ec1", refList[0])
+	assert.Equal(t, "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06", refList[0])
 }
 
 func TestGitShow(t *testing.T) {
-	output, err := Show("f6ba909952aea75d69a9b6e1563a84ec3220ab9c")
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	output, err := Show("9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "Fix typo in git show format\n\nIt's possible that comments are multiple lines", output)
+	assert.Equal(t, "First comment\n\nMore comment", output)
 }
 
 func TestGitConfig(t *testing.T) {

@@ -2,7 +2,7 @@ package github
 
 import (
 	"github.com/bmizerany/assert"
-	"github.com/jingweno/gh/git"
+	"github.com/github/hub/git"
 	"testing"
 )
 

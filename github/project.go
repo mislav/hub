@@ -3,8 +3,8 @@ package github
 import (
 	"errors"
 	"fmt"
-	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/utils"
+	"github.com/github/hub/git"
+	"github.com/github/hub/utils"
 	"net/url"
 	"os"
 	"regexp"

@@ -3,10 +3,10 @@ package commands
 import (
 	"archive/zip"
 	"fmt"
+	"github.com/github/hub/git"
+	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
 	goupdate "github.com/inconshreveable/go-update"
-	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/github"
-	"github.com/jingweno/gh/utils"
 	"io"
 	"io/ioutil"
 	"math/rand"

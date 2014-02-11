@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/jingweno/gh/cmd"
-	"github.com/jingweno/gh/git"
+	"github.com/github/hub/cmd"
+	"github.com/github/hub/git"
 )
 
 func NewEditor(topic, message string) (editor *Editor, err error) {

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/jingweno/gh/commands"
-	"github.com/jingweno/gh/github"
+	"github.com/github/hub/commands"
+	"github.com/github/hub/github"
 	"os"
 )
 

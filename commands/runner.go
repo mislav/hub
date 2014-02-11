@@ -2,9 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"github.com/jingweno/gh/cmd"
-	"github.com/jingweno/gh/git"
-	"github.com/jingweno/gh/utils"
+	"github.com/github/hub/cmd"
+	"github.com/github/hub/git"
+	"github.com/github/hub/utils"
 	"github.com/kballard/go-shellquote"
 	flag "github.com/ogier/pflag"
 	"os"

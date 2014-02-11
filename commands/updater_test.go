@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"github.com/bmizerany/assert"
-	"github.com/jingweno/gh/git"
+	"github.com/github/hub/git"
 	"io"
 	"io/ioutil"
 	"net/http"
