@@ -13,6 +13,7 @@ var pwd string
 
 func init() {
 	// need to cache pwd before all tests run
+	// pwd is changed to the bin dir in the tmp folder during test run
 	pwd, _ = os.Getwd()
 }
 
