@@ -554,6 +554,14 @@ module Hub
           URI.parse proxy
         end
       end
+
+      def uri_scheme host
+        user = @data.fetch_value normalize_host(host), nil, :user
+        @data.fetch_value normalize_host(host), user, :uri_scheme do
+          'https'
+        end
+      end
+
     end
   end
 end
