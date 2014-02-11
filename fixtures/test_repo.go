@@ -12,7 +12,7 @@ import (
 var pwd string
 
 func init() {
-	// need to cache it before all tests run
+	// need to cache pwd before all tests run
 	pwd, _ = os.Getwd()
 }
 
