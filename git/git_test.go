@@ -17,10 +17,13 @@ func TestGitDir(t *testing.T) {
 }
 
 func TestGitEditor(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	SetGlobalConfig("core.editor", "foo")
 	gitEditor, err := Editor()
-	if err == nil {
-		assert.NotEqual(t, "", gitEditor)
-	}
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "foo", gitEditor)
 }
 
 func TestGitLog(t *testing.T) {
@@ -63,7 +66,8 @@ func TestGitShow(t *testing.T) {
 }
 
 func TestGitConfig(t *testing.T) {
-	defer UnsetGlobalConfig("gh.test")
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
 
 	v, err := GlobalConfig("gh.test")
 	assert.NotEqual(t, nil, err)

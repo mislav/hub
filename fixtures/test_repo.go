@@ -9,33 +9,41 @@ import (
 	"github.com/github/hub/cmd"
 )
 
-var pwd string
+var pwd, home string
 
 func init() {
-	// need to cache pwd before all tests run
-	// pwd is changed to the bin dir in the tmp folder during test run
+	// caching `pwd` and $HOME and reset them after test repo is teared down
+	// `pwd` is changed to the bin temp dir during test run
 	pwd, _ = os.Getwd()
+	home = os.Getenv("HOME")
 }
 
 type TestRepo struct {
 	pwd    string
 	dir    string
+	home   string
 	Remote string
 }
 
-func (r *TestRepo) Setup() (err error) {
-	r.dir, err = ioutil.TempDir("", "test-repo")
+func (r *TestRepo) Setup() {
+	dir, err := ioutil.TempDir("", "test-repo")
 	if err != nil {
-		return
+		panic(err)
 	}
-	targetPath := filepath.Join(r.dir, "test.git")
+	r.dir = dir
 
+	os.Setenv("HOME", r.dir)
+
+	targetPath := filepath.Join(r.dir, "test.git")
 	err = r.clone(r.Remote, targetPath)
 	if err != nil {
-		return
+		panic(err)
 	}
 
-	return os.Chdir(targetPath)
+	err = os.Chdir(targetPath)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (r *TestRepo) clone(repo, dir string) error {
@@ -48,27 +56,24 @@ func (r *TestRepo) clone(repo, dir string) error {
 	return err
 }
 
-func (r *TestRepo) TearDown() error {
-	err := os.Remove(r.dir)
+func (r *TestRepo) TearDown() {
+	err := os.RemoveAll(r.dir)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
 	err = os.Chdir(r.pwd)
 	if err != nil {
-		return err
+		panic(err)
 	}
 
-	return nil
+	os.Setenv("HOME", r.home)
 }
 
 func SetupTestRepo() *TestRepo {
 	remotePath := filepath.Join(pwd, "..", "fixtures", "test.git")
-	repo := &TestRepo{pwd: pwd, Remote: remotePath}
-	err := repo.Setup()
-	if err != nil {
-		panic(err)
-	}
+	repo := &TestRepo{pwd: pwd, home: home, Remote: remotePath}
+	repo.Setup()
 
 	return repo
 }
