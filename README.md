@@ -363,6 +363,22 @@ $ git clone defunkt/repl
 < https clone >
 ~~~
 
+### GitHub Enterprise
+
+To use the hub gem with your GitHub Enterprise installation, first whitelist
+your hostname
+
+    $ git config --global --add hub.host my.example.org
+
+If for some reason your GitHub Enterprise installation only runs over http (not
+https), first see if you can't fix it to run over https.  If you can't, you'll
+need to modify your $HOME/.config/hub to set the uri_scheme to http for the
+Enterprise hostname
+
+    my.example.org:
+    - user: myuser
+      oauth_token: mytoken
+      uri_scheme: http
 
 Meta
 ----
