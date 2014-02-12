@@ -156,8 +156,8 @@ module Hub
     end
 
     def statuses project, sha
-      res = get "https://%s/repos/%s/%s/statuses/%s" %
-        [api_host(project.host), project.owner, project.name, sha]
+      res = get "%s://%s/repos/%s/%s/statuses/%s" %
+        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name, sha]
 
       res.error! unless res.success?
       res.data
