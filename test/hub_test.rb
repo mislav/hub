@@ -360,7 +360,7 @@ class HubTest < Minitest::Test
     end
 
     stub_request(:post, "http://git.my.org/api/v3/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "myfiname:feature", 'title' => "hereyougo" }).
+      with(:body => {'base' => "master", 'head' => "defunkt:feature", 'title' => "hereyougo" }).
       to_return(:body => mock_pullreq_response(1, 'api/v3/defunkt/hub', 'git.my.org', 'http'))
 
     expected = "http://git.my.org/api/v3/defunkt/hub/pull/1\n"
@@ -373,7 +373,7 @@ class HubTest < Minitest::Test
       to_return(:body => mock_pullreq_response(1))
 
     expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request -m hereyougo -h yay-feature -f"
+    assert_output expected, "pull-request -m hereyougo -h tpw:yay-feature -f"
   end
 
   def test_pullrequest_explicit_head_with_owner
