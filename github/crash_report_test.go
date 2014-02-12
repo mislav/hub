@@ -1,9 +1,11 @@
 package github
 
 import (
-	"github.com/bmizerany/assert"
-	"github.com/github/hub/git"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
+	"github.com/github/hub/git"
 )
 
 func TestStackRemoveSelfAndPanic(t *testing.T) {
@@ -32,21 +34,33 @@ main.main()
 }
 
 func TestSaveAlwaysReportOption(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
 	checkSavedReportCrashOption(t, true, "a", "always")
 	checkSavedReportCrashOption(t, true, "always", "always")
 }
 
 func TestSaveNeverReportOption(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
 	checkSavedReportCrashOption(t, false, "e", "never")
 	checkSavedReportCrashOption(t, false, "never", "never")
 }
 
 func TestDoesntSaveYesReportOption(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
 	checkSavedReportCrashOption(t, false, "y", "")
 	checkSavedReportCrashOption(t, false, "yes", "")
 }
 
 func TestDoesntSaveNoReportOption(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
 	checkSavedReportCrashOption(t, false, "n", "")
 	checkSavedReportCrashOption(t, false, "no", "")
 }
