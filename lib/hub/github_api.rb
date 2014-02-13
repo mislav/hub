@@ -70,8 +70,8 @@ module Hub
 
     # Public: Fetch data for a specific repo.
     def repo_info project
-      get "%s://%s/repos/%s/%s" %
-        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name]
+      url = get_project_url project
+      get url
     end
 
     # Public: Determine whether a specific repo exists.
@@ -81,8 +81,8 @@ module Hub
 
     # Public: Fork the specified repo.
     def fork_repo project
-      res = post "%s://%s/repos/%s/%s/forks" %
-        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name]
+      url = get_project_url project, "/forks"
+      res = post url
       res.error! unless res.success?
     end
 
@@ -93,42 +93,40 @@ module Hub
       params[:description] = options[:description] if options[:description]
       params[:homepage]    = options[:homepage]    if options[:homepage]
 
-      uri_scheme = config.uri_scheme(project.host)
       if is_org
-        res = post "%s://%s/orgs/%s/repos" %
-          [uri_scheme, api_host(project.host), project.owner], params
+        url = get_host_url project.host, "/orgs/%s/repos", project.owner
       else
-        res = post "%s://%s/user/repos" %
-          [uri_scheme, api_host(project.host)], params
+        url = get_host_url project.host, "/user/repos"
       end
+      res = post url, params
       res.error! unless res.success?
       res.data
     end
 
     # Public: Fetch info about a pull request.
     def pullrequest_info project, pull_id
-      res = get "%s://%s/repos/%s/%s/pulls/%d" %
-        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name, pull_id]
+      url = get_project_url project, "/pulls/%d", pull_id
+      res = get url
       res.error! unless res.success?
       res.data
     end
 
     # Public: Fetch a pull request's patch
     def pullrequest_patch project, pull_id
-      res = get "https://%s/repos/%s/%s/pulls/%d" %
-        [api_host(project.host), project.owner, project.name, pull_id] do |req|
-          req["Accept"] = "application/vnd.github.v3.patch"
-        end
+      url = get_project_url project, "/pulls/%d", pull_id
+      res = get url do |req|
+        req["Accept"] = "application/vnd.github.v3.patch"
+      end
       res.error! unless res.success?
       res.body
     end
 
     # Public: Fetch the patch from a commit
     def commit_patch project, sha
-      res = get "https://%s/repos/%s/%s/commits/%s" %
-        [api_host(project.host), project.owner, project.name, sha] do |req|
-          req["Accept"] = "application/vnd.github.v3.patch"
-        end
+      url = get_project_url project, "/commits/%s", sha
+      res = get url do |req|
+        req["Accept"] = "application/vnd.github.v3.patch"
+      end
       res.error! unless res.success?
       res.body
     end
@@ -160,19 +158,31 @@ module Hub
         params[:body]  = options[:body]  if options[:body]
       end
 
-      res = post "%s://%s/repos/%s/%s/pulls" %
-        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name], params
+      url = get_project_url project, "/pulls"
+      res = post url, params
 
       res.error! unless res.success?
       res.data
     end
 
     def statuses project, sha
-      res = get "%s://%s/repos/%s/%s/statuses/%s" %
-        [config.uri_scheme(project.host), api_host(project.host), project.owner, project.name, sha]
-
+      url = get_project_url project, "/statuses/%s", sha
+      res = get url
       res.error! unless res.success?
       res.data
+    end
+
+    def get_host_url host, format_str, *args
+      ("%s://%s/" + format_str) %
+        [config.uri_scheme(host), api_host(host), *args]
+    end
+
+    def get_project_url project, format_str='', *args
+      get_host_url(
+        project.host,
+        "repos/%s/%s" << format_str,
+        project.owner, project.name, *args
+      )
     end
 
     # Methods for performing HTTP requests
