@@ -313,11 +313,8 @@ module Hub
       private
 
       def scheme
-        config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
-
-        if File.exist? File.expand_path(config_file)
-          file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
-          config = GitHubAPI::Configuration.new file_store
+        config = GitHubAPI.api_client.config
+        if config then
           config.uri_scheme(host)
         else
           'https'
