@@ -233,9 +233,13 @@ module Hub
       end
 
       def self.default_host
-        git_reader = GitReader.new ENV['GIT']
         hub_host = git_reader.read_config('hub.host') || 'github.com'
         ENV['GITHUB_HOST'] || hub_host || main_host
+      end
+
+      # Use same git_reader, esp. helpful for tests
+      def self.git_reader
+        @git_reader ||= GitReader.new ENV['GIT']
       end
 
       def self.main_host
