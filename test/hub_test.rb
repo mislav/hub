@@ -349,42 +349,6 @@ class HubTest < Minitest::Test
     assert_output expected, "pull-request -m hereyougo -f"
   end
 
-  def test_pullrequest_enterprise_no_tracking_http
-    stub_hub_host('git.my.org')
-    stub_repo_url('git@git.my.org:defunkt/hub.git')
-    stub_branch('refs/heads/feature')
-    stub_tracking_nothing('feature')
-    stub_command_output "rev-list --cherry-pick --right-only --no-merges origin/feature...", nil
-    edit_hub_config do |data|
-      data['git.my.org'] = [{'user'=>'myfiname', 'oauth_token' => 'FITOKEN', 'uri_scheme' => 'http'}]
-    end
-
-    stub_request(:post, "http://git.my.org/api/v3/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "defunkt:feature", 'title' => "hereyougo" }).
-      to_return(:body => mock_pullreq_response(1, 'api/v3/defunkt/hub', 'git.my.org', 'http'))
-
-    expected = "http://git.my.org/api/v3/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request -m hereyougo -f"
-  end
-
-  def test_pullrequest_explicit_head
-    stub_request(:post, "https://api.github.com/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "tpw:yay-feature", 'title' => "hereyougo" }).
-      to_return(:body => mock_pullreq_response(1))
-
-    expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request -m hereyougo -h tpw:yay-feature -f"
-  end
-
-  def test_pullrequest_explicit_head_with_owner
-    stub_request(:post, "https://api.github.com/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "mojombo:feature", 'title' => "hereyougo" }).
-      to_return(:body => mock_pullreq_response(1))
-
-    expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request -m hereyougo -h mojombo:feature -f"
-  end
-
   def test_pullrequest_alias
     out = hub('e-note')
     assert_equal hub('pull-request'), out
@@ -626,8 +590,8 @@ class HubTest < Minitest::Test
       end
     end
 
-    def mock_pullreq_response(id, name_with_owner = 'defunkt/hub', host = 'github.com', uri_scheme = 'https')
-      Hub::JSON.generate :html_url => "#{uri_scheme}://#{host}/#{name_with_owner}/pull/#{id}"
+    def mock_pullreq_response(id, name_with_owner = 'defunkt/hub', host = 'github.com')
+      Hub::JSON.generate :html_url => "https://#{host}/#{name_with_owner}/pull/#{id}"
     end
 
     def mock_pull_response(label, priv = false)

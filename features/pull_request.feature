@@ -405,6 +405,21 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m enterprisey`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Enterprise host, HTTP
+    Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    Given the GitHub API server:
+      """
+      post('/api/v3/repos/mislav/coral/pulls') {
+        halt 400 unless request.scheme == 'http'
+        assert :title => 'enterprisey'
+        json :html_url => "the://url?url=#{request.url}"
+      }
+      """
+    When I successfully run `hub pull-request -m enterprisey`
+    Then the output should contain exactly "the://url?url=http://git.my.org/api/v3/repos/mislav/coral/pulls\n"
+
   Scenario: Create pull request from branch on the same remote
     Given the "origin" remote has url "git://github.com/github/coral.git"
     And the "mislav" remote has url "git://github.com/mislav/coral.git"
