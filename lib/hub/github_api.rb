@@ -17,16 +17,14 @@ module Hub
   class GitHubAPI
     attr_reader :config, :oauth_app_url
 
-    @@api_client = nil
-
     def self.api_client
-      @@api_client ||= begin
+      api_client ||= begin
         config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
         file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
         file_config = GitHubAPI::Configuration.new file_store
         GitHubAPI.new file_config, :app_url => 'http://hub.github.com/'
       end
-      @@api_client
+      api_client
     end
 
     # Public: Create a new API client instance

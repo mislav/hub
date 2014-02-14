@@ -825,7 +825,7 @@ module Hub
     end
 
     def api_client
-      GitHubAPI.api_client
+      @api_client ||= GitHubAPI.api_client
     end
 
     def github_user host = nil, &block
