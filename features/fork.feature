@@ -7,7 +7,10 @@ Feature: hub fork
   Scenario: Fork the repository
     Given the GitHub API server:
       """
-      before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+      }
       get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
       post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
@@ -121,7 +124,10 @@ Scenario: Related fork already exists
   Scenario: Enterprise fork
     Given the GitHub API server:
       """
-      before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN' }
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
+      }
       post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"

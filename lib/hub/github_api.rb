@@ -248,6 +248,7 @@ module Hub
       def configure_connection req, url
         if ENV['HUB_TEST_HOST']
           req['Host'] = url.host
+          req['X-Original-Scheme'] = url.scheme
           url = url.dup
           url.scheme = 'http'
           url.host, test_port = ENV['HUB_TEST_HOST'].split(':')
