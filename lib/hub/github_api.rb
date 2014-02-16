@@ -246,6 +246,7 @@ module Hub
       end
 
       def configure_connection req, url
+        url.scheme = config.protocol(url.host)
         if ENV['HUB_TEST_HOST']
           req['Host'] = url.host
           req['X-Original-Scheme'] = url.scheme
@@ -471,6 +472,11 @@ module Hub
         @data.fetch_value(host, user, :oauth_token) do
           value_to_persist(yield)
         end
+      end
+
+      def protocol host
+        host = normalize_host host
+        @data.fetch_value(host, nil, :protocol) { 'https' }
       end
 
       def value_to_persist(value = nil)

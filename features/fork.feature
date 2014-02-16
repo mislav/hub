@@ -135,3 +135,18 @@ Scenario: Related fork already exists
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
     Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+
+  Scenario: Enterprise fork using regular HTTP
+    Given the GitHub API server:
+      """
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'http'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
+      }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      """
+    And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
+    And I am "mislav" on http://git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    When I successfully run `hub fork`
+    Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
