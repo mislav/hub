@@ -171,7 +171,7 @@ module Hub
     end
 
     def get_host_url host, format_str, *args
-      ("%s://%s/" + format_str) %
+      File.join("%s://%s", format_str) %
         [config.uri_scheme(host), api_host(host), *args]
     end
 
