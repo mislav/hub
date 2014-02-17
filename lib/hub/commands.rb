@@ -825,12 +825,7 @@ module Hub
     end
 
     def api_client
-      @api_client ||= begin
-        config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
-        file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
-        file_config = GitHubAPI::Configuration.new file_store
-        GitHubAPI.new file_config, :app_url => 'http://hub.github.com/'
-      end
+      @api_client ||= GitHubAPI.api_client
     end
 
     def github_user host = nil, &block

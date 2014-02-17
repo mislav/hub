@@ -17,6 +17,16 @@ module Hub
   class GitHubAPI
     attr_reader :config, :oauth_app_url
 
+    def self.api_client
+      api_client ||= begin
+        config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
+        file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
+        file_config = GitHubAPI::Configuration.new file_store
+        GitHubAPI.new file_config, :app_url => 'http://hub.github.com/'
+      end
+      api_client
+    end
+
     # Public: Create a new API client instance
     #
     # Options:
@@ -24,6 +34,7 @@ module Hub
     #   - username(host)
     #   - password(host, user)
     #   - oauth_token(host, user)
+    #   - uri_scheme(host)
     def initialize config, options
       @config = config
       @oauth_app_url = options.fetch(:app_url)
@@ -57,8 +68,8 @@ module Hub
 
     # Public: Fetch data for a specific repo.
     def repo_info project
-      get "https://%s/repos/%s/%s" %
-        [api_host(project.host), project.owner, project.name]
+      url = get_project_url project
+      get url
     end
 
     # Public: Determine whether a specific repo exists.
@@ -68,8 +79,8 @@ module Hub
 
     # Public: Fork the specified repo.
     def fork_repo project
-      res = post "https://%s/repos/%s/%s/forks" %
-        [api_host(project.host), project.owner, project.name]
+      url = get_project_url project, "/forks"
+      res = post url
       res.error! unless res.success?
     end
 
@@ -81,38 +92,39 @@ module Hub
       params[:homepage]    = options[:homepage]    if options[:homepage]
 
       if is_org
-        res = post "https://%s/orgs/%s/repos" % [api_host(project.host), project.owner], params
+        url = get_host_url project.host, "/orgs/%s/repos", project.owner
       else
-        res = post "https://%s/user/repos" % api_host(project.host), params
+        url = get_host_url project.host, "/user/repos"
       end
+      res = post url, params
       res.error! unless res.success?
       res.data
     end
 
     # Public: Fetch info about a pull request.
     def pullrequest_info project, pull_id
-      res = get "https://%s/repos/%s/%s/pulls/%d" %
-        [api_host(project.host), project.owner, project.name, pull_id]
+      url = get_project_url project, "/pulls/%d", pull_id
+      res = get url
       res.error! unless res.success?
       res.data
     end
 
     # Public: Fetch a pull request's patch
     def pullrequest_patch project, pull_id
-      res = get "https://%s/repos/%s/%s/pulls/%d" %
-        [api_host(project.host), project.owner, project.name, pull_id] do |req|
-          req["Accept"] = "application/vnd.github.v3.patch"
-        end
+      url = get_project_url project, "/pulls/%d", pull_id
+      res = get url do |req|
+        req["Accept"] = "application/vnd.github.v3.patch"
+      end
       res.error! unless res.success?
       res.body
     end
 
     # Public: Fetch the patch from a commit
     def commit_patch project, sha
-      res = get "https://%s/repos/%s/%s/commits/%s" %
-        [api_host(project.host), project.owner, project.name, sha] do |req|
-          req["Accept"] = "application/vnd.github.v3.patch"
-        end
+      url = get_project_url project, "/commits/%s", sha
+      res = get url do |req|
+        req["Accept"] = "application/vnd.github.v3.patch"
+      end
       res.error! unless res.success?
       res.body
     end
@@ -144,19 +156,31 @@ module Hub
         params[:body]  = options[:body]  if options[:body]
       end
 
-      res = post "https://%s/repos/%s/%s/pulls" %
-        [api_host(project.host), project.owner, project.name], params
+      url = get_project_url project, "/pulls"
+      res = post url, params
 
       res.error! unless res.success?
       res.data
     end
 
     def statuses project, sha
-      res = get "https://%s/repos/%s/%s/statuses/%s" %
-        [api_host(project.host), project.owner, project.name, sha]
-
+      url = get_project_url project, "/statuses/%s", sha
+      res = get url
       res.error! unless res.success?
       res.data
+    end
+
+    def get_host_url host, format_str, *args
+      File.join("%s://%s", format_str) %
+        [config.uri_scheme(host), api_host(host), *args]
+    end
+
+    def get_project_url project, format_str='', *args
+      get_host_url(
+        project.host,
+        "repos/%s/%s" << format_str,
+        project.owner, project.name, *args
+      )
     end
 
     # Methods for performing HTTP requests
@@ -304,7 +328,8 @@ module Hub
       end
 
       def obtain_oauth_token host, user, two_factor_code = nil
-        auth_url = URI.parse("https://%s@%s/authorizations" % [CGI.escape(user), host])
+        uri_scheme = config.uri_scheme(host)
+        auth_url = URI.parse("#{uri_scheme}://%s@%s/authorizations" % [CGI.escape(user), host])
 
         # dummy request to trigger a 2FA SMS since a HTTP GET won't do it
         post(auth_url) if !two_factor_code
@@ -552,6 +577,14 @@ module Hub
         if proxy = ENV[env_name] || ENV[env_name.downcase] and !proxy.empty?
           proxy = "http://#{proxy}" unless proxy.include? '://'
           URI.parse proxy
+        end
+      end
+
+      def uri_scheme host
+        host = normalize_host host
+        user = username host
+        @data.fetch_value host, user, :uri_scheme do
+          'https'
         end
       end
     end

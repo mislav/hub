@@ -233,7 +233,13 @@ module Hub
       end
 
       def self.default_host
-        ENV['GITHUB_HOST'] || main_host
+        hub_host = git_reader.read_config('hub.host') || 'github.com'
+        ENV['GITHUB_HOST'] || hub_host || main_host
+      end
+
+      # Use same git_reader, esp. helpful for tests
+      def self.git_reader
+        @git_reader ||= GitReader.new ENV['GIT']
       end
 
       def self.main_host
@@ -298,7 +304,7 @@ module Hub
             path = '/wiki' + path
           end
         end
-        "https://#{host}/" + project_name + path.to_s
+        "#{scheme}://#{host}/" + project_name + path.to_s
       end
 
       def git_url(options = {})
@@ -306,6 +312,17 @@ module Hub
         elsif options[:private] or private? then "git@#{host}:"
         else "git://#{host}/"
         end + name_with_owner + '.git'
+      end
+
+      private
+
+      def scheme
+        config = GitHubAPI.api_client.config
+        if config then
+          config.uri_scheme(host)
+        else
+          'https'
+        end
       end
     end
 
