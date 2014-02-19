@@ -73,6 +73,28 @@ module Hub
       res.error! unless res.success?
     end
 
+    def star_repo project
+      res = put "https://%s/user/starred/%s/%s" %
+        [api_host(project.host), project.owner, project.name]
+      res.error! unless res.success?
+    end
+
+    def unstar_repo project
+      res = delete "https://%s/user/starred/%s/%s" %
+        [api_host(project.host), project.owner, project.name]
+      res.error! unless res.success?
+    end
+
+    def follow_user user
+      res = put "https://%s/user/following/%s" % [api_host('github.com'), user]
+      res.error! unless res.success?
+    end
+
+    def unfollow_user user
+      res = delete "https://%s/user/following/%s" % [api_host('github.com'), user]
+      res.error! unless res.success?
+    end
+
     # Public: Create a new project.
     def create_repo project, options = {}
       is_org = project.owner.downcase != username_via_auth_dance(project.host).downcase
@@ -211,6 +233,23 @@ module Hub
         end
       end
 
+      def put url, params = nil
+        perform_request url, :Put do |req|
+          if params
+            req.body = JSON.dump params
+            req['Content-Type'] = 'application/json;charset=utf-8'
+          end
+          yield req if block_given?
+          req['Content-Length'] = byte_size req.body
+        end
+      end
+
+      def delete url
+        perform_request url, :Delete do |req|
+          yield req if block_given?
+        end
+      end
+
       def post_form url, params
         post(url) {|req| req.set_form_data params }
       end
@@ -327,7 +366,7 @@ module Hub
         else
           # create a new authorization
           res = post auth_url,
-            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url do |req|
+            :scopes => %w[repo user:follow], :note => 'hub', :note_url => oauth_app_url do |req|
               req['X-GitHub-OTP'] = two_factor_code if two_factor_code
             end
           res.error! unless res.success?
