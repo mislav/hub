@@ -330,6 +330,26 @@ superpowers:
     > (prints CI state of commit and exits with appropriate code)
     > One of: success (0), error (1), failure (1), pending (2), no status (3)
 
+### git star
+
+    $ git star [user/project]
+    > (star current or specified project on GitHub)
+
+### git unstar
+
+    $ git unstar [user/project]
+    > (unstar current or specified project on GitHub)
+
+### git follow
+
+    $ git follow [user]
+    > (follow owner of remote "origin" or specified user on GitHub)
+
+### git unfollow
+
+    $ git unfollow [user]
+    > (unfollow owner of remote "origin" or specified user on GitHub)
+
 
 ### git help
 

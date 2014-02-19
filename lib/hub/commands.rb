@@ -38,7 +38,7 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
-    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
+    CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status star unstar follow unfollow]
 
     def run(args)
       slurp_global_flags(args)
@@ -567,6 +567,64 @@ module Hub
       exit 1
     end
 
+    # $ hub star [USER/PROJECT]
+    def star(args)
+      if args.length < 2
+        unless project = local_repo.main_project
+          abort "Error: repository under 'origin' remote is not a GitHub project"
+        end
+      else
+        project = github_project args[1]
+      end
+
+      api_client.star_repo(project) unless args.noop?
+
+      args.executable = 'echo'
+    end
+   
+    # $ hub unstar [USER/PROJECT]
+    def unstar(args)
+      if args.length < 2
+        unless project = local_repo.main_project
+          abort "Error: repository under 'origin' remote is not a GitHub project"
+        end
+      else
+        project = github_project args[1]
+      end
+
+      api_client.unstar_repo(project) unless args.noop?
+
+      args.executable = 'echo'
+    end
+
+    # $ hub follow [USER]
+    def follow(args)
+      if args.length < 2
+        unless project = local_repo.main_project
+          abort "Error: repository under 'origin' remote is not a GitHub project"
+        end
+        args.push(project.owner)
+      end
+
+      api_client.follow_user(args[1]) unless args.noop?
+
+      args.executable = 'echo'
+    end
+
+    # $ hub unfollow [USER]
+    def unfollow(args)
+      if args.length < 2
+        unless project = local_repo.main_project
+          abort "Error: repository under 'origin' remote is not a GitHub project"
+        end
+        args.push(project.owner)
+      end
+
+      api_client.unfollow_user(args[1]) unless args.noop?
+
+      args.executable = 'echo'
+    end
+
     # $ hub create
     # ... create repo on github ...
     # > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
@@ -911,6 +969,10 @@ GitHub Commands:
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
    ci-status      Show the CI status of a commit
+   star           Star this repository on GitHub
+   unstar         Unstar this repository on GitHub
+   follow         Follow the owner of remote "origin" on GitHub
+   unfollow       Unfollow the owner of remote "origin" on GitHub
 
 See 'git help <command>' for more information on a specific command.
 help
