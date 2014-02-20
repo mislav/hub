@@ -160,11 +160,6 @@ func SetGlobalConfig(name, value string) error {
 	return err
 }
 
-func UnsetGlobalConfig(name string) error {
-	_, err := gitConfig("--global", "--unset", name)
-	return err
-}
-
 func gitGetConfig(args ...string) (string, error) {
 	output, err := execGitCmd(gitConfigCommand(args)...)
 	if err != nil {
