@@ -2,8 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"github.com/bmizerany/assert"
-	"github.com/github/hub/git"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -11,6 +9,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
 func TestUpdater_downloadFile(t *testing.T) {
@@ -92,7 +93,8 @@ func TestDoesntSaveNoAutoUpdateOption(t *testing.T) {
 }
 
 func checkSavedAutoUpdateOption(t *testing.T, always bool, confirm, expected string) {
-	defer git.UnsetGlobalConfig(ghAutoUpdateConfig)
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
 
 	saveAutoUpdateConfiguration(confirm, always)
 	assert.Equal(t, expected, autoUpdateConfig())
