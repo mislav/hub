@@ -116,7 +116,7 @@ GitHub Commands:
    ci-status      Show the CI status of a commit
 
 See 'git help <command>' for more information on a specific command.
-Run 'git update' to update to the latest version of gh.
+Run 'git selfupdate' to update to the latest version of gh.
 `
 
 func printUsage() {
