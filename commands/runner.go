@@ -2,15 +2,16 @@ package commands
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
+	"strings"
+	"syscall"
+
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
 	"github.com/github/hub/utils"
 	"github.com/kballard/go-shellquote"
 	flag "github.com/ogier/pflag"
-	"os"
-	"os/exec"
-	"strings"
-	"syscall"
 )
 
 type ExecError struct {

@@ -11,11 +11,6 @@
 			"Rev": "364fb577de68fb646c4cb39cc0e09c887ee16376"
 		},
 		{
-			"ImportPath": "code.google.com/p/go-netrc/netrc",
-			"Comment": "null-12",
-			"Rev": "0da3cb9c37e02c4eddb0775a45d2d49a694d302c"
-		},
-		{
 			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
 			"Comment": "null-185",
 			"Rev": "6478cc9340cbbe6c04511280c5007722269108e9"
@@ -26,17 +21,16 @@
 			"Rev": "e17e99893cb6509f428e1728281c2ad60a6b31e3"
 		},
 		{
+			"ImportPath": "github.com/fhs/go-netrc/netrc",
+			"Rev": "4422b68c9c934b03e8e53ef18c8c8714542def7e"
+		},
+		{
 			"ImportPath": "github.com/howeyc/gopass",
 			"Rev": "4cf66881dcc3d6f0071eb6473d95c39e460de696"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/go-update",
 			"Rev": "3f0466666779bd2143f368a207b0641f0ed536e8"
-		},
-		{
-			"ImportPath": "github.com/jingweno/go-octokit/octokit",
-			"Comment": "v0.4.0-49-gc08264b",
-			"Rev": "c08264b452c4a2960650be6bf0e33408c62c9bf1"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",
@@ -59,6 +53,11 @@
 		{
 			"ImportPath": "github.com/lostisland/go-sawyer",
 			"Rev": "cb3f837f5ac26e080a9002dcb4d2e8472e623916"
+		},
+		{
+			"ImportPath": "github.com/octokit/go-octokit/octokit",
+			"Comment": "v0.4.0-56-g399326a",
+			"Rev": "399326a3fdf740b5dfd82cd634878ab37729df06"
 		},
 		{
 			"ImportPath": "github.com/ogier/pflag",

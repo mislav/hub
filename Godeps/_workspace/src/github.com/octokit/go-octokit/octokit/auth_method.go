@@ -1,9 +1,9 @@
 package octokit
 
 import (
-	"code.google.com/p/go-netrc/netrc"
 	"encoding/base64"
 	"fmt"
+	"github.com/fhs/go-netrc/netrc"
 	"net/url"
 	"os"
 	"path/filepath"

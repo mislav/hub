@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"github.com/jingweno/go-octokit/octokit"
+	"github.com/octokit/go-octokit/octokit"
 	"io"
 	"net/http"
 	"os"

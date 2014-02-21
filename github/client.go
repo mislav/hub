@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jingweno/go-octokit/octokit"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
