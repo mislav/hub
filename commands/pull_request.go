@@ -9,6 +9,7 @@ import (
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 var cmdPullRequest = &Command{
@@ -163,17 +164,19 @@ func pullRequest(cmd *Command, args *Args) {
 		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", fullBase, fullHead), "")
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
+		var (
+			pr  *octokit.PullRequest
+			err error
+		)
+
 		if title != "" {
-			pr, err := client.CreatePullRequest(baseProject, base, fullHead, title, body)
-			utils.Check(err)
-			pullRequestURL = pr.HTMLURL
+			pr, err = client.CreatePullRequest(baseProject, base, fullHead, title, body)
+		} else if flagPullRequestIssue != "" {
+			pr, err = client.CreatePullRequestForIssue(baseProject, base, fullHead, flagPullRequestIssue)
 		}
 
-		if flagPullRequestIssue != "" {
-			pr, err := client.CreatePullRequestForIssue(baseProject, base, fullHead, flagPullRequestIssue)
-			utils.Check(err)
-			pullRequestURL = pr.HTMLURL
-		}
+		utils.Check(err)
+		pullRequestURL = pr.HTMLURL
 	}
 
 	args.Replace("echo", "", pullRequestURL)

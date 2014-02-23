@@ -63,6 +63,10 @@ func (client *Client) CreatePullRequest(project *Project, base, head, title, bod
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).Create(params)
 	if result.HasError() {
 		err = formatError("creating pull request", result)
+		if e := warnExistenceOfRepo(project, result); e != nil {
+			err = fmt.Errorf("%s\n%s", err, e)
+		}
+
 		return
 	}
 
@@ -79,6 +83,10 @@ func (client *Client) CreatePullRequestForIssue(project *Project, base, head, is
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).Create(params)
 	if result.HasError() {
 		err = formatError("creating pull request", result)
+		if e := warnExistenceOfRepo(project, result); e != nil {
+			err = fmt.Errorf("%s\n%s", err, e)
+		}
+
 		return
 	}
 
@@ -380,7 +388,7 @@ func formatError(action string, result *octokit.Result) error {
 		statusCode := e.Response.StatusCode
 		var reason string
 		if s := strings.SplitN(e.Response.Status, " ", 2); len(s) >= 2 {
-			reason = s[1]
+			reason = strings.TrimSpace(s[1])
 		}
 
 		errStr := fmt.Sprintf("Error %s: %s (HTTP %d)", action, reason, statusCode)
@@ -406,4 +414,18 @@ func formatError(action string, result *octokit.Result) error {
 	}
 
 	return result.Err
+}
+
+func warnExistenceOfRepo(project *Project, result *octokit.Result) (err error) {
+	if e, ok := result.Err.(*octokit.ResponseError); ok && e.Response.StatusCode == 404 {
+		var url string
+		if s := strings.SplitN(project.WebURL("", "", ""), "://", 2); len(s) >= 2 {
+			url = s[1]
+		}
+		if url != "" {
+			err = fmt.Errorf("Are you sure that %s exists?", url)
+		}
+	}
+
+	return
 }
