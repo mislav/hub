@@ -1,18 +1,19 @@
 package octokit
 
 import (
-	"github.com/lostisland/go-sawyer"
-	"github.com/lostisland/go-sawyer/hypermedia"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/lostisland/go-sawyer"
+	"github.com/lostisland/go-sawyer/hypermedia"
 )
 
 func NewClient(authMethod AuthMethod) *Client {
-	return NewClientWith(gitHubAPIURL, nil, authMethod)
+	return NewClientWith(gitHubAPIURL, userAgent, authMethod, nil)
 }
 
-func NewClientWith(baseURL string, httpClient *http.Client, authMethod AuthMethod) *Client {
+func NewClientWith(baseURL string, userAgent string, authMethod AuthMethod, httpClient *http.Client) *Client {
 	client, _ := sawyer.NewFromString(baseURL, httpClient)
 	return &Client{sawyerClient: client, UserAgent: userAgent, AuthMethod: authMethod}
 }

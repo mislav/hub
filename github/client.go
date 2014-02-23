@@ -13,6 +13,7 @@ import (
 const (
 	GitHubHost    string = "github.com"
 	GitHubApiHost string = "api.github.com"
+	UserAgent     string = "Hub"
 	OAuthAppURL   string = "http://owenou.com/gh"
 )
 
@@ -263,7 +264,7 @@ func (client *Client) GhLatestTagName() (tagName string, err error) {
 		return
 	}
 
-	c := octokit.NewClientWith(client.apiEndpoint(), nil, nil)
+	c := octokit.NewClientWith(client.apiEndpoint(), UserAgent, nil, nil)
 	releases, result := c.Releases(client.requestURL(url)).All()
 	if result.HasError() {
 		err = fmt.Errorf("Error getting gh release: %s", result.Err)
@@ -288,7 +289,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
-	c := octokit.NewClientWith(client.apiEndpoint(), nil, basicAuth)
+	c := octokit.NewClientWith(client.apiEndpoint(), UserAgent, basicAuth, nil)
 	authsService := c.Authorizations(client.requestURL(url))
 
 	auths, result := authsService.All()
@@ -347,7 +348,7 @@ func (client *Client) octokit() (c *octokit.Client) {
 	tokenAuth := octokit.TokenAuth{AccessToken: client.Credentials.AccessToken}
 	tr := &http.Transport{Proxy: proxyFromEnvironment}
 	httpClient := &http.Client{Transport: tr}
-	c = octokit.NewClientWith(client.apiEndpoint(), httpClient, tokenAuth)
+	c = octokit.NewClientWith(client.apiEndpoint(), UserAgent, tokenAuth, httpClient)
 
 	return
 }

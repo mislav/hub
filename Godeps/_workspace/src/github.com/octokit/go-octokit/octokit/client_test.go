@@ -1,9 +1,10 @@
 package octokit
 
 import (
-	"github.com/bmizerany/assert"
 	"net/http"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestSuccessfulGet(t *testing.T) {
@@ -40,7 +41,15 @@ func TestSuccessfulGet_BasicAuth(t *testing.T) {
 		respondWithJSON(w, `{"login": "octokit"}`)
 	})
 
-	client = NewClientWith(server.URL, nil, BasicAuth{Login: "jingweno", Password: "password", OneTimePassword: "OTP"})
+	client = NewClientWith(
+		server.URL,
+		userAgent,
+		BasicAuth{
+			Login:           "jingweno",
+			Password:        "password",
+			OneTimePassword: "OTP",
+		},
+		nil)
 	req, err := client.NewRequest("foo")
 	assert.Equal(t, nil, err)
 
