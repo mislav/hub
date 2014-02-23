@@ -43,6 +43,7 @@ Before do
   set_env 'GIT_COMMITTER_EMAIL', author_email
 
   set_env 'GH_VERSION', 'dev'
+  set_env 'GH_REPORT_CRASH', 'never'
 
   FileUtils.mkdir_p ENV['HOME']
 

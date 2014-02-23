@@ -56,8 +56,8 @@
 		},
 		{
 			"ImportPath": "github.com/octokit/go-octokit/octokit",
-			"Comment": "v0.4.0-58-g590bef8",
-			"Rev": "590bef8a874bbc25a463762ff69d402994e3dbca"
+			"Comment": "v0.4.0-60-g24c866c",
+			"Rev": "24c866c6d831ace4b2753f2e939ab1aaeb265a55"
 		},
 		{
 			"ImportPath": "github.com/ogier/pflag",

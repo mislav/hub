@@ -1,11 +1,31 @@
 package octokit
 
 import (
-	"github.com/bmizerany/assert"
 	"net/http"
 	"strings"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
+
+func TestResponseError_empty_body(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		respondWith(w, "")
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Tf(t, strings.Contains(err.Error(), "400 - Problems parsing error message: EOF"), "%s", err.Error())
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorBadRequest, e.Type)
+}
 
 func TestResponseError_Error_400(t *testing.T) {
 	setup()

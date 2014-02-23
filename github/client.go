@@ -16,6 +16,11 @@ const (
 	OAuthAppURL   string = "http://owenou.com/gh"
 )
 
+func NewClient(host string) *Client {
+	c := CurrentConfigs().PromptFor(host)
+	return &Client{Credentials: c}
+}
+
 type ClientError struct {
 	error
 }
@@ -41,7 +46,8 @@ func (client *Client) PullRequest(project *Project, id string) (pr *octokit.Pull
 
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).One()
 	if result.HasError() {
-		err = fmt.Errorf("Error getting pull request: %s", result.Err)
+		err = formatError("getting pull request", result)
+		return
 	}
 
 	return
@@ -56,7 +62,8 @@ func (client *Client) CreatePullRequest(project *Project, base, head, title, bod
 	params := octokit.PullRequestParams{Base: base, Head: head, Title: title, Body: body}
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = fmt.Errorf("Error creating pull request: %s", result.Err)
+		err = formatError("creating pull request", result)
+		return
 	}
 
 	return
@@ -71,7 +78,8 @@ func (client *Client) CreatePullRequestForIssue(project *Project, base, head, is
 	params := octokit.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
 	pr, result := client.octokit().PullRequests(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = fmt.Errorf("Error creating pull request: %s", result.Err)
+		err = formatError("creating pull request", result)
+		return
 	}
 
 	return
@@ -85,7 +93,8 @@ func (client *Client) Repository(project *Project) (repo *octokit.Repository, er
 
 	repo, result := client.octokit().Repositories(client.requestURL(url)).One()
 	if result.HasError() {
-		err = fmt.Errorf("Error getting repository: %s", result.Err)
+		err = formatError("getting repository", result)
+		return
 	}
 
 	return
@@ -118,11 +127,8 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 	}
 	repo, result := client.octokit().Repositories(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		if result.Response == nil || result.Response.StatusCode == 500 {
-			err = fmt.Errorf("Error creating repository: Internal Server Error (HTTP 500)")
-		} else {
-			err = fmt.Errorf("Error creating repository: %v", result.Err)
-		}
+		err = formatError("creating repository", result)
+		return
 	}
 
 	return
@@ -136,7 +142,8 @@ func (client *Client) Releases(project *Project) (releases []octokit.Release, er
 
 	releases, result := client.octokit().Releases(client.requestURL(url)).All()
 	if result.HasError() {
-		err = fmt.Errorf("Error getting release: %s", result.Err)
+		err = formatError("getting release", result)
+		return
 	}
 
 	return
@@ -150,7 +157,8 @@ func (client *Client) CreateRelease(project *Project, params octokit.ReleasePara
 
 	release, result := client.octokit().Releases(client.requestURL(url)).Create(params)
 	if result.HasError() {
-		err = fmt.Errorf("Error creating release: %s", result.Err)
+		err = formatError("creating release", result)
+		return
 	}
 
 	return
@@ -165,7 +173,8 @@ func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, con
 
 	result := c.Uploads(uploadUrl).UploadAsset(asset, contentType, fileInfo.Size())
 	if result.HasError() {
-		err = fmt.Errorf("Error uploading asset: %s", result.Err)
+		err = formatError("uploading asset", result)
+		return
 	}
 	return
 }
@@ -178,7 +187,7 @@ func (client *Client) CIStatus(project *Project, sha string) (status *octokit.St
 
 	statuses, result := client.octokit().Statuses(client.requestURL(url)).All()
 	if result.HasError() {
-		err = fmt.Errorf("Error getting CI status: %s", result.Err)
+		err = formatError("getting CI status", result)
 		return
 	}
 
@@ -197,36 +206,45 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 
 	repo, result := client.octokit().Repositories(client.requestURL(url)).Create(nil)
 	if result.HasError() {
-		err = fmt.Errorf("Error forking repository: %s", result.Err)
+		err = formatError("forking repository", result)
+		return
 	}
 
 	return
 }
 
 func (client *Client) Issues(project *Project) (issues []octokit.Issue, err error) {
-	var result *octokit.Result
+	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
 
-	err = client.issuesService(project, func(service *octokit.IssuesService) error {
-		issues, result = service.All()
-		return resultError(result)
-	})
+	issues, result := client.octokit().Issues(client.requestURL(url)).All()
+	if result.HasError() {
+		err = formatError("getting issues", result)
+		return
+	}
 
 	return
 }
 
 func (client *Client) CreateIssue(project *Project, title, body string, labels []string) (issue *octokit.Issue, err error) {
+	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
+
 	params := octokit.IssueParams{
 		Title:  title,
 		Body:   body,
 		Labels: labels,
 	}
 
-	var result *octokit.Result
-
-	err = client.issuesService(project, func(service *octokit.IssuesService) error {
-		issue, result = service.Create(params)
-		return resultError(result)
-	})
+	issue, result := client.octokit().Issues(client.requestURL(url)).Create(params)
+	if result.HasError() {
+		err = formatError("creating issue", result)
+		return
+	}
 
 	return
 }
@@ -357,24 +375,35 @@ func absolute(endpoint string) string {
 	return u.String()
 }
 
-func NewClient(host string) *Client {
-	c := CurrentConfigs().PromptFor(host)
-	return &Client{Credentials: c}
-}
+func formatError(action string, result *octokit.Result) error {
+	if e, ok := result.Err.(*octokit.ResponseError); ok {
+		statusCode := e.Response.StatusCode
+		var reason string
+		if s := strings.SplitN(e.Response.Status, " ", 2); len(s) >= 2 {
+			reason = s[1]
+		}
 
-func (client *Client) issuesService(project *Project, fn func(service *octokit.IssuesService) error) (err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
+		errStr := fmt.Sprintf("Error %s: %s (HTTP %d)", action, reason, statusCode)
+
+		var messages []string
+		if statusCode == 422 {
+			if e.Message != "" {
+				messages = append(messages, e.Message)
+			}
+
+			if len(e.Errors) > 0 {
+				for _, e := range e.Errors {
+					messages = append(messages, e.Error())
+				}
+			}
+		}
+
+		if len(messages) > 0 {
+			errStr = fmt.Sprintf("%s\n%s", errStr, strings.Join(messages, "\n"))
+		}
+
+		return fmt.Errorf(errStr)
 	}
 
-	service := client.octokit().Issues(client.requestURL(url))
-	return fn(service)
-}
-
-func resultError(result *octokit.Result) (err error) {
-	if result != nil && result.HasError() {
-		err = result.Err
-	}
-	return
+	return result.Err
 }
