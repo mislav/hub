@@ -191,7 +191,7 @@ func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits
 		return
 	}
 
-	editor, err := github.NewEditor("PULLREQ", message)
+	editor, err := github.NewEditor("PULLREQ", "pull request", message)
 	if err != nil {
 		return
 	}

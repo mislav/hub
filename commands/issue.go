@@ -99,7 +99,7 @@ func writeIssueTitleAndBody(project *github.Project) (string, string, error) {
 `
 	message = fmt.Sprintf(message, project.Name)
 
-	editor, err := github.NewEditor("ISSUE", message)
+	editor, err := github.NewEditor("ISSUE", "issue", message)
 	if err != nil {
 		return "", "", err
 	}

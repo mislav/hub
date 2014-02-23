@@ -15,8 +15,8 @@ import (
 	"github.com/github/hub/git"
 )
 
-func NewEditor(topic, message string) (editor *Editor, err error) {
-	messageFile, err := getMessageFile(topic)
+func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
+	messageFile, err := getMessageFile(filePrefix)
 	if err != nil {
 		return
 	}
@@ -28,6 +28,7 @@ func NewEditor(topic, message string) (editor *Editor, err error) {
 
 	editor = &Editor{
 		Program: program,
+		Topic:   topic,
 		File:    messageFile,
 		Message: message,
 		doEdit:  doTextEditorEdit,
@@ -38,6 +39,7 @@ func NewEditor(topic, message string) (editor *Editor, err error) {
 
 type Editor struct {
 	Program string
+	Topic   string
 	File    string
 	Message string
 	doEdit  func(program, file string) error
@@ -54,7 +56,7 @@ func (e *Editor) Edit() (content []byte, err error) {
 
 	err = e.doEdit(e.Program, e.File)
 	if err != nil {
-		err = fmt.Errorf("error using text editor for editing message")
+		err = fmt.Errorf("error using text editor for %s message", e.Topic)
 		return
 	}
 
