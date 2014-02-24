@@ -693,7 +693,7 @@ module Hub
           "/#{subpage}"
         end
 
-        project.web_url(path)
+        project.web_url(path, api_client.config.method(:protocol))
       end
     end
 
@@ -724,7 +724,8 @@ module Hub
           end
         end
 
-        project.web_url "/compare/#{range.tr('/', ';')}"
+        path = '/compare/%s' % range.tr('/', ';')
+        project.web_url(path, api_client.config.method(:protocol))
       end
     end
 

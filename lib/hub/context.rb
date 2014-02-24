@@ -288,7 +288,7 @@ module Hub
         local_repo.remotes.find { |r| r.project == self }
       end
 
-      def web_url(path = nil)
+      def web_url(path = nil, protocol_config = nil)
         project_name = name_with_owner
         if project_name.sub!(/\.wiki$/, '')
           unless '/wiki' == path
@@ -298,7 +298,11 @@ module Hub
             path = '/wiki' + path
           end
         end
-        "https://#{host}/" + project_name + path.to_s
+        '%s://%s/%s' % [
+          protocol_config ? protocol_config.call(host) : 'https',
+          host,
+          project_name + path.to_s
+        ]
       end
 
       def git_url(options = {})
