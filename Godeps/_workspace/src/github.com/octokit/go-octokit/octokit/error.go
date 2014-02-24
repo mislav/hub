@@ -2,11 +2,12 @@ package octokit
 
 import (
 	"fmt"
-	"github.com/lostisland/go-sawyer"
 	"io/ioutil"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/lostisland/go-sawyer"
 )
 
 type ResponseErrorType int
@@ -95,17 +96,15 @@ func (e *ResponseError) errorMessage() string {
 	return strings.Join(messages, "\n")
 }
 
-func NewResponseError(resp *sawyer.Response) (err error) {
-	var respErr *ResponseError
-	t := getResponseErrorType(resp.Response)
-	err = resp.Decode(&respErr)
-	if err != nil {
-		return
-	}
+func NewResponseError(resp *sawyer.Response) (err *ResponseError) {
+	err = &ResponseError{}
+	err.Response = resp.Response
+	err.Type = getResponseErrorType(resp.Response)
 
-	respErr.Response = resp.Response
-	respErr.Type = t
-	err = respErr
+	e := resp.Decode(&err)
+	if e != nil {
+		err.Message = fmt.Sprintf("Problems parsing error message: %s", e)
+	}
 
 	return
 }

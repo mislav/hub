@@ -6,6 +6,7 @@ require 'json'
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
+raise 'hub build failed' unless system("./script/build")
 
 Before do
   # don't want hub to run in bundle
@@ -42,6 +43,7 @@ Before do
   set_env 'GIT_COMMITTER_EMAIL', author_email
 
   set_env 'GH_VERSION', 'dev'
+  set_env 'GH_REPORT_CRASH', 'never'
 
   FileUtils.mkdir_p ENV['HOME']
 

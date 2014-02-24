@@ -3,9 +3,6 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
-	"github.com/jingweno/go-octokit/octokit"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +10,10 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+
+	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 var (
@@ -128,7 +129,7 @@ func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string
 `
 	message = fmt.Sprintf(message, tag, project.Name, currentBranch)
 
-	editor, err := github.NewEditor("RELEASE", message)
+	editor, err := github.NewEditor("RELEASE", "release", message)
 	if err != nil {
 		return "", "", err
 	}

@@ -2,7 +2,6 @@ package octokit
 
 import (
 	"fmt"
-	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +9,8 @@ import (
 	"os"
 	"path"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 var (
@@ -32,7 +33,12 @@ func setup() {
 	server = httptest.NewServer(mux)
 
 	// octokit client configured to use test server
-	client = NewClientWith(server.URL, nil, TokenAuth{AccessToken: "token"})
+	client = NewClientWith(
+		server.URL,
+		userAgent,
+		TokenAuth{AccessToken: "token"},
+		nil,
+	)
 }
 
 // teardown closes the test HTTP server.

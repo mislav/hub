@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/github/hub/git"
-	"github.com/github/hub/utils"
 	"os"
 	"reflect"
 	"runtime"
 	"strings"
+
+	"github.com/github/hub/git"
+	"github.com/github/hub/utils"
 )
 
 const (
@@ -86,7 +87,7 @@ func reportTitleAndBody(reportedError error, stack string) (title, body string, 
 	errType := reflect.TypeOf(reportedError).String()
 	message = fmt.Sprintf(message, reportedError, errType, reportedError, stack, runtimeInfo())
 
-	editor, err := NewEditor("CRASH_REPORT", message)
+	editor, err := NewEditor("CRASH_REPORT", "crash report", message)
 	if err != nil {
 		return "", "", err
 	}
