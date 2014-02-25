@@ -488,6 +488,7 @@ module Hub
         print "#{what}: "
         $stdin.gets.chomp
       rescue Interrupt
+        puts
         abort
       end
 
@@ -503,6 +504,7 @@ module Hub
           $stdin.gets.chomp
         end
       rescue Interrupt
+        puts
         abort
       end
 
@@ -510,6 +512,7 @@ module Hub
         print "two-factor authentication code: "
         $stdin.gets.chomp
       rescue Interrupt
+        puts
         abort
       end
 
