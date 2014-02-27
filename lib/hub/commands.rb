@@ -158,6 +158,8 @@ module Hub
           head_project, options[:head] = from_github_ref.call(head, head_project)
         when '-i'
           options[:issue] = args.shift
+        when '-o', '--browse'
+          open_with_browser = true
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
@@ -237,8 +239,10 @@ module Hub
 
       pull = api_client.create_pullrequest(options)
 
-      args.executable = 'echo'
-      args.replace [pull['html_url']]
+      args.push('-u') unless open_with_browser
+      browse_command(args) do
+        pull['html_url']
+      end
     rescue GitHubAPI::Exceptions
       response = $!.response
       display_api_exception("creating pull request", response)
