@@ -40,8 +40,8 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         json [
-          {:token => 'SKIPPD', :app => {:url => 'http://example.com'}},
-          {:token => 'OTOKEN', :app => {:url => 'http://hub.github.com/'}}
+          {:token => 'SKIPPD', :note_url => 'http://example.com'},
+          {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
         ]
       }
       get('/user') {
@@ -66,7 +66,7 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         json [
-          {:token => 'OTOKEN', :app => {:url => 'http://hub.github.com/'}}
+          {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
         ]
       }
       get('/user') {
@@ -154,7 +154,7 @@ Feature: OAuth authentication
         end
         json [ {
           :token => token,
-          :app => {:url => 'http://hub.github.com/'}
+          :note_url => 'http://hub.github.com/'
           } ]
       }
       get('/user') {
