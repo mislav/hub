@@ -326,7 +326,7 @@ module Hub
           end
         end
 
-        if found = res.data.find {|auth| auth['note_url'] == oauth_app_url }
+        if found = res.data.find {|auth| auth['note'] == 'hub' || auth['note_url'] == oauth_app_url }
           found['token']
         else
           # create a new authorization
