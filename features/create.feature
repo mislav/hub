@@ -129,3 +129,28 @@ Feature: hub create
       """
     When I successfully run `hub create`
     Then the url for "origin" should be "git@github.com:mislav/my-dot-files.git"
+
+  Scenario: Verbose API output
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { status 404 }
+      post('/user/repos') {
+        response['location'] = 'http://disney.com'
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    And $HUB_VERBOSE is "on"
+    When I successfully run `hub create`
+    Then the stderr should contain exactly:
+      """
+      > GET https://api.github.com/repos/mislav/dotfiles
+      > Authorization: token [REDACTED]
+      < HTTP 404
+
+      > POST https://api.github.com/user/repos
+      > Authorization: token [REDACTED]
+      {"name": "dotfiles", "private": false}
+      < HTTP 200
+      < Location: http://disney.com
+      {"full_name":"mislav/dotfiles"}\n
+      """

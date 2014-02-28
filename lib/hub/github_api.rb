@@ -27,7 +27,10 @@ module Hub
     def initialize config, options
       @config = config
       @oauth_app_url = options.fetch(:app_url)
+      @verbose = options.fetch(:verbose, false)
     end
+
+    def verbose?() @verbose end
 
     # Fake exception type for net/http exception handling.
     # Necessary because net/http may or may not be loaded at the time.
@@ -346,9 +349,63 @@ module Hub
       end
     end
 
+    module Verbose
+      def finalize_request(req, url)
+        super
+        dump_request_info(req, url) if verbose?
+      end
+
+      def perform_request(*)
+        res = super
+        dump_response_info(res) if verbose?
+        res
+      end
+
+      def verbose_puts(msg)
+        msg = "\e[36m%s\e[m" % msg if $stderr.tty?
+        $stderr.puts msg
+      end
+
+      def dump_request_info(req, url)
+        verbose_puts "> %s %s://%s%s" % [
+          req.method.to_s.upcase,
+          url.scheme,
+          url.host,
+          req.path,
+        ]
+        dump_headers(req, '> ')
+        dump_body(req)
+      end
+
+      def dump_response_info(res)
+        verbose_puts "< HTTP %s" % res.status
+        dump_headers(res, '< ')
+        dump_body(res)
+      end
+
+      def dump_body(obj)
+        verbose_puts obj.body if obj.body
+      end
+
+      DUMP_HEADERS = %w[ Authorization X-GitHub-OTP Location ]
+
+      def dump_headers(obj, indent)
+        DUMP_HEADERS.each do |header|
+          if value = obj[header]
+            verbose_puts '%s%s: %s' % [
+              indent,
+              header,
+              value.sub(/^(basic|token) (.+)/i, '\1 [REDACTED]'),
+            ]
+          end
+        end
+      end
+    end
+
     include HttpMethods
     include OAuth
     include GistAuth
+    include Verbose
 
     # Filesystem store suitable for Configuration
     class FileStore

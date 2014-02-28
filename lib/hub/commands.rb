@@ -838,7 +838,9 @@ module Hub
         config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
         file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
         file_config = GitHubAPI::Configuration.new file_store
-        GitHubAPI.new file_config, :app_url => 'http://hub.github.com/'
+        GitHubAPI.new file_config,
+          :app_url => 'http://hub.github.com/',
+          :verbose => !ENV['HUB_VERBOSE'].to_s.empty?
       end
     end
 
