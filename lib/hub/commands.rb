@@ -111,6 +111,10 @@ module Hub
         $stdout.puts ref_state
       end
       exit exit_code
+    rescue GitHubAPI::Exceptions
+      response = $!.response
+      display_api_exception("fetching CI status", response)
+      exit 1
     end
 
     # $ hub pull-request
