@@ -451,3 +451,13 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Open pull request in web browser
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -o -m hereyougo`
+    Then "open the://url" should be run
