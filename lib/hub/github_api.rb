@@ -180,6 +180,8 @@ module Hub
             when 'custom'        then err['message']
             when 'missing_field'
               %(Missing field: "%s") % err['field']
+            when 'already_exists'
+              %(Duplicate value for "%s") % err['field']
             when 'invalid'
               %(Invalid value for "%s": "%s") % [ err['field'], err['value'] ]
             when 'unauthorized'
