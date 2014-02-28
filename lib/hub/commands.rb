@@ -168,7 +168,7 @@ module Hub
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
             base_project = url.project
-          elsif !options[:title]
+          elsif !options[:title] && arg.index('-') != 0
             options[:title] = arg
             warn "hub: Specifying pull request title without a flag is deprecated."
             warn "Please use one of `-m' or `-F' options."
