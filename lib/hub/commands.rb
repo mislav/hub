@@ -1043,7 +1043,7 @@ help
         write.close
 
         # Don't page if the input is short enough
-        ENV['LESS'] = 'FSRX'
+        ENV['LESS'] = 'FSR'
 
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]
