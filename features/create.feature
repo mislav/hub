@@ -141,15 +141,19 @@ Feature: hub create
       """
     And $HUB_VERBOSE is "on"
     When I successfully run `hub create`
-    Then the stderr should contain exactly:
+    Then the stderr should contain:
       """
       > GET https://api.github.com/repos/mislav/dotfiles
       > Authorization: token [REDACTED]
       < HTTP 404
-
+      """
+    And the stderr should contain:
+      """
       > POST https://api.github.com/user/repos
       > Authorization: token [REDACTED]
-      {"name": "dotfiles", "private": false}
+      """
+    And the stderr should contain:
+      """
       < HTTP 200
       < Location: http://disney.com
       {"full_name":"mislav/dotfiles"}\n
