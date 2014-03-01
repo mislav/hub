@@ -1,6 +1,11 @@
 Contributing to hub
 ===================
 
+<i>**Warning:** in the near future, hub might be implemented
+[entirely in Go instead of Ruby](https://github.com/github/hub/issues/475).
+Keep that in mind, and don't contribute big features/refactorings to
+the Ruby codebase, as such pull requests will be unlikely to get accepted.</i>
+
 You will need:
 
 1. Ruby 1.8.7+
