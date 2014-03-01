@@ -157,6 +157,7 @@ end
 desc "Publish to Homebrew"
 task :homebrew do
   require File.expand_path('../lib/hub/version', __FILE__)
+  ENV['RUBYOPT'] = ''
   Dir.chdir `brew --prefix`.chomp do
     sh 'git checkout -q master'
     sh 'git pull -q origin master'
