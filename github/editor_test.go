@@ -3,7 +3,6 @@ package github
 import (
 	"bufio"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -28,10 +27,6 @@ func TestEditor_openAndEdit_fileExist(t *testing.T) {
 	content, err := editor.openAndEdit()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "hello", string(content))
-
-	// file is removed after edit
-	_, err = os.Stat(tempFile.Name())
-	assert.T(t, os.IsNotExist(err))
 }
 
 func TestEditor_openAndEdit_fileNotExist(t *testing.T) {
@@ -51,10 +46,6 @@ func TestEditor_openAndEdit_fileNotExist(t *testing.T) {
 	content, err := editor.openAndEdit()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "hello", string(content))
-
-	// file is removed after edit
-	_, err = os.Stat(tempFile)
-	assert.T(t, os.IsNotExist(err))
 }
 
 func TestEditor_EditTitleAndBody(t *testing.T) {
@@ -82,10 +73,6 @@ A body continues
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "A title A title continues", title)
 	assert.Equal(t, "A body\nA body continues", body)
-
-	// file is removed after edit
-	_, err = os.Stat(tempFile)
-	assert.T(t, os.IsNotExist(err))
 }
 
 func TestReadTitleAndBody(t *testing.T) {

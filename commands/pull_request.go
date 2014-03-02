@@ -149,9 +149,16 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
+	var editor *github.Editor
 	if title == "" && flagPullRequestIssue == "" {
 		commits, _ := git.RefList(base, head)
-		title, body, err = writePullRequestTitleAndBody(base, head, fullBase, fullHead, commits)
+		message, err := pullRequestChangesMessage(base, head, fullBase, fullHead, commits)
+		utils.Check(err)
+
+		editor, err = github.NewEditor("PULLREQ", "pull request", message)
+		utils.Check(err)
+
+		title, body, err = editor.EditTitleAndBody()
 		utils.Check(err)
 	}
 
@@ -175,6 +182,10 @@ func pullRequest(cmd *Command, args *Args) {
 			pr, err = client.CreatePullRequestForIssue(baseProject, base, fullHead, flagPullRequestIssue)
 		}
 
+		if err == nil && editor != nil {
+			defer editor.DeleteFile()
+		}
+
 		utils.Check(err)
 		pullRequestURL = pr.HTMLURL
 	}
@@ -183,20 +194,6 @@ func pullRequest(cmd *Command, args *Args) {
 	if flagPullRequestIssue != "" {
 		args.After("echo", "Warning: Issue to pull request conversion is deprecated and might not work in the future.")
 	}
-}
-
-func writePullRequestTitleAndBody(base, head, fullBase, fullHead string, commits []string) (title, body string, err error) {
-	message, err := pullRequestChangesMessage(base, head, fullBase, fullHead, commits)
-	if err != nil {
-		return
-	}
-
-	editor, err := github.NewEditor("PULLREQ", "pull request", message)
-	if err != nil {
-		return
-	}
-
-	return editor.EditTitleAndBody()
 }
 
 func pullRequestChangesMessage(base, head, fullBase, fullHead string, commits []string) (string, error) {
