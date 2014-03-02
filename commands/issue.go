@@ -104,5 +104,7 @@ func writeIssueTitleAndBody(project *github.Project) (string, string, error) {
 		return "", "", err
 	}
 
+	defer editor.DeleteFile()
+
 	return editor.EditTitleAndBody()
 }

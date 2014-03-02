@@ -92,6 +92,8 @@ func reportTitleAndBody(reportedError error, stack string) (title, body string, 
 		return "", "", err
 	}
 
+	defer editor.DeleteFile()
+
 	return editor.EditTitleAndBody()
 }
 

@@ -134,6 +134,8 @@ func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string
 		return "", "", err
 	}
 
+	defer editor.DeleteFile()
+
 	return editor.EditTitleAndBody()
 }
 
