@@ -71,6 +71,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 	err = e.openEditor(e.Program, e.File)
 	if err != nil {
 		err = fmt.Errorf("error using text editor for %s message", e.Topic)
+		defer e.DeleteFile()
 		return
 	}
 
