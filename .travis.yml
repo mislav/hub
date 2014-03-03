@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get install -qq tmux zsh git
 language: go
 go:
-  - 1.2
+  - 1.2.1
 install:
   - script/cached-bundle install --deployment --without development --jobs 3 --retry 3
 script:
