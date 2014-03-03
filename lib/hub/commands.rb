@@ -184,6 +184,7 @@ module Hub
 
       options[:project] = base_project
       options[:base] ||= master_branch.short_name
+      options[:head] = nil if options[:head].empty?
 
       if options[:head].nil? && tracked_branch
         if !tracked_branch.remote?
