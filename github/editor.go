@@ -27,46 +27,30 @@ func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
 	}
 
 	editor = &Editor{
-		Program: program,
-		Topic:   topic,
-		File:    messageFile,
-		Message: message,
-		doEdit:  doTextEditorEdit,
+		Program:    program,
+		Topic:      topic,
+		File:       messageFile,
+		Message:    message,
+		openEditor: openTextEditor,
 	}
 
 	return
 }
 
 type Editor struct {
-	Program string
-	Topic   string
-	File    string
-	Message string
-	doEdit  func(program, file string) error
+	Program    string
+	Topic      string
+	File       string
+	Message    string
+	openEditor func(program, file string) error
 }
 
-func (e *Editor) Edit() (content []byte, err error) {
-	if e.Message != "" {
-		err = ioutil.WriteFile(e.File, []byte(e.Message), 0644)
-		if err != nil {
-			return
-		}
-	}
-	defer os.Remove(e.File)
-
-	err = e.doEdit(e.Program, e.File)
-	if err != nil {
-		err = fmt.Errorf("error using text editor for %s message", e.Topic)
-		return
-	}
-
-	content, err = ioutil.ReadFile(e.File)
-
-	return
+func (e *Editor) DeleteFile() error {
+	return os.Remove(e.File)
 }
 
 func (e *Editor) EditTitleAndBody() (title, body string, err error) {
-	content, err := e.Edit()
+	content, err := e.openAndEdit()
 	if err != nil {
 		return
 	}
@@ -78,7 +62,46 @@ func (e *Editor) EditTitleAndBody() (title, body string, err error) {
 	return
 }
 
-func doTextEditorEdit(program, file string) error {
+func (e *Editor) openAndEdit() (content []byte, err error) {
+	err = e.writeContent()
+	if err != nil {
+		return
+	}
+
+	err = e.openEditor(e.Program, e.File)
+	if err != nil {
+		err = fmt.Errorf("error using text editor for %s message", e.Topic)
+		defer e.DeleteFile()
+		return
+	}
+
+	content, err = e.readContent()
+
+	return
+}
+
+func (e *Editor) writeContent() (err error) {
+	// only write message if file doesn't exist
+	if !e.isFileExist() && e.Message != "" {
+		err = ioutil.WriteFile(e.File, []byte(e.Message), 0644)
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+func (e *Editor) isFileExist() bool {
+	_, err := os.Stat(e.File)
+	return err == nil || !os.IsNotExist(err)
+}
+
+func (e *Editor) readContent() (content []byte, err error) {
+	return ioutil.ReadFile(e.File)
+}
+
+func openTextEditor(program, file string) error {
 	editCmd := cmd.New(program)
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(program) {

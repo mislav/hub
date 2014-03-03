@@ -140,26 +140,6 @@ Feature: hub pull-request
     When I successfully run `hub pull-request`
     Then the file ".git/PULLREQ_EDITMSG" should not exist
 
-  Scenario: Ignore outdated PULLREQ_EDITMSG
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :title => "Added interactively", :body => nil
-        json :html_url => "https://github.com/mislav/coral/pull/12"
-      }
-      """
-    And a file named ".git/PULLREQ_EDITMSG" with:
-      """
-      Outdated message from old version of hub
-      """
-    Given the file named ".git/PULLREQ_EDITMSG" is older than hub source
-    And the text editor adds:
-      """
-      Added interactively
-      """
-    When I successfully run `hub pull-request`
-    Then the file ".git/PULLREQ_EDITMSG" should not exist
-
   Scenario: Text editor fails
     Given the text editor exits with error status
     And an empty file named ".git/PULLREQ_EDITMSG"
