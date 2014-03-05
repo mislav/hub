@@ -2,6 +2,7 @@ package github
 
 import (
 	"fmt"
+
 	"github.com/github/hub/git"
 )
 
@@ -76,7 +77,7 @@ func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 		return
 	}
 
-	branch = &Branch{head}
+	branch = &Branch{r, head}
 	return
 }
 
@@ -91,7 +92,7 @@ func (r *GitHubRepo) MasterBranch() (branch *Branch) {
 		name = "refs/heads/master"
 	}
 
-	branch = &Branch{name}
+	branch = &Branch{r, name}
 
 	return
 }
@@ -107,25 +108,9 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, proje
 		return
 	}
 
-	pushDefault, _ := git.Config("push.default")
-	if pushDefault == "upstream" || pushDefault == "tracking" {
-		branch, err = branch.Upstream()
-		if err != nil {
-			return
-		}
-	} else {
-		shortName := branch.ShortName()
-		remotes := r.remotesForPublish(owner)
-		for _, remote := range remotes {
-			if git.HasFile("refs", "remotes", remote.Name, shortName) {
-				name := fmt.Sprintf("refs/remotes/%s/%s", remote.Name, shortName)
-				branch = &Branch{name}
-				break
-			}
-		}
-	}
+	branch = branch.PushTarget(owner)
 
-	if branch.IsRemote() {
+	if branch != nil && branch.IsRemote() {
 		remote, e := r.RemoteByName(branch.RemoteName())
 		if e == nil {
 			project, err = remote.Project()

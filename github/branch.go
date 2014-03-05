@@ -9,6 +9,7 @@ import (
 )
 
 type Branch struct {
+	Repo *GitHubRepo
 	Name string
 }
 
@@ -20,6 +21,29 @@ func (b *Branch) ShortName() string {
 func (b *Branch) LongName() string {
 	reg := regexp.MustCompile("^refs/(remotes/)?")
 	return reg.ReplaceAllString(b.Name, "")
+}
+
+func (b *Branch) PushTarget(owner string) (branch *Branch) {
+	var err error
+	pushDefault, _ := git.Config("push.default")
+	if pushDefault == "upstream" || pushDefault == "tracking" {
+		branch, err = b.Upstream()
+		if err != nil {
+			return
+		}
+	} else {
+		shortName := b.ShortName()
+		remotes := b.Repo.remotesForPublish(owner)
+		for _, remote := range remotes {
+			if git.HasFile("refs", "remotes", remote.Name, shortName) {
+				name := fmt.Sprintf("refs/remotes/%s/%s", remote.Name, shortName)
+				branch = &Branch{b.Repo, name}
+				break
+			}
+		}
+	}
+
+	return
 }
 
 func (b *Branch) RemoteName() string {
@@ -37,14 +61,13 @@ func (b *Branch) Upstream() (u *Branch, err error) {
 		return
 	}
 
-	u = &Branch{name}
+	u = &Branch{b.Repo, name}
 
 	return
 }
 
 func (b *Branch) IsMaster() bool {
-	localRepo := LocalRepo()
-	masterName := localRepo.MasterBranch().ShortName()
+	masterName := b.Repo.MasterBranch().ShortName()
 	return b.ShortName() == masterName
 }
 
