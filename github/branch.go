@@ -2,9 +2,10 @@ package github
 
 import (
 	"fmt"
-	"github.com/github/hub/git"
 	"regexp"
 	"strings"
+
+	"github.com/github/hub/git"
 )
 
 type Branch struct {
@@ -39,6 +40,12 @@ func (b *Branch) Upstream() (u *Branch, err error) {
 	u = &Branch{name}
 
 	return
+}
+
+func (b *Branch) IsMaster() bool {
+	localRepo := LocalRepo()
+	masterName := localRepo.MasterBranch().ShortName()
+	return b.ShortName() == masterName
 }
 
 func (b *Branch) IsRemote() bool {

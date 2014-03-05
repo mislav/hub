@@ -2,11 +2,11 @@ package commands
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 var cmdBrowse = &Command{
@@ -36,41 +36,56 @@ func init() {
 
 /*
   $ gh browse
-  > open https://github.com/YOUR_USER/CURRENT_REPO
+  > open https://github.com/CURRENT_REPO
 
-  $ gh browse commit/SHA
-  > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
+  $ gh browse -- issues
+  > open https://github.com/CURRENT_REPO/issues
 
-  $ gh browse issues
-  > open https://github.com/YOUR_USER/CURRENT_REPO/issues
-
-  $ gh browse -p jingweno/gh
+  $ gh browse jingweno/gh
   > open https://github.com/jingweno/gh
 
-  $ gh browse -p jingweno/gh commit/SHA
-  > open https://github.com/jingweno/gh/commit/SHA
+  $ gh browse gh
+  > open https://github.com/YOUR_LOGIN/gh
 
-  $ gh browse -p resque
-  > open https://github.com/YOUR_USER/resque
-
-  $ gh browse -p resque network
-  > open https://github.com/YOUR_USER/resque/network
+  $ gh browse gh wiki
+  > open https://github.com/YOUR_LOGIN/gh/wiki
 */
 func browse(command *Command, args *Args) {
 	var (
+		dest    string
+		subpage string
+		path    string
 		project *github.Project
 		branch  *github.Branch
 		err     error
 	)
+
+	if !args.IsParamsEmpty() {
+		dest = args.RemoveParam(0)
+	}
+
+	if dest == "--" {
+		dest = ""
+	}
+
+	if !args.IsParamsEmpty() {
+		subpage = args.RemoveParam(0)
+	}
+
 	localRepo := github.LocalRepo()
-	if flagBrowseProject != "" {
-		// gh browse -p jingweno/gh
-		// gh browse -p gh
-		project = github.NewProject("", flagBrowseProject, "")
+	if dest != "" {
+		project = github.NewProject("", dest, "")
+		branch = localRepo.MasterBranch()
+	} else if subpage != "" && subpage != "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" {
+		project, err = localRepo.MainProject()
+		branch = localRepo.MasterBranch()
+		utils.Check(err)
 	} else {
-		// gh browse
 		branch, project, err = localRepo.RemoteBranchAndProject("")
 		utils.Check(err)
+		if branch == nil {
+			branch = localRepo.MasterBranch()
+		}
 	}
 
 	if project == nil {
@@ -78,25 +93,17 @@ func browse(command *Command, args *Args) {
 		utils.Check(err)
 	}
 
-	master := localRepo.MasterBranch()
-	if branch == nil {
-		branch = master
-	}
-
-	var subpage string
-	if !args.IsParamsEmpty() {
-		subpage = args.RemoveParam(0)
-	}
-
 	if subpage == "commits" {
-		subpage = fmt.Sprintf("commits/%s", branchInURL(branch))
+		path = fmt.Sprintf("commits/%s", branchInURL(branch))
 	} else if subpage == "tree" || subpage == "" {
-		if !reflect.DeepEqual(branch, master) && branch.IsRemote() {
-			subpage = fmt.Sprintf("tree/%s", branchInURL(branch))
+		if !branch.IsMaster() {
+			path = fmt.Sprintf("tree/%s", branchInURL(branch))
 		}
+	} else {
+		path = fmt.Sprintf("/%s", subpage)
 	}
 
-	pageUrl := project.WebURL("", "", subpage)
+	pageUrl := project.WebURL("", "", path)
 	launcher, err := utils.BrowserLauncher()
 	utils.Check(err)
 
