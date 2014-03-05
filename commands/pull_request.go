@@ -129,10 +129,12 @@ func pullRequest(cmd *Command, args *Args) {
 
 	}
 
-	if trackedBranch == nil {
-		head = currentBranch.ShortName()
-	} else {
-		head = trackedBranch.ShortName()
+	if head == "" {
+		if trackedBranch == nil {
+			head = currentBranch.ShortName()
+		} else {
+			head = trackedBranch.ShortName()
+		}
 	}
 
 	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
