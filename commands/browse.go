@@ -10,9 +10,10 @@ import (
 )
 
 var cmdBrowse = &Command{
-	Run:   browse,
-	Usage: "browse [-u] [-p] [[<USER>/]<REPOSITORY>] [SUBPAGE]",
-	Short: "Open a GitHub page in the default browser",
+	Run:          browse,
+	GitExtension: true,
+	Usage:        "browse [-u] [-p] [[<USER>/]<REPOSITORY>] [SUBPAGE]",
+	Short:        "Open a GitHub page in the default browser",
 	Long: `Open repository's GitHub page in the system's default web browser using
 "open(1)" or the "BROWSER" env variable. If the repository isn't
 specified with "-p", "browse" opens the page of the repository found in the current
@@ -22,15 +23,7 @@ subpage: one of "wiki", "commits", "issues" or other (the default is
 `,
 }
 
-var (
-	flagBrowseURLOnly bool
-	flagBrowseProject string
-)
-
 func init() {
-	cmdBrowse.Flag.BoolVarP(&flagBrowseURLOnly, "url-only", "u", false, "URL only")
-	cmdBrowse.Flag.StringVarP(&flagBrowseProject, "project", "p", "", "PROJECT")
-
 	CmdRunner.Use(cmdBrowse)
 }
 
@@ -59,6 +52,8 @@ func browse(command *Command, args *Args) {
 		branch  *github.Branch
 		err     error
 	)
+
+	flagBrowseURLOnly := parseFlagBrowseURLOnly(args)
 
 	if !args.IsParamsEmpty() {
 		dest = args.RemoveParam(0)
@@ -100,7 +95,7 @@ func browse(command *Command, args *Args) {
 			path = fmt.Sprintf("tree/%s", branchInURL(branch))
 		}
 	} else {
-		path = fmt.Sprintf("/%s", subpage)
+		path = subpage
 	}
 
 	pageUrl := project.WebURL("", "", path)
@@ -113,6 +108,15 @@ func browse(command *Command, args *Args) {
 		args.Replace(launcher[0], "", launcher[1:]...)
 		args.AppendParams(pageUrl)
 	}
+}
+
+func parseFlagBrowseURLOnly(args *Args) bool {
+	if i := args.IndexOfParam("-u"); i != -1 {
+		args.RemoveParam(i)
+		return true
+	}
+
+	return false
 }
 
 func branchInURL(branch *github.Branch) string {
