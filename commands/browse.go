@@ -12,11 +12,11 @@ import (
 var cmdBrowse = &Command{
 	Run:          browse,
 	GitExtension: true,
-	Usage:        "browse [-u] [-p] [[<USER>/]<REPOSITORY>] [SUBPAGE]",
+	Usage:        "browse [-u] [[<USER>/]<REPOSITORY>] [SUBPAGE]",
 	Short:        "Open a GitHub page in the default browser",
 	Long: `Open repository's GitHub page in the system's default web browser using
 "open(1)" or the "BROWSER" env variable. If the repository isn't
-specified with "-p", "browse" opens the page of the repository found in the current
+specified, "browse" opens the page of the repository found in the current
 directory. If SUBPAGE is specified, the browser will open on the specified
 subpage: one of "wiki", "commits", "issues" or other (the default is
 "tree"). With "-u", outputs the URL rather than opening the browser.
