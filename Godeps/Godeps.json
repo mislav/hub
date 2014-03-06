@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/github/hub",
-	"GoVersion": "go1.2",
+	"GoVersion": "go1.2.1",
 	"Packages": [
 		"./..."
 	],
@@ -14,6 +14,10 @@
 			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
 			"Comment": "null-185",
 			"Rev": "6478cc9340cbbe6c04511280c5007722269108e9"
+		},
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Rev": "50ab0c35d35f5355cee28b0120b18dfbbd13ad36"
 		},
 		{
 			"ImportPath": "github.com/bmizerany/assert",
@@ -56,8 +60,8 @@
 		},
 		{
 			"ImportPath": "github.com/octokit/go-octokit/octokit",
-			"Comment": "v0.4.0-62-g0d82d4a",
-			"Rev": "0d82d4ae75bc9b0c405137d3f0a3e182ec5cb7d2"
+			"Comment": "v0.4.0-63-g8f20e99",
+			"Rev": "8f20e9984939a5dd69bcc1049ce00ed75a42bb27"
 		},
 		{
 			"ImportPath": "github.com/ogier/pflag",
