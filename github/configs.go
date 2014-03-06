@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
+	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "hub")
 )
 
 type Credentials struct {
