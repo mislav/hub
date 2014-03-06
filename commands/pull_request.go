@@ -114,7 +114,7 @@ func pullRequest(cmd *Command, args *Args) {
 		base = masterBranch.ShortName()
 	}
 
-	if head == "" {
+	if head == "" && trackedBranch != nil {
 		if !trackedBranch.IsRemote() {
 			// the current branch tracking another branch
 			// pretend there's no upstream at all
@@ -127,6 +127,9 @@ func pullRequest(cmd *Command, args *Args) {
 			}
 		}
 
+	}
+
+	if head == "" {
 		if trackedBranch == nil {
 			head = currentBranch.ShortName()
 		} else {

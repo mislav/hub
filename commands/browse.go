@@ -2,75 +2,85 @@ package commands
 
 import (
 	"fmt"
+	"net/url"
+	"strings"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"net/url"
-	"reflect"
-	"strings"
 )
 
 var cmdBrowse = &Command{
-	Run:   browse,
-	Usage: "browse [-u] [-p] [[<USER>/]<REPOSITORY>] [SUBPAGE]",
-	Short: "Open a GitHub page in the default browser",
+	Run:          browse,
+	GitExtension: true,
+	Usage:        "browse [-u] [[<USER>/]<REPOSITORY>] [SUBPAGE]",
+	Short:        "Open a GitHub page in the default browser",
 	Long: `Open repository's GitHub page in the system's default web browser using
 "open(1)" or the "BROWSER" env variable. If the repository isn't
-specified with "-p", "browse" opens the page of the repository found in the current
+specified, "browse" opens the page of the repository found in the current
 directory. If SUBPAGE is specified, the browser will open on the specified
 subpage: one of "wiki", "commits", "issues" or other (the default is
 "tree"). With "-u", outputs the URL rather than opening the browser.
 `,
 }
 
-var (
-	flagBrowseURLOnly bool
-	flagBrowseProject string
-)
-
 func init() {
-	cmdBrowse.Flag.BoolVarP(&flagBrowseURLOnly, "url-only", "u", false, "URL only")
-	cmdBrowse.Flag.StringVarP(&flagBrowseProject, "project", "p", "", "PROJECT")
-
 	CmdRunner.Use(cmdBrowse)
 }
 
 /*
   $ gh browse
-  > open https://github.com/YOUR_USER/CURRENT_REPO
+  > open https://github.com/CURRENT_REPO
 
-  $ gh browse commit/SHA
-  > open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
+  $ gh browse -- issues
+  > open https://github.com/CURRENT_REPO/issues
 
-  $ gh browse issues
-  > open https://github.com/YOUR_USER/CURRENT_REPO/issues
-
-  $ gh browse -p jingweno/gh
+  $ gh browse jingweno/gh
   > open https://github.com/jingweno/gh
 
-  $ gh browse -p jingweno/gh commit/SHA
-  > open https://github.com/jingweno/gh/commit/SHA
+  $ gh browse gh
+  > open https://github.com/YOUR_LOGIN/gh
 
-  $ gh browse -p resque
-  > open https://github.com/YOUR_USER/resque
-
-  $ gh browse -p resque network
-  > open https://github.com/YOUR_USER/resque/network
+  $ gh browse gh wiki
+  > open https://github.com/YOUR_LOGIN/gh/wiki
 */
 func browse(command *Command, args *Args) {
 	var (
+		dest    string
+		subpage string
+		path    string
 		project *github.Project
 		branch  *github.Branch
 		err     error
 	)
+
+	flagBrowseURLOnly := parseFlagBrowseURLOnly(args)
+
+	if !args.IsParamsEmpty() {
+		dest = args.RemoveParam(0)
+	}
+
+	if dest == "--" {
+		dest = ""
+	}
+
+	if !args.IsParamsEmpty() {
+		subpage = args.RemoveParam(0)
+	}
+
 	localRepo := github.LocalRepo()
-	if flagBrowseProject != "" {
-		// gh browse -p jingweno/gh
-		// gh browse -p gh
-		project = github.NewProject("", flagBrowseProject, "")
+	if dest != "" {
+		project = github.NewProject("", dest, "")
+		branch = localRepo.MasterBranch()
+	} else if subpage != "" && subpage != "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" {
+		project, err = localRepo.MainProject()
+		branch = localRepo.MasterBranch()
+		utils.Check(err)
 	} else {
-		// gh browse
 		branch, project, err = localRepo.RemoteBranchAndProject("")
 		utils.Check(err)
+		if branch == nil {
+			branch = localRepo.MasterBranch()
+		}
 	}
 
 	if project == nil {
@@ -78,25 +88,17 @@ func browse(command *Command, args *Args) {
 		utils.Check(err)
 	}
 
-	master := localRepo.MasterBranch()
-	if branch == nil {
-		branch = master
-	}
-
-	var subpage string
-	if !args.IsParamsEmpty() {
-		subpage = args.RemoveParam(0)
-	}
-
 	if subpage == "commits" {
-		subpage = fmt.Sprintf("commits/%s", branchInURL(branch))
+		path = fmt.Sprintf("commits/%s", branchInURL(branch))
 	} else if subpage == "tree" || subpage == "" {
-		if !reflect.DeepEqual(branch, master) && branch.IsRemote() {
-			subpage = fmt.Sprintf("tree/%s", branchInURL(branch))
+		if !branch.IsMaster() {
+			path = fmt.Sprintf("tree/%s", branchInURL(branch))
 		}
+	} else {
+		path = subpage
 	}
 
-	pageUrl := project.WebURL("", "", subpage)
+	pageUrl := project.WebURL("", "", path)
 	launcher, err := utils.BrowserLauncher()
 	utils.Check(err)
 
@@ -106,6 +108,15 @@ func browse(command *Command, args *Args) {
 		args.Replace(launcher[0], "", launcher[1:]...)
 		args.AppendParams(pageUrl)
 	}
+}
+
+func parseFlagBrowseURLOnly(args *Args) bool {
+	if i := args.IndexOfParam("-u"); i != -1 {
+		args.RemoveParam(i)
+		return true
+	}
+
+	return false
 }
 
 func branchInURL(branch *github.Branch) string {

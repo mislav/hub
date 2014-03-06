@@ -129,14 +129,6 @@ Feature: hub browse
     When I successfully run `hub browse -- pages`
     Then "open https://github.com/defunkt/hub/wiki/_pages" should be run
 
-  Scenario: Deprecated -p flag
-    When I successfully run `hub browse -p defunkt/hub`
-    Then the stderr should contain exactly:
-      """
-      Warning: the `-p` flag has no effect anymore\n
-      """
-    But "open https://github.com/defunkt/hub" should be run
-
   Scenario: Repo with remote with local path
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And the "upstream" remote has url "../path/to/another/repo.git"
