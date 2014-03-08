@@ -11,7 +11,7 @@ Feature: hub merge
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
           :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false}
+          :repo  => {:private => false, :name=>"hub"}
         },
         :title => "Add `hub merge` command"
       }
@@ -34,7 +34,7 @@ Feature: hub merge
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
           :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false}
+          :repo  => {:private => false, :name=>"hub"}
         },
         :title => "Add `hub merge` command"
       }
@@ -55,7 +55,7 @@ Feature: hub merge
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
           :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => true}
+          :repo  => {:private => true, :name=>"hub"}
         },
         :title => "Add `hub merge` command"
       }
@@ -81,6 +81,21 @@ Feature: hub merge
       """
       Error: jfirebaugh's fork is not available anymore\n
       """
+
+  Scenario: Renamed repo
+    Given the GitHub API server:
+      """
+      require 'json'
+      get('/repos/defunkt/hub/pulls/164') { json \
+        :head => {
+          :label => 'jfirebaugh:hub_merge',
+          :repo  => {:private => false, :name=>"hub-1"}
+        }
+      }
+      """
+    And there is a commit named "jfirebaugh/hub_merge"
+    When I successfully run `hub merge https://github.com/defunkt/hub/pull/164`
+    Then "git fetch git://github.com/jfirebaugh/hub-1.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
 
   Scenario: Unchanged merge
     When I run `hub merge master`

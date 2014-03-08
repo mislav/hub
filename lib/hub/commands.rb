@@ -443,8 +443,9 @@ module Hub
         user, branch = pull_data['head']['label'].split(':', 2)
         abort "Error: #{user}'s fork is not available anymore" unless pull_data['head']['repo']
 
-        url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repo']['private'],
-                                                             :https => https_protocol?)
+        repo_name = pull_data['head']['repo']['name']
+        url = github_project(repo_name, user).git_url(:private => pull_data['head']['repo']['private'],
+                                                      :https => https_protocol?)
 
         merge_head = "#{user}/#{branch}"
         args.before ['fetch', url, "+refs/heads/#{branch}:refs/remotes/#{merge_head}"]
