@@ -1,7 +1,7 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
-require 'json'
+require 'toml'
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
@@ -119,34 +119,16 @@ World Module.new {
   def edit_hub_config
     config = File.join(ENV['HOME'], '.config/hub')
     FileUtils.mkdir_p File.dirname(config)
-    if File.exist? config
-      data = YAML.load File.read(config)
-    else
-      data = {}
-    end
-    yield data
-    File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
-  end
-
-  undef edit_hub_config
-  def edit_hub_config
-    config = File.join(ENV['HOME'], '.config/gh')
-    FileUtils.mkdir_p File.dirname(config)
 
     hub_config = {}
     yield hub_config
 
-    data = {:credentials => []}
-    hub_config.each do |host, entries|
-      token = entries[0].fetch('oauth_token', false)
-      data[:credentials] << {
-        :host => host,
-        :user => entries[0].fetch('user'),
-      }
-      data[:credentials].last[:access_token] = token if token
+    data = { :credentials => {} }
+    hub_config.each do |host, entry|
+      data[:credentials][host] = entry
     end
 
-    File.open(config, 'w') { |cfg| cfg << JSON.generate(data) }
+    File.open(config, 'w') { |cfg| cfg << TOML::Generator.new(data).body }
   end
 
   define_method(:text_editor_script) do |bash_code|
