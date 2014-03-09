@@ -3,10 +3,6 @@ package commands
 import (
 	"archive/zip"
 	"fmt"
-	"github.com/github/hub/git"
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
-	goupdate "github.com/inconshreveable/go-update"
 	"io"
 	"io/ioutil"
 	"math/rand"
@@ -16,6 +12,11 @@ import (
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/github/hub/git"
+	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
+	goupdate "github.com/inconshreveable/go-update"
 )
 
 const ghAutoUpdateConfig = "gh.autoUpdate"
@@ -98,7 +99,7 @@ func (updater *Updater) Update() (err error) {
 
 func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
 	// Create Client with a stub Credentials
-	c := github.Client{Credentials: &github.Credentials{Host: updater.Host}}
+	c := github.Client{Credential: &github.Credential{Host: updater.Host}}
 	name, _ = c.GhLatestTagName()
 	version = strings.TrimPrefix(name, "v")
 

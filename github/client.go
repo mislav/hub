@@ -19,7 +19,7 @@ const (
 
 func NewClient(host string) *Client {
 	c := CurrentConfigs().PromptFor(host)
-	return &Client{Credentials: c}
+	return &Client{c}
 }
 
 type ClientError struct {
@@ -36,7 +36,7 @@ func (e *ClientError) Is2FAError() bool {
 }
 
 type Client struct {
-	Credentials *Credentials
+	Credential *Credential
 }
 
 func (client *Client) PullRequest(project *Project, id string) (pr *octokit.PullRequest, err error) {
@@ -117,7 +117,7 @@ func (client *Client) IsRepositoryExist(project *Project) bool {
 
 func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
 	var repoURL octokit.Hyperlink
-	if project.Owner != client.Credentials.User {
+	if project.Owner != client.Credential.User {
 		repoURL = octokit.OrgRepositoriesURL
 	} else {
 		repoURL = octokit.UserRepositoriesURL
@@ -345,7 +345,7 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 }
 
 func (client *Client) octokit() (c *octokit.Client) {
-	tokenAuth := octokit.TokenAuth{AccessToken: client.Credentials.AccessToken}
+	tokenAuth := octokit.TokenAuth{AccessToken: client.Credential.AccessToken}
 	tr := &http.Transport{Proxy: proxyFromEnvironment}
 	httpClient := &http.Client{Transport: tr}
 	c = octokit.NewClientWith(client.apiEndpoint(), UserAgent, tokenAuth, httpClient)
@@ -355,7 +355,7 @@ func (client *Client) octokit() (c *octokit.Client) {
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	uu = u
-	if client.Credentials != nil && client.Credentials.Host != GitHubHost {
+	if client.Credential != nil && client.Credential.Host != GitHubHost {
 		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
 	}
 
@@ -364,8 +364,8 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 
 func (client *Client) apiEndpoint() string {
 	host := os.Getenv("GH_API_HOST")
-	if host == "" && client.Credentials != nil {
-		host = client.Credentials.Host
+	if host == "" && client.Credential != nil {
+		host = client.Credential.Host
 	}
 
 	if host == GitHubHost {

@@ -86,7 +86,7 @@ func pullRequest(cmd *Command, args *Args) {
 
 	client := github.NewClient(baseProject.Host)
 
-	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(client.Credentials.User)
+	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(client.Credential.User)
 	utils.Check(err)
 
 	var (

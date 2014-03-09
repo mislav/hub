@@ -1,46 +1,50 @@
 package github
 
 import (
-	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
-func TestSaveCredentials(t *testing.T) {
+func TestConfigs_loadFrom(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 	defer os.RemoveAll(file.Name())
 
-	ccreds := Credentials{Host: "github.com", User: "jingweno", AccessToken: "123"}
-	c := Configs{Credentials: []Credentials{ccreds}}
+	content := `[credentials]
+  [credentials.github]
+    host = "https://api.github.com"
+    user = "jingweno"
+    access_token = "123"`
+	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
+
+	cc := &Configs{}
+	err := loadFrom(file.Name(), cc)
+	assert.Equal(t, nil, err)
+
+	assert.Equal(t, 1, len(cc.Credentials))
+	cred := cc.allCredentials()[0]
+	assert.Equal(t, "https://api.github.com", cred.Host)
+	assert.Equal(t, "jingweno", cred.User)
+	assert.Equal(t, "123", cred.AccessToken)
+}
+
+func TestConfigs_saveTo(t *testing.T) {
+	file, _ := ioutil.TempFile("", "test-gh-config-")
+	defer os.RemoveAll(file.Name())
+
+	cred := Credential{Host: "https://api.github.com", User: "jingweno", AccessToken: "123"}
+	c := Configs{Credentials: map[string]Credential{"github": cred}}
 
 	err := saveTo(file.Name(), &c)
 	assert.Equal(t, nil, err)
 
-	cc := &Configs{}
-	err = loadFrom(file.Name(), cc)
-	assert.Equal(t, nil, err)
-
-	creds := cc.Credentials[0]
-	assert.Equal(t, "github.com", creds.Host)
-	assert.Equal(t, "jingweno", creds.User)
-	assert.Equal(t, "123", creds.AccessToken)
-}
-
-func TestReadAndSaveDeprecatedConfiguration(t *testing.T) {
-	file, _ := ioutil.TempFile("", "test-gh-config-")
-	defer os.RemoveAll(file.Name())
-	defaultConfigsFile = file.Name()
-
-	file.WriteString(`[{"host":"github.com","user":"jingweno","access_token":"123"}]`)
-	file.Close()
-
-	CurrentConfigs()
-
-	expectedConfig := `{"credentials":[{"host":"github.com","user":"jingweno","access_token":"123"}]}
-`
-
-	f, _ := os.Open(file.Name())
-	content, _ := ioutil.ReadAll(f)
-	assert.Equal(t, expectedConfig, string(content))
+	b, _ := ioutil.ReadFile(file.Name())
+	content := `[credentials]
+  [credentials.github]
+    host = "https://api.github.com"
+    user = "jingweno"
+    access_token = "123"`
+	assert.Equal(t, content, string(b))
 }
