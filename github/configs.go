@@ -125,12 +125,8 @@ func saveTo(filename string, v interface{}) error {
 	return enc.Encode(v)
 }
 
-func loadFrom(filename string, c *Configs) error {
-	return loadFromFile(filename, c)
-}
-
-func loadFromFile(filename string, v interface{}) (err error) {
-	_, err = toml.DecodeFile(filename, v)
+func loadFrom(filename string, c *Configs) (err error) {
+	_, err = toml.DecodeFile(filename, c)
 	return
 }
 
@@ -153,7 +149,7 @@ func CurrentConfigs() *Configs {
 	return c
 }
 
-func (c *Configs) DefaultCredentials() (credential *Credential) {
+func (c *Configs) DefaultCredential() (credential *Credential) {
 	if GitHubHostEnv != "" {
 		credential = c.PromptFor(GitHubHostEnv)
 	} else if len(c.Credentials) > 0 {

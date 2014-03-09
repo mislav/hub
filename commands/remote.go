@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"regexp"
 )
 
 var cmdRemote = &Command{
@@ -64,7 +65,7 @@ func transformRemoteArgs(args *Args) {
 	isPriavte := parseRemotePrivateFlag(args)
 	if len(words) == 2 && words[1] == "origin" {
 		// gh add origin
-		credentials := github.CurrentConfigs().DefaultCredentials()
+		credentials := github.CurrentConfigs().DefaultCredential()
 		owner = credentials.User
 		name = repoName
 	} else if len(words) == 2 {

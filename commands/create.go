@@ -2,11 +2,12 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"regexp"
-	"strings"
 )
 
 var cmdCreate = &Command{
@@ -73,7 +74,7 @@ func create(command *Command, args *Args) {
 	}
 
 	configs := github.CurrentConfigs()
-	credentials := configs.DefaultCredentials()
+	credentials := configs.DefaultCredential()
 
 	owner := credentials.User
 	if strings.Contains(newRepoName, "/") {
