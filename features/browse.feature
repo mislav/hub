@@ -107,12 +107,19 @@ Feature: hub browse
     Then there should be no output
     # Then "open https://github.com/jashkenas/coffee-script/issues" should be run
 
-  Scenario: Complex branch
+  Scenario: Forward Slash Delimited branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And git "push.default" is set to "upstream"
     And I am on the "foo/bar" branch with upstream "origin/baz/qux/moo"
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles/tree/baz/qux/moo" should be run
+
+  Scenario: Dot Delimited branch
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And git "push.default" is set to "upstream"
+    And I am on the "fix-glob-for.js" branch with upstream "origin/fix-glob-for.js"
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles/tree/fix-glob-for.js" should be run
 
   Scenario: Wiki repo
     Given I am in "git://github.com/defunkt/hub.wiki.git" git repo

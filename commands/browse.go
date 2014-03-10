@@ -122,7 +122,7 @@ func parseFlagBrowseURLOnly(args *Args) bool {
 }
 
 func branchInURL(branch *github.Branch) string {
-	parts := strings.Split(strings.Replace(branch.ShortName(), ".", "/", -1), "/")
+	parts := strings.Split(branch.ShortName(), "/")
 	newPath := make([]string, len(parts))
 	for i, s := range parts {
 		newPath[i] = url.QueryEscape(s)
