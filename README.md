@@ -235,7 +235,7 @@ superpowers:
 ### git checkout
 
     $ git checkout https://github.com/defunkt/hub/pull/73
-    > git remote add -f -t feature git://github:com/mislav/hub.git
+    > git remote add -f -t feature mislav git://github.com/mislav/hub.git
     > git checkout --track -B mislav-feature mislav/feature
 
     $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
