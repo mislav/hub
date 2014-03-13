@@ -14,7 +14,7 @@ const (
 	GitHubHost    string = "github.com"
 	GitHubApiHost string = "api.github.com"
 	UserAgent     string = "Hub"
-	OAuthAppURL   string = "http://owenou.com/gh"
+	OAuthAppURL   string = "http://hub.github.com/"
 )
 
 func NewClient(host string) *Client {
