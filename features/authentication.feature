@@ -149,7 +149,7 @@ Feature: OAuth authentication
       get('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
+          response.headers['X-GitHub-OTP'] = "required; application"
           halt 401
         end
         json [ {
