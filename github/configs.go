@@ -51,7 +51,11 @@ func (c *Configs) PromptFor(host string) *Credential {
 		}
 		utils.Check(err)
 
-		cd = &Credential{Host: host, User: user, AccessToken: token}
+		client.Credential.AccessToken = token
+		currentUser, err := client.CurrentUser()
+		utils.Check(err)
+
+		cd = &Credential{Host: host, User: currentUser.Login, AccessToken: token}
 		c.Credentials = append(c.Credentials, *cd)
 		err = saveTo(configsFile(), c)
 		utils.Check(err)

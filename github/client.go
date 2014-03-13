@@ -281,6 +281,21 @@ func (client *Client) GhLatestTagName() (tagName string, err error) {
 	return
 }
 
+func (client *Client) CurrentUser() (user *octokit.User, err error) {
+	url, err := octokit.CurrentUserURL.Expand(nil)
+	if err != nil {
+		return
+	}
+
+	user, result := client.octokit().Users(url).One()
+	if result.HasError() {
+		err = formatError("getting current user", result)
+		return
+	}
+
+	return
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	url, e := octokit.AuthorizationsURL.Expand(nil)
 	if e != nil {
