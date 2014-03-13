@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -86,7 +87,10 @@ func (c *Configs) PromptForPassword(host, user string) (pass string) {
 	if isTerminal(os.Stdout.Fd()) {
 		pass = string(gopass.GetPasswd())
 	} else {
-		fmt.Scanln(&pass)
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			pass = scanner.Text()
+		}
 	}
 
 	return

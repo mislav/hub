@@ -191,5 +191,5 @@ Feature: OAuth authentication
     And I type "my pass@phrase ok?"
     Then the output should contain "github.com password for mislav@example.com (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "user: mislav"
+    And the file "../home/.config/hub" should contain 'user = "mislav"'
     And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
