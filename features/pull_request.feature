@@ -466,3 +466,28 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -o -m hereyougo`
     Then "open the://url" should be run
+
+  Scenario: Configure and use a pull-request template
+    Given I successfully run `git config --global hub.pull-request-template-path test-pullreq-template`
+    And a file named "test-pullreq-template" with:
+      """
+      This text comes from a template.
+
+      This text comes from a template as well.
+      """
+    And the text editor adds:
+      """
+      This text comes from vim!
+
+      This text comes from vim as well.
+      """
+    And the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'This text comes from vim!',
+               :body  => "This text comes from vim as well.\n\nThis text comes from a template.\n\nThis text comes from a template as well."
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I successfully run `hub pull-request`
+    Then the file ".git/PULLREQ_EDITMSG" should not exist
