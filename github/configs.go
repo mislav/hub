@@ -1,7 +1,6 @@
 package github
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -72,7 +71,8 @@ func (c *Configs) PromptForUser() (user string) {
 	}
 
 	fmt.Printf("%s username: ", GitHubHost)
-	fmt.Scanln(&user)
+	_, err := fmt.Scanln(&user)
+	utils.Check(err)
 
 	return
 }
@@ -87,10 +87,8 @@ func (c *Configs) PromptForPassword(host, user string) (pass string) {
 	if isTerminal(os.Stdout.Fd()) {
 		pass = string(gopass.GetPasswd())
 	} else {
-		scanner := bufio.NewScanner(os.Stdin)
-		if scanner.Scan() {
-			pass = scanner.Text()
-		}
+		_, err := fmt.Scanln(&pass)
+		utils.Check(err)
 	}
 
 	return
@@ -99,7 +97,8 @@ func (c *Configs) PromptForPassword(host, user string) (pass string) {
 func (c *Configs) PromptForOTP() string {
 	var code string
 	fmt.Print("two-factor authentication code: ")
-	fmt.Scanln(&code)
+	_, err := fmt.Scanln(&code)
+	utils.Check(err)
 
 	return code
 }
@@ -184,7 +183,8 @@ func (c *Configs) selectCredential() *Credential {
 
 	fmt.Printf(prompt)
 	var index string
-	fmt.Scanln(&index)
+	_, err := fmt.Scanln(&index)
+	utils.Check(err)
 
 	i, err := strconv.Atoi(index)
 	if err != nil || i < 1 || i > options {
