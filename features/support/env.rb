@@ -120,14 +120,10 @@ World Module.new {
     config = File.join(ENV['HOME'], '.config/hub')
     FileUtils.mkdir_p File.dirname(config)
 
-    hub_config = {}
+    hub_config = []
     yield hub_config
 
-    data = { :credentials => {} }
-    hub_config.each do |host, entry|
-      data[:credentials][host] = entry
-    end
-
+    data = { :credentials => hub_config }
     File.open(config, 'w') { |cfg| cfg << TOML::Generator.new(data).body }
   end
 
