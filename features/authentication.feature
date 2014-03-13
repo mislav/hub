@@ -80,7 +80,7 @@ Feature: OAuth authentication
     And $GITHUB_PASSWORD is "kitty"
     When I successfully run `hub create`
     Then the output should not contain "github.com password for mislav"
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
   Scenario: Wrong password
     Given the GitHub API server:
@@ -135,7 +135,7 @@ Feature: OAuth authentication
     Then the output should contain "github.com password for mislav (never stored):"
     Then the output should contain "two-factor authentication code:"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
   Scenario: Two-factor authentication, re-use existing authorization
     Given the GitHub API server:
@@ -171,7 +171,7 @@ Feature: OAuth authentication
     Then the output should contain "github.com password for mislav (never stored):"
     Then the output should contain "two-factor authentication code:"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKENSMS"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKENSMS"'
 
   Scenario: Special characters in username & password
     Given the GitHub API server:
@@ -192,4 +192,4 @@ Feature: OAuth authentication
     Then the output should contain "github.com password for mislav@example.com (never stored):"
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "user: mislav"
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
