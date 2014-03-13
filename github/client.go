@@ -309,7 +309,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 	auths, result := authsService.All()
 	if result.HasError() {
-		err = &ClientError{formatError("authenticating user", result)}
+		err = &ClientError{result.Err}
 		return
 	}
 
@@ -328,7 +328,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 		auth, result := authsService.Create(authParam)
 		if result.HasError() {
-			err = &ClientError{formatError("authenticating user", result)}
+			err = &ClientError{result.Err}
 			return
 		}
 
@@ -426,7 +426,7 @@ func formatError(action string, result *octokit.Result) error {
 			errStr = fmt.Sprintf("%s\n%s", errStr, strings.Join(messages, "\n"))
 		}
 
-		return fmt.Errorf(strings.TrimSpace(errStr))
+		return fmt.Errorf(errStr)
 	}
 
 	return result.Err
