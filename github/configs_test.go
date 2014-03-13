@@ -12,11 +12,10 @@ func TestConfigs_loadFrom(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 	defer os.RemoveAll(file.Name())
 
-	content := `[credentials]
-  [credentials.github]
-    host = "https://api.github.com"
-    user = "jingweno"
-    access_token = "123"`
+	content := `[[credentials]]
+  host = "https://api.github.com"
+  user = "jingweno"
+  access_token = "123"`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
 
 	cc := &Configs{}
@@ -35,16 +34,15 @@ func TestConfigs_saveTo(t *testing.T) {
 	defer os.RemoveAll(file.Name())
 
 	cred := Credential{Host: "https://api.github.com", User: "jingweno", AccessToken: "123"}
-	c := Configs{Credentials: map[string]Credential{"github": cred}}
+	c := Configs{Credentials: []Credential{cred}}
 
 	err := saveTo(file.Name(), &c)
 	assert.Equal(t, nil, err)
 
 	b, _ := ioutil.ReadFile(file.Name())
-	content := `[credentials]
-  [credentials.github]
-    host = "https://api.github.com"
-    user = "jingweno"
-    access_token = "123"`
+	content := `[[credentials]]
+  host = "https://api.github.com"
+  user = "jingweno"
+  access_token = "123"`
 	assert.Equal(t, content, string(b))
 }

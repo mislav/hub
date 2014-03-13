@@ -23,7 +23,7 @@ type Credential struct {
 }
 
 type Configs struct {
-	Credentials map[string]Credential `toml:"credentials"`
+	Credentials []Credential `toml:"credentials"`
 }
 
 func (c *Configs) allCredentials() (creds []Credential) {
@@ -52,10 +52,7 @@ func (c *Configs) PromptFor(host string) *Credential {
 		utils.Check(err)
 
 		cd = &Credential{Host: host, User: user, AccessToken: token}
-		if c.Credentials == nil {
-			c.Credentials = make(map[string]Credential)
-		}
-		c.Credentials[host] = *cd
+		c.Credentials = append(c.Credentials, *cd)
 		err = saveTo(configsFile(), c)
 		utils.Check(err)
 	}
@@ -202,7 +199,7 @@ func CreateTestConfigs(user, token string) *Configs {
 		Host:        GitHubHost,
 	}
 
-	c := &Configs{Credentials: map[string]Credential{"github": cred}}
+	c := &Configs{Credentials: []Credential{cred}}
 	saveTo(f.Name(), c)
 
 	return c
