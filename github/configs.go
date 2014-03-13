@@ -141,7 +141,9 @@ func CurrentConfigs() *Configs {
 
 	configFile := configsFile()
 	err := loadFrom(configFile, c)
-	utils.Check(err)
+	if err != nil {
+		// load from YAML
+	}
 
 	return c
 }
