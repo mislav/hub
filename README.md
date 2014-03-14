@@ -264,10 +264,21 @@ superpowers:
     > git remote add origin git@github.com:sinatra/recipes.git
 
 ### git init
-
+    
     $ git init -g
     > git init
     > git remote add origin git@github.com:YOUR_USER/REPO.git
+    
+    $ git init 
+    > git init 
+    > cp -r ~/.hubtemplate/. .
+    
+    $ git init -c
+    > git init
+
+    $ git init -t template_dir
+    > git init
+    > cp -r template_dir/. .
 
 ### git push
 
