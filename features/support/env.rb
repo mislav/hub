@@ -32,7 +32,7 @@ Before do
   # sabotage opening a commit message editor interactively
   set_env 'GIT_EDITOR', 'false'
   # set default template directory
-  set_env 'HUB_TEMPLATE', File.join(ENV['HOME'], "/.hub") 
+  set_env 'HUB_TEMPLATE', File.join(ENV['HOME'], "/.hubtemplate") 
 
   author_name  = "Hub"
   author_email = "hub@test.local"

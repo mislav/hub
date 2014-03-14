@@ -1,12 +1,14 @@
 Feature: hub init
 
-  Scenario: Global template exists
-    Given template at "#{ENV['HUB_TEMPLATE']}" exists
+  Scenario: Init with default template
+    Given default template exists
     When I run `hub init`
     Then "git init" should be run
-    And "#{ENV['HUB_TEMPLATE']}" should be copied here 
+    And a file named "README.md" should exist
 
-  #Scenario: Global template does not exist
-    #Given default template does not exist 
-    #When I run `hub init`
-    #Then "git init" should be run
+  Scenario: Init without default template
+    Given default template exists
+    When I run `hub init -c`
+    Then "git init" should be run
+    And a file named "README.md" should not exist
+
