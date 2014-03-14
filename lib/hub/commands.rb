@@ -546,23 +546,6 @@ module Hub
         args.after ['remote', 'add', 'origin', url]
       end
     
-      # handle copying of the individual template 
-      def copy_template(directory)
-        `echo #{directory} >> /Users/MorehouseJ09/Desktop/test`
-        if not File.directory?(directory)
-          return
-        end
-        files = nil
-        Dir.chdir(directory) do 
-          files = Dir.glob("**/*") 
-        end
-        files.each do |rel_path| 
-          if not File.exists?(rel_path)
-            FileUtils.cp(File.join(directory, rel_path), rel_path)
-          end
-        end
-      end
-
       # logic for whether or not to pass the directory in 
       if args.delete('-t')
         copy_template(args.shift())
@@ -859,6 +842,21 @@ module Hub
     # Helper methods are private so they cannot be invoked
     # from the command line.
     #
+    # handle copying of the individual template 
+    def copy_template(directory)
+      if not File.directory?(directory)
+        return
+      end
+      files = nil
+      Dir.chdir(directory) do 
+        files = Dir.glob("**/*") 
+      end
+      files.each do |rel_path| 
+        if not File.exists?(rel_path)
+          FileUtils.cp(File.join(directory, rel_path), rel_path)
+        end
+      end
+    end
 
     def branch_in_url(branch)
       CGI.escape(branch.short_name).gsub("%2F", "/")
