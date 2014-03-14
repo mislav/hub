@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'find'
 
 Given(/^HTTPS is preferred$/) do
   run_silent %(git config --global hub.protocol https)
@@ -221,3 +222,32 @@ end
 Given(/^the git commit editor is "([^"]+)"$/) do |cmd|
   set_env('GIT_EDITOR', cmd)
 end
+
+Given(/^template at "(.*?)" exists$/) do |path|
+  if not File.directory?(path)
+    FileUtils.mkdir path
+  end
+  FileUtils.touch File.join(path, "README.md")
+end
+
+Given(/^template at "(.*?)" does not exist$/) do |path|
+  if File.directory?(path)
+    FileUtils.rm_rf(path)     
+  end
+end
+
+Then(/^"(.*?)" should be copied here$/) do |path|
+  files = nil
+  # grab all expected files
+  Dir.chdir(ENV['HUB_TEMPLATE']) do
+    files = Dir.glob("**/*")
+  end
+  # now make sure that all files were copied over properly
+  in_current_dir do
+    files.each do |path|
+       assert File.exists?(path)
+    end
+  end
+end
+
+

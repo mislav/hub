@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module Hub
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
@@ -534,11 +536,19 @@ module Hub
     # > git init
     # > git remote add origin git@github.com:USER/REPO.git
     def init(args)
+
       if args.delete('-g')
         project = github_project(File.basename(current_dir))
         url = project.git_url(:private => true, :https => https_protocol?)
         args.after ['remote', 'add', 'origin', url]
       end
+
+      if args.delete('-t') and not 
+        puts args 
+      else
+        FileUtils.cp_r "#{ENV['HUB_TEMPLATE']}/.", "."
+      end
+
     end
 
     # $ hub fork
