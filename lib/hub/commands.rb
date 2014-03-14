@@ -1,3 +1,5 @@
+require 'fileutils'
+
 module Hub
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
@@ -533,11 +535,39 @@ module Hub
     # $ hub init -g
     # > git init
     # > git remote add origin git@github.com:USER/REPO.git
+    # -c don't use a template
+    # -t pass in a specific templatedir
+    # check $HOME/.hubtemplate
     def init(args)
+
       if args.delete('-g')
         project = github_project(File.basename(current_dir))
         url = project.git_url(:private => true, :https => https_protocol?)
         args.after ['remote', 'add', 'origin', url]
+      end
+    
+      # handle copying of the individual template 
+      def copy_template(directory)
+        `echo #{directory} >> /Users/MorehouseJ09/Desktop/test`
+        if not File.directory?(directory)
+          return
+        end
+        files = nil
+        Dir.chdir(directory) do 
+          files = Dir.glob("**/*") 
+        end
+        files.each do |rel_path| 
+          if not File.exists?(rel_path)
+            FileUtils.cp(File.join(directory, rel_path), rel_path)
+          end
+        end
+      end
+
+      # logic for whether or not to pass the directory in 
+      if args.delete('-t')
+        copy_template(args.shift())
+      elsif not args.delete('-c')
+        copy_template(File.join(ENV['HOME'], ".hubtemplate"))
       end
     end
 

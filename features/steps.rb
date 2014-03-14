@@ -1,4 +1,5 @@
 require 'fileutils'
+require 'find'
 
 Given(/^HTTPS is preferred$/) do
   run_silent %(git config --global hub.protocol https)
@@ -221,3 +222,20 @@ end
 Given(/^the git commit editor is "([^"]+)"$/) do |cmd|
   set_env('GIT_EDITOR', cmd)
 end
+
+Given(/^default template exists$/) do 
+  path = ENV['HUB_TEMPLATE']
+  if not File.directory?(path)
+    FileUtils.mkdir path
+  end
+  FileUtils.touch File.join(path, "README.md")
+end
+
+Given(/^default template does not exist$/) do 
+  path = ENV['HUB_TEMPLATE']
+  step %(a git repo in "#{dir_name}")
+  if File.directory?(path) 
+    FileUtils.rm_rf(path)
+  end
+end
+

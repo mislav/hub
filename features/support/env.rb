@@ -31,6 +31,8 @@ Before do
   set_env 'BROWSER', 'open'
   # sabotage opening a commit message editor interactively
   set_env 'GIT_EDITOR', 'false'
+  # set default template directory
+  set_env 'HUB_TEMPLATE', File.join(ENV['HOME'], "/.hubtemplate") 
 
   author_name  = "Hub"
   author_email = "hub@test.local"
@@ -40,6 +42,8 @@ Before do
   set_env 'GIT_COMMITTER_EMAIL', author_email
 
   FileUtils.mkdir_p ENV['HOME']
+  FileUtils.mkdir_p ENV['HUB_TEMPLATE']
+  FileUtils.touch File.join(ENV['HUB_TEMPLATE'], "README.md")
 
   # increase process exit timeout from the default of 3 seconds
   @aruba_timeout_seconds = 5
@@ -54,6 +58,7 @@ end
 After do
   @server.stop if defined? @server and @server
   FileUtils.rm_f("#{bin_dir}/vim")
+
 end
 
 RSpec::Matchers.define :be_successful_command do

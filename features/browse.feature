@@ -156,3 +156,5 @@ Feature: hub browse
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub browse`
     Then "open http://git.my.org/mislav/dotfiles" should be run
+
+
