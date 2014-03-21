@@ -14,6 +14,7 @@ const (
 	GitHubHost    string = "github.com"
 	GitHubApiHost string = "api.github.com"
 	UserAgent     string = "Hub"
+	OAuthAppName  string = "hub"
 	OAuthAppURL   string = "http://hub.github.com/"
 )
 
@@ -323,7 +324,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	if token == "" {
 		authParam := octokit.AuthorizationParams{}
 		authParam.Scopes = append(authParam.Scopes, "repo")
-		authParam.Note = "gh"
+		authParam.Note = OAuthAppName
 		authParam.NoteURL = OAuthAppURL
 
 		auth, result := authsService.Create(authParam)
