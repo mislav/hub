@@ -102,6 +102,12 @@ class SimpleCommand
 end
 
 World Module.new {
+  # typing is too fast in the cukes which confuses Go that there's only one line of input
+  # See https://github.com/cucumber/aruba/blob/7afbc5c0cbae9c9a946d70c4c2735ccb86e00f08/lib/aruba/api.rb#L379-L382
+  def type(*args)
+    super.tap { sleep 0.1 }
+  end
+
   def history
     histfile = File.join(ENV['HOME'], '.history')
     if File.exist? histfile

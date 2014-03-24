@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -99,8 +100,11 @@ func (c *Configs) PromptForOTP() string {
 
 func (c *Configs) scanLine() string {
 	var line string
-	_, err := fmt.Scanln(&line)
-	utils.Check(err)
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		line = scanner.Text()
+	}
+	utils.Check(scanner.Err())
 
 	return line
 }
