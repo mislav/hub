@@ -102,7 +102,9 @@ class SimpleCommand
 end
 
 World Module.new {
-  # typing is too fast in the cukes which confuses Go that there's only one line of input
+  # If there are multiple inputs, e.g., type in username and then type in password etc.,
+  # the Go program will freeze on the second input. Giving it a small time interval
+  # temporarily solves the problem.
   # See https://github.com/cucumber/aruba/blob/7afbc5c0cbae9c9a946d70c4c2735ccb86e00f08/lib/aruba/api.rb#L379-L382
   def type(*args)
     super.tap { sleep 0.1 }
