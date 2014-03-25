@@ -9,8 +9,15 @@ import (
 )
 
 func TestGetTitleAndBodyFromFlags(t *testing.T) {
-	s := "just needs raven\\n\\nnow it works"
+	s := "just needs raven\n\nnow it works"
 	title, body, err := getTitleAndBodyFromFlags(s, "")
+
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "just needs raven", title)
+	assert.Equal(t, "now it works", body)
+
+	s = "just needs raven\\n\\nnow it works"
+	title, body, err = getTitleAndBodyFromFlags(s, "")
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "just needs raven", title)
