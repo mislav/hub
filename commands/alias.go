@@ -48,17 +48,12 @@ func alias(command *Command, args *Args) {
 	}
 
 	if !validShell {
-		err := fmt.Errorf("gh alias: unsupported shell\nsupported shells: %s", strings.Join(shells, " "))
+		err := fmt.Errorf("hub alias: unsupported shell\nsupported shells: %s", strings.Join(shells, " "))
 		utils.Check(err)
 	}
 
 	if flagAliasScript {
-		fmt.Println("alias git=gh")
-		if "zsh" == shell {
-			fmt.Println("if type compdef > /dev/null; then")
-			fmt.Println("  compdef gh=git")
-			fmt.Println("fi")
-		}
+		fmt.Println("alias git=hub")
 	} else {
 		var profile string
 		switch shell {
@@ -79,9 +74,9 @@ func alias(command *Command, args *Args) {
 
 		var eval string
 		if shell == "fish" {
-			eval = `eval (gh alias -s)`
+			eval = `eval (hub alias -s)`
 		} else {
-			eval = `eval "$(gh alias -s)"`
+			eval = `eval "$(hub alias -s)"`
 		}
 		fmt.Println(eval)
 	}
