@@ -27,21 +27,13 @@ type Configs struct {
 	Hosts []Host `toml:"hosts"`
 }
 
-func (c *Configs) allCredentials() (hosts []Host) {
-	for _, host := range c.Hosts {
-		hosts = append(hosts, host)
-	}
-
-	return
-}
-
 func (c *Configs) PromptFor(host string) *Host {
 	h := c.find(host)
 	if h == nil {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
 
-		// Create Client with a stub Credential
+		// Create Client with a stub Host
 		client := Client{Host: &Host{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
 		if err != nil {
@@ -161,29 +153,28 @@ func CurrentConfigs() *Configs {
 	return c
 }
 
-func (c *Configs) DefaultCredential() (credential *Host) {
+func (c *Configs) DefaultHost() (host *Host) {
 	if GitHubHostEnv != "" {
-		credential = c.PromptFor(GitHubHostEnv)
+		host = c.PromptFor(GitHubHostEnv)
 	} else if len(c.Hosts) > 0 {
-		credential = c.selectCredential()
+		host = c.selectHost()
 	} else {
-		credential = c.PromptFor(DefaultGitHubHost())
+		host = c.PromptFor(DefaultGitHubHost())
 	}
 
 	return
 }
 
-func (c *Configs) selectCredential() *Host {
-	creds := c.allCredentials()
-	options := len(creds)
+func (c *Configs) selectHost() *Host {
+	options := len(c.Hosts)
 
 	if options == 1 {
-		return &creds[0]
+		return &c.Hosts[0]
 	}
 
 	prompt := "Select host:\n"
-	for idx, cred := range creds {
-		prompt += fmt.Sprintf(" %d. %s\n", idx+1, cred.Host)
+	for idx, host := range c.Hosts {
+		prompt += fmt.Sprintf(" %d. %s\n", idx+1, host.Host)
 	}
 	prompt += fmt.Sprint("> ")
 
@@ -194,7 +185,7 @@ func (c *Configs) selectCredential() *Host {
 		utils.Check(fmt.Errorf("Error: must enter a number [1-%d]", options))
 	}
 
-	return &creds[i-1]
+	return &c.Hosts[i-1]
 }
 
 func (c *Configs) Save() error {

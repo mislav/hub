@@ -77,7 +77,7 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 	return url
 }
 
-// Remove the scheme from host when the credential url is absolute.
+// Remove the scheme from host when the host url is absolute.
 func rawHost(host string) string {
 	u, err := url.Parse(host)
 	utils.Check(err)

@@ -23,10 +23,10 @@ func TestConfigs_loadFrom(t *testing.T) {
 	assert.Equal(t, nil, err)
 
 	assert.Equal(t, 1, len(cc.Hosts))
-	cred := cc.allCredentials()[0]
-	assert.Equal(t, "https://github.com", cred.Host)
-	assert.Equal(t, "jingweno", cred.User)
-	assert.Equal(t, "123", cred.AccessToken)
+	host := cc.Hosts[0]
+	assert.Equal(t, "https://github.com", host.Host)
+	assert.Equal(t, "jingweno", host.User)
+	assert.Equal(t, "123", host.AccessToken)
 }
 
 func TestConfigs_saveTo(t *testing.T) {

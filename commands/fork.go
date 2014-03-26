@@ -40,8 +40,8 @@ func fork(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	configs := github.CurrentConfigs()
-	credentials := configs.PromptFor(project.Host)
-	forkProject := github.NewProject(credentials.User, project.Name, project.Host)
+	host := configs.PromptFor(project.Host)
+	forkProject := github.NewProject(host.User, project.Name, project.Host)
 
 	client := github.NewClient(project.Host)
 	existingRepo, err := client.Repository(forkProject)

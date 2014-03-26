@@ -98,7 +98,7 @@ func (updater *Updater) Update() (err error) {
 }
 
 func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
-	// Create Client with a stub Credential
+	// Create Client with a stub Host
 	c := github.Client{Host: &github.Host{Host: updater.Host}}
 	name, _ = c.GhLatestTagName()
 	version = strings.TrimPrefix(name, "v")

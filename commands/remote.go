@@ -65,8 +65,8 @@ func transformRemoteArgs(args *Args) {
 	isPriavte := parseRemotePrivateFlag(args)
 	if len(words) == 2 && words[1] == "origin" {
 		// gh add origin
-		credentials := github.CurrentConfigs().DefaultCredential()
-		owner = credentials.User
+		host := github.CurrentConfigs().DefaultHost()
+		owner = host.User
 		name = repoName
 	} else if len(words) == 2 {
 		// gh remote add jingweno foo/bar

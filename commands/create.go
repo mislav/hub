@@ -74,16 +74,16 @@ func create(command *Command, args *Args) {
 	}
 
 	configs := github.CurrentConfigs()
-	credentials := configs.DefaultCredential()
+	host := configs.DefaultHost()
 
-	owner := credentials.User
+	owner := host.User
 	if strings.Contains(newRepoName, "/") {
 		split := strings.SplitN(newRepoName, "/", 2)
 		owner = split[0]
 		newRepoName = split[1]
 	}
 
-	project := github.NewProject(owner, newRepoName, credentials.Host)
+	project := github.NewProject(owner, newRepoName, host.Host)
 	gh := github.NewClient(project.Host)
 
 	var action string

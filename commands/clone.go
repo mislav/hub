@@ -59,7 +59,7 @@ func transformCloneArgs(args *Args) {
 				var host *github.Host
 				if owner == "" {
 					configs := github.CurrentConfigs()
-					host = configs.DefaultCredential()
+					host = configs.DefaultHost()
 					owner = host.User
 				}
 
