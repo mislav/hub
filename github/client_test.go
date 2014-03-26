@@ -10,13 +10,13 @@ import (
 )
 
 func TestClient_ApiEndpoint(t *testing.T) {
-	gh := &Client{Credential: &Credential{Host: "github.com"}}
+	gh := &Client{Host: &Host{Host: "github.com"}}
 	assert.Equal(t, "https://api.github.com", gh.apiEndpoint())
 
-	gh = &Client{Credential: &Credential{Host: "github.corporate.com"}}
+	gh = &Client{Host: &Host{Host: "github.corporate.com"}}
 	assert.Equal(t, "https://github.corporate.com", gh.apiEndpoint())
 
-	gh = &Client{Credential: &Credential{Host: "http://github.corporate.com"}}
+	gh = &Client{Host: &Host{Host: "http://github.corporate.com"}}
 	assert.Equal(t, "http://github.corporate.com", gh.apiEndpoint())
 }
 

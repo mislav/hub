@@ -134,7 +134,7 @@ World Module.new {
     # the `toml` gem doesn't work well with array of table (https://github.com/mojombo/toml#array-of-tables)
     # a temporary solution here to output the right format
     # see https://github.com/jm/toml/issues/31
-    data = hub_config.map { |c| "[[credentials]]\n#{TOML::Generator.new(c).body}" }.join("\n\n")
+    data = hub_config.map { |c| "[[hosts]]\n#{TOML::Generator.new(c).body}" }.join("\n\n")
     File.open(config, 'w') { |cfg| cfg << data }
   end
 

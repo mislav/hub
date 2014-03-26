@@ -17,32 +17,32 @@ var (
 	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "hub")
 )
 
-type Credential struct {
+type Host struct {
 	Host        string `toml:"host"`
 	User        string `toml:"user"`
 	AccessToken string `toml:"access_token"`
 }
 
 type Configs struct {
-	Credentials []Credential `toml:"credentials"`
+	Hosts []Host `toml:"hosts"`
 }
 
-func (c *Configs) allCredentials() (creds []Credential) {
-	for _, cred := range c.Credentials {
-		creds = append(creds, cred)
+func (c *Configs) allCredentials() (hosts []Host) {
+	for _, host := range c.Hosts {
+		hosts = append(hosts, host)
 	}
 
 	return
 }
 
-func (c *Configs) PromptFor(host string) *Credential {
-	cd := c.find(host)
-	if cd == nil {
+func (c *Configs) PromptFor(host string) *Host {
+	h := c.find(host)
+	if h == nil {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
 
 		// Create Client with a stub Credential
-		client := Client{Credential: &Credential{Host: host}}
+		client := Client{Host: &Host{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
 		if err != nil {
 			if ce, ok := err.(*ClientError); ok && ce.Is2FAError() {
@@ -52,17 +52,17 @@ func (c *Configs) PromptFor(host string) *Credential {
 		}
 		utils.Check(err)
 
-		client.Credential.AccessToken = token
+		client.Host.AccessToken = token
 		currentUser, err := client.CurrentUser()
 		utils.Check(err)
 
-		cd = &Credential{Host: host, User: currentUser.Login, AccessToken: token}
-		c.Credentials = append(c.Credentials, *cd)
+		h = &Host{Host: host, User: currentUser.Login, AccessToken: token}
+		c.Hosts = append(c.Hosts, *h)
 		err = saveTo(configsFile(), c)
 		utils.Check(err)
 	}
 
-	return cd
+	return h
 }
 
 func (c *Configs) PromptForUser() (user string) {
@@ -109,10 +109,10 @@ func (c *Configs) scanLine() string {
 	return line
 }
 
-func (c *Configs) find(host string) *Credential {
-	for _, t := range c.Credentials {
-		if t.Host == host {
-			return &t
+func (c *Configs) find(host string) *Host {
+	for _, h := range c.Hosts {
+		if h.Host == host {
+			return &h
 		}
 	}
 
@@ -161,10 +161,10 @@ func CurrentConfigs() *Configs {
 	return c
 }
 
-func (c *Configs) DefaultCredential() (credential *Credential) {
+func (c *Configs) DefaultCredential() (credential *Host) {
 	if GitHubHostEnv != "" {
 		credential = c.PromptFor(GitHubHostEnv)
-	} else if len(c.Credentials) > 0 {
+	} else if len(c.Hosts) > 0 {
 		credential = c.selectCredential()
 	} else {
 		credential = c.PromptFor(DefaultHost())
@@ -173,7 +173,7 @@ func (c *Configs) DefaultCredential() (credential *Credential) {
 	return
 }
 
-func (c *Configs) selectCredential() *Credential {
+func (c *Configs) selectCredential() *Host {
 	creds := c.allCredentials()
 	options := len(creds)
 
@@ -206,13 +206,13 @@ func CreateTestConfigs(user, token string) *Configs {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()
 
-	cred := Credential{
+	host := Host{
 		User:        "jingweno",
 		AccessToken: "123",
 		Host:        GitHubHost,
 	}
 
-	c := &Configs{Credentials: []Credential{cred}}
+	c := &Configs{Hosts: []Host{host}}
 	saveTo(f.Name(), c)
 
 	return c

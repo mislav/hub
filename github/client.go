@@ -37,7 +37,7 @@ func (e *ClientError) Is2FAError() bool {
 }
 
 type Client struct {
-	Credential *Credential
+	Host *Host
 }
 
 func (client *Client) PullRequest(project *Project, id string) (pr *octokit.PullRequest, err error) {
@@ -118,7 +118,7 @@ func (client *Client) IsRepositoryExist(project *Project) bool {
 
 func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
 	var repoURL octokit.Hyperlink
-	if project.Owner != client.Credential.User {
+	if project.Owner != client.Host.User {
 		repoURL = octokit.OrgRepositoriesURL
 	} else {
 		repoURL = octokit.UserRepositoriesURL
@@ -361,7 +361,7 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 }
 
 func (client *Client) octokit() (c *octokit.Client) {
-	tokenAuth := octokit.TokenAuth{AccessToken: client.Credential.AccessToken}
+	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
 	tr := &http.Transport{Proxy: proxyFromEnvironment}
 	httpClient := &http.Client{Transport: tr}
 	c = octokit.NewClientWith(client.apiEndpoint(), UserAgent, tokenAuth, httpClient)
@@ -371,7 +371,7 @@ func (client *Client) octokit() (c *octokit.Client) {
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	uu = u
-	if client.Credential != nil && client.Credential.Host != GitHubHost {
+	if client.Host != nil && client.Host.Host != GitHubHost {
 		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
 	}
 
@@ -380,8 +380,8 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 
 func (client *Client) apiEndpoint() string {
 	host := os.Getenv("GH_API_HOST")
-	if host == "" && client.Credential != nil {
-		host = client.Credential.Host
+	if host == "" && client.Host != nil {
+		host = client.Host.Host
 	}
 
 	if host == GitHubHost {

@@ -56,23 +56,23 @@ func transformCloneArgs(args *Args) {
 		} else {
 			if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
 				name, owner := parseCloneNameAndOwner(a)
-				var credential *github.Credential
+				var host *github.Host
 				if owner == "" {
 					configs := github.CurrentConfigs()
-					credential = configs.DefaultCredential()
-					owner = credential.User
+					host = configs.DefaultCredential()
+					owner = host.User
 				}
 
-				var host string
-				if credential != nil {
-					host = credential.Host
+				var hostStr string
+				if host != nil {
+					hostStr = host.Host
 				}
 
-				project := github.NewProject(owner, name, host)
+				project := github.NewProject(owner, name, hostStr)
 				isSSH = isSSH ||
 					args.Command != "submodule" &&
-						credential != nil &&
-						project.Owner == credential.User
+						host != nil &&
+						project.Owner == host.User
 
 				url := project.GitURL(name, owner, isSSH)
 				args.ReplaceParam(i, url)
