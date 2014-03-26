@@ -1,39 +1,40 @@
 package github
 
 import (
-	"encoding/json"
+	"bufio"
 	"fmt"
-	"github.com/github/hub/utils"
-	"github.com/howeyc/gopass"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
+
+	"github.com/BurntSushi/toml"
+	"github.com/github/hub/utils"
+	"github.com/howeyc/gopass"
 )
 
 var (
-	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "gh")
+	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "hub")
 )
 
-type Credentials struct {
-	Host        string `json:"host"`
-	User        string `json:"user"`
-	AccessToken string `json:"access_token"`
+type Host struct {
+	Host        string `toml:"host"`
+	User        string `toml:"user"`
+	AccessToken string `toml:"access_token"`
 }
 
 type Configs struct {
-	Credentials []Credentials `json:"credentials"`
+	Hosts []Host `toml:"hosts"`
 }
 
-func (c *Configs) PromptFor(host string) *Credentials {
-	cc := c.find(host)
-	if cc == nil {
+func (c *Configs) PromptFor(host string) *Host {
+	h := c.find(host)
+	if h == nil {
 		user := c.PromptForUser()
 		pass := c.PromptForPassword(host, user)
 
-		// Create Client with a stub Credentials
-		client := Client{Credentials: &Credentials{Host: host}}
+		// Create Client with a stub Host
+		client := Client{Host: &Host{Host: host}}
 		token, err := client.FindOrCreateToken(user, pass, "")
 		if err != nil {
 			if ce, ok := err.(*ClientError); ok && ce.Is2FAError() {
@@ -43,13 +44,17 @@ func (c *Configs) PromptFor(host string) *Credentials {
 		}
 		utils.Check(err)
 
-		cc = &Credentials{Host: host, User: user, AccessToken: token}
-		c.Credentials = append(c.Credentials, *cc)
+		client.Host.AccessToken = token
+		currentUser, err := client.CurrentUser()
+		utils.Check(err)
+
+		h = &Host{Host: host, User: currentUser.Login, AccessToken: token}
+		c.Hosts = append(c.Hosts, *h)
 		err = saveTo(configsFile(), c)
 		utils.Check(err)
 	}
 
-	return cc
+	return h
 }
 
 func (c *Configs) PromptForUser() (user string) {
@@ -59,7 +64,7 @@ func (c *Configs) PromptForUser() (user string) {
 	}
 
 	fmt.Printf("%s username: ", GitHubHost)
-	fmt.Scanln(&user)
+	user = c.scanLine()
 
 	return
 }
@@ -74,24 +79,32 @@ func (c *Configs) PromptForPassword(host, user string) (pass string) {
 	if isTerminal(os.Stdout.Fd()) {
 		pass = string(gopass.GetPasswd())
 	} else {
-		fmt.Scanln(&pass)
+		pass = c.scanLine()
 	}
 
 	return
 }
 
 func (c *Configs) PromptForOTP() string {
-	var code string
 	fmt.Print("two-factor authentication code: ")
-	fmt.Scanln(&code)
-
-	return code
+	return c.scanLine()
 }
 
-func (c *Configs) find(host string) *Credentials {
-	for _, t := range c.Credentials {
-		if t.Host == host {
-			return &t
+func (c *Configs) scanLine() string {
+	var line string
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		line = scanner.Text()
+	}
+	utils.Check(scanner.Err())
+
+	return line
+}
+
+func (c *Configs) find(host string) *Host {
+	for _, h := range c.Hosts {
+		if h.Host == host {
+			return &h
 		}
 	}
 
@@ -104,43 +117,19 @@ func saveTo(filename string, v interface{}) error {
 		return err
 	}
 
-	f, err := os.Create(filename)
+	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	enc := json.NewEncoder(f)
+	enc := toml.NewEncoder(f)
 	return enc.Encode(v)
 }
 
-func loadFrom(filename string, c *Configs) error {
-	return loadFromFile(filename, c)
-}
-
-// Function to load deprecated configuration.
-// It's not intended to be used.
-func loadFromDeprecated(filename string, c *[]Credentials) error {
-	return loadFromFile(filename, c)
-}
-
-func loadFromFile(filename string, v interface{}) error {
-	f, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	dec := json.NewDecoder(f)
-	for {
-		if err := dec.Decode(v); err == io.EOF {
-			break
-		} else if err != nil {
-			return err
-		}
-	}
-
-	return nil
+func loadFrom(filename string, c *Configs) (err error) {
+	_, err = toml.DecodeFile(filename, c)
+	return
 }
 
 func configsFile() string {
@@ -157,56 +146,46 @@ func CurrentConfigs() *Configs {
 
 	configFile := configsFile()
 	err := loadFrom(configFile, c)
-
 	if err != nil {
-		// Try deprecated configuration
-		var creds []Credentials
-		err := loadFromDeprecated(configsFile(), &creds)
-		if err != nil {
-			creds = make([]Credentials, 0)
-		}
-		c.Credentials = creds
-		saveTo(configFile, c)
+		// load from YAML
 	}
 
 	return c
 }
 
-func (c *Configs) DefaultCredentials() (credentials *Credentials) {
+func (c *Configs) DefaultHost() (host *Host) {
 	if GitHubHostEnv != "" {
-		credentials = c.PromptFor(GitHubHostEnv)
-	} else if len(c.Credentials) > 0 {
-		credentials = c.selectCredentials()
+		host = c.PromptFor(GitHubHostEnv)
+	} else if len(c.Hosts) > 0 {
+		host = c.selectHost()
 	} else {
-		credentials = c.PromptFor(DefaultHost())
+		host = c.PromptFor(DefaultGitHubHost())
 	}
 
 	return
 }
 
-func (c *Configs) selectCredentials() *Credentials {
-	options := len(c.Credentials)
+func (c *Configs) selectHost() *Host {
+	options := len(c.Hosts)
 
 	if options == 1 {
-		return &c.Credentials[0]
+		return &c.Hosts[0]
 	}
 
 	prompt := "Select host:\n"
-	for idx, creds := range c.Credentials {
-		prompt += fmt.Sprintf(" %d. %s\n", idx+1, creds.Host)
+	for idx, host := range c.Hosts {
+		prompt += fmt.Sprintf(" %d. %s\n", idx+1, host.Host)
 	}
 	prompt += fmt.Sprint("> ")
 
 	fmt.Printf(prompt)
-	var index string
-	fmt.Scanln(&index)
-
+	index := c.scanLine()
 	i, err := strconv.Atoi(index)
 	if err != nil || i < 1 || i > options {
 		utils.Check(fmt.Errorf("Error: must enter a number [1-%d]", options))
 	}
 
-	return &c.Credentials[i-1]
+	return &c.Hosts[i-1]
 }
 
 func (c *Configs) Save() error {
@@ -218,11 +197,13 @@ func CreateTestConfigs(user, token string) *Configs {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()
 
-	creds := []Credentials{
-		{User: "jingweno", AccessToken: "123", Host: GitHubHost},
+	host := Host{
+		User:        "jingweno",
+		AccessToken: "123",
+		Host:        GitHubHost,
 	}
 
-	c := &Configs{Credentials: creds}
+	c := &Configs{Hosts: []Host{host}}
 	saveTo(f.Name(), c)
 
 	return c

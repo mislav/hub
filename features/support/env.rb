@@ -1,7 +1,7 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
-require 'json'
+require 'toml'
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
@@ -102,6 +102,14 @@ class SimpleCommand
 end
 
 World Module.new {
+  # If there are multiple inputs, e.g., type in username and then type in password etc.,
+  # the Go program will freeze on the second input. Giving it a small time interval
+  # temporarily solves the problem.
+  # See https://github.com/cucumber/aruba/blob/7afbc5c0cbae9c9a946d70c4c2735ccb86e00f08/lib/aruba/api.rb#L379-L382
+  def type(*args)
+    super.tap { sleep 0.1 }
+  end
+
   def history
     histfile = File.join(ENV['HOME'], '.history')
     if File.exist? histfile
@@ -119,34 +127,15 @@ World Module.new {
   def edit_hub_config
     config = File.join(ENV['HOME'], '.config/hub')
     FileUtils.mkdir_p File.dirname(config)
-    if File.exist? config
-      data = YAML.load File.read(config)
-    else
-      data = {}
-    end
-    yield data
-    File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
-  end
 
-  undef edit_hub_config
-  def edit_hub_config
-    config = File.join(ENV['HOME'], '.config/gh')
-    FileUtils.mkdir_p File.dirname(config)
-
-    hub_config = {}
+    hub_config = []
     yield hub_config
 
-    data = {:credentials => []}
-    hub_config.each do |host, entries|
-      token = entries[0].fetch('oauth_token', false)
-      data[:credentials] << {
-        :host => host,
-        :user => entries[0].fetch('user'),
-      }
-      data[:credentials].last[:access_token] = token if token
-    end
-
-    File.open(config, 'w') { |cfg| cfg << JSON.generate(data) }
+    # the `toml` gem doesn't work well with array of table (https://github.com/mojombo/toml#array-of-tables)
+    # a temporary solution here to output the right format
+    # see https://github.com/jm/toml/issues/31
+    data = hub_config.map { |c| "[[hosts]]\n#{TOML::Generator.new(c).body}" }.join("\n\n")
+    File.open(config, 'w') { |cfg| cfg << data }
   end
 
   define_method(:text_editor_script) do |bash_code|

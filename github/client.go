@@ -14,12 +14,13 @@ const (
 	GitHubHost    string = "github.com"
 	GitHubApiHost string = "api.github.com"
 	UserAgent     string = "Hub"
-	OAuthAppURL   string = "http://owenou.com/gh"
+	OAuthAppName  string = "hub"
+	OAuthAppURL   string = "http://hub.github.com/"
 )
 
 func NewClient(host string) *Client {
 	c := CurrentConfigs().PromptFor(host)
-	return &Client{Credentials: c}
+	return &Client{c}
 }
 
 type ClientError struct {
@@ -36,7 +37,7 @@ func (e *ClientError) Is2FAError() bool {
 }
 
 type Client struct {
-	Credentials *Credentials
+	Host *Host
 }
 
 func (client *Client) PullRequest(project *Project, id string) (pr *octokit.PullRequest, err error) {
@@ -117,7 +118,7 @@ func (client *Client) IsRepositoryExist(project *Project) bool {
 
 func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
 	var repoURL octokit.Hyperlink
-	if project.Owner != client.Credentials.User {
+	if project.Owner != client.Host.User {
 		repoURL = octokit.OrgRepositoriesURL
 	} else {
 		repoURL = octokit.UserRepositoriesURL
@@ -281,6 +282,21 @@ func (client *Client) GhLatestTagName() (tagName string, err error) {
 	return
 }
 
+func (client *Client) CurrentUser() (user *octokit.User, err error) {
+	url, err := octokit.CurrentUserURL.Expand(nil)
+	if err != nil {
+		return
+	}
+
+	user, result := client.octokit().Users(url).One()
+	if result.HasError() {
+		err = formatError("getting current user", result)
+		return
+	}
+
+	return
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	url, e := octokit.AuthorizationsURL.Expand(nil)
 	if e != nil {
@@ -308,7 +324,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	if token == "" {
 		authParam := octokit.AuthorizationParams{}
 		authParam.Scopes = append(authParam.Scopes, "repo")
-		authParam.Note = "gh"
+		authParam.Note = OAuthAppName
 		authParam.NoteURL = OAuthAppURL
 
 		auth, result := authsService.Create(authParam)
@@ -345,7 +361,7 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 }
 
 func (client *Client) octokit() (c *octokit.Client) {
-	tokenAuth := octokit.TokenAuth{AccessToken: client.Credentials.AccessToken}
+	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
 	tr := &http.Transport{Proxy: proxyFromEnvironment}
 	httpClient := &http.Client{Transport: tr}
 	c = octokit.NewClientWith(client.apiEndpoint(), UserAgent, tokenAuth, httpClient)
@@ -355,7 +371,7 @@ func (client *Client) octokit() (c *octokit.Client) {
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	uu = u
-	if client.Credentials != nil && client.Credentials.Host != GitHubHost {
+	if client.Host != nil && client.Host.Host != GitHubHost {
 		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
 	}
 
@@ -364,8 +380,8 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 
 func (client *Client) apiEndpoint() string {
 	host := os.Getenv("GH_API_HOST")
-	if host == "" && client.Credentials != nil {
-		host = client.Credentials.Host
+	if host == "" && client.Host != nil {
+		host = client.Host.Host
 	}
 
 	if host == GitHubHost {

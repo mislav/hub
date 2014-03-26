@@ -3,12 +3,13 @@ package github
 import (
 	"errors"
 	"fmt"
-	"github.com/github/hub/git"
-	"github.com/github/hub/utils"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/github/hub/git"
+	"github.com/github/hub/utils"
 )
 
 type Project struct {
@@ -76,7 +77,7 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 	return url
 }
 
-// Remove the scheme from host when the credential url is absolute.
+// Remove the scheme from host when the host url is absolute.
 func rawHost(host string) string {
 	u, err := url.Parse(host)
 	utils.Check(err)
@@ -98,7 +99,7 @@ func useHttpProtocol() bool {
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	if !knownHosts().Include(url.Host) {
+	if !knownGitHubHosts().Include(url.Host) {
 		err = fmt.Errorf("Invalid GitHub URL: %s", url)
 		return
 	}
@@ -131,7 +132,7 @@ func NewProject(owner, name, host string) *Project {
 	}
 
 	if host == "" {
-		host = DefaultHost()
+		host = DefaultGitHubHost()
 	}
 
 	if owner == "" {

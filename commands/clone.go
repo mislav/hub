@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"github.com/github/hub/github"
 	"regexp"
 	"strings"
+
+	"github.com/github/hub/github"
 )
 
 var cmdClone = &Command{
@@ -55,23 +56,23 @@ func transformCloneArgs(args *Args) {
 		} else {
 			if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
 				name, owner := parseCloneNameAndOwner(a)
-				var credentials *github.Credentials
+				var host *github.Host
 				if owner == "" {
 					configs := github.CurrentConfigs()
-					credentials = configs.DefaultCredentials()
-					owner = credentials.User
+					host = configs.DefaultHost()
+					owner = host.User
 				}
 
-				var host string
-				if credentials != nil {
-					host = credentials.Host
+				var hostStr string
+				if host != nil {
+					hostStr = host.Host
 				}
 
-				project := github.NewProject(owner, name, host)
+				project := github.NewProject(owner, name, hostStr)
 				isSSH = isSSH ||
 					args.Command != "submodule" &&
-						credentials != nil &&
-						project.Owner == credentials.User
+						host != nil &&
+						project.Owner == host.User
 
 				url := project.GitURL(name, owner, isSSH)
 				args.ReplaceParam(i, url)

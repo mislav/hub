@@ -2,18 +2,19 @@ package github
 
 import (
 	"fmt"
-	"github.com/github/hub/git"
 	"os"
 	"strings"
+
+	"github.com/github/hub/git"
 )
 
 var (
 	GitHubHostEnv = os.Getenv("GITHUB_HOST")
 )
 
-type Hosts []string
+type GitHubHosts []string
 
-func (h Hosts) Include(host string) bool {
+func (h GitHubHosts) Include(host string) bool {
 	for _, hh := range h {
 		if hh == host {
 			return true
@@ -23,20 +24,20 @@ func (h Hosts) Include(host string) bool {
 	return false
 }
 
-func knownHosts() (hosts Hosts) {
+func knownGitHubHosts() (hosts GitHubHosts) {
 	ghHosts, _ := git.Config("gh.host")
 	for _, ghHost := range strings.Split(ghHosts, "\n") {
 		hosts = append(hosts, ghHost)
 	}
 
-	defaultHost := DefaultHost()
+	defaultHost := DefaultGitHubHost()
 	hosts = append(hosts, defaultHost)
 	hosts = append(hosts, fmt.Sprintf("ssh.%s", defaultHost))
 
 	return
 }
 
-func DefaultHost() string {
+func DefaultGitHubHost() string {
 	defaultHost := GitHubHostEnv
 	if defaultHost == "" {
 		defaultHost = GitHubHost

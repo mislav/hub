@@ -1,46 +1,48 @@
 package github
 
 import (
-	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
-func TestSaveCredentials(t *testing.T) {
+func TestConfigs_loadFrom(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 	defer os.RemoveAll(file.Name())
 
-	ccreds := Credentials{Host: "github.com", User: "jingweno", AccessToken: "123"}
-	c := Configs{Credentials: []Credentials{ccreds}}
+	content := `[[hosts]]
+  host = "https://github.com"
+  user = "jingweno"
+  access_token = "123"`
+	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
+
+	cc := &Configs{}
+	err := loadFrom(file.Name(), cc)
+	assert.Equal(t, nil, err)
+
+	assert.Equal(t, 1, len(cc.Hosts))
+	host := cc.Hosts[0]
+	assert.Equal(t, "https://github.com", host.Host)
+	assert.Equal(t, "jingweno", host.User)
+	assert.Equal(t, "123", host.AccessToken)
+}
+
+func TestConfigs_saveTo(t *testing.T) {
+	file, _ := ioutil.TempFile("", "test-gh-config-")
+	defer os.RemoveAll(file.Name())
+
+	host := Host{Host: "https://github.com", User: "jingweno", AccessToken: "123"}
+	c := Configs{Hosts: []Host{host}}
 
 	err := saveTo(file.Name(), &c)
 	assert.Equal(t, nil, err)
 
-	cc := &Configs{}
-	err = loadFrom(file.Name(), cc)
-	assert.Equal(t, nil, err)
-
-	creds := cc.Credentials[0]
-	assert.Equal(t, "github.com", creds.Host)
-	assert.Equal(t, "jingweno", creds.User)
-	assert.Equal(t, "123", creds.AccessToken)
-}
-
-func TestReadAndSaveDeprecatedConfiguration(t *testing.T) {
-	file, _ := ioutil.TempFile("", "test-gh-config-")
-	defer os.RemoveAll(file.Name())
-	defaultConfigsFile = file.Name()
-
-	file.WriteString(`[{"host":"github.com","user":"jingweno","access_token":"123"}]`)
-	file.Close()
-
-	CurrentConfigs()
-
-	expectedConfig := `{"credentials":[{"host":"github.com","user":"jingweno","access_token":"123"}]}
-`
-
-	f, _ := os.Open(file.Name())
-	content, _ := ioutil.ReadAll(f)
-	assert.Equal(t, expectedConfig, string(content))
+	b, _ := ioutil.ReadFile(file.Name())
+	content := `[[hosts]]
+  host = "https://github.com"
+  user = "jingweno"
+  access_token = "123"`
+	assert.Equal(t, content, string(b))
 }
