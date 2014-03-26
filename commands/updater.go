@@ -29,7 +29,7 @@ func NewUpdater() *Updater {
 
 	timestampPath := filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
 	return &Updater{
-		Host:           github.DefaultHost(),
+		Host:           github.DefaultGitHubHost(),
 		CurrentVersion: version,
 		timestampPath:  timestampPath,
 	}

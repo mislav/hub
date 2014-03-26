@@ -167,7 +167,7 @@ func (c *Configs) DefaultCredential() (credential *Host) {
 	} else if len(c.Hosts) > 0 {
 		credential = c.selectCredential()
 	} else {
-		credential = c.PromptFor(DefaultHost())
+		credential = c.PromptFor(DefaultGitHubHost())
 	}
 
 	return
