@@ -39,7 +39,7 @@ func (c *Configs) PromptForHost(host string) (h *Host, err error) {
 	client := NewClient(host)
 	token, e := client.FindOrCreateToken(user, pass, "")
 	if e != nil {
-		if ce, ok := e.(*ClientError); ok && ce.Is2FAError() {
+		if ae, ok := e.(*AuthError); ok && ae.Is2FAError() {
 			code := c.PromptForOTP()
 			token, err = client.FindOrCreateToken(user, pass, code)
 		} else {

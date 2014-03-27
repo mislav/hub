@@ -26,15 +26,15 @@ func NewClientWithHost(host *Host) *Client {
 	return &Client{host}
 }
 
-type ClientError struct {
+type AuthError struct {
 	error
 }
 
-func (e *ClientError) Error() string {
+func (e *AuthError) Error() string {
 	return e.error.Error()
 }
 
-func (e *ClientError) Is2FAError() bool {
+func (e *AuthError) Is2FAError() bool {
 	re, ok := e.error.(*octokit.ResponseError)
 	return ok && re.Type == octokit.ErrorOneTimePasswordRequired
 }
@@ -380,7 +380,7 @@ func (client *Client) CurrentUser() (user *octokit.User, err error) {
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
 	url, e := octokit.AuthorizationsURL.Expand(nil)
 	if e != nil {
-		err = &ClientError{e}
+		err = &AuthError{e}
 		return
 	}
 
@@ -390,7 +390,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 	auths, result := authsService.All()
 	if result.HasError() {
-		err = &ClientError{result.Err}
+		err = &AuthError{result.Err}
 		return
 	}
 
@@ -409,7 +409,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 		auth, result := authsService.Create(authParam)
 		if result.HasError() {
-			err = &ClientError{result.Err}
+			err = &AuthError{result.Err}
 			return
 		}
 
@@ -518,7 +518,7 @@ func FormatError(action string, err error) (ee error) {
 		}
 
 		ee = fmt.Errorf(errStr)
-	case *ClientError:
+	case *AuthError:
 		errStr := fmt.Sprintf("Error %s: Unauthorized (HTTP 401)", action)
 		ee = fmt.Errorf(errStr)
 	default:
