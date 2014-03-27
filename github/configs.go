@@ -27,34 +27,42 @@ type Configs struct {
 	Hosts []Host `toml:"hosts"`
 }
 
-func (c *Configs) PromptFor(host string) *Host {
-	h := c.find(host)
-	if h == nil {
-		user := c.PromptForUser()
-		pass := c.PromptForPassword(host, user)
-
-		// Create Client with a stub Host
-		client := Client{Host: &Host{Host: host}}
-		token, err := client.FindOrCreateToken(user, pass, "")
-		if err != nil {
-			if ce, ok := err.(*ClientError); ok && ce.Is2FAError() {
-				code := c.PromptForOTP()
-				token, err = client.FindOrCreateToken(user, pass, code)
-			}
-		}
-		utils.Check(err)
-
-		client.Host.AccessToken = token
-		currentUser, err := client.CurrentUser()
-		utils.Check(err)
-
-		h = &Host{Host: host, User: currentUser.Login, AccessToken: token}
-		c.Hosts = append(c.Hosts, *h)
-		err = saveTo(configsFile(), c)
-		utils.Check(err)
+func (c *Configs) PromptForHost(host string) (h *Host, err error) {
+	h = c.find(host)
+	if h != nil {
+		return
 	}
 
-	return h
+	user := c.PromptForUser()
+	pass := c.PromptForPassword(host, user)
+
+	client := NewClient(host)
+	token, e := client.FindOrCreateToken(user, pass, "")
+	if e != nil {
+		if ce, ok := e.(*ClientError); ok && ce.Is2FAError() {
+			code := c.PromptForOTP()
+			token, err = client.FindOrCreateToken(user, pass, code)
+		} else {
+			err = e
+		}
+	}
+
+	if err != nil {
+		return
+	}
+
+	client.Host.AccessToken = token
+	currentUser, err := client.CurrentUser()
+
+	if err != nil {
+		return
+	}
+
+	h = &Host{Host: host, User: currentUser.Login, AccessToken: token}
+	c.Hosts = append(c.Hosts, *h)
+	err = saveTo(configsFile(), c)
+
+	return
 }
 
 func (c *Configs) PromptForUser() (user string) {
@@ -153,13 +161,13 @@ func CurrentConfigs() *Configs {
 	return c
 }
 
-func (c *Configs) DefaultHost() (host *Host) {
+func (c *Configs) DefaultHost() (host *Host, err error) {
 	if GitHubHostEnv != "" {
-		host = c.PromptFor(GitHubHostEnv)
+		host, err = c.PromptForHost(GitHubHostEnv)
 	} else if len(c.Hosts) > 0 {
 		host = c.selectHost()
 	} else {
-		host = c.PromptFor(DefaultGitHubHost())
+		host, err = c.PromptForHost(DefaultGitHubHost())
 	}
 
 	return

@@ -21,27 +21,24 @@ func TestClient_ApiEndpoint(t *testing.T) {
 }
 
 func TestClient_formatError(t *testing.T) {
-	result := &octokit.Result{
-		Err: &octokit.ResponseError{
-			Response: &http.Response{
-				StatusCode: 401,
-				Status:     "401 Not Found",
-			},
+	e := &octokit.ResponseError{
+		Response: &http.Response{
+			StatusCode: 401,
+			Status:     "401 Not Found",
 		},
 	}
-	err := formatError("action", result)
+
+	err := FormatError("action", e)
 	assert.Equal(t, "Error action: Not Found (HTTP 401)", fmt.Sprintf("%s", err))
 
-	result = &octokit.Result{
-		Err: &octokit.ResponseError{
-			Response: &http.Response{
-				StatusCode: 422,
-				Status:     "422 Unprocessable Entity",
-			},
-			Message: "error message",
+	e = &octokit.ResponseError{
+		Response: &http.Response{
+			StatusCode: 422,
+			Status:     "422 Unprocessable Entity",
 		},
+		Message: "error message",
 	}
-	err = formatError("action", result)
+	err = FormatError("action", e)
 	assert.Equal(t, "Error action: Unprocessable Entity (HTTP 422)\nerror message", fmt.Sprintf("%s", err))
 }
 
@@ -51,16 +48,14 @@ func TestClient_warnExistenceOfRepo(t *testing.T) {
 		Owner: "github",
 		Host:  "github.com",
 	}
-	result := &octokit.Result{
-		Err: &octokit.ResponseError{
-			Response: &http.Response{
-				StatusCode: 404,
-				Status:     "404 Not Found",
-			},
-			Message: "error message",
+	e := &octokit.ResponseError{
+		Response: &http.Response{
+			StatusCode: 404,
+			Status:     "404 Not Found",
 		},
+		Message: "error message",
 	}
 
-	err := warnExistenceOfRepo(project, result)
+	err := warnExistenceOfRepo(project, e)
 	assert.Equal(t, "Are you sure that github.com/github/hub exists?", fmt.Sprintf("%s", err))
 }

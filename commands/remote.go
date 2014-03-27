@@ -65,7 +65,11 @@ func transformRemoteArgs(args *Args) {
 	isPriavte := parseRemotePrivateFlag(args)
 	if len(words) == 2 && words[1] == "origin" {
 		// gh add origin
-		host := github.CurrentConfigs().DefaultHost()
+		host, err := github.CurrentConfigs().DefaultHost()
+		if err != nil {
+			utils.Check(github.FormatError("adding remote", err))
+		}
+
 		owner = host.User
 		name = repoName
 	} else if len(words) == 2 {
