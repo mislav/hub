@@ -9,18 +9,7 @@ import (
 	"github.com/octokit/go-octokit/octokit"
 )
 
-func TestClient_ApiEndpoint(t *testing.T) {
-	gh := &Client{Host: &Host{Host: "github.com"}}
-	assert.Equal(t, "https://api.github.com", gh.apiEndpoint())
-
-	gh = &Client{Host: &Host{Host: "github.corporate.com"}}
-	assert.Equal(t, "https://github.corporate.com", gh.apiEndpoint())
-
-	gh = &Client{Host: &Host{Host: "http://github.corporate.com"}}
-	assert.Equal(t, "http://github.corporate.com", gh.apiEndpoint())
-}
-
-func TestClient_formatError(t *testing.T) {
+func TestClient_FormatError(t *testing.T) {
 	e := &octokit.ResponseError{
 		Response: &http.Response{
 			StatusCode: 401,

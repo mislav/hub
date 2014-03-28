@@ -339,7 +339,7 @@ func (client *Client) GhLatestTagName() (tagName string, err error) {
 		return
 	}
 
-	c := octokit.NewClientWith(client.apiEndpoint(), UserAgent, nil, nil)
+	c := octokit.NewClientWith(client.apiHost(), UserAgent, nil, nil)
 	releases, result := c.Releases(client.requestURL(url)).All()
 	if result.HasError() {
 		err = fmt.Errorf("Error getting gh release: %s", result.Err)
@@ -385,7 +385,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
-	c := octokit.NewClientWith(client.apiEndpoint(), UserAgent, basicAuth, nil)
+	c := octokit.NewClientWith(client.apiHost(), UserAgent, basicAuth, nil)
 	authsService := c.Authorizations(client.requestURL(url))
 
 	auths, result := authsService.All()
@@ -453,7 +453,7 @@ func (client *Client) api() (c *octokit.Client, err error) {
 	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
 	tr := &http.Transport{Proxy: proxyFromEnvironment}
 	httpClient := &http.Client{Transport: tr}
-	c = octokit.NewClientWith(client.apiEndpoint(), UserAgent, tokenAuth, httpClient)
+	c = octokit.NewClientWith(client.apiHost(), UserAgent, tokenAuth, httpClient)
 
 	return
 }
@@ -467,26 +467,9 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	return
 }
 
-func (client *Client) apiEndpoint() string {
-	host := os.Getenv("GH_API_HOST")
-	if host == "" && client.Host != nil {
-		host = client.Host.Host
-	}
-
-	if host == GitHubHost {
-		host = GitHubApiHost
-	}
-
-	return absolute(host)
-}
-
-func absolute(endpoint string) string {
-	u, _ := url.Parse(endpoint)
-	if u.Scheme == "" {
-		u.Scheme = "https"
-	}
-
-	return u.String()
+func (client *Client) apiHost() string {
+	ah := &apiHost{client.Host.Host}
+	return ah.String()
 }
 
 func FormatError(action string, err error) (ee error) {
