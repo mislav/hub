@@ -2,10 +2,11 @@ package commands
 
 import (
 	"fmt"
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
 	"os"
 	"reflect"
+
+	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
 )
 
 var cmdFork = &Command{
@@ -40,7 +41,11 @@ func fork(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	configs := github.CurrentConfigs()
-	host := configs.PromptFor(project.Host)
+	host, err := configs.PromptForHost(project.Host)
+	if err != nil {
+		utils.Check(github.FormatError("forking repository", err))
+	}
+
 	forkProject := github.NewProject(host.User, project.Name, project.Host)
 
 	client := github.NewClient(project.Host)

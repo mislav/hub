@@ -136,8 +136,9 @@ func NewProject(owner, name, host string) *Project {
 	}
 
 	if owner == "" {
-		c := CurrentConfigs().PromptFor(host)
-		owner = c.User
+		h, e := CurrentConfigs().PromptForHost(host)
+		utils.Check(e)
+		owner = h.User
 	}
 
 	if name == "" {

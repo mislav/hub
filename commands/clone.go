@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
 )
 
 var cmdClone = &Command{
@@ -59,7 +60,12 @@ func transformCloneArgs(args *Args) {
 				var host *github.Host
 				if owner == "" {
 					configs := github.CurrentConfigs()
-					host = configs.DefaultHost()
+					h, err := configs.DefaultHost()
+					if err != nil {
+						utils.Check(github.FormatError("cloning repository", err))
+					}
+
+					host = h
 					owner = host.User
 				}
 

@@ -74,7 +74,10 @@ func create(command *Command, args *Args) {
 	}
 
 	configs := github.CurrentConfigs()
-	host := configs.DefaultHost()
+	host, err := configs.DefaultHost()
+	if err != nil {
+		utils.Check(github.FormatError("creating repository", err))
+	}
 
 	owner := host.User
 	if strings.Contains(newRepoName, "/") {

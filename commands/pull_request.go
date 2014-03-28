@@ -84,9 +84,12 @@ func pullRequest(cmd *Command, args *Args) {
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
 
-	client := github.NewClient(baseProject.Host)
+	host, err := github.CurrentConfigs().PromptForHost(baseProject.Host)
+	if err != nil {
+		utils.Check(github.FormatError("creating pull request", err))
+	}
 
-	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(client.Host.User)
+	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User)
 	utils.Check(err)
 
 	var (
@@ -179,6 +182,7 @@ func pullRequest(cmd *Command, args *Args) {
 			err error
 		)
 
+		client := github.NewClientWithHost(host)
 		if title != "" {
 			pr, err = client.CreatePullRequest(baseProject, base, fullHead, title, body)
 		} else if flagPullRequestIssue != "" {
