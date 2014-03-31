@@ -1,9 +1,10 @@
 package octokit
 
 import (
-	"github.com/lostisland/go-sawyer/hypermedia"
 	"net/url"
 	"time"
+
+	"github.com/lostisland/go-sawyer/hypermedia"
 )
 
 var (
@@ -73,11 +74,11 @@ type PullRequest struct {
 }
 
 type Commit struct {
-	Label string     `json:"label,omitempty"`
-	Ref   string     `json:"ref,omitempty"`
-	Sha   string     `json:"sha,omitempty"`
-	User  User       `json:"user,omitempty"`
-	Repo  Repository `json:"repo,omitempty"`
+	Label string      `json:"label,omitempty"`
+	Ref   string      `json:"ref,omitempty"`
+	Sha   string      `json:"sha,omitempty"`
+	User  User        `json:"user,omitempty"`
+	Repo  *Repository `json:"repo,omitempty"`
 }
 
 type PullRequestParams struct {
