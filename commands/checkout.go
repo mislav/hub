@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/github/hub/github"
@@ -51,7 +50,6 @@ func transformCheckoutArgs(args *Args) error {
 	if len(words) > 1 {
 		newBranchName = words[1]
 	}
- 
 
 	url, err := github.ParseURL(checkoutURL)
 	if err != nil {
