@@ -273,13 +273,13 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 
 	api, err := client.api()
 	if err != nil {
-		err = FormatError("forking repository", err)
+		err = FormatError("creating fork", err)
 		return
 	}
 
 	repo, result := api.Repositories(client.requestURL(url)).Create(nil)
 	if result.HasError() {
-		err = FormatError("forking repository", result.Err)
+		err = FormatError("creating fork", result.Err)
 		return
 	}
 
