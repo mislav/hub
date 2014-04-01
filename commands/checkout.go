@@ -76,7 +76,7 @@ func transformCheckoutArgs(args *Args) error {
 	}
 
 	user, branch := parseUserBranchFromPR(pullRequest)
-	if pullRequest.Head.Repo.ID == 0 {
+	if pullRequest.Head.Repo == nil {
 		return fmt.Errorf("Error: %s's fork is not available anymore", user)
 	}
 
