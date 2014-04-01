@@ -76,7 +76,8 @@ func init() {
   [ create pull request with title & body from FILE ]
 */
 func pullRequest(cmd *Command, args *Args) {
-	localRepo := github.LocalRepo()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
 
 	currentBranch, err := localRepo.CurrentBranch()
 	utils.Check(err)

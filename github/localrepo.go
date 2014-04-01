@@ -6,8 +6,16 @@ import (
 	"github.com/github/hub/git"
 )
 
-func LocalRepo() *GitHubRepo {
-	return &GitHubRepo{}
+func LocalRepo() (repo *GitHubRepo, err error) {
+	repo = &GitHubRepo{}
+
+	_, err = git.Dir()
+	if err != nil {
+		err = fmt.Errorf("fatal: Not a git repository")
+		return
+	}
+
+	return
 }
 
 type GitHubRepo struct {

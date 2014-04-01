@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -35,7 +34,8 @@ func init() {
   [ repo forked on GitHub ]
 */
 func fork(cmd *Command, args *Args) {
-	localRepo := github.LocalRepo()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
 
 	project, err := localRepo.MainProject()
 	if err != nil {

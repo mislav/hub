@@ -67,7 +67,7 @@ func browse(command *Command, args *Args) {
 		subpage = args.RemoveParam(0)
 	}
 
-	localRepo := github.LocalRepo()
+	localRepo, _ := github.LocalRepo()
 	if dest != "" {
 		project = github.NewProject("", dest, "")
 		branch = localRepo.MasterBranch()
