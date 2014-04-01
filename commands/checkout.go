@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"regexp"
 )
 
 var cmdCheckout = &Command{
@@ -39,23 +40,27 @@ func checkout(command *Command, args *Args) {
 
 func transformCheckoutArgs(args *Args) error {
 	words := args.Words()
+
 	if len(words) == 0 {
 		return nil
 	}
 
 	checkoutURL := words[0]
-	url, err := github.ParseURL(checkoutURL)
-	if err != nil {
-		return nil
-	}
 	var newBranchName string
 	if len(words) > 1 {
 		newBranchName = words[1]
 	}
 
+	url, err := github.ParseURL(checkoutURL)
+	if err != nil {
+		// not a valid GitHub URL
+		return nil
+	}
+
 	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
 	projectPath := url.ProjectPath()
 	if !pullURLRegex.MatchString(projectPath) {
+		// not a valid PR URL
 		return nil
 	}
 
@@ -71,7 +76,7 @@ func transformCheckoutArgs(args *Args) error {
 	}
 
 	user, branch := parseUserBranchFromPR(pullRequest)
-	if pullRequest.Head.Repo.ID == 0 {
+	if pullRequest.Head.Repo == nil {
 		return fmt.Errorf("Error: %s's fork is not available anymore", user)
 	}
 

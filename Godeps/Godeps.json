@@ -12,8 +12,8 @@
 		},
 		{
 			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
-			"Comment": "null-185",
-			"Rev": "6478cc9340cbbe6c04511280c5007722269108e9"
+			"Comment": "null-192",
+			"Rev": "2990fc550b9ff92bc33c848f92c87a305ae62934"
 		},
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
@@ -56,16 +56,16 @@
 		},
 		{
 			"ImportPath": "github.com/lostisland/go-sawyer",
-			"Rev": "cb3f837f5ac26e080a9002dcb4d2e8472e623916"
+			"Rev": "ec1b99a1915d53f09d40d0c87caf60460b7f8728"
 		},
 		{
 			"ImportPath": "github.com/octokit/go-octokit/octokit",
-			"Comment": "v0.4.0-64-g58b5756",
-			"Rev": "58b57562e522b0281c63e11d379bb6115eaff240"
+			"Comment": "v0.4.0-66-g9368061",
+			"Rev": "9368061969ae7fe6a1f478ffac4e4708f17c6c59"
 		},
 		{
 			"ImportPath": "github.com/ogier/pflag",
-			"Rev": "fc2d9a0ef658fa4e4c319939fd6f4b6becfccb48"
+			"Rev": "f235ad33d48a41975db57c0b52cec7b70529db0d"
 		}
 	]
 }

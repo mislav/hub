@@ -6,6 +6,7 @@ require 'toml'
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
+hub_dir = File.expand_path('../../../', __FILE__)
 raise 'hub build failed' unless system("./script/build")
 
 Before do
@@ -16,7 +17,7 @@ Before do
   # speed up load time by skipping RubyGems
   set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
-  set_env 'PATH', "#{File.dirname(lib_dir)}:#{bin_dir}:#{ENV['PATH']}"
+  set_env 'PATH', "#{hub_dir}:#{bin_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
   set_env 'GIT', nil
   # exclude this project's git directory from use in testing
