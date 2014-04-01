@@ -474,6 +474,8 @@ func (client *Client) apiHost() string {
 
 func FormatError(action string, err error) (ee error) {
 	switch e := err.(type) {
+	default:
+		ee = err
 	case *octokit.ResponseError:
 		statusCode := e.Response.StatusCode
 		var reason string
@@ -504,8 +506,6 @@ func FormatError(action string, err error) (ee error) {
 	case *AuthError:
 		errStr := fmt.Sprintf("Error %s: Unauthorized (HTTP 401)", action)
 		ee = fmt.Errorf(errStr)
-	default:
-		ee = err
 	}
 
 	return
