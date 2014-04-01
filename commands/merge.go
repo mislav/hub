@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"regexp"
 )
 
 var cmdMerge = &Command{
@@ -59,7 +60,7 @@ func transformMergeArgs(args *Args) error {
 	}
 
 	user, branch := parseUserBranchFromPR(pullRequest)
-	if pullRequest.Head.Repo.ID == 0 {
+	if pullRequest.Head.Repo == nil {
 		return fmt.Errorf("Error: %s's fork is not available anymore", user)
 	}
 
