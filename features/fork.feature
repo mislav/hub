@@ -8,8 +8,8 @@ Feature: hub fork
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
-      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
-      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
+      get('/repos/mislav/dotfiles') { halt 404 }
+      post('/repos/evilchelu/dotfiles/forks') { '' }
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
