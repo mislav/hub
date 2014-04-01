@@ -10,7 +10,7 @@ type apiHost struct {
 }
 
 func (ah *apiHost) String() string {
-	host := os.Getenv("GH_API_HOST")
+	host := os.Getenv("HUB_TEST_HOST")
 	if host == "" && ah.Host != "" {
 		host = ah.Host
 	}

@@ -106,8 +106,7 @@ Given(/^the GitHub API server:$/) do |endpoints_str|
     eval endpoints_str, binding
   end
   # hit our Sinatra server instead of github.com
-  set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
-  set_env 'GH_API_HOST', "http://127.0.0.1:#{@server.port}"
+  set_env 'HUB_TEST_HOST', "http://127.0.0.1:#{@server.port}"
 end
 
 Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|
