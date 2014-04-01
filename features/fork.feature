@@ -122,7 +122,7 @@ Scenario: Related fork already exists
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN' }
-      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      post('/api/v3/repos/evilchelu/dotfiles/forks') { '' }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
