@@ -38,7 +38,9 @@ func fork(cmd *Command, args *Args) {
 	localRepo := github.LocalRepo()
 
 	project, err := localRepo.MainProject()
-	utils.Check(err)
+	if err != nil {
+		utils.Check(fmt.Errorf("Error: repository under 'origin' remote is not a GitHub project"))
+	}
 
 	configs := github.CurrentConfigs()
 	host, err := configs.PromptForHost(project.Host)
