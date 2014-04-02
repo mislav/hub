@@ -134,6 +134,27 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+Scenario: Text editor adds some lines beginning with core.commentchar
+    Given I successfully run `git config core.commentchar $`
+    Given the text editor adds:
+      """
+      This title comes from vim!
+
+      This body as well.
+      $ This line should be a comment
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'This title comes from vim!',
+               :body  => 'This body as well.'
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
   Scenario: Failed pull request preserves previous message
     Given the text editor adds:
       """

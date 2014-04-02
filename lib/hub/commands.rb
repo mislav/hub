@@ -234,10 +234,10 @@ module Hub
           initial_message ||= default_message
           msg.puts initial_message if initial_message
           msg.puts ""
-          msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
-          msg.puts "#"
-          msg.puts "# Write a message for this pull request. The first block"
-          msg.puts "# of text is the title and the rest is description."
+          msg.commented_puts "Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.commented_puts ""
+          msg.commented_puts "Write a message for this pull request. The first block"
+          msg.commented_puts "of text is the title and the rest is description."
         }
       end
 
@@ -1077,10 +1077,16 @@ help
       end
 
       File.open(message_file, 'w') { |msg|
+        msg.instance_variable_set(:@commentchar, commentchar)
+        def msg.commented_puts(output)
+          self.puts "#{@commentchar} #{output}"
+        end
         yield msg, previous_message
         if changes
-          msg.puts "#\n# Changes:\n#"
-          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
+          msg.commented_puts ""
+          msg.commented_puts "Changes:"
+          msg.commented_puts ""
+          msg.puts changes.gsub(/^/, "#{commentchar} ").gsub(/ +$/, '')
         end
       }
 
@@ -1120,7 +1126,7 @@ help
       title, body = '', ''
       File.open(file, 'r') { |msg|
         msg.each_line do |line|
-          next if line.index('#') == 0
+          next if line.index("#{commentchar}") == 0
           ((title.empty? and line =~ /\S/) ? title : body) << line
         end
       }
