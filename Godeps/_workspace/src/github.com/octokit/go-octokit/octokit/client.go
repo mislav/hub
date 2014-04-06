@@ -15,23 +15,25 @@ func NewClient(authMethod AuthMethod) *Client {
 
 func NewClientWith(baseURL string, userAgent string, authMethod AuthMethod, httpClient *http.Client) *Client {
 	client, _ := sawyer.NewFromString(baseURL, httpClient)
-	return &Client{sawyerClient: client, UserAgent: userAgent, AuthMethod: authMethod}
+	return &Client{Client: client, UserAgent: userAgent, AuthMethod: authMethod}
 }
 
 type Client struct {
-	UserAgent    string
-	AuthMethod   AuthMethod
-	sawyerClient *sawyer.Client
-	rootRels     hypermedia.Relations
+	*sawyer.Client
+
+	UserAgent  string
+	AuthMethod AuthMethod
+	rootRels   hypermedia.Relations
 }
 
 func (c *Client) NewRequest(urlStr string) (req *Request, err error) {
-	sawyerReq, err := c.newSawyerRequest(urlStr)
+	req, err = newRequest(c, urlStr)
 	if err != nil {
 		return
 	}
 
-	req = &Request{sawyerReq: sawyerReq}
+	c.applyRequestHeaders(req)
+
 	return
 }
 
@@ -72,32 +74,41 @@ func (c *Client) patch(url *url.URL, input interface{}, output interface{}) (res
 }
 
 func (c *Client) upload(uploadUrl *url.URL, asset io.ReadCloser, contentType string, contentLength int64) (result *Result) {
-	req, err := c.newSawyerRequest(uploadUrl.String())
+	req, err := c.NewRequest(uploadUrl.String())
 	if err != nil {
 		result = newResult(nil, err)
 		return
 	}
 
-	req.Header.Add("Content-Type", contentType)
+	req.Header.Set("Content-Type", contentType)
 	req.ContentLength = contentLength
 
 	req.Body = asset
-	sawyerResp := req.Post()
+	sawyerResp := req.Request.Post()
 
 	resp, err := NewResponse(sawyerResp)
 	return newResult(resp, err)
 }
 
-func (c *Client) newSawyerRequest(urlStr string) (sawyerReq *sawyer.Request, err error) {
-	sawyerReq, err = c.sawyerClient.NewRequest(urlStr)
-	if err != nil {
-		return
+func (c *Client) applyRequestHeaders(req *Request) {
+	req.Header.Set("Accept", defaultMediaType)
+	req.Header.Set("User-Agent", c.UserAgent)
+
+	if c.AuthMethod != nil {
+		req.Header.Set("Authorization", c.AuthMethod.String())
 	}
 
-	sawyerReq.Header.Add("Accept", defaultMediaType)
-	sawyerReq.Header.Add("User-Agent", c.UserAgent)
+	if basicAuth, ok := c.AuthMethod.(BasicAuth); ok && basicAuth.OneTimePassword != "" {
+		req.Header.Set("X-GitHub-OTP", basicAuth.OneTimePassword)
+	}
 
-	c.addAuthenticationHeaders(sawyerReq.Header)
+	// Go doesn't apply `Host` on the header, instead it consults `Request.Host`
+	// Populate `Host` if it exists in `Client.Header`
+	// See Bug https://code.google.com/p/go/issues/detail?id=7682
+	host := c.Header.Get("Host")
+	if host != "" {
+		req.Request.Host = host
+	}
 
 	return
 }
@@ -113,14 +124,4 @@ func sendRequest(c *Client, url *url.URL, fn func(r *Request) (*Response, error)
 	result = newResult(resp, err)
 
 	return
-}
-
-func (c *Client) addAuthenticationHeaders(header http.Header) {
-	if c.AuthMethod != nil {
-		header.Add("Authorization", c.AuthMethod.String())
-	}
-
-	if basicAuth, ok := c.AuthMethod.(BasicAuth); ok && basicAuth.OneTimePassword != "" {
-		header.Add("X-GitHub-OTP", basicAuth.OneTimePassword)
-	}
 }
