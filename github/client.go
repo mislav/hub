@@ -457,9 +457,36 @@ func (client *Client) api() (c *octokit.Client, err error) {
 }
 
 func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client {
+	var host string
+	if client.Host != nil {
+		host = client.Host.Host
+	}
+
+	if host == "" {
+		host = GitHubHost
+	}
+
+	if host == GitHubHost {
+		host = GitHubApiHost
+	}
+
+	apiHost := host
+	hubTestHost := os.Getenv("HUB_TEST_HOST")
+	if hubTestHost != "" {
+		apiHost = hubTestHost
+	}
+
+	apiHost = absolute(apiHost)
+
 	tr := &http.Transport{Proxy: proxyFromEnvironment}
 	httpClient := &http.Client{Transport: tr}
-	return octokit.NewClientWith(client.apiHost(), UserAgent, auth, httpClient)
+	c := octokit.NewClientWith(apiHost, UserAgent, auth, httpClient)
+	if hubTestHost != "" {
+		// if it's in test, make sure host name is in the header
+		c.Header.Set("Host", host)
+	}
+
+	return c
 }
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
@@ -469,11 +496,6 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	}
 
 	return
-}
-
-func (client *Client) apiHost() string {
-	ah := &apiHost{client.Host.Host}
-	return ah.String()
 }
 
 func FormatError(action string, err error) (ee error) {
@@ -527,4 +549,13 @@ func warnExistenceOfRepo(project *Project, ee error) (err error) {
 	}
 
 	return
+}
+
+func absolute(endpoint string) string {
+	u, _ := url.Parse(endpoint)
+	if u.Scheme == "" {
+		u.Scheme = "https"
+	}
+
+	return u.String()
 }

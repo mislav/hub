@@ -3,11 +3,33 @@ package github
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"testing"
 
 	"github.com/bmizerany/assert"
 	"github.com/octokit/go-octokit/octokit"
 )
+
+func TestClient_newOctokitClient(t *testing.T) {
+	c := NewClient("github.com")
+	cc := c.newOctokitClient(nil)
+	assert.Equal(t, "https://api.github.com", cc.Endpoint.String())
+
+	c = NewClient("github.corporate.com")
+	cc = c.newOctokitClient(nil)
+	assert.Equal(t, "https://github.corporate.com", cc.Endpoint.String())
+
+	c = NewClient("http://github.corporate.com")
+	cc = c.newOctokitClient(nil)
+	assert.Equal(t, "http://github.corporate.com", cc.Endpoint.String())
+
+	os.Setenv("HUB_TEST_HOST", "http://127.0.0.1")
+	defer os.Setenv("HUB_TEST_HOST", "")
+	c = NewClient("github.corporate.com")
+	cc = c.newOctokitClient(nil)
+	assert.Equal(t, "http://127.0.0.1", cc.Endpoint.String())
+	assert.Equal(t, "github.corporate.com", cc.Header.Get("Host"))
+}
 
 func TestClient_FormatError(t *testing.T) {
 	e := &octokit.ResponseError{
