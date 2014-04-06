@@ -8,7 +8,7 @@ Feature: hub fork
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
-      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { halt 404 }
+      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
       post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
     When I successfully run `hub fork`
