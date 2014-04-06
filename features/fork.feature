@@ -8,8 +8,8 @@ Feature: hub fork
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
-      get('/repos/mislav/dotfiles') { halt 404 }
-      post('/repos/evilchelu/dotfiles/forks') { '' }
+      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { halt 404 }
+      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
@@ -22,8 +22,8 @@ Feature: hub fork
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
-      get('/repos/mislav/dotfiles') { 404 }
-      post('/repos/evilchelu/dotfiles/forks') { '' }
+      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
+      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
@@ -122,7 +122,7 @@ Scenario: Related fork already exists
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN' }
-      post('/api/v3/repos/evilchelu/dotfiles/forks') { '' }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
