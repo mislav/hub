@@ -2,10 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"os"
-	"reflect"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
+	"os"
+	"reflect"
 )
 
 var cmdFork = &Command{

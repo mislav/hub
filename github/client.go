@@ -339,7 +339,7 @@ func (client *Client) GhLatestTagName() (tagName string, err error) {
 		return
 	}
 
-	c := octokit.NewClientWith(client.apiHost(), UserAgent, nil, nil)
+	c := client.newOctokitClient(nil)
 	releases, result := c.Releases(client.requestURL(url)).All()
 	if result.HasError() {
 		err = fmt.Errorf("Error getting gh release: %s", result.Err)
@@ -385,7 +385,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
-	c := octokit.NewClientWith(client.apiHost(), UserAgent, basicAuth, nil)
+	c := client.newOctokitClient(basicAuth)
 	authsService := c.Authorizations(client.requestURL(url))
 
 	auths, result := authsService.All()
@@ -451,11 +451,15 @@ func (client *Client) api() (c *octokit.Client, err error) {
 	}
 
 	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
-	tr := &http.Transport{Proxy: proxyFromEnvironment}
-	httpClient := &http.Client{Transport: tr}
-	c = octokit.NewClientWith(client.apiHost(), UserAgent, tokenAuth, httpClient)
+	c = client.newOctokitClient(tokenAuth)
 
 	return
+}
+
+func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client {
+	tr := &http.Transport{Proxy: proxyFromEnvironment}
+	httpClient := &http.Client{Transport: tr}
+	return octokit.NewClientWith(client.apiHost(), UserAgent, auth, httpClient)
 }
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
