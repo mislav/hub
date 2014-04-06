@@ -2,10 +2,11 @@ package commands
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"os"
 )
 
 var cmdCiStatus = &Command{
@@ -51,7 +52,9 @@ func ciStatus(cmd *Command, args *Args) {
 		ref = args.RemoveParam(0)
 	}
 
-	localRepo := github.LocalRepo()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
 	project, err := localRepo.MainProject()
 	utils.Check(err)
 

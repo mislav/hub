@@ -1,13 +1,14 @@
 package commands
 
 import (
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
-	"github.com/octokit/go-octokit/octokit"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 type listFlag []string
@@ -101,7 +102,9 @@ func readMsg(msg string) (title, body string) {
 }
 
 func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
-	localRepo := github.LocalRepo()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
 	project, err := localRepo.CurrentProject()
 	utils.Check(err)
 

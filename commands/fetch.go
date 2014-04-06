@@ -1,10 +1,11 @@
 package commands
 
 import (
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
 	"regexp"
 	"strings"
+
+	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
 )
 
 var cmdFetch = &Command{
@@ -45,7 +46,9 @@ func fetch(command *Command, args *Args) {
 
 func tranformFetchArgs(args *Args) error {
 	names := parseRemoteNames(args)
-	localRepo := github.LocalRepo()
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
 
 	projects := make(map[*github.Project]bool)
 	ownerRegexp := regexp.MustCompile(OwnerRe)

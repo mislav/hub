@@ -1,9 +1,10 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"strings"
 )
 
 var cmdPush = &Command{
@@ -44,9 +45,12 @@ func transformPushArgs(args *Args) {
 	args.ReplaceParam(0, remotes[0])
 
 	if len(refs) == 0 {
-		localRepo := github.LocalRepo()
+		localRepo, err := github.LocalRepo()
+		utils.Check(err)
+
 		head, err := localRepo.CurrentBranch()
 		utils.Check(err)
+
 		refs = []string{head.ShortName()}
 		args.AppendParams(refs...)
 	}

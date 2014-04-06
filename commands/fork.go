@@ -2,11 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"os"
-	"reflect"
-
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
+	"os"
+	"reflect"
 )
 
 var cmdFork = &Command{
@@ -35,10 +34,13 @@ func init() {
   [ repo forked on GitHub ]
 */
 func fork(cmd *Command, args *Args) {
-	localRepo := github.LocalRepo()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
 
 	project, err := localRepo.MainProject()
-	utils.Check(err)
+	if err != nil {
+		utils.Check(fmt.Errorf("Error: repository under 'origin' remote is not a GitHub project"))
+	}
 
 	configs := github.CurrentConfigs()
 	host, err := configs.PromptForHost(project.Host)
@@ -47,7 +49,6 @@ func fork(cmd *Command, args *Args) {
 	}
 
 	forkProject := github.NewProject(host.User, project.Name, project.Host)
-
 	client := github.NewClient(project.Host)
 	existingRepo, err := client.Repository(forkProject)
 	if err == nil {
@@ -70,8 +71,11 @@ func fork(cmd *Command, args *Args) {
 	if flagForkNoRemote {
 		os.Exit(0)
 	} else {
-		u := forkProject.GitURL("", "", true)
-		args.Replace("git", "remote", "add", "-f", forkProject.Owner, u)
+		originRemote, _ := localRepo.OriginRemote()
+		originURL := originRemote.URL.String()
+		url := forkProject.GitURL("", "", true)
+		args.Replace("git", "remote", "add", "-f", forkProject.Owner, originURL)
+		args.After("git", "remote", "set-url", forkProject.Owner, url)
 		args.After("echo", fmt.Sprintf("new remote: %s", forkProject.Owner))
 	}
 }

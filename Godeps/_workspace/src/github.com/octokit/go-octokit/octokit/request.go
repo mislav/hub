@@ -5,44 +5,56 @@ import (
 	"github.com/lostisland/go-sawyer/mediatype"
 )
 
+func newRequest(client *Client, urlStr string) (req *Request, err error) {
+	sawyerReq, err := client.Client.NewRequest(urlStr)
+	if err != nil {
+		return
+	}
+
+	req = &Request{client: client, Request: sawyerReq}
+
+	return
+}
+
 type Request struct {
-	sawyerReq *sawyer.Request
+	*sawyer.Request
+	client *Client
 }
 
 func (r *Request) Head(output interface{}) (*Response, error) {
-	return r.createResponse(r.sawyerReq.Head(), output)
+	return r.createResponse(r.Request.Head(), output)
 }
 
 func (r *Request) Get(output interface{}) (*Response, error) {
-	return r.createResponse(r.sawyerReq.Get(), output)
+	return r.createResponse(r.Request.Get(), output)
 }
 
 func (r *Request) Post(input interface{}, output interface{}) (*Response, error) {
 	r.setBody(input)
-	return r.createResponse(r.sawyerReq.Post(), output)
+	return r.createResponse(r.Request.Post(), output)
 }
 
 func (r *Request) Put(input interface{}, output interface{}) (*Response, error) {
 	r.setBody(input)
-	return r.createResponse(r.sawyerReq.Put(), output)
+	return r.createResponse(r.Request.Put(), output)
 }
 
 func (r *Request) Delete(output interface{}) (*Response, error) {
-	return r.createResponse(r.sawyerReq.Delete(), output)
+	return r.createResponse(r.Request.Delete(), output)
 }
 
 func (r *Request) Patch(input interface{}, output interface{}) (*Response, error) {
 	r.setBody(input)
-	return r.createResponse(r.sawyerReq.Patch(), output)
+	return r.createResponse(r.Request.Patch(), output)
 }
 
 func (r *Request) Options(output interface{}) (*Response, error) {
-	return r.createResponse(r.sawyerReq.Options(), output)
+	return r.createResponse(r.Request.Options(), output)
 }
 
 func (r *Request) setBody(input interface{}) {
 	mtype, _ := mediatype.Parse(defaultMediaType)
-	r.sawyerReq.SetBody(mtype, input)
+	r.Request.SetBody(mtype, input)
 }
 
 func (r *Request) createResponse(sawyerResp *sawyer.Response, output interface{}) (resp *Response, err error) {

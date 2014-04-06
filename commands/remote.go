@@ -48,7 +48,9 @@ func transformRemoteArgs(args *Args) {
 		return
 	}
 
-	localRepo := github.LocalRepo()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
 	var repoName string
 	if name == "" {
 		project, err := localRepo.MainProject()

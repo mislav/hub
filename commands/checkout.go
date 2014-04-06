@@ -84,7 +84,9 @@ func transformCheckoutArgs(args *Args) error {
 		newBranchName = fmt.Sprintf("%s-%s", user, branch)
 	}
 
-	repo := github.LocalRepo()
+	repo, err := github.LocalRepo()
+	utils.Check(err)
+
 	_, err = repo.RemoteByName(user)
 	if err == nil {
 		args.Before("git", "remote", "set-branches", "--add", user, branch)

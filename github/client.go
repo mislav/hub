@@ -273,13 +273,13 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 
 	api, err := client.api()
 	if err != nil {
-		err = FormatError("forking repository", err)
+		err = FormatError("creating fork", err)
 		return
 	}
 
 	repo, result := api.Repositories(client.requestURL(url)).Create(nil)
 	if result.HasError() {
-		err = FormatError("forking repository", result.Err)
+		err = FormatError("creating fork", result.Err)
 		return
 	}
 
@@ -339,7 +339,7 @@ func (client *Client) GhLatestTagName() (tagName string, err error) {
 		return
 	}
 
-	c := octokit.NewClientWith(client.apiHost(), UserAgent, nil, nil)
+	c := client.newOctokitClient(nil)
 	releases, result := c.Releases(client.requestURL(url)).All()
 	if result.HasError() {
 		err = fmt.Errorf("Error getting gh release: %s", result.Err)
@@ -385,7 +385,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
-	c := octokit.NewClientWith(client.apiHost(), UserAgent, basicAuth, nil)
+	c := client.newOctokitClient(basicAuth)
 	authsService := c.Authorizations(client.requestURL(url))
 
 	auths, result := authsService.All()
@@ -451,11 +451,42 @@ func (client *Client) api() (c *octokit.Client, err error) {
 	}
 
 	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
-	tr := &http.Transport{Proxy: proxyFromEnvironment}
-	httpClient := &http.Client{Transport: tr}
-	c = octokit.NewClientWith(client.apiHost(), UserAgent, tokenAuth, httpClient)
+	c = client.newOctokitClient(tokenAuth)
 
 	return
+}
+
+func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client {
+	var host string
+	if client.Host != nil {
+		host = client.Host.Host
+	}
+
+	if host == "" {
+		host = GitHubHost
+	}
+
+	if host == GitHubHost {
+		host = GitHubApiHost
+	}
+
+	apiHost := host
+	hubTestHost := os.Getenv("HUB_TEST_HOST")
+	if hubTestHost != "" {
+		apiHost = hubTestHost
+	}
+
+	apiHost = absolute(apiHost)
+
+	tr := &http.Transport{Proxy: proxyFromEnvironment}
+	httpClient := &http.Client{Transport: tr}
+	c := octokit.NewClientWith(apiHost, UserAgent, auth, httpClient)
+	if hubTestHost != "" {
+		// if it's in test, make sure host name is in the header
+		c.Header.Set("Host", host)
+	}
+
+	return c
 }
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
@@ -467,13 +498,10 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	return
 }
 
-func (client *Client) apiHost() string {
-	ah := &apiHost{client.Host.Host}
-	return ah.String()
-}
-
 func FormatError(action string, err error) (ee error) {
 	switch e := err.(type) {
+	default:
+		ee = err
 	case *octokit.ResponseError:
 		statusCode := e.Response.StatusCode
 		var reason string
@@ -504,8 +532,6 @@ func FormatError(action string, err error) (ee error) {
 	case *AuthError:
 		errStr := fmt.Sprintf("Error %s: Unauthorized (HTTP 401)", action)
 		ee = fmt.Errorf(errStr)
-	default:
-		ee = err
 	}
 
 	return
@@ -523,4 +549,13 @@ func warnExistenceOfRepo(project *Project, ee error) (err error) {
 	}
 
 	return
+}
+
+func absolute(endpoint string) string {
+	u, _ := url.Parse(endpoint)
+	if u.Scheme == "" {
+		u.Scheme = "https"
+	}
+
+	return u.String()
 }

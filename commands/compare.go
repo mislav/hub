@@ -44,12 +44,13 @@ func init() {
   > open https://github.com/other-user/REPO/compare/patch
 */
 func compare(command *Command, args *Args) {
-	localRepo := github.LocalRepo()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
 	var (
 		branch  *github.Branch
 		project *github.Project
 		r       string
-		err     error
 	)
 
 	branch, project, err = localRepo.RemoteBranchAndProject("")

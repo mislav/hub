@@ -30,7 +30,6 @@ Before do
   set_env 'HUB_SYSTEM_GIT', system_git
   # ensure that api.github.com is actually never hit in tests
   set_env 'HUB_TEST_HOST', '127.0.0.1:0'
-  set_env 'GH_API_HOST', 'http://127.0.0.1:0'
   # ensure we use fakebin `open` to test browsing
   set_env 'BROWSER', 'open'
   # sabotage opening a commit message editor interactively

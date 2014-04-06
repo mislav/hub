@@ -124,3 +124,23 @@ func TestSuccessfulPost(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "octokit", output["login"])
 }
+
+func TestAddHeader(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/foo", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testHeader(t, r, "Foo", "Bar")
+		assert.Equal(t, "example.com", r.Host)
+		respondWithJSON(w, `{"login": "octokit"}`)
+	})
+
+	client.Header.Set("Host", "example.com")
+	client.Header.Set("Foo", "Bar")
+	req, err := client.NewRequest("foo")
+	assert.Equal(t, nil, err)
+
+	_, err = req.Get(nil)
+	assert.Equal(t, nil, err)
+}

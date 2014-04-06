@@ -1,9 +1,10 @@
 package commands
 
 import (
+	"regexp"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"regexp"
 )
 
 var cmdCherryPick = &Command{
@@ -72,7 +73,10 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 	if ownerWithShaRegexp.MatchString(ref) {
 		matches := ownerWithShaRegexp.FindStringSubmatch(ref)
 		sha = matches[2]
-		project, err := github.LocalRepo().CurrentProject()
+		localRepo, err := github.LocalRepo()
+		utils.Check(err)
+
+		project, err := localRepo.CurrentProject()
 		utils.Check(err)
 		project.Owner = matches[1]
 	}
