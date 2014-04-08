@@ -57,12 +57,11 @@ func compare(command *Command, args *Args) {
 	utils.Check(err)
 
 	if args.IsParamsEmpty() {
-		master := localRepo.MasterBranch()
-		if master.ShortName() == branch.ShortName() {
-			err = fmt.Errorf(command.FormattedUsage())
-			utils.Check(err)
-		} else {
+		if branch != nil && !branch.IsMaster() {
 			r = branch.ShortName()
+		} else {
+			err = fmt.Errorf("Usage: hub compare [USER] [<START>...]<END>")
+			utils.Check(err)
 		}
 	} else {
 		r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
