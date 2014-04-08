@@ -70,7 +70,6 @@ func (r *Runner) Execute() ExecError {
 	utils.Check(err)
 
 	expandAlias(args)
-	slurpGlobalFlags(args)
 
 	cmd := r.Lookup(args.Command)
 	if cmd != nil && cmd.Runnable() {
@@ -98,15 +97,6 @@ func (r *Runner) Call(cmd *Command, args *Args) ExecError {
 	}
 
 	return newExecError(err)
-}
-
-func slurpGlobalFlags(args *Args) {
-	for i, p := range args.Params {
-		if p == "--noop" {
-			args.Noop = true
-			args.RemoveParam(i)
-		}
-	}
 }
 
 func printCommands(cmds []*cmd.Cmd) {
