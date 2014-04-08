@@ -51,22 +51,24 @@ func transformRemoteArgs(args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	var repoName string
+	var repoName, host string
 	if name == "" {
 		project, err := localRepo.MainProject()
 		if err == nil {
 			repoName = project.Name
+			host = project.Host
 		} else {
 			repoName, err = utils.DirName()
 			utils.Check(err)
 		}
+
 		name = repoName
 	}
 
 	words := args.Words()
 	isPriavte := parseRemotePrivateFlag(args)
 	if len(words) == 2 && words[1] == "origin" {
-		// gh add origin
+		// Origin special case triggers default user/repo
 		host, err := github.CurrentConfigs().DefaultHost()
 		if err != nil {
 			utils.Check(github.FormatError("adding remote", err))
@@ -83,7 +85,7 @@ func transformRemoteArgs(args *Args) {
 		args.RemoveParam(args.ParamsSize() - 1)
 	}
 
-	project := github.NewProject(owner, name, "")
+	project := github.NewProject(owner, name, host)
 	// for GitHub Enterprise
 	isPriavte = isPriavte || project.Host != github.GitHubHost
 	url := project.GitURL(name, owner, isPriavte)
