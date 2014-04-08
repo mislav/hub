@@ -90,9 +90,9 @@ func rawHost(host string) string {
 }
 
 func useHttpProtocol() bool {
-	https := os.Getenv("GH_PROTOCOL")
+	https := os.Getenv("HUB_PROTOCOL")
 	if https == "" {
-		https, _ = git.Config("gh.protocol")
+		https, _ = git.Config("hub.protocol")
 	}
 
 	return https == "https"

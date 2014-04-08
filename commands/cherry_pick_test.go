@@ -23,7 +23,7 @@ func TestParseCherryPickProjectAndSha(t *testing.T) {
 }
 
 func TestTransformCherryPickArgs(t *testing.T) {
-	os.Setenv("GH_PROTOCOL", "git")
+	os.Setenv("HUB_PROTOCOL", "git")
 	args := NewArgs([]string{"cherry-pick", "https://github.com/jingweno/gh/commit/a319d88#comments"})
 	transformCherryPickArgs(args)
 

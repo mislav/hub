@@ -26,13 +26,13 @@ func TestWebURL(t *testing.T) {
 }
 
 func TestGitURLGitHub(t *testing.T) {
-	os.Setenv("GH_PROTOCOL", "https")
+	os.Setenv("HUB_PROTOCOL", "https")
 	project := Project{Name: "foo", Owner: "bar", Host: "github.com"}
 
 	url := project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "https://github.com/jingweno/gh.git", url)
 
-	os.Setenv("GH_PROTOCOL", "git")
+	os.Setenv("HUB_PROTOCOL", "git")
 	url = project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "git://github.com/jingweno/gh.git", url)
 
@@ -43,11 +43,11 @@ func TestGitURLGitHub(t *testing.T) {
 func TestGitURLEnterprise(t *testing.T) {
 	project := Project{Name: "foo", Owner: "bar", Host: "https://github.corporate.com"}
 
-	os.Setenv("GH_PROTOCOL", "https")
+	os.Setenv("HUB_PROTOCOL", "https")
 	url := project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "https://github.corporate.com/jingweno/gh.git", url)
 
-	os.Setenv("GH_PROTOCOL", "git")
+	os.Setenv("HUB_PROTOCOL", "git")
 	url = project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "git://github.corporate.com/jingweno/gh.git", url)
 

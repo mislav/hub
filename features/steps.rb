@@ -1,7 +1,7 @@
 require 'fileutils'
 
 Given(/^HTTPS is preferred$/) do
-  run_silent %(git config --global gh.protocol https)
+  run_silent %(git config --global hub.protocol https)
 end
 
 Given(/^there are no remotes$/) do
