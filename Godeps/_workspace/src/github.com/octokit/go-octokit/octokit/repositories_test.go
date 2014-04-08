@@ -3,9 +3,10 @@ package octokit
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bmizerany/assert"
 	"net/http"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestRepositoresService_One(t *testing.T) {
@@ -34,6 +35,9 @@ func TestRepositoresService_One(t *testing.T) {
 	assert.Equal(t, "git://github.com/jingweno/octokat.git", repo.GitURL)
 	assert.Equal(t, "git@github.com:jingweno/octokat.git", repo.SSHURL)
 	assert.Equal(t, "master", repo.MasterBranch)
+	assert.T(t, !repo.Permissions.Admin)
+	assert.T(t, !repo.Permissions.Push)
+	assert.T(t, repo.Permissions.Pull)
 }
 
 func TestRepositoresService_All(t *testing.T) {

@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestNewArgs(t *testing.T) {
@@ -17,6 +18,11 @@ func TestNewArgs(t *testing.T) {
 	args = NewArgs([]string{"command", "args"})
 	assert.Equal(t, "command", args.Command)
 	assert.Equal(t, 1, args.ParamsSize())
+
+	args = NewArgs([]string{"--noop", "command", "args"})
+	assert.Equal(t, "command", args.Command)
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.T(t, args.Noop)
 }
 
 func TestArgs_Words(t *testing.T) {
