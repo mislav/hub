@@ -2,10 +2,15 @@ package github
 
 import (
 	"fmt"
-	"github.com/github/hub/git"
 	"net/url"
 	"regexp"
 	"strings"
+
+	"github.com/github/hub/git"
+)
+
+var (
+	OriginNames = []string{"upstream", "github", "origin"}
 )
 
 type Remote struct {
@@ -26,6 +31,7 @@ func Remotes() (remotes []Remote, err error) {
 		return
 	}
 
+	// build the remotes map
 	remotesMap := make(map[string]string)
 	for _, r := range rs {
 		if re.MatchString(r) {
@@ -36,30 +42,25 @@ func Remotes() (remotes []Remote, err error) {
 		}
 	}
 
+	// construct remotes in priority order
+	names := OriginNames
+	for _, name := range names {
+		if u, ok := remotesMap[name]; ok {
+			url, e := git.ParseURL(u)
+			if e == nil {
+				remotes = append(remotes, Remote{Name: name, URL: url})
+				delete(remotesMap, name)
+			}
+		}
+	}
+
+	// the rest of the remotes
 	for n, u := range remotesMap {
 		url, e := git.ParseURL(u)
-		if e != nil {
-			err = e
-			return
+		if e == nil {
+			remotes = append(remotes, Remote{Name: n, URL: url})
 		}
-
-		remotes = append(remotes, Remote{Name: n, URL: url})
 	}
 
 	return
-}
-
-func OriginRemote() (*Remote, error) {
-	remotes, err := Remotes()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, r := range remotes {
-		if r.Name == "origin" {
-			return &r, nil
-		}
-	}
-
-	return nil, fmt.Errorf("Can't find git remote origin")
 }

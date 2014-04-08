@@ -130,7 +130,6 @@ func pullRequest(cmd *Command, args *Args) {
 				utils.Check(e)
 			}
 		}
-
 	}
 
 	if head == "" {

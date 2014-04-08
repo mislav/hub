@@ -61,7 +61,7 @@ func (r *GitHubRepo) remotesForPublish(owner string) (remotes []Remote) {
 		}
 	}
 
-	names := []string{"origin", "github", "upstream"}
+	names := OriginNames
 	for _, name := range names {
 		if _, ok := remotesMap[name]; ok {
 			continue
@@ -73,7 +73,8 @@ func (r *GitHubRepo) remotesForPublish(owner string) (remotes []Remote) {
 		}
 	}
 
-	for _, name := range names {
+	for i := len(names) - 1; i >= 0; i-- {
+		name := names[i]
 		if remote, ok := remotesMap[name]; ok {
 			remotes = append(remotes, remote)
 			delete(remotesMap, name)
@@ -141,8 +142,21 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, proje
 	return
 }
 
-func (r *GitHubRepo) OriginRemote() (*Remote, error) {
-	return r.RemoteByName("origin")
+func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
+	remotes, err := Remotes()
+	if err != nil {
+		return
+	}
+
+	if len(remotes) > 0 {
+		remote = &remotes[0]
+	}
+
+	if remote == nil {
+		err = fmt.Errorf("Can't find git remote origin")
+	}
+
+	return
 }
 
 func (r *GitHubRepo) MainProject() (project *Project, err error) {
