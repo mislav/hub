@@ -75,10 +75,14 @@ func transformCloneArgs(args *Args) {
 				}
 
 				project := github.NewProject(owner, name, hostStr)
-				isSSH = isSSH ||
+				if !isSSH &&
 					args.Command != "submodule" &&
-						host != nil &&
-						project.Owner == host.User
+					!args.Noop &&
+					!github.IsHttpsProtocol() {
+					client := github.NewClient(project.Host)
+					repo, err := client.Repository(project)
+					isSSH = (err == nil) && (repo.Private || repo.Permissions.Push)
+				}
 
 				url := project.GitURL(name, owner, isSSH)
 				args.ReplaceParam(i, url)

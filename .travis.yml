@@ -1,5 +1,5 @@
 before_install:
-  - rvm use 2.1.0 --install --fuzzy
+  - rvm use 2.1.1 --install --fuzzy
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - ruby --version
   - rvm --version

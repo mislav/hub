@@ -2,8 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"github.com/github/hub/cmd"
 	"strings"
+
+	"github.com/github/hub/cmd"
 )
 
 type Args struct {
@@ -131,8 +132,14 @@ func (a *Args) AppendParams(params ...string) {
 }
 
 func NewArgs(args []string) *Args {
-	var command string
-	var params []string
+	var (
+		command string
+		params  []string
+		noop    bool
+	)
+
+	args, noop = slurpGlobalFlags(args)
+
 	if len(args) == 0 {
 		params = []string{}
 	} else {
@@ -140,7 +147,26 @@ func NewArgs(args []string) *Args {
 		params = args[1:]
 	}
 
-	return &Args{Executable: "git", Command: command, Params: params, beforeChain: make([]*cmd.Cmd, 0), afterChain: make([]*cmd.Cmd, 0)}
+	return &Args{
+		Executable:  "git",
+		Command:     command,
+		Params:      params,
+		Noop:        noop,
+		beforeChain: make([]*cmd.Cmd, 0),
+		afterChain:  make([]*cmd.Cmd, 0),
+	}
+}
+
+func slurpGlobalFlags(args []string) (aa []string, noop bool) {
+	aa = args
+	for i, arg := range args {
+		if arg == "--noop" {
+			noop = true
+			aa, _ = removeItem(args, i)
+		}
+	}
+
+	return
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {
