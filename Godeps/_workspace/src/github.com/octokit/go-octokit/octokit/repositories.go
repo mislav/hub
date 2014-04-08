@@ -48,7 +48,7 @@ type Repository struct {
 	Name          string        `json:"name,omitempty"`
 	FullName      string        `json:"full_name,omitempty"`
 	Description   string        `json:"description,omitempty"`
-	Private       bool          `json:"private,omitempty"`
+	Private       bool          `json:"private"`
 	Fork          bool          `json:"fork,omitempty"`
 	URL           string        `json:"url,omitempty"`
 	HTMLURL       string        `json:"html_url,omitempty"`
