@@ -230,7 +230,7 @@ superpowers:
     [ opened pull request on GitHub for "YOUR_USER:feature" ]
 
     # explicit title, pull base & head:
-    $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:feature
+    $ git pull-request "Implemented feature X" -b defunkt:master -h mislav:feature
 
 ### git checkout
 
