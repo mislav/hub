@@ -1,9 +1,10 @@
 package octokit
 
 import (
-	"github.com/lostisland/go-sawyer/hypermedia"
 	"net/url"
 	"time"
+
+	"github.com/lostisland/go-sawyer/hypermedia"
 )
 
 var (
@@ -68,10 +69,17 @@ type Repository struct {
 	PushedAt      time.Time     `json:"pushed_at,omitempty"`
 	CreatedAt     time.Time     `json:"created_at,omitempty"`
 	UpdatedAt     time.Time     `json:"updated_at,omitempty"`
+	Permissions   Permissions   `json:"permissions,omitempty"`
 	Organization  *Organization `json:"organization,omitempty"`
 	Parent        *Repository   `json:"parent,omitempty"`
 	Source        *Repository   `json:"source,omitempty"`
 	HasIssues     bool          `json:"has_issues,omitempty"`
 	HasWiki       bool          `json:"has_wiki,omitempty"`
 	HasDownloads  bool          `json:"has_downloads,omitempty"`
+}
+
+type Permissions struct {
+	Admin bool
+	Push  bool
+	Pull  bool
 }

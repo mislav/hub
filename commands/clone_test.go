@@ -1,10 +1,11 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
-	"github.com/github/hub/github"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/github"
 )
 
 func TestTransformCloneArgs(t *testing.T) {
@@ -39,7 +40,7 @@ func TestTransformCloneArgs(t *testing.T) {
 	transformCloneArgs(args)
 
 	assert.Equal(t, 1, args.ParamsSize())
-	assert.Equal(t, "git@github.com:jingweno/jekyll_and_hyde.git", args.FirstParam())
+	assert.Equal(t, "git://github.com/jingweno/jekyll_and_hyde.git", args.FirstParam())
 
 	args = NewArgs([]string{"clone", "-p", "jekyll_and_hyde"})
 	transformCloneArgs(args)
