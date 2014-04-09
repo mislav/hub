@@ -76,8 +76,7 @@ func browse(command *Command, args *Args) {
 		branch = localRepo.MasterBranch()
 		utils.Check(err)
 	} else {
-		branch, project, err = localRepo.RemoteBranchAndProject("")
-		utils.Check(err)
+		branch, project, _ = localRepo.RemoteBranchAndProject("")
 		if branch == nil {
 			branch = localRepo.MasterBranch()
 		}

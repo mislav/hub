@@ -25,14 +25,17 @@ func (h GitHubHosts) Include(host string) bool {
 }
 
 func knownGitHubHosts() (hosts GitHubHosts) {
-	ghHosts, _ := git.Config("gh.host")
-	for _, ghHost := range strings.Split(ghHosts, "\n") {
-		hosts = append(hosts, ghHost)
-	}
-
 	defaultHost := DefaultGitHubHost()
 	hosts = append(hosts, defaultHost)
 	hosts = append(hosts, fmt.Sprintf("ssh.%s", defaultHost))
+
+	ghHosts, _ := git.Config("gh.host")
+	for _, ghHost := range strings.Split(ghHosts, "\n") {
+		ghHost = strings.TrimSpace(ghHost)
+		if ghHosts != "" {
+			hosts = append(hosts, ghHost)
+		}
+	}
 
 	return
 }

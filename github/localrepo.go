@@ -121,14 +121,12 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, proje
 	if err != nil {
 		return
 	}
-
 	branch, err = r.CurrentBranch()
 	if err != nil {
 		return
 	}
 
 	branch = branch.PushTarget(owner)
-
 	if branch != nil && branch.IsRemote() {
 		remote, e := r.RemoteByName(branch.RemoteName())
 		if e == nil {
@@ -148,8 +146,11 @@ func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
 		return
 	}
 
-	if len(remotes) > 0 {
-		remote = &remotes[0]
+	for _, r := range remotes {
+		if _, e := r.Project(); e == nil {
+			remote = &r
+			return
+		}
 	}
 
 	if remote == nil {
