@@ -90,7 +90,7 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(github.FormatError("creating pull request", err))
 	}
 
-	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User)
+	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
 	utils.Check(err)
 
 	var (

@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	OriginNames = []string{"upstream", "github", "origin"}
+	OriginNamesInLookupOrder = []string{"upstream", "github", "origin"}
 )
 
 type Remote struct {
@@ -43,7 +43,7 @@ func Remotes() (remotes []Remote, err error) {
 	}
 
 	// construct remotes in priority order
-	names := OriginNames
+	names := OriginNamesInLookupOrder
 	for _, name := range names {
 		if u, ok := remotesMap[name]; ok {
 			url, e := git.ParseURL(u)

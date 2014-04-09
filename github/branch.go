@@ -23,7 +23,7 @@ func (b *Branch) LongName() string {
 	return reg.ReplaceAllString(b.Name, "")
 }
 
-func (b *Branch) PushTarget(owner string) (branch *Branch) {
+func (b *Branch) PushTarget(owner string, preferUpstream bool) (branch *Branch) {
 	var err error
 	pushDefault, _ := git.Config("push.default")
 	if pushDefault == "upstream" || pushDefault == "tracking" {
@@ -34,7 +34,19 @@ func (b *Branch) PushTarget(owner string) (branch *Branch) {
 	} else {
 		shortName := b.ShortName()
 		remotes := b.Repo.remotesForPublish(owner)
-		for _, remote := range remotes {
+
+		var remotesInOrder []Remote
+		if preferUpstream {
+			// reverse the remote lookup order
+			// see OriginNamesInLookupOrder
+			for i := len(remotes) - 1; i >= 0; i-- {
+				remotesInOrder = append(remotesInOrder, remotes[i])
+			}
+		} else {
+			remotesInOrder = remotes
+		}
+
+		for _, remote := range remotesInOrder {
 			if git.HasFile("refs", "remotes", remote.Name, shortName) {
 				name := fmt.Sprintf("refs/remotes/%s/%s", remote.Name, shortName)
 				branch = &Branch{b.Repo, name}

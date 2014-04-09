@@ -53,7 +53,7 @@ func compare(command *Command, args *Args) {
 		r       string
 	)
 
-	branch, project, err = localRepo.RemoteBranchAndProject("")
+	branch, project, err = localRepo.RemoteBranchAndProject("", false)
 	utils.Check(err)
 
 	if args.IsParamsEmpty() {

@@ -61,7 +61,7 @@ func (r *GitHubRepo) remotesForPublish(owner string) (remotes []Remote) {
 		}
 	}
 
-	names := OriginNames
+	names := OriginNamesInLookupOrder
 	for _, name := range names {
 		if _, ok := remotesMap[name]; ok {
 			continue
@@ -116,23 +116,30 @@ func (r *GitHubRepo) MasterBranch() (branch *Branch) {
 	return
 }
 
-func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, project *Project, err error) {
-	project, err = r.MainProject()
-	if err != nil {
-		return
+func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (branch *Branch, project *Project, err error) {
+	r.loadRemotes()
+
+	for _, remote := range r.remotes {
+		if p, err := remote.Project(); err == nil {
+			project = p
+			break
+		}
 	}
+
 	branch, err = r.CurrentBranch()
 	if err != nil {
 		return
 	}
 
-	branch = branch.PushTarget(owner)
-	if branch != nil && branch.IsRemote() {
-		remote, e := r.RemoteByName(branch.RemoteName())
-		if e == nil {
-			project, err = remote.Project()
-			if err != nil {
-				return
+	if project != nil {
+		branch = branch.PushTarget(owner, preferUpstream)
+		if branch != nil && branch.IsRemote() {
+			remote, e := r.RemoteByName(branch.RemoteName())
+			if e == nil {
+				project, err = remote.Project()
+				if err != nil {
+					return
+				}
 			}
 		}
 	}
@@ -141,16 +148,10 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, proje
 }
 
 func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
-	remotes, err := Remotes()
-	if err != nil {
-		return
-	}
+	r.loadRemotes()
 
-	for _, r := range remotes {
-		if _, e := r.Project(); e == nil {
-			remote = &r
-			return
-		}
+	if len(r.remotes) > 0 {
+		remote = &r.remotes[0]
 	}
 
 	if remote == nil {
