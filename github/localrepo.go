@@ -50,29 +50,40 @@ func (r *GitHubRepo) RemoteByName(name string) (*Remote, error) {
 
 func (r *GitHubRepo) remotesForPublish(owner string) (remotes []Remote) {
 	r.loadRemotes()
+	remotesMap := make(map[string]Remote)
 
 	if owner != "" {
 		for _, remote := range r.remotes {
 			p, e := remote.Project()
 			if e == nil && p.Owner == owner {
-				remotes = append(remotes, remote)
+				remotesMap[remote.Name] = remote
 			}
 		}
 	}
 
-	remote, err := r.RemoteByName("origin")
-	if err == nil {
-		remotes = append(remotes, *remote)
+	names := OriginNamesInLookupOrder
+	for _, name := range names {
+		if _, ok := remotesMap[name]; ok {
+			continue
+		}
+
+		remote, err := r.RemoteByName(name)
+		if err == nil {
+			remotesMap[remote.Name] = *remote
+		}
 	}
 
-	remote, err = r.RemoteByName("github")
-	if err == nil {
-		remotes = append(remotes, *remote)
+	for i := len(names) - 1; i >= 0; i-- {
+		name := names[i]
+		if remote, ok := remotesMap[name]; ok {
+			remotes = append(remotes, remote)
+			delete(remotesMap, name)
+		}
 	}
 
-	remote, err = r.RemoteByName("upstream")
-	if err == nil {
-		remotes = append(remotes, *remote)
+	// anything other than names has higher priority
+	for _, remote := range remotesMap {
+		remotes = append([]Remote{remote}, remotes...)
 	}
 
 	return
@@ -105,10 +116,14 @@ func (r *GitHubRepo) MasterBranch() (branch *Branch) {
 	return
 }
 
-func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, project *Project, err error) {
-	project, err = r.MainProject()
-	if err != nil {
-		return
+func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (branch *Branch, project *Project, err error) {
+	r.loadRemotes()
+
+	for _, remote := range r.remotes {
+		if p, err := remote.Project(); err == nil {
+			project = p
+			break
+		}
 	}
 
 	branch, err = r.CurrentBranch()
@@ -116,14 +131,15 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, proje
 		return
 	}
 
-	branch = branch.PushTarget(owner)
-
-	if branch != nil && branch.IsRemote() {
-		remote, e := r.RemoteByName(branch.RemoteName())
-		if e == nil {
-			project, err = remote.Project()
-			if err != nil {
-				return
+	if project != nil {
+		branch = branch.PushTarget(owner, preferUpstream)
+		if branch != nil && branch.IsRemote() {
+			remote, e := r.RemoteByName(branch.RemoteName())
+			if e == nil {
+				project, err = remote.Project()
+				if err != nil {
+					return
+				}
 			}
 		}
 	}
@@ -131,8 +147,18 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string) (branch *Branch, proje
 	return
 }
 
-func (r *GitHubRepo) OriginRemote() (*Remote, error) {
-	return r.RemoteByName("origin")
+func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
+	r.loadRemotes()
+
+	if len(r.remotes) > 0 {
+		remote = &r.remotes[0]
+	}
+
+	if remote == nil {
+		err = fmt.Errorf("Can't find git remote origin")
+	}
+
+	return
 }
 
 func (r *GitHubRepo) MainProject() (project *Project, err error) {

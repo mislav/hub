@@ -102,7 +102,10 @@ func create(command *Command, args *Args) {
 		}
 	}
 
-	remote, _ := github.OriginRemote()
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	remote, _ := localRepo.OriginRemote()
 	if remote == nil {
 		url := project.GitURL("", "", true)
 		args.Replace("git", "remote", "add", "-f", "origin", url)

@@ -7,11 +7,12 @@ import (
 	"github.com/github/hub/fixtures"
 )
 
-func TestOriginRemote(t *testing.T) {
+func TestGitHubRepo_OriginRemote(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	gitRemote, _ := OriginRemote()
+	localRepo, _ := LocalRepo()
+	gitRemote, _ := localRepo.OriginRemote()
 	assert.Equal(t, "origin", gitRemote.Name)
 	assert.Equal(t, repo.Remote, gitRemote.URL.String())
 }
