@@ -171,7 +171,7 @@ Feature: OAuth authentication
     Then the output should contain "github.com password for mislav (never stored):"
     Then the output should contain "two-factor authentication code:"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKENSMS"'
 
   Scenario: Special characters in username & password
     Given the GitHub API server:

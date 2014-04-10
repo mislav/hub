@@ -388,6 +388,11 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	c := client.newOctokitClient(basicAuth)
 	authsService := c.Authorizations(client.requestURL(url))
 
+	if twoFactorCode != "" {
+		// dummy request to trigger a 2FA SMS since a HTTP GET won't do it
+		authsService.Create(nil)
+	}
+
 	auths, result := authsService.All()
 	if result.HasError() {
 		err = &AuthError{result.Err}
