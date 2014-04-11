@@ -33,7 +33,7 @@ else
   profile="default"
 fi
 
-run cucumber -p "$profile" -t ~@wip
+run cucumber -p "$profile"
 check_warnings
 
 exit $STATUS
