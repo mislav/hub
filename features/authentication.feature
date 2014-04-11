@@ -86,7 +86,7 @@ Feature: OAuth authentication
     And I type "kitty"
     Then the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
   Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
     Given the GitHub API server:

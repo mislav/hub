@@ -400,7 +400,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	for _, auth := range auths {
-		if auth.App.URL == OAuthAppURL {
+		if auth.Note == OAuthAppName || auth.NoteURL == OAuthAppURL {
 			token = auth.Token
 			break
 		}
