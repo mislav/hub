@@ -111,6 +111,10 @@ module Hub
         $stdout.puts ref_state
       end
       exit exit_code
+    rescue GitHubAPI::Exceptions
+      response = $!.response
+      display_api_exception("fetching CI status", response)
+      exit 1
     end
 
     # $ hub pull-request
@@ -158,11 +162,13 @@ module Hub
           head_project, options[:head] = from_github_ref.call(head, head_project)
         when '-i'
           options[:issue] = args.shift
+        when '-o', '--browse'
+          open_with_browser = true
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
             base_project = url.project
-          elsif !options[:title]
+          elsif !options[:title] && arg.index('-') != 0
             options[:title] = arg
             warn "hub: Specifying pull request title without a flag is deprecated."
             warn "Please use one of `-m' or `-F' options."
@@ -237,8 +243,10 @@ module Hub
 
       pull = api_client.create_pullrequest(options)
 
-      args.executable = 'echo'
-      args.replace [pull['html_url']]
+      args.push('-u') unless open_with_browser
+      browse_command(args) do
+        pull['html_url']
+      end
     rescue GitHubAPI::Exceptions
       response = $!.response
       display_api_exception("creating pull request", response)
@@ -435,8 +443,9 @@ module Hub
         user, branch = pull_data['head']['label'].split(':', 2)
         abort "Error: #{user}'s fork is not available anymore" unless pull_data['head']['repo']
 
-        url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repo']['private'],
-                                                             :https => https_protocol?)
+        repo_name = pull_data['head']['repo']['name']
+        url = github_project(repo_name, user).git_url(:private => pull_data['head']['repo']['private'],
+                                                      :https => https_protocol?)
 
         merge_head = "#{user}/#{branch}"
         args.before ['fetch', url, "+refs/heads/#{branch}:refs/remotes/#{merge_head}"]
@@ -693,7 +702,7 @@ module Hub
           "/#{subpage}"
         end
 
-        project.web_url(path)
+        project.web_url(path, api_client.config.method(:protocol))
       end
     end
 
@@ -724,7 +733,8 @@ module Hub
           end
         end
 
-        project.web_url "/compare/#{range.tr('/', ';')}"
+        path = '/compare/%s' % range.tr('/', ';')
+        project.web_url(path, api_client.config.method(:protocol))
       end
     end
 
@@ -829,7 +839,9 @@ module Hub
         config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
         file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
         file_config = GitHubAPI::Configuration.new file_store
-        GitHubAPI.new file_config, :app_url => 'http://hub.github.com/'
+        GitHubAPI.new file_config,
+          :app_url => 'http://hub.github.com/',
+          :verbose => !ENV['HUB_VERBOSE'].to_s.empty?
       end
     end
 
@@ -1032,7 +1044,7 @@ help
         write.close
 
         # Don't page if the input is short enough
-        ENV['LESS'] = 'FSRX'
+        ENV['LESS'] = 'FSR'
 
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]

@@ -410,7 +410,7 @@ class HubTest < Minitest::Test
     assert_equal expected, usage_help
 
     usage_help = hub("pull-request -h")
-    expected = "Usage: git pull-request [-f] [-m MESSAGE|-F FILE|-i ISSUE|ISSUE-URL] [-b BASE] [-h HEAD]\n"
+    expected = "Usage: git pull-request [-o|--browse] [-f] [-m MESSAGE|-F FILE|-i ISSUE|ISSUE-URL] [-b BASE] [-h HEAD]\n"
     assert_equal expected, usage_help
   end
 
