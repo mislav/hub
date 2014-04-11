@@ -1,17 +1,24 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
 func TestParseCherryPickProjectAndSha(t *testing.T) {
+	testConfigs := fixtures.SetupTestConfigs()
+	defer testConfigs.TearDown()
+
 	ref := "https://github.com/jingweno/gh/commit/a319d88#comments"
 	project, sha := parseCherryPickProjectAndSha(ref)
 
 	assert.Equal(t, "jingweno", project.Owner)
 	assert.Equal(t, "gh", project.Name)
+	assert.Equal(t, "github.com", project.Host)
+	assert.Equal(t, "https", project.Protocol)
 	assert.Equal(t, "a319d88", sha)
 
 	ref = "https://github.com/jingweno/gh/commit/a319d88#comments"
@@ -23,6 +30,9 @@ func TestParseCherryPickProjectAndSha(t *testing.T) {
 }
 
 func TestTransformCherryPickArgs(t *testing.T) {
+	testConfigs := fixtures.SetupTestConfigs()
+	defer testConfigs.TearDown()
+
 	os.Setenv("HUB_PROTOCOL", "git")
 	args := NewArgs([]string{"cherry-pick", "https://github.com/jingweno/gh/commit/a319d88#comments"})
 	transformCherryPickArgs(args)

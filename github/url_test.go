@@ -1,11 +1,16 @@
 package github
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
 func TestParseURL(t *testing.T) {
+	testConfigs := fixtures.SetupTestConfigs()
+	defer testConfigs.TearDown()
+
 	url, err :=
 		ParseURL("https://github.com/jingweno/gh/pulls/21")
 	assert.Equal(t, nil, err)

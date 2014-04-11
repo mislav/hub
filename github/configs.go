@@ -21,6 +21,7 @@ type Host struct {
 	Host        string `toml:"host"`
 	User        string `toml:"user"`
 	AccessToken string `toml:"access_token"`
+	Protocol    string `toml:"protocol"`
 }
 
 type Configs struct {
@@ -53,12 +54,16 @@ func (c *Configs) PromptForHost(host string) (h *Host, err error) {
 
 	client.Host.AccessToken = token
 	currentUser, err := client.CurrentUser()
-
 	if err != nil {
 		return
 	}
 
-	h = &Host{Host: host, User: currentUser.Login, AccessToken: token}
+	h = &Host{
+		Host:        host,
+		User:        currentUser.Login,
+		AccessToken: token,
+		Protocol:    "https",
+	}
 	c.Hosts = append(c.Hosts, *h)
 	err = saveTo(configsFile(), c)
 

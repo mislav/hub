@@ -13,9 +13,10 @@ import (
 )
 
 type Project struct {
-	Name  string
-	Owner string
-	Host  string
+	Name     string
+	Owner    string
+	Host     string
+	Protocol string
 }
 
 func (p Project) String() string {
@@ -48,7 +49,7 @@ func (p *Project) WebURL(name, owner, path string) string {
 		}
 	}
 
-	url := fmt.Sprintf("https://%s", utils.ConcatPaths(p.Host, ownerWithName))
+	url := fmt.Sprintf("%s://%s", p.Protocol, utils.ConcatPaths(p.Host, ownerWithName))
 	if path != "" {
 		url = utils.ConcatPaths(url, path)
 	}
@@ -111,12 +112,16 @@ func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	}
 
 	name := strings.TrimSuffix(parts[2], ".git")
-	p = NewProject(parts[1], name, url.Host)
+	p = newProject(parts[1], name, url.Host, url.Scheme)
 
 	return
 }
 
 func NewProject(owner, name, host string) *Project {
+	return newProject(owner, name, host, "")
+}
+
+func newProject(owner, name, host, protocol string) *Project {
 	if strings.Contains(owner, "/") {
 		result := strings.SplitN(owner, "/", 2)
 		owner = result[0]
@@ -135,6 +140,18 @@ func NewProject(owner, name, host string) *Project {
 		host = DefaultGitHubHost()
 	}
 
+	if protocol != "http" && protocol != "https" {
+		protocol = ""
+	}
+	if protocol == "" {
+		h, e := CurrentConfigs().PromptForHost(host)
+		utils.Check(e)
+		protocol = h.Protocol
+	}
+	if protocol == "" {
+		protocol = "https"
+	}
+
 	if owner == "" {
 		h, e := CurrentConfigs().PromptForHost(host)
 		utils.Check(e)
@@ -145,7 +162,12 @@ func NewProject(owner, name, host string) *Project {
 		name, _ = utils.DirName()
 	}
 
-	return &Project{Name: name, Owner: owner, Host: host}
+	return &Project{
+		Name:     name,
+		Owner:    owner,
+		Host:     host,
+		Protocol: protocol,
+	}
 }
 
 func parseOwnerAndName(remote string) (owner string, name string) {
