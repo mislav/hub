@@ -2,7 +2,6 @@ package github
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -424,27 +423,6 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	return
 }
 
-// An implementation of http.ProxyFromEnvironment that isn't broken
-func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
-	proxy := os.Getenv("http_proxy")
-	if proxy == "" {
-		proxy = os.Getenv("HTTP_PROXY")
-	}
-	if proxy == "" {
-		return nil, nil
-	}
-	proxyURL, err := url.Parse(proxy)
-	if err != nil || !strings.HasPrefix(proxyURL.Scheme, "http") {
-		if proxyURL, err := url.Parse("http://" + proxy); err == nil {
-			return proxyURL, nil
-		}
-	}
-	if err != nil {
-		return nil, fmt.Errorf("invalid proxy address %q: %v", proxy, err)
-	}
-	return proxyURL, nil
-}
-
 func (client *Client) api() (c *octokit.Client, err error) {
 	if client.Host.AccessToken == "" {
 		host, e := CurrentConfigs().PromptForHost(client.Host.Host)
@@ -477,8 +455,7 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 	hostURL := client.absolute(host)
 	apiHostURL := client.absolute(apiHost)
 
-	tr := &http.Transport{Proxy: proxyFromEnvironment}
-	httpClient := &http.Client{Transport: tr}
+	httpClient := newHttpClient(os.Getenv("HUB_VERBOSE") != "")
 	c := octokit.NewClientWith(apiHostURL.String(), UserAgent, auth, httpClient)
 	if hubTestHost != "" {
 		// if it's in test, make sure host name is in the header
