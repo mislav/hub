@@ -144,18 +144,20 @@ func newProject(owner, name, host, protocol string) *Project {
 		protocol = ""
 	}
 	if protocol == "" {
-		h, e := CurrentConfigs().PromptForHost(host)
-		utils.Check(e)
-		protocol = h.Protocol
+		h := CurrentConfigs().Find(host)
+		if h != nil {
+			protocol = h.Protocol
+		}
 	}
 	if protocol == "" {
 		protocol = "https"
 	}
 
 	if owner == "" {
-		h, e := CurrentConfigs().PromptForHost(host)
-		utils.Check(e)
-		owner = h.User
+		h := CurrentConfigs().Find(host)
+		if h != nil {
+			owner = h.User
+		}
 	}
 
 	if name == "" {

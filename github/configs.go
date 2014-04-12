@@ -29,7 +29,7 @@ type Configs struct {
 }
 
 func (c *Configs) PromptForHost(host string) (h *Host, err error) {
-	h = c.find(host)
+	h = c.Find(host)
 	if h != nil {
 		return
 	}
@@ -114,7 +114,7 @@ func (c *Configs) scanLine() string {
 	return line
 }
 
-func (c *Configs) find(host string) *Host {
+func (c *Configs) Find(host string) *Host {
 	for _, h := range c.Hosts {
 		if h.Host == host {
 			return &h
