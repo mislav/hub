@@ -519,7 +519,7 @@ module Hub
           end
         end
 
-        patch_file = File.join(tmp_dir, patch_name)
+        patch_file = Tempfile.new('patch_name')
         File.open(patch_file, 'w') { |file| file.write(patch) }
         args[idx] = patch_file
       end

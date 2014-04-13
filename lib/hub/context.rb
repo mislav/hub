@@ -556,10 +556,6 @@ module Hub
         !which(name).nil?
       end
 
-      def tmp_dir
-        ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
-      end
-
       def terminal_width
         if unix?
           width = %x{stty size 2>#{NULL}}.split[1].to_i
