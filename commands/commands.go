@@ -3,8 +3,9 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	flag "github.com/ogier/pflag"
 	"strings"
+
+	flag "github.com/ogier/pflag"
 )
 
 var (
@@ -49,11 +50,8 @@ func (c *Command) Call(args *Args) (err error) {
 
 func (c *Command) parseArguments(args *Args) (err error) {
 	c.Flag.SetInterspersed(true)
-
-	if !c.GitExtension {
-		c.Flag.Usage = c.PrintUsage
-	}
-
+	c.Flag.Init(c.Name(), flag.ContinueOnError)
+	c.Flag.Usage = c.PrintUsage
 	if err = c.Flag.Parse(args.Params); err == nil {
 		args.Params = c.Flag.Args()
 	}
