@@ -64,7 +64,7 @@ func transformMergeArgs(args *Args) error {
 		return fmt.Errorf("Error: %s's fork is not available anymore", user)
 	}
 
-	u := url.GitURL("", user, pullRequest.Head.Repo.Private)
+	u := url.GitURL(pullRequest.Head.Repo.Name, user, pullRequest.Head.Repo.Private)
 	mergeHead := fmt.Sprintf("%s/%s", user, branch)
 	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
 	args.Before("git", "fetch", u, ref)
