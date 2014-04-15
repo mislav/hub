@@ -90,7 +90,18 @@ class Minitest::Test
 
   def assert_commands(*expected)
     input = expected.pop
-    assert_equal expected, Hub(input).commands
+    actual = Hub(input).commands
+    if expected.size != actual.size
+      assert_equal expected, actual
+    else
+      expected.each_with_index do |expect, i|
+        case expect
+        when String then assert_equal expect, actual[i]
+        when Regexp then assert_match expect, actual[i]
+        else raise ArgumentError
+        end
+      end
+    end
   end
 
   # Asserts that the command will be forwarded to git without changes
