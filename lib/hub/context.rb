@@ -504,6 +504,11 @@ module Hub
       end
     end
 
+    def commentchar
+      commentchar = git_config("core.commentchar").to_s
+      commentchar.empty? ? "#" : commentchar[0,1]
+    end
+
     module System
       # Cross-platform web browser command; respects the value set in $BROWSER.
       # 
