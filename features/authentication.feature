@@ -40,9 +40,39 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         json [
-          {:token => 'SKIPPD', :app => {:url => 'http://example.com'}},
-          {:token => 'OTOKEN', :app => {:url => 'http://hub.github.com/'}}
+          {:token => 'SKIPPD', :note_url => 'http://example.com'},
+          {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
         ]
+      }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "mislav"
+    And I type "kitty"
+    Then the output should contain "github.com password for mislav (never stored):"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
+
+  Scenario: Re-use existing authorization with an old URL
+    Given the GitHub API server:
+      """
+      require 'rack/auth/basic'
+      get('/authorizations') {
+        auth = Rack::Auth::Basic::Request.new(env)
+        halt 401 unless auth.credentials == %w[mislav kitty]
+        json [
+          {:token => 'OTOKEN', :note => 'hub', :note_url => 'http://defunkt.io/hub/'}
+        ]
+      }
+      post('/authorizations') {
+        status 422
+        json :message => "Validation Failed",
+          :errors => [{:resource => "OauthAccess", :code => "already_exists", :field => "description"}]
       }
       get('/user') {
         json :login => 'mislav'
@@ -66,7 +96,7 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         json [
-          {:token => 'OTOKEN', :app => {:url => 'http://hub.github.com/'}}
+          {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
         ]
       }
       get('/user') {
@@ -154,7 +184,7 @@ Feature: OAuth authentication
         end
         json [ {
           :token => token,
-          :app => {:url => 'http://hub.github.com/'}
+          :note_url => 'http://hub.github.com/'
           } ]
       }
       get('/user') {

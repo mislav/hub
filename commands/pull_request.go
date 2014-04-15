@@ -14,7 +14,7 @@ import (
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-b <BASE>] [-h <HEAD>] ",
+	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] ",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -40,6 +40,7 @@ var (
 	flagPullRequestIssue,
 	flagPullRequestMessage,
 	flagPullRequestFile string
+	flagPullRequestBrowse,
 	flagPullRequestForce bool
 )
 
@@ -47,6 +48,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestBase, "base", "b", "", "BASE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
@@ -197,7 +199,15 @@ func pullRequest(cmd *Command, args *Args) {
 		pullRequestURL = pr.HTMLURL
 	}
 
-	args.Replace("echo", "", pullRequestURL)
+	if flagPullRequestBrowse {
+		launcher, err := utils.BrowserLauncher()
+		utils.Check(err)
+		args.Replace(launcher[0], "", launcher[1:]...)
+		args.AppendParams(pullRequestURL)
+	} else {
+		args.Replace("echo", "", pullRequestURL)
+	}
+
 	if flagPullRequestIssue != "" {
 		args.After("echo", "Warning: Issue to pull request conversion is deprecated and might not work in the future.")
 	}

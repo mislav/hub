@@ -6,7 +6,7 @@
 set -e
 
 TMP_GOPATH="${TMPDIR:-/tmp}/go"
-TMP_SELF="${TMP_GOPATH}/src/github.com/jingweno/gh"
+TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
 
 export GOPATH="${TMP_GOPATH}:${PWD}/Godeps/_workspace:$GOPATH"
 

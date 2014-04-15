@@ -43,6 +43,11 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m ăéñøü`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Invalid flag
+    When I run `hub pull-request -yelp`
+    Then the stderr should contain "unknown shorthand flag: 'y' in -yelp\n"
+    And the exit status should be 1
+
   Scenario: Non-existing base
     Given the GitHub API server:
       """
@@ -415,3 +420,13 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Open pull request in web browser
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -o -m hereyougo`
+    Then "open the://url" should be run

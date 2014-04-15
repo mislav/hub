@@ -25,9 +25,12 @@ Given(/^the "([^"]*)" remote has url "([^"]*)"$/) do |remote_name, url|
   end
 end
 
-Given(/^I am "([^"]*)" on ([\w.-]+)(?: with OAuth token "([^"]*)")?$/) do |name, host, token|
+Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, host, token|
   edit_hub_config do |cfg|
-    entry = { 'user' => name, 'host' => host }
+    entry = {'user' => name}
+    host = host.sub(%r{^([\w-]+)://}, '')
+    entry['host'] = host
+    entry['protocol'] = $1 if $1
     entry['access_token'] = token if token
     cfg << entry
   end

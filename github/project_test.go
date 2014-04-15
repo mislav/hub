@@ -1,14 +1,16 @@
 package github
 
 import (
-	"github.com/bmizerany/assert"
 	"net/url"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
 func TestWebURL(t *testing.T) {
-	project := Project{Name: "foo", Owner: "bar", Host: "github.com"}
+	project := Project{Name: "foo", Owner: "bar", Host: "github.com", Protocol: "https"}
 	url := project.WebURL("", "", "baz")
 	assert.Equal(t, "https://github.com/bar/foo/baz", url)
 
@@ -99,12 +101,17 @@ func TestMustMatchGitHubURL(t *testing.T) {
 }
 
 func TestNewProjectFromURL(t *testing.T) {
+	testConfigs := fixtures.SetupTestConfigs()
+	defer testConfigs.TearDown()
+
 	u, _ := url.Parse("ssh://git@github.com/octokit/go-octokit.git")
 	p, err := NewProjectFromURL(u)
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "go-octokit", p.Name)
 	assert.Equal(t, "octokit", p.Owner)
+	assert.Equal(t, "github.com", p.Host)
+	assert.Equal(t, "http", p.Protocol)
 
 	u, _ = url.Parse("git://github.com/octokit/go-octokit.git")
 	p, err = NewProjectFromURL(u)
@@ -112,6 +119,8 @@ func TestNewProjectFromURL(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "go-octokit", p.Name)
 	assert.Equal(t, "octokit", p.Owner)
+	assert.Equal(t, "github.com", p.Host)
+	assert.Equal(t, "http", p.Protocol)
 
 	u, _ = url.Parse("https://github.com/octokit/go-octokit")
 	p, err = NewProjectFromURL(u)
@@ -119,6 +128,8 @@ func TestNewProjectFromURL(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "go-octokit", p.Name)
 	assert.Equal(t, "octokit", p.Owner)
+	assert.Equal(t, "github.com", p.Host)
+	assert.Equal(t, "https", p.Protocol)
 
 	u, _ = url.Parse("origin/master")
 	_, err = NewProjectFromURL(u)

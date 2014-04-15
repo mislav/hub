@@ -2,7 +2,6 @@ package github
 
 import (
 	"fmt"
-	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -400,7 +399,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	for _, auth := range auths {
-		if auth.App.URL == OAuthAppURL {
+		if auth.Note == OAuthAppName || auth.NoteURL == OAuthAppURL {
 			token = auth.Token
 			break
 		}
@@ -424,27 +423,6 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	return
 }
 
-// An implementation of http.ProxyFromEnvironment that isn't broken
-func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
-	proxy := os.Getenv("http_proxy")
-	if proxy == "" {
-		proxy = os.Getenv("HTTP_PROXY")
-	}
-	if proxy == "" {
-		return nil, nil
-	}
-	proxyURL, err := url.Parse(proxy)
-	if err != nil || !strings.HasPrefix(proxyURL.Scheme, "http") {
-		if proxyURL, err := url.Parse("http://" + proxy); err == nil {
-			return proxyURL, nil
-		}
-	}
-	if err != nil {
-		return nil, fmt.Errorf("invalid proxy address %q: %v", proxy, err)
-	}
-	return proxyURL, nil
-}
-
 func (client *Client) api() (c *octokit.Client, err error) {
 	if client.Host.AccessToken == "" {
 		host, e := CurrentConfigs().PromptForHost(client.Host.Host)
@@ -466,14 +444,7 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 	if client.Host != nil {
 		host = client.Host.Host
 	}
-
-	if host == "" {
-		host = GitHubHost
-	}
-
-	if host == GitHubHost {
-		host = GitHubApiHost
-	}
+	host = normalizeHost(host)
 
 	apiHost := host
 	hubTestHost := os.Getenv("HUB_TEST_HOST")
@@ -481,17 +452,30 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 		apiHost = hubTestHost
 	}
 
-	apiHost = absolute(apiHost)
+	hostURL := client.absolute(host)
+	apiHostURL := client.absolute(apiHost)
 
-	tr := &http.Transport{Proxy: proxyFromEnvironment}
-	httpClient := &http.Client{Transport: tr}
-	c := octokit.NewClientWith(apiHost, UserAgent, auth, httpClient)
+	httpClient := newHttpClient(os.Getenv("HUB_VERBOSE") != "")
+	c := octokit.NewClientWith(apiHostURL.String(), UserAgent, auth, httpClient)
 	if hubTestHost != "" {
 		// if it's in test, make sure host name is in the header
 		c.Header.Set("Host", host)
+		c.Header.Set("X-Original-Scheme", hostURL.Scheme)
 	}
 
 	return c
+}
+
+func (client *Client) absolute(endpoint string) *url.URL {
+	u, _ := url.Parse(endpoint)
+	if u.Scheme == "" && client.Host != nil {
+		u.Scheme = client.Host.Protocol
+	}
+	if u.Scheme == "" {
+		u.Scheme = "https"
+	}
+
+	return u
 }
 
 func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
@@ -501,6 +485,19 @@ func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
 	}
 
 	return
+}
+
+func normalizeHost(host string) string {
+	host = strings.ToLower(host)
+	if host == "" {
+		host = GitHubHost
+	}
+
+	if host == GitHubHost {
+		host = GitHubApiHost
+	}
+
+	return host
 }
 
 func FormatError(action string, err error) (ee error) {
@@ -554,13 +551,4 @@ func warnExistenceOfRepo(project *Project, ee error) (err error) {
 	}
 
 	return
-}
-
-func absolute(endpoint string) string {
-	u, _ := url.Parse(endpoint)
-	if u.Scheme == "" {
-		u.Scheme = "https"
-	}
-
-	return u.String()
 }
