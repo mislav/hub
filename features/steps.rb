@@ -1,7 +1,7 @@
 require 'fileutils'
 
 Given(/^HTTPS is preferred$/) do
-  run_silent %(git config --global hub.protocol https)
+  run_silent %(git config --global gh.protocol https)
 end
 
 Given(/^there are no remotes$/) do
@@ -9,7 +9,7 @@ Given(/^there are no remotes$/) do
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
-  run_silent %(git config --global --add hub.host "#{host}")
+  run_silent %(git config --global --add gh.host "#{host}")
 end
 
 Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
@@ -109,6 +109,7 @@ Given(/^the GitHub API server:$/) do |endpoints_str|
   end
   # hit our Sinatra server instead of github.com
   set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
+  set_env 'GH_API_HOST', "http://127.0.0.1:#{@server.port}"
 end
 
 Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|

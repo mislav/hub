@@ -1,0 +1,68 @@
+{
+	"ImportPath": "github.com/jingweno/gh",
+	"GoVersion": "go1.2",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "bitbucket.org/kardianos/osext",
+			"Comment": "null-9",
+			"Rev": "364fb577de68fb646c4cb39cc0e09c887ee16376"
+		},
+		{
+			"ImportPath": "code.google.com/p/go-netrc/netrc",
+			"Comment": "null-12",
+			"Rev": "0da3cb9c37e02c4eddb0775a45d2d49a694d302c"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
+			"Comment": "null-185",
+			"Rev": "6478cc9340cbbe6c04511280c5007722269108e9"
+		},
+		{
+			"ImportPath": "github.com/bmizerany/assert",
+			"Comment": "release.r60-6-ge17e998",
+			"Rev": "e17e99893cb6509f428e1728281c2ad60a6b31e3"
+		},
+		{
+			"ImportPath": "github.com/howeyc/gopass",
+			"Rev": "4cf66881dcc3d6f0071eb6473d95c39e460de696"
+		},
+		{
+			"ImportPath": "github.com/inconshreveable/go-update",
+			"Rev": "3f0466666779bd2143f368a207b0641f0ed536e8"
+		},
+		{
+			"ImportPath": "github.com/jingweno/go-octokit/octokit",
+			"Comment": "v0.4.0-46-g30737cb",
+			"Rev": "30737cb1e9207e1a7633e3d7539951c5c3d93058"
+		},
+		{
+			"ImportPath": "github.com/jtacoma/uritemplates",
+			"Comment": "0.1-14-g0a85813",
+			"Rev": "0a85813ecac22e3cbe916ab9480b33f2f4a06b2e"
+		},
+		{
+			"ImportPath": "github.com/kballard/go-shellquote",
+			"Rev": "e842a11b24c6abfb3dd27af69a17f482e4b483c2"
+		},
+		{
+			"ImportPath": "github.com/kr/pretty",
+			"Comment": "go.weekly.2011-12-22-18-gbc9499c",
+			"Rev": "bc9499caa0f45ee5edb2f0209fbd61fbf3d9018f"
+		},
+		{
+			"ImportPath": "github.com/kr/text",
+			"Rev": "6807e777504f54ad073ecef66747de158294b639"
+		},
+		{
+			"ImportPath": "github.com/lostisland/go-sawyer",
+			"Rev": "cb3f837f5ac26e080a9002dcb4d2e8472e623916"
+		},
+		{
+			"ImportPath": "https://github.com/ogier/pflag",
+			"Rev": "fc2d9a0ef658fa4e4c319939fd6f4b6becfccb48"
+		}
+	]
+}

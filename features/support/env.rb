@@ -1,6 +1,7 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
+require 'json'
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
@@ -14,7 +15,7 @@ Before do
   # speed up load time by skipping RubyGems
   set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
-  set_env 'PATH', "#{bin_dir}:#{ENV['PATH']}"
+  set_env 'PATH', "#{File.dirname(lib_dir)}:#{bin_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
   set_env 'GIT', nil
   # exclude this project's git directory from use in testing
@@ -27,6 +28,7 @@ Before do
   set_env 'HUB_SYSTEM_GIT', system_git
   # ensure that api.github.com is actually never hit in tests
   set_env 'HUB_TEST_HOST', '127.0.0.1:0'
+  set_env 'GH_API_HOST', 'http://127.0.0.1:0'
   # ensure we use fakebin `open` to test browsing
   set_env 'BROWSER', 'open'
   # sabotage opening a commit message editor interactively
@@ -38,6 +40,8 @@ Before do
   set_env 'GIT_COMMITTER_NAME',  author_name
   set_env 'GIT_AUTHOR_EMAIL',    author_email
   set_env 'GIT_COMMITTER_EMAIL', author_email
+
+  set_env 'GH_VERSION', 'dev'
 
   FileUtils.mkdir_p ENV['HOME']
 
@@ -120,6 +124,27 @@ World Module.new {
     end
     yield data
     File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
+  end
+
+  undef edit_hub_config
+  def edit_hub_config
+    config = File.join(ENV['HOME'], '.config/gh')
+    FileUtils.mkdir_p File.dirname(config)
+
+    hub_config = {}
+    yield hub_config
+
+    data = {:credentials => []}
+    hub_config.each do |host, entries|
+      token = entries[0].fetch('oauth_token', false)
+      data[:credentials] << {
+        :host => host,
+        :user => entries[0].fetch('user'),
+      }
+      data[:credentials].last[:access_token] = token if token
+    end
+
+    File.open(config, 'w') { |cfg| cfg << JSON.generate(data) }
   end
 
   define_method(:text_editor_script) do |bash_code|
