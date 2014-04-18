@@ -339,6 +339,7 @@ module Hub
       end
       return unless user # do not touch arguments
 
+      https = args.delete('-h')
       ssh = args.delete('-p')
 
       if args.words[2] == 'origin' && args.words[3].nil?
@@ -356,7 +357,7 @@ module Hub
         args.pop
       end
 
-      args << git_url(user, repo, :private => ssh)
+      args << git_url(user, repo, :https => https, :private => ssh)
     end
 
     # $ hub fetch mislav
