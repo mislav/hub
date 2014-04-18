@@ -1,10 +1,13 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
+require 'toml'
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
+hub_dir = File.expand_path('../../../', __FILE__)
+raise 'hub build failed' unless system("./script/build")
 
 Before do
   # don't want hub to run in bundle
@@ -14,7 +17,7 @@ Before do
   # speed up load time by skipping RubyGems
   set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
-  set_env 'PATH', "#{bin_dir}:#{ENV['PATH']}"
+  set_env 'PATH', "#{hub_dir}:#{bin_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
   set_env 'GIT', nil
   # exclude this project's git directory from use in testing
@@ -38,6 +41,9 @@ Before do
   set_env 'GIT_COMMITTER_NAME',  author_name
   set_env 'GIT_AUTHOR_EMAIL',    author_email
   set_env 'GIT_COMMITTER_EMAIL', author_email
+
+  set_env 'GH_VERSION', 'dev'
+  set_env 'GH_REPORT_CRASH', 'never'
 
   FileUtils.mkdir_p ENV['HOME']
 
@@ -96,6 +102,14 @@ class SimpleCommand
 end
 
 World Module.new {
+  # If there are multiple inputs, e.g., type in username and then type in password etc.,
+  # the Go program will freeze on the second input. Giving it a small time interval
+  # temporarily solves the problem.
+  # See https://github.com/cucumber/aruba/blob/7afbc5c0cbae9c9a946d70c4c2735ccb86e00f08/lib/aruba/api.rb#L379-L382
+  def type(*args)
+    super.tap { sleep 0.1 }
+  end
+
   def history
     histfile = File.join(ENV['HOME'], '.history')
     if File.exist? histfile
@@ -113,13 +127,15 @@ World Module.new {
   def edit_hub_config
     config = File.join(ENV['HOME'], '.config/hub')
     FileUtils.mkdir_p File.dirname(config)
-    if File.exist? config
-      data = YAML.load File.read(config)
-    else
-      data = {}
-    end
-    yield data
-    File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
+
+    hub_config = []
+    yield hub_config
+
+    # the `toml` gem doesn't work well with array of table (https://github.com/mojombo/toml#array-of-tables)
+    # a temporary solution here to output the right format
+    # see https://github.com/jm/toml/issues/31
+    data = hub_config.map { |c| "[[hosts]]\n#{TOML::Generator.new(c).body}" }.join("\n\n")
+    File.open(config, 'w') { |cfg| cfg << data }
   end
 
   define_method(:text_editor_script) do |bash_code|

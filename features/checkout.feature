@@ -11,7 +11,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json'
+        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :head => {
           :label => 'mislav:fixes',
           :repo => { :private => false }

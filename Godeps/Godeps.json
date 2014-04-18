@@ -1,0 +1,71 @@
+{
+	"ImportPath": "github.com/github/hub",
+	"GoVersion": "go1.2.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "bitbucket.org/kardianos/osext",
+			"Comment": "null-9",
+			"Rev": "364fb577de68fb646c4cb39cc0e09c887ee16376"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
+			"Comment": "null-192",
+			"Rev": "2990fc550b9ff92bc33c848f92c87a305ae62934"
+		},
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Rev": "50ab0c35d35f5355cee28b0120b18dfbbd13ad36"
+		},
+		{
+			"ImportPath": "github.com/bmizerany/assert",
+			"Comment": "release.r60-6-ge17e998",
+			"Rev": "e17e99893cb6509f428e1728281c2ad60a6b31e3"
+		},
+		{
+			"ImportPath": "github.com/fhs/go-netrc/netrc",
+			"Rev": "4422b68c9c934b03e8e53ef18c8c8714542def7e"
+		},
+		{
+			"ImportPath": "github.com/howeyc/gopass",
+			"Rev": "4cf66881dcc3d6f0071eb6473d95c39e460de696"
+		},
+		{
+			"ImportPath": "github.com/inconshreveable/go-update",
+			"Rev": "3f0466666779bd2143f368a207b0641f0ed536e8"
+		},
+		{
+			"ImportPath": "github.com/jtacoma/uritemplates",
+			"Comment": "0.1-14-g0a85813",
+			"Rev": "0a85813ecac22e3cbe916ab9480b33f2f4a06b2e"
+		},
+		{
+			"ImportPath": "github.com/kballard/go-shellquote",
+			"Rev": "e842a11b24c6abfb3dd27af69a17f482e4b483c2"
+		},
+		{
+			"ImportPath": "github.com/kr/pretty",
+			"Comment": "go.weekly.2011-12-22-18-gbc9499c",
+			"Rev": "bc9499caa0f45ee5edb2f0209fbd61fbf3d9018f"
+		},
+		{
+			"ImportPath": "github.com/kr/text",
+			"Rev": "6807e777504f54ad073ecef66747de158294b639"
+		},
+		{
+			"ImportPath": "github.com/lostisland/go-sawyer",
+			"Rev": "ec1b99a1915d53f09d40d0c87caf60460b7f8728"
+		},
+		{
+			"ImportPath": "github.com/octokit/go-octokit/octokit",
+			"Comment": "v0.4.0-74-g0b42562",
+			"Rev": "0b425620bacddb8ec6fb0b9f79614a636b551596"
+		},
+		{
+			"ImportPath": "github.com/ogier/pflag",
+			"Rev": "f235ad33d48a41975db57c0b52cec7b70529db0d"
+		}
+	]
+}

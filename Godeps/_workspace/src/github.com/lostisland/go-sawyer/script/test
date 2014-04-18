@@ -1,0 +1,3 @@
+script/fmt
+go test -race -v "$@" ./mediatype
+go test -race -v "$@" .

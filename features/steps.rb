@@ -9,7 +9,7 @@ Given(/^there are no remotes$/) do
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
-  run_silent %(git config --global --add hub.host "#{host}")
+  run_silent %(git config --global --add gh.host "#{host}")
 end
 
 Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
@@ -28,10 +28,11 @@ end
 Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, host, token|
   edit_hub_config do |cfg|
     entry = {'user' => name}
-    entry['oauth_token'] = token if token
     host = host.sub(%r{^([\w-]+)://}, '')
+    entry['host'] = host
     entry['protocol'] = $1 if $1
-    cfg[host.downcase] = [entry]
+    entry['access_token'] = token if token
+    cfg << entry
   end
 end
 
@@ -108,7 +109,7 @@ Given(/^the GitHub API server:$/) do |endpoints_str|
     eval endpoints_str, binding
   end
   # hit our Sinatra server instead of github.com
-  set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
+  set_env 'HUB_TEST_HOST', "http://127.0.0.1:#{@server.port}"
 end
 
 Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|
@@ -164,6 +165,10 @@ Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
     mode = File.stat(file).mode
     mode.to_s(8).should =~ /#{expected_mode}$/
   end
+end
+
+Then(/^the file "([^"]*)" should contain '(.*)'$/) do |file, partial_content|
+  check_file_content(file, partial_content, true)
 end
 
 Given(/^the file named "(.+?)" is older than hub source$/) do |file|

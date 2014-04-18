@@ -28,8 +28,8 @@ Feature: OAuth authentication
     Then the output should contain "github.com username:"
     And the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "user: MiSlAv"
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'user = "MiSlAv"'
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
     And the file "../home/.config/hub" should have mode "0600"
 
   Scenario: Ask for username & password, re-use existing authorization
@@ -56,7 +56,7 @@ Feature: OAuth authentication
     And I type "kitty"
     Then the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
   Scenario: Re-use existing authorization with an old URL
     Given the GitHub API server:
@@ -86,7 +86,7 @@ Feature: OAuth authentication
     And I type "kitty"
     Then the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
   Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
     Given the GitHub API server:
@@ -110,7 +110,7 @@ Feature: OAuth authentication
     And $GITHUB_PASSWORD is "kitty"
     When I successfully run `hub create`
     Then the output should not contain "github.com password for mislav"
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
   Scenario: Wrong password
     Given the GitHub API server:
@@ -136,7 +136,7 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
+          response.headers['X-GitHub-OTP'] = "required; app"
           halt 401
         end
         json [ ]
@@ -146,7 +146,7 @@ Feature: OAuth authentication
         halt 401 unless auth.credentials == %w[mislav kitty]
         halt 412 unless params[:scopes]
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
+          response.headers['X-GitHub-OTP'] = "required; app"
           halt 401
         end
         json :token => 'OTOKEN'
@@ -165,7 +165,7 @@ Feature: OAuth authentication
     Then the output should contain "github.com password for mislav (never stored):"
     Then the output should contain "two-factor authentication code:"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
   Scenario: Two-factor authentication, re-use existing authorization
     Given the GitHub API server:
@@ -179,7 +179,7 @@ Feature: OAuth authentication
       get('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
+          response.headers['X-GitHub-OTP'] = "required; app"
           halt 401
         end
         json [ {
@@ -201,7 +201,7 @@ Feature: OAuth authentication
     Then the output should contain "github.com password for mislav (never stored):"
     Then the output should contain "two-factor authentication code:"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKENSMS"
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKENSMS"'
 
   Scenario: Special characters in username & password
     Given the GitHub API server:
@@ -221,5 +221,5 @@ Feature: OAuth authentication
     And I type "my pass@phrase ok?"
     Then the output should contain "github.com password for mislav@example.com (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "user: mislav"
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should contain 'user = "mislav"'
+    And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
