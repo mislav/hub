@@ -1,28 +1,11 @@
 package commands
 
 import (
+	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"os"
 	"testing"
-
-	"github.com/bmizerany/assert"
 )
-
-func TestGetTitleAndBodyFromFlags(t *testing.T) {
-	s := "just needs raven\n\nnow it works"
-	title, body, err := getTitleAndBodyFromFlags(s, "")
-
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "just needs raven", title)
-	assert.Equal(t, "now it works", body)
-
-	s = "just needs raven\\n\\nnow it works"
-	title, body, err = getTitleAndBodyFromFlags(s, "")
-
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "just needs raven", title)
-	assert.Equal(t, "now it works", body)
-}
 
 func TestDirIsNotEmpty(t *testing.T) {
 	dir := createTempDir(t)
