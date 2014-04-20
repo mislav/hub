@@ -5,19 +5,19 @@ import (
 	"os"
 )
 
-var cmdUpdate = &Command{
+var cmdSelfupdate = &Command{
 	Run:   update,
-	Usage: "update",
+	Usage: "selfupdate",
 	Short: "Update gh",
 	Long: `Update gh to the latest version.
 
 Examples:
-  git update
+  git selfupdate
 `,
 }
 
 func init() {
-	CmdRunner.Use(cmdUpdate)
+	CmdRunner.Use(cmdSelfupdate)
 }
 
 func update(cmd *Command, args *Args) {
