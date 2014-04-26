@@ -115,6 +115,7 @@ task :install => "hub" do
     FileUtils.cp 'hub', bindir
   else
     prefix = ENV['PREFIX'] || ENV['prefix'] || '/usr/local'
+    prefix = File.join(ENV["DESTDIR"], prefix) if ENV["DESTDIR"]
 
     FileUtils.mkdir_p "#{prefix}/bin"
     FileUtils.cp "hub", "#{prefix}/bin", :preserve => true
@@ -156,6 +157,7 @@ end
 desc "Publish to Homebrew"
 task :homebrew do
   require File.expand_path('../lib/hub/version', __FILE__)
+  ENV['RUBYOPT'] = ''
   Dir.chdir `brew --prefix`.chomp do
     sh 'git checkout -q master'
     sh 'git pull -q origin master'
@@ -171,9 +173,9 @@ task :homebrew do
 
     branch = "hub-v#{Hub::VERSION}"
     sh "git checkout -q -B #{branch}"
-    sh "git commit -m 'hub v#{Hub::VERSION}' -- #{formula_file}"
+    sh "git commit -m 'hub #{Hub::VERSION}' -- #{formula_file}"
     sh "git push -u mislav #{branch}"
-    sh "hub pull-request -m 'upgrade hub to v#{Hub::VERSION}'"
+    sh "hub pull-request -m 'hub #{Hub::VERSION}'"
 
     sh "git checkout -q master"
   end

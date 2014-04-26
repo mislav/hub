@@ -8,6 +8,11 @@ Feature: hub compare
     Then there should be no output
     And "open https://github.com/mislav/dotfiles/compare/refactor" should be run
 
+  Scenario: Compare complex branch
+    When I successfully run `hub compare feature/foo`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/feature;foo" should be run
+
   Scenario: No args, no upstream
     When I run `hub compare`
     Then the exit status should be 1
@@ -76,3 +81,11 @@ Feature: hub compare
     When I successfully run `hub compare anotheruser feature`
     Then there should be no output
     And "open https://github.com/anotheruser/dotfiles/compare/feature" should be run
+
+  Scenario: Enterprise repo over HTTP
+    Given the "origin" remote has url "git://git.my.org/mislav/dotfiles.git"
+    And I am "mislav" on http://git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    When I successfully run `hub compare refactor`
+    Then there should be no output
+    And "open http://git.my.org/mislav/dotfiles/compare/refactor" should be run

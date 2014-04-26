@@ -59,6 +59,11 @@ Feature: hub pull-request
       """
     And the stdout should contain exactly "the://url\n"
 
+  Scenario: Deprecated title argument can't start with a dash
+    When I run `hub pull-request -help`
+    Then the stderr should contain "invalid argument: -help\n"
+    And the exit status should be 1
+
   Scenario: Non-existing base
     Given the GitHub API server:
       """
@@ -95,6 +100,33 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :title => 'This title comes from vim!',
                :body  => 'This body as well.'
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Text editor adds title and body with multiple lines
+    Given the text editor adds:
+      """
+
+
+      This title is on the third line
+
+
+      This body
+
+
+      has multiple
+      lines.
+
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'This title is on the third line',
+               :body  => "This body\n\n\nhas multiple\nlines."
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -424,3 +456,13 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Open pull request in web browser
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -o -m hereyougo`
+    Then "open the://url" should be run

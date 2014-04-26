@@ -1,3 +1,5 @@
+require 'tempfile'
+
 module Hub
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
@@ -111,6 +113,10 @@ module Hub
         $stdout.puts ref_state
       end
       exit exit_code
+    rescue GitHubAPI::Exceptions
+      response = $!.response
+      display_api_exception("fetching CI status", response)
+      exit 1
     end
 
     # $ hub pull-request
@@ -158,11 +164,13 @@ module Hub
           head_project, options[:head] = from_github_ref.call(head, head_project)
         when '-i'
           options[:issue] = args.shift
+        when '-o', '--browse'
+          open_with_browser = true
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
             base_project = url.project
-          elsif !options[:title]
+          elsif !options[:title] && arg.index('-') != 0
             options[:title] = arg
             warn "hub: Specifying pull request title without a flag is deprecated."
             warn "Please use one of `-m' or `-F' options."
@@ -237,8 +245,10 @@ module Hub
 
       pull = api_client.create_pullrequest(options)
 
-      args.executable = 'echo'
-      args.replace [pull['html_url']]
+      args.push('-u') unless open_with_browser
+      browse_command(args) do
+        pull['html_url']
+      end
     rescue GitHubAPI::Exceptions
       response = $!.response
       display_api_exception("creating pull request", response)
@@ -435,8 +445,9 @@ module Hub
         user, branch = pull_data['head']['label'].split(':', 2)
         abort "Error: #{user}'s fork is not available anymore" unless pull_data['head']['repo']
 
-        url = github_project(url.project_name, user).git_url(:private => pull_data['head']['repo']['private'],
-                                                             :https => https_protocol?)
+        repo_name = pull_data['head']['repo']['name']
+        url = github_project(repo_name, user).git_url(:private => pull_data['head']['repo']['private'],
+                                                      :https => https_protocol?)
 
         merge_head = "#{user}/#{branch}"
         args.before ['fetch', url, "+refs/heads/#{branch}:refs/remotes/#{merge_head}"]
@@ -510,7 +521,7 @@ module Hub
           end
         end
 
-        patch_file = File.join(tmp_dir, patch_name)
+        patch_file = Tempfile.new(patch_name).path
         File.open(patch_file, 'w') { |file| file.write(patch) }
         args[idx] = patch_file
       end
@@ -556,8 +567,10 @@ module Hub
       if args.include?('--no-remote')
         exit
       else
+        origin_url = project.remote.github_url
         url = forked_project.git_url(:private => true, :https => https_protocol?)
-        args.replace %W"remote add -f #{forked_project.owner} #{url}"
+        args.replace %W"remote add -f #{forked_project.owner} #{origin_url}"
+        args.after %W"remote set-url #{forked_project.owner} #{url}"
         args.after 'echo', ['new remote:', forked_project.owner]
       end
     rescue GitHubAPI::Exceptions
@@ -667,22 +680,27 @@ module Hub
       browse_command(args) do
         dest = args.shift
         dest = nil if dest == '--'
+        # $ hub browse -- wiki
+        subpage = args.shift
 
         if dest
           # $ hub browse pjhyett/github-services
           # $ hub browse github-services
           project = github_project dest
           branch = master_branch
+        elsif subpage && !%w[commits tree blob settings].include?(subpage)
+          branch = master_branch
+          project = local_repo.main_project
         else
           # $ hub browse
-          branch, project = remote_branch_and_project(method(:github_user))
+          prefer_upstream = current_branch.master?
+          branch, project = remote_branch_and_project(method(:github_user), prefer_upstream)
           branch ||= master_branch
         end
 
         abort "Usage: hub browse [<USER>/]<REPOSITORY>" unless project
 
-        # $ hub browse -- wiki
-        path = case subpage = args.shift
+        path = case subpage
         when 'commits'
           "/commits/#{branch_in_url(branch)}"
         when 'tree', NilClass
@@ -691,7 +709,7 @@ module Hub
           "/#{subpage}"
         end
 
-        project.web_url(path)
+        project.web_url(path, api_client.config.method(:protocol))
       end
     end
 
@@ -722,7 +740,8 @@ module Hub
           end
         end
 
-        project.web_url "/compare/#{range}"
+        path = '/compare/%s' % range.tr('/', ';')
+        project.web_url(path, api_client.config.method(:protocol))
       end
     end
 
@@ -827,7 +846,9 @@ module Hub
         config_file = ENV['HUB_CONFIG'] || '~/.config/hub'
         file_store = GitHubAPI::FileStore.new File.expand_path(config_file)
         file_config = GitHubAPI::Configuration.new file_store
-        GitHubAPI.new file_config, :app_url => 'http://hub.github.com/'
+        GitHubAPI.new file_config,
+          :app_url => 'http://hub.github.com/',
+          :verbose => !ENV['HUB_VERBOSE'].to_s.empty?
       end
     end
 
@@ -1003,7 +1024,7 @@ help
     # included after the __END__ of the file so we can grab it using
     # DATA.
     def hub_raw_manpage
-      if File.exists? file = File.dirname(__FILE__) + '/../../man/hub.1'
+      if File.exist? file = File.dirname(__FILE__) + '/../../man/hub.1'
         File.read(file)
       else
         DATA.read
@@ -1030,7 +1051,7 @@ help
         write.close
 
         # Don't page if the input is short enough
-        ENV['LESS'] = 'FSRX'
+        ENV['LESS'] = 'FSR'
 
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]
@@ -1090,7 +1111,7 @@ help
     # the pullrequest_editmsg_file, which newer hub would pick up and
     # misinterpret as a message which should be reused after a failed PR.
     def valid_editmsg_file?(message_file)
-      File.exists?(message_file) &&
+      File.exist?(message_file) &&
         File.mtime(message_file) > File.mtime(__FILE__)
     end
 
@@ -1107,7 +1128,7 @@ help
       File.open(file, 'r') { |msg|
         msg.each_line do |line|
           next if line.index('#') == 0
-          ((body.empty? and line =~ /\S/) ? title : body) << line
+          ((title.empty? and line =~ /\S/) ? title : body) << line
         end
       }
       title.tr!("\n", ' ')

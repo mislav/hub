@@ -27,11 +27,14 @@ git_prefix = lambda {
 }
 
 git_distributed_zsh_completion = lambda {
-  git_prefix.call + 'share/git-core/contrib/completion/git-completion.zsh'
+  [ git_prefix.call + 'share/git-core/contrib/completion/git-completion.zsh',
+    git_prefix.call + 'share/zsh/site-functions/_git',
+  ].detect {|p| p.exist? }
 }
 
 git_distributed_bash_completion = lambda {
   [ git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash',
+    git_prefix.call + 'etc/bash_completion.d/git-completion.bash',
     Pathname.new('/etc/bash_completion.d/git'),
     Pathname.new('/usr/share/bash-completion/completions/git'),
     Pathname.new('/usr/share/bash-completion/git'),
@@ -180,8 +183,8 @@ Given(/^I'm using ((?:zsh|git)-distributed) base git completions$/) do |type|
     (cpldir + '_git').exist?.should be_false
   when 'git-distributed'
     if 'zsh' == shell
-      if git_distributed_zsh_completion.call.exist?
-        link_completion.call(git_distributed_zsh_completion.call, '_git')
+      if git_zsh_completion = git_distributed_zsh_completion.call
+        link_completion.call(git_zsh_completion, '_git')
         link_completion.call(git_distributed_bash_completion.call, 'git-completion.bash')
       else
         warn "warning: git-distributed zsh completion wasn't found; using zsh-distributed instead"

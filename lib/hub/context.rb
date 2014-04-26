@@ -152,10 +152,10 @@ module Hub
         remote = origin_remote and remote.project
       end
 
-      def remote_branch_and_project(username_fetcher)
+      def remote_branch_and_project(username_fetcher, prefer_upstream = false)
         project = main_project
         if project and branch = current_branch
-          branch = branch.push_target(username_fetcher.call(project.host))
+          branch = branch.push_target(username_fetcher.call(project.host), prefer_upstream)
           project = remote_by_name(branch.remote_name).project if branch && branch.remote?
         end
         [branch, project]
@@ -219,7 +219,7 @@ module Hub
       end
 
       def origin_remote
-        remotes.first
+        remotes.detect {|r| r.urls.any? }
       end
 
       def remote_by_name(remote_name)
@@ -288,7 +288,7 @@ module Hub
         local_repo.remotes.find { |r| r.project == self }
       end
 
-      def web_url(path = nil)
+      def web_url(path = nil, protocol_config = nil)
         project_name = name_with_owner
         if project_name.sub!(/\.wiki$/, '')
           unless '/wiki' == path
@@ -298,7 +298,11 @@ module Hub
             path = '/wiki' + path
           end
         end
-        "https://#{host}/" + project_name + path.to_s
+        '%s://%s/%s' % [
+          protocol_config ? protocol_config.call(host) : 'https',
+          host,
+          project_name + path.to_s
+        ]
       end
 
       def git_url(options = {})
@@ -353,7 +357,7 @@ module Hub
         end
       end
 
-      def push_target(owner_name)
+      def push_target(owner_name, prefer_upstream = false)
         push_default = local_repo.git_config('push.default')
         if %w[upstream tracking].include?(push_default)
           upstream
@@ -362,6 +366,7 @@ module Hub
           refs = local_repo.remotes_for_publish(owner_name).map { |remote|
             "refs/remotes/#{remote}/#{short}"
           }
+          refs.reverse! if prefer_upstream
           if branch = refs.detect {|ref| local_repo.file_exist?(ref) }
             Branch.new(local_repo, branch)
           end
@@ -394,6 +399,10 @@ module Hub
         nil
       end
 
+      def github_url
+        urls.detect {|url| local_repo.known_host?(url.host) }
+      end
+
       def urls
         @urls ||= raw_urls.map do |url|
           with_normalized_url(url) do |normalized|
@@ -402,7 +411,7 @@ module Hub
             rescue URI::InvalidURIError
             end
           end
-        end
+        end.compact
       end
 
       def with_normalized_url(url)
@@ -542,10 +551,6 @@ module Hub
       # Returns a Boolean.
       def command?(name)
         !which(name).nil?
-      end
-
-      def tmp_dir
-        ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
       end
 
       def terminal_width

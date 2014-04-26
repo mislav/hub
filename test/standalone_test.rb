@@ -7,15 +7,15 @@ class StandaloneTest < Minitest::Test
   include FileUtils
 
   def setup
-    rm "hub" if File.exists? 'hub'
-    rm_rf "/tmp/_hub_private" if File.exists? '/tmp/_hub_private'
+    rm "hub" if File.exist? 'hub'
+    rm_rf "/tmp/_hub_private" if File.exist? '/tmp/_hub_private'
     mkdir "/tmp/_hub_private"
     chmod 0400, "/tmp/_hub_private"
   end
 
   def teardown
-    rm "hub" if File.exists? 'hub'
-    rm_rf "/tmp/_hub_private" if File.exists? "/tmp/_hub_private"
+    rm "hub" if File.exist? 'hub'
+    rm_rf "/tmp/_hub_private" if File.exist? "/tmp/_hub_private"
   end
 
   def test_standalone

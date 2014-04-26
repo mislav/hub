@@ -171,7 +171,7 @@ class HubTest < Minitest::Test
       to_return(:status => 200)
 
     with_tmpdir('/tmp/') do
-      assert_commands "git am --signoff /tmp/55.patch -p2",
+      assert_commands %r{git am --signoff /tmp/55\.patch[\w-]+ -p2},
                       "am --signoff https://github.com/defunkt/hub/pull/55#comment_123 -p2"
 
       cmd = Hub("am https://github.com/defunkt/hub/pull/55/files").command
@@ -196,7 +196,7 @@ class HubTest < Minitest::Test
 
     with_tmpdir('/tmp/') do
       url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
-      assert_commands "git am --signoff /tmp/fdb9921.patch -p2",
+      assert_commands %r{git am --signoff /tmp/fdb9921\.patch[\w-]+ -p2},
                       "am --signoff #{url} -p2"
     end
   end
@@ -217,7 +217,7 @@ class HubTest < Minitest::Test
     with_tmpdir('/tmp/') do
       url = 'https://gist.github.com/8da7fb575debd88c54cf'
 
-      assert_commands "git am --signoff /tmp/gist-8da7fb575debd88c54cf.txt -p2",
+      assert_commands %r{git am --signoff /tmp/gist-8da7fb575debd88c54cf\.txt[\w-]+ -p2},
                       "am --signoff #{url} -p2"
     end
   end
@@ -231,7 +231,7 @@ class HubTest < Minitest::Test
       to_return(:status => 200)
 
     with_tmpdir('/tmp/') do
-      assert_commands "git apply /tmp/55.patch -p2",
+      assert_commands %r{git apply /tmp/55\.patch[\w-]+ -p2},
                       "apply https://github.com/defunkt/hub/pull/55 -p2"
 
       cmd = Hub("apply https://github.com/defunkt/hub/pull/55/files").command
@@ -246,7 +246,7 @@ class HubTest < Minitest::Test
     with_tmpdir('/tmp/') do
       url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
 
-      assert_commands "git apply /tmp/fdb9921.patch -p2",
+      assert_commands %r{git apply /tmp/fdb9921\.patch[\w-]+ -p2},
                       "apply #{url} -p2"
     end
   end
@@ -266,7 +266,7 @@ class HubTest < Minitest::Test
     with_tmpdir('/tmp/') do
       url = 'https://gist.github.com/mislav/8da7fb575debd88c54cf'
 
-      assert_commands "git apply /tmp/gist-8da7fb575debd88c54cf.txt -p2",
+      assert_commands %r{git apply /tmp/gist-8da7fb575debd88c54cf\.txt[\w-]+ -p2},
                       "apply #{url} -p2"
     end
   end
@@ -410,7 +410,7 @@ class HubTest < Minitest::Test
     assert_equal expected, usage_help
 
     usage_help = hub("pull-request -h")
-    expected = "Usage: git pull-request [-f] [-m MESSAGE|-F FILE|-i ISSUE|ISSUE-URL] [-b BASE] [-h HEAD]\n"
+    expected = "Usage: git pull-request [-o|--browse] [-f] [-m MESSAGE|-F FILE|-i ISSUE|ISSUE-URL] [-b BASE] [-h HEAD]\n"
     assert_equal expected, usage_help
   end
 

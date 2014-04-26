@@ -7,13 +7,31 @@ Feature: hub fork
   Scenario: Fork the repository
     Given the GitHub API server:
       """
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+      }
+      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
+      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
+      """
+    When I successfully run `hub fork`
+    Then the output should contain exactly "new remote: mislav\n"
+    And "git remote add -f mislav git://github.com/evilchelu/dotfiles.git" should be run
+    And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
+    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+
+  Scenario: Fork the repository when origin URL is private
+    Given the "origin" remote has url "git@github.com:evilchelu/dotfiles.git"
+    Given the GitHub API server:
+      """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
       get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
       post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
-    And "git remote add -f mislav git@github.com:mislav/dotfiles.git" should be run
+    And "git remote add -f mislav ssh://git@github.com/evilchelu/dotfiles.git" should be run
+    And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: --no-remote
@@ -106,11 +124,29 @@ Scenario: Related fork already exists
   Scenario: Enterprise fork
     Given the GitHub API server:
       """
-      before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN' }
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
+      }
       post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    When I successfully run `hub fork`
+    Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+
+  Scenario: Enterprise fork using regular HTTP
+    Given the GitHub API server:
+      """
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'http'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
+      }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      """
+    And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
+    And I am "mislav" on http://git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
     Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
