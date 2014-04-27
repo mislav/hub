@@ -1,4 +1,4 @@
-#!/usr/bin/ruby --disable-gems
+#!/usr/bin/env ruby
 #
 # This file is generated code. DO NOT send patches for it.
 #
