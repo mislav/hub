@@ -320,6 +320,7 @@ module Hub
         res = get(auth_url) do |req|
           req['X-GitHub-OTP'] = two_factor_code if two_factor_code
         end
+
         unless res.success?
           if !two_factor_code && res['X-GitHub-OTP'].to_s.include?('required')
             two_factor_code = config.prompt_auth_code
@@ -333,8 +334,12 @@ module Hub
           found['token']
         else
           # create a new authorization
+          require 'socket'
+          user = ENV['USER']
+          hostname = Socket.gethostbyname(Socket.gethostname).first
+
           res = post auth_url,
-            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url do |req|
+            :scopes => %w[repo], :note => "hub on %s@%s" % [user, hostname], :note_url => oauth_app_url do |req|
               req['X-GitHub-OTP'] = two_factor_code if two_factor_code
             end
           res.error! unless res.success?
