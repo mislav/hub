@@ -352,6 +352,19 @@ the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 If you prefer using the HTTPS protocol for GitHub repositories instead of the git
 protocol for read and ssh for write, you can set "hub.protocol" to "https".
 
+### Two factor authentication
+
+If you don't want to disable two factor auth create app token in your github 
+settings page. Then create manually file "~/.config/hub" :
+
+````
+---
+github.com:
+- protocol: https
+  user: your_github_username 
+  oauth_token: copy_of_freshly_generated_token 
+```
+
 ~~~ sh
 # default behavior
 $ git clone defunkt/repl
