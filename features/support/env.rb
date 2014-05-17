@@ -31,6 +31,8 @@ Before do
   set_env 'BROWSER', 'open'
   # sabotage opening a commit message editor interactively
   set_env 'GIT_EDITOR', 'false'
+  # reset current localization settings
+  set_env 'LANG', nil
 
   author_name  = "Hub"
   author_email = "hub@test.local"
@@ -138,8 +140,9 @@ World Module.new {
     end
   end
 
-  def empty_commit
-    run_silent "git commit --quiet -m empty --allow-empty"
+  def empty_commit(message = nil)
+    message ||= 'empty'
+    run_silent "git commit --quiet -m '#{message}' --allow-empty"
   end
 
   # Aruba unnecessarily creates new Announcer instance on each invocation

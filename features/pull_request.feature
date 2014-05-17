@@ -43,6 +43,27 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m ăéñøü`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: With Unicode characters in the changelog
+    Given the text editor adds:
+      """
+      I <3 encodings
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 if request.content_charset != 'utf-8'
+        assert :title => 'I <3 encodings',
+               :body => 'ăéñøü'
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message "ăéñøü"
+    And the "topic" branch is pushed to "origin/topic"
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Deprecated title argument
     Given the GitHub API server:
       """
@@ -215,7 +236,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :title => 'Unix piping is great',
-               :body  => 'Just look at this'
+               :body  => 'Just look at this ăéñøü'
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -224,7 +245,7 @@ Feature: hub pull-request
       """
       Unix piping is great
 
-      Just look at this
+      Just look at this ăéñøü
       """
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the exit status should be 0
