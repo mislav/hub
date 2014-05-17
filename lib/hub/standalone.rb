@@ -76,9 +76,9 @@ preamble
 
     def ruby_shebang
       ruby = ruby_executable
-      `#{ruby_executable} --disable-gems -e0 2>/dev/null`
+      `RUBYOPT= #{ruby_executable} --disable-gems -e0 2>/dev/null`
       if $?.success?
-        "#{ruby} --disable-gems"
+        "#{ruby} -E UTF-8 --disable-gems"
       else
         ruby
       end
