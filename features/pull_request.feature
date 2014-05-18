@@ -64,6 +64,26 @@ Feature: hub pull-request
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Default message for single-commit pull request
+    Given the text editor adds:
+      """
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 if request.content_charset != 'utf-8'
+        assert :title => 'This is somewhat of a longish title that does not get wrapped and references #1234',
+               :body => nil
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped and references #1234"
+    And the "topic" branch is pushed to "origin/topic"
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Deprecated title argument
     Given the GitHub API server:
       """
@@ -154,6 +174,27 @@ Feature: hub pull-request
     When I successfully run `hub pull-request`
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Text editor with custom commentchar
+    Given git "core.commentchar" is set to "/"
+    And the text editor adds:
+      """
+      # Dat title
+
+      / This line is commented out.
+
+      Dem body.
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => '# Dat title',
+               :body  => 'Dem body.'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "the://url\n"
 
   Scenario: Failed pull request preserves previous message
     Given the text editor adds:
