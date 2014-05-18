@@ -222,11 +222,11 @@ module Hub
         when 0
           default_message = commit_summary = nil
         when 1
-          format = '%w(78,0,0)%s%n%+b'
+          format = '%w(0,0,0)%s%n%+b'
           default_message = git_command "show -s --format='#{format}' #{commits.first}"
           commit_summary = nil
         else
-          format = '%h (%aN, %ar)%n%w(78,3,3)%s%n%+b'
+          format = '%h (%aN, %ar)%n%w(0,3,3)%s%n%+b'
           default_message = nil
           commit_summary = git_command "log --no-color --format='%s' --cherry %s...%s" %
             [format, base_branch, remote_branch]
