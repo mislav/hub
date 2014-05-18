@@ -222,7 +222,7 @@ module Hub
         when 0
           default_message = commit_summary = nil
         when 1
-          format = '%w(78,0,0)%s%n%+b'
+          format = '%s%n%+b'
           default_message = git_command "show -s --format='#{format}' #{commits.first}"
           commit_summary = nil
         else
