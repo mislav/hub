@@ -192,10 +192,31 @@ module Hub
             end
           end.compact if data['errors']
         end
+        def links
+          @links ||= self['link'].to_s.scan(/<(.+?)>; rel="(.+?)"/).inject({}) do |map, (url, rel)|
+            map.update(rel.to_sym => URI.parse(url))
+          end
+        end
+        def next_url() links[:next] end
       end
 
       def get url, &block
         perform_request url, :Get, &block
+      end
+
+      def get_all url, &block
+        previous_res = nil
+        user = url.user
+        while url
+          res = get(url, &block)
+          if url = res.next_url
+            url = url.dup
+            url.user = user
+          end
+          res.data.unshift(*previous_res.data) if res.success? && previous_res
+          previous_res = res
+        end
+        res
       end
 
       def post url, params = nil
@@ -299,7 +320,7 @@ module Hub
 
     module OAuth
       def apply_authentication req, url
-        if req.path =~ %r{^(/api/v3)?/authorizations$}
+        if req.path =~ %r{^(/api/v3)?/authorizations\b}
           super
         else
           user = url.user ? CGI.unescape(url.user) : config.username(url.host)
@@ -317,7 +338,7 @@ module Hub
         post(auth_url) if !two_factor_code
 
         # first try to fetch existing authorization
-        res = get(auth_url) do |req|
+        res = get_all(auth_url) do |req|
           req['X-GitHub-OTP'] = two_factor_code if two_factor_code
         end
 

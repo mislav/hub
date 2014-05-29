@@ -501,6 +501,12 @@ module Hub
       end
     end
 
+    def git_commentchar
+      if str = git_config('core.commentchar') then str[0,1]
+      else '#'
+      end
+    end
+
     module System
       # Cross-platform web browser command; respects the value set in $BROWSER.
       #

@@ -222,7 +222,7 @@ module Hub
         when 0
           default_message = commit_summary = nil
         when 1
-          format = '%w(78,0,0)%s%n%+b'
+          format = '%s%n%+b'
           default_message = git_command "show -s --format='#{format}' #{commits.first}"
           commit_summary = nil
         else
@@ -232,14 +232,14 @@ module Hub
             [format, base_branch, remote_branch]
         end
 
-        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message|
+        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message, cc|
           initial_message ||= default_message
           msg.puts initial_message if initial_message
           msg.puts ""
-          msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
-          msg.puts "#"
-          msg.puts "# Write a message for this pull request. The first block"
-          msg.puts "# of text is the title and the rest is description."
+          msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.puts "#{cc}"
+          msg.puts "#{cc} Write a message for this pull request. The first block"
+          msg.puts "#{cc} of text is the title and the rest is description."
         }
       end
 
@@ -1051,7 +1051,7 @@ help
         write.close
 
         # Don't page if the input is short enough
-        ENV['LESS'] = 'FSR'
+        ENV['LESS'] = 'FSRX'
 
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]
@@ -1077,17 +1077,18 @@ help
 
     def pullrequest_editmsg(changes)
       message_file = pullrequest_editmsg_file
+      cc = git_commentchar
 
       if valid_editmsg_file?(message_file)
-        title, body = read_editmsg(message_file)
+        title, body = read_editmsg(message_file, cc)
         previous_message = [title, body].compact.join("\n\n") if title
       end
 
       File.open(message_file, 'w') { |msg|
-        yield msg, previous_message
+        yield msg, previous_message, cc
         if changes
-          msg.puts "#\n# Changes:\n#"
-          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
+          msg.puts "#{cc}\n#{cc} Changes:\n#{cc}"
+          msg.puts changes.gsub(/^/, "#{cc} ").gsub(/ +$/, '')
         end
       }
 
@@ -1102,7 +1103,7 @@ help
         abort "error using text editor for pull request message"
       end
 
-      title, body = read_editmsg(message_file)
+      title, body = read_editmsg(message_file, cc)
       abort "Aborting due to empty pull request title" unless title
       [title, body]
     end
@@ -1123,11 +1124,11 @@ help
       File.join(git_dir, 'PULLREQ_EDITMSG')
     end
 
-    def read_editmsg(file)
+    def read_editmsg(file, commentchar)
       title, body = '', ''
       File.open(file, 'r') { |msg|
         msg.each_line do |line|
-          next if line.index('#') == 0
+          next if line.index(commentchar) == 0
           ((title.empty? and line =~ /\S/) ? title : body) << line
         end
       }
