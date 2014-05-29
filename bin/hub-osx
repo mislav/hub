@@ -3,6 +3,8 @@
 # hub(1)
 # alias git=hub
 
+Encoding.default_external = 'UTF-8' if defined?(Encoding)
+
 require 'pathname'
 $LOAD_PATH.unshift File.join(File.dirname(Pathname.new(__FILE__).realpath), '../lib')
 
