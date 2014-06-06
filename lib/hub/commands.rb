@@ -810,12 +810,7 @@ module Hub
       command = args.words[1]
 
       if command == 'hub' || custom_command?(command)
-        if !hub_raw_manpage_path
-          puts hub_manpage
-        elsif $stdout.tty? and not windows?
-          exec('man', 'hub')
-        end
-        exit
+        display_hub_manpage
       elsif command.nil?
         if args.has_flag?('-a', '--all')
           # Add the special hub commands to the end of "git help -a" output.
@@ -875,12 +870,7 @@ module Hub
         }
         abort "Error: couldn't find usage help for #{args[0]}"
       when '--help'
-        if !hub_raw_manpage_path
-          puts hub_manpage
-        elsif $stdout.tty? and not windows?
-          exec('man', 'hub')
-        end
-        exit
+        display_hub_manpage
       end
     end
 
@@ -1011,6 +1001,17 @@ help
       out
     end
 
+    # Prints the manpage to stdout or - if it's installed in the system - uses
+    # man to display it
+    def display_hub_manpage
+        if !hub_raw_system_manpage_path
+          puts hub_manpage
+        elsif $stdout.tty? and not windows?
+          exec('man', 'hub')
+        end
+        exit
+    end
+
     # The groff command complete with crazy arguments we need to run
     # in order to turn our raw roff (manpage markup) into something
     # readable on the terminal.
@@ -1019,9 +1020,16 @@ help
       "groff -Wall -mtty-char -mandoc -Tascii -rLL=#{cols}n -rLT=#{cols}n"
     end
 
-    def hub_raw_manpage_path
+    def hub_raw_system_manpage_path
       # as installed in the system
       if File.exist? file = File.dirname(__FILE__) + '/../share/man/man1/hub.1'
+        return file
+      end
+      return false
+    end
+
+    def hub_raw_manpage_path
+      if file = hub_raw_system_manpage_path
         return file
       # local in the repo
       elsif File.exist? file = File.dirname(__FILE__) + '/../../man/hub.1'
