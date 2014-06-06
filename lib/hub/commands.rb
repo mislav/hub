@@ -1011,6 +1011,13 @@ help
       "groff -Wall -mtty-char -mandoc -Tascii -rLL=#{cols}n -rLT=#{cols}n"
     end
 
+    def hub_raw_manpage_path
+      if File.exist? file = File.dirname(__FILE__) + '/../share/man/man1/hub.1'
+        return file
+      end
+      return false
+    end
+
     # Returns the raw hub manpage. If we're not running in standalone
     # mode, it's a file sitting at the root under the `man`
     # directory.
@@ -1019,7 +1026,8 @@ help
     # included after the __END__ of the file so we can grab it using
     # DATA.
     def hub_raw_manpage
-      if File.exist? file = File.dirname(__FILE__) + '/../../man/hub.1'
+      file = hub_raw_manpage_path
+      if file != false
         File.read(file)
       else
         DATA.read
