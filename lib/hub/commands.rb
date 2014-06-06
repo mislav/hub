@@ -1020,7 +1020,11 @@ help
     end
 
     def hub_raw_manpage_path
+      # as installed in the system
       if File.exist? file = File.dirname(__FILE__) + '/../share/man/man1/hub.1'
+        return file
+      # local in the repo
+      elsif File.exist? file = File.dirname(__FILE__) + '/../../man/hub.1'
         return file
       end
       return false
