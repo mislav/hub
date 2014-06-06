@@ -810,7 +810,11 @@ module Hub
       command = args.words[1]
 
       if command == 'hub' || custom_command?(command)
-        puts hub_manpage
+        if !hub_raw_manpage_path
+          puts hub_manpage
+        elsif $stdout.tty? and not windows?
+          exec('man', 'hub')
+        end
         exit
       elsif command.nil?
         if args.has_flag?('-a', '--all')
@@ -871,7 +875,11 @@ module Hub
         }
         abort "Error: couldn't find usage help for #{args[0]}"
       when '--help'
-        puts hub_manpage
+        if !hub_raw_manpage_path
+          puts hub_manpage
+        elsif $stdout.tty? and not windows?
+          exec('man', 'hub')
+        end
         exit
       end
     end
