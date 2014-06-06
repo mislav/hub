@@ -810,7 +810,7 @@ module Hub
       command = args.words[1]
 
       if command == 'hub' || custom_command?(command)
-        exec('man', 'hub')
+        puts hub_manpage
         exit
       elsif command.nil?
         if args.has_flag?('-a', '--all')
@@ -871,7 +871,7 @@ module Hub
         }
         abort "Error: couldn't find usage help for #{args[0]}"
       when '--help'
-        exec('man', 'hub')
+        puts hub_manpage
         exit
       end
     end
@@ -986,6 +986,21 @@ help
 
       args.executable = url_only ? 'echo' : browser_launcher
       args.push url
+    end
+
+    # Returns the terminal-formatted manpage, ready to be printed to
+    # the screen.
+    def hub_manpage
+      abort "** Can't find groff(1)" unless command?('groff')
+
+      require 'open3'
+      out = nil
+      Open3.popen3(groff_command) do |stdin, stdout, _|
+        stdin.puts hub_raw_manpage
+        stdin.close
+        out = stdout.read.strip
+      end
+      out
     end
 
     # The groff command complete with crazy arguments we need to run
