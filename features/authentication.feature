@@ -88,6 +88,40 @@ Feature: OAuth authentication
     And the exit status should be 0
     And the file "../home/.config/hub" should contain 'access_token = "OTOKEN"'
 
+  Scenario: Re-use existing authorization found on page 3
+    Given the GitHub API server:
+      """
+      get('/authorizations') {
+        assert_basic_auth 'mislav', 'kitty'
+        page = (params[:page] || 1).to_i
+        if page < 3
+          response.headers['Link'] = %(<#{url}?page=#{page+1}>; rel="next")
+          json []
+        else
+          json [
+            {:token => 'OTOKEN', :note => 'hub', :note_url => 'http://hub.github.com/'}
+          ]
+        end
+      }
+      post('/authorizations') {
+        status 422
+        json :message => "Validation Failed",
+          :errors => [{:resource => "OauthAccess", :code => "already_exists", :field => "description"}]
+      }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "mislav"
+    And I type "kitty"
+    Then the output should contain "github.com password for mislav (never stored):"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+
   Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
     Given the GitHub API server:
       """

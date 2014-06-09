@@ -64,9 +64,17 @@ Given(/^there is a commit named "([^"]+)"$/) do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
-When(/^I make (a|\d+) commits?$/) do |num|
+When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num = num == 'a' ? 1 : num.to_i
-  num.times { empty_commit }
+  num.times { empty_commit(msg) }
+end
+
+Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
+  full_upstream = ".git/refs/remotes/#{upstream}"
+  in_current_dir do
+    FileUtils.mkdir_p File.dirname(full_upstream)
+    FileUtils.cp ".git/refs/heads/#{name}", full_upstream
+  end
 end
 
 Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/) do |name, type, upstream|
