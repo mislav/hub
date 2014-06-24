@@ -40,6 +40,7 @@ supports hub is available:
 # Download or clone the project from GitHub:
 $ git clone git://github.com/github/hub.git
 $ cd hub
+$ bundle install
 $ rake install
 ~~~
 
