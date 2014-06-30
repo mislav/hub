@@ -251,7 +251,7 @@ module Hub
     class GithubProject < Struct.new(:local_repo, :owner, :name, :host)
       def self.from_url(url, local_repo)
         if local_repo.known_host?(url.host)
-          _, owner, name = url.path.split('/', 4)
+          owner, name = url.path.gsub(/^\/+/, '').split('/', 3)
           GithubProject.new(local_repo, owner, name.sub(/\.git$/, ''), url.host)
         end
       end
