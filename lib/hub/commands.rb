@@ -1010,7 +1010,7 @@ help
     # in order to turn our raw roff (manpage markup) into something
     # readable on the terminal.
     def groff_command
-      cols = terminal_width
+      cols = [terminal_width - 1, 120].min
       "groff -Wall -mtty-char -mandoc -Tascii -rLL=#{cols}n -rLT=#{cols}n"
     end
 
