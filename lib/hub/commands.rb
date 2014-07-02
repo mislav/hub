@@ -810,7 +810,7 @@ module Hub
       command = args.words[1]
 
       if command == 'hub' || custom_command?(command)
-        puts hub_manpage
+        paginated_puts hub_manpage
         exit
       elsif command.nil?
         if args.has_flag?('-a', '--all')
@@ -818,8 +818,11 @@ module Hub
           args.after 'echo', ["\nhub custom commands\n"]
           args.after 'echo', CUSTOM_COMMANDS.map {|cmd| "  #{cmd}" }
         else
-          ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
-          puts improved_help_text
+          if args.has_flag?('-p', '--paginate')
+            paginated_puts improved_help_text
+          else
+            puts improved_help_text
+          end
           exit
         end
       end
@@ -871,7 +874,7 @@ module Hub
         }
         abort "Error: couldn't find usage help for #{args[0]}"
       when '--help'
-        puts hub_manpage
+        paginated_puts hub_manpage
         exit
       end
     end
@@ -1026,11 +1029,9 @@ help
       end
     end
 
-    # All calls to `puts` in after hooks or commands are paged,
-    # git-style.
-    def puts(*args)
+    def paginated_puts(*args)
       page_stdout
-      super
+      puts(*args)
     end
 
     # http://nex-3.com/posts/73-git-style-automatic-paging-in-ruby
@@ -1045,8 +1046,9 @@ help
         read.close
         write.close
 
-        # Don't page if the input is short enough
-        ENV['LESS'] = 'FSRX'
+        # S: chop long lines
+        # R: support ANSI color escape sequences
+        ENV['LESS'] = 'SR'
 
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]
