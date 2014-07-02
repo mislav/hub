@@ -867,8 +867,7 @@ module Hub
         pattern = /(git|hub) #{Regexp.escape args[0].gsub('-', '\-')}/
         hub_raw_manpage.each_line { |line|
           if line =~ pattern
-            $stderr.print "Usage: "
-            $stderr.puts line.gsub(/\\f./, '').gsub('\-', '-')
+            puts "Usage: " + line.gsub(/\\f./, '').gsub('\-', '-')
             abort
           end
         }
