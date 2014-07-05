@@ -688,7 +688,7 @@ module Hub
           project = local_repo.main_project
         else
           # $ hub browse
-          prefer_upstream = current_branch.master?
+          prefer_upstream = current_branch && current_branch.master?
           branch, project = remote_branch_and_project(method(:github_user), prefer_upstream)
           branch ||= master_branch
         end
