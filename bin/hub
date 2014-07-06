@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby --disable-gems
+#!/usr/bin/env ruby
 
 # hub(1)
 # alias git=hub
