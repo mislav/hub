@@ -498,15 +498,19 @@ module Hub
     # ... downloads patch via API ...
     # > git am /tmp/55.patch
     def am(args)
-      if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
-        idx = args.index(url)
-        if $1 == 'gist.'
-          path_parts = $'.sub(/#.*/, '').split('/')
-          gist_id = path_parts.last
+      gh_url = nil
+      idx = args.index { |arg|
+        gh_url = if arg =~ %r{^https?://gist\.github\.com/} then URI(arg)
+        else resolve_github_url(arg)
+        end
+      }
+
+      if gh_url
+        if "gist.github.com" == gh_url.host
+          gist_id = gh_url.path.split('/').last
           patch_name = "gist-#{gist_id}.txt"
           patch = api_client.gist_raw(gist_id)
         else
-          gh_url = resolve_github_url(url)
           case gh_url.project_path
           when /^pull\/(\d+)/
             pull_id = $1.to_i
