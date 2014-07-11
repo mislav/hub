@@ -735,7 +735,7 @@ module Hub
           end
         end
 
-        path = '/compare/%s' % range.tr('/', ';')
+        path = '/compare/%s' % range
         project.web_url(path, api_client.config.method(:protocol))
       end
     end
