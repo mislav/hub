@@ -1,9 +1,10 @@
 package commands
 
 import (
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/github/hub/github"
-	"testing"
 )
 
 func TestParsePullRequestProject(t *testing.T) {
@@ -29,4 +30,10 @@ func TestParsePullRequestProject(t *testing.T) {
 	assert.Equal(t, "github.com", p.Host)
 	assert.Equal(t, "mojombo", p.Owner)
 	assert.Equal(t, "jekyll", p.Name)
+}
+
+func TestPullRequestEditMsg(t *testing.T) {
+	msg, err := pullRequestEditMsg()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "hi", msg)
 }

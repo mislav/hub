@@ -46,6 +46,7 @@ Feature: hub pull-request
   Scenario: Invalid flag
     When I run `hub pull-request -yelp`
     Then the stderr should contain "unknown shorthand flag: 'y' in -yelp\n"
+    And the exit status should be 1
 
   Scenario: With Unicode characters in the changelog
     Given the text editor adds:
@@ -87,27 +88,6 @@ Feature: hub pull-request
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
-
-  Scenario: Deprecated title argument
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        halt 422 if params[:title] != 'mytitle'
-        json :html_url => "the://url"
-      }
-      """
-    When I successfully run `hub pull-request mytitle`
-    Then the stderr should contain exactly:
-      """
-      hub: Specifying pull request title without a flag is deprecated.
-      Please use one of `-m' or `-F' options.\n
-      """
-    And the stdout should contain exactly "the://url\n"
-
-  Scenario: Deprecated title argument can't start with a dash
-    When I run `hub pull-request -help`
-    Then the stderr should contain "invalid argument: -help\n"
-    And the exit status should be 1
 
   Scenario: Non-existing base
     Given the GitHub API server:

@@ -1,10 +1,12 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"regexp"
 	"strings"
+	"text/template"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
@@ -222,6 +224,7 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string, commits []
 		}
 		defaultMsg = fmt.Sprintf("%s\n", msg)
 	} else if len(commits) > 1 {
+		//commentChar := git.CommentChar()
 		commitLogs, err := git.Log(base, head)
 		if err != nil {
 			return "", err
@@ -252,6 +255,48 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string, commits []
 	message = fmt.Sprintf(message, defaultMsg, fullBase, fullHead, commitSummary)
 
 	return message, nil
+}
+
+const pullRequestTmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
+
+{{.CS}} Requesting a pull to {{.Base}} from {{.Head}}
+{{.CS}}
+{{.CS}} Write a message for this pull request. The first block
+{{.CS}} of the text is the title and the rest is description.
+{{if .HasChanges}}
+{{.CS}}
+{{.CS}} Changes:
+{{.CS}}
+{{range .Changes}}
+{{.CS}}
+{{end}}
+{{end}}
+`
+
+type pullRequestMsg struct {
+	InitMsg string
+	CS      string
+	Base    string
+	Head    string
+}
+
+func pullRequestEditMsg() (string, error) {
+	t, err := template.New("pullRequestTmpl").Parse(pullRequestTmpl)
+	if err != nil {
+		return "", err
+	}
+
+	msg := pullRequestMsg{
+		InitMsg: "init",
+		CS:      "#",
+		Base:    "jingweno/gh",
+		Head:    "jingweno/gh1",
+	}
+
+	var b bytes.Buffer
+	err = t.Execute(&b, msg)
+
+	return b.String(), err
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {
