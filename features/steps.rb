@@ -5,7 +5,8 @@ Given(/^HTTPS is preferred$/) do
 end
 
 Given(/^there are no remotes$/) do
-  run_silent('git remote').should be_empty
+  result = run_silent('git remote')
+  expect(result).to be_empty
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
@@ -141,7 +142,7 @@ Then(/^it should clone "([^"]*)"$/) do |repo|
 end
 
 Then(/^"([^"]+)" should not be run$/) do |pattern|
-  history.all? {|h| h.should_not include(pattern) }
+  history.all? {|h| expect(h).to_not include(pattern) }
 end
 
 Then(/^there should be no output$/) do
@@ -149,29 +150,29 @@ Then(/^there should be no output$/) do
 end
 
 Then(/^the git command should be unchanged$/) do
-  @commands.should_not be_empty
+  expect(@commands).to_not be_empty
   assert_command_run @commands.last.sub(/^hub\b/, 'git')
 end
 
 Then(/^the url for "([^"]*)" should be "([^"]*)"$/) do |name, url|
   found = run_silent %(git config --get-all remote.#{name}.url)
-  found.should eql(url)
+  expect(found).to eql(url)
 end
 
 Then(/^the "([^"]*)" submodule url should be "([^"]*)"$/) do |name, url|
   found = run_silent %(git config --get-all submodule."#{name}".url)
-  found.should eql(url)
+  expect(found).to eql(url)
 end
 
 Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
   remotes = run_silent('git remote').split("\n")
-  remotes.should_not include(remote_name)
+  expect(remotes).to_not include(remote_name)
 end
 
 Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
   prep_for_fs_check do
     mode = File.stat(file).mode
-    mode.to_s(8).should =~ /#{expected_mode}$/
+    expect(mode.to_s(8)).to match(/#{expected_mode}$/)
   end
 end
 

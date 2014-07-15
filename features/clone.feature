@@ -157,3 +157,14 @@ Feature: hub clone
     Then the git command should be unchanged
     And there should be no output
 
+  Scenario: Clone a wiki
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub clone rtomayko/ronn.wiki`
+    Then it should clone "git://github.com/rtomayko/ronn.wiki.git"
+    And there should be no output

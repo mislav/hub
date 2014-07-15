@@ -11,7 +11,7 @@ Feature: hub compare
   Scenario: Compare complex branch
     When I successfully run `hub compare feature/foo`
     Then there should be no output
-    And "open https://github.com/mislav/dotfiles/compare/feature;foo" should be run
+    And "open https://github.com/mislav/dotfiles/compare/feature/foo" should be run
 
   Scenario: No args, no upstream
     When I run `hub compare`

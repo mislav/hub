@@ -114,6 +114,18 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles/tree/baz/qux/moo" should be run
 
+  Scenario: No branch
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And I am in detached HEAD
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles" should be run
+
+  Scenario: No branch to pulls
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And I am in detached HEAD
+    When I successfully run `hub browse -- pulls`
+    Then "open https://github.com/mislav/dotfiles/pulls" should be run
+
   Scenario: Dot Delimited branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And git "push.default" is set to "upstream"

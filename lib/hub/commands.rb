@@ -498,15 +498,19 @@ module Hub
     # ... downloads patch via API ...
     # > git am /tmp/55.patch
     def am(args)
-      if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
-        idx = args.index(url)
-        if $1 == 'gist.'
-          path_parts = $'.sub(/#.*/, '').split('/')
-          gist_id = path_parts.last
+      gh_url = nil
+      idx = args.index { |arg|
+        gh_url = if arg =~ %r{^https?://gist\.github\.com/} then URI(arg)
+        else resolve_github_url(arg)
+        end
+      }
+
+      if gh_url
+        if "gist.github.com" == gh_url.host
+          gist_id = gh_url.path.split('/').last
           patch_name = "gist-#{gist_id}.txt"
           patch = api_client.gist_raw(gist_id)
         else
-          gh_url = resolve_github_url(url)
           case gh_url.project_path
           when /^pull\/(\d+)/
             pull_id = $1.to_i
@@ -688,7 +692,7 @@ module Hub
           project = local_repo.main_project
         else
           # $ hub browse
-          prefer_upstream = current_branch.master?
+          prefer_upstream = current_branch && current_branch.master?
           branch, project = remote_branch_and_project(method(:github_user), prefer_upstream)
           branch ||= master_branch
         end
@@ -735,7 +739,7 @@ module Hub
           end
         end
 
-        path = '/compare/%s' % range.tr('/', ';')
+        path = '/compare/%s' % range
         project.web_url(path, api_client.config.method(:protocol))
       end
     end
@@ -810,7 +814,7 @@ module Hub
       command = args.words[1]
 
       if command == 'hub' || custom_command?(command)
-        puts hub_manpage
+        paginated_puts hub_manpage
         exit
       elsif command.nil?
         if args.has_flag?('-a', '--all')
@@ -818,8 +822,11 @@ module Hub
           args.after 'echo', ["\nhub custom commands\n"]
           args.after 'echo', CUSTOM_COMMANDS.map {|cmd| "  #{cmd}" }
         else
-          ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
-          puts improved_help_text
+          if args.has_flag?('-p', '--paginate')
+            paginated_puts improved_help_text
+          else
+            puts improved_help_text
+          end
           exit
         end
       end
@@ -864,14 +871,13 @@ module Hub
         pattern = /(git|hub) #{Regexp.escape args[0].gsub('-', '\-')}/
         hub_raw_manpage.each_line { |line|
           if line =~ pattern
-            $stderr.print "Usage: "
-            $stderr.puts line.gsub(/\\f./, '').gsub('\-', '-')
+            puts "Usage: " + line.gsub(/\\f./, '').gsub('\-', '-')
             abort
           end
         }
         abort "Error: couldn't find usage help for #{args[0]}"
       when '--help'
-        puts hub_manpage
+        paginated_puts hub_manpage
         exit
       end
     end
@@ -1007,7 +1013,7 @@ help
     # in order to turn our raw roff (manpage markup) into something
     # readable on the terminal.
     def groff_command
-      cols = terminal_width
+      cols = [terminal_width - 1, 120].min
       "groff -Wall -mtty-char -mandoc -Tascii -rLL=#{cols}n -rLT=#{cols}n"
     end
 
@@ -1026,11 +1032,9 @@ help
       end
     end
 
-    # All calls to `puts` in after hooks or commands are paged,
-    # git-style.
-    def puts(*args)
+    def paginated_puts(*args)
       page_stdout
-      super
+      puts(*args)
     end
 
     # http://nex-3.com/posts/73-git-style-automatic-paging-in-ruby
@@ -1045,8 +1049,9 @@ help
         read.close
         write.close
 
-        # Don't page if the input is short enough
-        ENV['LESS'] = 'FSRX'
+        # S: chop long lines
+        # R: support ANSI color escape sequences
+        ENV['LESS'] = 'SR'
 
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]

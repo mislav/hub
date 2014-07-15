@@ -69,7 +69,7 @@ RSpec::Matchers.define :be_successful_command do
     cmd.success?
   end
 
-  failure_message_for_should do |cmd|
+  failure_message do |cmd|
     %(command "#{cmd}" exited with status #{cmd.status}:) <<
       cmd.output.gsub(/^/, ' ' * 2)
   end
@@ -123,7 +123,7 @@ World Module.new {
 
   def assert_command_run cmd
     cmd += "\n" unless cmd[-1..-1] == "\n"
-    history.should include(cmd)
+    expect(history).to include(cmd)
   end
 
   def edit_hub_config
@@ -151,7 +151,7 @@ World Module.new {
   def run_silent cmd
     in_current_dir do
       command = SimpleCommand.run(cmd)
-      command.should be_successful_command
+      expect(command).to be_successful_command
       command.output
     end
   end
