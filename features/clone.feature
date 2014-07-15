@@ -137,6 +137,18 @@ Feature: hub clone
     Then "git clone git@github.com:sstephenson/rbenv.git" should be run
     And there should be no output
 
+  Scenario: Preview cloning a repo I have push access to
+    Given the GitHub API server:
+      """
+      get('/repos/sstephenson/rbenv') {
+        json :private => false,
+             :permissions => { :push => true }
+      }
+      """
+    When I successfully run `hub --noop clone sstephenson/rbenv`
+    Then the output should contain exactly "git clone git@github.com:sstephenson/rbenv.git\n"
+    But "git clone" should not be run
+
   Scenario: Clone my Enterprise repo
     Given I am "mifi" on git.my.org with OAuth token "FITOKEN"
     And $GITHUB_HOST is "git.my.org"
