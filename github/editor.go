@@ -26,11 +26,14 @@ func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
 		return
 	}
 
+	cs := git.CommentChar()
+
 	editor = &Editor{
 		Program:    program,
 		Topic:      topic,
 		File:       messageFile,
 		Message:    message,
+		CS:         cs,
 		openEditor: openTextEditor,
 	}
 
@@ -42,6 +45,7 @@ type Editor struct {
 	Topic      string
 	File       string
 	Message    string
+	CS         string
 	openEditor func(program, file string) error
 }
 
@@ -56,8 +60,8 @@ func (e *Editor) EditTitleAndBody() (title, body string, err error) {
 	}
 
 	content = bytes.TrimSpace(content)
-	reader := bufio.NewReader(bytes.NewReader(content))
-	title, body, err = readTitleAndBody(reader)
+	reader := bytes.NewReader(content)
+	title, body, err = readTitleAndBody(reader, e.CS)
 
 	return
 }
@@ -113,14 +117,15 @@ func openTextEditor(program, file string) error {
 	return editCmd.Exec()
 }
 
-func readTitleAndBody(reader *bufio.Reader) (title, body string, err error) {
-	r := regexp.MustCompile("\\S")
+func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {
 	var titleParts, bodyParts []string
 
-	line, err := readLine(reader)
-	for err == nil {
-		if strings.HasPrefix(line, "#") {
-			break
+	r := regexp.MustCompile("\\S")
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, cs) {
+			continue
 		}
 
 		if len(bodyParts) == 0 && r.MatchString(line) {
@@ -128,12 +133,10 @@ func readTitleAndBody(reader *bufio.Reader) (title, body string, err error) {
 		} else {
 			bodyParts = append(bodyParts, line)
 		}
-
-		line, err = readLine(reader)
 	}
 
-	if err == io.EOF {
-		err = nil
+	if err = scanner.Err(); err != nil {
+		return
 	}
 
 	title = strings.Join(titleParts, " ")
@@ -143,21 +146,6 @@ func readTitleAndBody(reader *bufio.Reader) (title, body string, err error) {
 	body = strings.TrimSpace(body)
 
 	return
-}
-
-func readLine(r *bufio.Reader) (string, error) {
-	var (
-		isPrefix = true
-		err      error
-		line, ln []byte
-	)
-
-	for isPrefix && err == nil {
-		line, isPrefix, err = r.ReadLine()
-		ln = append(ln, line...)
-	}
-
-	return string(ln), err
 }
 
 func getMessageFile(about string) (string, error) {

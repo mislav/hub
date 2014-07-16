@@ -35,15 +35,6 @@ func TestGitLog(t *testing.T) {
 	assert.NotEqual(t, "", log)
 }
 
-func TestGitLog2(t *testing.T) {
-	repo := fixtures.SetupTestRepo()
-	defer repo.TearDown()
-
-	log, err := Log2("08f4b7b6513dffc6245857e497cfd6101dc47818", "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06")
-	assert.Equal(t, nil, err)
-	assert.Equal(t, nil, log)
-}
-
 func TestGitRef(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()

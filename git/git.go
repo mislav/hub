@@ -136,23 +136,6 @@ func Show(sha string) (string, error) {
 	return output, err
 }
 
-func Log2(sha1, sha2 string) ([]string, error) {
-	shaRange := fmt.Sprintf("%s...%s", sha1, sha2)
-	output, err := execGitCmd(
-		"log",
-		"--no-color",
-		"--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b",
-		"--cherry",
-		shaRange,
-	)
-
-	if err != nil {
-		return nil, fmt.Errorf("Can't load git log %s..%s", sha1, sha2)
-	}
-
-	return output, nil
-}
-
 func Log(sha1, sha2 string) (string, error) {
 	execCmd := cmd.New("git")
 	execCmd.WithArg("log").WithArg("--no-color")

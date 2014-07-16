@@ -31,9 +31,3 @@ func TestParsePullRequestProject(t *testing.T) {
 	assert.Equal(t, "mojombo", p.Owner)
 	assert.Equal(t, "jekyll", p.Name)
 }
-
-func TestPullRequestEditMsg(t *testing.T) {
-	msg, err := pullRequestEditMsg()
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "hi", msg)
-}
