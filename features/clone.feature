@@ -94,7 +94,7 @@ Feature: hub clone
   Scenario: Preview cloning a private repo
     When I successfully run `hub --noop clone -p rtomayko/ronn`
     Then the output should contain exactly "git clone git@github.com:rtomayko/ronn.git\n"
-    But "git clone" should not be run
+    But it should not clone anything
 
   Scenario: Clone a private repo
     When I successfully run `hub clone -p rtomayko/ronn`
@@ -147,7 +147,7 @@ Feature: hub clone
       """
     When I successfully run `hub --noop clone sstephenson/rbenv`
     Then the output should contain exactly "git clone git@github.com:sstephenson/rbenv.git\n"
-    But "git clone" should not be run
+    But it should not clone anything
 
   Scenario: Clone my Enterprise repo
     Given I am "mifi" on git.my.org with OAuth token "FITOKEN"

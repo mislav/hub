@@ -140,6 +140,10 @@ Then(/^it should clone "([^"]*)"$/) do |repo|
   step %("git clone #{repo}" should be run)
 end
 
+Then(/^it should not clone anything$/) do
+  history.each { |h| expect(h).to_not match(/^git clone/) }
+end
+
 Then(/^"([^"]+)" should not be run$/) do |pattern|
   history.all? {|h| expect(h).to_not include(pattern) }
 end
