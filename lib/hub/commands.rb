@@ -294,7 +294,7 @@ module Hub
             name, owner = arg, nil
             owner, name = name.split('/', 2) if name.index('/')
             project = github_project(name, owner || github_user)
-            unless ssh || args[0] == 'submodule' || args.noop? || https_protocol?
+            unless ssh || args[0] == 'submodule' || https_protocol?
               repo_info = api_client.repo_info(project)
               ssh = repo_info.success? && (repo_info.data['private'] || repo_info.data['permissions']['push'])
             end
