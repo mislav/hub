@@ -428,6 +428,30 @@ class HubTest < Minitest::Test
     assert_equal "Usage: hub browse [<USER>/]<REPOSITORY>\n", hub("browse")
   end
 
+  def test_hub_browse_branch
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls?page=1&state=open").
+      to_return(:body =>
+                mock_list_pulls_response({
+                                           'defunkt:feature-foo' => 1,
+                                           'defunkt:feature-bar' => 2,
+                                         }))
+    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls?page=2&state=open").
+      to_return(:body =>
+                mock_list_pulls_response({
+                                           'jianlius:feature-baz' => 3,
+                                           'jianlius:feature-qux' => 4,
+                                         }))
+
+    expected = "open https://github.com/defunkt/hub/pull/2"
+    assert_command "browse -b feature-bar", expected
+
+    stub_branch('refs/heads/feature-qux')
+    stub_tracking('feature-qux', 'upstream')
+
+    expected = "open https://github.com/defunkt/hub/pull/4"
+    assert_command "browse -b", expected
+  end
+
   def test_hub_browse_ssh_alias
     with_ssh_config "Host gh\n User git\n HostName github.com" do
       stub_repo_url "gh:singingwolfboy/sekrit.git"
@@ -599,6 +623,19 @@ class HubTest < Minitest::Test
         :label => label,
         :repo => {:private => !!priv}
       }
+    end
+
+    def mock_list_pulls_response(branches, name_with_owner = 'defunkt/hub', host = 'github.com')
+      arr = []
+      branches.each_pair do |branch, id|
+        arr << {
+          'head' => {
+            'label' => branch,
+          },
+          'html_url' => "https://#{host}/#{name_with_owner}/pull/#{id}",
+        }
+      end
+      Hub::JSON.generate arr
     end
 
     def improved_help_text
