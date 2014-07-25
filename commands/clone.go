@@ -77,7 +77,6 @@ func transformCloneArgs(args *Args) {
 				project := github.NewProject(owner, name, hostStr)
 				if !isSSH &&
 					args.Command != "submodule" &&
-					!args.Noop &&
 					!github.IsHttpsProtocol() {
 					client := github.NewClient(project.Host)
 					repo, err := client.Repository(project)
