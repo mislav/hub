@@ -377,7 +377,7 @@ func (client *Client) CurrentUser() (user *octokit.User, err error) {
 }
 
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
-	url, e := octokit.AuthorizationsURL.Expand(nil)
+	authUrl, e := octokit.AuthorizationsURL.Expand(nil)
 	if e != nil {
 		err = &AuthError{e}
 		return
@@ -385,7 +385,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 	basicAuth := octokit.BasicAuth{Login: user, Password: password, OneTimePassword: twoFactorCode}
 	c := client.newOctokitClient(basicAuth)
-	authsService := c.Authorizations(client.requestURL(url))
+	authsService := c.Authorizations(client.requestURL(authUrl))
 
 	if twoFactorCode != "" {
 		// dummy request to trigger a 2FA SMS since a HTTP GET won't do it
@@ -396,6 +396,24 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	if result.HasError() {
 		err = &AuthError{result.Err}
 		return
+	}
+
+	var moreAuths []octokit.Authorization
+	for result.NextPage != nil {
+		authUrl, e := result.NextPage.Expand(nil)
+		if e != nil {
+			return "", e
+		}
+		authUrl, _ = url.Parse(authUrl.RequestURI())
+
+		as := c.Authorizations(authUrl)
+		moreAuths, result = as.All()
+		if result.HasError() {
+			err = &AuthError{result.Err}
+			return
+		}
+
+		auths = append(auths, moreAuths...)
 	}
 
 	for _, auth := range auths {
