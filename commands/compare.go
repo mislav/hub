@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"regexp"
-	"strings"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -73,7 +72,6 @@ func compare(command *Command, args *Args) {
 		}
 	}
 
-	r = strings.Replace(r, "/", ";", -1)
 	subpage := utils.ConcatPaths("compare", r)
 	url := project.WebURL("", "", subpage)
 	launcher, err := utils.BrowserLauncher()
