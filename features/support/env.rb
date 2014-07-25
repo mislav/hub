@@ -34,6 +34,8 @@ Before do
   set_env 'BROWSER', 'open'
   # sabotage opening a commit message editor interactively
   set_env 'GIT_EDITOR', 'false'
+  # reset current localization settings
+  set_env 'LANG', nil
 
   author_name  = "Hub"
   author_email = "hub@test.local"
@@ -67,7 +69,7 @@ RSpec::Matchers.define :be_successful_command do
     cmd.success?
   end
 
-  failure_message_for_should do |cmd|
+  failure_message do |cmd|
     %(command "#{cmd}" exited with status #{cmd.status}:) <<
       cmd.output.gsub(/^/, ' ' * 2)
   end
@@ -121,7 +123,7 @@ World Module.new {
 
   def assert_command_run cmd
     cmd += "\n" unless cmd[-1..-1] == "\n"
-    history.should include(cmd)
+    expect(history).to include(cmd)
   end
 
   def edit_hub_config
@@ -149,13 +151,14 @@ World Module.new {
   def run_silent cmd
     in_current_dir do
       command = SimpleCommand.run(cmd)
-      command.should be_successful_command
+      expect(command).to be_successful_command
       command.output
     end
   end
 
-  def empty_commit
-    run_silent "git commit --quiet -m empty --allow-empty"
+  def empty_commit(message = nil)
+    message ||= 'empty'
+    run_silent "git commit --quiet -m '#{message}' --allow-empty"
   end
 
   # Aruba unnecessarily creates new Announcer instance on each invocation

@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/github/hub",
-	"GoVersion": "go1.2.1",
+	"GoVersion": "go1.3",
 	"Packages": [
 		"./..."
 	],

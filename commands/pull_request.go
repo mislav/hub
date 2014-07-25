@@ -159,8 +159,7 @@ func pullRequest(cmd *Command, args *Args) {
 
 	var editor *github.Editor
 	if title == "" && flagPullRequestIssue == "" {
-		commits, _ := git.RefList(base, head)
-		message, err := pullRequestChangesMessage(base, head, fullBase, fullHead, commits)
+		message, err := pullRequestChangesMessage(base, head, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
@@ -213,45 +212,29 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 }
 
-func pullRequestChangesMessage(base, head, fullBase, fullHead string, commits []string) (string, error) {
-	var defaultMsg, commitSummary string
+func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, error) {
+	var (
+		defaultMsg string
+		commitLogs string
+		err        error
+	)
+
+	commits, _ := git.RefList(base, head)
 	if len(commits) == 1 {
-		msg, err := git.Show(commits[0])
+		defaultMsg, err = git.Show(commits[0])
 		if err != nil {
 			return "", err
 		}
-		defaultMsg = fmt.Sprintf("%s\n", msg)
 	} else if len(commits) > 1 {
-		commitLogs, err := git.Log(base, head)
+		commitLogs, err = git.Log(base, head)
 		if err != nil {
 			return "", err
-		}
-
-		if len(commitLogs) > 0 {
-			startRegexp := regexp.MustCompilePOSIX("^")
-			endRegexp := regexp.MustCompilePOSIX(" +$")
-
-			commitLogs = strings.TrimSpace(commitLogs)
-			commitLogs = startRegexp.ReplaceAllString(commitLogs, "# ")
-			commitLogs = endRegexp.ReplaceAllString(commitLogs, "")
-			commitSummary = `
-#
-# Changes:
-#
-%s`
-			commitSummary = fmt.Sprintf(commitSummary, commitLogs)
 		}
 	}
 
-	message := `%s
-# Requesting a pull to %s from %s
-#
-# Write a message for this pull request. The first block
-# of the text is the title and the rest is description.%s
-`
-	message = fmt.Sprintf(message, defaultMsg, fullBase, fullHead, commitSummary)
+	cs := git.CommentChar()
 
-	return message, nil
+	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {

@@ -504,6 +504,12 @@ module Hub
       end
     end
 
+    def git_commentchar
+      if str = git_config('core.commentchar') then str[0,1]
+      else '#'
+      end
+    end
+
     module System
       # Cross-platform web browser command; respects the value set in $BROWSER.
       # 
@@ -554,10 +560,6 @@ module Hub
       # Returns a Boolean.
       def command?(name)
         !which(name).nil?
-      end
-
-      def tmp_dir
-        ENV['TMPDIR'] || ENV['TEMP'] || '/tmp'
       end
 
       def terminal_width

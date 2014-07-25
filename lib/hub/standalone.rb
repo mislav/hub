@@ -25,6 +25,7 @@ preamble
     def build io
       io.puts "#!#{ruby_shebang}"
       io << PREAMBLE
+      io.puts "Encoding.default_external = 'UTF-8' if defined?(Encoding)"
 
       each_source_file do |filename|
         File.open(filename, 'r') do |source|
@@ -76,7 +77,7 @@ preamble
 
     def ruby_shebang
       ruby = ruby_executable
-      `#{ruby_executable} --disable-gems -e0 2>/dev/null`
+      `RUBYOPT= #{ruby_executable} --disable-gems -e0 2>/dev/null`
       if $?.success?
         "#{ruby} --disable-gems"
       else

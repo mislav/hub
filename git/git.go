@@ -117,9 +117,18 @@ func RefList(a, b string) ([]string, error) {
 	return output, nil
 }
 
+func CommentChar() string {
+	char, err := Config("core.commentchar")
+	if err != nil {
+		char = "#"
+	}
+
+	return char
+}
+
 func Show(sha string) (string, error) {
 	cmd := cmd.New("git")
-	cmd.WithArg("show").WithArg("-s").WithArg("--format=%w(78,0,0)%s%n%+b").WithArg(sha)
+	cmd.WithArg("show").WithArg("-s").WithArg("--format=%s%n%+b").WithArg(sha)
 
 	output, err := cmd.ExecOutput()
 	output = strings.TrimSpace(output)

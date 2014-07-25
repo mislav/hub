@@ -5,11 +5,12 @@ Given(/^HTTPS is preferred$/) do
 end
 
 Given(/^there are no remotes$/) do
-  run_silent('git remote').should be_empty
+  result = run_silent('git remote')
+  expect(result).to be_empty
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
-  run_silent %(git config --global --add gh.host "#{host}")
+  run_silent %(git config --global --add hub.host "#{host}")
 end
 
 Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
@@ -64,9 +65,17 @@ Given(/^there is a commit named "([^"]+)"$/) do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
-When(/^I make (a|\d+) commits?$/) do |num|
+When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num = num == 'a' ? 1 : num.to_i
-  num.times { empty_commit }
+  num.times { empty_commit(msg) }
+end
+
+Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
+  full_upstream = ".git/refs/remotes/#{upstream}"
+  in_current_dir do
+    FileUtils.mkdir_p File.dirname(full_upstream)
+    FileUtils.cp ".git/refs/heads/#{name}", full_upstream
+  end
 end
 
 Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/) do |name, type, upstream|
@@ -132,8 +141,12 @@ Then(/^it should clone "([^"]*)"$/) do |repo|
   step %("git clone #{repo}" should be run)
 end
 
+Then(/^it should not clone anything$/) do
+  history.each { |h| expect(h).to_not match(/^git clone/) }
+end
+
 Then(/^"([^"]+)" should not be run$/) do |pattern|
-  history.all? {|h| h.should_not include(pattern) }
+  history.each { |h| expect(h).to_not include(pattern) }
 end
 
 Then(/^there should be no output$/) do
@@ -141,29 +154,29 @@ Then(/^there should be no output$/) do
 end
 
 Then(/^the git command should be unchanged$/) do
-  @commands.should_not be_empty
+  expect(@commands).to_not be_empty
   assert_command_run @commands.last.sub(/^hub\b/, 'git')
 end
 
 Then(/^the url for "([^"]*)" should be "([^"]*)"$/) do |name, url|
   found = run_silent %(git config --get-all remote.#{name}.url)
-  found.should eql(url)
+  expect(found).to eql(url)
 end
 
 Then(/^the "([^"]*)" submodule url should be "([^"]*)"$/) do |name, url|
   found = run_silent %(git config --get-all submodule."#{name}".url)
-  found.should eql(url)
+  expect(found).to eql(url)
 end
 
 Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
   remotes = run_silent('git remote').split("\n")
-  remotes.should_not include(remote_name)
+  expect(remotes).to_not include(remote_name)
 end
 
 Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
   prep_for_fs_check do
     mode = File.stat(file).mode
-    mode.to_s(8).should =~ /#{expected_mode}$/
+    expect(mode.to_s(8)).to match(/#{expected_mode}$/)
   end
 end
 

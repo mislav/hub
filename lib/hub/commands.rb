@@ -1,3 +1,5 @@
+require 'tempfile'
+
 module Hub
   # The Commands module houses the git commands that hub
   # lovingly wraps. If a method exists here, it is expected to have a
@@ -220,7 +222,7 @@ module Hub
         when 0
           default_message = commit_summary = nil
         when 1
-          format = '%w(78,0,0)%s%n%+b'
+          format = '%s%n%+b'
           default_message = git_command "show -s --format='#{format}' #{commits.first}"
           commit_summary = nil
         else
@@ -230,14 +232,14 @@ module Hub
             [format, base_branch, remote_branch]
         end
 
-        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message|
+        options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message, cc|
           initial_message ||= default_message
           msg.puts initial_message if initial_message
           msg.puts ""
-          msg.puts "# Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
-          msg.puts "#"
-          msg.puts "# Write a message for this pull request. The first block"
-          msg.puts "# of text is the title and the rest is description."
+          msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.puts "#{cc}"
+          msg.puts "#{cc} Write a message for this pull request. The first block"
+          msg.puts "#{cc} of text is the title and the rest is description."
         }
       end
 
@@ -292,7 +294,7 @@ module Hub
             name, owner = arg, nil
             owner, name = name.split('/', 2) if name.index('/')
             project = github_project(name, owner || github_user)
-            unless ssh || args[0] == 'submodule' || args.noop? || https_protocol?
+            unless ssh || args[0] == 'submodule' || https_protocol?
               repo_info = api_client.repo_info(project)
               ssh = repo_info.success? && (repo_info.data['private'] || repo_info.data['permissions']['push'])
             end
@@ -496,15 +498,19 @@ module Hub
     # ... downloads patch via API ...
     # > git am /tmp/55.patch
     def am(args)
-      if url = args.find { |a| a =~ %r{^https?://(gist\.)?github\.com/} }
-        idx = args.index(url)
-        if $1 == 'gist.'
-          path_parts = $'.sub(/#.*/, '').split('/')
-          gist_id = path_parts.last
+      gh_url = nil
+      idx = args.index { |arg|
+        gh_url = if arg =~ %r{^https?://gist\.github\.com/} then URI(arg)
+        else resolve_github_url(arg)
+        end
+      }
+
+      if gh_url
+        if "gist.github.com" == gh_url.host
+          gist_id = gh_url.path.split('/').last
           patch_name = "gist-#{gist_id}.txt"
           patch = api_client.gist_raw(gist_id)
         else
-          gh_url = resolve_github_url(url)
           case gh_url.project_path
           when /^pull\/(\d+)/
             pull_id = $1.to_i
@@ -519,7 +525,7 @@ module Hub
           end
         end
 
-        patch_file = File.join(tmp_dir, patch_name)
+        patch_file = Tempfile.new(patch_name).path
         File.open(patch_file, 'w') { |file| file.write(patch) }
         args[idx] = patch_file
       end
@@ -686,7 +692,7 @@ module Hub
           project = local_repo.main_project
         else
           # $ hub browse
-          prefer_upstream = current_branch.master?
+          prefer_upstream = current_branch && current_branch.master?
           branch, project = remote_branch_and_project(method(:github_user), prefer_upstream)
           branch ||= master_branch
         end
@@ -733,7 +739,7 @@ module Hub
           end
         end
 
-        path = '/compare/%s' % range.tr('/', ';')
+        path = '/compare/%s' % range
         project.web_url(path, api_client.config.method(:protocol))
       end
     end
@@ -808,7 +814,7 @@ module Hub
       command = args.words[1]
 
       if command == 'hub' || custom_command?(command)
-        puts hub_manpage
+        paginated_puts hub_manpage
         exit
       elsif command.nil?
         if args.has_flag?('-a', '--all')
@@ -816,8 +822,11 @@ module Hub
           args.after 'echo', ["\nhub custom commands\n"]
           args.after 'echo', CUSTOM_COMMANDS.map {|cmd| "  #{cmd}" }
         else
-          ENV['GIT_PAGER'] = '' unless args.has_flag?('-p', '--paginate') # Use `cat`.
-          puts improved_help_text
+          if args.has_flag?('-p', '--paginate')
+            paginated_puts improved_help_text
+          else
+            puts improved_help_text
+          end
           exit
         end
       end
@@ -862,14 +871,13 @@ module Hub
         pattern = /(git|hub) #{Regexp.escape args[0].gsub('-', '\-')}/
         hub_raw_manpage.each_line { |line|
           if line =~ pattern
-            $stderr.print "Usage: "
-            $stderr.puts line.gsub(/\\f./, '').gsub('\-', '-')
+            puts "Usage: " + line.gsub(/\\f./, '').gsub('\-', '-')
             abort
           end
         }
         abort "Error: couldn't find usage help for #{args[0]}"
       when '--help'
-        puts hub_manpage
+        paginated_puts hub_manpage
         exit
       end
     end
@@ -1005,7 +1013,7 @@ help
     # in order to turn our raw roff (manpage markup) into something
     # readable on the terminal.
     def groff_command
-      cols = terminal_width
+      cols = [terminal_width - 1, 120].min
       "groff -Wall -mtty-char -mandoc -Tascii -rLL=#{cols}n -rLT=#{cols}n"
     end
 
@@ -1024,11 +1032,9 @@ help
       end
     end
 
-    # All calls to `puts` in after hooks or commands are paged,
-    # git-style.
-    def puts(*args)
+    def paginated_puts(*args)
       page_stdout
-      super
+      puts(*args)
     end
 
     # http://nex-3.com/posts/73-git-style-automatic-paging-in-ruby
@@ -1043,8 +1049,9 @@ help
         read.close
         write.close
 
-        # Don't page if the input is short enough
-        ENV['LESS'] = 'FSR'
+        # S: chop long lines
+        # R: support ANSI color escape sequences
+        ENV['LESS'] = 'SR'
 
         # Wait until we have input before we start the pager
         Kernel.select [STDIN]
@@ -1070,17 +1077,18 @@ help
 
     def pullrequest_editmsg(changes)
       message_file = pullrequest_editmsg_file
+      cc = git_commentchar
 
       if valid_editmsg_file?(message_file)
-        title, body = read_editmsg(message_file)
+        title, body = read_editmsg(message_file, cc)
         previous_message = [title, body].compact.join("\n\n") if title
       end
 
       File.open(message_file, 'w') { |msg|
-        yield msg, previous_message
+        yield msg, previous_message, cc
         if changes
-          msg.puts "#\n# Changes:\n#"
-          msg.puts changes.gsub(/^/, '# ').gsub(/ +$/, '')
+          msg.puts "#{cc}\n#{cc} Changes:\n#{cc}"
+          msg.puts changes.gsub(/^/, "#{cc} ").gsub(/ +$/, '')
         end
       }
 
@@ -1095,7 +1103,7 @@ help
         abort "error using text editor for pull request message"
       end
 
-      title, body = read_editmsg(message_file)
+      title, body = read_editmsg(message_file, cc)
       abort "Aborting due to empty pull request title" unless title
       [title, body]
     end
@@ -1116,11 +1124,11 @@ help
       File.join(git_dir, 'PULLREQ_EDITMSG')
     end
 
-    def read_editmsg(file)
+    def read_editmsg(file, commentchar)
       title, body = '', ''
       File.open(file, 'r') { |msg|
         msg.each_line do |line|
-          next if line.index('#') == 0
+          next if line.index(commentchar) == 0
           ((title.empty? and line =~ /\S/) ? title : body) << line
         end
       }

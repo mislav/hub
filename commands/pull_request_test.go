@@ -1,9 +1,10 @@
 package commands
 
 import (
+	"testing"
+
 	"github.com/bmizerany/assert"
 	"github.com/github/hub/github"
-	"testing"
 )
 
 func TestParsePullRequestProject(t *testing.T) {

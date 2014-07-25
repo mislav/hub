@@ -78,6 +78,7 @@ func TestEditor_EditTitleAndBody(t *testing.T) {
 	editor := Editor{
 		Program: "memory",
 		File:    tempFile,
+		CS:      "#",
 		openEditor: func(program string, file string) error {
 			assert.Equal(t, "memory", program)
 			assert.Equal(t, tempFile, file)
@@ -109,10 +110,23 @@ A body continues
 `
 	r := strings.NewReader(message)
 	reader := bufio.NewReader(r)
-	title, body, err := readTitleAndBody(reader)
+	title, body, err := readTitleAndBody(reader, "#")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "A title A title continues", title)
 	assert.Equal(t, "A body\nA body continues", body)
+
+	message = `# Dat title
+
+/ This line is commented out.
+
+Dem body.
+`
+	r = strings.NewReader(message)
+	reader = bufio.NewReader(r)
+	title, body, err = readTitleAndBody(reader, "/")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "# Dat title", title)
+	assert.Equal(t, "Dem body.", body)
 }
 
 func TestGetMessageFile(t *testing.T) {

@@ -94,7 +94,7 @@ Feature: hub clone
   Scenario: Preview cloning a private repo
     When I successfully run `hub --noop clone -p rtomayko/ronn`
     Then the output should contain exactly "git clone git@github.com:rtomayko/ronn.git\n"
-    But "git clone" should not be run
+    But it should not clone anything
 
   Scenario: Clone a private repo
     When I successfully run `hub clone -p rtomayko/ronn`
@@ -137,6 +137,18 @@ Feature: hub clone
     Then "git clone git@github.com:sstephenson/rbenv.git" should be run
     And there should be no output
 
+  Scenario: Preview cloning a repo I have push access to
+    Given the GitHub API server:
+      """
+      get('/repos/sstephenson/rbenv') {
+        json :private => false,
+             :permissions => { :push => true }
+      }
+      """
+    When I successfully run `hub --noop clone sstephenson/rbenv`
+    Then the output should contain exactly "git clone git@github.com:sstephenson/rbenv.git\n"
+    But it should not clone anything
+
   Scenario: Clone my Enterprise repo
     Given I am "mifi" on git.my.org with OAuth token "FITOKEN"
     And $GITHUB_HOST is "git.my.org"
@@ -157,3 +169,14 @@ Feature: hub clone
     Then the git command should be unchanged
     And there should be no output
 
+  Scenario: Clone a wiki
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub clone rtomayko/ronn.wiki`
+    Then it should clone "git://github.com/rtomayko/ronn.wiki.git"
+    And there should be no output
