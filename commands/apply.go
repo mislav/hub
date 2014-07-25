@@ -5,6 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/github/hub/github"
 )
 
 var cmdApply = &Command{
@@ -44,44 +46,50 @@ func apply(command *Command, args *Args) {
 }
 
 func transformApplyArgs(args *Args) {
-	urlRegexp := regexp.MustCompile("^https?://(gist\\.)?github\\.com/")
-	for _, url := range args.Params {
-		if urlRegexp.MatchString(url) {
-			idx := args.IndexOfParam(url)
-			gist := urlRegexp.FindStringSubmatch(url)[1] == "gist."
-
-			fragmentRegexp := regexp.MustCompile("#.+")
-			url = fragmentRegexp.ReplaceAllString(url, "")
-			pullRegexp := regexp.MustCompile("(/pull/\\d+)/\\w*$")
-			if !gist {
-				if pullRegexp.MatchString(url) {
-					pull := pullRegexp.FindStringSubmatch(url)[1]
-					url = pullRegexp.ReplaceAllString(url, pull)
-				}
+	urlRegexp := regexp.MustCompile("^https?://(gist\\.)github\\.com/")
+	for _, arg := range args.Params {
+		var (
+			url  string
+			gist bool
+		)
+		projectURL, err := github.ParseURL(arg)
+		if err == nil {
+			pullRegexp := regexp.MustCompile("/(pull|commit)/([0-9a-f]+)")
+			match := pullRegexp.FindStringSubmatch(projectURL.Path)
+			if match != nil {
+				url = projectURL.Project.WebURL("", "", match[1]+"/"+match[2])
 			}
-
-			var ext string
+		} else {
+			gist = urlRegexp.MatchString(arg)
 			if gist {
-				ext = ".txt"
-			} else {
-				ext = ".patch"
+				url = arg
 			}
-
-			if filepath.Ext(url) != ext {
-				url += ext
-			}
-
-			var prefix string
-			if gist {
-				prefix = "gist-"
-			}
-
-			patchFile := filepath.Join(os.TempDir(), prefix+filepath.Base(url))
-
-			args.Before("curl", "-#LA", fmt.Sprintf("gh %s", Version), url, "-o", patchFile)
-			args.Params[idx] = patchFile
-
-			break
 		}
+
+		if url == "" {
+			continue
+		}
+
+		var ext string
+		if gist {
+			ext = ".txt"
+		} else {
+			ext = ".patch"
+		}
+
+		idx := args.IndexOfParam(arg)
+		if filepath.Ext(url) != ext {
+			url += ext
+		}
+
+		var prefix string
+		if gist {
+			prefix = "gist-"
+		}
+
+		patchFile := filepath.Join(os.TempDir(), prefix+filepath.Base(url))
+
+		args.Before("curl", "-#LA", fmt.Sprintf("gh %s", Version), url, "-o", patchFile)
+		args.Params[idx] = patchFile
 	}
 }
