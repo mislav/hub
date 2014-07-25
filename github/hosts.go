@@ -29,7 +29,7 @@ func knownGitHubHosts() (hosts GitHubHosts) {
 	hosts = append(hosts, defaultHost)
 	hosts = append(hosts, fmt.Sprintf("ssh.%s", defaultHost))
 
-	ghHosts, _ := git.Config("gh.host")
+	ghHosts, _ := git.Config("hub.host")
 	for _, ghHost := range strings.Split(ghHosts, "\n") {
 		ghHost = strings.TrimSpace(ghHost)
 		if ghHosts != "" {

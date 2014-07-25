@@ -10,7 +10,7 @@ Given(/^there are no remotes$/) do
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
-  run_silent %(git config --global --add gh.host "#{host}")
+  run_silent %(git config --global --add hub.host "#{host}")
 end
 
 Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
