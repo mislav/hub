@@ -41,7 +41,7 @@ Given(/^\$(\w+) is "([^"]*)"$/) do |name, value|
 end
 
 Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
-  if dir_name.include? '://'
+  if dir_name.include?(':')
     origin_url = dir_name
     dir_name = File.basename origin_url, '.git'
   end
@@ -238,4 +238,10 @@ end
 
 Given(/^the git commit editor is "([^"]+)"$/) do |cmd|
   set_env('GIT_EDITOR', cmd)
+end
+
+Given(/^the SSH config:$/) do |config_lines|
+  ssh_config = "#{ENV['HOME']}/.ssh/config"
+  FileUtils.mkdir_p(File.dirname(ssh_config))
+  File.open(ssh_config, 'w') {|f| f << config_lines }
 end

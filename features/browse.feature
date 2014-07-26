@@ -173,3 +173,24 @@ Feature: hub browse
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub browse`
     Then "open http://git.my.org/mislav/dotfiles" should be run
+
+  Scenario: SSH alias
+    Given the SSH config:
+      """
+      Host gh
+        User git
+        HostName github.com
+      """
+    Given I am in "gh:singingwolfboy/sekrit.git" git repo
+    When I successfully run `hub browse`
+    Then "open https://github.com/singingwolfboy/sekrit" should be run
+
+  Scenario: SSH GitHub alias
+    Given the SSH config:
+      """
+      Host github.com
+        HostName ssh.github.com
+      """
+    Given I am in "git@github.com:suan/git-sanity.git" git repo
+    When I successfully run `hub browse`
+    Then "open https://github.com/suan/git-sanity" should be run

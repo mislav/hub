@@ -267,25 +267,6 @@ class HubTest < Minitest::Test
     assert_includes 'This file is generated code', hub("hub standalone")
   end
 
-  def test_hub_browse_no_repo
-    stub_repo_url(nil)
-    assert_equal "Usage: hub browse [<USER>/]<REPOSITORY>\n", hub("browse")
-  end
-
-  def test_hub_browse_ssh_alias
-    with_ssh_config "Host gh\n User git\n HostName github.com" do
-      stub_repo_url "gh:singingwolfboy/sekrit.git"
-      assert_command "browse", "open https://github.com/singingwolfboy/sekrit"
-    end
-  end
-
-  def test_hub_browse_ssh_github_alias
-    with_ssh_config "Host github.com\n HostName ssh.github.com" do
-      stub_repo_url "git@github.com:suan/git-sanity.git"
-      assert_command "browse", "open https://github.com/suan/git-sanity"
-    end
-  end
-
   def test_custom_browser
     with_browser_env("custom") do
       assert_browser("custom")
