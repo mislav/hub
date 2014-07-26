@@ -161,24 +161,6 @@ class HubTest < Minitest::Test
                     "cherry-pick xoebus@a319d88"
   end
 
-  def test_init
-    stub_no_remotes
-    stub_no_git_repo
-    assert_commands "git init", "git remote add origin git@github.com:tpw/hub.git", "init -g"
-  end
-
-  def test_init_enterprise
-    stub_no_remotes
-    stub_no_git_repo
-    edit_hub_config do |data|
-      data['git.my.org'] = [{'user'=>'myfiname'}]
-    end
-
-    with_host_env('git.my.org') do
-      assert_commands "git init", "git remote add origin git@git.my.org:myfiname/hub.git", "init -g"
-    end
-  end
-
   def test_push_untouched
     assert_forwarded "push"
   end
