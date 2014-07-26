@@ -161,34 +161,6 @@ class HubTest < Minitest::Test
                     "cherry-pick xoebus@a319d88"
   end
 
-  def test_push_untouched
-    assert_forwarded "push"
-  end
-
-  def test_push_two
-    assert_commands "git push origin cool-feature", "git push staging cool-feature",
-                    "push origin,staging cool-feature"
-  end
-
-  def test_push_current_branch
-    stub_branch('refs/heads/cool-feature')
-    assert_commands "git push origin cool-feature", "git push staging cool-feature",
-                    "push origin,staging"
-  end
-
-  def test_push_more
-    assert_commands "git push origin cool-feature",
-                    "git push staging cool-feature",
-                    "git push qa cool-feature",
-                    "push origin,staging,qa cool-feature"
-  end
-
-  def test_push_multiple_refs
-    assert_commands "git push origin master new-feature",
-                    "git push staging master new-feature",
-                    "push origin,staging master new-feature"
-  end
-
   def test_pullrequest_from_branch_tracking_local
     stub_config_value 'push.default', 'upstream'
     stub_branch('refs/heads/feature')
