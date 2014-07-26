@@ -2,6 +2,11 @@ Feature: hub browse
   Background:
     Given I am "mislav" on github.com with OAuth token "OTOKEN"
 
+  Scenario: No repo
+    When I run `hub browse`
+    Then the exit status should be 1
+    Then the output should contain exactly "Usage: hub browse [<USER>/]<REPOSITORY>\n"
+
   Scenario: Project with owner
     When I successfully run `hub browse mislav/dotfiles`
     Then there should be no output
