@@ -105,7 +105,7 @@ Feature: hub browse
     And I am on the "feature" branch pushed to "mislav/feature"
     When I successfully run `hub browse -- issues`
     Then there should be no output
-    # Then "open https://github.com/jashkenas/coffee-script/issues" should be run
+    Then "open https://github.com/jashkenas/coffee-script/issues" should be run
 
   Scenario: Complex branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
