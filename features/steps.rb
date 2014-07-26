@@ -41,7 +41,7 @@ Given(/^\$(\w+) is "([^"]*)"$/) do |name, value|
 end
 
 Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
-  if dir_name.include? '://'
+  if dir_name.include?(':')
     origin_url = dir_name
     dir_name = File.basename origin_url, '.git'
   end
@@ -67,6 +67,11 @@ end
 When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num = num == 'a' ? 1 : num.to_i
   num.times { empty_commit(msg) }
+end
+
+Then(/^the latest commit message should be "([^"]+)"$/) do |subject|
+  step %(I successfully run `git log -1 --format=%s`)
+  step %(the output should contain exactly "#{subject}\\n")
 end
 
 Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
@@ -233,4 +238,10 @@ end
 
 Given(/^the git commit editor is "([^"]+)"$/) do |cmd|
   set_env('GIT_EDITOR', cmd)
+end
+
+Given(/^the SSH config:$/) do |config_lines|
+  ssh_config = "#{ENV['HOME']}/.ssh/config"
+  FileUtils.mkdir_p(File.dirname(ssh_config))
+  File.open(ssh_config, 'w') {|f| f << config_lines }
 end

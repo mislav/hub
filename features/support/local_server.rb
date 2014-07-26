@@ -77,6 +77,24 @@ module Hub
             )
           end
         end
+
+        def generate_patch(subject)
+        <<PATCH
+From 7eb75a26ee8e402aad79fcf36a4c1461e3ec2592 Mon Sep 17 00:00:00 2001
+From: Mislav <mislav.marohnic@gmail.com>
+Date: Tue, 24 Jun 2014 11:07:05 -0700
+Subject: [PATCH] #{subject}
+---
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..ce01362
+--- /dev/null
++++ b/README.md
++hello
+-- 
+1.9.3
+PATCH
+        end
       end
 
       new(klass.new).start
