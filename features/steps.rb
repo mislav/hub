@@ -69,6 +69,11 @@ When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num.times { empty_commit(msg) }
 end
 
+Then(/^the latest commit message should be "([^"]+)"$/) do |subject|
+  step %(I successfully run `git log -1 --format=%s`)
+  step %(the output should contain exactly "#{subject}\\n")
+end
+
 Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
   full_upstream = ".git/refs/remotes/#{upstream}"
   in_current_dir do
