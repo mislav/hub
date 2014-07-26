@@ -161,55 +161,6 @@ class HubTest < Minitest::Test
                     "cherry-pick xoebus@a319d88"
   end
 
-  def test_apply_untouched
-    assert_forwarded "apply some.patch"
-  end
-
-  def test_apply_pull_request
-    stub_request(:get, "https://api.github.com/repos/defunkt/hub/pulls/55").
-      to_return(:status => 200)
-
-    with_tmpdir('/tmp/') do
-      assert_commands %r{git apply /tmp/55\.patch[\w-]+ -p2},
-                      "apply https://github.com/defunkt/hub/pull/55 -p2"
-
-      cmd = Hub("apply https://github.com/defunkt/hub/pull/55/files").command
-      assert_includes '/tmp/55.patch', cmd
-    end
-  end
-
-  def test_apply_commit_url
-    stub_request(:get, "https://api.github.com/repos/davidbalbert/hub/commits/fdb9921").
-      to_return(:status => 200)
-
-    with_tmpdir('/tmp/') do
-      url = 'https://github.com/davidbalbert/hub/commit/fdb9921'
-
-      assert_commands %r{git apply /tmp/fdb9921\.patch[\w-]+ -p2},
-                      "apply #{url} -p2"
-    end
-  end
-
-  def test_apply_gist
-    stub_request(:get, "https://api.github.com/gists/8da7fb575debd88c54cf").
-      with(:headers => {'Authorization'=>'token OTOKEN'}).
-      to_return(:body => Hub::JSON.generate(:files => {
-        'file.diff' => {
-          :raw_url => "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff"
-        }
-      }))
-
-    stub_request(:get, "https://gist.github.com/raw/8da7fb575debd88c54cf/SHA/file.diff").
-      to_return(:status => 200)
-
-    with_tmpdir('/tmp/') do
-      url = 'https://gist.github.com/mislav/8da7fb575debd88c54cf'
-
-      assert_commands %r{git apply /tmp/gist-8da7fb575debd88c54cf\.txt[\w-]+ -p2},
-                      "apply #{url} -p2"
-    end
-  end
-
   def test_init
     stub_no_remotes
     stub_no_git_repo
