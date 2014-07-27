@@ -234,7 +234,11 @@ module Hub
 
         options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message, cc|
           initial_message ||= default_message
-          msg.puts initial_message if initial_message
+          if using_pullrequest_template?
+            msg.puts pullrequest_template
+          else
+            msg.puts initial_message if initial_message
+          end
           msg.puts ""
           msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
           msg.puts "#{cc}"
@@ -259,6 +263,18 @@ module Hub
       exit 1
     else
       delete_editmsg
+    end
+
+    def using_pullrequest_template?
+      pullrequest_template_path != ''
+    end
+
+    def pullrequest_template
+      File.read(File.expand_path(pullrequest_template_path)).strip
+    end
+
+    def pullrequest_template_path
+      `git config --get hub.pull-request-template-path`.strip
     end
 
     # $ hub e-note
