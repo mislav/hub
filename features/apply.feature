@@ -1,11 +1,13 @@
-Feature: hub am
+Feature: hub apply
   Background:
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And I am "mislav" on github.com with OAuth token "OTOKEN"
+    And I make a commit
 
   Scenario: Apply a local patch
-    When I run `hub am some.patch`
+    When I run `hub apply some.patch`
     Then the git command should be unchanged
+    And the file "README.md" should not exist
 
   Scenario: Apply commits from pull request
     Given the GitHub API server:
@@ -15,9 +17,9 @@ Feature: hub am
         generate_patch "Create a README"
       }
       """
-    When I successfully run `hub am -q -3 https://github.com/mislav/dotfiles/pull/387`
+    When I successfully run `hub apply -3 https://github.com/mislav/dotfiles/pull/387`
     Then there should be no output
-    Then the latest commit message should be "Create a README"
+    Then a file named "README.md" should exist
 
   Scenario: Apply commits when TMPDIR is empty
     Given $TMPDIR is ""
@@ -28,8 +30,8 @@ Feature: hub am
         generate_patch "Create a README"
       }
       """
-    When I successfully run `hub am -q https://github.com/mislav/dotfiles/pull/387`
-    Then the latest commit message should be "Create a README"
+    When I successfully run `hub apply https://github.com/mislav/dotfiles/pull/387`
+    Then a file named "README.md" should exist
 
   Scenario: Enterprise repo
     Given I am in "git://git.my.org/mislav/dotfiles.git" git repo
@@ -42,8 +44,8 @@ Feature: hub am
         generate_patch "Create a README"
       }
       """
-    When I successfully run `hub am -q -3 https://git.my.org/mislav/dotfiles/pull/387`
-    Then the latest commit message should be "Create a README"
+    When I successfully run `hub apply https://git.my.org/mislav/dotfiles/pull/387`
+    Then a file named "README.md" should exist
 
   Scenario: Apply patch from commit
     Given the GitHub API server:
@@ -53,8 +55,8 @@ Feature: hub am
         generate_patch "Create a README"
       }
       """
-    When I successfully run `hub am -q https://github.com/davidbalbert/dotfiles/commit/fdb9921`
-    Then the latest commit message should be "Create a README"
+    When I successfully run `hub apply https://github.com/davidbalbert/dotfiles/commit/fdb9921`
+    Then a file named "README.md" should exist
 
   Scenario: Apply patch from gist
     Given the GitHub API server:
@@ -71,5 +73,5 @@ Feature: hub am
         generate_patch "Create a README"
       }
       """
-    When I successfully run `hub am -q https://gist.github.com/8da7fb575debd88c54cf`
-    Then the latest commit message should be "Create a README"
+    When I successfully run `hub apply https://gist.github.com/8da7fb575debd88c54cf`
+    Then a file named "README.md" should exist

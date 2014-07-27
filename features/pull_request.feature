@@ -429,7 +429,25 @@ Feature: hub pull-request
     And "git.my.org" is a whitelisted Enterprise host
     Given the GitHub API server:
       """
-      post('/api/v3/repos/mislav/coral/pulls') {
+      post('/api/v3/repos/mislav/coral/pulls', :host_name => 'git.my.org') {
+        assert :base => 'master',
+               :head => 'mislav:master'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m enterprisey`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Enterprise remote witch matching branch but no tracking
+    Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    And I am on the "feature" branch pushed to "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/api/v3/repos/mislav/coral/pulls', :host_name => 'git.my.org') {
+        assert :base => 'master',
+               :head => 'mislav:feature'
         json :html_url => "the://url"
       }
       """
@@ -492,3 +510,17 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -o -m hereyougo`
     Then "open the://url" should be run
+
+  Scenario: Current branch is tracking local branch
+    Given git "push.default" is set to "upstream"
+    And I am on the "feature" branch with upstream "refs/heads/master"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:feature'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"

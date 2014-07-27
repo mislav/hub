@@ -690,7 +690,7 @@ module Hub
         elsif subpage && !%w[commits tree blob settings].include?(subpage)
           branch = master_branch
           project = local_repo.main_project
-        else
+        elsif local_repo(false)
           # $ hub browse
           prefer_upstream = current_branch && current_branch.master?
           branch, project = remote_branch_and_project(method(:github_user), prefer_upstream)
