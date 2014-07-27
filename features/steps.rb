@@ -85,11 +85,15 @@ end
 Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/) do |name, type, upstream|
   empty_commit
   if upstream
-    full_upstream = ".git/refs/remotes/#{upstream}"
+    if upstream =~ /^refs\//
+      full_upstream = ".git/#{upstream}"
+    else
+      full_upstream = ".git/refs/remotes/#{upstream}"
+    end
     in_current_dir do
       FileUtils.mkdir_p File.dirname(full_upstream)
       FileUtils.cp '.git/refs/heads/master', full_upstream
-    end
+    end unless upstream == 'refs/heads/master'
   end
   track = type == 'pushed to' ? '--no-track' : '--track'
   run_silent %(git checkout --quiet -B #{name} #{track} #{upstream})

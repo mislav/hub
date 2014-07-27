@@ -161,38 +161,6 @@ class HubTest < Minitest::Test
                     "cherry-pick xoebus@a319d88"
   end
 
-  def test_pullrequest_from_branch_tracking_local
-    stub_config_value 'push.default', 'upstream'
-    stub_branch('refs/heads/feature')
-    stub_tracking('feature', 'refs/heads/master')
-
-    stub_request(:post, "https://api.github.com/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "defunkt:feature", 'title' => "hereyougo" }).
-      to_return(:body => mock_pullreq_response(1))
-
-    expected = "https://github.com/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request -m hereyougo -f"
-  end
-
-  def test_pullrequest_enterprise_no_tracking
-    stub_hub_host('git.my.org')
-    stub_repo_url('git@git.my.org:defunkt/hub.git')
-    stub_branch('refs/heads/feature')
-    stub_remote_branch('origin/feature')
-    stub_tracking_nothing('feature')
-    stub_command_output "rev-list --cherry-pick --right-only --no-merges origin/feature...", nil
-    edit_hub_config do |data|
-      data['git.my.org'] = [{'user'=>'myfiname', 'oauth_token' => 'FITOKEN'}]
-    end
-
-    stub_request(:post, "https://git.my.org/api/v3/repos/defunkt/hub/pulls").
-      with(:body => {'base' => "master", 'head' => "defunkt:feature", 'title' => "hereyougo" }).
-      to_return(:body => mock_pullreq_response(1, 'api/v3/defunkt/hub', 'git.my.org'))
-
-    expected = "https://git.my.org/api/v3/defunkt/hub/pull/1\n"
-    assert_output expected, "pull-request -m hereyougo -f"
-  end
-
   def test_pullrequest_alias
     out = hub('e-note')
     assert_equal hub('pull-request'), out
