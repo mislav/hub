@@ -61,6 +61,7 @@ func apply(command *Command, args *Args) {
 
 func transformApplyArgs(args *Args) {
 	urlRegexp := regexp.MustCompile("^https?://(gist\\.)github\\.com/")
+	pullRegexp := regexp.MustCompile("^(pull|commit)/([0-9a-f]+)")
 	for _, arg := range args.Params {
 		var (
 			url  string
@@ -68,8 +69,7 @@ func transformApplyArgs(args *Args) {
 		)
 		projectURL, err := github.ParseURL(arg)
 		if err == nil {
-			pullRegexp := regexp.MustCompile("/(pull|commit)/([0-9a-f]+)")
-			match := pullRegexp.FindStringSubmatch(projectURL.Path)
+			match := pullRegexp.FindStringSubmatch(projectURL.ProjectPath())
 			if match != nil {
 				url = projectURL.Project.WebURL("", "", match[1]+"/"+match[2])
 			}
