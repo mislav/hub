@@ -12,7 +12,7 @@ import (
 var cmdBrowse = &Command{
 	Run:          browse,
 	GitExtension: true,
-	Usage:        "browse [-u] [[<USER>/]<REPOSITORY>] [SUBPAGE]",
+	Usage:        "browse [-u] [[<USER>/]<REPOSITORY>|--] [SUBPAGE]",
 	Short:        "Open a GitHub page in the default browser",
 	Long: `Open repository's GitHub page in the system's default web browser using
 "open(1)" or the "BROWSER" env variable. If the repository isn't
