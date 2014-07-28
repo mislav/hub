@@ -4,7 +4,7 @@ set -e
 url="$3"
 file="$5"
 
-if [ "${url%.patch}" = "$url" ]; then
+if [ "${url%.patch}" = "$url" ] && [ "${url%.txt}" = "$url" ]; then
   echo "invalid pull request URL: $url" >&2
   exit 1
 fi

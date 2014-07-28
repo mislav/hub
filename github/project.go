@@ -23,6 +23,10 @@ func (p Project) String() string {
 	return fmt.Sprintf("%s/%s", p.Owner, p.Name)
 }
 
+func (p *Project) SameAs(other *Project) bool {
+	return p.Owner == other.Owner && p.Name == other.Name && p.Host == other.Host
+}
+
 func (p *Project) WebURL(name, owner, path string) string {
 	if owner == "" {
 		owner = p.Owner
@@ -138,6 +142,9 @@ func newProject(owner, name, host, protocol string) *Project {
 
 	if host == "" {
 		host = DefaultGitHubHost()
+	}
+	if host == "ssh.github.com" {
+		host = "github.com"
 	}
 
 	if protocol != "http" && protocol != "https" {

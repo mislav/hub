@@ -48,8 +48,9 @@ func transformCherryPickArgs(args *Args) {
 	if project != nil {
 		args.ReplaceParam(args.IndexOfParam(ref), sha)
 
-		if hasGitRemote(project.Owner) {
-			args.Before("git", "fetch", project.Owner)
+		remote := gitRemoteForProject(project)
+		if remote != nil {
+			args.Before("git", "fetch", remote.Name)
 		} else {
 			args.Before("git", "remote", "add", "-f", project.Owner, project.GitURL("", "", false))
 		}
@@ -69,14 +70,14 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 		}
 	}
 
-	ownerWithShaRegexp := regexp.MustCompile("^(%s)@([a-f0-9]{7,40})$")
+	ownerWithShaRegexp := regexp.MustCompile("^([a-zA-Z0-9][a-zA-Z0-9-]*)@([a-f0-9]{7,40})$")
 	if ownerWithShaRegexp.MatchString(ref) {
 		matches := ownerWithShaRegexp.FindStringSubmatch(ref)
 		sha = matches[2]
 		localRepo, err := github.LocalRepo()
 		utils.Check(err)
 
-		project, err := localRepo.CurrentProject()
+		project, err = localRepo.CurrentProject()
 		utils.Check(err)
 		project.Owner = matches[1]
 	}
