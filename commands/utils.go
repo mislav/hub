@@ -51,16 +51,18 @@ func parseUserBranchFromPR(pullRequest *octokit.PullRequest) (user string, branc
 	return
 }
 
-func hasGitRemote(name string) bool {
+func gitRemoteForProject(project *github.Project) (foundRemote *github.Remote) {
 	remotes, err := github.Remotes()
 	utils.Check(err)
 	for _, remote := range remotes {
-		if remote.Name == name {
-			return true
+		remoteProject, pErr := remote.Project()
+		if pErr == nil && remoteProject.SameAs(project) {
+			foundRemote = &remote
+			return
 		}
 	}
 
-	return false
+	return nil
 }
 
 func isEmptyDir(path string) bool {
