@@ -77,14 +77,14 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         halt 400 if request.content_charset != 'utf-8'
-        assert :title => 'This is somewhat of a longish title that does not get wrapped and references #1234',
+        assert :title => 'This is somewhat of a longish title that does not get wrapped & references #1234',
                :body => nil
         json :html_url => "the://url"
       }
       """
     Given I am on the "master" branch pushed to "origin/master"
     When I successfully run `git checkout --quiet -b topic`
-    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped and references #1234"
+    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped & references #1234"
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
