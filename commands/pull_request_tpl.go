@@ -3,7 +3,7 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	"html/template"
+	"text/template"
 	"regexp"
 	"strings"
 )
