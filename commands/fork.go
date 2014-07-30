@@ -5,7 +5,6 @@ import (
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 	"os"
-	"reflect"
 )
 
 var cmdFork = &Command{
@@ -56,7 +55,7 @@ func fork(cmd *Command, args *Args) {
 		if parent := existingRepo.Parent; parent != nil {
 			parentURL, _ = github.ParseURL(parent.HTMLURL)
 		}
-		if parentURL == nil || !reflect.DeepEqual(parentURL.Project, project) {
+		if parentURL == nil || !project.SameAs(parentURL.Project) {
 			err = fmt.Errorf("Error creating fork: %s already exists on %s",
 				forkProject, forkProject.Host)
 			utils.Check(err)

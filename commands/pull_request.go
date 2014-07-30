@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"reflect"
 	"regexp"
 	"strings"
 
@@ -126,7 +125,7 @@ func pullRequest(cmd *Command, args *Args) {
 			// pretend there's no upstream at all
 			trackedBranch = nil
 		} else {
-			if reflect.DeepEqual(baseProject, headProject) && base == trackedBranch.ShortName() {
+			if baseProject.SameAs(headProject) && base == trackedBranch.ShortName() {
 				e := fmt.Errorf(`Aborted: head branch is the same as base ("%s")`, base)
 				e = fmt.Errorf("%s\n(use `-h <branch>` to specify an explicit pull request head)", e)
 				utils.Check(e)
