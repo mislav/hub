@@ -1,14 +1,10 @@
 Contributing to hub
 ===================
 
-<i>**Warning:** in the near future, hub might be implemented
-[entirely in Go instead of Ruby](https://github.com/github/hub/issues/475).
-Keep that in mind, and don't contribute big features/refactorings to
-the Ruby codebase, as such pull requests will be unlikely to get accepted.</i>
-
 You will need:
 
-1. Ruby 1.8.7+
+1. Go 1.3
+1. Ruby 1.9+
 2. git 1.8+
 3. tmux & zsh (optional) - for running shell completion tests
 
@@ -34,10 +30,8 @@ These instructions assume that _you already have hub installed_ and aliased as
 
 1. Clone hub:  
     `git clone github/hub && cd hub`
-1. Ensure Bundler is installed:  
-    `which bundle || gem install bundler`
-1. Install development dependencies:  
-    `bundle install`
+1. Install necessary development dependencies:  
+    `script/bootstrap`
 2. Verify that existing tests pass:  
     `script/test`
 3. Create a topic branch:  
@@ -53,31 +47,7 @@ These instructions assume that _you already have hub installed_ and aliased as
 8. Open a pull request describing your changes:  
     `git pull-request`
 
-## How hub works
-
-1.  [Runner](lib/hub/runner.rb#files) handles the command-line invocation;
-
-2.  [Args](lib/hub/args.rb#files) wraps ARGV for easy access;
-
-3.  [Commands](lib/hub/commands.rb#files) dispatches each command to the
-    appropriate method, e.g. `hub pull-request` runs the `pull_request`
-    method. Each method processes args as needed, using Context and GitHubAPI
-    in the process;
-
-4.  [Context](lib/hub/context.rb#files) handles inspecting the current
-    environment and git repository;
-
-5.  [GitHubAPI](lib/hub/github_api.rb#files) handles GitHub API authentication
-    and communication;
-
-6.  And finally, Runner receives the resulting arguments to execute in the
-    shell by forwarding them to `git`.
-
 ## How to write tests
-
-The old test suite for hub was written in test/unit and some legacy tests can
-still be found in the `test/` directory. Unless you have a need for writing
-super-isolated unit tests, **do not add** any more tests to this suite.
 
 The new test suite is written in Cucumber under `features/` directory. Each
 scenario is actually making real invocations to `hub` on the command-line in the
