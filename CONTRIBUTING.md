@@ -11,11 +11,8 @@ You will need:
 ## What makes a good hub feature
 
 hub is a tool that wraps git to provide useful integration with GitHub. A new
-feature is a good idea for hub only if it relates to *both git and GitHub*.
+feature is a good idea for hub if it improves some workflow for a GitHub user.
 
-* A feature that adds GitHub Issues management is **not** a good fit for hub
-  since it's not git-related. Please use [ghi](https://github.com/stephencelis/ghi)
-  instead.
 * A feature that encapsulates a git workflow *not specific* to GitHub is **not**
   a good fit for hub, since something like that is best implemented as an
   external script.
