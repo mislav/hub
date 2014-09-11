@@ -73,7 +73,7 @@ func transformMergeArgs(args *Args) error {
 	idx := args.IndexOfParam(mergeURL)
 	args.RemoveParam(idx)
 
-	mergeMsg := fmt.Sprintf(`"Merge pull request #%v from %s\n\n%s"`, id, mergeHead, pullRequest.Title)
+	mergeMsg := fmt.Sprintf("Merge pull request #%v from %s\n\n%s", id, mergeHead, pullRequest.Title)
 	args.AppendParams(mergeHead, "-m", mergeMsg)
 
 	if args.IndexOfParam("--ff-only") == -1 {
