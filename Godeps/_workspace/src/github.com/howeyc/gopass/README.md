@@ -13,7 +13,7 @@ import "github.com/howeyc/gopass"
 
 func main() {
 	fmt.Printf("Password: ")
-	pass := gopass.GetPasswd()
+	pass := gopass.GetPasswd() // Silent, for *'s use gopass.GetPasswdMasked()
     // Do something with pass
 }
 ```

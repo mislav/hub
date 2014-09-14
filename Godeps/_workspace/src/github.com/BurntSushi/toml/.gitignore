@@ -2,3 +2,4 @@ TAGS
 tags
 .*.swp
 tomlcheck/tomlcheck
+toml.test

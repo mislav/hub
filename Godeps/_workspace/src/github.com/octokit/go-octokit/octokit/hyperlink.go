@@ -1,8 +1,9 @@
 package octokit
 
 import (
-	"github.com/lostisland/go-sawyer/hypermedia"
 	"net/url"
+
+	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
 type M map[string]interface{}

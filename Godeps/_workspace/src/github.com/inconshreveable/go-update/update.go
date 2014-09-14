@@ -1,455 +1,486 @@
 /*
-Package update allows a program to "self-update", replacing its executable file
-with new bytes.
-
-Package update provides the facility to create user experiences like auto-updating
-or user-approved updates which manifest as user prompts in commercial applications
-with copy similar to "Restart to being using the new version of X".
+go-update allows a program to update itself by replacing its executable file
+with a new version. It provides the flexibility to implement different updating user experiences
+like auto-updating, or manual user-initiated updates. It also boasts
+advanced features like binary patching and code signing verification.
 
 Updating your program to a new version is as easy as:
 
-	err := update.FromUrl("http://release.example.com/2.0/myprogram")
+	err, errRecover := update.New().FromUrl("http://release.example.com/2.0/myprogram")
 	if err != nil {
-		fmt.Printf("Update failed: %v", err)
+		fmt.Printf("Update failed: %v\n", err)
 	}
 
-The most low-level API is FromStream() which updates the current executable
-with the bytes read from an io.Reader.
+You may also choose to update from other data sources such as a file or an io.Reader:
 
-Additional APIs are provided for common update strategies which include
-updating from a file with FromFile() and updating from the internet with
-FromUrl().
+    err, errRecover := update.New().FromFile("/path/to/update")
 
-Using the more advaced Download.UpdateFromUrl() API gives you the ability
-to resume an interrupted download to enable large updates to complete even
-over intermittent or slow connections. This API also enables more fine-grained
-control over how the update is downloaded from the internet as well as access to
-download progress,
+Binary Diff Patching
+
+Binary diff updates are supported and easy to use:
+
+    up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF)
+    err, errRecover := up.FromUrl("http://release.example.com/2.0/mypatch")
+
+Checksum Verification
+
+You should also verify the checksum of new updates as well as verify
+the digital signature of an update. Note that even when you choose to apply
+a patch, the checksum is verified against the complete update after that patch
+has been applied.
+
+    up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF).VerifyChecksum(checksum)
+    err, errRecover := up.FromUrl("http://release.example.com/2.0/mypatch")
+
+Updating other files
+
+Updating arbitrary files is also supported. You may update files which are
+not the currently running program:
+
+    up := update.New().Target("/usr/local/bin/some-program")
+    err, errRecover := up.FromUrl("http://release.example.com/2.0/some-program")
+
+Code Signing
+
+Truly secure updates use code signing to verify that the update was issued by a trusted party.
+To do this, you'll need to generate a public/private key pair. You can do this with openssl,
+or the equinox.io client (https://equinox.io/client) can easily generate one for you:
+
+    # with equinox client
+    equinox genkey --private-key=private.pem --public-key=public.pem
+
+    # with openssl
+    openssl genrsa -out private.pem 2048
+    openssl rsa -in private.pem -out public.pem -pubout
+
+Once you have your key pair, you can instruct your program to validate its updates
+with the public key:
+
+    const publicKey = `-----BEGIN PUBLIC KEY-----
+    ...
+    -----END PUBLIC KEY-----`
+
+    up, err := update.New().VerifySignatureWithPEM(publicKey)
+    if err != nil {
+        return fmt.Errorf("Bad public key: '%v': %v", publicKey, err)
+    }
+
+Once you've configured your program this way, it will disallow all updates unless they
+are properly signed. You must now pass in the signature to verify with:
+
+    up.VerifySignature(signature).FromUrl("http://dl.example.com/update")
+
+Error Handling and Recovery
+
+To perform an update, the process must be able to read its executable file and to write
+to the directory that contains its executable file. It can be useful to check whether the process
+has the necessary permissions to perform an update before trying to apply one. Use the
+CanUpdate call to provide a useful message to the user if the update can't proceed without
+elevated permissions:
+
+    up := update.New().Target("/etc/hosts")
+    err := up.CanUpdate()
+    if err != nil {
+        fmt.Printf("Can't update because: '%v'. Try as root or Administrator\n", err)
+        return
+    }
+    err, errRecover := up.FromUrl("https://example.com/new/hosts")
+
+Although exceedingly unlikely, the update operation itself is not atomic and can fail
+in such a way that a user's computer is left in an inconsistent state. If that happens,
+go-update attempts to recover to leave the system in a good state. If the recovery step
+fails (even more unlikely), a second error, referred to as "errRecover" will be non-nil
+so that you may inform your users of the bad news. You should handle this case as shown
+here:
+
+    err, errRecover := up.FromUrl("https://example.com/update")
+    if err != nil {
+        fmt.Printf("Update failed: %v\n", err)
+        if errRecover != nil {
+            fmt.Printf("Failed to recover bad update: %v!\n", errRecover)
+            fmt.Printf("Program exectuable may be missing!\n")
+        }
+    }
+
+Subpackages
+
+Sub-package check contains the client functionality for a simple protocol for negotiating
+whether a new update is available, where it is, and the metadata needed for verifying it.
+
+Sub-package download contains functionality for downloading from an HTTP endpoint
+while outputting a progress meter and supports resuming partial downloads.
 */
 package update
 
 import (
-	"compress/gzip"
-	"fmt"
 	"bitbucket.org/kardianos/osext"
+	"bytes"
+	"crypto"
+	"crypto/rsa"
+	"crypto/sha256"
+	_ "crypto/sha512" // for tls cipher support
+	"crypto/x509"
+	"encoding/pem"
+	"fmt"
+	"github.com/inconshreveable/go-update/download"
+	"github.com/kr/binarydist"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
-	"runtime"
 )
 
-type MeteredReader struct {
-	rd        io.ReadCloser
-	totalSize int64
-	progress  chan int
-	totalRead int64
-	ticks     int64
+// The type of a binary patch, if any. Only bsdiff is supported
+type PatchType string
+
+const (
+	PATCHTYPE_BSDIFF PatchType = "bsdiff"
+	PATCHTYPE_NONE             = ""
+)
+
+type Update struct {
+	// empty string means "path of the current executable"
+	TargetPath string
+
+	// type of patch to apply. PATCHTYPE_NONE means "not a patch"
+	PatchType
+
+	// sha256 checksum of the new binary to verify against
+	Checksum []byte
+
+	// public key to use for signature verification
+	PublicKey *rsa.PublicKey
+
+	// signature to use for signature verification
+	Signature []byte
 }
 
-func (m *MeteredReader) Close() error {
-	return m.rd.Close()
-}
-
-func (m *MeteredReader) Read(b []byte) (n int, err error) {
-	chunkSize := (m.totalSize / 100) + 1
-	lenB := int64(len(b))
-
-	var nChunk int
-	for start := int64(0); start < lenB; start += int64(nChunk) {
-		end := start + chunkSize
-		if end > lenB {
-			end = lenB
-		}
-
-		nChunk, err = m.rd.Read(b[start:end])
-
-		n += nChunk
-		m.totalRead += int64(nChunk)
-
-		if m.totalRead > (m.ticks * chunkSize) {
-			m.ticks += 1
-			// try to send on channel, but don't block if it's full
-			select {
-			case m.progress <- int(m.ticks + 1):
-			default:
-			}
-
-			// give the progress channel consumer a chance to run
-			runtime.Gosched()
-		}
-
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-// We wrap the round tripper when making requests
-// because we need to add headers to the requests we make
-// even when they are requests made after a redirect
-type RoundTripper struct {
-	RoundTripFn func(*http.Request) (*http.Response, error)
-}
-
-func (rt *RoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
-	return rt.RoundTripFn(r)
-}
-
-// Type Download encapsulates the necessary parameters and state
-// needed to download an update from the internet. Create an instance
-// with the NewDownload() factory function.
-//
-// You may only use a Download once,
-type Download struct {
-	// net/http.Client to use when downloading the update.
-	// If nil, a default http.Client is used
-	HttpClient *http.Client
-
-	// Path on the file system to dowload the update to
-	// If empty, a temporary file is used.
-	// After the download begins, this path will be set
-	// so that the client can use it to resume aborted
-	// downloads
-	Path string
-
-	// Progress returns the percentage of the download
-	// completed as an integer between 0 and 100
-	Progress chan (int)
-
-	// HTTP Method to use in the download request. Default is "GET"
-	Method string
-
-	// HTTP URL to issue the download request to
-	Url string
-
-	// Set to true when the server confirms a new version is available
-	// even if the updating process encounters an error later on
-	Available bool
-}
-
-// NewDownload initializes a new Download object
-func NewDownload(url string) *Download {
-	return &Download{
-		HttpClient: new(http.Client),
-		Progress:   make(chan int),
-		Method:     "GET",
-		Url: url,
-	}
-}
-
-func (d *Download) sharedHttp(offset int64) (resp *http.Response, err error) {
-	// create the download request
-	req, err := http.NewRequest(d.Method, d.Url, nil)
-	if err != nil {
-		return
-	}
-
-	// we have to add headers like this so they get used across redirects
-	trans := d.HttpClient.Transport
-	if trans == nil {
-		trans = http.DefaultTransport
-	}
-
-	d.HttpClient.Transport = &RoundTripper{
-		RoundTripFn: func(r *http.Request) (*http.Response, error) {
-			// add header for download continuation
-			if offset > 0 {
-				r.Header.Add("Range", fmt.Sprintf("%d-", offset))
-			}
-
-			// ask for gzipped content so that net/http won't unzip it for us
-			// and destroy the content length header we need for progress calculations
-			r.Header.Add("Accept-Encoding", "gzip")
-
-			return trans.RoundTrip(r)
-		},
-	}
-
-	// issue the download request
-	return d.HttpClient.Do(req)
-}
-
-func (d *Download) Check() (available bool, err error) {
-	resp, err := d.sharedHttp(0)
-	if err != nil {
-		return
-	}
-	resp.Body.Close()
-
-	switch resp.StatusCode {
-	// ok
-	case 200, 206:
-		available = true
-
-	// no update available
-	case 204:
-		available = false
-
-	// server error
-	default:
-		err = fmt.Errorf("Non 2XX response when downloading update: %s", resp.Status)
-		return
-	}
-
-	return
-}
-
-// Get() downloads the given url from the internet to a file on disk
-// and then calls FromStream() to update the current program's executable file
-// with the contents of that file.
-//
-// If the update is successful, the downloaded file will be erased from disk.
-// Otherwise, it will remain in d.Path to allow the download to resume later
-// or be skipped entirely.
-//
-// Only HTTP/1.1 servers that implement the Range header support resuming a
-// partially completed download.
-//
-// UpdateFromUrl() uses HTTP status codes to determine what action to take.
-//
-// - The HTTP server should return 200 or 206 for the update to be downloaded.
-//
-// - The HTTP server should return 204 if no update is available at this time.
-//
-// - If the HTTP server returns a 3XX redirect, it will be followed
-// according to d.HttpClient's redirect policy.
-//
-// - Any other HTTP status code will cause UpdateFromUrl to return an error.
-func (d *Download) Get() (err error) {
-	var offset int64 = 0
-	var fp *os.File
-
-	// Close the progress channel whenever this function completes
-	defer close(d.Progress)
-
-	// open a file where we will stream the downloaded update to
-	// we do this first because if the caller specified a non-empty dlpath
-	// we need to determine how large it is in order to resume the download
-	if d.Path == "" {
-		// no dlpath specified, use a random tempfile
-		fp, err = ioutil.TempFile("", "update")
-		if err != nil {
-			return
-		}
-		defer fp.Close()
-
-		// remember the path
-		d.Path = fp.Name()
+func (u *Update) getPath() (string, error) {
+	if u.TargetPath == "" {
+		return osext.Executable()
 	} else {
-		fp, err = os.OpenFile(d.Path, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
-		if err != nil {
-			return
-		}
-		defer fp.Close()
+		return u.TargetPath, nil
+	}
+}
 
-		// determine the file size so we can resume the download, if possible
-		var fi os.FileInfo
-		fi, err = fp.Stat()
-		if err != nil {
-			return
-		}
+// New creates a new Update object.
+// A default update object assumes the complete binary
+// content will be used for update (not a patch) and that
+// the intended target is the running executable.
+//
+// Use this as the start of a chain of calls on the Update
+// object to build up your configuration. Example:
+//
+//     up := update.New().ApplyPatch(update.PATCHTYPE_BSDIFF).VerifyChecksum(checksum)
+//
+func New() *Update {
+	return &Update{
+		TargetPath: "",
+		PatchType:  PATCHTYPE_NONE,
+	}
+}
 
-		offset = fi.Size()
+// Target configures the update to update the file at the given path.
+// The emptry string means 'the executable file of the running program'.
+func (u *Update) Target(path string) *Update {
+	u.TargetPath = path
+	return u
+}
+
+// ApplyPatch configures the update to treat the contents of the update
+// as a patch to apply to the existing to target. You must specify the
+// format of the patch. Only PATCHTYPE_BSDIFF is supported at the moment.
+func (u *Update) ApplyPatch(patchType PatchType) *Update {
+	u.PatchType = patchType
+	return u
+}
+
+// VerifyChecksum configures the update to verify that the
+// the update has the given sha256 checksum.
+func (u *Update) VerifyChecksum(checksum []byte) *Update {
+	u.Checksum = checksum
+	return u
+}
+
+// VerifySignature configures the update to verify the given
+// signature of the update. You must also call one of the
+// VerifySignatureWith* functions to specify a public key
+// to use for verification.
+func (u *Update) VerifySignature(signature []byte) *Update {
+	u.Signature = signature
+	return u
+}
+
+// VerifySignatureWith configures the update to use the given RSA
+// public key to verify the update's signature. You must also call
+// VerifySignature() with a signature to check.
+//
+// You'll probably want to use VerifySignatureWithPEM instead of
+// parsing the public key yourself.
+func (u *Update) VerifySignatureWith(publicKey *rsa.PublicKey) *Update {
+	u.PublicKey = publicKey
+	return u
+}
+
+// VerifySignatureWithPEM configures the update to use the given PEM-formatted
+// RSA public key to verify the update's signature. You must also call
+// VerifySignature() with a signature to check.
+//
+// A PEM formatted public key typically begins with
+//     -----BEGIN PUBLIC KEY-----
+func (u *Update) VerifySignatureWithPEM(publicKeyPEM []byte) (*Update, error) {
+	block, _ := pem.Decode(publicKeyPEM)
+	if block == nil {
+		return u, fmt.Errorf("Couldn't parse PEM data")
 	}
 
-	// start downloading the file
-	resp, err := d.sharedHttp(offset)
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return u, err
+	}
+
+	var ok bool
+	u.PublicKey, ok = pub.(*rsa.PublicKey)
+	if !ok {
+		return u, fmt.Errorf("Public key isn't an RSA public key")
+	}
+
+	return u, nil
+}
+
+// FromUrl updates the target with the contents of the given URL.
+func (u *Update) FromUrl(url string) (err error, errRecover error) {
+	target := new(download.MemoryTarget)
+	err = download.New(url, target).Get()
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
 
-	switch resp.StatusCode {
-	// ok
-	case 200, 206:
-		d.Available = true
-
-	// no update available
-	case 204:
-		return
-
-	// server error
-	default:
-		err = fmt.Errorf("Non 2XX response when downloading update: %s", resp.Status)
-		return
-	}
-
-	// Determine how much we have to download
-	// net/http sets this to -1 when it is unknown
-	clength := resp.ContentLength
-
-	// Read the content from the response body
-	rd := resp.Body
-
-	// meter the rate at which we download content for
-	// progress reporting if we know how much to expect
-	if clength > 0 {
-		rd = &MeteredReader{rd: rd, totalSize: clength, progress: d.Progress}
-	}
-
-	// Decompress the content if necessary
-	if resp.Header.Get("Content-Encoding") == "gzip" {
-		rd, err = gzip.NewReader(rd)
-		if err != nil {
-			return
-		}
-	}
-
-	// Download the update
-	_, err = io.Copy(fp, rd)
-	if err != nil {
-		return
-	}
-
-	return
+	return u.FromStream(target)
 }
 
-func (d *Download) GetAndUpdate() (err error, errRecover error) {
-	// check before we download if this will work
-	if err = SanityCheck(); err != nil {
-		// keep the contract that d.Progress will close whenever Get() terminates
-		close(d.Progress)
-		return
-	}
-
-	// download the update
-	if err = d.Get(); err != nil || !d.Available {
-		return
-	}
-
-	// apply the update
-	if err, errRecover = FromFile(d.Path); err != nil || errRecover != nil {
-		return
-	}
-
-	// remove the temporary file
-	os.Remove(d.Path)
-	return
-}
-
-// FromUrl downloads the contents of the given url and uses them to update
-// the current program's executable file. It is a convenience function which is equivalent to
-//
-// 	NewDownload(url).GetAndUpdate()
-//
-// See Download.Get() for more details.
-func FromUrl(url string) (err error, errRecover error) {
-	return NewDownload(url).GetAndUpdate()
-}
-
-// FromFile reads the contents of the given file and uses them
-// to update the current program's executable file by calling FromStream().
-func FromFile(filepath string) (err error, errRecover error) {
-	// open the new binary
-	fp, err := os.Open(filepath)
+// FromFile updates the target the contents of the given file.
+func (u *Update) FromFile(path string) (err error, errRecover error) {
+	// open the new updated contents
+	fp, err := os.Open(path)
 	if err != nil {
 		return
 	}
 	defer fp.Close()
 
 	// do the update
-	return FromStream(fp)
+	return u.FromStream(fp)
 }
 
-// FromStream reads the contents of the supplied io.Reader newBinary
-// and uses them to update the current program's executable file.
+// FromStream updates the target file with the contents of the supplied io.Reader.
 //
-// FromStream performs the following actions to ensure a cross-platform safe
-// update:
+// FromStream performs the following actions to ensure a safe cross-platform update:
 //
-// - Creates a new file, /path/to/.program-name.new with mode 0755 and copies
-// the contents of newBinary into the file
+// 1. If configured, applies the contents of the io.Reader as a binary patch.
 //
-// - Renames the current program's executable file from /path/to/program-name
-// to /path/to/.program-name.old
+// 2. If configured, computes the sha256 checksum and verifies it matches.
 //
-// - Renames /path/to/.program-name.new to /path/to/program-name
+// 3. If configured, verifies the RSA signature with a public key.
 //
-// - If the rename is successful, it erases /path/to/.program.old. If this operation
-// fails, no error is reported.
+// 4. Creates a new file, /path/to/.target.new with mode 0755 with the contents of the updated file
 //
-// - If the rename is unsuccessful, it attempts to rename /path/to/.program-name.old
-// back to /path/to/program-name. If this operation fails, the error is not reported
-// in order to not mask the error that caused the rename recovery attempt.
-func FromStream(newBinary io.Reader) (err error, errRecover error) {
-	// get the path to the executable
-	thisExecPath, err := osext.Executable()
+// 5. Renames /path/to/target to /path/to/.target.old
+//
+// 6. Renames /path/to/.target.new to /path/to/target
+//
+// 7. If the rename is successful, deletes /path/to/.target.old, returns no error
+//
+// 8. If the rename fails, attempts to rename /path/to/.target.old back to /path/to/target
+// If this operation fails, it is reported in the errRecover return value so as not to
+// mask the original error that caused the recovery attempt.
+//
+// On Windows, the removal of /path/to/.target.old always fails, so instead,
+// we just make the old file hidden instead.
+func (u *Update) FromStream(updateWith io.Reader) (err error, errRecover error) {
+	updatePath, err := u.getPath()
 	if err != nil {
 		return
 	}
 
+	var newBytes []byte
+	// apply a patch if requested
+	switch u.PatchType {
+	case PATCHTYPE_BSDIFF:
+		newBytes, err = applyPatch(updateWith, updatePath)
+		if err != nil {
+			return
+		}
+	case PATCHTYPE_NONE:
+		// no patch to apply, go on through
+		newBytes, err = ioutil.ReadAll(updateWith)
+		if err != nil {
+			return
+		}
+	default:
+		err = fmt.Errorf("Unrecognized patch type: %s", u.PatchType)
+		return
+	}
+
+	// verify checksum if requested
+	if u.Checksum != nil {
+		if err = verifyChecksum(newBytes, u.Checksum); err != nil {
+			return
+		}
+	}
+
+	// verify signature if requested
+	if u.Signature != nil || u.PublicKey != nil {
+		if u.Signature == nil {
+			err = fmt.Errorf("No public key specified to verify signature")
+			return
+		}
+
+		if u.PublicKey == nil {
+			err = fmt.Errorf("No signature to verify!")
+			return
+		}
+
+		if err = verifySignature(newBytes, u.Signature, u.PublicKey); err != nil {
+			return
+		}
+	}
+
 	// get the directory the executable exists in
-	execDir := filepath.Dir(thisExecPath)
-	execName := filepath.Base(thisExecPath)
+	updateDir := filepath.Dir(updatePath)
+	filename := filepath.Base(updatePath)
 
 	// Copy the contents of of newbinary to a the new executable file
-	newExecPath := filepath.Join(execDir, fmt.Sprintf(".%s.new", execName))
-	fp, err := os.OpenFile(newExecPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	newPath := filepath.Join(updateDir, fmt.Sprintf(".%s.new", filename))
+	fp, err := os.OpenFile(newPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 	if err != nil {
 		return
 	}
 	defer fp.Close()
-	_, err = io.Copy(fp, newBinary)
+	_, err = io.Copy(fp, bytes.NewReader(newBytes))
 
 	// if we don't call fp.Close(), windows won't let us move the new executable
 	// because the file will still be "in use"
 	fp.Close()
 
 	// this is where we'll move the executable to so that we can swap in the updated replacement
-	oldExecPath := filepath.Join(execDir, fmt.Sprintf(".%s.old", execName))
+	oldPath := filepath.Join(updateDir, fmt.Sprintf(".%s.old", filename))
 
 	// delete any existing old exec file - this is necessary on Windows for two reasons:
-	// 1. after a successful update, windows can't remove the .old file because the process is still running
+	// 1. after a successful update, Windows can't remove the .old file because the process is still running
 	// 2. windows rename operations fail if the destination file already exists
-	_ = os.Remove(oldExecPath)
+	_ = os.Remove(oldPath)
 
 	// move the existing executable to a new file in the same directory
-	err = os.Rename(thisExecPath, oldExecPath)
+	err = os.Rename(updatePath, oldPath)
 	if err != nil {
 		return
 	}
 
 	// move the new exectuable in to become the new program
-	err = os.Rename(newExecPath, thisExecPath)
+	err = os.Rename(newPath, updatePath)
 
 	if err != nil {
 		// copy unsuccessful
-		errRecover = os.Rename(oldExecPath, thisExecPath)
+		errRecover = os.Rename(oldPath, updatePath)
 	} else {
 		// copy successful, remove the old binary
-		_ = os.Remove(oldExecPath)
+		errRemove := os.Remove(oldPath)
+
+		// windows has trouble with removing old binaries, so hide it instead
+		if errRemove != nil {
+			_ = hideFile(oldPath)
+		}
 	}
 
 	return
 }
 
-// SanityCheck() attempts to determine whether an in-place executable update could
-// succeed by performing preliminary checks (to establish valid permissions, etc).
-// This helps avoid downloading updates when we know the update can't be successfully
-// applied later.
-func SanityCheck() (err error) {
-	// get the path to the executable
-	thisExecPath, err := osext.Executable()
+// CanUpdate() determines whether the process has the correct permissions to
+// perform the requested update. If the update can proceed, it returns nil, otherwise
+// it returns the error that would occur if an update were attempted.
+func (u *Update) CanUpdate() (err error) {
+	// get the directory the file exists in
+	path, err := u.getPath()
 	if err != nil {
 		return
 	}
 
-	// get the directory the executable exists in
-	execDir := filepath.Dir(thisExecPath)
-	execName := filepath.Base(thisExecPath)
+	fileDir := filepath.Dir(path)
+	fileName := filepath.Base(path)
 
-	// attempt to open a file in the executable's directory
-	newExecPath := filepath.Join(execDir, fmt.Sprintf(".%s.new", execName))
-	fp, err := os.OpenFile(newExecPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
+	// attempt to open a file in the file's directory
+	newPath := filepath.Join(fileDir, fmt.Sprintf(".%s.new", fileName))
+	fp, err := os.OpenFile(newPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0755)
 	if err != nil {
 		return
 	}
 	fp.Close()
 
-	_ = os.Remove(newExecPath)
+	_ = os.Remove(newPath)
 	return
+}
+
+func applyPatch(patch io.Reader, updatePath string) ([]byte, error) {
+	// open the file to update
+	old, err := os.Open(updatePath)
+	if err != nil {
+		return nil, err
+	}
+	defer old.Close()
+
+	// apply the patch
+	applied := new(bytes.Buffer)
+	if err = binarydist.Patch(old, applied, patch); err != nil {
+		return nil, err
+	}
+
+	return applied.Bytes(), nil
+}
+
+func verifyChecksum(updated []byte, expectedChecksum []byte) error {
+	checksum, err := ChecksumForBytes(updated)
+	if err != nil {
+		return err
+	}
+
+	if !bytes.Equal(expectedChecksum, checksum) {
+		return fmt.Errorf("Updated file has wrong checksum. Expected: %x, got: %x", expectedChecksum, checksum)
+	}
+
+	return nil
+}
+
+// ChecksumForFile returns the sha256 checksum for the given file
+func ChecksumForFile(path string) ([]byte, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+
+	return ChecksumForReader(f)
+}
+
+// ChecksumForReader returns the sha256 checksum for the entire
+// contents of the given reader.
+func ChecksumForReader(rd io.Reader) ([]byte, error) {
+	h := sha256.New()
+	if _, err := io.Copy(h, rd); err != nil {
+		return nil, err
+	}
+	return h.Sum(nil), nil
+}
+
+// ChecksumForBytes returns the sha256 checksum for the given bytes
+func ChecksumForBytes(source []byte) ([]byte, error) {
+	return ChecksumForReader(bytes.NewReader(source))
+}
+
+func verifySignature(source, signature []byte, publicKey *rsa.PublicKey) error {
+	checksum, err := ChecksumForBytes(source)
+	if err != nil {
+		return err
+	}
+
+	return rsa.VerifyPKCS1v15(publicKey, crypto.SHA256, checksum, signature)
 }

@@ -35,12 +35,12 @@ func (f *FlagSet) BoolVarP(p *bool, name, shorthand string, value bool, usage st
 // BoolVar defines a bool flag with specified name, default value, and usage string.
 // The argument p points to a bool variable in which to store the value of the flag.
 func BoolVar(p *bool, name string, value bool, usage string) {
-	commandLine.VarP(newBoolValue(value, p), name, "", usage)
+	CommandLine.VarP(newBoolValue(value, p), name, "", usage)
 }
 
 // Like BoolVar, but accepts a shorthand letter that can be used after a single dash.
 func BoolVarP(p *bool, name, shorthand string, value bool, usage string) {
-	commandLine.VarP(newBoolValue(value, p), name, shorthand, usage)
+	CommandLine.VarP(newBoolValue(value, p), name, shorthand, usage)
 }
 
 // Bool defines a bool flag with specified name, default value, and usage string.
@@ -61,10 +61,10 @@ func (f *FlagSet) BoolP(name, shorthand string, value bool, usage string) *bool 
 // Bool defines a bool flag with specified name, default value, and usage string.
 // The return value is the address of a bool variable that stores the value of the flag.
 func Bool(name string, value bool, usage string) *bool {
-	return commandLine.BoolP(name, "", value, usage)
+	return CommandLine.BoolP(name, "", value, usage)
 }
 
 // Like Bool, but accepts a shorthand letter that can be used after a single dash.
 func BoolP(name, shorthand string, value bool, usage string) *bool {
-	return commandLine.BoolP(name, shorthand, value, usage)
+	return CommandLine.BoolP(name, shorthand, value, usage)
 }

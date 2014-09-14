@@ -35,12 +35,12 @@ func (f *FlagSet) UintVarP(p *uint, name, shorthand string, value uint, usage st
 // UintVar defines a uint flag with specified name, default value, and usage string.
 // The argument p points to a uint  variable in which to store the value of the flag.
 func UintVar(p *uint, name string, value uint, usage string) {
-	commandLine.VarP(newUintValue(value, p), name, "", usage)
+	CommandLine.VarP(newUintValue(value, p), name, "", usage)
 }
 
 // Like UintVar, but accepts a shorthand letter that can be used after a single dash.
 func UintVarP(p *uint, name, shorthand string, value uint, usage string) {
-	commandLine.VarP(newUintValue(value, p), name, shorthand, usage)
+	CommandLine.VarP(newUintValue(value, p), name, shorthand, usage)
 }
 
 // Uint defines a uint flag with specified name, default value, and usage string.
@@ -61,10 +61,10 @@ func (f *FlagSet) UintP(name, shorthand string, value uint, usage string) *uint 
 // Uint defines a uint flag with specified name, default value, and usage string.
 // The return value is the address of a uint  variable that stores the value of the flag.
 func Uint(name string, value uint, usage string) *uint {
-	return commandLine.UintP(name, "", value, usage)
+	return CommandLine.UintP(name, "", value, usage)
 }
 
 // Like Uint, but accepts a shorthand letter that can be used after a single dash.
 func UintP(name, shorthand string, value uint, usage string) *uint {
-	return commandLine.UintP(name, shorthand, value, usage)
+	return CommandLine.UintP(name, shorthand, value, usage)
 }

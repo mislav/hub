@@ -10,7 +10,14 @@ type tomlType interface {
 
 // typeEqual accepts any two types and returns true if they are equal.
 func typeEqual(t1, t2 tomlType) bool {
+	if t1 == nil || t2 == nil {
+		return false
+	}
 	return t1.typeString() == t2.typeString()
+}
+
+func typeIsHash(t tomlType) bool {
+	return typeEqual(t, tomlHash) || typeEqual(t, tomlArrayHash)
 }
 
 type tomlBaseType string

@@ -119,7 +119,7 @@ func (updater *Updater) updateTo(releaseName, version string) (err error) {
 		return
 	}
 
-	err, _ = goupdate.FromFile(exec)
+	err, _ = goupdate.New().FromFile(exec)
 	if err == nil {
 		fmt.Println("Done!")
 	}

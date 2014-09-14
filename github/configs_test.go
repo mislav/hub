@@ -3,6 +3,7 @@ package github
 import (
 	"io/ioutil"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -46,5 +47,5 @@ func TestConfigs_saveTo(t *testing.T) {
   user = "jingweno"
   access_token = "123"
   protocol = "https"`
-	assert.Equal(t, content, string(b))
+	assert.Equal(t, content, strings.TrimSpace(string(b)))
 }

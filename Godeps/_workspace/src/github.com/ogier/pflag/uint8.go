@@ -35,12 +35,12 @@ func (f *FlagSet) Uint8VarP(p *uint8, name, shorthand string, value uint8, usage
 // Uint8Var defines a uint8 flag with specified name, default value, and usage string.
 // The argument p points to a uint8 variable in which to store the value of the flag.
 func Uint8Var(p *uint8, name string, value uint8, usage string) {
-	commandLine.VarP(newUint8Value(value, p), name, "", usage)
+	CommandLine.VarP(newUint8Value(value, p), name, "", usage)
 }
 
 // Like Uint8Var, but accepts a shorthand letter that can be used after a single dash.
 func Uint8VarP(p *uint8, name, shorthand string, value uint8, usage string) {
-	commandLine.VarP(newUint8Value(value, p), name, shorthand, usage)
+	CommandLine.VarP(newUint8Value(value, p), name, shorthand, usage)
 }
 
 // Uint8 defines a uint8 flag with specified name, default value, and usage string.
@@ -61,10 +61,10 @@ func (f *FlagSet) Uint8P(name, shorthand string, value uint8, usage string) *uin
 // Uint8 defines a uint8 flag with specified name, default value, and usage string.
 // The return value is the address of a uint8 variable that stores the value of the flag.
 func Uint8(name string, value uint8, usage string) *uint8 {
-	return commandLine.Uint8P(name, "", value, usage)
+	return CommandLine.Uint8P(name, "", value, usage)
 }
 
 // Like Uint8, but accepts a shorthand letter that can be used after a single dash.
 func Uint8P(name, shorthand string, value uint8, usage string) *uint8 {
-	return commandLine.Uint8P(name, shorthand, value, usage)
+	return CommandLine.Uint8P(name, shorthand, value, usage)
 }

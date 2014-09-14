@@ -1,8 +1,9 @@
 package octokit
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestBasicAuth(t *testing.T) {

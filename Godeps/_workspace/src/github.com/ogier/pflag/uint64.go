@@ -35,12 +35,12 @@ func (f *FlagSet) Uint64VarP(p *uint64, name, shorthand string, value uint64, us
 // Uint64Var defines a uint64 flag with specified name, default value, and usage string.
 // The argument p points to a uint64 variable in which to store the value of the flag.
 func Uint64Var(p *uint64, name string, value uint64, usage string) {
-	commandLine.VarP(newUint64Value(value, p), name, "", usage)
+	CommandLine.VarP(newUint64Value(value, p), name, "", usage)
 }
 
 // Like Uint64Var, but accepts a shorthand letter that can be used after a single dash.
 func Uint64VarP(p *uint64, name, shorthand string, value uint64, usage string) {
-	commandLine.VarP(newUint64Value(value, p), name, shorthand, usage)
+	CommandLine.VarP(newUint64Value(value, p), name, shorthand, usage)
 }
 
 // Uint64 defines a uint64 flag with specified name, default value, and usage string.
@@ -61,10 +61,10 @@ func (f *FlagSet) Uint64P(name, shorthand string, value uint64, usage string) *u
 // Uint64 defines a uint64 flag with specified name, default value, and usage string.
 // The return value is the address of a uint64 variable that stores the value of the flag.
 func Uint64(name string, value uint64, usage string) *uint64 {
-	return commandLine.Uint64P(name, "", value, usage)
+	return CommandLine.Uint64P(name, "", value, usage)
 }
 
 // Like Uint64, but accepts a shorthand letter that can be used after a single dash.
 func Uint64P(name, shorthand string, value uint64, usage string) *uint64 {
-	return commandLine.Uint64P(name, shorthand, value, usage)
+	return CommandLine.Uint64P(name, shorthand, value, usage)
 }

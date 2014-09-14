@@ -2,10 +2,11 @@ package octokit
 
 import (
 	"encoding/json"
-	"github.com/bmizerany/assert"
 	"net/http"
 	"reflect"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestAuthorizationsService_One(t *testing.T) {

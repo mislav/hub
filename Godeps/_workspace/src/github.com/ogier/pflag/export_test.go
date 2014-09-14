@@ -15,7 +15,7 @@ import (
 // After calling ResetForTesting, parse errors in flag handling will not
 // exit the program.
 func ResetForTesting(usage func()) {
-	commandLine = &FlagSet{
+	CommandLine = &FlagSet{
 		name:          os.Args[0],
 		errorHandling: ContinueOnError,
 		output:        ioutil.Discard,
@@ -23,7 +23,7 @@ func ResetForTesting(usage func()) {
 	Usage = usage
 }
 
-// CommandLine returns the default FlagSet.
-func CommandLine() *FlagSet {
-	return commandLine
+// GetCommandLine returns the default FlagSet.
+func GetCommandLine() *FlagSet {
+	return CommandLine
 }

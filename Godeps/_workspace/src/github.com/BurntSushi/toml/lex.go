@@ -2,6 +2,7 @@ package toml
 
 import (
 	"fmt"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -109,6 +110,11 @@ func (lx *lexer) current() string {
 
 func (lx *lexer) emit(typ itemType) {
 	lx.items <- item{typ, lx.current(), lx.line}
+	lx.start = lx.pos
+}
+
+func (lx *lexer) emitTrim(typ itemType) {
+	lx.items <- item{typ, strings.TrimSpace(lx.current()), lx.line}
 	lx.start = lx.pos
 }
 
@@ -251,7 +257,7 @@ func lexArrayTableEnd(lx *lexer) stateFn {
 
 func lexTableNameStart(lx *lexer) stateFn {
 	switch lx.next() {
-	case tableEnd:
+	case tableEnd, eof:
 		return lx.errorf("Unexpected end of table. (Tables cannot " +
 			"be empty.)")
 	case tableSep:
@@ -265,6 +271,8 @@ func lexTableNameStart(lx *lexer) stateFn {
 // valid character for the table has already been read.
 func lexTableName(lx *lexer) stateFn {
 	switch lx.peek() {
+	case eof:
+		return lx.errorf("Unexpected end of table name %q.", lx.current())
 	case tableStart:
 		return lx.errorf("Table names cannot contain %q or %q.",
 			tableStart, tableEnd)
@@ -305,19 +313,24 @@ func lexKeyStart(lx *lexer) stateFn {
 func lexKey(lx *lexer) stateFn {
 	r := lx.peek()
 
+	// Keys cannot contain a '#' character.
+	if r == commentStart {
+		return lx.errorf("Key cannot contain a '#' character.")
+	}
+
 	// XXX: Possible divergence from spec?
 	// "Keys start with the first non-whitespace character and end with the
 	// last non-whitespace character before the equals sign."
 	// Note here that whitespace is either a tab or a space.
 	// But we'll call it quits if we see a new line too.
-	if isWhitespace(r) || isNL(r) {
-		lx.emit(itemText)
+	if isNL(r) {
+		lx.emitTrim(itemText)
 		return lexKeyEnd
 	}
 
 	// Let's also call it quits if we see an equals sign.
 	if r == keySep {
-		lx.emit(itemText)
+		lx.emitTrim(itemText)
 		return lexKeyEnd
 	}
 
@@ -326,14 +339,10 @@ func lexKey(lx *lexer) stateFn {
 }
 
 // lexKeyEnd consumes the end of a key (up to the key separator).
-// Assumes that the first whitespace character after a key (or the '='
-// separator) has NOT been consumed.
+// Assumes that any whitespace after a key has been consumed.
 func lexKeyEnd(lx *lexer) stateFn {
 	r := lx.next()
-	switch {
-	case isWhitespace(r) || isNL(r):
-		return lexSkip(lx, lexKeyEnd)
-	case r == keySep:
+	if r == keySep {
 		return lexSkip(lx, lexValue)
 	}
 	return lx.errorf("Expected key separator %q, but got %q instead.",
@@ -407,6 +416,7 @@ func lexArrayValueEnd(lx *lexer) stateFn {
 		lx.push(lexArrayValueEnd)
 		return lexCommentStart
 	case r == arrayValTerm:
+		lx.ignore()
 		return lexArrayValue // move on to the next value
 	case r == arrayEnd:
 		return lexArrayEnd

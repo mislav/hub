@@ -86,6 +86,16 @@ func (w diffWriter) diff(av, bv reflect.Value) {
 		for i := 0; i < av.NumField(); i++ {
 			w.relabel(at.Field(i).Name).diff(av.Field(i), bv.Field(i))
 		}
+	case reflect.Slice:
+		lenA := av.Len()
+		lenB := bv.Len()
+		if lenA != lenB {
+			w.printf("%s[%d] != %s[%d]", av.Type(), lenA, bv.Type(), lenB)
+			break
+		}
+		for i := 0; i < lenA; i++ {
+			w.relabel(fmt.Sprintf("[%d]", i)).diff(av.Index(i), bv.Index(i))
+		}
 	case reflect.Map:
 		ak, both, bk := keyDiff(av.MapKeys(), bv.MapKeys())
 		for _, k := range ak {

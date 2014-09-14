@@ -35,12 +35,12 @@ func (f *FlagSet) Float32VarP(p *float32, name, shorthand string, value float32,
 // Float32Var defines a float32 flag with specified name, default value, and usage string.
 // The argument p points to a float32 variable in which to store the value of the flag.
 func Float32Var(p *float32, name string, value float32, usage string) {
-	commandLine.VarP(newFloat32Value(value, p), name, "", usage)
+	CommandLine.VarP(newFloat32Value(value, p), name, "", usage)
 }
 
 // Like Float32Var, but accepts a shorthand letter that can be used after a single dash.
 func Float32VarP(p *float32, name, shorthand string, value float32, usage string) {
-	commandLine.VarP(newFloat32Value(value, p), name, shorthand, usage)
+	CommandLine.VarP(newFloat32Value(value, p), name, shorthand, usage)
 }
 
 // Float32 defines a float32 flag with specified name, default value, and usage string.
@@ -61,10 +61,10 @@ func (f *FlagSet) Float32P(name, shorthand string, value float32, usage string) 
 // Float32 defines a float32 flag with specified name, default value, and usage string.
 // The return value is the address of a float32 variable that stores the value of the flag.
 func Float32(name string, value float32, usage string) *float32 {
-	return commandLine.Float32P(name, "", value, usage)
+	return CommandLine.Float32P(name, "", value, usage)
 }
 
 // Like Float32, but accepts a shorthand letter that can be used after a single dash.
 func Float32P(name, shorthand string, value float32, usage string) *float32 {
-	return commandLine.Float32P(name, shorthand, value, usage)
+	return CommandLine.Float32P(name, shorthand, value, usage)
 }

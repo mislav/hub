@@ -1,5 +1,10 @@
 install:
-	go install
+	go install ./...
+
+test: install
+	go test -v
+	toml-test toml-test-decoder
+	toml-test -encoder toml-test-encoder
 
 fmt:
 	gofmt -w *.go */*.go

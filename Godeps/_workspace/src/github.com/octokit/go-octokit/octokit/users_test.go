@@ -2,10 +2,11 @@ package octokit
 
 import (
 	"fmt"
-	"github.com/bmizerany/assert"
 	"net/http"
 	"regexp"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestUsersService_GetCurrentUser(t *testing.T) {
