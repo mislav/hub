@@ -30,10 +30,9 @@ Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, h
   edit_hub_config do |cfg|
     entry = {'user' => name}
     host = host.sub(%r{^([\w-]+)://}, '')
-    entry['host'] = host
+    entry['oauth_token'] = token if token
     entry['protocol'] = $1 if $1
-    entry['access_token'] = token if token
-    cfg << entry
+    cfg[host.downcase] = [entry]
   end
 end
 
@@ -189,6 +188,7 @@ Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
   end
 end
 
+# This is to validate a toml file since it includes "
 Then(/^the file "([^"]*)" should contain '(.*)'$/) do |file, partial_content|
   check_file_content(file, partial_content, true)
 end
