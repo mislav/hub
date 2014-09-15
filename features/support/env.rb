@@ -1,7 +1,6 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
-require 'toml'
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
@@ -129,15 +128,24 @@ World Module.new {
   def edit_hub_config
     config = File.join(ENV['HOME'], '.config/hub')
     FileUtils.mkdir_p File.dirname(config)
+    if File.exist? config
+      data = YAML.load File.read(config)
+    else
+      data = {}
+    end
+    yield data
+    File.open(config, 'w') { |cfg| cfg << YAML.dump(data) }
 
-    hub_config = []
-    yield hub_config
+    #comment out toml setup
+    #require 'toml'
+    #hub_config = []
+    #yield hub_config
 
-    # the `toml` gem doesn't work well with array of table (https://github.com/mojombo/toml#array-of-tables)
-    # a temporary solution here to output the right format
-    # see https://github.com/jm/toml/issues/31
-    data = hub_config.map { |c| "[[hosts]]\n#{TOML::Generator.new(c).body}" }.join("\n\n")
-    File.open(config, 'w') { |cfg| cfg << data }
+    ## the `toml` gem doesn't work well with array of table (https://github.com/mojombo/toml#array-of-tables)
+    ## a temporary solution here to output the right format
+    ## see https://github.com/jm/toml/issues/31
+    #data = hub_config.map { |c| "[[hosts]]\n#{TOML::Generator.new(c).body}" }.join("\n\n")
+    #File.open(config, 'w') { |cfg| cfg << data }
   end
 
   define_method(:text_editor_script) do |bash_code|
