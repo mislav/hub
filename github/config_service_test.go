@@ -99,7 +99,7 @@ func TestConfigService_YamlSave(t *testing.T) {
 
 	b, _ := ioutil.ReadFile(file.Name())
 	content := `github.com:
-  user: jingweno
+- user: jingweno
   oauth_token: "123"
   protocol: https`
 	assert.Equal(t, content, strings.TrimSpace(string(b)))

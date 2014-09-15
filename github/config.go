@@ -22,7 +22,7 @@ type yamlHost struct {
 	Protocol   string `yaml:"protocol"`
 }
 
-type yamlConfig map[string]yamlHost
+type yamlConfig map[string][]yamlHost
 
 type Host struct {
 	Host        string `toml:"host"`
@@ -165,11 +165,7 @@ func configsFile() string {
 
 func CurrentConfig() *Config {
 	c := &Config{}
-
-	err := newConfigService().Load(configsFile(), c)
-	if err != nil {
-		panic(err)
-	}
+	newConfigService().Load(configsFile(), c)
 
 	return c
 }

@@ -25,10 +25,12 @@ type yamlConfigEncoder struct {
 func (y *yamlConfigEncoder) Encode(w io.Writer, c *Config) error {
 	yc := make(yamlConfig)
 	for _, h := range c.Hosts {
-		yc[h.Host] = yamlHost{
-			User:       h.User,
-			OAuthToken: h.AccessToken,
-			Protocol:   h.Protocol,
+		yc[h.Host] = []yamlHost{
+			{
+				User:       h.User,
+				OAuthToken: h.AccessToken,
+				Protocol:   h.Protocol,
+			},
 		}
 	}
 
