@@ -10,12 +10,12 @@ import (
 	"github.com/github/hub/fixtures"
 )
 
-func TestConfigs_loadFrom(t *testing.T) {
-	testConfigs := fixtures.SetupTestConfigs()
-	defer testConfigs.TearDown()
+func TestConfigService_Load(t *testing.T) {
+	testConfig := fixtures.SetupTestConfigs()
+	defer testConfig.TearDown()
 
-	cc := &Configs{}
-	err := loadFrom(testConfigs.Path, cc)
+	cc := &Config{}
+	err := newConfigService().Load(testConfig.Path, cc)
 	assert.Equal(t, nil, err)
 
 	assert.Equal(t, 1, len(cc.Hosts))
@@ -26,7 +26,7 @@ func TestConfigs_loadFrom(t *testing.T) {
 	assert.Equal(t, "http", host.Protocol)
 }
 
-func TestConfigs_saveTo(t *testing.T) {
+func TestConfigService_Save(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 	defer os.RemoveAll(file.Name())
 
@@ -36,9 +36,9 @@ func TestConfigs_saveTo(t *testing.T) {
 		AccessToken: "123",
 		Protocol:    "https",
 	}
-	c := Configs{Hosts: []Host{host}}
+	c := Config{Hosts: []Host{host}}
 
-	err := saveTo(file.Name(), &c)
+	err := newConfigService().Save(file.Name(), &c)
 	assert.Equal(t, nil, err)
 
 	b, _ := ioutil.ReadFile(file.Name())

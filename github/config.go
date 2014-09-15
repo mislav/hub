@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/BurntSushi/toml"
 	"github.com/github/hub/utils"
 	"github.com/howeyc/gopass"
 )
@@ -24,11 +23,11 @@ type Host struct {
 	Protocol    string `toml:"protocol"`
 }
 
-type Configs struct {
+type Config struct {
 	Hosts []Host `toml:"hosts"`
 }
 
-func (c *Configs) PromptForHost(host string) (h *Host, err error) {
+func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	h = c.Find(host)
 	if h != nil {
 		return
@@ -65,12 +64,12 @@ func (c *Configs) PromptForHost(host string) (h *Host, err error) {
 		Protocol:    "https",
 	}
 	c.Hosts = append(c.Hosts, *h)
-	err = saveTo(configsFile(), c)
+	err = newConfigService().Save(configsFile(), c)
 
 	return
 }
 
-func (c *Configs) PromptForUser() (user string) {
+func (c *Config) PromptForUser() (user string) {
 	user = os.Getenv("GITHUB_USER")
 	if user != "" {
 		return
@@ -82,7 +81,7 @@ func (c *Configs) PromptForUser() (user string) {
 	return
 }
 
-func (c *Configs) PromptForPassword(host, user string) (pass string) {
+func (c *Config) PromptForPassword(host, user string) (pass string) {
 	pass = os.Getenv("GITHUB_PASSWORD")
 	if pass != "" {
 		return
@@ -98,12 +97,12 @@ func (c *Configs) PromptForPassword(host, user string) (pass string) {
 	return
 }
 
-func (c *Configs) PromptForOTP() string {
+func (c *Config) PromptForOTP() string {
 	fmt.Print("two-factor authentication code: ")
 	return c.scanLine()
 }
 
-func (c *Configs) scanLine() string {
+func (c *Config) scanLine() string {
 	var line string
 	scanner := bufio.NewScanner(os.Stdin)
 	if scanner.Scan() {
@@ -114,7 +113,7 @@ func (c *Configs) scanLine() string {
 	return line
 }
 
-func (c *Configs) Find(host string) *Host {
+func (c *Config) Find(host string) *Host {
 	for _, h := range c.Hosts {
 		if h.Host == host {
 			return &h
@@ -124,61 +123,7 @@ func (c *Configs) Find(host string) *Host {
 	return nil
 }
 
-func saveTo(filename string, v interface{}) error {
-	err := os.MkdirAll(filepath.Dir(filename), 0771)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	enc := toml.NewEncoder(f)
-	return enc.Encode(v)
-}
-
-func loadFrom(filename string, c *Configs) (err error) {
-	_, err = toml.DecodeFile(filename, c)
-	return
-}
-
-func configsFile() string {
-	configsFile := os.Getenv("GH_CONFIG")
-	if configsFile == "" {
-		configsFile = defaultConfigsFile
-	}
-
-	return configsFile
-}
-
-func CurrentConfigs() *Configs {
-	c := &Configs{}
-
-	configFile := configsFile()
-	err := loadFrom(configFile, c)
-	if err != nil {
-		// load from YAML
-	}
-
-	return c
-}
-
-func (c *Configs) DefaultHost() (host *Host, err error) {
-	if GitHubHostEnv != "" {
-		host, err = c.PromptForHost(GitHubHostEnv)
-	} else if len(c.Hosts) > 0 {
-		host = c.selectHost()
-	} else {
-		host, err = c.PromptForHost(DefaultGitHubHost())
-	}
-
-	return
-}
-
-func (c *Configs) selectHost() *Host {
+func (c *Config) selectHost() *Host {
 	options := len(c.Hosts)
 
 	if options == 1 {
@@ -201,12 +146,40 @@ func (c *Configs) selectHost() *Host {
 	return &c.Hosts[i-1]
 }
 
-func (c *Configs) Save() error {
-	return saveTo(configsFile(), c)
+func configsFile() string {
+	configsFile := os.Getenv("GH_CONFIG")
+	if configsFile == "" {
+		configsFile = defaultConfigsFile
+	}
+
+	return configsFile
+}
+
+func CurrentConfig() *Config {
+	c := &Config{}
+
+	err := newConfigService().Load(configsFile(), c)
+	if err != nil {
+		// load from YAML
+	}
+
+	return c
+}
+
+func (c *Config) DefaultHost() (host *Host, err error) {
+	if GitHubHostEnv != "" {
+		host, err = c.PromptForHost(GitHubHostEnv)
+	} else if len(c.Hosts) > 0 {
+		host = c.selectHost()
+	} else {
+		host, err = c.PromptForHost(DefaultGitHubHost())
+	}
+
+	return
 }
 
 // Public for testing purpose
-func CreateTestConfigs(user, token string) *Configs {
+func CreateTestConfigs(user, token string) *Config {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()
 
@@ -216,8 +189,11 @@ func CreateTestConfigs(user, token string) *Configs {
 		Host:        GitHubHost,
 	}
 
-	c := &Configs{Hosts: []Host{host}}
-	saveTo(f.Name(), c)
+	c := &Config{Hosts: []Host{host}}
+	err := newConfigService().Save(f.Name(), c)
+	if err != nil {
+		panic(err)
+	}
 
 	return c
 }

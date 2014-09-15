@@ -151,7 +151,7 @@ func newProject(owner, name, host, protocol string) *Project {
 		protocol = ""
 	}
 	if protocol == "" {
-		h := CurrentConfigs().Find(host)
+		h := CurrentConfig().Find(host)
 		if h != nil {
 			protocol = h.Protocol
 		}
@@ -161,7 +161,7 @@ func newProject(owner, name, host, protocol string) *Project {
 	}
 
 	if owner == "" {
-		h := CurrentConfigs().Find(host)
+		h := CurrentConfig().Find(host)
 		if h != nil {
 			owner = h.User
 		}

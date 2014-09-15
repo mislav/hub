@@ -2,9 +2,10 @@ package commands
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"os"
 )
 
 var cmdFork = &Command{
@@ -41,8 +42,8 @@ func fork(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("Error: repository under 'origin' remote is not a GitHub project"))
 	}
 
-	configs := github.CurrentConfigs()
-	host, err := configs.PromptForHost(project.Host)
+	config := github.CurrentConfig()
+	host, err := config.PromptForHost(project.Host)
 	if err != nil {
 		utils.Check(github.FormatError("forking repository", err))
 	}

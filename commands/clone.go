@@ -59,8 +59,8 @@ func transformCloneArgs(args *Args) {
 				name, owner := parseCloneNameAndOwner(a)
 				var host *github.Host
 				if owner == "" {
-					configs := github.CurrentConfigs()
-					h, err := configs.DefaultHost()
+					config := github.CurrentConfig()
+					h, err := config.DefaultHost()
 					if err != nil {
 						utils.Check(github.FormatError("cloning repository", err))
 					}
