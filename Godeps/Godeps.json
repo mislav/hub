@@ -71,6 +71,10 @@
 		{
 			"ImportPath": "github.com/ogier/pflag",
 			"Rev": "e4f7d00f344b0954fa3791a8527d10ba7334eceb"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v1",
+			"Rev": "fc7f19eff1782a0beae3065097c776183e7d01d0"
 		}
 	]
 }
