@@ -24,6 +24,32 @@ var (
 	server *httptest.Server
 )
 
+// A http.Transport subtype that re-routes all requests in testing to the local
+// server as indicated by `overrideURL`.
+type TestTransport struct {
+	http.RoundTripper
+	overrideURL *url.URL
+}
+
+func (t TestTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	req = cloneRequest(req)
+	req.Header.Set("X-Original-Scheme", req.URL.Scheme)
+	req.URL.Scheme = t.overrideURL.Scheme
+	req.URL.Host = t.overrideURL.Host
+	return t.RoundTripper.RoundTrip(req)
+}
+
+func cloneRequest(r *http.Request) *http.Request {
+	r2 := new(http.Request)
+	*r2 = *r
+	r2.URL, _ = url.Parse(r.URL.String())
+	r2.Header = make(http.Header)
+	for k, s := range r.Header {
+		r2.Header[k] = s
+	}
+	return r2
+}
+
 // setup sets up a test HTTP server along with a octokit.Client that is
 // configured to talk to that test server.  Tests should register handlers on
 // mux which provide mock responses for the API method being tested.
@@ -31,13 +57,21 @@ func setup() {
 	// test server
 	mux = http.NewServeMux()
 	server = httptest.NewServer(mux)
+	serverURL, _ := url.Parse(server.URL)
+
+	httpClient := http.Client{
+		Transport: TestTransport{
+			RoundTripper: http.DefaultTransport,
+			overrideURL:  serverURL,
+		},
+	}
 
 	// octokit client configured to use test server
 	client = NewClientWith(
-		server.URL,
+		gitHubAPIURL,
 		userAgent,
 		TokenAuth{AccessToken: "token"},
-		nil,
+		&httpClient,
 	)
 }
 

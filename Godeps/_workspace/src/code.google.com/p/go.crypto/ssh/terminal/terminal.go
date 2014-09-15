@@ -53,7 +53,7 @@ type Terminal struct {
 	lock sync.Mutex
 
 	c      io.ReadWriter
-	prompt string
+	prompt []rune
 
 	// line is the current line being entered.
 	line []rune
@@ -98,7 +98,7 @@ func NewTerminal(c io.ReadWriter, prompt string) *Terminal {
 	return &Terminal{
 		Escape:       &vt100EscapeCodes,
 		c:            c,
-		prompt:       prompt,
+		prompt:       []rune(prompt),
 		termWidth:    80,
 		termHeight:   24,
 		echo:         true,
@@ -108,6 +108,7 @@ func NewTerminal(c io.ReadWriter, prompt string) *Terminal {
 
 const (
 	keyCtrlD     = 4
+	keyCtrlU     = 21
 	keyEnter     = '\r'
 	keyEscape    = 27
 	keyBackspace = 127
@@ -122,6 +123,7 @@ const (
 	keyEnd
 	keyDeleteWord
 	keyDeleteLine
+	keyClearScreen
 )
 
 // bytesToKey tries to parse a key sequence from b. If successful, it returns
@@ -140,6 +142,8 @@ func bytesToKey(b []byte) (rune, []byte) {
 		return keyBackspace, b[1:]
 	case 11: // ^K
 		return keyDeleteLine, b[1:]
+	case 12: // ^L
+		return keyClearScreen, b[1:]
 	case 23: // ^W
 		return keyDeleteWord, b[1:]
 	}
@@ -216,7 +220,7 @@ func (t *Terminal) moveCursorToPos(pos int) {
 		return
 	}
 
-	x := len(t.prompt) + pos
+	x := visualLength(t.prompt) + pos
 	y := x / t.termWidth
 	x = x % t.termWidth
 
@@ -296,6 +300,29 @@ func (t *Terminal) setLine(newLine []rune, newPos int) {
 	t.pos = newPos
 }
 
+func (t *Terminal) advanceCursor(places int) {
+	t.cursorX += places
+	t.cursorY += t.cursorX / t.termWidth
+	if t.cursorY > t.maxLine {
+		t.maxLine = t.cursorY
+	}
+	t.cursorX = t.cursorX % t.termWidth
+
+	if places > 0 && t.cursorX == 0 {
+		// Normally terminals will advance the current position
+		// when writing a character. But that doesn't happen
+		// for the last character in a line. However, when
+		// writing a character (except a new line) that causes
+		// a line wrap, the position will be advanced two
+		// places.
+		//
+		// So, if we are stopping at the end of a line, we
+		// need to write a newline so that our cursor can be
+		// advanced to the next line.
+		t.outBuf = append(t.outBuf, '\n')
+	}
+}
+
 func (t *Terminal) eraseNPreviousChars(n int) {
 	if n == 0 {
 		return
@@ -314,7 +341,7 @@ func (t *Terminal) eraseNPreviousChars(n int) {
 		for i := 0; i < n; i++ {
 			t.queue(space)
 		}
-		t.cursorX += n
+		t.advanceCursor(n)
 		t.moveCursorToPos(t.pos)
 	}
 }
@@ -361,6 +388,27 @@ func (t *Terminal) countToRightWord() int {
 		pos++
 	}
 	return pos - t.pos
+}
+
+// visualLength returns the number of visible glyphs in s.
+func visualLength(runes []rune) int {
+	inEscapeSeq := false
+	length := 0
+
+	for _, r := range runes {
+		switch {
+		case inEscapeSeq:
+			if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
+				inEscapeSeq = false
+			}
+		case r == '\x1b':
+			inEscapeSeq = true
+		default:
+			length++
+		}
+	}
+
+	return length
 }
 
 // handleKey processes the given key and, optionally, returns a line of text
@@ -449,10 +497,27 @@ func (t *Terminal) handleKey(key rune) (line string, ok bool) {
 		// end of line.
 		for i := t.pos; i < len(t.line); i++ {
 			t.queue(space)
-			t.cursorX++
+			t.advanceCursor(1)
 		}
 		t.line = t.line[:t.pos]
 		t.moveCursorToPos(t.pos)
+	case keyCtrlD:
+		// Erase the character under the current position.
+		// The EOF case when the line is empty is handled in
+		// readLine().
+		if t.pos < len(t.line) {
+			t.pos++
+			t.eraseNPreviousChars(1)
+		}
+	case keyCtrlU:
+		t.eraseNPreviousChars(t.pos)
+	case keyClearScreen:
+		// Erases the screen and moves the cursor to the home position.
+		t.queue([]rune("\x1b[2J\x1b[H"))
+		t.queue(t.prompt)
+		t.cursorX, t.cursorY = 0, 0
+		t.advanceCursor(visualLength(t.prompt))
+		t.setLine(t.line, t.pos)
 	default:
 		if t.AutoCompleteCallback != nil {
 			prefix := string(t.line[:t.pos])
@@ -498,16 +563,8 @@ func (t *Terminal) writeLine(line []rune) {
 			todo = remainingOnLine
 		}
 		t.queue(line[:todo])
-		t.cursorX += todo
+		t.advanceCursor(visualLength(line[:todo]))
 		line = line[todo:]
-
-		if t.cursorX == t.termWidth {
-			t.cursorX = 0
-			t.cursorY++
-			if t.cursorY > t.maxLine {
-				t.maxLine = t.cursorY
-			}
-		}
 	}
 }
 
@@ -542,14 +599,11 @@ func (t *Terminal) Write(buf []byte) (n int, err error) {
 		return
 	}
 
-	t.queue([]rune(t.prompt))
-	chars := len(t.prompt)
+	t.writeLine(t.prompt)
 	if t.echo {
-		t.queue(t.line)
-		chars += len(t.line)
+		t.writeLine(t.line)
 	}
-	t.cursorX = chars % t.termWidth
-	t.cursorY = chars / t.termWidth
+
 	t.moveCursorToPos(t.pos)
 
 	if _, err = t.c.Write(t.outBuf); err != nil {
@@ -566,7 +620,7 @@ func (t *Terminal) ReadPassword(prompt string) (line string, err error) {
 	defer t.lock.Unlock()
 
 	oldPrompt := t.prompt
-	t.prompt = prompt
+	t.prompt = []rune(prompt)
 	t.echo = false
 
 	line, err = t.readLine()
@@ -589,7 +643,7 @@ func (t *Terminal) readLine() (line string, err error) {
 	// t.lock must be held at this point
 
 	if t.cursorX == 0 && t.cursorY == 0 {
-		t.writeLine([]rune(t.prompt))
+		t.writeLine(t.prompt)
 		t.c.Write(t.outBuf)
 		t.outBuf = t.outBuf[:0]
 	}
@@ -604,7 +658,9 @@ func (t *Terminal) readLine() (line string, err error) {
 				break
 			}
 			if key == keyCtrlD {
-				return "", io.EOF
+				if len(t.line) == 0 {
+					return "", io.EOF
+				}
 			}
 			line, lineOk = t.handleKey(key)
 		}
@@ -648,14 +704,70 @@ func (t *Terminal) SetPrompt(prompt string) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
-	t.prompt = prompt
+	t.prompt = []rune(prompt)
 }
 
-func (t *Terminal) SetSize(width, height int) {
+func (t *Terminal) clearAndRepaintLinePlusNPrevious(numPrevLines int) {
+	// Move cursor to column zero at the start of the line.
+	t.move(t.cursorY, 0, t.cursorX, 0)
+	t.cursorX, t.cursorY = 0, 0
+	t.clearLineToRight()
+	for t.cursorY < numPrevLines {
+		// Move down a line
+		t.move(0, 1, 0, 0)
+		t.cursorY++
+		t.clearLineToRight()
+	}
+	// Move back to beginning.
+	t.move(t.cursorY, 0, 0, 0)
+	t.cursorX, t.cursorY = 0, 0
+
+	t.queue(t.prompt)
+	t.advanceCursor(visualLength(t.prompt))
+	t.writeLine(t.line)
+	t.moveCursorToPos(t.pos)
+}
+
+func (t *Terminal) SetSize(width, height int) error {
 	t.lock.Lock()
 	defer t.lock.Unlock()
 
+	oldWidth := t.termWidth
 	t.termWidth, t.termHeight = width, height
+
+	switch {
+	case width == oldWidth || len(t.line) == 0:
+		// If the width didn't change then nothing else needs to be
+		// done.
+		return nil
+	case width < oldWidth:
+		// Some terminals (e.g. xterm) will truncate lines that were
+		// too long when shinking. Others, (e.g. gnome-terminal) will
+		// attempt to wrap them. For the former, repainting t.maxLine
+		// works great, but that behaviour goes badly wrong in the case
+		// of the latter because they have doubled every full line.
+
+		// We assume that we are working on a terminal that wraps lines
+		// and adjust the cursor position based on every previous line
+		// wrapping and turning into two. This causes the prompt on
+		// xterms to move upwards, which isn't great, but it avoids a
+		// huge mess with gnome-terminal.
+		t.cursorY *= 2
+		t.clearAndRepaintLinePlusNPrevious(t.maxLine * 2)
+	case width > oldWidth:
+		// If the terminal expands then our position calculations will
+		// be wrong in the future because we think the cursor is
+		// |t.pos| chars into the string, but there will be a gap at
+		// the end of any wrapped line.
+		//
+		// But the position will actually be correct until we move, so
+		// we can move back to the beginning and repaint everything.
+		t.clearAndRepaintLinePlusNPrevious(t.maxLine)
+	}
+
+	_, err := t.c.Write(t.outBuf)
+	t.outBuf = t.outBuf[:0]
+	return err
 }
 
 // stRingBuffer is a ring buffer of strings.

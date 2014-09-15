@@ -1,10 +1,11 @@
 package octokit
 
 import (
-	"github.com/bmizerany/assert"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestIssuesService_All(t *testing.T) {

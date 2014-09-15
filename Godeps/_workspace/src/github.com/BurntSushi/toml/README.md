@@ -1,4 +1,4 @@
-# TOML parser and encoder for Go with reflection
+## TOML parser and encoder for Go with reflection
 
 TOML stands for Tom's Obvious, Minimal Language. This Go package provides a
 reflection interface similar to Go's standard library `json` and `xml` 
@@ -22,18 +22,20 @@ go get github.com/BurntSushi/toml
 Try the toml validator:
 
 ```bash
-go get github.com/BurntSushi/toml/tomlv
+go get github.com/BurntSushi/toml/cmd/tomlv
 tomlv some-toml-file.toml
 ```
 
+[![Build status](https://api.travis-ci.org/BurntSushi/toml.png)](https://travis-ci.org/BurntSushi/toml)
 
-## Testing
+
+### Testing
 
 This package passes all tests in
 [toml-test](https://github.com/BurntSushi/toml-test) for both the decoder
 and the encoder.
 
-## Examples
+### Examples
 
 This package works similarly to how the Go standard library handles `XML`
 and `JSON`. Namely, data is loaded into Go values via reflection.
@@ -83,7 +85,7 @@ type TOML struct {
 }
 ```
 
-## Using the `encoding.TextUnmarshaler` interface
+### Using the `encoding.TextUnmarshaler` interface
 
 Here's an example that automatically parses duration strings into 
 `time.Duration` values:
@@ -133,7 +135,7 @@ func (d *duration) UnmarshalText(text []byte) error {
 }
 ```
 
-## More complex usage
+### More complex usage
 
 Here's an example of how to load the example from the official spec page:
 

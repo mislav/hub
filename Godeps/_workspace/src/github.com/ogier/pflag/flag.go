@@ -187,7 +187,7 @@ func (f *FlagSet) VisitAll(fn func(*Flag)) {
 // VisitAll visits the command-line flags in lexicographical order, calling
 // fn for each.  It visits all flags, even those not set.
 func VisitAll(fn func(*Flag)) {
-	commandLine.VisitAll(fn)
+	CommandLine.VisitAll(fn)
 }
 
 // Visit visits the flags in lexicographical order, calling fn for each.
@@ -201,7 +201,7 @@ func (f *FlagSet) Visit(fn func(*Flag)) {
 // Visit visits the command-line flags in lexicographical order, calling fn
 // for each.  It visits only those flags that have been set.
 func Visit(fn func(*Flag)) {
-	commandLine.Visit(fn)
+	CommandLine.Visit(fn)
 }
 
 // Lookup returns the Flag structure of the named flag, returning nil if none exists.
@@ -212,7 +212,7 @@ func (f *FlagSet) Lookup(name string) *Flag {
 // Lookup returns the Flag structure of the named command-line flag,
 // returning nil if none exists.
 func Lookup(name string) *Flag {
-	return commandLine.formal[name]
+	return CommandLine.formal[name]
 }
 
 // Set sets the value of the named flag.
@@ -234,7 +234,7 @@ func (f *FlagSet) Set(name, value string) error {
 
 // Set sets the value of the named command-line flag.
 func Set(name, value string) error {
-	return commandLine.Set(name, value)
+	return CommandLine.Set(name, value)
 }
 
 // PrintDefaults prints, to standard error unless configured
@@ -257,7 +257,7 @@ func (f *FlagSet) PrintDefaults() {
 
 // PrintDefaults prints to standard error the default values of all defined command-line flags.
 func PrintDefaults() {
-	commandLine.PrintDefaults()
+	CommandLine.PrintDefaults()
 }
 
 // defaultUsage is the default function to print a usage message.
@@ -266,7 +266,7 @@ func defaultUsage(f *FlagSet) {
 	f.PrintDefaults()
 }
 
-// NOTE: Usage is not just defaultUsage(commandLine)
+// NOTE: Usage is not just defaultUsage(CommandLine)
 // because it serves (via godoc flag Usage) as the example
 // for how to write your own usage function.
 
@@ -281,7 +281,7 @@ var Usage = func() {
 func (f *FlagSet) NFlag() int { return len(f.actual) }
 
 // NFlag returns the number of command-line flags that have been set.
-func NFlag() int { return len(commandLine.actual) }
+func NFlag() int { return len(CommandLine.actual) }
 
 // Arg returns the i'th argument.  Arg(0) is the first remaining argument
 // after flags have been processed.
@@ -295,20 +295,20 @@ func (f *FlagSet) Arg(i int) string {
 // Arg returns the i'th command-line argument.  Arg(0) is the first remaining argument
 // after flags have been processed.
 func Arg(i int) string {
-	return commandLine.Arg(i)
+	return CommandLine.Arg(i)
 }
 
 // NArg is the number of arguments remaining after flags have been processed.
 func (f *FlagSet) NArg() int { return len(f.args) }
 
 // NArg is the number of arguments remaining after flags have been processed.
-func NArg() int { return len(commandLine.args) }
+func NArg() int { return len(CommandLine.args) }
 
 // Args returns the non-flag arguments.
 func (f *FlagSet) Args() []string { return f.args }
 
 // Args returns the non-flag command-line arguments.
-func Args() []string { return commandLine.args }
+func Args() []string { return CommandLine.args }
 
 // Var defines a flag with the specified name and usage string. The type and
 // value of the flag are represented by the first argument, of type Value, which
@@ -361,12 +361,12 @@ func (f *FlagSet) VarP(value Value, name, shorthand, usage string) {
 // of strings by giving the slice the methods of Value; in particular, Set would
 // decompose the comma-separated string into the slice.
 func Var(value Value, name string, usage string) {
-	commandLine.VarP(value, name, "", usage)
+	CommandLine.VarP(value, name, "", usage)
 }
 
 // Like Var, but accepts a shorthand letter that can be used after a single dash.
 func VarP(value Value, name, shorthand, usage string) {
-	commandLine.VarP(value, name, shorthand, usage)
+	CommandLine.VarP(value, name, shorthand, usage)
 }
 
 // failf prints to standard error a formatted error and usage message and
@@ -379,9 +379,9 @@ func (f *FlagSet) failf(format string, a ...interface{}) error {
 }
 
 // usage calls the Usage method for the flag set, or the usage function if
-// the flag set is commandLine.
+// the flag set is CommandLine.
 func (f *FlagSet) usage() {
-	if f == commandLine {
+	if f == CommandLine {
 		Usage()
 	} else if f.Usage == nil {
 		defaultUsage(f)
@@ -512,22 +512,22 @@ func (f *FlagSet) Parsed() bool {
 // Parse parses the command-line flags from os.Args[1:].  Must be called
 // after all flags are defined and before flags are accessed by the program.
 func Parse() {
-	// Ignore errors; commandLine is set for ExitOnError.
-	commandLine.Parse(os.Args[1:])
+	// Ignore errors; CommandLine is set for ExitOnError.
+	CommandLine.Parse(os.Args[1:])
 }
 
 // Whether to support interspersed option/non-option arguments.
 func SetInterspersed(interspersed bool) {
-	commandLine.SetInterspersed(interspersed)
+	CommandLine.SetInterspersed(interspersed)
 }
 
 // Parsed returns true if the command-line flags have been parsed.
 func Parsed() bool {
-	return commandLine.Parsed()
+	return CommandLine.Parsed()
 }
 
 // The default set of command-line flags, parsed from os.Args.
-var commandLine = NewFlagSet(os.Args[0], ExitOnError)
+var CommandLine = NewFlagSet(os.Args[0], ExitOnError)
 
 // NewFlagSet returns a new, empty flag set with the specified name and
 // error handling property.

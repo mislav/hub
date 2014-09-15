@@ -163,6 +163,22 @@ var keyPressTests = []struct {
 		line:           "£",
 		throwAwayLines: 1,
 	},
+	{
+		// Ctrl-D at the end of the line should be ignored.
+		in:   "a\004\r",
+		line: "a",
+	},
+	{
+		// a, b, left, Ctrl-D should erase the b.
+		in:   "ab\x1b[D\004\r",
+		line: "a",
+	},
+	{
+		// a, b, c, d, left, left, ^U should erase to the beginning of
+		// the line.
+		in:   "abcd\x1b[D\x1b[D\025\r",
+		line: "cd",
+	},
 }
 
 func TestKeyPresses(t *testing.T) {

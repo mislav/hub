@@ -1,7 +1,7 @@
 package octokit
 
 import (
-	"github.com/lostisland/go-sawyer/mediaheader"
+	"github.com/jingweno/go-sawyer/mediaheader"
 )
 
 type pageable struct {

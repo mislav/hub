@@ -1,10 +1,12 @@
 package octokit
 
 import (
+	"io/ioutil"
 	"fmt"
-	"github.com/bmizerany/assert"
 	"net/http"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestPullRequestService_One(t *testing.T) {
@@ -115,4 +117,25 @@ func TestPullRequestService_All(t *testing.T) {
 	assert.Equal(t, 30, len(prs))
 	assert.Equal(t, testURLStringOf("repositories/8514/pulls?page=2"), string(*result.NextPage))
 	assert.Equal(t, testURLStringOf("repositories/8514/pulls?page=14"), string(*result.LastPage))
+}
+
+func TestPullRequestService_Patch(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/repos/octokit/go-octokit/pulls/1", func(w http.ResponseWriter, r *http.Request) {
+		testMethod(t, r, "GET")
+		testHeader(t, r, "Accept", patchMediaType)
+		respondWith(w, "patches galore")
+	})
+
+	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
+	assert.Equal(t, nil, err)
+
+	patch, result := client.PullRequests(url).Patch()
+
+	assert.T(t, !result.HasError())
+	content, err := ioutil.ReadAll(patch)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "patches galore", string(content))
 }

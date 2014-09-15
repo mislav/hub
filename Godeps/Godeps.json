@@ -1,23 +1,24 @@
 {
 	"ImportPath": "github.com/github/hub",
-	"GoVersion": "go1.3",
+	"GoVersion": "go1.3.1",
 	"Packages": [
 		"./..."
 	],
 	"Deps": [
 		{
 			"ImportPath": "bitbucket.org/kardianos/osext",
-			"Comment": "null-9",
-			"Rev": "364fb577de68fb646c4cb39cc0e09c887ee16376"
+			"Comment": "null-13",
+			"Rev": "5d3ddcf53a508cc2f7404eaebf546ef2cb5cdb6e"
 		},
 		{
 			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
-			"Comment": "null-192",
-			"Rev": "2990fc550b9ff92bc33c848f92c87a305ae62934"
+			"Comment": "null-221",
+			"Rev": "6e881b5273dfffbadb6a76a61d3c39a71e3588d1"
 		},
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
-			"Rev": "50ab0c35d35f5355cee28b0120b18dfbbd13ad36"
+			"Comment": "v0.1.0",
+			"Rev": "2ceedfee35ad3848e49308ab0c9a4f640cfb5fb2"
 		},
 		{
 			"ImportPath": "github.com/bmizerany/assert",
@@ -30,11 +31,15 @@
 		},
 		{
 			"ImportPath": "github.com/howeyc/gopass",
-			"Rev": "4cf66881dcc3d6f0071eb6473d95c39e460de696"
+			"Rev": "e8c0d21f59eb7f01086a39e47e05568acc9bb736"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/go-update",
-			"Rev": "3f0466666779bd2143f368a207b0641f0ed536e8"
+			"Rev": "276093003334bfddde2b1759b864b7c59f38b55e"
+		},
+		{
+			"ImportPath": "github.com/jingweno/go-sawyer",
+			"Rev": "1999ae5763d678f3ce1112cf1fda7c7e9cf2aadf"
 		},
 		{
 			"ImportPath": "github.com/jtacoma/uritemplates",
@@ -43,29 +48,29 @@
 		},
 		{
 			"ImportPath": "github.com/kballard/go-shellquote",
-			"Rev": "e842a11b24c6abfb3dd27af69a17f482e4b483c2"
+			"Rev": "e5c918b80c17694cbc49aab32a759f9a40067f5d"
+		},
+		{
+			"ImportPath": "github.com/kr/binarydist",
+			"Rev": "9955b0ab8708602d411341e55fffd7e0700f86bd"
 		},
 		{
 			"ImportPath": "github.com/kr/pretty",
-			"Comment": "go.weekly.2011-12-22-18-gbc9499c",
-			"Rev": "bc9499caa0f45ee5edb2f0209fbd61fbf3d9018f"
+			"Comment": "go.weekly.2011-12-22-24-gf31442d",
+			"Rev": "f31442d60e51465c69811e2107ae978868dbea5c"
 		},
 		{
 			"ImportPath": "github.com/kr/text",
 			"Rev": "6807e777504f54ad073ecef66747de158294b639"
 		},
 		{
-			"ImportPath": "github.com/lostisland/go-sawyer",
-			"Rev": "ec1b99a1915d53f09d40d0c87caf60460b7f8728"
-		},
-		{
 			"ImportPath": "github.com/octokit/go-octokit/octokit",
-			"Comment": "v0.4.0-74-g0b42562",
-			"Rev": "0b425620bacddb8ec6fb0b9f79614a636b551596"
+			"Comment": "v0.4.0-93-g76c898e",
+			"Rev": "76c898e13c8ad8059b070dd2ee1d27cb9a753120"
 		},
 		{
 			"ImportPath": "github.com/ogier/pflag",
-			"Rev": "f235ad33d48a41975db57c0b52cec7b70529db0d"
+			"Rev": "e4f7d00f344b0954fa3791a8527d10ba7334eceb"
 		}
 	]
 }

@@ -30,8 +30,9 @@ var diffs = []difftest{
 	{S{S: new(S)}, S{S: &S{A: 1}}, []string{`S.A: 0 != 1`}},
 	{S{}, S{I: 0}, []string{`I: nil != 0`}},
 	{S{I: 1}, S{I: "x"}, []string{`I: int != string`}},
-	{S{}, S{C: []int{1}}, []string{`C: []int(nil) != []int{1}`}},
-	{S{C: []int{}}, S{C: []int{1}}, []string{`C: []int{} != []int{1}`}},
+	{S{}, S{C: []int{1}}, []string{`C: []int[0] != []int[1]`}},
+	{S{C: []int{}}, S{C: []int{1}}, []string{`C: []int[0] != []int[1]`}},
+	{S{C: []int{1, 2, 3}}, S{C: []int{1, 2, 4}}, []string{`C[2]: 3 != 4`}},
 	{S{}, S{A: 1, S: new(S)}, []string{`A: 0 != 1`, `S: nil != &{0 <nil> <nil> []}`}},
 }
 

@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/lostisland/go-sawyer"
-	"github.com/lostisland/go-sawyer/hypermedia"
+	"github.com/jingweno/go-sawyer"
+	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
 func NewClient(authMethod AuthMethod) *Client {
@@ -33,6 +33,20 @@ func (c *Client) NewRequest(urlStr string) (req *Request, err error) {
 	}
 
 	c.applyRequestHeaders(req)
+
+	return
+}
+
+// a GET request with specific media type set
+func (c *Client) getBody(url *url.URL, mediaType string) (patch io.ReadCloser, result *Result) {
+	result = sendRequest(c, url, func(req *Request) (*Response, error) {
+		req.Header.Set("Accept", mediaType)
+		return req.Get(nil)
+	})
+
+	if result.Response != nil {
+		patch = result.Response.Body
+	}
 
 	return
 }

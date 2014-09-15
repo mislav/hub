@@ -2,11 +2,12 @@ package octokit
 
 import (
 	"fmt"
-	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestUploadsService_UploadAsset(t *testing.T) {

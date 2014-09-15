@@ -9,25 +9,50 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 )
+
+type tomlEncodeError struct{ error }
 
 var (
-	ErrArrayMixedElementTypes = errors.New(
+	errArrayMixedElementTypes = errors.New(
 		"can't encode array with mixed element types")
-	ErrArrayNilElement = errors.New(
+	errArrayNilElement = errors.New(
 		"can't encode array with nil element")
+	errNonString = errors.New(
+		"can't encode a map with non-string key type")
+	errAnonNonStruct = errors.New(
+		"can't encode an anonymous field that is not a struct")
+	errArrayNoTable = errors.New(
+		"TOML array element can't contain a table")
+	errNoKey = errors.New(
+		"top-level values must be a Go map or struct")
+	errAnything = errors.New("") // used in testing
 )
 
+var quotedReplacer = strings.NewReplacer(
+	"\t", "\\t",
+	"\n", "\\n",
+	"\r", "\\r",
+	"\"", "\\\"",
+	"\\", "\\\\",
+)
+
+// Encoder controls the encoding of Go values to a TOML document to some
+// io.Writer.
+//
+// The indentation level can be controlled with the Indent field.
 type Encoder struct {
 	// A single indentation level. By default it is two spaces.
 	Indent string
 
-	w *bufio.Writer
-
 	// hasWritten is whether we have written any output to w yet.
 	hasWritten bool
+	w          *bufio.Writer
 }
 
+// NewEncoder returns a TOML encoder that encodes Go values to the io.Writer
+// given. By default, a single indentation level is 2 spaces.
 func NewEncoder(w io.Writer) *Encoder {
 	return &Encoder{
 		w:      bufio.NewWriter(w),
@@ -35,22 +60,60 @@ func NewEncoder(w io.Writer) *Encoder {
 	}
 }
 
+// Encode writes a TOML representation of the Go value to the underlying
+// io.Writer. If the value given cannot be encoded to a valid TOML document,
+// then an error is returned.
+//
+// The mapping between Go values and TOML values should be precisely the same
+// as for the Decode* functions. Similarly, the TextMarshaler interface is
+// supported by encoding the resulting bytes as strings. (If you want to write
+// arbitrary binary data then you will need to use something like base64 since
+// TOML does not have any binary types.)
+//
+// When encoding TOML hashes (i.e., Go maps or structs), keys without any
+// sub-hashes are encoded first.
+//
+// If a Go map is encoded, then its keys are sorted alphabetically for
+// deterministic output. More control over this behavior may be provided if
+// there is demand for it.
+//
+// Encoding Go values without a corresponding TOML representation---like map
+// types with non-string keys---will cause an error to be returned. Similarly
+// for mixed arrays/slices, arrays/slices with nil elements, embedded
+// non-struct types and nested slices containing maps or structs.
+// (e.g., [][]map[string]string is not allowed but []map[string]string is OK
+// and so is []map[string][]string.)
 func (enc *Encoder) Encode(v interface{}) error {
 	rv := eindirect(reflect.ValueOf(v))
-	if err := enc.encode(Key([]string{}), rv); err != nil {
+	if err := enc.safeEncode(Key([]string{}), rv); err != nil {
 		return err
 	}
 	return enc.w.Flush()
 }
 
-func (enc *Encoder) encode(key Key, rv reflect.Value) error {
-	// Special case. If we can marshal the type to text, then we used that.
-	if _, ok := rv.Interface().(TextMarshaler); ok {
-		err := enc.eKeyEq(key)
-		if err != nil {
-			return err
+func (enc *Encoder) safeEncode(key Key, rv reflect.Value) (err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if terr, ok := r.(tomlEncodeError); ok {
+				err = terr.error
+				return
+			}
+			panic(r)
 		}
-		return enc.eElement(rv)
+	}()
+	enc.encode(key, rv)
+	return nil
+}
+
+func (enc *Encoder) encode(key Key, rv reflect.Value) {
+	// Special case. Time needs to be in ISO8601 format.
+	// Special case. If we can marshal the type to text, then we used that.
+	// Basically, this prevents the encoder for handling these types as
+	// generic structs (or whatever the underlying type of a TextMarshaler is).
+	switch rv.Interface().(type) {
+	case time.Time, TextMarshaler:
+		enc.keyEqElement(key, rv)
+		return
 	}
 
 	k := rv.Kind()
@@ -58,238 +121,150 @@ func (enc *Encoder) encode(key Key, rv reflect.Value) error {
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
 		reflect.Uint64,
-		reflect.Float32, reflect.Float64,
-		reflect.String, reflect.Bool:
-		err := enc.eKeyEq(key)
-		if err != nil {
-			return err
-		}
-		return enc.eElement(rv)
+		reflect.Float32, reflect.Float64, reflect.String, reflect.Bool:
+		enc.keyEqElement(key, rv)
 	case reflect.Array, reflect.Slice:
-		return enc.eArrayOrSlice(key, rv)
+		if typeEqual(tomlArrayHash, tomlTypeOfGo(rv)) {
+			enc.eArrayOfTables(key, rv)
+		} else {
+			enc.keyEqElement(key, rv)
+		}
 	case reflect.Interface:
 		if rv.IsNil() {
-			return nil
+			return
 		}
-		return enc.encode(key, rv.Elem())
+		enc.encode(key, rv.Elem())
 	case reflect.Map:
 		if rv.IsNil() {
-			return nil
+			return
 		}
-		return enc.eTable(key, rv)
+		enc.eTable(key, rv)
 	case reflect.Ptr:
 		if rv.IsNil() {
-			return nil
+			return
 		}
-		return enc.encode(key, rv.Elem())
+		enc.encode(key, rv.Elem())
 	case reflect.Struct:
-		return enc.eTable(key, rv)
+		enc.eTable(key, rv)
+	default:
+		panic(e("Unsupported type for key '%s': %s", key, k))
 	}
-	return e("Unsupported type for key '%s': %s", key, k)
 }
 
 // eElement encodes any value that can be an array element (primitives and
 // arrays).
-func (enc *Encoder) eElement(rv reflect.Value) error {
-	ws := func(s string) error {
-		_, err := io.WriteString(enc.w, s)
-		return err
-	}
-	// By the TOML spec, all floats must have a decimal with at least one
-	// number on either side.
-	floatAddDecimal := func(fstr string) string {
-		if !strings.Contains(fstr, ".") {
-			return fstr + ".0"
+func (enc *Encoder) eElement(rv reflect.Value) {
+	switch v := rv.Interface().(type) {
+	case time.Time:
+		// Special case time.Time as a primitive. Has to come before
+		// TextMarshaler below because time.Time implements
+		// encoding.TextMarshaler, but we need to always use UTC.
+		enc.wf(v.In(time.FixedZone("UTC", 0)).Format("2006-01-02T15:04:05Z"))
+		return
+	case TextMarshaler:
+		// Special case. Use text marshaler if it's available for this value.
+		if s, err := v.MarshalText(); err != nil {
+			encPanic(err)
+		} else {
+			enc.writeQuoted(string(s))
 		}
-		return fstr
+		return
 	}
-
-	// Special case. Use text marshaler if it's available for this value.
-	if v, ok := rv.Interface().(TextMarshaler); ok {
-		s, err := v.MarshalText()
-		if err != nil {
-			return err
-		}
-		return ws(string(s))
-	}
-
-	var err error
-	k := rv.Kind()
-	switch k {
+	switch rv.Kind() {
 	case reflect.Bool:
-		err = ws(strconv.FormatBool(rv.Bool()))
+		enc.wf(strconv.FormatBool(rv.Bool()))
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		err = ws(strconv.FormatInt(rv.Int(), 10))
+		enc.wf(strconv.FormatInt(rv.Int(), 10))
 	case reflect.Uint, reflect.Uint8, reflect.Uint16,
 		reflect.Uint32, reflect.Uint64:
-		err = ws(strconv.FormatUint(rv.Uint(), 10))
+		enc.wf(strconv.FormatUint(rv.Uint(), 10))
 	case reflect.Float32:
-		err = ws(floatAddDecimal(strconv.FormatFloat(rv.Float(), 'f', -1, 32)))
+		enc.wf(floatAddDecimal(strconv.FormatFloat(rv.Float(), 'f', -1, 32)))
 	case reflect.Float64:
-		err = ws(floatAddDecimal(strconv.FormatFloat(rv.Float(), 'f', -1, 64)))
+		enc.wf(floatAddDecimal(strconv.FormatFloat(rv.Float(), 'f', -1, 64)))
 	case reflect.Array, reflect.Slice:
-		return enc.eArrayOrSliceElement(rv)
+		enc.eArrayOrSliceElement(rv)
 	case reflect.Interface:
-		return enc.eElement(rv.Elem())
+		enc.eElement(rv.Elem())
 	case reflect.String:
-		s := rv.String()
-		s = strings.NewReplacer(
-			"\t", "\\t",
-			"\n", "\\n",
-			"\r", "\\r",
-			"\"", "\\\"",
-			"\\", "\\\\",
-		).Replace(s)
-		err = ws("\"" + s + "\"")
+		enc.writeQuoted(rv.String())
 	default:
-		return e("Unexpected primitive type: %s", k)
+		panic(e("Unexpected primitive type: %s", rv.Kind()))
 	}
-	return err
 }
 
-func (enc *Encoder) eArrayOrSlice(key Key, rv reflect.Value) error {
-	// Determine whether this is an array of tables or of primitives.
-	elemV := reflect.ValueOf(nil)
-	if rv.Len() > 0 {
-		elemV = rv.Index(0)
+// By the TOML spec, all floats must have a decimal with at least one
+// number on either side.
+func floatAddDecimal(fstr string) string {
+	if !strings.Contains(fstr, ".") {
+		return fstr + ".0"
 	}
-	isTableType, err := isTOMLTableType(rv.Type().Elem(), elemV)
-	if err != nil {
-		return err
-	}
-
-	if len(key) > 0 && isTableType {
-		return enc.eArrayOfTables(key, rv)
-	}
-
-	err = enc.eKeyEq(key)
-	if err != nil {
-		return err
-	}
-	return enc.eArrayOrSliceElement(rv)
+	return fstr
 }
 
-func (enc *Encoder) eArrayOrSliceElement(rv reflect.Value) error {
-	if _, err := enc.w.Write([]byte{'['}); err != nil {
-		return err
-	}
+func (enc *Encoder) writeQuoted(s string) {
+	enc.wf("\"%s\"", quotedReplacer.Replace(s))
+}
 
+func (enc *Encoder) eArrayOrSliceElement(rv reflect.Value) {
 	length := rv.Len()
-	if length > 0 {
-		arrayElemType, isNil := tomlTypeName(rv.Index(0))
-		if isNil {
-			return ErrArrayNilElement
-		}
-
-		for i := 0; i < length; i++ {
-			elem := rv.Index(i)
-
-			// Ensure that the array's elements each have the same TOML type.
-			elemType, isNil := tomlTypeName(elem)
-			if isNil {
-				return ErrArrayNilElement
-			}
-			if elemType != arrayElemType {
-				return ErrArrayMixedElementTypes
-			}
-
-			if err := enc.eElement(elem); err != nil {
-				return err
-			}
-			if i != length-1 {
-				if _, err := enc.w.Write([]byte(", ")); err != nil {
-					return err
-				}
-			}
+	enc.wf("[")
+	for i := 0; i < length; i++ {
+		elem := rv.Index(i)
+		enc.eElement(elem)
+		if i != length-1 {
+			enc.wf(", ")
 		}
 	}
-
-	if _, err := enc.w.Write([]byte{']'}); err != nil {
-		return err
-	}
-	return nil
+	enc.wf("]")
 }
 
-func (enc *Encoder) eArrayOfTables(key Key, rv reflect.Value) error {
-	if enc.hasWritten {
-		_, err := enc.w.Write([]byte{'\n'})
-		if err != nil {
-			return err
-		}
+func (enc *Encoder) eArrayOfTables(key Key, rv reflect.Value) {
+	if len(key) == 0 {
+		encPanic(errNoKey)
 	}
-
+	panicIfInvalidKey(key, true)
 	for i := 0; i < rv.Len(); i++ {
 		trv := rv.Index(i)
 		if isNil(trv) {
 			continue
 		}
-
-		_, err := fmt.Fprintf(enc.w, "%s[[%s]]\n",
-			strings.Repeat(enc.Indent, len(key)-1), key.String())
-		if err != nil {
-			return err
-		}
-
-		err = enc.eMapOrStruct(key, trv)
-		if err != nil {
-			return err
-		}
-
-		if i != rv.Len()-1 {
-			if _, err := enc.w.Write([]byte("\n\n")); err != nil {
-				return err
-			}
-		}
-		enc.hasWritten = true
-	}
-	return nil
-}
-
-func isStructOrMap(rv reflect.Value) bool {
-	switch rv.Kind() {
-	case reflect.Interface, reflect.Ptr:
-		return isStructOrMap(rv.Elem())
-	case reflect.Map, reflect.Struct:
-		return true
-	default:
-		return false
+		enc.newline()
+		enc.wf("%s[[%s]]", enc.indentStr(key), key.String())
+		enc.newline()
+		enc.eMapOrStruct(key, trv)
 	}
 }
 
-func (enc *Encoder) eTable(key Key, rv reflect.Value) error {
-	if enc.hasWritten {
-		_, err := enc.w.Write([]byte{'\n'})
-		if err != nil {
-			return err
-		}
+func (enc *Encoder) eTable(key Key, rv reflect.Value) {
+	if len(key) == 1 {
+		// Output an extra new line between top-level tables.
+		// (The newline isn't written if nothing else has been written though.)
+		enc.newline()
 	}
 	if len(key) > 0 {
-		_, err := fmt.Fprintf(enc.w, "%s[%s]\n",
-			strings.Repeat(enc.Indent, len(key)-1), key.String())
-		if err != nil {
-			return err
-		}
+		panicIfInvalidKey(key, true)
+		enc.wf("%s[%s]", enc.indentStr(key), key.String())
+		enc.newline()
 	}
-	return enc.eMapOrStruct(key, rv)
+	enc.eMapOrStruct(key, rv)
 }
 
-func (enc *Encoder) eMapOrStruct(key Key, rv reflect.Value) error {
-	switch rv.Kind() {
+func (enc *Encoder) eMapOrStruct(key Key, rv reflect.Value) {
+	switch rv := eindirect(rv); rv.Kind() {
 	case reflect.Map:
-		return enc.eMap(key, rv)
+		enc.eMap(key, rv)
 	case reflect.Struct:
-		return enc.eStruct(key, rv)
-	case reflect.Ptr, reflect.Interface:
-		return enc.eMapOrStruct(key, rv.Elem())
+		enc.eStruct(key, rv)
 	default:
 		panic("eTable: unhandled reflect.Value Kind: " + rv.Kind().String())
 	}
 }
 
-func (enc *Encoder) eMap(key Key, rv reflect.Value) error {
+func (enc *Encoder) eMap(key Key, rv reflect.Value) {
 	rt := rv.Type()
 	if rt.Key().Kind() != reflect.String {
-		return errors.New("can't encode a map with non-string key type")
+		encPanic(errNonString)
 	}
 
 	// Sort keys so that we have deterministic output. And write keys directly
@@ -297,49 +272,29 @@ func (enc *Encoder) eMap(key Key, rv reflect.Value) error {
 	var mapKeysDirect, mapKeysSub []string
 	for _, mapKey := range rv.MapKeys() {
 		k := mapKey.String()
-		mrv := rv.MapIndex(mapKey)
-		if isStructOrMap(mrv) {
+		if typeIsHash(tomlTypeOfGo(rv.MapIndex(mapKey))) {
 			mapKeysSub = append(mapKeysSub, k)
 		} else {
 			mapKeysDirect = append(mapKeysDirect, k)
 		}
 	}
 
-	var writeMapKeys = func(mapKeys []string) error {
+	var writeMapKeys = func(mapKeys []string) {
 		sort.Strings(mapKeys)
-		for i, mapKey := range mapKeys {
+		for _, mapKey := range mapKeys {
 			mrv := rv.MapIndex(reflect.ValueOf(mapKey))
 			if isNil(mrv) {
 				// Don't write anything for nil fields.
 				continue
 			}
-			if err := enc.encode(key.add(mapKey), mrv); err != nil {
-				return err
-			}
-
-			if i != len(mapKeys)-1 {
-				if _, err := enc.w.Write([]byte{'\n'}); err != nil {
-					return err
-				}
-			}
-			enc.hasWritten = true
+			enc.encode(key.add(mapKey), mrv)
 		}
-
-		return nil
 	}
-
-	err := writeMapKeys(mapKeysDirect)
-	if err != nil {
-		return err
-	}
-	err = writeMapKeys(mapKeysSub)
-	if err != nil {
-		return err
-	}
-	return nil
+	writeMapKeys(mapKeysDirect)
+	writeMapKeys(mapKeysSub)
 }
 
-func (enc *Encoder) eStruct(key Key, rv reflect.Value) error {
+func (enc *Encoder) eStruct(key Key, rv reflect.Value) {
 	// Write keys for fields directly under this key first, because if we write
 	// a field that creates a new table, then all keys under it will be in that
 	// table (not the one we're writing here).
@@ -349,15 +304,19 @@ func (enc *Encoder) eStruct(key Key, rv reflect.Value) error {
 	addFields = func(rt reflect.Type, rv reflect.Value, start []int) {
 		for i := 0; i < rt.NumField(); i++ {
 			f := rt.Field(i)
+			// skip unexporded fields
+			if f.PkgPath != "" {
+				continue
+			}
 			frv := rv.Field(i)
 			if f.Anonymous {
+				frv := eindirect(frv)
 				t := frv.Type()
-				if t.Kind() == reflect.Ptr {
-					t = t.Elem()
-					frv = frv.Elem()
+				if t.Kind() != reflect.Struct {
+					encPanic(errAnonNonStruct)
 				}
 				addFields(t, frv, f.Index)
-			} else if isStructOrMap(frv) {
+			} else if typeIsHash(tomlTypeOfGo(frv)) {
 				fieldsSub = append(fieldsSub, append(start, f.Index...))
 			} else {
 				fieldsDirect = append(fieldsDirect, append(start, f.Index...))
@@ -366,8 +325,8 @@ func (enc *Encoder) eStruct(key Key, rv reflect.Value) error {
 	}
 	addFields(rt, rv, nil)
 
-	var writeFields = func(fields [][]int) error {
-		for i, fieldIndex := range fields {
+	var writeFields = func(fields [][]int) {
+		for _, fieldIndex := range fields {
 			sft := rt.FieldByIndex(fieldIndex)
 			sf := rv.FieldByIndex(fieldIndex)
 			if isNil(sf) {
@@ -382,108 +341,132 @@ func (enc *Encoder) eStruct(key Key, rv reflect.Value) error {
 			if keyName == "" {
 				keyName = sft.Name
 			}
-
-			if err := enc.encode(key.add(keyName), sf); err != nil {
-				return err
-			}
-
-			if i != len(fields)-1 {
-				if _, err := enc.w.Write([]byte{'\n'}); err != nil {
-					return err
-				}
-			}
-			enc.hasWritten = true
-		}
-		return nil
-	}
-
-	err := writeFields(fieldsDirect)
-	if err != nil {
-		return err
-	}
-	if len(fieldsDirect) > 0 && len(fieldsSub) > 0 {
-		_, err = enc.w.Write([]byte{'\n'})
-		if err != nil {
-			return err
+			enc.encode(key.add(keyName), sf)
 		}
 	}
-	err = writeFields(fieldsSub)
-	if err != nil {
-		return err
-	}
-	return nil
+	writeFields(fieldsDirect)
+	writeFields(fieldsSub)
 }
 
 // tomlTypeName returns the TOML type name of the Go value's type. It is used to
 // determine whether the types of array elements are mixed (which is forbidden).
 // If the Go value is nil, then it is illegal for it to be an array element, and
 // valueIsNil is returned as true.
-func tomlTypeName(rv reflect.Value) (typeName string, valueIsNil bool) {
-	if isNil(rv) {
-		return "", true
+
+// Returns the TOML type of a Go value. The type may be `nil`, which means
+// no concrete TOML type could be found.
+func tomlTypeOfGo(rv reflect.Value) tomlType {
+	if isNil(rv) || !rv.IsValid() {
+		return nil
 	}
-	k := rv.Kind()
-	switch k {
+	switch rv.Kind() {
 	case reflect.Bool:
-		return "bool", false
+		return tomlBool
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
 		reflect.Uint64:
-		return "integer", false
+		return tomlInteger
 	case reflect.Float32, reflect.Float64:
-		return "float", false
+		return tomlFloat
 	case reflect.Array, reflect.Slice:
-		return "array", false
+		if typeEqual(tomlHash, tomlArrayType(rv)) {
+			return tomlArrayHash
+		} else {
+			return tomlArray
+		}
 	case reflect.Ptr, reflect.Interface:
-		return tomlTypeName(rv.Elem())
+		return tomlTypeOfGo(rv.Elem())
 	case reflect.String:
-		return "string", false
-	case reflect.Map, reflect.Struct:
-		return "table", false
+		return tomlString
+	case reflect.Map:
+		return tomlHash
+	case reflect.Struct:
+		switch rv.Interface().(type) {
+		case time.Time:
+			return tomlDatetime
+		case TextMarshaler:
+			return tomlString
+		default:
+			return tomlHash
+		}
 	default:
-		panic("unexpected reflect.Kind: " + k.String())
+		panic("unexpected reflect.Kind: " + rv.Kind().String())
 	}
 }
 
-// isTOMLTableType returns whether this type and value represents a TOML table
-// type (true) or element type (false). Both rt and rv are needed to determine
-// this, in case the Go type is interface{} or in case rv is nil. If there is
-// some other impossible situation detected, an error is returned.
-func isTOMLTableType(rt reflect.Type, rv reflect.Value) (bool, error) {
-	k := rt.Kind()
-	switch k {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32,
-		reflect.Uint64,
-		reflect.Float32, reflect.Float64,
-		reflect.String, reflect.Bool:
-		return false, nil
-	case reflect.Array, reflect.Slice:
-		// Make sure that these eventually contain an underlying non-table type
-		// element.
-		elemV := reflect.ValueOf(nil)
-		if rv.Len() > 0 {
-			elemV = rv.Index(0)
+// tomlArrayType returns the element type of a TOML array. The type returned
+// may be nil if it cannot be determined (e.g., a nil slice or a zero length
+// slize). This function may also panic if it finds a type that cannot be
+// expressed in TOML (such as nil elements, heterogeneous arrays or directly
+// nested arrays of tables).
+func tomlArrayType(rv reflect.Value) tomlType {
+	if isNil(rv) || !rv.IsValid() || rv.Len() == 0 {
+		return nil
+	}
+	firstType := tomlTypeOfGo(rv.Index(0))
+	if firstType == nil {
+		encPanic(errArrayNilElement)
+	}
+
+	rvlen := rv.Len()
+	for i := 1; i < rvlen; i++ {
+		elem := rv.Index(i)
+		switch elemType := tomlTypeOfGo(elem); {
+		case elemType == nil:
+			encPanic(errArrayNilElement)
+		case !typeEqual(firstType, elemType):
+			encPanic(errArrayMixedElementTypes)
 		}
-		hasUnderlyingTableType, err := isTOMLTableType(rt.Elem(), elemV)
-		if err != nil {
-			return false, err
+	}
+	// If we have a nested array, then we must make sure that the nested
+	// array contains ONLY primitives.
+	// This checks arbitrarily nested arrays.
+	if typeEqual(firstType, tomlArray) || typeEqual(firstType, tomlArrayHash) {
+		nest := tomlArrayType(eindirect(rv.Index(0)))
+		if typeEqual(nest, tomlHash) || typeEqual(nest, tomlArrayHash) {
+			encPanic(errArrayNoTable)
 		}
-		if hasUnderlyingTableType {
-			return true, errors.New("TOML array element can't contain a table")
-		}
-		return false, nil
-	case reflect.Ptr:
-		return isTOMLTableType(rt.Elem(), rv.Elem())
-	case reflect.Interface:
-		if rv.Kind() == reflect.Interface {
-			return false, nil
-		}
-		return isTOMLTableType(rv.Type(), rv)
-	case reflect.Map, reflect.Struct:
-		return true, nil
+	}
+	return firstType
+}
+
+func (enc *Encoder) newline() {
+	if enc.hasWritten {
+		enc.wf("\n")
+	}
+}
+
+func (enc *Encoder) keyEqElement(key Key, val reflect.Value) {
+	if len(key) == 0 {
+		encPanic(errNoKey)
+	}
+	panicIfInvalidKey(key, false)
+	enc.wf("%s%s = ", enc.indentStr(key), key[len(key)-1])
+	enc.eElement(val)
+	enc.newline()
+}
+
+func (enc *Encoder) wf(format string, v ...interface{}) {
+	if _, err := fmt.Fprintf(enc.w, format, v...); err != nil {
+		encPanic(err)
+	}
+	enc.hasWritten = true
+}
+
+func (enc *Encoder) indentStr(key Key) string {
+	return strings.Repeat(enc.Indent, len(key)-1)
+}
+
+func encPanic(err error) {
+	panic(tomlEncodeError{err})
+}
+
+func eindirect(v reflect.Value) reflect.Value {
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		return eindirect(v.Elem())
 	default:
-		panic("unexpected reflect.Kind: " + k.String())
+		return v
 	}
 }
 
@@ -496,21 +479,37 @@ func isNil(rv reflect.Value) bool {
 	}
 }
 
-func (enc *Encoder) eKeyEq(key Key) error {
-	_, err := io.WriteString(enc.w, strings.Repeat(enc.Indent, len(key)-1))
-	if err != nil {
-		return err
+func panicIfInvalidKey(key Key, hash bool) {
+	if hash {
+		for _, k := range key {
+			if !isValidTableName(k) {
+				encPanic(e("Key '%s' is not a valid table name. Table names "+
+					"cannot contain '[', ']' or '.'.", key.String()))
+			}
+		}
+	} else {
+		if !isValidKeyName(key[len(key)-1]) {
+			encPanic(e("Key '%s' is not a name. Key names "+
+				"cannot contain whitespace.", key.String()))
+		}
 	}
-	_, err = io.WriteString(enc.w, key[len(key)-1]+" = ")
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
-func eindirect(v reflect.Value) reflect.Value {
-	if v.Kind() != reflect.Ptr {
-		return v
+func isValidTableName(s string) bool {
+	if len(s) == 0 {
+		return false
 	}
-	return eindirect(reflect.Indirect(v))
+	for _, r := range s {
+		if r == '[' || r == ']' || r == '.' {
+			return false
+		}
+	}
+	return true
+}
+
+func isValidKeyName(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	return true
 }

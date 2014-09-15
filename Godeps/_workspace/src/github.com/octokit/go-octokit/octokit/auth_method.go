@@ -3,10 +3,11 @@ package octokit
 import (
 	"encoding/base64"
 	"fmt"
-	"github.com/fhs/go-netrc/netrc"
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/fhs/go-netrc/netrc"
 )
 
 // See http://developer.github.com/v3/auth/

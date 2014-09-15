@@ -1,9 +1,10 @@
 package octokit
 
 import (
-	"github.com/lostisland/go-sawyer/hypermedia"
 	"net/url"
 	"time"
+
+	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
 var (
