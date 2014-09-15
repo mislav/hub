@@ -7,8 +7,8 @@ import (
 
 func newConfigService() *configService {
 	return &configService{
-		Encoder: &tomlConfigEncoder{},
-		Decoder: &tomlConfigDecoder{},
+		Encoder: &yamlConfigEncoder{},
+		Decoder: &yamlConfigDecoder{},
 	}
 }
 
