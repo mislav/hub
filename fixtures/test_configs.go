@@ -33,7 +33,7 @@ func SetupTestConfigs() *TestConfigs {
 
 	content := `---
 github.com:
-  user: jingweno
+- user: jingweno
   oauth_token: 123
   protocol: http`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
