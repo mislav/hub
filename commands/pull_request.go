@@ -86,7 +86,7 @@ func pullRequest(cmd *Command, args *Args) {
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
 
-	host, err := github.CurrentConfigs().PromptForHost(baseProject.Host)
+	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
 	if err != nil {
 		utils.Check(github.FormatError("creating pull request", err))
 	}

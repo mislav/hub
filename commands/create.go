@@ -73,8 +73,8 @@ func create(command *Command, args *Args) {
 		newRepoName = args.FirstParam()
 	}
 
-	configs := github.CurrentConfigs()
-	host, err := configs.DefaultHost()
+	config := github.CurrentConfig()
+	host, err := config.DefaultHost()
 	if err != nil {
 		utils.Check(github.FormatError("creating repository", err))
 	}

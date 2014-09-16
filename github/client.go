@@ -443,7 +443,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 func (client *Client) api() (c *octokit.Client, err error) {
 	if client.Host.AccessToken == "" {
-		host, e := CurrentConfigs().PromptForHost(client.Host.Host)
+		host, e := CurrentConfig().PromptForHost(client.Host.Host)
 		if e != nil {
 			err = e
 			return
