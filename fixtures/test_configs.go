@@ -14,7 +14,7 @@ func (c *TestConfigs) TearDown() {
 	os.RemoveAll(c.Path)
 }
 
-func SetupTestConfigs() *TestConfigs {
+func SetupTomlTestConfig() *TestConfigs {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 
 	content := `[[hosts]]
@@ -22,6 +22,20 @@ func SetupTestConfigs() *TestConfigs {
   user = "jingweno"
   access_token = "123"
   protocol = "http"`
+	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
+	os.Setenv("GH_CONFIG", file.Name())
+
+	return &TestConfigs{file.Name()}
+}
+
+func SetupTestConfigs() *TestConfigs {
+	file, _ := ioutil.TempFile("", "test-gh-config-")
+
+	content := `---
+github.com:
+- user: jingweno
+  oauth_token: 123
+  protocol: http`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
 	os.Setenv("GH_CONFIG", file.Name())
 

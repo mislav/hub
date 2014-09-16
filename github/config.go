@@ -16,6 +16,14 @@ var (
 	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "hub")
 )
 
+type yamlHost struct {
+	User       string `yaml:"user"`
+	OAuthToken string `yaml:"oauth_token"`
+	Protocol   string `yaml:"protocol"`
+}
+
+type yamlConfig map[string][]yamlHost
+
 type Host struct {
 	Host        string `toml:"host"`
 	User        string `toml:"user"`
@@ -157,11 +165,7 @@ func configsFile() string {
 
 func CurrentConfig() *Config {
 	c := &Config{}
-
-	err := newConfigService().Load(configsFile(), c)
-	if err != nil {
-		// load from YAML
-	}
+	newConfigService().Load(configsFile(), c)
 
 	return c
 }
