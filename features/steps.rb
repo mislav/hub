@@ -188,11 +188,6 @@ Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
   end
 end
 
-# This is to validate a toml file since it includes "
-Then(/^the file "([^"]*)" should contain '(.*)'$/) do |file, partial_content|
-  check_file_content(file, partial_content, true)
-end
-
 Given(/^the file named "(.+?)" is older than hub source$/) do |file|
   prep_for_fs_check do
     time = File.mtime(File.expand_path('../../lib/hub/commands.rb', __FILE__)) - 60
