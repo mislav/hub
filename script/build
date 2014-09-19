@@ -19,7 +19,8 @@ up_to_date() {
 
 case "$1" in
 "" )
-  up_to_date hub || ./script/godep go build -o hub
+  # always build with noupdate for now until Hub 2.0 is released
+  up_to_date hub || ./script/godep go build -o hub --tags noupdate
   ;;
 test )
   ./script/godep go test ./...

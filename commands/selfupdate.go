@@ -1,15 +1,16 @@
 package commands
 
 import (
-	"github.com/github/hub/utils"
 	"os"
+
+	"github.com/github/hub/utils"
 )
 
 var cmdSelfupdate = &Command{
 	Run:   update,
 	Usage: "selfupdate",
-	Short: "Update gh",
-	Long: `Update gh to the latest version.
+	Short: "Update Hub",
+	Long: `Update Hub to the latest version.
 
 Examples:
   git selfupdate
