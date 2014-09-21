@@ -3,7 +3,6 @@ package commands
 import (
 	"io"
 	"io/ioutil"
-	"os"
 	"regexp"
 
 	"github.com/github/hub/github"
@@ -94,7 +93,7 @@ func transformApplyArgs(args *Args) {
 		}
 
 		idx := args.IndexOfParam(arg)
-		patchFile, err := ioutil.TempFile(os.TempDir(), "hub")
+		patchFile, err := ioutil.TempFile("", "hub")
 		utils.Check(err)
 
 		bytes, err := ioutil.ReadAll(patch)
