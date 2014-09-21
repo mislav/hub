@@ -96,10 +96,9 @@ func transformApplyArgs(args *Args) {
 		patchFile, err := ioutil.TempFile("", "hub")
 		utils.Check(err)
 
-		bytes, err := ioutil.ReadAll(patch)
+		_, err = io.Copy(patchFile, patch)
 		utils.Check(err)
 
-		patchFile.Write(bytes)
 		patchFile.Close()
 		patch.Close()
 
