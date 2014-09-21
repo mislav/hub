@@ -19,7 +19,9 @@ import (
 	goupdate "github.com/inconshreveable/go-update"
 )
 
-const ghAutoUpdateConfig = "gh.autoUpdate"
+const (
+	hubAutoUpdateConfig = "hub.autoUpdate"
+)
 
 func NewUpdater() *Updater {
 	version := os.Getenv("GH_VERSION")
@@ -27,7 +29,7 @@ func NewUpdater() *Updater {
 		version = Version
 	}
 
-	timestampPath := filepath.Join(os.Getenv("HOME"), ".config", "gh-update")
+	timestampPath := filepath.Join(os.Getenv("HOME"), ".config", "hub-update")
 	return &Updater{
 		Host:           github.DefaultGitHubHost(),
 		CurrentVersion: version,
@@ -52,17 +54,16 @@ func (updater *Updater) timeToUpdate() bool {
 }
 
 func (updater *Updater) PromptForUpdate() (err error) {
-	if !updater.timeToUpdate() {
+	config := autoUpdateConfig()
+	if config == "never" || !updater.timeToUpdate() {
 		return
 	}
 
 	releaseName, version := updater.latestReleaseNameAndVersion()
 	if version != "" && version != updater.CurrentVersion {
-		switch autoUpdateConfig() {
+		switch config {
 		case "always":
 			err = updater.updateTo(releaseName, version)
-		case "never":
-			return
 		default:
 			fmt.Println("There is a newer version of gh available.")
 			fmt.Print("Would you like to update? ([Y]es/[N]o/[A]lways/N[e]ver): ")
@@ -82,9 +83,15 @@ func (updater *Updater) PromptForUpdate() (err error) {
 }
 
 func (updater *Updater) Update() (err error) {
+	config := autoUpdateConfig()
+	if config == "never" {
+		fmt.Println("Update is disabled")
+		return
+	}
+
 	releaseName, version := updater.latestReleaseNameAndVersion()
 	if version == "" {
-		fmt.Println("There is no newer version of gh available.")
+		fmt.Println("There is no newer version of hub available.")
 		return
 	}
 
@@ -108,7 +115,7 @@ func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
 
 func (updater *Updater) updateTo(releaseName, version string) (err error) {
 	fmt.Printf("Updating gh to %s...\n", version)
-	downloadURL := fmt.Sprintf("https://%s/jingweno/gh/releases/download/%s/gh_%s_%s_%s.zip", updater.Host, releaseName, version, runtime.GOOS, runtime.GOARCH)
+	downloadURL := fmt.Sprintf("https://%s/github/hub/releases/download/%s/hub%s_%s_%s.zip", updater.Host, releaseName, version, runtime.GOOS, runtime.GOARCH)
 	path, err := downloadFile(downloadURL)
 	if err != nil {
 		return
@@ -242,16 +249,16 @@ func writeTime(path string, t time.Time) bool {
 
 func saveAutoUpdateConfiguration(confirm string, always bool) {
 	if always {
-		git.SetGlobalConfig(ghAutoUpdateConfig, "always")
+		git.SetGlobalConfig(hubAutoUpdateConfig, "always")
 	} else if utils.IsOption(confirm, "e", "never") {
-		git.SetGlobalConfig(ghAutoUpdateConfig, "never")
+		git.SetGlobalConfig(hubAutoUpdateConfig, "never")
 	}
 }
 
 func autoUpdateConfig() (opt string) {
-	opt = os.Getenv("GH_AUTOUPDATE")
+	opt = os.Getenv("HUB_AUTOUPDATE")
 	if opt == "" {
-		opt, _ = git.GlobalConfig(ghAutoUpdateConfig)
+		opt, _ = git.GlobalConfig(hubAutoUpdateConfig)
 	}
 
 	return
