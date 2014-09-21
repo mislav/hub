@@ -11,7 +11,7 @@ Feature: hub am
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles/pulls/387') {
-        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch'
+        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch;charset=utf-8'
         generate_patch "Create a README"
       }
       """
@@ -24,7 +24,7 @@ Feature: hub am
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles/pulls/387') {
-        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch'
+        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch;charset=utf-8'
         generate_patch "Create a README"
       }
       """
@@ -38,7 +38,7 @@ Feature: hub am
     Given the GitHub API server:
       """
       get('/api/v3/repos/mislav/dotfiles/pulls/387') {
-        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch'
+        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch;charset=utf-8'
         generate_patch "Create a README"
       }
       """
@@ -49,7 +49,7 @@ Feature: hub am
     Given the GitHub API server:
       """
       get('/repos/davidbalbert/dotfiles/commits/fdb9921') {
-        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch'
+        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3.patch;charset=utf-8'
         generate_patch "Create a README"
       }
       """
@@ -67,7 +67,7 @@ Feature: hub am
         }
       }
       get('/raw/8da7fb575debd88c54cf/SHA/file.diff', :host_name => 'gist.github.com') {
-        halt 400 unless request.env['HTTP_ACCEPT'] == 'text/plain'
+        halt 400 unless request.env['HTTP_ACCEPT'] == 'text/plain;charset=utf-8'
         generate_patch "Create a README"
       }
       """
