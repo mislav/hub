@@ -41,17 +41,6 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 	return
 }
 
-func cloneRequest(req *http.Request) *http.Request {
-	dup := new(http.Request)
-	*dup = *req
-	dup.URL, _ = url.Parse(req.URL.String())
-	dup.Header = make(http.Header)
-	for k, s := range req.Header {
-		dup.Header[k] = s
-	}
-	return dup
-}
-
 func (t *verboseTransport) dumpRequest(req *http.Request) {
 	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.Host, req.URL.Path)
 	t.verbosePrintln(info)
@@ -130,6 +119,17 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		OverrideURL: testURL,
 	}
 	return &http.Client{Transport: tr}
+}
+
+func cloneRequest(req *http.Request) *http.Request {
+	dup := new(http.Request)
+	*dup = *req
+	dup.URL, _ = url.Parse(req.URL.String())
+	dup.Header = make(http.Header)
+	for k, s := range req.Header {
+		dup.Header[k] = s
+	}
+	return dup
 }
 
 // An implementation of http.ProxyFromEnvironment that isn't broken
