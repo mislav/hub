@@ -1,12 +1,13 @@
 package commands
 
 import (
-	"fmt"
+	"io"
+	"io/ioutil"
 	"os"
-	"path/filepath"
 	"regexp"
 
 	"github.com/github/hub/github"
+	"github.com/github/hub/utils"
 )
 
 var cmdApply = &Command{
@@ -60,50 +61,49 @@ func apply(command *Command, args *Args) {
 }
 
 func transformApplyArgs(args *Args) {
-	urlRegexp := regexp.MustCompile("^https?://(gist\\.)github\\.com/")
+	gistRegexp := regexp.MustCompile("^https?://gist\\.github\\.com/([\\w.-]+/)?([a-f0-9]+)")
 	pullRegexp := regexp.MustCompile("^(pull|commit)/([0-9a-f]+)")
 	for _, arg := range args.Params {
 		var (
-			url  string
-			gist bool
+			patch    io.ReadCloser
+			apiError error
 		)
 		projectURL, err := github.ParseURL(arg)
 		if err == nil {
+			gh := github.NewClient(projectURL.Project.Host)
 			match := pullRegexp.FindStringSubmatch(projectURL.ProjectPath())
 			if match != nil {
-				url = projectURL.Project.WebURL("", "", match[1]+"/"+match[2])
+				if match[1] == "pull" {
+					patch, apiError = gh.PullRequestPatch(projectURL.Project, match[2])
+				} else {
+					patch, apiError = gh.CommitPatch(projectURL.Project, match[2])
+				}
 			}
 		} else {
-			gist = urlRegexp.MatchString(arg)
-			if gist {
-				url = arg
+			match := gistRegexp.FindStringSubmatch(arg)
+			if match != nil {
+				// TODO: support Enterprise gist
+				gh := github.NewClient(github.GitHubHost)
+				patch, apiError = gh.GistPatch(match[2])
 			}
 		}
 
-		if url == "" {
+		utils.Check(apiError)
+		if patch == nil {
 			continue
 		}
 
-		var ext string
-		if gist {
-			ext = ".txt"
-		} else {
-			ext = ".patch"
-		}
-
 		idx := args.IndexOfParam(arg)
-		if filepath.Ext(url) != ext {
-			url += ext
-		}
+		patchFile, err := ioutil.TempFile(os.TempDir(), "hub")
+		utils.Check(err)
 
-		var prefix string
-		if gist {
-			prefix = "gist-"
-		}
+		bytes, err := ioutil.ReadAll(patch)
+		utils.Check(err)
 
-		patchFile := filepath.Join(os.TempDir(), prefix+filepath.Base(url))
+		patchFile.Write(bytes)
+		patchFile.Close()
+		patch.Close()
 
-		args.Before("curl", "-#LA", fmt.Sprintf("gh %s", Version), url, "-o", patchFile)
-		args.Params[idx] = patchFile
+		args.Params[idx] = patchFile.Name()
 	}
 }

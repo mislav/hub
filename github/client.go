@@ -2,6 +2,7 @@ package github
 
 import (
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strings"
@@ -63,6 +64,27 @@ func (client *Client) PullRequest(project *Project, id string) (pr *octokit.Pull
 	return
 }
 
+func (client *Client) PullRequestPatch(project *Project, id string) (patch io.ReadCloser, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
+	if err != nil {
+		return
+	}
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request", err)
+		return
+	}
+
+	patch, result := api.PullRequests(client.requestURL(url)).Patch()
+	if result.HasError() {
+		err = FormatError("getting pull request", result.Err)
+		return
+	}
+
+	return
+}
+
 func (client *Client) CreatePullRequest(project *Project, base, head, title, body string) (pr *octokit.PullRequest, err error) {
 	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
@@ -109,6 +131,48 @@ func (client *Client) CreatePullRequestForIssue(project *Project, base, head, is
 			err = fmt.Errorf("%s\n%s", err, e)
 		}
 
+		return
+	}
+
+	return
+}
+
+func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCloser, err error) {
+	url, err := octokit.CommitsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "sha": sha})
+	if err != nil {
+		return
+	}
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request", err)
+		return
+	}
+
+	patch, result := api.Commits(client.requestURL(url)).Patch()
+	if result.HasError() {
+		err = FormatError("getting pull request", result.Err)
+		return
+	}
+
+	return
+}
+
+func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
+	url, err := octokit.GistsURL.Expand(octokit.M{"gist_id": id})
+	if err != nil {
+		return
+	}
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request", err)
+		return
+	}
+
+	patch, result := api.Gists(client.requestURL(url)).Raw()
+	if result.HasError() {
+		err = FormatError("getting pull request", result.Err)
 		return
 	}
 
