@@ -463,23 +463,10 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 		host = client.Host.Host
 	}
 	host = normalizeHost(host)
+	apiHostURL := client.absolute(host)
 
-	apiHost := host
-	hubTestHost := os.Getenv("HUB_TEST_HOST")
-	if hubTestHost != "" {
-		apiHost = hubTestHost
-	}
-
-	hostURL := client.absolute(host)
-	apiHostURL := client.absolute(apiHost)
-
-	httpClient := newHttpClient(os.Getenv("HUB_VERBOSE") != "")
+	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
 	c := octokit.NewClientWith(apiHostURL.String(), UserAgent, auth, httpClient)
-	if hubTestHost != "" {
-		// if it's in test, make sure host name is in the header
-		c.Header.Set("Host", host)
-		c.Header.Set("X-Original-Scheme", hostURL.Scheme)
-	}
 
 	return c
 }
