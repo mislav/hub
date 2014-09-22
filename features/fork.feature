@@ -141,6 +141,7 @@ Scenario: Related fork already exists
       """
       before {
         halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'http'
+        halt 400 unless request.env['HTTP_X_ORIGINAL_PORT'] == '80'
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
       }
       post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }

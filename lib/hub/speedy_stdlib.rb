@@ -33,7 +33,9 @@ unless defined?(URI)
   end
 
   module URI
-    InvalidURIError = Class.new(StandardError)
+    Error = Class.new(StandardError)
+    InvalidURIError = Class.new(Error)
+    InvalidComponentError = Class.new(Error)
 
     def self.parse(str)
       URI::HTTP.new(str)
@@ -56,23 +58,24 @@ unless defined?(URI)
 
     class HTTP
       attr_accessor :scheme, :user, :password, :host, :path, :query, :fragment
-      attr_writer :port
+      attr_reader :port
       alias hostname host
 
       def initialize(str)
         m = str.to_s.match(%r{^ ([\w-]+): // (?:([^/@]+)@)? ([^/?#]+) }x)
         raise InvalidURIError unless m
         _, self.scheme, self.userinfo, host = m.to_a
-        self.host, self.port = host.split(':', 2)
+        self.host, port = host.split(':', 2)
+        self.port = port ? port.to_i : default_port
         path, self.fragment = m.post_match.split('#', 2)
-        self.path, self.query = path.to_s.split('?', 2)
+        path, self.query = path.split('?', 2) if path
+        self.path = path.to_s
       end
 
       def to_s
         url = "#{scheme}://"
         url << "#{userinfo}@" if user || password
-        url << host
-        url << ":#{@port}" if @port
+        url << host << display_port
         url << path
         url << "?#{query}" if query
         url << "##{fragment}" if fragment
@@ -85,8 +88,12 @@ unless defined?(URI)
         url
       end
 
-      def port
-        (@port || (scheme == 'https' ? 443 : 80)).to_i
+      def port=(number)
+        if number.is_a?(Fixnum) && number > 0
+          @port = number
+        else
+          raise InvalidComponentError, "bad component(expected port component): %p" % number
+        end
       end
 
       def userinfo=(info)
@@ -101,6 +108,20 @@ unless defined?(URI)
       end
 
       def find_proxy
+      end
+
+      private
+
+      def default_port
+        self.scheme == 'https' ? 443 : 80
+      end
+
+      def display_port
+        if port != default_port
+          ":#{port}"
+        else
+          ""
+        end
       end
     end
   end
