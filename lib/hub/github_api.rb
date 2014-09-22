@@ -308,6 +308,7 @@ module Hub
           end
         end
 
+        url = URI.parse(url.to_s)
         http = Net::HTTP.new(url.host, url.port, *proxy_args)
 
         if http.use_ssl = use_ssl
