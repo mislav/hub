@@ -15,13 +15,21 @@ import (
 )
 
 type verboseTransport struct {
-	Transport *http.Transport
-	Verbose   bool
+	Transport   *http.Transport
+	Verbose     bool
+	OverrideURL *url.URL
 }
 
 func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
 	if t.Verbose {
 		t.dumpRequest(req)
+	}
+
+	if t.OverrideURL != nil {
+		req = cloneRequest(req)
+		req.Header.Set("X-Original-Scheme", req.URL.Scheme)
+		req.URL.Scheme = t.OverrideURL.Scheme
+		req.URL.Host = t.OverrideURL.Host
 	}
 
 	resp, err = t.Transport.RoundTrip(req)
@@ -34,7 +42,7 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 }
 
 func (t *verboseTransport) dumpRequest(req *http.Request) {
-	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.Header.Get("X-Original-Scheme"), req.Host, req.URL.Path)
+	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.Host, req.URL.Path)
 	t.verbosePrintln(info)
 	t.dumpHeaders(req.Header, ">")
 	body := t.dumpBody(req.Body)
@@ -100,12 +108,28 @@ func (t *verboseTransport) verbosePrintln(msg string) {
 	fmt.Fprintln(os.Stderr, msg)
 }
 
-func newHttpClient(verbose bool) *http.Client {
+func newHttpClient(testHost string, verbose bool) *http.Client {
+	var testURL *url.URL
+	if testHost != "" {
+		testURL, _ = url.Parse(testHost)
+	}
 	tr := &verboseTransport{
-		Transport: &http.Transport{Proxy: proxyFromEnvironment},
-		Verbose:   verbose,
+		Transport:   &http.Transport{Proxy: proxyFromEnvironment},
+		Verbose:     verbose,
+		OverrideURL: testURL,
 	}
 	return &http.Client{Transport: tr}
+}
+
+func cloneRequest(req *http.Request) *http.Request {
+	dup := new(http.Request)
+	*dup = *req
+	dup.URL, _ = url.Parse(req.URL.String())
+	dup.Header = make(http.Header)
+	for k, s := range req.Header {
+		dup.Header[k] = s
+	}
+	return dup
 }
 
 // An implementation of http.ProxyFromEnvironment that isn't broken
