@@ -1,6 +1,11 @@
 require 'helper'
 
 class URITest < Minitest::Test
+  def test_uri_is_from_speedy_stdlib
+    # if it were stdlib, URI::HTTPS would be the result
+    assert_equal URI::HTTP, URI.parse("https://example.com").class
+  end
+
   def test_uri_display_port
     assert_equal "https://example.com", URI.parse("https://example.com").to_s
     assert_equal "https://example.com:80", URI.parse("https://example.com:80").to_s
