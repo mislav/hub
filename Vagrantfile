@@ -9,11 +9,8 @@
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-# Vagrantfile API/syntax version.
-VAGRANTFILE_API_VERSION = "2"
-
 GO_ARCHIVES = {
-  "linux" => "go1.2.linux-amd64.tar.gz",
+  "linux" => "go1.3.1.linux-amd64.tar.gz",
 }
 
 INSTALL = {
@@ -34,38 +31,33 @@ def bootstrap(box)
   profile = <<-PROFILE
     export GOROOT=#{vagrant_home}/go
     export GOPATH=#{vagrant_home}/gocode
-    export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
-    export CDPATH=.:$GOPATH/src/github.com:$GOPATH/src/code.google.com/p:$GOPATH/src/bitbucket.org:$GOPATH/src/launchpad.net
+    export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
   PROFILE
 
   <<-SCRIPT
   #{install}
 
   if ! [ -f /home/vagrant/#{archive} ]; then
-    curl -O# https://go.googlecode.com/files/#{archive}
+    curl -O# https://storage.googleapis.com/golang/#{archive}
   fi
   tar -C /home/vagrant -xzf #{archive}
   chown -R vagrant:vagrant #{vagrant_home}/go
 
-  if ! grep -q GOPATH #{vagrant_home}/.profile; then
-    echo '#{profile}' >> #{vagrant_home}/.profile
+  if ! grep -q GOPATH #{vagrant_home}/.bashrc; then
+    echo '#{profile}' >> #{vagrant_home}/.bashrc
   fi
-  source #{vagrant_home}/.profile
+  source #{vagrant_home}/.bashrc
 
   chown -R vagrant:vagrant #{vagrant_home}/gocode
-  go get github.com/jingweno/gotask
 
   echo "\nRun: vagrant ssh #{box} -c 'cd project/path; go test ./...'"
   SCRIPT
 end
 
-Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
-
+Vagrant.configure("2") do |config|
   config.vm.define "linux" do |linux|
-    linux.vm.box = "precise64"
-    linux.vm.box_url = "http://files.vagrantup.com/precise64.box"
-    linux.vm.synced_folder "#{src_path}/src/github.com/jingweno/gh", "/home/vagrant/gocode/src/github.com/jingweno/gh"
+    linux.vm.box = "ubuntu/trusty64"
+    linux.vm.synced_folder "#{src_path}/src/github.com/github/hub", "/home/vagrant/gocode/src/github.com/github/hub"
     linux.vm.provision :shell, :inline => bootstrap("linux")
   end
-
 end

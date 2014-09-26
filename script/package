@@ -1,10 +1,99 @@
-#!/usr/bin/env bash
-# Usage: make
+#!/usr/bin/env ruby
+# Usage: script/package
 #
-# Package gh for release
-#
-# Author: Jingwen Owen Ou
+# Packages `hub` for release for current platform
 
-go get github.com/kr/godep
-go get github.com/jingweno/gotask
-GOPATH=`godep path`:$GOPATH gotask package
+require "fileutils"
+include FileUtils
+
+module OS
+  class << self
+    def type
+      if darwin?
+        "darwin"
+      elsif linux?
+        "linux"
+      elsif windows?
+        "windows"
+      else
+        raise "Unknown OS type #{RUBY_PLATFORM}"
+      end
+    end
+
+    def windows?
+      (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def darwin?
+      (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def linux?
+      (/linux/ =~ RUBY_PLATFORM) != nil
+    end
+  end
+end
+
+module Packer
+  class << self
+    def pack!
+      install_gox!
+      build_toolchain!
+      build_hub
+      cp_assets
+      tar_gzip
+    end
+
+    private
+
+    # Returns the root path to paths
+    def root_path(*paths)
+      current = File.expand_path(File.dirname(__FILE__)) # current is the target folder
+      File.expand_path File.join(current, "..", paths)
+    end
+
+    def glob_dir(path)
+      Dir[path].select { |d| File.directory?(d) }
+    end
+
+    def install_gox!
+      puts "Installing github.com/mitchellh/gox"
+      result = system "go get github.com/mitchellh/gox"
+      raise "Fail to install gox" unless result
+    end
+
+    def build_toolchain!
+      puts "Building Go toolchain"
+      result = system "gox -build-toolchain -os=#{OS.type} -tags=noupdate"
+      raise "Fail to build Go toolchain" unless result
+    end
+
+    def build_hub
+      puts "Building for #{OS.type}"
+      puts `script/godep gox -os=#{OS.type} -output=./target/{{.OS}}_{{.Arch}}/{{.Dir}}`
+      raise "Fail to build hub" unless $?.exited?
+    end
+
+    def cp_assets
+      path = root_path("target", "#{OS.type}*")
+      glob_dir(path).each do |dir|
+        puts "Copying assets to #{dir}"
+        ["README.md", "LICENSE", "etc/"].each do |f|
+          cp_r f, File.join(dir, f)
+        end
+      end
+    end
+
+    def tar_gzip
+      path = root_path("target", "#{OS.type}*")
+      glob_dir(path).each do |dir|
+        puts "Archiving #{dir}"
+        Dir.chdir(root_path("target")) do
+          `tar -zcf #{File.basename(dir)}.gz.tar #{File.basename(dir)}`
+        end
+      end
+    end
+  end
+end
+
+Packer.pack!
