@@ -641,7 +641,7 @@ module Hub
     # > git push staging cool-feature
     def push(args)
       if args[1].nil?
-        return args.concat ['--follow-tags']
+        return args.concat(['--follow-tags'])
       end
 
       return if !args[1].index(',')
