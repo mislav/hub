@@ -50,6 +50,10 @@ def bootstrap(box)
 
   chown -R vagrant:vagrant #{vagrant_home}/gocode
 
+  apt-get update -qq
+  apt-get install -qq ruby1.9.1-dev tmux zsh git
+  gem install bundler
+
   echo "\nRun: vagrant ssh #{box} -c 'cd project/path; go test ./...'"
   SCRIPT
 end

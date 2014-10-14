@@ -90,8 +90,13 @@ class Packer
 
   def run_tests!
     puts "Running Hub tests"
+
+    bootstrap_script = root_path("script", "test")
+    `#{bootstrap_script}`
+
     test_script = root_path("script", "test")
     `#{test_script}`
+
     raise "Hub tests fail" unless $?.exited?
   end
 
