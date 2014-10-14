@@ -50,6 +50,7 @@ class Packer
   def pack!
     install_gox!
     build_toolchain!
+    run_tests!
     build_hub!
     cp_assets
     tar_gzip
@@ -85,6 +86,13 @@ class Packer
     puts "Building Go toolchain"
     result = system "gox -build-toolchain -os=#{OS.type} -tags=noupdate"
     raise "Fail to build Go toolchain" unless result
+  end
+
+  def run_tests!
+    puts "Running Hub tests"
+    test_script = root_path("script", "test")
+    `#{test_script}`
+    raise "Hub tests fail" unless $?.exited?
   end
 
   def build_hub!
