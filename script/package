@@ -58,6 +58,19 @@ class Packer
 
   private
 
+  def exec!(cmd)
+    io = IO.popen(cmd)
+    begin
+      while line = io.gets
+        puts line.chomp
+      end
+    ensure
+      io.close
+    end
+
+    raise "Fail to execute #{cmd}" unless $?.to_i == 0
+  end
+
   # Returns the root path to paths
   def root_path(*paths)
     current = File.expand_path(File.dirname(__FILE__)) # current is the target folder
@@ -91,20 +104,16 @@ class Packer
   def run_tests!
     puts "Running Hub tests"
 
-    bootstrap_script = root_path("script", "test")
-    `#{bootstrap_script}`
+    bootstrap_script = root_path("script", "bootstrap")
+    exec!(bootstrap_script)
 
     test_script = root_path("script", "test")
-    `#{test_script}`
-
-    raise "Hub tests fail" unless $?.exitstatus == 0
+    exec!(test_script)
   end
 
   def build_hub!
     puts "Building for #{OS.type}"
-    puts `script/godep gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}}`
-
-    raise "Fail to build hub" unless $?.exitstatus == 0
+    exec!("script/godep gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}}")
   end
 
   def cp_assets
@@ -122,7 +131,7 @@ class Packer
     glob_dir(path).each do |dir|
       puts "Archiving #{dir}"
       Dir.chdir(root_path("target")) do
-        `tar -zcf #{File.basename(dir)}.gz.tar #{File.basename(dir)}`
+        exec!("tar -zcf #{File.basename(dir)}.gz.tar #{File.basename(dir)}")
       end
     end
   end
