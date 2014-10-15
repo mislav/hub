@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: script/build [test]
+# Usage: script/build [-o output] [test]
 #
 # Sets up GOPATH and compiles hub. With `test`, runs tests instead.
 
@@ -17,10 +17,18 @@ up_to_date() {
   [ -e "$1" ] && [ "$(count_changed_files "$1")" -eq 0 ]
 }
 
+build_hub() {
+  [ -n "$1" ] && (up_to_date "$1" || ./script/godep go build -o "$1" --tags noupdate)
+}
+
 case "$1" in
 "" )
   # always build with noupdate for now until Hub 2.0 is released
-  up_to_date hub || ./script/godep go build -o hub --tags noupdate
+  build_hub hub
+  ;;
+-o )
+  shift
+  build_hub $1
   ;;
 test )
   ./script/godep go test ./...
