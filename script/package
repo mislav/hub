@@ -97,13 +97,14 @@ class Packer
     test_script = root_path("script", "test")
     `#{test_script}`
 
-    raise "Hub tests fail" unless $?.exited?
+    raise "Hub tests fail" unless $?.exitstatus == 0
   end
 
   def build_hub!
     puts "Building for #{OS.type}"
     puts `script/godep gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}}`
-    raise "Fail to build hub" unless $?.exited?
+
+    raise "Fail to build hub" unless $?.exitstatus == 0
   end
 
   def cp_assets
