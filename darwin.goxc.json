@@ -1,5 +1,0 @@
-{
-  "ConfigVersion": "0.9",
-  "BuildConstraints": "darwin",
-  "ResourcesInclude": "INSTALL*,README*,LICENSE*,etc/gh.*"
-}

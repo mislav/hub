@@ -1,10 +1,140 @@
-#!/usr/bin/env bash
-# Usage: make
+#!/usr/bin/env ruby
+# Usage: script/package
 #
-# Package gh for release
-#
-# Author: Jingwen Owen Ou
+# Packages `hub` for release for current platform
 
-go get github.com/kr/godep
-go get github.com/jingweno/gotask
-GOPATH=`godep path`:$GOPATH gotask package
+require "fileutils"
+include FileUtils
+
+module OS
+  class << self
+    def type
+      if darwin?
+        "darwin"
+      elsif linux?
+        "linux"
+      elsif windows?
+        "windows"
+      else
+        raise "Unknown OS type #{RUBY_PLATFORM}"
+      end
+    end
+
+    def windows?
+      (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def darwin?
+      (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def linux?
+      (/linux/ =~ RUBY_PLATFORM) != nil
+    end
+  end
+end
+
+class Packer
+  class << self
+    def pack!
+      self.new.pack!
+    end
+  end
+
+  attr_reader :version
+
+  def initialize
+    @version = parse_version!
+  end
+
+  def pack!
+    install_gox!
+    build_toolchain!
+    run_tests!
+    build_hub!
+    cp_assets
+    tar_gzip
+  end
+
+  private
+
+  def exec!(cmd)
+    io = IO.popen(cmd)
+    begin
+      while line = io.gets
+        puts line.chomp
+      end
+    ensure
+      io.close
+    end
+
+    raise "Fail to execute #{cmd}" unless $?.to_i == 0
+  end
+
+  # Returns the root path to paths
+  def root_path(*paths)
+    current = File.expand_path(File.dirname(__FILE__)) # current is the target folder
+    File.expand_path File.join(current, "..", paths)
+  end
+
+  def glob_dir(path)
+    Dir[path].select { |d| File.directory?(d) }
+  end
+
+  def parse_version!
+    content = File.read root_path("commands", "version.go")
+    match = /const Version = "(.+)"/.match content
+    raise "Fail to parse Hub version" unless match
+
+    match[1]
+  end
+
+  def install_gox!
+    puts "Installing github.com/mitchellh/gox"
+    result = system "go get github.com/mitchellh/gox"
+    raise "Fail to install gox" unless result
+  end
+
+  def build_toolchain!
+    puts "Building Go toolchain"
+    result = system "gox -build-toolchain -os=#{OS.type} -tags=noupdate"
+    raise "Fail to build Go toolchain" unless result
+  end
+
+  def run_tests!
+    puts "Running Hub tests"
+
+    bootstrap_script = root_path("script", "bootstrap")
+    exec!(bootstrap_script)
+
+    test_script = root_path("script", "test")
+    exec!(test_script)
+  end
+
+  def build_hub!
+    puts "Building for #{OS.type}"
+    exec!("script/godep gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}}")
+  end
+
+  def cp_assets
+    path = root_path("target", "*#{OS.type}*")
+    glob_dir(path).each do |dir|
+      puts "Copying assets to #{dir}"
+      ["README.md", "LICENSE", "etc/"].each do |f|
+        cp_r f, File.join(dir, f)
+      end
+    end
+  end
+
+  def tar_gzip
+    path = root_path("target", "*#{OS.type}*")
+    glob_dir(path).each do |dir|
+      puts "Archiving #{dir}"
+      Dir.chdir(root_path("target")) do
+        exec!("tar -zcf #{File.basename(dir)}.gz.tar #{File.basename(dir)}")
+      end
+    end
+  end
+end
+
+Packer.pack!

@@ -1,12 +1,13 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
+require 'tmpdir'
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
-hub_dir = File.expand_path('../../../', __FILE__)
-raise 'hub build failed' unless system("./script/build")
+hub_dir = Dir.mktmpdir('hub_build')
+raise 'hub build failed' unless system("./script/build -o #{hub_dir}/hub")
 
 Before do
   # don't want hub to run in bundle
