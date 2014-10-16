@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	ghReportCrashConfig = "gh.reportCrash"
-	ghProjectOwner      = "jingweno"
-	ghProjectName       = "gh"
+	hubReportCrashConfig = "hub.reportCrash"
+	hubProjectOwner      = "github"
+	hubProjectName       = "hub"
 )
 
 func CaptureCrash() {
@@ -63,7 +63,7 @@ func report(reportedError error, stack string) {
 	title, body, err := reportTitleAndBody(reportedError, stack)
 	utils.Check(err)
 
-	project := NewProject(ghProjectOwner, ghProjectName, GitHubHost)
+	project := NewProject(hubProjectOwner, hubProjectName, GitHubHost)
 
 	gh := NewClient(project.Host)
 
@@ -117,16 +117,16 @@ func printError(err error, stack string) {
 
 func saveReportConfiguration(confirm string, always bool) {
 	if always {
-		git.SetGlobalConfig(ghReportCrashConfig, "always")
+		git.SetGlobalConfig(hubReportCrashConfig, "always")
 	} else if utils.IsOption(confirm, "e", "never") {
-		git.SetGlobalConfig(ghReportCrashConfig, "never")
+		git.SetGlobalConfig(hubReportCrashConfig, "never")
 	}
 }
 
 func reportCrashConfig() (opt string) {
 	opt = os.Getenv("GH_REPORT_CRASH")
 	if opt == "" {
-		opt, _ = git.GlobalConfig(ghReportCrashConfig)
+		opt, _ = git.GlobalConfig(hubReportCrashConfig)
 	}
 
 	return
