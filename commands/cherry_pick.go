@@ -43,6 +43,10 @@ func cherryPick(command *Command, args *Args) {
 }
 
 func transformCherryPickArgs(args *Args) {
+	if args.IsParamsEmpty() {
+		return
+	}
+
 	ref := args.LastParam()
 	project, sha := parseCherryPickProjectAndSha(ref)
 	if project != nil {
