@@ -273,13 +273,15 @@ module Hub
 
       def configure_connection req, url
         url.scheme = config.protocol(url.host)
+        url.port = 80 if url.scheme == 'http'
         if ENV['HUB_TEST_HOST']
           req['Host'] = url.host
           req['X-Original-Scheme'] = url.scheme
+          req['X-Original-Port'] = url.port
           url = url.dup
           url.scheme = 'http'
           url.host, test_port = ENV['HUB_TEST_HOST'].split(':')
-          url.port = test_port.to_i if test_port
+          url.port = test_port ? test_port.to_i : 80
         end
         yield url
       end
