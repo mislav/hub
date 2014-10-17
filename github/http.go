@@ -26,8 +26,14 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 	}
 
 	if t.OverrideURL != nil {
+		port := "80"
+		if s := strings.Split(req.URL.Host, ":"); len(s) > 1 {
+			port = s[1]
+		}
+
 		req = cloneRequest(req)
 		req.Header.Set("X-Original-Scheme", req.URL.Scheme)
+		req.Header.Set("X-Original-Port", port)
 		req.URL.Scheme = t.OverrideURL.Scheme
 		req.URL.Host = t.OverrideURL.Host
 	}
