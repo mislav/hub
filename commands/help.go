@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 )
 
@@ -12,21 +13,6 @@ var cmdHelp = &Command{
 	Long:         `Shows usage for a command.`,
 	GitExtension: true,
 }
-
-var (
-	customCommands = []string{
-		"alias",
-		"create",
-		"browse",
-		"compare",
-		"fork",
-		"pull-request",
-		"ci-status",
-		"release",
-		"issue",
-		"update",
-	}
-)
 
 func init() {
 	cmdHelp.Run = runHelp
@@ -40,31 +26,30 @@ func runHelp(cmd *Command, args *Args) {
 		os.Exit(0)
 	}
 
-	for _, cmd := range CmdRunner.All() {
-		if cmd.Name() == args.FirstParam() {
-			cmd.PrintUsage()
-			os.Exit(0)
+	command := args.FirstParam()
+	c := CmdRunner.Lookup(command)
+	if c != nil && !c.GitExtension {
+		c.PrintUsage()
+		os.Exit(0)
+	} else if c == nil {
+		if args.HasFlags("-a", "--all") {
+			args.After("echo", "\nhub custom commands\n")
+			args.After("echo", " ", strings.Join(customCommands(), "  "))
 		}
-	}
-
-	if parseHelpAllFlag(args) {
-		args.After("echo", "\ngh custom commands\n")
-		args.After("echo", " ", strings.Join(customCommands, "  "))
 	}
 }
 
-func parseHelpAllFlag(args *Args) bool {
-	i := args.IndexOfParam("-a")
-	if i != -1 {
-		return true
+func customCommands() []string {
+	cmds := []string{}
+	for n, c := range CmdRunner.All() {
+		if !c.GitExtension {
+			cmds = append(cmds, n)
+		}
 	}
 
-	i = args.IndexOfParam("--all")
-	if i != -1 {
-		return true
-	}
+	sort.Sort(sort.StringSlice(cmds))
 
-	return false
+	return cmds
 }
 
 var helpText = `usage: git [--version] [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
