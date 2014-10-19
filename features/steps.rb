@@ -249,3 +249,11 @@ Given(/^the SSH config:$/) do |config_lines|
   FileUtils.mkdir_p(File.dirname(ssh_config))
   File.open(ssh_config, 'w') {|f| f << config_lines }
 end
+
+Given(/^the SHAs and timestamps are normalized in "([^"]+)"$/) do |file|
+  in_current_dir do
+    contents = File.read(file)
+    contents.gsub!(/[0-9a-f]{7} \(Hub, \d seconds? ago\)/, "SHA1SHA (Hub, 0 seconds ago)")
+    File.open(file, "w") { |f| f.write(contents) }
+  end
+end
