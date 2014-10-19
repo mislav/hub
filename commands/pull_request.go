@@ -146,6 +146,7 @@ func pullRequest(cmd *Command, args *Args) {
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
+	remoteBranch := fmt.Sprintf("%s/%s", headProject.Remote, head)
 
 	if !force && trackedBranch != nil {
 		remoteCommits, _ := git.RefList(trackedBranch.LongName(), "")
@@ -158,7 +159,8 @@ func pullRequest(cmd *Command, args *Args) {
 
 	var editor *github.Editor
 	if title == "" && flagPullRequestIssue == "" {
-		message, err := pullRequestChangesMessage(base, head, fullBase, fullHead)
+		baseBranch := fmt.Sprintf("%s/%s", baseProject.Remote, base)
+		message, err := pullRequestChangesMessage(baseBranch, remoteBranch, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
