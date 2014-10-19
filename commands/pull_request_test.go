@@ -7,7 +7,7 @@ import (
 	"github.com/github/hub/github"
 )
 
-func TestParsePullRequestProject(t *testing.T) {
+func TestPullRequest_ParsePullRequestProject(t *testing.T) {
 	c := &github.Project{Host: "github.com", Owner: "jingweno", Name: "gh"}
 
 	s := "develop"

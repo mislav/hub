@@ -3,9 +3,9 @@ package commands
 import (
 	"bytes"
 	"fmt"
-	"text/template"
 	"regexp"
 	"strings"
+	"text/template"
 )
 
 const pullRequestTmpl = `{{if .InitMsg}}{{.InitMsg}}

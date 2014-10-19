@@ -18,8 +18,12 @@ type Remote struct {
 	URL  *url.URL
 }
 
+func (remote *Remote) String() string {
+	return remote.Name
+}
+
 func (remote *Remote) Project() (*Project, error) {
-	return NewProjectFromURL(remote.URL)
+	return NewProjectFromRemote(remote)
 }
 
 func Remotes() (remotes []Remote, err error) {
