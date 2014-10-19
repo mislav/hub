@@ -95,7 +95,7 @@ func writeIssueTitleAndBody(project *github.Project) (string, string, error) {
 # Creating issue for %s.
 #
 # Write a message for this issue. The first block
-# of the text is the title and the rest is description.
+# of text is the title and the rest is description.
 `
 	message = fmt.Sprintf(message, project.Name)
 

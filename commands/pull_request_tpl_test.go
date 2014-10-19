@@ -15,7 +15,7 @@ func TestRenderPullRequestTpl(t *testing.T) {
 # Requesting a pull to base from head
 #
 # Write a message for this pull request. The first block
-# of the text is the title and the rest is description.
+# of text is the title and the rest is description.
 #
 # Changes:
 #

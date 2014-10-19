@@ -125,7 +125,7 @@ func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string
 # Creating release %s for %s from %s
 #
 # Write a message for this release. The first block
-# of the text is the title and the rest is description.
+# of text is the title and the rest is description.
 `
 	message = fmt.Sprintf(message, tag, project.Name, currentBranch)
 
