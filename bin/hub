@@ -1,9 +1,0 @@
-#!/usr/bin/env ruby
-
-# hub(1)
-# alias git=hub
-
-Encoding.default_external = 'UTF-8' if defined?(Encoding)
-
-require 'hub'
-Hub::Runner.execute(*ARGV)
