@@ -28,7 +28,6 @@ GEM
     rack (1.4.1)
     rack-protection (1.2.0)
       rack
-    rake (10.1.1)
     rdiscount (1.6.8)
     ronn (0.7.3)
       hpricot (>= 0.8.2)
@@ -51,6 +50,5 @@ PLATFORMS
 DEPENDENCIES
   aruba (~> 0.5.3)
   cucumber (~> 1.3.9)
-  rake (~> 10.1.1)
   ronn
   sinatra
