@@ -1,3 +1,8 @@
+if defined?(Bundler) && defined?(URI)
+  Object.send(:remove_const, :URI)
+  $".reject! { |p| p =~ %r{(^|/)uri[/.]} }
+end
+
 require 'minitest/autorun'
 require 'hub'
 
