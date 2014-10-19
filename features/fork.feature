@@ -60,7 +60,7 @@ Feature: hub fork
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
-        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json'
+        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :parent => { :html_url => 'https://github.com/unrelated/dotfiles' }
       }
       """

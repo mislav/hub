@@ -43,6 +43,11 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m ăéñøü`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Invalid flag
+    When I run `hub pull-request -yelp`
+    Then the stderr should contain "unknown shorthand flag: 'y' in -yelp\n"
+    And the exit status should be 1
+
   Scenario: With Unicode characters in the changelog
     Given the text editor adds:
       """
@@ -72,38 +77,17 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         halt 400 if request.content_charset != 'utf-8'
-        assert :title => 'This is somewhat of a longish title that does not get wrapped and references #1234',
+        assert :title => 'This is somewhat of a longish title that does not get wrapped & references #1234',
                :body => nil
         json :html_url => "the://url"
       }
       """
     Given I am on the "master" branch pushed to "origin/master"
     When I successfully run `git checkout --quiet -b topic`
-    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped and references #1234"
+    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped & references #1234"
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
-
-  Scenario: Deprecated title argument
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        halt 422 if params[:title] != 'mytitle'
-        json :html_url => "the://url"
-      }
-      """
-    When I successfully run `hub pull-request mytitle`
-    Then the stderr should contain exactly:
-      """
-      hub: Specifying pull request title without a flag is deprecated.
-      Please use one of `-m' or `-F' options.\n
-      """
-    And the stdout should contain exactly "the://url\n"
-
-  Scenario: Deprecated title argument can't start with a dash
-    When I run `hub pull-request -help`
-    Then the stderr should contain "invalid argument: -help\n"
-    And the exit status should be 1
 
   Scenario: Non-existing base
     Given the GitHub API server:
@@ -219,26 +203,6 @@ Feature: hub pull-request
     Given the text editor adds:
       """
       But this title will prevail
-      """
-    When I successfully run `hub pull-request`
-    Then the file ".git/PULLREQ_EDITMSG" should not exist
-
-  Scenario: Ignore outdated PULLREQ_EDITMSG
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :title => "Added interactively", :body => nil
-        json :html_url => "https://github.com/mislav/coral/pull/12"
-      }
-      """
-    And a file named ".git/PULLREQ_EDITMSG" with:
-      """
-      Outdated message from old version of hub
-      """
-    Given the file named ".git/PULLREQ_EDITMSG" is older than hub source
-    And the text editor adds:
-      """
-      Added interactively
       """
     When I successfully run `hub pull-request`
     Then the file ".git/PULLREQ_EDITMSG" should not exist

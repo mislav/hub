@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "curl is not allowed" >&2
+exit 1

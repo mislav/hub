@@ -29,8 +29,8 @@ end
 Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, host, token|
   edit_hub_config do |cfg|
     entry = {'user' => name}
-    entry['oauth_token'] = token if token
     host = host.sub(%r{^([\w-]+)://}, '')
+    entry['oauth_token'] = token if token
     entry['protocol'] = $1 if $1
     cfg[host.downcase] = [entry]
   end
@@ -126,7 +126,7 @@ Given(/^the GitHub API server:$/) do |endpoints_str|
     eval endpoints_str, binding
   end
   # hit our Sinatra server instead of github.com
-  set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
+  set_env 'HUB_TEST_HOST', "http://127.0.0.1:#{@server.port}"
 end
 
 Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|

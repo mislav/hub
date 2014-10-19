@@ -1,10 +1,13 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
+require 'tmpdir'
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
+hub_dir = Dir.mktmpdir('hub_build')
+raise 'hub build failed' unless system("./script/build -o #{hub_dir}/hub")
 
 Before do
   # don't want hub to run in bundle
@@ -14,7 +17,7 @@ Before do
   # speed up load time by skipping RubyGems
   set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
-  set_env 'PATH', "#{bin_dir}:#{ENV['PATH']}"
+  set_env 'PATH', "#{hub_dir}:#{bin_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
   set_env 'GIT', nil
   # exclude this project's git directory from use in testing
@@ -40,6 +43,9 @@ Before do
   set_env 'GIT_COMMITTER_NAME',  author_name
   set_env 'GIT_AUTHOR_EMAIL',    author_email
   set_env 'GIT_COMMITTER_EMAIL', author_email
+
+  set_env 'GH_VERSION', 'dev'
+  set_env 'GH_REPORT_CRASH', 'never'
 
   FileUtils.mkdir_p ENV['HOME']
 
@@ -98,6 +104,14 @@ class SimpleCommand
 end
 
 World Module.new {
+  # If there are multiple inputs, e.g., type in username and then type in password etc.,
+  # the Go program will freeze on the second input. Giving it a small time interval
+  # temporarily solves the problem.
+  # See https://github.com/cucumber/aruba/blob/7afbc5c0cbae9c9a946d70c4c2735ccb86e00f08/lib/aruba/api.rb#L379-L382
+  def type(*args)
+    super.tap { sleep 0.1 }
+  end
+
   def history
     histfile = File.join(ENV['HOME'], '.history')
     if File.exist? histfile

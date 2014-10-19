@@ -1,0 +1,3 @@
+#!/bin/bash
+
+gofmt -w -l *.go ./mediatype

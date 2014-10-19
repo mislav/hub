@@ -21,7 +21,6 @@ Installation
 Dependencies:
 
 * **git 1.7.3** or newer
-* **Ruby 1.8.6** or newer
 
 ### Homebrew
 
@@ -31,20 +30,6 @@ Installing on OS X is easiest with Homebrew:
 $ brew install hub
 ~~~
 
-### `rake install` from source
-
-This is the preferred installation method when no package manager that
-supports hub is available:
-
-~~~ sh
-# Download or clone the project from GitHub:
-$ git clone git://github.com/github/hub.git
-$ cd hub
-$ rake install
-~~~
-
-On a Unix-based OS, this installs under `PREFIX`, which is `/usr/local` by default.
-
 Now you should be ready to roll:
 
 ~~~ sh
@@ -52,77 +37,6 @@ $ hub version
 git version 1.7.6
 hub version 1.8.3
 ~~~
-
-#### Windows "Git Bash" (msysGit) note
-
-Avoid aliasing hub as `git` due to the fact that msysGit automatically
-configures your prompt to include git information, and you want to avoid slowing
-that down. See [Is your shell prompt slow?](#is-your-shell-prompt-slow)
-
-### RubyGems
-
-Though not recommended, hub can also be installed as a RubyGem:
-
-~~~ sh
-$ gem install hub
-~~~
-
-(It's not recommended for casual use because of the RubyGems startup
-time. See [this gist][speed] for information.)
-
-#### Standalone via RubyGems
-
-~~~ sh
-$ gem install hub
-$ hub hub standalone > ~/bin/hub && chmod +x ~/bin/hub
-~~~
-
-This installs a standalone version which doesn't require RubyGems to
-run, so it's faster.
-
-### Help! It's slow!
-
-#### Is `hub` noticeably slower than plain git?
-
-That is inconvenient, especially if you want to alias hub as `git`. Few things
-you can try:
-
-* Find out which ruby is used for the hub executable:
-
-    ``` sh
-    head -1 `which hub`
-    ```
-
-* That ruby should be speedy. Time it with:
-
-    ``` sh
-    time /usr/bin/ruby -e0
-    #=> it should be below 0.01 s total
-    ```
-
-* Check that Ruby isn't loading something shady:
-
-    ``` sh
-    echo $RUBYOPT
-    ```
-
-* Check your [GC settings][gc]
-
-General recommendation: you should change hub's shebang line to run with system
-ruby (usually `/usr/bin/ruby`) instead of currently active ruby (`/usr/bin/env
-ruby`). Also, Ruby 1.8 is speedier than 1.9.
-
-#### Is your shell prompt slow?
-
-Does your prompt show git information? Hub may be slowing down your prompt.
-
-This can happen if you've aliased hub as `git`. This is fine when you use `git`
-manually, but may be unacceptable for your prompt, which doesn't need hub
-features anyway!
-
-The solution is to identify which shell functions are calling `git`, and replace
-each occurrence of that with `command git`. This is a shell feature that enables
-you to call a command directly and skip aliases and functions wrapping it.
 
 
 Aliasing
@@ -369,7 +283,6 @@ Meta
 
 * Home: <https://github.com/github/hub>
 * Bugs: <https://github.com/github/hub/issues>
-* Gem: <https://rubygems.org/gems/hub>
 * Authors: <https://github.com/github/hub/contributors>
 
 ### Prior art
@@ -377,9 +290,6 @@ Meta
 These projects also aim to either improve git or make interacting with
 GitHub simpler:
 
+* [hub in Ruby](https://github.com/github/hub/tree/1.12-stable) (previous implementation)
 * [eg](http://www.gnome.org/~newren/eg/)
 * [github-gem](https://github.com/defunkt/github-gem)
-
-
-[speed]: http://gist.github.com/284823
-[gc]: https://twitter.com/brynary/status/49560668994674688

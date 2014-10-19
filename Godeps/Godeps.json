@@ -1,0 +1,80 @@
+{
+	"ImportPath": "github.com/github/hub",
+	"GoVersion": "go1.3.1",
+	"Packages": [
+		"./..."
+	],
+	"Deps": [
+		{
+			"ImportPath": "bitbucket.org/kardianos/osext",
+			"Comment": "null-13",
+			"Rev": "5d3ddcf53a508cc2f7404eaebf546ef2cb5cdb6e"
+		},
+		{
+			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
+			"Comment": "null-221",
+			"Rev": "6e881b5273dfffbadb6a76a61d3c39a71e3588d1"
+		},
+		{
+			"ImportPath": "github.com/BurntSushi/toml",
+			"Comment": "v0.1.0",
+			"Rev": "2ceedfee35ad3848e49308ab0c9a4f640cfb5fb2"
+		},
+		{
+			"ImportPath": "github.com/bmizerany/assert",
+			"Comment": "release.r60-6-ge17e998",
+			"Rev": "e17e99893cb6509f428e1728281c2ad60a6b31e3"
+		},
+		{
+			"ImportPath": "github.com/fhs/go-netrc/netrc",
+			"Rev": "4422b68c9c934b03e8e53ef18c8c8714542def7e"
+		},
+		{
+			"ImportPath": "github.com/howeyc/gopass",
+			"Rev": "e8c0d21f59eb7f01086a39e47e05568acc9bb736"
+		},
+		{
+			"ImportPath": "github.com/inconshreveable/go-update",
+			"Rev": "276093003334bfddde2b1759b864b7c59f38b55e"
+		},
+		{
+			"ImportPath": "github.com/jingweno/go-sawyer",
+			"Rev": "1999ae5763d678f3ce1112cf1fda7c7e9cf2aadf"
+		},
+		{
+			"ImportPath": "github.com/jtacoma/uritemplates",
+			"Comment": "0.1-14-g0a85813",
+			"Rev": "0a85813ecac22e3cbe916ab9480b33f2f4a06b2e"
+		},
+		{
+			"ImportPath": "github.com/kballard/go-shellquote",
+			"Rev": "e5c918b80c17694cbc49aab32a759f9a40067f5d"
+		},
+		{
+			"ImportPath": "github.com/kr/binarydist",
+			"Rev": "9955b0ab8708602d411341e55fffd7e0700f86bd"
+		},
+		{
+			"ImportPath": "github.com/kr/pretty",
+			"Comment": "go.weekly.2011-12-22-24-gf31442d",
+			"Rev": "f31442d60e51465c69811e2107ae978868dbea5c"
+		},
+		{
+			"ImportPath": "github.com/kr/text",
+			"Rev": "6807e777504f54ad073ecef66747de158294b639"
+		},
+		{
+			"ImportPath": "github.com/octokit/go-octokit/octokit",
+			"Comment": "v0.4.0-93-g76c898e",
+			"Rev": "76c898e13c8ad8059b070dd2ee1d27cb9a753120"
+		},
+		{
+			"ImportPath": "github.com/ogier/pflag",
+			"Rev": "e4f7d00f344b0954fa3791a8527d10ba7334eceb"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v1",
+			"Rev": "fc7f19eff1782a0beae3065097c776183e7d01d0"
+		}
+	]
+}

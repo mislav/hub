@@ -170,7 +170,7 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
+          response.headers['X-GitHub-OTP'] = "required; app"
           halt 401
         end
         json [ ]
@@ -180,7 +180,7 @@ Feature: OAuth authentication
         halt 401 unless auth.credentials == %w[mislav kitty]
         halt 412 unless params[:scopes]
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
+          response.headers['X-GitHub-OTP'] = "required; app"
           halt 401
         end
         json :token => 'OTOKEN'
@@ -213,7 +213,7 @@ Feature: OAuth authentication
       get('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
+          response.headers['X-GitHub-OTP'] = "required; app"
           halt 401
         end
         json [ {
