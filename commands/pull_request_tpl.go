@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-const pullRequestTmpl = `{{if .InitMsg}}{{.InitMsg}}{{end}}
-
+const pullRequestTmpl = `{{if .InitMsg}}{{.InitMsg}}
+{{end}}
 {{.CS}} Requesting a pull to {{.Base}} from {{.Head}}
 {{.CS}}
 {{.CS}} Write a message for this pull request. The first block
