@@ -15,6 +15,7 @@ type Project struct {
 	Owner    string
 	Host     string
 	Protocol string
+	Remote   *Remote
 }
 
 func (p Project) String() string {
@@ -99,6 +100,17 @@ func useHttpProtocol() bool {
 	}
 
 	return https == "https"
+}
+
+func NewProjectFromRemote(remote *Remote) (*Project, error) {
+	p, err := NewProjectFromURL(remote.URL)
+	if err != nil {
+		return nil, err
+	}
+
+	p.Remote = remote
+
+	return p, nil
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {

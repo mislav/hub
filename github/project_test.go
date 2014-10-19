@@ -75,7 +75,7 @@ func TestProject_GitURLEnterprise(t *testing.T) {
 	assert.Equal(t, "git@github.corporate.com:jingweno/gh.git", url)
 }
 
-func TestNewProjectFromURL(t *testing.T) {
+func TestProject_NewProjectFromURL(t *testing.T) {
 	testConfigs := fixtures.SetupTestConfigs()
 	defer testConfigs.TearDown()
 
