@@ -9,8 +9,14 @@ import (
 	"github.com/github/hub/fixtures"
 )
 
-func TestWebURL(t *testing.T) {
-	project := Project{Name: "foo", Owner: "bar", Host: "github.com", Protocol: "https"}
+func TestProject_WebURL(t *testing.T) {
+	project := Project{
+		Name:     "foo",
+		Owner:    "bar",
+		Host:     "github.com",
+		Protocol: "https",
+	}
+
 	url := project.WebURL("", "", "baz")
 	assert.Equal(t, "https://github.com/bar/foo/baz", url)
 
@@ -27,9 +33,15 @@ func TestWebURL(t *testing.T) {
 	assert.Equal(t, "https://github.com/defunkt/hub/wiki/_pages", url)
 }
 
-func TestGitURLGitHub(t *testing.T) {
+func TestProject_GitURL(t *testing.T) {
 	os.Setenv("HUB_PROTOCOL", "https")
-	project := Project{Name: "foo", Owner: "bar", Host: "github.com"}
+	defer os.Setenv("HUB_PROTOCOL", "")
+
+	project := Project{
+		Name:  "foo",
+		Owner: "bar",
+		Host:  "github.com",
+	}
 
 	url := project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "https://github.com/jingweno/gh.git", url)
@@ -42,8 +54,14 @@ func TestGitURLGitHub(t *testing.T) {
 	assert.Equal(t, "git@github.com:jingweno/gh.git", url)
 }
 
-func TestGitURLEnterprise(t *testing.T) {
-	project := Project{Name: "foo", Owner: "bar", Host: "https://github.corporate.com"}
+func TestProject_GitURLEnterprise(t *testing.T) {
+	project := Project{
+		Name:  "foo",
+		Owner: "bar",
+		Host:  "https://github.corporate.com",
+	}
+
+	defer os.Setenv("HUB_PROTOCOL", "")
 
 	os.Setenv("HUB_PROTOCOL", "https")
 	url := project.GitURL("gh", "jingweno", false)
@@ -57,50 +75,7 @@ func TestGitURLEnterprise(t *testing.T) {
 	assert.Equal(t, "git@github.corporate.com:jingweno/gh.git", url)
 }
 
-func TestParseOwnerAndName(t *testing.T) {
-	owner, name := parseOwnerAndName("git://github.com/jingweno/gh.git")
-	assert.Equal(t, "gh", name)
-	assert.Equal(t, "jingweno", owner)
-}
-
-func TestMustMatchGitHubURL(t *testing.T) {
-	url, _ := mustMatchGitHubURL("git://github.com/jingweno/gh.git")
-	assert.Equal(t, "git://github.com/jingweno/gh.git", url[0])
-	assert.Equal(t, "jingweno", url[1])
-	assert.Equal(t, "gh", url[2])
-
-	url, _ = mustMatchGitHubURL("git://github.com/jingweno/gh")
-	assert.Equal(t, "git://github.com/jingweno/gh", url[0])
-	assert.Equal(t, "jingweno", url[1])
-	assert.Equal(t, "gh", url[2])
-
-	url, _ = mustMatchGitHubURL("git://git@github.com/jingweno/gh")
-	assert.Equal(t, "git://git@github.com/jingweno/gh", url[0])
-	assert.Equal(t, "jingweno", url[1])
-	assert.Equal(t, "gh", url[2])
-
-	url, _ = mustMatchGitHubURL("git@github.com:jingweno/gh.git")
-	assert.Equal(t, "git@github.com:jingweno/gh.git", url[0])
-	assert.Equal(t, "jingweno", url[1])
-	assert.Equal(t, "gh", url[2])
-
-	url, _ = mustMatchGitHubURL("git@github.com:jingweno/gh")
-	assert.Equal(t, "git@github.com:jingweno/gh", url[0])
-	assert.Equal(t, "jingweno", url[1])
-	assert.Equal(t, "gh", url[2])
-
-	url, _ = mustMatchGitHubURL("https://github.com/jingweno/gh.git")
-	assert.Equal(t, "https://github.com/jingweno/gh.git", url[0])
-	assert.Equal(t, "jingweno", url[1])
-	assert.Equal(t, "gh", url[2])
-
-	url, _ = mustMatchGitHubURL("https://github.com/jingweno/gh")
-	assert.Equal(t, "https://github.com/jingweno/gh", url[0])
-	assert.Equal(t, "jingweno", url[1])
-	assert.Equal(t, "gh", url[2])
-}
-
-func TestNewProjectFromURL(t *testing.T) {
+func TestProject_NewProjectFromURL(t *testing.T) {
 	testConfigs := fixtures.SetupTestConfigs()
 	defer testConfigs.TearDown()
 

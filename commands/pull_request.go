@@ -156,23 +156,11 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	baseTracking := base
-	headTracking := head
-
-	remote := gitRemoteForProject(baseProject)
-	if remote != nil {
-		baseTracking = remote.Name + "/" + base
-	}
-	if remote == nil || !baseProject.SameAs(headProject) {
-		remote = gitRemoteForProject(headProject)
-	}
-	if remote != nil {
-		headTracking = remote.Name + "/" + head
-	}
-
 	var editor *github.Editor
 	if title == "" && flagPullRequestIssue == "" {
-		message, err := pullRequestChangesMessage(baseTracking, headTracking, fullBase, fullHead)
+		baseBranch := fmt.Sprintf("%s/%s", baseProject.Remote, base)
+		remoteBranch := fmt.Sprintf("%s/%s", headProject.Remote, head)
+		message, err := pullRequestChangesMessage(baseBranch, remoteBranch, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
