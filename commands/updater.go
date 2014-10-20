@@ -65,7 +65,7 @@ func (updater *Updater) PromptForUpdate() (err error) {
 		case "always":
 			err = updater.updateTo(releaseName, version)
 		default:
-			fmt.Println("There is a newer version of gh available.")
+			fmt.Println("There is a newer version of hub available.")
 			fmt.Print("Would you like to update? ([Y]es/[N]o/[A]lways/N[e]ver): ")
 			var confirm string
 			fmt.Scan(&confirm)
