@@ -97,7 +97,7 @@ class Packer
 
   def build_toolchain!
     puts "Building Go toolchain"
-    result = system "gox -build-toolchain -os=#{OS.type} -tags=noupdate"
+    result = system "gox -build-toolchain -os=#{OS.type}"
     raise "Fail to build Go toolchain" unless result
   end
 
@@ -113,7 +113,7 @@ class Packer
 
   def build_hub!
     puts "Building for #{OS.type}"
-    exec!("script/godep gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}}")
+    exec!("script/godep gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}} -tags=noupdate")
   end
 
   def cp_assets
