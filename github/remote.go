@@ -23,7 +23,7 @@ func (remote *Remote) String() string {
 }
 
 func (remote *Remote) Project() (*Project, error) {
-	return NewProjectFromRemote(remote)
+	return NewProjectFromURL(remote.URL)
 }
 
 func Remotes() (remotes []Remote, err error) {
