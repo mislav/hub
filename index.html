@@ -122,11 +122,19 @@
 <em>better at GitHub</em>.
 </p>
 
-<pre><span class="comment"># install on OS X</span>
+<pre><span class="comment"># install from source for 2.x preview</span>
+<span class="comment"># it requires a Go development environment: http://golang.org/doc/install</span>
+$ git clone <strong>https://github.com/github/hub.git</strong>
+$ cd hub
+$ <strong>./script/build</strong>
+$ cp hub YOUR_BIN_PATH
+
+<span class="comment"># install on OS X for 1.x</span>
 $ <a href="http://brew.sh/">brew</a> install hub
 
-<span class="comment"># install from source</span>
+<span class="comment"># install from source for 1.x</span>
 $ git clone <strong>https://github.com/github/hub.git</strong>
+$ git checkout <strong>1.12-stable</strong>
 $ cd hub
 $ <strong>rake install</strong> prefix=/usr/local
 
