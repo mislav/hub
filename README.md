@@ -27,6 +27,15 @@ Dependencies:
 Starting from 2.2.0, `hub` is [powered by Go](https://github.com/github/hub/issues/475).
 It should maintain a high backward compatibility with 1.x. Note that 2.x is in preview.
 
+#### Homebrew
+
+`hub` 2.x can be installed through Homebrew. Since it's in preview, you need to compile
+from HEAD:
+
+~~~ sh
+$ brew install --HEAD hub
+~~~
+
 #### Standalone
 
 `hub` 2.x can be easily installed as an executable. Download the latest
