@@ -23,6 +23,14 @@ func TestNewArgs(t *testing.T) {
 	assert.Equal(t, "command", args.Command)
 	assert.Equal(t, 1, args.ParamsSize())
 	assert.T(t, args.Noop)
+
+	args = NewArgs([]string{"--version"})
+	assert.Equal(t, "version", args.Command)
+	assert.Equal(t, 0, args.ParamsSize())
+
+	args = NewArgs([]string{"--help"})
+	assert.Equal(t, "help", args.Command)
+	assert.Equal(t, 0, args.ParamsSize())
 }
 
 func TestArgs_Words(t *testing.T) {

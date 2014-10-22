@@ -173,6 +173,8 @@ func slurpGlobalFlags(args []string) (aa []string, noop bool) {
 		if arg == "--noop" {
 			noop = true
 			aa, _ = removeItem(args, i)
+		} else if arg == "--version" || arg == "--help" {
+			aa[i] = strings.TrimPrefix(arg, "--")
 		}
 	}
 
