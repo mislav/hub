@@ -37,7 +37,7 @@ func alias(command *Command, args *Args) {
 		utils.Check(fmt.Errorf("Unknown shell"))
 	}
 
-	shells := []string{"bash", "zsh", "sh", "ksh", "csh", "fish"}
+	shells := []string{"bash", "zsh", "sh", "ksh", "csh", "tcsh", "fish"}
 	shell = filepath.Base(shell)
 	var validShell bool
 	for _, s := range shells {
@@ -65,6 +65,8 @@ func alias(command *Command, args *Args) {
 			profile = "~/.profile"
 		case "fish":
 			profile = "~/.config/fish/config.fish"
+		case "tcsh":
+			profile = "~/.tcshrc"
 		default:
 			profile = "your profile"
 		}
