@@ -53,7 +53,15 @@ func alias(command *Command, args *Args) {
 	}
 
 	if flagAliasScript {
-		fmt.Println("alias git=hub")
+		var alias string
+		switch shell {
+		case "csh", "tcsh":
+			alias = "alias git hub"
+		default:
+			alias = "alias git=hub"
+		}
+
+		fmt.Println(alias)
 	} else {
 		var profile string
 		switch shell {
