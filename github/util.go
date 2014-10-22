@@ -1,10 +1,8 @@
-// +build !windows
-
 package github
 
 import (
-	"code.google.com/p/go.crypto/ssh/terminal"
 	"github.com/github/hub/git"
+	"github.com/mattn/go-isatty"
 )
 
 func IsHttpsProtocol() bool {
@@ -22,5 +20,5 @@ func IsHttpsProtocol() bool {
 }
 
 func isTerminal(fd uintptr) bool {
-	return terminal.IsTerminal(int(fd))
+	return isatty.IsTerminal(fd)
 }
