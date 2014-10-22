@@ -73,6 +73,8 @@ func alias(command *Command, args *Args) {
 			profile = "~/.profile"
 		case "fish":
 			profile = "~/.config/fish/config.fish"
+		case "csh":
+			profile = "~/.cshrc"
 		case "tcsh":
 			profile = "~/.tcshrc"
 		default:
