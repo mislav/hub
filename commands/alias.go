@@ -83,9 +83,12 @@ func alias(command *Command, args *Args) {
 		fmt.Println(msg)
 
 		var eval string
-		if shell == "fish" {
+		switch shell {
+		case "fish":
 			eval = `eval (hub alias -s)`
-		} else {
+		case "csh", "tcsh":
+			eval = "eval \"`hub alias -s`\""
+		default:
 			eval = `eval "$(hub alias -s)"`
 		}
 		fmt.Println(eval)
