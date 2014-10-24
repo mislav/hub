@@ -37,7 +37,7 @@ func alias(command *Command, args *Args) {
 		utils.Check(fmt.Errorf("Unknown shell"))
 	}
 
-	shells := []string{"bash", "zsh", "sh", "ksh", "csh", "fish"}
+	shells := []string{"bash", "zsh", "sh", "ksh", "csh", "tcsh", "fish"}
 	shell = filepath.Base(shell)
 	var validShell bool
 	for _, s := range shells {
@@ -53,7 +53,15 @@ func alias(command *Command, args *Args) {
 	}
 
 	if flagAliasScript {
-		fmt.Println("alias git=hub")
+		var alias string
+		switch shell {
+		case "csh", "tcsh":
+			alias = "alias git hub"
+		default:
+			alias = "alias git=hub"
+		}
+
+		fmt.Println(alias)
 	} else {
 		var profile string
 		switch shell {
@@ -65,6 +73,10 @@ func alias(command *Command, args *Args) {
 			profile = "~/.profile"
 		case "fish":
 			profile = "~/.config/fish/config.fish"
+		case "csh":
+			profile = "~/.cshrc"
+		case "tcsh":
+			profile = "~/.tcshrc"
 		default:
 			profile = "your profile"
 		}
@@ -73,9 +85,12 @@ func alias(command *Command, args *Args) {
 		fmt.Println(msg)
 
 		var eval string
-		if shell == "fish" {
+		switch shell {
+		case "fish":
 			eval = `eval (hub alias -s)`
-		} else {
+		case "csh", "tcsh":
+			eval = "eval \"`hub alias -s`\""
+		default:
 			eval = `eval "$(hub alias -s)"`
 		}
 		fmt.Println(eval)
