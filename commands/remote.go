@@ -66,7 +66,7 @@ func transformRemoteArgs(args *Args) {
 	}
 
 	words := args.Words()
-	isPriavte := parseRemotePrivateFlag(args)
+	isPrivate := parseRemotePrivateFlag(args)
 	if len(words) == 2 && words[1] == "origin" {
 		// Origin special case triggers default user/repo
 		host, err := github.CurrentConfig().DefaultHost()
@@ -87,8 +87,8 @@ func transformRemoteArgs(args *Args) {
 
 	project := github.NewProject(owner, name, host)
 	// for GitHub Enterprise
-	isPriavte = isPriavte || project.Host != github.GitHubHost
-	url := project.GitURL(name, owner, isPriavte)
+	isPrivate = isPrivate || project.Host != github.GitHubHost
+	url := project.GitURL(name, owner, isPrivate)
 	args.AppendParams(url)
 }
 
