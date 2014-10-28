@@ -296,9 +296,13 @@ the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 
 ### HTTPS instead of git protocol
 
-If you prefer using the HTTPS protocol for GitHub repositories instead of the git
-protocol for read and ssh for write, you can set "hub.protocol" to "https".
-"hub.protocol" only applies when the "OWNER/REPO" shorthand is used instead of a full git URL.
+If you prefer the HTTPS protocol for GitHub repositories, you can
+set "hub.protocol" to "https". This will affect clone, fork, remote add and
+other operations that expand references to GitHub repositories 
+that otherwise use git and ssh protocols.
+
+"hub.protocol" only applies when the "OWNER/REPO" shorthand is used instead of
+a full git URL.
 
 ~~~ sh
 # default behavior
