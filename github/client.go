@@ -431,7 +431,7 @@ func (client *Client) CurrentUser() (user *octokit.User, err error) {
 		return
 	}
 
-	user, result := api.Users(url).One()
+	user, result := api.Users(client.requestURL(url)).One()
 	if result.HasError() {
 		err = FormatError("getting current user", result.Err)
 		return

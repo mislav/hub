@@ -151,3 +151,32 @@ Scenario: Related fork already exists
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
     Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+
+  Scenario: Enterprise fork authentication with username & password, re-using existing authorization
+    Given the GitHub API server:
+      """
+      require 'rack/auth/basic'
+      get('/api/v3/authorizations', :host_name => 'git.my.org') {
+        auth = Rack::Auth::Basic::Request.new(env)
+        halt 401 unless auth.credentials == %w[mislav kitty]
+        json [
+          {:token => 'SKIPPD', :note_url => 'http://example.com'},
+          {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
+        ]
+      }
+      get('/api/v3/user', :host_name => 'git.my.org') {
+        json :login => 'mislav'
+      }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      """
+    And "git.my.org" is a whitelisted Enterprise host
+    And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
+    When I run `hub fork` interactively
+    And I type "mislav"
+    And I type "kitty"
+    Then the output should contain "git.my.org password for mislav (never stored):"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "git.my.org"
+    And the file "../home/.config/hub" should contain "user: mislav"
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
