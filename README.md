@@ -298,6 +298,7 @@ the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 
 If you prefer using the HTTPS protocol for GitHub repositories instead of the git
 protocol for read and ssh for write, you can set "hub.protocol" to "https".
+"hub.protocol" only applies when the "OWNER/REPO" shorthand is used instead of a full git URL.
 
 ~~~ sh
 # default behavior
