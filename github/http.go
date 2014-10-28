@@ -18,6 +18,8 @@ type verboseTransport struct {
 	Transport   *http.Transport
 	Verbose     bool
 	OverrideURL *url.URL
+	Out         io.Writer
+	Colorized   bool
 }
 
 func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, err error) {
@@ -107,11 +109,11 @@ func (t *verboseTransport) dumpBody(body io.ReadCloser) io.ReadCloser {
 }
 
 func (t *verboseTransport) verbosePrintln(msg string) {
-	if isTerminal(os.Stderr.Fd()) {
-		msg = fmt.Sprintf("\\e[36m%s\\e[m", msg)
+	if t.Colorized {
+		msg = fmt.Sprintf("\033[36m%s\033[0m", msg)
 	}
 
-	fmt.Fprintln(os.Stderr, msg)
+	fmt.Fprintln(t.Out, msg)
 }
 
 func newHttpClient(testHost string, verbose bool) *http.Client {
@@ -123,6 +125,8 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		Transport:   &http.Transport{Proxy: proxyFromEnvironment},
 		Verbose:     verbose,
 		OverrideURL: testURL,
+		Out:         os.Stderr,
+		Colorized:   isTerminal(os.Stderr.Fd()),
 	}
 	return &http.Client{Transport: tr}
 }

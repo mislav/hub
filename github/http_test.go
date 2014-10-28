@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -51,4 +52,15 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 
 	c = newHttpClient("", false)
 	c.Get(fmt.Sprintf("%s/not-override", s.URL.String()))
+}
+
+func TestVerboseTransport_VerbosePrintln(t *testing.T) {
+	var b bytes.Buffer
+	tr := &verboseTransport{
+		Out:       &b,
+		Colorized: true,
+	}
+
+	tr.verbosePrintln("foo")
+	assert.Equal(t, "\033[36mfoo\033[0m\n", b.String())
 }
