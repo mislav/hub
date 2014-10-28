@@ -5,5 +5,6 @@ gem 'cucumber', '~> 1.3.9'
 gem 'sinatra'
 
 group :development do
-  gem 'ronn', :platform => :mri
+  gem 'rake', '~> 10.1.1'
+  gem 'ronn'
 end
