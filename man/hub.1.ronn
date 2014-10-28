@@ -179,7 +179,8 @@ variables.
 If you prefer the HTTPS protocol for GitHub repositories, you can set
 "hub.protocol" to "https". This will affect `clone`, `fork`, `remote add`
 and other operations that expand references to GitHub repositories as full
-URLs that otherwise use git and ssh protocols.
+URLs that otherwise use git and ssh protocols. "hub.protocol" only applies
+when the "OWNER/REPO" shorthand is used instead of a full git URL.
 
     $ git config --global hub.protocol https
 

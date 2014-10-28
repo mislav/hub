@@ -220,7 +220,8 @@ variables.</p>
 <p>If you prefer the HTTPS protocol for GitHub repositories, you can set
 "hub.protocol" to "https". This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code>
 and other operations that expand references to GitHub repositories as full
-URLs that otherwise use git and ssh protocols.</p>
+URLs that otherwise use git and ssh protocols. "hub.protocol" only applies
+when the "OWNER/REPO" shorthand is used instead of a full git URL.</p>
 
 <pre><code>$ git config --global hub.protocol https
 </code></pre>
@@ -330,7 +331,7 @@ $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:featur
 <h3 id="git-checkout">git checkout</h3>
 
 <pre><code>$ git checkout https://github.com/defunkt/hub/pull/73
-&gt; git remote add -f -t feature git://github:com/mislav/hub.git
+&gt; git remote add -f -t feature mislav git://github.com/mislav/hub.git
 &gt; git checkout --track -B mislav-feature mislav/feature
 
 $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
@@ -459,7 +460,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>February 2014</li>
+    <li class='tc'>October 2014</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
