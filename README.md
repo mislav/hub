@@ -297,27 +297,41 @@ Configuration
 Hub will prompt for GitHub username & password the first time it needs to access
 the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 
+To avoid being prompted, use **GITHUB_USER** and **GITHUB_PASSWORD** environment
+variables.
+
 ### HTTPS instead of git protocol
 
-If you prefer the HTTPS protocol for GitHub repositories, you can
-set "hub.protocol" to "https". This will affect clone, fork, remote add and
-other operations that expand references to GitHub repositories 
-that otherwise use git and ssh protocols.
+If you prefer the HTTPS protocol for GitHub repositories, you can set
+"hub.protocol" to "https". This will affect `clone`, `fork`, `remote add`
+and other operations that expand references to GitHub repositories as full
+URLs that otherwise use git and ssh protocols.
 
 "hub.protocol" only applies when the "OWNER/REPO" shorthand is used instead of
 a full git URL.
 
-~~~ sh
-# default behavior
-$ git clone defunkt/repl
-< git clone >
+    # default behavior
+    $ git clone defunkt/repl
+    < git clone >
 
-# opt into HTTPS:
-$ git config --global hub.protocol https
-$ git clone defunkt/repl
-< https clone >
-~~~
+    # opt into HTTPS:
+    $ git config --global hub.protocol https
+    $ git clone defunkt/repl
+    < https clone >
 
+### GitHub Enterprise
+
+By default, hub will only work with repositories that have remotes which
+point to github.com. GitHub Enterprise hosts need to be whitelisted to
+configure hub to treat such remotes same as github.com:
+
+    $ git config --global --add hub.host my.git.org
+
+The default host for commands like `init` and `clone` is still
+github.com, but this can be affected with the <GITHUB_HOST> environment
+variable:
+
+    $ GITHUB_HOST=my.git.org git clone myproject
 
 Meta
 ----
