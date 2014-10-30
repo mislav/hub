@@ -234,6 +234,9 @@ superpowers:
     $ git browse -- issues
     > open https://github.com/YOUR_USER/CURRENT_REPO/issues
 
+    $ git browse -- issues/10
+    > open https://github.com/YOUR_USER/CURRENT_REPO/issues/10
+
     $ git browse schacon/ticgit
     > open https://github.com/schacon/ticgit
 
