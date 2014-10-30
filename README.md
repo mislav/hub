@@ -318,6 +318,13 @@ $ git clone defunkt/repl
 < https clone >
 ~~~
 
+### Github Enterprise
+
+To use certain commands with github enterprise, set the environment variable GITHUB_HOST to your 
+github enterprise install location.
+
+`GITHUB_HOST=github.example.com hub create`
+
 
 Meta
 ----
