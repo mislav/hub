@@ -1,10 +1,11 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestDirIsNotEmpty(t *testing.T) {
@@ -20,6 +21,16 @@ func TestDirIsEmpty(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	assert.T(t, isEmptyDir(dir))
+}
+
+func TestGetTitleAndBodyFromFlags(t *testing.T) {
+	title, body, _ := getTitleAndBodyFromFlags("title\n\nbody", "")
+	assert.Equal(t, "title", title)
+	assert.Equal(t, "body", body)
+
+	title, body, _ = getTitleAndBodyFromFlags("title\\n\\nbody", "")
+	assert.Equal(t, "title", title)
+	assert.Equal(t, "body", body)
 }
 
 func createTempDir(t *testing.T) string {
