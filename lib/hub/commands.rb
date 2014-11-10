@@ -168,6 +168,8 @@ module Hub
           options[:issue] = args.shift
         when '-o', '--browse'
           open_with_browser = true
+        when '-r', '--remote'
+          options[:remote] = args.shift
         else
           if url = resolve_github_url(arg) and url.project_path =~ /^issues\/(\d+)/
             options[:issue] = $1
@@ -205,12 +207,6 @@ module Hub
       remote_branch = "#{head_project.remote}/#{options[:head]}"
       options[:head] = "#{head_project.owner}:#{options[:head]}"
 
-      if !force and tracked_branch and local_commits = rev_list(remote_branch, nil)
-        $stderr.puts "Aborted: #{local_commits.split("\n").size} commits are not yet pushed to #{remote_branch}"
-        warn "(use `-f` to force submit a pull request anyway)"
-        abort
-      end
-
       if args.noop?
         puts "Would request a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
         exit
@@ -245,22 +241,84 @@ module Hub
         }
       end
 
-      pull = api_client.create_pullrequest(options)
+      args.concat ['push', options[:remote] || 'origin', current_branch.short_name]
+      args.after do
+        begin
+          puts "Creating pull request"
+          pull = api_client.create_pullrequest(options)
 
-      args.push('-u') unless open_with_browser
-      browse_command(args) do
-        pull['html_url']
+          args.push('-u') unless open_with_browser
+          browse_command(args) do
+            puts pull['html_url']
+          end
+        rescue GitHubAPI::Exceptions
+          response = $!.response
+          display_api_exception("creating pull request", response)
+          if 404 == response.status
+            base_url = base_project.web_url.split('://', 2).last
+            warn "Are you sure that #{base_url} exists?"
+          end
+          exit 1
+        else
+          delete_editmsg
+        end
       end
-    rescue GitHubAPI::Exceptions
-      response = $!.response
-      display_api_exception("creating pull request", response)
-      if 404 == response.status
-        base_url = base_project.web_url.split('://', 2).last
-        warn "Are you sure that #{base_url} exists?"
+    end
+
+    def land(args)
+      base_project = local_repo.main_project
+
+      config = JSON.parse(File.read('.hubconfig')) rescue nil
+      if config.nil?
+        puts "No .hubconfig found for this repository."
+        
+        default_branch = ""
+        until !default_branch.empty?
+          puts "What is the default branch to land on for #{base_project.name}?"
+          default_branch = $stdin.gets.chomp
+        end
+
+        config = JSON.generate({
+          default_branch: default_branch
+        })
+        File.open('.hubconfig', 'w') { |file| file.write config }
+      else
+        default_branch = config['default_branch']
       end
-      exit 1
-    else
-      delete_editmsg
+
+
+      args.shift
+      branch = args.shift || current_branch.short_name
+      tracked_branch, head_project = remote_branch_and_project(method(:github_user))
+      remote = 'origin'
+
+      begin
+        pr = api_client.pullrequests base_project, head: "#{head_project.owner}:#{branch}" 
+        pr = JSON.parse(pr).first
+        if pr.nil?
+          abort "Error: No pull request for branch #{branch}."
+        end
+      rescue GitHubAPI::Exceptions
+        response = $!.response
+        display_api_exception("retrieving PR for #{branch}", response)
+        exit 1
+      end
+
+      title, body, number = pr['title'], pr['body'] || '', pr['number']
+
+      args.before ['checkout', default_branch]
+      args.before ['pull', remote, default_branch]
+      args.before ['checkout', branch]
+      args.before ['rebase', default_branch]
+      args.before ['checkout', default_branch]
+      args.before ['merge', '--squash', branch]
+      args.before ['commit', '-m', title, '-m', body, '-m', "Closes ##{number}"]
+      args.before ['push', remote, default_branch]
+      args.before ['branch', '-D', branch]
+      args.concat ['push', remote, ":#{branch}"]
+      args.after do
+        puts "#{branch} landed!"
+      end
     end
 
     # $ hub e-note

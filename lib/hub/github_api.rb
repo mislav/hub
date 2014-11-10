@@ -110,6 +110,19 @@ module Hub
       res.body
     end
 
+    def pullrequests project, params=nil
+      url = "https://%s/repos/%s/%s/pulls" %
+        [api_host(project.host), project.owner, project.name]
+      if !params.nil?
+        query_string = params.map { |k,v| "#{k.to_s}=#{v}" }.join('&').gsub(/:/, '%3A')
+        url += "?#{query_string}"
+      end
+
+      res = get url
+      res.error! unless res.success?
+      res.body
+    end
+
     # Public: Fetch the patch from a commit
     def commit_patch project, sha
       res = get "https://%s/repos/%s/%s/commits/%s" %
