@@ -189,7 +189,13 @@ module Hub
       end
 
       options[:project] = base_project
-      options[:base] ||= master_branch.short_name
+      options[:base] ||= begin
+        repo_info = JSON.parse api_client.repo_info(base_project).body
+        repo_info['default_branch']
+      rescue GitHubAPI::Exceptions
+        response = $!.response
+        display_api_exception("getting default branch", response)
+      end
 
       if options[:head].nil? && tracked_branch
         if !tracked_branch.remote?
@@ -265,6 +271,8 @@ module Hub
       end
     end
 
+    # $ hub land
+    # $ hub land my-branch
     def land(args)
       base_project = local_repo.main_project
 
