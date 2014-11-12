@@ -1,0 +1,16 @@
+#!/usr/bin/env ruby
+# Usage: script/version
+#
+# Displays hub's release version
+
+version = `git describe --tags HEAD 2>/dev/null`.chomp
+version = if version.empty?
+            content = File.read('commands/version.go')
+            version = content[/^var Version = "(.+)"/, 1]
+            head_sha = `git rev-parse --short HEAD 2>/dev/null`.chomp
+            version += "-g#{head_sha}" unless head_sha.empty?
+            version
+          else
+            version.sub(/^v/, '')
+          end
+puts version

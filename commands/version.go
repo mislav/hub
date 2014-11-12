@@ -8,7 +8,7 @@ import (
 	"github.com/github/hub/utils"
 )
 
-const Version = "2.2.0-preview1"
+var Version = "2.2.0-preview1"
 
 var cmdVersion = &Command{
 	Run:   runVersion,
