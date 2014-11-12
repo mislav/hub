@@ -5,6 +5,18 @@
 
 set -e
 
+setup_gopath() {
+  TMP_GOPATH="${TMPDIR:-/tmp}/go"
+  TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
+
+  export GOPATH="${TMP_GOPATH}:${PWD}/Godeps/_workspace:$GOPATH"
+
+  if [ ! -e "$TMP_SELF" ]; then
+    mkdir -p "${TMP_SELF%/*}"
+    ln -snf "$PWD" "$TMP_SELF"
+  fi
+}
+
 find_source_files() {
   find . -maxdepth 2 -name '*.go' -not -name '*_test.go' "$@"
 }
@@ -18,7 +30,13 @@ up_to_date() {
 }
 
 build_hub() {
-  [ -n "$1" ] && (up_to_date "$1" || ./script/godep go build -o "$1" --tags noupdate)
+  setup_gopath
+  [ -n "$1" ] && (up_to_date "$1" || go build -tags "noupdate" -ldflags "-X github.com/github/hub/commands.Version `./script/version`" -o "$1")
+}
+
+test_hub() {
+  setup_gopath
+  go test ./...
 }
 
 case "$1" in
@@ -31,7 +49,7 @@ case "$1" in
   build_hub $1
   ;;
 test )
-  ./script/godep go test ./...
+  test_hub
   ;;
 -h | --help )
   sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
