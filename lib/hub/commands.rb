@@ -247,7 +247,7 @@ module Hub
         }
       end
 
-      args.concat ['push', options[:remote] || 'origin', current_branch.short_name]
+      args.concat ['push', '-u', options[:remote] || 'origin', current_branch.short_name]
       args.after do
         begin
           puts "Creating pull request"
@@ -299,6 +299,24 @@ module Hub
       branch = args.shift || current_branch.short_name
       tracked_branch, head_project = remote_branch_and_project(method(:github_user))
       remote = 'origin'
+
+      # Check CI Status before landing
+      begin
+        ci_args = Args.new([ 'ci-status', branch ])
+        puts "CI status: "
+        ci_status(ci_args)
+      rescue SystemExit => e
+        case e.status
+        when 0
+          puts "Hurray!"
+        when 1
+          puts "Fix failures before landing."
+          exit 1
+        when 2
+          puts "Wait for CI success before landing."
+          exit 2
+        end
+      end
 
       begin
         pr = api_client.pullrequests base_project, head: "#{head_project.owner}:#{branch}" 
