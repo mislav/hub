@@ -34,7 +34,19 @@ func TestURLParser_ParseURL(t *testing.T) {
 
 	u, err = p.Parse("https://git.company.com/octokit/go-octokit.git")
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "ssh.git.company.com", u.Host)
+	assert.Equal(t, "git.company.com", u.Host)
 	assert.Equal(t, "https", u.Scheme)
 	assert.Equal(t, "/octokit/go-octokit.git", u.Path)
+
+	u, err = p.Parse("git://git.company.com/octokit/go-octokit.git")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "ssh.git.company.com", u.Host)
+	assert.Equal(t, "git", u.Scheme)
+	assert.Equal(t, "/octokit/go-octokit.git", u.Path)
+
+	u, err = p.Parse("git@git.company.com:octokit/go-octokit")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "ssh.git.company.com", u.Host)
+	assert.Equal(t, "ssh", u.Scheme)
+	assert.Equal(t, "/octokit/go-octokit", u.Path)
 }

@@ -25,6 +25,10 @@ func (p *URLParser) Parse(rawURL string) (u *url.URL, err error) {
 		return
 	}
 
+	if u.Scheme == "http" || u.Scheme == "https" {
+		return
+	}
+
 	sshHost := p.SSHConfig[u.Host]
 	// ignore replacing host that fixes for limited network
 	// https://help.github.com/articles/using-ssh-over-the-https-port
