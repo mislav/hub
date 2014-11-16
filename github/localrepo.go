@@ -2,6 +2,7 @@ package github
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/github/hub/git"
 )
@@ -55,7 +56,7 @@ func (r *GitHubRepo) remotesForPublish(owner string) (remotes []Remote) {
 	if owner != "" {
 		for _, remote := range r.remotes {
 			p, e := remote.Project()
-			if e == nil && p.Owner == owner {
+			if e == nil && strings.ToLower(p.Owner) == owner {
 				remotesMap[remote.Name] = remote
 			}
 		}
