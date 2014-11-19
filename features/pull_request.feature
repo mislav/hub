@@ -513,6 +513,22 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Create pull request from branch on the personal fork case sensitive
+    Given the "origin" remote has url "git://github.com/github/coral.git"
+    And the "doge" remote has url "git://github.com/Mislav/coral.git"
+    And I am on the "feature" branch pushed to "doge/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'Mislav:feature',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Create pull request from branch on the personal fork
     Given the "origin" remote has url "git://github.com/github/coral.git"
     And the "doge" remote has url "git://github.com/mislav/coral.git"
