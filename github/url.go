@@ -10,6 +10,15 @@ type URL struct {
 	*Project
 }
 
+func (url URL) User() (projectPath string) {
+	split := strings.SplitN(url.Path, "/", 4)
+	if len(split) > 3 {
+		projectPath = split[1]
+	}
+
+	return
+}
+
 func (url URL) ProjectPath() (projectPath string) {
 	split := strings.SplitN(url.Path, "/", 4)
 	if len(split) > 3 {
