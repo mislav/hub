@@ -57,17 +57,18 @@ func (r *TestRepo) clone(repo, dir string) error {
 }
 
 func (r *TestRepo) TearDown() {
-	err := os.RemoveAll(r.dir)
-	if err != nil {
-		panic(err)
-	}
-
-	err = os.Chdir(r.pwd)
+	err := os.Chdir(r.pwd)
 	if err != nil {
 		panic(err)
 	}
 
 	os.Setenv("HOME", r.home)
+
+	err = os.RemoveAll(r.dir)
+	if err != nil {
+		panic(err)
+	}
+
 }
 
 func SetupTestRepo() *TestRepo {

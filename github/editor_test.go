@@ -14,6 +14,8 @@ import (
 
 func TestEditor_openAndEdit_deleteFileWhenOpeningEditorFails(t *testing.T) {
 	tempFile, _ := ioutil.TempFile("", "editor-test")
+	tempFile.Close()
+
 	ioutil.WriteFile(tempFile.Name(), []byte("hello"), 0644)
 	editor := Editor{
 		Program: "memory",
@@ -26,10 +28,13 @@ func TestEditor_openAndEdit_deleteFileWhenOpeningEditorFails(t *testing.T) {
 		},
 	}
 
-	_, err := editor.openAndEdit()
-	assert.NotEqual(t, nil, err)
+	_, err := os.Stat(tempFile.Name())
+	assert.Equal(t, nil, err)
+
+	_, err = editor.openAndEdit()
 	assert.Equal(t, "error using text editor for test message", fmt.Sprintf("%s", err))
 
+	// file is removed if there's error
 	_, err = os.Stat(tempFile.Name())
 	assert.T(t, os.IsNotExist(err))
 }
