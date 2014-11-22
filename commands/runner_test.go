@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestRunner_splitAliasCmd(t *testing.T) {
@@ -29,7 +30,7 @@ func TestRunnerCallCommands(t *testing.T) {
 	var result string
 	f := func(c *Command, args *Args) {
 		result = args.FirstParam()
-		args.Replace("echo", "", "true")
+		args.Replace("git", "version", "")
 	}
 
 	r := NewRunner()

@@ -16,7 +16,10 @@ type URLParser struct {
 }
 
 func (p *URLParser) Parse(rawURL string) (u *url.URL, err error) {
-	if !protocolRe.MatchString(rawURL) && strings.Contains(rawURL, ":") {
+	if !protocolRe.MatchString(rawURL) &&
+		strings.Contains(rawURL, ":") &&
+		// not a Windows path
+		!strings.Contains(rawURL, "\\") {
 		rawURL = "ssh://" + strings.Replace(rawURL, ":", "/", 1)
 	}
 
@@ -25,7 +28,7 @@ func (p *URLParser) Parse(rawURL string) (u *url.URL, err error) {
 		return
 	}
 
-	if u.Scheme == "http" || u.Scheme == "https" {
+	if u.Scheme != "ssh" {
 		return
 	}
 

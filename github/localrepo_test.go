@@ -15,7 +15,9 @@ func TestGitHubRepo_OriginRemote(t *testing.T) {
 	localRepo, _ := LocalRepo()
 	gitRemote, _ := localRepo.OriginRemote()
 	assert.Equal(t, "origin", gitRemote.Name)
-	assert.Equal(t, repo.Remote, gitRemote.URL.String())
+
+	u, _ := url.Parse(repo.Remote)
+	assert.Equal(t, u, gitRemote.URL)
 }
 
 func TestGitHubRepo_remotesForPublish(t *testing.T) {
