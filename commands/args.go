@@ -168,14 +168,18 @@ func NewArgs(args []string) *Args {
 }
 
 func slurpGlobalFlags(args []string) (aa []string, noop bool) {
-	aa = args
-	for i, arg := range args {
+	aa = make([]string, 0)
+	for _, arg := range args {
 		if arg == "--noop" {
 			noop = true
-			aa, _ = removeItem(args, i)
-		} else if arg == "--version" || arg == "--help" {
-			aa[i] = strings.TrimPrefix(arg, "--")
+			continue
 		}
+
+		if arg == "--version" || arg == "--help" {
+			arg = strings.TrimPrefix(arg, "--")
+		}
+
+		aa = append(aa, arg)
 	}
 
 	return

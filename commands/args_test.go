@@ -64,3 +64,11 @@ func TestArgs_Remove(t *testing.T) {
 	assert.Equal(t, "2", args.FirstParam())
 	assert.Equal(t, "4", args.GetParam(1))
 }
+
+func TestSlurpGlobalFlags(t *testing.T) {
+	args := []string{"--noop", "--version"}
+	aa, noop := slurpGlobalFlags(args)
+
+	assert.T(t, noop)
+	assert.Equal(t, []string{"version"}, aa)
+}
