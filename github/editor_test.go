@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -59,14 +58,13 @@ func TestEditor_openAndEdit_readFileIfExist(t *testing.T) {
 }
 
 func TestEditor_openAndEdit_writeFileIfNotExist(t *testing.T) {
-	tempDir, _ := ioutil.TempDir("", "editor-test")
-	tempFile := filepath.Join(tempDir, "PULLREQ")
+	tempFile, _ := ioutil.TempFile("", "PULLREQ")
 	editor := Editor{
 		Program: "memory",
-		File:    tempFile,
+		File:    tempFile.Name(),
 		openEditor: func(program string, file string) error {
 			assert.Equal(t, "memory", program)
-			assert.Equal(t, tempFile, file)
+			assert.Equal(t, tempFile.Name(), file)
 
 			return ioutil.WriteFile(file, []byte("hello"), 0644)
 		},
@@ -77,16 +75,37 @@ func TestEditor_openAndEdit_writeFileIfNotExist(t *testing.T) {
 	assert.Equal(t, "hello", string(content))
 }
 
-func TestEditor_EditTitleAndBody(t *testing.T) {
-	tempDir, _ := ioutil.TempDir("", "editor-test")
-	tempFile := filepath.Join(tempDir, "PULLREQ")
+func TestEditor_EditTitleAndBodyEmptyTitle(t *testing.T) {
+	tempFile, _ := ioutil.TempFile("", "PULLREQ")
 	editor := Editor{
 		Program: "memory",
-		File:    tempFile,
+		File:    tempFile.Name(),
 		CS:      "#",
 		openEditor: func(program string, file string) error {
 			assert.Equal(t, "memory", program)
-			assert.Equal(t, tempFile, file)
+			assert.Equal(t, tempFile.Name(), file)
+			return ioutil.WriteFile(file, []byte(""), 0644)
+		},
+	}
+
+	title, body, err := editor.EditTitleAndBody()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "", title)
+	assert.Equal(t, "", body)
+
+	_, err = os.Stat(tempFile.Name())
+	assert.T(t, os.IsNotExist(err))
+}
+
+func TestEditor_EditTitleAndBody(t *testing.T) {
+	tempFile, _ := ioutil.TempFile("", "PULLREQ")
+	editor := Editor{
+		Program: "memory",
+		File:    tempFile.Name(),
+		CS:      "#",
+		openEditor: func(program string, file string) error {
+			assert.Equal(t, "memory", program)
+			assert.Equal(t, tempFile.Name(), file)
 
 			message := `A title
 A title continues
