@@ -83,7 +83,7 @@ class Packer
 
   def parse_version!
     content = File.read root_path("commands", "version.go")
-    match = /const Version = "(.+)"/.match content
+    match = /var Version = "(.+)"/.match content
     raise "Fail to parse Hub version" unless match
 
     match[1]
@@ -113,7 +113,8 @@ class Packer
 
   def build_hub!
     puts "Building for #{OS.type}"
-    exec!("script/godep gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}} -tags=noupdate")
+    release_version = `./script/version`
+    exec!("gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}} -tags=noupdate -ldflags '-X github.com/github/hub/commands.Version #{release_version}'")
   end
 
   def cp_assets
