@@ -2,10 +2,11 @@ package commands
 
 import (
 	"fmt"
-	"github.com/github/hub/utils"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/github/hub/utils"
 )
 
 var cmdAlias = &Command{

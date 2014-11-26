@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestCommandUseSelf(t *testing.T) {

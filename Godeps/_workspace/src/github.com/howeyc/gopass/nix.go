@@ -5,7 +5,7 @@ package gopass
 import (
 	"syscall"
 
-	"code.google.com/p/go.crypto/ssh/terminal"
+	"github.com/github/hub/Godeps/_workspace/src/code.google.com/p/go.crypto/ssh/terminal"
 )
 
 func getch() byte {

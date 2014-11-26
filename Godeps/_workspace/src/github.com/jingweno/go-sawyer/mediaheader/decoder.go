@@ -1,10 +1,11 @@
 package mediaheader
 
 import (
-	"github.com/jingweno/go-sawyer/hypermedia"
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/hypermedia"
 )
 
 // TODO: need a full link header parser for http://tools.ietf.org/html/rfc5988

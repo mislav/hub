@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/fhs/go-netrc/netrc"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/fhs/go-netrc/netrc"
 )
 
 // See http://developer.github.com/v3/auth/
