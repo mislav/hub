@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/github/hub/utils"
 )
@@ -122,7 +124,14 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		testURL, _ = url.Parse(testHost)
 	}
 	tr := &verboseTransport{
-		Transport:   &http.Transport{Proxy: proxyFromEnvironment},
+		Transport: &http.Transport{
+			Proxy: proxyFromEnvironment,
+			Dial: (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 30 * time.Second,
+			}).Dial,
+			TLSHandshakeTimeout: 10 * time.Second,
+		},
 		Verbose:     verbose,
 		OverrideURL: testURL,
 		Out:         os.Stderr,
