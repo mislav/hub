@@ -1,8 +1,6 @@
 package octokit
 
-import (
-	"github.com/jingweno/go-sawyer/mediaheader"
-)
+import "github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/mediaheader"
 
 type pageable struct {
 	NextPage  *Hyperlink

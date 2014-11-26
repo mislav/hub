@@ -10,12 +10,12 @@
 package main
 
 import (
-	"github.com/kr/pty"
-	"github.com/kr/text/colwriter"
 	"io"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/kr/text/colwriter"
 )
 
 func main() {

@@ -1,11 +1,12 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestAssetsDirWithoutFlag(t *testing.T) {

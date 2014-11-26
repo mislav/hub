@@ -1,8 +1,9 @@
 package utils
 
 import (
-	"github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestSearchBrowserLauncher(t *testing.T) {

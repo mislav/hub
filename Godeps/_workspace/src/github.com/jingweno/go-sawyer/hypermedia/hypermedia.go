@@ -4,9 +4,10 @@ package hypermedia
 
 import (
 	"fmt"
-	"github.com/jtacoma/uritemplates"
 	"net/url"
 	"reflect"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/jtacoma/uritemplates"
 )
 
 // Hyperlink is a string url.  If it is a uri template, it can be converted to

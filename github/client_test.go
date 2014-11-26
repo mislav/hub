@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/bmizerany/assert"
-	"github.com/octokit/go-octokit/octokit"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
 
 func TestClient_newOctokitClient(t *testing.T) {

@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/github/hub/Godeps/_workspace/src/github.com/howeyc/gopass"
 	"github.com/github/hub/utils"
-	"github.com/howeyc/gopass"
 )
 
 var (
