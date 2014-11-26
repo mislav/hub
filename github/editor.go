@@ -63,6 +63,10 @@ func (e *Editor) EditTitleAndBody() (title, body string, err error) {
 	reader := bytes.NewReader(content)
 	title, body, err = readTitleAndBody(reader, e.CS)
 
+	if err != nil || title == "" {
+		e.DeleteFile()
+	}
+
 	return
 }
 
