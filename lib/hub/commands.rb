@@ -86,7 +86,7 @@ module Hub
         abort "Aborted: the origin remote doesn't point to a GitHub repository."
       end
 
-      unless sha = local_repo.git_command("rev-parse -q #{ref}")
+      unless sha = local_repo.git_command("rev-parse -q '%s'" % ref.gsub("'", "\\'"))
         abort "Aborted: no revision could be determined from '#{ref}'"
       end
 
@@ -228,8 +228,11 @@ module Hub
         else
           format = '%h (%aN, %ar)%n%w(78,3,3)%s%n%+b'
           default_message = nil
-          commit_summary = git_command "log --no-color --format='%s' --cherry %s...%s" %
-            [format, base_branch, remote_branch]
+          commit_summary = git_command "log --no-color --format='%s' --cherry '%s...%s'" % [
+            format,
+            base_branch.to_s.gsub("'", "\\'"),
+            remote_branch.to_s.gsub("'", "\\'")
+          ]
         end
 
         options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message, cc|

@@ -149,4 +149,8 @@ World Module.new {
   def announcer
     @announcer ||= super
   end
+
+  def shell_escape(message)
+    message.to_s.gsub(/['"\\ $]/) { |m| "\\#{m}" }
+  end
 }

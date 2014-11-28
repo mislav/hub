@@ -355,7 +355,8 @@ module Hub
       end
 
       def upstream
-        if branch = local_repo.git_command("rev-parse --symbolic-full-name #{short_name}@{upstream}")
+        escaped_name = short_name.gsub("'", "\\'")
+        if branch = local_repo.git_command("rev-parse --symbolic-full-name '#{escaped_name}@{upstream}'")
           Branch.new local_repo, branch
         end
       end
@@ -479,7 +480,10 @@ module Hub
     end
 
     def rev_list(a, b)
-      git_command("rev-list --cherry-pick --right-only --no-merges #{a}...#{b}")
+      git_command "rev-list --cherry-pick --right-only --no-merges '%s...%s'" % [
+        a.to_s.gsub("'", "\\'"),
+        b.to_s.gsub("'", "\\'")
+      ]
     end
 
     PWD = Dir.pwd
