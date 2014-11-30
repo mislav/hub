@@ -118,7 +118,7 @@ func openTextEditor(program, file string) error {
 	}
 	editCmd.WithArg(file)
 
-	return editCmd.Exec()
+	return editCmd.Spawn()
 }
 
 func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {

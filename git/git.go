@@ -198,7 +198,7 @@ func Spawn(command string, args ...string) error {
 		cmd.WithArg(a)
 	}
 
-	return cmd.Exec()
+	return cmd.Spawn()
 }
 
 func execGitCmd(input ...string) (outputs []string, err error) {

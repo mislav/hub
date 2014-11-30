@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/github/hub/utils"
 	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
+	"github.com/github/hub/utils"
 	"os"
 	"os/exec"
 	"strings"
@@ -40,13 +40,8 @@ func (cmd *Cmd) ExecOutput() (string, error) {
 	return string(output), err
 }
 
-func (cmd *Cmd) Exec() error {
-	binary, lookErr := exec.LookPath(cmd.Name)
-	if lookErr != nil {
-		return fmt.Errorf("command not found: %s", cmd.Name)
-	}
-
-	c := exec.Command(binary, cmd.Args...)
+func (cmd *Cmd) Spawn() error {
+	c := exec.Command(cmd.Name, cmd.Args...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
