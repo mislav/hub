@@ -13,15 +13,17 @@ import (
 	"strings"
 	"time"
 
+	goupdate "github.com/github/hub/Godeps/_workspace/src/github.com/inconshreveable/go-update"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	goupdate "github.com/github/hub/Godeps/_workspace/src/github.com/inconshreveable/go-update"
 )
 
 const (
 	hubAutoUpdateConfig = "hub.autoUpdate"
 )
+
+var EnableAutoUpdate = false
 
 func NewUpdater() *Updater {
 	version := os.Getenv("GH_VERSION")
@@ -256,9 +258,10 @@ func saveAutoUpdateConfiguration(confirm string, always bool) {
 }
 
 func autoUpdateConfig() (opt string) {
-	opt = os.Getenv("HUB_AUTOUPDATE")
-	if opt == "" {
+	if EnableAutoUpdate {
 		opt, _ = git.GlobalConfig(hubAutoUpdateConfig)
+	} else {
+		opt = "never"
 	}
 
 	return
