@@ -44,7 +44,7 @@ $ brew install --HEAD hub
 #### Source
 
 To install `hub` 2.x from source, you need to have a [Go development environment](http://golang.org/doc/install),
-version 1.1 or better:
+version 1.3 or better:
 
 ~~~ sh
 $ git clone https://github.com/github/hub.git
