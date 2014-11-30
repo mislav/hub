@@ -12,6 +12,18 @@ import (
 
 var e = fmt.Errorf
 
+// Unmarshaler is the interface implemented by objects that can unmarshal a
+// TOML description of themselves.
+type Unmarshaler interface {
+	UnmarshalTOML(interface{}) error
+}
+
+// Unmarshal decodes the contents of `p` in TOML format into a pointer `v`.
+func Unmarshal(p []byte, v interface{}) error {
+	_, err := Decode(string(p), v)
+	return err
+}
+
 // Primitive is a TOML value that hasn't been decoded into a Go value.
 // When using the various `Decode*` functions, the type `Primitive` may
 // be given to any value, and its decoding will be delayed.
@@ -128,6 +140,7 @@ func DecodeReader(r io.Reader, v interface{}) (MetaData, error) {
 // Any type mismatch produces an error. Finding a type that we don't know
 // how to handle produces an unsupported type error.
 func (md *MetaData) unify(data interface{}, rv reflect.Value) error {
+
 	// Special case. Look for a `Primitive` value.
 	if rv.Type() == reflect.TypeOf((*Primitive)(nil)).Elem() {
 		// Save the undecoded data and the key context into the primitive
@@ -139,6 +152,13 @@ func (md *MetaData) unify(data interface{}, rv reflect.Value) error {
 			context:   context,
 		}))
 		return nil
+	}
+
+	// Special case. Unmarshaler Interface support.
+	if rv.CanAddr() {
+		if v, ok := rv.Addr().Interface().(Unmarshaler); ok {
+			return v.UnmarshalTOML(data)
+		}
 	}
 
 	// Special case. Handle time.Time values specifically.

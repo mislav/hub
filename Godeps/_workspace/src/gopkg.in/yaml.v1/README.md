@@ -12,10 +12,10 @@ C library to parse and generate YAML data quickly and reliably.
 Compatibility
 -------------
 
-The yaml package is almost compatible with YAML 1.1, including support for
-anchors, tags, etc. There are still a few missing bits, such as document
-merging, base-60 floats (huh?), and multi-document unmarshalling. These
-features are not hard to add, and will be introduced as necessary.
+The yaml package supports most of YAML 1.1 and 1.2, including support for
+anchors, tags, map merging, etc. Multi-document unmarshalling is not yet
+implemented, and base-60 floats from YAML 1.1 are purposefully not
+supported since they're a poor design and are gone in YAML 1.2.
 
 Installation and usage
 ----------------------

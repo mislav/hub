@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/jingweno/go-sawyer/hypermedia"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/hypermedia"
 )
 
 var (
@@ -36,6 +36,10 @@ func (p *PullRequestsService) Create(params interface{}) (pull *PullRequest, res
 func (p *PullRequestsService) All() (pulls []PullRequest, result *Result) {
 	result = p.client.get(p.URL, &pulls)
 	return
+}
+
+func (p *PullRequestsService) Diff() (diff io.ReadCloser, result *Result) {
+	return p.client.getBody(p.URL, diffMediaType)
 }
 
 func (p *PullRequestsService) Patch() (patch io.ReadCloser, result *Result) {

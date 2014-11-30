@@ -3,7 +3,7 @@ package octokit
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestBasicAuth(t *testing.T) {

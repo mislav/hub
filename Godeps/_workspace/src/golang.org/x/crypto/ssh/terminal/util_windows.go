@@ -161,6 +161,9 @@ func ReadPassword(fd int) ([]byte, error) {
 		if buf[n-1] == '\n' {
 			n--
 		}
+		if n > 0 && buf[n-1] == '\r' {
+			n--
+		}
 		ret = append(ret, buf[:n]...)
 		if n < len(buf) {
 			break

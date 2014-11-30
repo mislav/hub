@@ -14,6 +14,9 @@ const (
 	itemEOF
 	itemText
 	itemString
+	itemRawString
+	itemMultilineString
+	itemRawMultilineString
 	itemBool
 	itemInteger
 	itemFloat
@@ -42,6 +45,8 @@ const (
 	commentStart    = '#'
 	stringStart     = '"'
 	stringEnd       = '"'
+	rawStringStart  = '\''
+	rawStringEnd    = '\''
 )
 
 type stateFn func(lx *lexer) stateFn
@@ -366,8 +371,29 @@ func lexValue(lx *lexer) stateFn {
 		lx.emit(itemArray)
 		return lexArrayValue
 	case r == stringStart:
+		if lx.accept(stringStart) {
+			if lx.accept(stringStart) {
+				lx.ignore() // Ignore """
+				return lexMultilineString
+			}
+
+			lx.backup()
+		}
+
 		lx.ignore() // ignore the '"'
 		return lexString
+	case r == rawStringStart:
+		if lx.accept(rawStringStart) {
+			if lx.accept(rawStringStart) {
+				lx.ignore() // Ignore """
+				return lexMultilineRawString
+			}
+
+			lx.backup()
+		}
+
+		lx.ignore() // ignore the "'"
+		return lexRawString
 	case r == 't':
 		return lexTrue
 	case r == 'f':
@@ -455,6 +481,23 @@ func lexString(lx *lexer) stateFn {
 // lexStringEscape consumes an escaped character. It assumes that the preceding
 // '\\' has already been consumed.
 func lexStringEscape(lx *lexer) stateFn {
+	return lexStringEscapeHandler(lx, lexString, lexStringUnicode)
+}
+
+// lexMultilineStringEscape consumes an escaped character. It assumes that the
+// preceding '\\' has already been consumed.
+func lexMultilineStringEscape(lx *lexer) stateFn {
+	// Handle the special case first:
+	if isNL(lx.next()) {
+		lx.next()
+		return lexMultilineString
+	} else {
+		lx.backup()
+		return lexStringEscapeHandler(lx, lexMultilineString, lexMultilineStringUnicode)
+	}
+}
+
+func lexStringEscapeHandler(lx *lexer, stringFn stateFn, unicodeFn stateFn) stateFn {
 	r := lx.next()
 	switch r {
 	case 'b':
@@ -472,18 +515,28 @@ func lexStringEscape(lx *lexer) stateFn {
 	case '/':
 		fallthrough
 	case '\\':
-		return lexString
+		return stringFn
 	case 'u':
-		return lexStringUnicode
+		return unicodeFn
 	}
 	return lx.errorf("Invalid escape character %q. Only the following "+
 		"escape characters are allowed: "+
 		"\\b, \\t, \\n, \\f, \\r, \\\", \\/, \\\\, and \\uXXXX.", r)
 }
 
-// lexStringBinary consumes two hexadecimal digits following '\x'. It assumes
-// that the '\x' has already been consumed.
+// lexStringUnicode consumes four hexadecimal digits following '\u'. It assumes
+// that the '\u' has already been consumed.
 func lexStringUnicode(lx *lexer) stateFn {
+	return lexStringUnicodeHandler(lx, lexString)
+}
+
+// lexMultilineStringUnicode consumes four hexadecimal digits following '\u'.
+// It assumes that the '\u' has already been consumed.
+func lexMultilineStringUnicode(lx *lexer) stateFn {
+	return lexStringUnicodeHandler(lx, lexMultilineString)
+}
+
+func lexStringUnicodeHandler(lx *lexer, nextFunc stateFn) stateFn {
 	var r rune
 
 	for i := 0; i < 4; i++ {
@@ -493,7 +546,77 @@ func lexStringUnicode(lx *lexer) stateFn {
 				"but got '%s' instead.", lx.current())
 		}
 	}
-	return lexString
+	return nextFunc
+}
+
+// lexMultilineString consumes the inner contents of a string. It assumes that
+// the beginning '"""' has already been consumed and ignored.
+func lexMultilineString(lx *lexer) stateFn {
+	r := lx.next()
+	switch {
+	case r == '\\':
+		return lexMultilineStringEscape
+	case r == stringEnd:
+		if lx.accept(stringEnd) {
+			if lx.accept(stringEnd) {
+				lx.backup()
+				lx.backup()
+				lx.backup()
+				lx.emit(itemMultilineString)
+				lx.next()
+				lx.next()
+				lx.next()
+				lx.ignore()
+				return lx.pop()
+			}
+
+			lx.backup()
+		}
+	}
+	return lexMultilineString
+}
+
+// lexRawString consumes a raw string. Nothing can be escaped in such a string.
+// It assumes that the beginning "'" has already been consumed and ignored.
+func lexRawString(lx *lexer) stateFn {
+	r := lx.next()
+	switch {
+	case isNL(r):
+		return lx.errorf("Strings cannot contain new lines.")
+	case r == rawStringEnd:
+		lx.backup()
+		lx.emit(itemRawString)
+		lx.next()
+		lx.ignore()
+		return lx.pop()
+	}
+	return lexRawString
+}
+
+// lexMultilineRawString consumes a raw string. Nothing can be escaped in such
+// a string. It assumes that the beginning "'" has already been consumed and
+// ignored.
+func lexMultilineRawString(lx *lexer) stateFn {
+	r := lx.next()
+	switch {
+	case r == rawStringEnd:
+		if lx.accept(rawStringEnd) {
+			if lx.accept(rawStringEnd) {
+				lx.backup()
+				lx.backup()
+				lx.backup()
+				lx.emit(itemRawMultilineString)
+				lx.next()
+				lx.next()
+				lx.next()
+				lx.ignore()
+				return lx.pop()
+			}
+
+			lx.backup()
+		}
+	}
+	return lexMultilineRawString
 }
 
 // lexNumberOrDateStart consumes either a (positive) integer, float or datetime.
@@ -704,6 +827,12 @@ func (itype itemType) String() string {
 	case itemText:
 		return "Text"
 	case itemString:
+		return "String"
+	case itemRawString:
+		return "String"
+	case itemMultilineString:
+		return "String"
+	case itemRawMultilineString:
 		return "String"
 	case itemBool:
 		return "Bool"

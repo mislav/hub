@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -148,6 +149,12 @@ func (p *parser) value(it item) (interface{}, tomlType) {
 	switch it.typ {
 	case itemString:
 		return p.replaceUnicode(replaceEscapes(it.val)), p.typeOfPrimitive(it)
+	case itemMultilineString:
+		return p.replaceUnicode(replaceEscapes(stripFirstNewline(stripEscapedWhitespace(it.val)))), p.typeOfPrimitive(it)
+	case itemRawString:
+		return it.val, p.typeOfPrimitive(it)
+	case itemRawMultilineString:
+		return stripFirstNewline(it.val), p.typeOfPrimitive(it)
 	case itemBool:
 		switch it.val {
 		case "true":
@@ -385,6 +392,26 @@ func replaceEscapes(s string) string {
 		"\\/", "\u002F",
 		"\\\\", "\u005C",
 	).Replace(s)
+}
+
+func stripFirstNewline(s string) string {
+	if len(s) == 0 || s[0] != '\n' {
+		return s
+	}
+
+	return s[1:len(s)]
+}
+
+func stripEscapedWhitespace(s string) string {
+	esc := strings.Split(s, "\\\n")
+
+	if len(esc) > 1 {
+		for i := 1; i < len(esc); i++ {
+			esc[i] = strings.TrimLeftFunc(esc[i], unicode.IsSpace)
+		}
+	}
+
+	return strings.Join(esc, "")
 }
 
 func (p *parser) replaceUnicode(s string) string {

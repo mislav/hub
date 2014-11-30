@@ -3,7 +3,7 @@ package hypermedia
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"testing"
 )
 
