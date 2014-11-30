@@ -37,7 +37,7 @@ func (cmd *Cmd) WithArgs(args ...string) *Cmd {
 	return cmd
 }
 
-func (cmd *Cmd) ExecOutput() (string, error) {
+func (cmd *Cmd) CombinedOutput() (string, error) {
 	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
 
 	return string(output), err
