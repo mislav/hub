@@ -191,14 +191,14 @@ func Alias(name string) (string, error) {
 	return Config(fmt.Sprintf("alias.%s", name))
 }
 
-func Spawn(command string, args ...string) error {
+func Run(command string, args ...string) error {
 	cmd := cmd.New("git")
 	cmd.WithArg(command)
 	for _, a := range args {
 		cmd.WithArg(a)
 	}
 
-	return cmd.Spawn()
+	return cmd.Run()
 }
 
 func execGitCmd(input ...string) (outputs []string, err error) {

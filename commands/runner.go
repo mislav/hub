@@ -76,7 +76,7 @@ func (r *Runner) Execute() ExecError {
 		return r.Call(cmd, args)
 	}
 
-	err = git.Spawn(args.Command, args.Params...)
+	err = git.Run(args.Command, args.Params...)
 	return newExecError(err)
 }
 
@@ -106,8 +106,15 @@ func printCommands(cmds []*cmd.Cmd) {
 }
 
 func executeCommands(cmds []*cmd.Cmd) error {
-	for _, c := range cmds {
-		err := c.Spawn()
+	for i, c := range cmds {
+		var err error
+		// Run with `Exec` for the last command in chain
+		if i == len(cmds)-1 {
+			err = c.Run()
+		} else {
+			err = c.Spawn()
+		}
+
 		if err != nil {
 			return err
 		}
