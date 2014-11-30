@@ -40,6 +40,8 @@ func TestEditor_openAndEdit_deleteFileWhenOpeningEditorFails(t *testing.T) {
 
 func TestEditor_openAndEdit_readFileIfExist(t *testing.T) {
 	tempFile, _ := ioutil.TempFile("", "editor-test")
+	tempFile.Close()
+
 	ioutil.WriteFile(tempFile.Name(), []byte("hello"), 0644)
 	editor := Editor{
 		Program: "memory",
@@ -59,6 +61,8 @@ func TestEditor_openAndEdit_readFileIfExist(t *testing.T) {
 
 func TestEditor_openAndEdit_writeFileIfNotExist(t *testing.T) {
 	tempFile, _ := ioutil.TempFile("", "PULLREQ")
+	tempFile.Close()
+
 	editor := Editor{
 		Program: "memory",
 		File:    tempFile.Name(),
@@ -77,6 +81,8 @@ func TestEditor_openAndEdit_writeFileIfNotExist(t *testing.T) {
 
 func TestEditor_EditTitleAndBodyEmptyTitle(t *testing.T) {
 	tempFile, _ := ioutil.TempFile("", "PULLREQ")
+	tempFile.Close()
+
 	editor := Editor{
 		Program: "memory",
 		File:    tempFile.Name(),
@@ -99,6 +105,8 @@ func TestEditor_EditTitleAndBodyEmptyTitle(t *testing.T) {
 
 func TestEditor_EditTitleAndBody(t *testing.T) {
 	tempFile, _ := ioutil.TempFile("", "PULLREQ")
+	tempFile.Close()
+
 	editor := Editor{
 		Program: "memory",
 		File:    tempFile.Name(),

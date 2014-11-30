@@ -64,7 +64,7 @@ func (e *Editor) EditTitleAndBody() (title, body string, err error) {
 	title, body, err = readTitleAndBody(reader, e.CS)
 
 	if err != nil || title == "" {
-		e.DeleteFile()
+		defer e.DeleteFile()
 	}
 
 	return
