@@ -7,18 +7,13 @@
 	"Deps": [
 		{
 			"ImportPath": "bitbucket.org/kardianos/osext",
-			"Comment": "null-13",
-			"Rev": "5d3ddcf53a508cc2f7404eaebf546ef2cb5cdb6e"
-		},
-		{
-			"ImportPath": "code.google.com/p/go.crypto/ssh/terminal",
-			"Comment": "null-221",
-			"Rev": "6e881b5273dfffbadb6a76a61d3c39a71e3588d1"
+			"Comment": "null-15",
+			"Rev": "44140c5fc69ecf1102c5ef451d73cd98ef59b178"
 		},
 		{
 			"ImportPath": "github.com/BurntSushi/toml",
-			"Comment": "v0.1.0",
-			"Rev": "2ceedfee35ad3848e49308ab0c9a4f640cfb5fb2"
+			"Comment": "v0.1.0-9-g3883ac1",
+			"Rev": "3883ac1ce943878302255f538fce319d23226223"
 		},
 		{
 			"ImportPath": "github.com/bmizerany/assert",
@@ -31,11 +26,11 @@
 		},
 		{
 			"ImportPath": "github.com/howeyc/gopass",
-			"Rev": "e8c0d21f59eb7f01086a39e47e05568acc9bb736"
+			"Rev": "62ab5a80502a82291f265e6980d72310b8f480d5"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/go-update",
-			"Rev": "276093003334bfddde2b1759b864b7c59f38b55e"
+			"Rev": "221d034a558b4c21b0624b2a450c076913854a57"
 		},
 		{
 			"ImportPath": "github.com/jingweno/go-sawyer",
@@ -69,16 +64,21 @@
 		},
 		{
 			"ImportPath": "github.com/octokit/go-octokit/octokit",
-			"Comment": "v0.4.0-93-g76c898e",
-			"Rev": "76c898e13c8ad8059b070dd2ee1d27cb9a753120"
+			"Comment": "v0.4.0-97-g6909930",
+			"Rev": "69099306b45af55301f9328f52d48338274f8d7d"
 		},
 		{
 			"ImportPath": "github.com/ogier/pflag",
 			"Rev": "e4f7d00f344b0954fa3791a8527d10ba7334eceb"
 		},
 		{
+			"ImportPath": "golang.org/x/crypto/ssh/terminal",
+			"Comment": "null-236",
+			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+		},
+		{
 			"ImportPath": "gopkg.in/yaml.v1",
-			"Rev": "fc7f19eff1782a0beae3065097c776183e7d01d0"
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
 		}
 	]
 }

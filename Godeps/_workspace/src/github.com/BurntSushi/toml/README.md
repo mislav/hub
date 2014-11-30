@@ -111,7 +111,7 @@ type songs struct {
   Song []song
 }
 var favorites songs
-if _, err := Decode(blob, &favorites); err != nil {
+if _, err := toml.Decode(blob, &favorites); err != nil {
   log.Fatal(err)
 }
 

@@ -10,23 +10,20 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"runtime"
 	"strings"
 	"sync"
 )
 
+type yamlError string
+
+func fail(msg string) {
+	panic(yamlError(msg))
+}
+
 func handleErr(err *error) {
 	if r := recover(); r != nil {
-		if _, ok := r.(runtime.Error); ok {
-			panic(r)
-		} else if _, ok := r.(*reflect.ValueError); ok {
-			panic(r)
-		} else if _, ok := r.(externalPanic); ok {
-			panic(r)
-		} else if s, ok := r.(string); ok {
-			*err = errors.New("YAML error: " + s)
-		} else if e, ok := r.(error); ok {
-			*err = e
+		if e, ok := r.(yamlError); ok {
+			*err = errors.New("YAML error: " + string(e))
 		} else {
 			panic(r)
 		}
@@ -78,7 +75,7 @@ type Getter interface {
 //         F int `yaml:"a,omitempty"`
 //         B int
 //     }
-//     var T t
+//     var t T
 //     yaml.Unmarshal([]byte("a: 1\nb: 2"), &t)
 //
 // See the documentation of Marshal for the format of tags and a list of
@@ -91,7 +88,11 @@ func Unmarshal(in []byte, out interface{}) (err error) {
 	defer p.destroy()
 	node := p.parse()
 	if node != nil {
-		d.unmarshal(node, reflect.ValueOf(out))
+		v := reflect.ValueOf(out)
+		if v.Kind() == reflect.Ptr && !v.IsNil() {
+			v = v.Elem()
+		}
+		d.unmarshal(node, v)
 	}
 	return nil
 }
@@ -174,12 +175,6 @@ type fieldInfo struct {
 var structMap = make(map[reflect.Type]*structInfo)
 var fieldMapMutex sync.RWMutex
 
-type externalPanic string
-
-func (e externalPanic) String() string {
-	return string(e)
-}
-
 func getStructInfo(st reflect.Type) (*structInfo, error) {
 	fieldMapMutex.RLock()
 	sinfo, found := structMap[st]
@@ -220,8 +215,7 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 				case "inline":
 					inline = true
 				default:
-					msg := fmt.Sprintf("Unsupported flag %q in tag %q of type %s", flag, tag, st)
-					panic(externalPanic(msg))
+					return nil, errors.New(fmt.Sprintf("Unsupported flag %q in tag %q of type %s", flag, tag, st))
 				}
 			}
 			tag = fields[0]
@@ -229,6 +223,7 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 
 		if inline {
 			switch field.Type.Kind() {
+			// TODO: Implement support for inline maps.
 			//case reflect.Map:
 			//	if inlineMap >= 0 {
 			//		return nil, errors.New("Multiple ,inline maps in struct " + st.String())
@@ -256,8 +251,8 @@ func getStructInfo(st reflect.Type) (*structInfo, error) {
 					fieldsList = append(fieldsList, finfo)
 				}
 			default:
-				//panic("Option ,inline needs a struct value or map field")
-				panic("Option ,inline needs a struct value field")
+				//return nil, errors.New("Option ,inline needs a struct value or map field")
+				return nil, errors.New("Option ,inline needs a struct value field")
 			}
 			continue
 		}

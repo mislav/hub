@@ -17,7 +17,7 @@ func TestDecodeSimple(t *testing.T) {
 age = 250
 andrew = "gallant"
 kait = "brady"
-now = 1987-07-05T05:45:00Z 
+now = 1987-07-05T05:45:00Z
 yesOrNo = true
 pi = 3.14
 colors = [
@@ -132,7 +132,7 @@ name = "Born to Run"
 
 [[albums]]
 name = "Born in the USA"
-  
+
   [[albums.songs]]
   name = "Glory Days"
 
@@ -349,6 +349,125 @@ func TestDecodeSizedInts(t *testing.T) {
 	}
 }
 
+func TestUnmarshaler(t *testing.T) {
+
+	var tomlBlob = `
+[dishes.hamboogie]
+name = "Hamboogie with fries"
+price = 10.99
+
+[[dishes.hamboogie.ingredients]]
+name = "Bread Bun"
+
+[[dishes.hamboogie.ingredients]]
+name = "Lettuce"
+
+[[dishes.hamboogie.ingredients]]
+name = "Real Beef Patty"
+
+[[dishes.hamboogie.ingredients]]
+name = "Tomato"
+
+[dishes.eggsalad]
+name = "Egg Salad with rice"
+price = 3.99
+
+[[dishes.eggsalad.ingredients]]
+name = "Egg"
+
+[[dishes.eggsalad.ingredients]]
+name = "Mayo"
+
+[[dishes.eggsalad.ingredients]]
+name = "Rice"
+`
+	m := &menu{}
+	if _, err := Decode(tomlBlob, m); err != nil {
+		log.Fatal(err)
+	}
+
+	if len(m.Dishes) != 2 {
+		t.Log("two dishes should be loaded with UnmarshalTOML()")
+		t.Errorf("expected %d but got %d", 2, len(m.Dishes))
+	}
+
+	eggSalad := m.Dishes["eggsalad"]
+	if _, ok := interface{}(eggSalad).(dish); !ok {
+		t.Errorf("expected a dish")
+	}
+
+	if eggSalad.Name != "Egg Salad with rice" {
+		t.Errorf("expected the dish to be named 'Egg Salad with rice'")
+	}
+
+	if len(eggSalad.Ingredients) != 3 {
+		t.Log("dish should be loaded with UnmarshalTOML()")
+		t.Errorf("expected %d but got %d", 3, len(eggSalad.Ingredients))
+	}
+
+	found := false
+	for _, i := range eggSalad.Ingredients {
+		if i.Name == "Rice" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Rice was not loaded in UnmarshalTOML()")
+	}
+
+	// test on a value - must be passed as *
+	o := menu{}
+	if _, err := Decode(tomlBlob, &o); err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+type menu struct {
+	Dishes map[string]dish
+}
+
+func (m *menu) UnmarshalTOML(p interface{}) error {
+	m.Dishes = make(map[string]dish)
+	data, _ := p.(map[string]interface{})
+	dishes := data["dishes"].(map[string]interface{})
+	for n, v := range dishes {
+		if d, ok := v.(map[string]interface{}); ok {
+			nd := dish{}
+			nd.UnmarshalTOML(d)
+			m.Dishes[n] = nd
+		} else {
+			return fmt.Errorf("not a dish")
+		}
+	}
+	return nil
+}
+
+type dish struct {
+	Name        string
+	Price       float32
+	Ingredients []ingredient
+}
+
+func (d *dish) UnmarshalTOML(p interface{}) error {
+	data, _ := p.(map[string]interface{})
+	d.Name, _ = data["name"].(string)
+	d.Price, _ = data["price"].(float32)
+	ingredients, _ := data["ingredients"].([]map[string]interface{})
+	for _, e := range ingredients {
+		n, _ := interface{}(e).(map[string]interface{})
+		name, _ := n["name"].(string)
+		i := ingredient{name}
+		d.Ingredients = append(d.Ingredients, i)
+	}
+	return nil
+}
+
+type ingredient struct {
+	Name string
+}
+
 func ExampleMetaData_PrimitiveDecode() {
 	var md MetaData
 	var err error
@@ -537,4 +656,294 @@ key3 = "value3"
 	fmt.Printf("Undecoded keys: %q\n", md.Undecoded())
 	// Output:
 	// Undecoded keys: ["key2"]
+}
+
+// Example UnmarshalTOML shows how to implement a struct type that knows how to
+// unmarshal itself. The struct must take full responsibility for mapping the
+// values passed into the struct. The method may be used with interfaces in a
+// struct in cases where the actual type is not known until the data is examined.
+func Example_unmarshalTOML() {
+
+	var blob = `
+[[parts]]
+type = "valve"
+id = "valve-1"
+size = 1.2
+rating = 4
+
+[[parts]]
+type = "valve"
+id = "valve-2"
+size = 2.1
+rating = 5
+
+[[parts]]
+type = "pipe"
+id = "pipe-1"
+length = 2.1
+diameter = 12
+
+[[parts]]
+type = "cable"
+id = "cable-1"
+length = 12
+rating = 3.1
+`
+	o := &order{}
+	err := Unmarshal([]byte(blob), o)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(len(o.parts))
+
+	for _, part := range o.parts {
+		fmt.Println(part.Name())
+	}
+
+	// Code to implement UmarshalJSON.
+
+	// type order struct {
+	// 	// NOTE `order.parts` is a private slice of type `part` which is an
+	// 	// interface and may only be loaded from toml using the UnmarshalTOML()
+	// 	// method of the Umarshaler interface.
+	// 	parts parts
+	// }
+
+	// func (o *order) UnmarshalTOML(data interface{}) error {
+
+	// 	// NOTE the example below contains detailed type casting to show how
+	// 	// the 'data' is retrieved. In operational use, a type cast wrapper
+	// 	// may be prefered e.g.
+	// 	//
+	// 	// func AsMap(v interface{}) (map[string]interface{}, error) {
+	// 	// 		return v.(map[string]interface{})
+	// 	// }
+	// 	//
+	// 	// resulting in:
+	// 	// d, _ := AsMap(data)
+	// 	//
+
+	// 	d, _ := data.(map[string]interface{})
+	// 	parts, _ := d["parts"].([]map[string]interface{})
+
+	// 	for _, p := range parts {
+
+	// 		typ, _ := p["type"].(string)
+	// 		id, _ := p["id"].(string)
+
+	// 		// detect the type of part and handle each case
+	// 		switch p["type"] {
+	// 		case "valve":
+
+	// 			size := float32(p["size"].(float64))
+	// 			rating := int(p["rating"].(int64))
+
+	// 			valve := &valve{
+	// 				Type:   typ,
+	// 				ID:     id,
+	// 				Size:   size,
+	// 				Rating: rating,
+	// 			}
+
+	// 			o.parts = append(o.parts, valve)
+
+	// 		case "pipe":
+
+	// 			length := float32(p["length"].(float64))
+	// 			diameter := int(p["diameter"].(int64))
+
+	// 			pipe := &pipe{
+	// 				Type:     typ,
+	// 				ID:       id,
+	// 				Length:   length,
+	// 				Diameter: diameter,
+	// 			}
+
+	// 			o.parts = append(o.parts, pipe)
+
+	// 		case "cable":
+
+	// 			length := int(p["length"].(int64))
+	// 			rating := float32(p["rating"].(float64))
+
+	// 			cable := &cable{
+	// 				Type:   typ,
+	// 				ID:     id,
+	// 				Length: length,
+	// 				Rating: rating,
+	// 			}
+
+	// 			o.parts = append(o.parts, cable)
+
+	// 		}
+	// 	}
+
+	// 	return nil
+	// }
+
+	// type parts []part
+
+	// type part interface {
+	// 	Name() string
+	// }
+
+	// type valve struct {
+	// 	Type   string
+	// 	ID     string
+	// 	Size   float32
+	// 	Rating int
+	// }
+
+	// func (v *valve) Name() string {
+	// 	return fmt.Sprintf("VALVE: %s", v.ID)
+	// }
+
+	// type pipe struct {
+	// 	Type     string
+	// 	ID       string
+	// 	Length   float32
+	// 	Diameter int
+	// }
+
+	// func (p *pipe) Name() string {
+	// 	return fmt.Sprintf("PIPE: %s", p.ID)
+	// }
+
+	// type cable struct {
+	// 	Type   string
+	// 	ID     string
+	// 	Length int
+	// 	Rating float32
+	// }
+
+	// func (c *cable) Name() string {
+	// 	return fmt.Sprintf("CABLE: %s", c.ID)
+	// }
+
+	// Output:
+	// 4
+	// VALVE: valve-1
+	// VALVE: valve-2
+	// PIPE: pipe-1
+	// CABLE: cable-1
+
+}
+
+type order struct {
+	// NOTE `order.parts` is a private slice of type `part` which is an
+	// interface and may only be loaded from toml using the UnmarshalTOML()
+	// method of the Umarshaler interface.
+	parts parts
+}
+
+func (o *order) UnmarshalTOML(data interface{}) error {
+
+	// NOTE the example below contains detailed type casting to show how
+	// the 'data' is retrieved. In operational use, a type cast wrapper
+	// may be prefered e.g.
+	//
+	// func AsMap(v interface{}) (map[string]interface{}, error) {
+	// 		return v.(map[string]interface{})
+	// }
+	//
+	// resulting in:
+	// d, _ := AsMap(data)
+	//
+
+	d, _ := data.(map[string]interface{})
+	parts, _ := d["parts"].([]map[string]interface{})
+
+	for _, p := range parts {
+
+		typ, _ := p["type"].(string)
+		id, _ := p["id"].(string)
+
+		// detect the type of part and handle each case
+		switch p["type"] {
+		case "valve":
+
+			size := float32(p["size"].(float64))
+			rating := int(p["rating"].(int64))
+
+			valve := &valve{
+				Type:   typ,
+				ID:     id,
+				Size:   size,
+				Rating: rating,
+			}
+
+			o.parts = append(o.parts, valve)
+
+		case "pipe":
+
+			length := float32(p["length"].(float64))
+			diameter := int(p["diameter"].(int64))
+
+			pipe := &pipe{
+				Type:     typ,
+				ID:       id,
+				Length:   length,
+				Diameter: diameter,
+			}
+
+			o.parts = append(o.parts, pipe)
+
+		case "cable":
+
+			length := int(p["length"].(int64))
+			rating := float32(p["rating"].(float64))
+
+			cable := &cable{
+				Type:   typ,
+				ID:     id,
+				Length: length,
+				Rating: rating,
+			}
+
+			o.parts = append(o.parts, cable)
+
+		}
+	}
+
+	return nil
+}
+
+type parts []part
+
+type part interface {
+	Name() string
+}
+
+type valve struct {
+	Type   string
+	ID     string
+	Size   float32
+	Rating int
+}
+
+func (v *valve) Name() string {
+	return fmt.Sprintf("VALVE: %s", v.ID)
+}
+
+type pipe struct {
+	Type     string
+	ID       string
+	Length   float32
+	Diameter int
+}
+
+func (p *pipe) Name() string {
+	return fmt.Sprintf("PIPE: %s", p.ID)
+}
+
+type cable struct {
+	Type   string
+	ID     string
+	Length int
+	Rating float32
+}
+
+func (c *cable) Name() string {
+	return fmt.Sprintf("CABLE: %s", c.ID)
 }

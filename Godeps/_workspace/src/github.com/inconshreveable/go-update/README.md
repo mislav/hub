@@ -16,7 +16,7 @@ Updating your program to a new version is as easy as:
 
 Comprehensive API documentation and code examples are available in the code documentation available on godoc.org:
 
-### [https://godoc.org/github.com/inconshreveable/go-update](https://godoc.org/github.com/inconshreveable/go-update)
+[![GoDoc](https://godoc.org/github.com/inconshreveable/go-update?status.svg)](https://godoc.org/github.com/inconshreveable/go-update)
 
 ## Features
 

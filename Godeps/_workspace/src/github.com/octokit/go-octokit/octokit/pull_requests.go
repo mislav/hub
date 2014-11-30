@@ -38,6 +38,10 @@ func (p *PullRequestsService) All() (pulls []PullRequest, result *Result) {
 	return
 }
 
+func (p *PullRequestsService) Diff() (diff io.ReadCloser, result *Result) {
+	return p.client.getBody(p.URL, diffMediaType)
+}
+
 func (p *PullRequestsService) Patch() (patch io.ReadCloser, result *Result) {
 	return p.client.getBody(p.URL, patchMediaType)
 }
