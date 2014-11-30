@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/github/hub/utils"
-	"github.com/kballard/go-shellquote"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
 	"os"
 	"os/exec"
 	"strings"

@@ -2,7 +2,7 @@ package github
 
 import (
 	"github.com/github/hub/git"
-	"github.com/mattn/go-isatty"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/mattn/go-isatty"
 )
 
 func IsHttpsProtocol() bool {

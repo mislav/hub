@@ -3,7 +3,7 @@ package github
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestBranch_ShortName(t *testing.T) {

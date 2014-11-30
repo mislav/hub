@@ -13,7 +13,7 @@ import (
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"github.com/octokit/go-octokit/octokit"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
 
 var (

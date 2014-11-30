@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/jingweno/go-sawyer/mediatype"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/mediatype"
 )
 
 // The default httpClient used if one isn't specified.

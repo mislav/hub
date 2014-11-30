@@ -3,9 +3,9 @@ package octokit
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
-	"github.com/jingweno/go-sawyer/hypermedia"
-	"github.com/jingweno/go-sawyer/mediaheader"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/hypermedia"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/mediaheader"
 )
 
 func TestNewResult_Pageable(t *testing.T) {
