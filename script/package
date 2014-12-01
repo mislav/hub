@@ -114,7 +114,7 @@ class Packer
   def build_hub!
     puts "Building for #{OS.type}"
     release_version = `./script/version`
-    exec!("gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}} -tags=noupdate -ldflags '-X github.com/github/hub/commands.Version #{release_version}'")
+    exec!("gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}} -ldflags '-X github.com/github/hub/commands.Version #{release_version}'")
   end
 
   def cp_assets

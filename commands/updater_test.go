@@ -93,9 +93,11 @@ func TestDoesntSaveNoAutoUpdateOption(t *testing.T) {
 }
 
 func checkSavedAutoUpdateOption(t *testing.T, always bool, confirm, expected string) {
+	EnableAutoUpdate = true
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
 	saveAutoUpdateConfiguration(confirm, always)
 	assert.Equal(t, expected, autoUpdateConfig())
+	EnableAutoUpdate = false
 }

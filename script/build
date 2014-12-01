@@ -29,10 +29,9 @@ up_to_date() {
   [ -e "$1" ] && [ "$(count_changed_files "$1")" -eq 0 ]
 }
 
-# always build with noupdate for now until Hub 2.0 is released
 build_hub() {
   setup_gopath
-  [ -n "$1" ] && (up_to_date "$1" || go build -tags "noupdate" -ldflags "-X github.com/github/hub/commands.Version `./script/version`" -o "$1")
+  [ -n "$1" ] && (up_to_date "$1" || go build -ldflags "-X github.com/github/hub/commands.Version `./script/version`" -o "$1")
 }
 
 test_hub() {
