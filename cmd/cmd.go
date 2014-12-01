@@ -2,11 +2,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/github/hub/utils"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
+	"syscall"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
+	"github.com/github/hub/utils"
 )
 
 type Cmd struct {
@@ -34,24 +37,44 @@ func (cmd *Cmd) WithArgs(args ...string) *Cmd {
 	return cmd
 }
 
-func (cmd *Cmd) ExecOutput() (string, error) {
+func (cmd *Cmd) CombinedOutput() (string, error) {
 	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
 
 	return string(output), err
 }
 
-func (cmd *Cmd) Exec() error {
-	binary, lookErr := exec.LookPath(cmd.Name)
-	if lookErr != nil {
-		return fmt.Errorf("command not found: %s", cmd.Name)
+// Run runs command with `Exec` on platforms except Windows
+// which only supports `Spawn`
+func (cmd *Cmd) Run() error {
+	if runtime.GOOS == "windows" {
+		return cmd.Spawn()
+	} else {
+		return cmd.Exec()
 	}
+}
 
-	c := exec.Command(binary, cmd.Args...)
+// Spawn runs command with spawn(3)
+func (cmd *Cmd) Spawn() error {
+	c := exec.Command(cmd.Name, cmd.Args...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 
 	return c.Run()
+}
+
+// Exec runs command with exec(3)
+// Note that Windows doesn't support exec(3): http://golang.org/src/pkg/syscall/exec_windows.go#L339
+func (cmd *Cmd) Exec() error {
+	binary, err := exec.LookPath(cmd.Name)
+	if err != nil {
+		return fmt.Errorf("command not found: %s", cmd.Name)
+	}
+
+	args := []string{binary}
+	args = append(args, cmd.Args...)
+
+	return syscall.Exec(binary, args, os.Environ())
 }
 
 func New(cmd string) *Cmd {

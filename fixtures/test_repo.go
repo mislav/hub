@@ -48,7 +48,7 @@ func (r *TestRepo) Setup() {
 
 func (r *TestRepo) clone(repo, dir string) error {
 	cmd := cmd.New("git").WithArgs("clone", repo, dir)
-	output, err := cmd.ExecOutput()
+	output, err := cmd.CombinedOutput()
 	if err != nil {
 		err = fmt.Errorf("error cloning %s to %s: %s", repo, dir, output)
 	}

@@ -7,11 +7,11 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
+	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
 	"github.com/github/hub/utils"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
-	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
 )
 
 type ExecError struct {
@@ -76,7 +76,7 @@ func (r *Runner) Execute() ExecError {
 		return r.Call(cmd, args)
 	}
 
-	err = git.Spawn(args.Command, args.Params...)
+	err = git.Run(args.Command, args.Params...)
 	return newExecError(err)
 }
 
@@ -106,8 +106,15 @@ func printCommands(cmds []*cmd.Cmd) {
 }
 
 func executeCommands(cmds []*cmd.Cmd) error {
-	for _, c := range cmds {
-		err := c.Exec()
+	for i, c := range cmds {
+		var err error
+		// Run with `Exec` for the last command in chain
+		if i == len(cmds)-1 {
+			err = c.Run()
+		} else {
+			err = c.Spawn()
+		}
+
 		if err != nil {
 			return err
 		}

@@ -130,7 +130,7 @@ func Show(sha string) (string, error) {
 	cmd := cmd.New("git")
 	cmd.WithArg("show").WithArg("-s").WithArg("--format=%s%n%+b").WithArg(sha)
 
-	output, err := cmd.ExecOutput()
+	output, err := cmd.CombinedOutput()
 	output = strings.TrimSpace(output)
 
 	return output, err
@@ -144,7 +144,7 @@ func Log(sha1, sha2 string) (string, error) {
 	shaRange := fmt.Sprintf("%s...%s", sha1, sha2)
 	execCmd.WithArg(shaRange)
 
-	outputs, err := execCmd.ExecOutput()
+	outputs, err := execCmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("Can't load git log %s..%s", sha1, sha2)
 	}
@@ -191,14 +191,14 @@ func Alias(name string) (string, error) {
 	return Config(fmt.Sprintf("alias.%s", name))
 }
 
-func Spawn(command string, args ...string) error {
+func Run(command string, args ...string) error {
 	cmd := cmd.New("git")
 	cmd.WithArg(command)
 	for _, a := range args {
 		cmd.WithArg(a)
 	}
 
-	return cmd.Exec()
+	return cmd.Run()
 }
 
 func execGitCmd(input ...string) (outputs []string, err error) {
@@ -207,7 +207,7 @@ func execGitCmd(input ...string) (outputs []string, err error) {
 		cmd.WithArg(i)
 	}
 
-	out, err := cmd.ExecOutput()
+	out, err := cmd.CombinedOutput()
 	for _, line := range strings.Split(out, "\n") {
 		line = strings.TrimSpace(line)
 		if line != "" {
