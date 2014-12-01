@@ -5,6 +5,18 @@
 
 set -e
 
+setup_gopath() {
+  TMP_GOPATH="${TMPDIR:-/tmp}/go"
+  TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
+
+  export GOPATH=${TMP_GOPATH}
+
+  if [ ! -e "$TMP_SELF" ]; then
+    mkdir -p "${TMP_SELF%/*}"
+    ln -snf "$PWD" "$TMP_SELF"
+  fi
+}
+
 find_source_files() {
   find . -maxdepth 2 -name '*.go' -not -name '*_test.go' "$@"
 }
@@ -19,10 +31,12 @@ up_to_date() {
 
 # always build with noupdate for now until Hub 2.0 is released
 build_hub() {
+  setup_gopath
   [ -n "$1" ] && (up_to_date "$1" || go build -tags "noupdate" -ldflags "-X github.com/github/hub/commands.Version `./script/version`" -o "$1")
 }
 
 test_hub() {
+  setup_gopath
   go test ./...
 }
 
