@@ -330,7 +330,7 @@ module Hub
         exit 1
       end
 
-      title, body, number = pr['title'], pr['body'] || '', pr['number']
+      title, body, number, url = pr['title'], pr['body'] || '', pr['number'], pr['html_url']
 
       args.before ['checkout', default_branch]
       args.before ['pull', remote, default_branch]
@@ -338,7 +338,7 @@ module Hub
       args.before ['rebase', default_branch]
       args.before ['checkout', default_branch]
       args.before ['merge', '--squash', branch]
-      args.before ['commit', '-m', title, '-m', body, '-m', "Closes ##{number}"]
+      args.before ['commit', '-m', title, '-m', body, '-m', "Closes ##{number} #{url}"]
       args.before ['push', remote, default_branch]
       args.before ['branch', '-D', branch]
       args.concat ['push', remote, ":#{branch}"]
