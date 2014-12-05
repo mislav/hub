@@ -237,7 +237,7 @@ module Hub
         end
 
         options[:title], options[:body] = pullrequest_editmsg(commit_summary) { |msg, initial_message, cc|
-          initial_message ||= default_message
+          initial_message ||= default_message || `git log --pretty=format:%s HEAD~..HEAD`
           msg.puts initial_message if initial_message
           msg.puts ""
           msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
