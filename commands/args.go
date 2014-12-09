@@ -50,7 +50,20 @@ func (a *Args) Commands() []*cmd.Cmd {
 }
 
 func (a *Args) ToCmd() *cmd.Cmd {
-	return cmd.New(a.Executable).WithArg(a.Command).WithArgs(a.Params...)
+	c := cmd.New(a.Executable)
+	args := make([]string, 0)
+
+	if a.Command != "" {
+		args = append(args, a.Command)
+	}
+
+	for _, arg := range a.Params {
+		if arg != "" {
+			args = append(args, arg)
+		}
+	}
+
+	return c.WithArgs(args...)
 }
 
 func (a *Args) GetParam(i int) string {

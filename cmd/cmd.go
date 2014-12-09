@@ -22,9 +22,7 @@ func (cmd Cmd) String() string {
 }
 
 func (cmd *Cmd) WithArg(arg string) *Cmd {
-	if arg != "" {
-		cmd.Args = append(cmd.Args, arg)
-	}
+	cmd.Args = append(cmd.Args, arg)
 
 	return cmd
 }
