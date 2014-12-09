@@ -39,7 +39,8 @@ $ brew install --HEAD hub
 #### Standalone
 
 `hub` 2.x can be easily installed as an executable. Download the latest
-[complied binaries](https://github.com/github/hub/releases) and put it anywhere in your executable path.
+[compiled binaries](https://github.com/github/hub/releases) and put it anywhere
+in your executable path.
 
 #### Source
 
@@ -328,7 +329,7 @@ configure hub to treat such remotes same as github.com:
     $ git config --global --add hub.host my.git.org
 
 The default host for commands like `init` and `clone` is still
-github.com, but this can be affected with the <GITHUB_HOST> environment
+github.com, but this can be affected with the `GITHUB_HOST` environment
 variable:
 
     $ GITHUB_HOST=my.git.org git clone myproject
