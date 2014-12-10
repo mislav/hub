@@ -1,8 +1,9 @@
 package cmd
 
 import (
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestNew(t *testing.T) {
@@ -14,7 +15,7 @@ func TestNew(t *testing.T) {
 
 func TestWithArg(t *testing.T) {
 	execCmd := New("git")
-	execCmd.WithArg("log").WithArg("--no-color")
+	execCmd.WithArg("command").WithArg("--amend").WithArg("-m").WithArg(`""`)
 	assert.Equal(t, "git", execCmd.Name)
-	assert.Equal(t, 2, len(execCmd.Args))
+	assert.Equal(t, 4, len(execCmd.Args))
 }
