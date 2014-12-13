@@ -10,28 +10,23 @@ setup_gopath() {
   TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
 
   export GOPATH=${TMP_GOPATH}
+  if [ "$OSTYPE" == "cygwin" ]; then
+    # converts *nix path to Windows path which Go expects on Windows
+    GOPATH=$(cygpath -w $GOPATH)
+  fi
 
   if [ ! -e "$TMP_SELF" ]; then
     mkdir -p "${TMP_SELF%/*}"
-    ln -snf "$PWD" "$TMP_SELF"
+    cp -R "$PWD" "$TMP_SELF"
   fi
-}
-
-find_source_files() {
-  find . -maxdepth 2 -name '*.go' -not -name '*_test.go' "$@"
-}
-
-count_changed_files() {
-  printf %d $(find_source_files -newer "$1" | wc -l)
-}
-
-up_to_date() {
-  [ -e "$1" ] && [ "$(count_changed_files "$1")" -eq 0 ]
 }
 
 build_hub() {
   setup_gopath
-  [ -n "$1" ] && (up_to_date "$1" || go build -ldflags "-X github.com/github/hub/commands.Version `./script/version`" -o "$1")
+  if [ ! -z $1 ]; then
+    OUTPUT="-o $1"
+  fi
+  go build -ldflags "-X github.com/github/hub/commands.Version `./script/version`" $OUTPUT
 }
 
 test_hub() {
@@ -40,21 +35,21 @@ test_hub() {
 }
 
 case "$1" in
-"" )
-  build_hub hub
-  ;;
--o )
-  shift
-  build_hub $1
-  ;;
-test )
-  test_hub
-  ;;
--h | --help )
-  sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
-  exit
-  ;;
-* )
-  "$0" --help >&2
-  exit 1
+  "" )
+    build_hub
+    ;;
+  -o )
+    shift
+    build_hub $1
+    ;;
+  test )
+    test_hub
+    ;;
+  -h | --help )
+    sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
+    exit
+    ;;
+  * )
+    "$0" --help >&2
+    exit 1
 esac
