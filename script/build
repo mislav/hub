@@ -5,16 +5,26 @@
 
 set -e
 
+windows=
+[[ $OS == Windows* ]] && windows=1
+
 setup_gopath() {
+  TMPDIR="${LOCALAPPDATA:-$TMPDIR}"
   TMP_GOPATH="${TMPDIR:-/tmp}/go"
   TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
 
-  export GOPATH=${TMP_GOPATH}
-
-  if [ ! -e "$TMP_SELF" ]; then
-    mkdir -p "${TMP_SELF%/*}"
-    ln -snf "$PWD" "$TMP_SELF"
+  if [ -n "$windows" ]; then
+    export GOPATH="${TMP_GOPATH//\//\\}"
+  else
+    export GOPATH="$TMP_GOPATH"
   fi
+
+  mkdir -p "${TMP_SELF%/*}"
+  ln -snf "$PWD" "$TMP_SELF" 2>/dev/null || {
+    rm -rf "$TMP_SELF"
+    mkdir "$TMP_SELF"
+    cp -R "$PWD"/* "${TMP_SELF}/"
+  }
 }
 
 find_source_files() {
@@ -41,7 +51,7 @@ test_hub() {
 
 case "$1" in
 "" )
-  build_hub hub
+  build_hub hub${windows:+.exe}
   ;;
 -o )
   shift
