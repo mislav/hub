@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/github/hub/cmd"
 )
 
 func TestRunner_splitAliasCmd(t *testing.T) {
@@ -19,7 +20,10 @@ func TestRunner_splitAliasCmd(t *testing.T) {
 }
 
 func TestRunnerUseCommands(t *testing.T) {
-	r := NewRunner()
+	r := &Runner{
+		commands: make(map[string]*Command),
+		execute:  func(cmds []*cmd.Cmd) error { return nil },
+	}
 	c := &Command{Usage: "foo"}
 	r.Use(c)
 
@@ -33,7 +37,10 @@ func TestRunnerCallCommands(t *testing.T) {
 		args.Replace("git", "version", "")
 	}
 
-	r := NewRunner()
+	r := &Runner{
+		commands: make(map[string]*Command),
+		execute:  func(cmds []*cmd.Cmd) error { return nil },
+	}
 	c := &Command{Usage: "foo", Run: f}
 	r.Use(c)
 
