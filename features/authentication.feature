@@ -5,10 +5,11 @@ Feature: OAuth authentication
   Scenario: Ask for username & password, create authorization
     Given the GitHub API server:
       """
-      get('/authorizations') { '[]' }
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        assert :scopes => ['repo']
+        assert :scopes => ['repo'],
+               :note => 'hub',
+               :note_url => 'http://hub.github.com/'
         json :token => 'OTOKEN'
       }
       get('/user') {
@@ -30,100 +31,12 @@ Feature: OAuth authentication
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
     And the file "../home/.config/hub" should have mode "0600"
 
-  Scenario: Ask for username & password, re-use existing authorization
-    Given the GitHub API server:
-      """
-      get('/authorizations') {
-        assert_basic_auth 'mislav', 'kitty'
-        json [
-          {:token => 'SKIPPD', :note_url => 'http://example.com'},
-          {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
-        ]
-      }
-      get('/user') {
-        json :login => 'mislav'
-      }
-      post('/user/repos') {
-        json :full_name => 'mislav/dotfiles'
-      }
-      """
-    When I run `hub create` interactively
-    When I type "mislav"
-    And I type "kitty"
-    Then the output should contain "github.com password for mislav (never stored):"
-    And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-
-  Scenario: Re-use existing authorization with an old URL
-    Given the GitHub API server:
-      """
-      get('/authorizations') {
-        assert_basic_auth 'mislav', 'kitty'
-        json [
-          {:token => 'OTOKEN', :note => 'hub', :note_url => 'http://defunkt.io/hub/'}
-        ]
-      }
-      post('/authorizations') {
-        status 422
-        json :message => "Validation Failed",
-          :errors => [{:resource => "OauthAccess", :code => "already_exists", :field => "description"}]
-      }
-      get('/user') {
-        json :login => 'mislav'
-      }
-      post('/user/repos') {
-        json :full_name => 'mislav/dotfiles'
-      }
-      """
-    When I run `hub create` interactively
-    When I type "mislav"
-    And I type "kitty"
-    Then the output should contain "github.com password for mislav (never stored):"
-    And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-
-  Scenario: Re-use existing authorization found on page 3
-    Given the GitHub API server:
-      """
-      get('/authorizations') {
-        assert_basic_auth 'mislav', 'kitty'
-        page = (params[:page] || 1).to_i
-        if page < 3
-          response.headers['Link'] = %(<#{url}?page=#{page+1}>; rel="next")
-          json []
-        else
-          json [
-            {:token => 'OTOKEN', :note => 'hub', :note_url => 'http://hub.github.com/'}
-          ]
-        end
-      }
-      post('/authorizations') {
-        status 422
-        json :message => "Validation Failed",
-          :errors => [{:resource => "OauthAccess", :code => "already_exists", :field => "description"}]
-      }
-      get('/user') {
-        json :login => 'mislav'
-      }
-      post('/user/repos') {
-        json :full_name => 'mislav/dotfiles'
-      }
-      """
-    When I run `hub create` interactively
-    When I type "mislav"
-    And I type "kitty"
-    Then the output should contain "github.com password for mislav (never stored):"
-    And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-
   Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
     Given the GitHub API server:
       """
-      get('/authorizations') {
+      post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        json [
-          {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
-        ]
+        json :token => 'OTOKEN'
       }
       get('/user') {
         json :login => 'mislav'
@@ -141,7 +54,7 @@ Feature: OAuth authentication
   Scenario: Wrong password
     Given the GitHub API server:
       """
-      get('/authorizations') {
+      post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
       }
       """
@@ -155,17 +68,8 @@ Feature: OAuth authentication
   Scenario: Two-factor authentication, create authorization
     Given the GitHub API server:
       """
-      get('/authorizations') {
-        assert_basic_auth 'mislav', 'kitty'
-        if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
-          halt 401
-        end
-        json [ ]
-      }
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        halt 412 unless params[:scopes]
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
           response.headers['X-GitHub-OTP'] = "required;application"
           halt 401
@@ -188,46 +92,9 @@ Feature: OAuth authentication
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
-  Scenario: Two-factor authentication, re-use existing authorization
-    Given the GitHub API server:
-      """
-      token = 'OTOKEN'
-      post('/authorizations') {
-        assert_basic_auth 'mislav', 'kitty'
-        token << 'SMS'
-        status 412
-      }
-      get('/authorizations') {
-        assert_basic_auth 'mislav', 'kitty'
-        if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
-          halt 401
-        end
-        json [ {
-          :token => token,
-          :note_url => 'http://hub.github.com/'
-          } ]
-      }
-      get('/user') {
-        json :login => 'mislav'
-      }
-      post('/user/repos') {
-        json :full_name => 'mislav/dotfiles'
-      }
-      """
-    When I run `hub create` interactively
-    When I type "mislav"
-    And I type "kitty"
-    And I type "112233"
-    Then the output should contain "github.com password for mislav (never stored):"
-    Then the output should contain "two-factor authentication code:"
-    And the exit status should be 0
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKENSMS"
-
   Scenario: Special characters in username & password
     Given the GitHub API server:
       """
-      get('/authorizations') { '[]' }
       post('/authorizations') {
         assert_basic_auth 'mislav@example.com', 'my pass@phrase ok?'
         json :token => 'OTOKEN'
