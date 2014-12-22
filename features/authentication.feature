@@ -5,11 +5,9 @@ Feature: OAuth authentication
   Scenario: Ask for username & password, create authorization
     Given the GitHub API server:
       """
-      require 'rack/auth/basic'
       get('/authorizations') { '[]' }
       post('/authorizations') {
-        auth = Rack::Auth::Basic::Request.new(env)
-        halt 401 unless auth.credentials == %w[mislav kitty]
+        assert_basic_auth 'mislav', 'kitty'
         assert :scopes => ['repo']
         json :token => 'OTOKEN'
       }
@@ -35,10 +33,8 @@ Feature: OAuth authentication
   Scenario: Ask for username & password, re-use existing authorization
     Given the GitHub API server:
       """
-      require 'rack/auth/basic'
       get('/authorizations') {
-        auth = Rack::Auth::Basic::Request.new(env)
-        halt 401 unless auth.credentials == %w[mislav kitty]
+        assert_basic_auth 'mislav', 'kitty'
         json [
           {:token => 'SKIPPD', :note_url => 'http://example.com'},
           {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
@@ -61,10 +57,8 @@ Feature: OAuth authentication
   Scenario: Re-use existing authorization with an old URL
     Given the GitHub API server:
       """
-      require 'rack/auth/basic'
       get('/authorizations') {
-        auth = Rack::Auth::Basic::Request.new(env)
-        halt 401 unless auth.credentials == %w[mislav kitty]
+        assert_basic_auth 'mislav', 'kitty'
         json [
           {:token => 'OTOKEN', :note => 'hub', :note_url => 'http://defunkt.io/hub/'}
         ]
@@ -125,10 +119,8 @@ Feature: OAuth authentication
   Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
     Given the GitHub API server:
       """
-      require 'rack/auth/basic'
       get('/authorizations') {
-        auth = Rack::Auth::Basic::Request.new(env)
-        halt 401 unless auth.credentials == %w[mislav kitty]
+        assert_basic_auth 'mislav', 'kitty'
         json [
           {:token => 'OTOKEN', :note_url => 'http://hub.github.com/'}
         ]
@@ -149,10 +141,8 @@ Feature: OAuth authentication
   Scenario: Wrong password
     Given the GitHub API server:
       """
-      require 'rack/auth/basic'
       get('/authorizations') {
-        auth = Rack::Auth::Basic::Request.new(env)
-        halt 401 unless auth.credentials == %w[mislav kitty]
+        assert_basic_auth 'mislav', 'kitty'
       }
       """
     When I run `hub create` interactively
@@ -165,10 +155,8 @@ Feature: OAuth authentication
   Scenario: Two-factor authentication, create authorization
     Given the GitHub API server:
       """
-      require 'rack/auth/basic'
       get('/authorizations') {
-        auth = Rack::Auth::Basic::Request.new(env)
-        halt 401 unless auth.credentials == %w[mislav kitty]
+        assert_basic_auth 'mislav', 'kitty'
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
           response.headers['X-GitHub-OTP'] = "required;application"
           halt 401
@@ -176,8 +164,7 @@ Feature: OAuth authentication
         json [ ]
       }
       post('/authorizations') {
-        auth = Rack::Auth::Basic::Request.new(env)
-        halt 401 unless auth.credentials == %w[mislav kitty]
+        assert_basic_auth 'mislav', 'kitty'
         halt 412 unless params[:scopes]
         if request.env['HTTP_X_GITHUB_OTP'] != "112233"
           response.headers['X-GitHub-OTP'] = "required;application"
