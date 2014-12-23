@@ -35,6 +35,68 @@ Feature: OAuth authentication
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
     And the file "../home/.config/hub" should have mode "0600"
 
+  Scenario: Rename & retry creating authorization if there's a token name collision
+    Given the GitHub API server:
+      """
+      require 'socket'
+      require 'etc'
+      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
+
+      post('/authorizations') {
+        assert_basic_auth 'mislav', 'kitty'
+        if params[:note] == "hub for #{machine_id} 3"
+          json :token => 'OTOKEN'
+        else
+          status 422
+          json :message => 'Validation Failed',
+               :errors => [{
+                 :resource => 'OauthAccess',
+                 :code => 'already_exists',
+                 :field => 'description'
+               }]
+        end
+      }
+      get('/user') {
+        json :login => 'MiSlAv'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "mislav"
+    And I type "kitty"
+    Then the output should contain "github.com username:"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+
+  Scenario: Avoid getting caught up in infinite recursion while retrying token names
+    Given the GitHub API server:
+      """
+      tries = 0
+      post('/authorizations') {
+        tries += 1
+        halt 400, json(:message => "too many tries") if tries >= 10
+        status 422
+        json :message => 'Validation Failed',
+             :errors => [{
+               :resource => 'OauthAccess',
+               :code => 'already_exists',
+               :field => 'description'
+             }]
+      }
+      """
+    When I run `hub create` interactively
+    When I type "mislav"
+    And I type "kitty"
+    Then the output should contain:
+      """
+      Error creating repository: Unprocessable Entity (HTTP 422)
+      Duplicate value for "description"
+      """
+    And the exit status should be 1
+    And the file "../home/.config/hub" should not exist
+
   Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
     Given the GitHub API server:
       """

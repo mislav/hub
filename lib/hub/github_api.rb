@@ -352,6 +352,13 @@ module Hub
             break
           elsif res.status == 401 && res['X-GitHub-OTP'].to_s.include?('required')
             two_factor_code = config.prompt_auth_code
+          elsif res.status == 422 && 'already_exists' == res.data['errors'][0]['code']
+            if auth_params[:note] =~ / (\d+)$/
+              res.error! if $1.to_i >= 9
+              auth_params[:note].succ!
+            else
+              auth_params[:note] += ' 2'
+            end
           else
             res.error!
           end
