@@ -136,11 +136,13 @@ Feature: OAuth authentication
       """
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        if request.env['HTTP_X_GITHUB_OTP'] != "112233"
-          response.headers['X-GitHub-OTP'] = "required;application"
-          halt 401
+        if request.env['HTTP_X_GITHUB_OTP'] == '112233'
+          json :token => 'OTOKEN'
+        else
+          response.headers['X-GitHub-OTP'] = 'required; app'
+          status 401
+          json :message => "Must specify two-factor authentication OTP code."
         end
-        json :token => 'OTOKEN'
       }
       get('/user') {
         json :login => 'mislav'
