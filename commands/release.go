@@ -8,8 +8,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
-	"sync/atomic"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/github"
@@ -26,7 +24,7 @@ var (
 	cmdCreateRelease = &Command{
 		Key:   "create",
 		Run:   createRelease,
-		Usage: "release create [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] <TAG>",
+		Usage: "release create [-d] [-p] [-a <ASSETS_FILE>] [-m <MESSAGE>|-f <FILE>] <TAG>",
 		Short: "Create a new release in GitHub",
 		Long: `Creates a new release in GitHub for the project that the "origin" remote points to.
 It requires the name of the tag to release as a first argument.
@@ -85,7 +83,6 @@ func createRelease(cmd *Command, args *Args) {
 	}
 
 	tag := args.LastParam()
-
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
 		currentBranch, err := localRepo.CurrentBranch()
 		utils.Check(err)
@@ -94,8 +91,13 @@ func createRelease(cmd *Command, args *Args) {
 		title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
 		utils.Check(err)
 
+		var editor *github.Editor
 		if title == "" {
-			title, body, err = writeReleaseTitleAndBody(project, tag, branchName)
+			message := releaseMessage(tag, project.Name, branchName)
+			editor, err = github.NewEditor("RELEASE", "release", message)
+			utils.Check(err)
+
+			title, body, err = editor.EditTitleAndBody()
 			utils.Check(err)
 		}
 
@@ -107,96 +109,114 @@ func createRelease(cmd *Command, args *Args) {
 			Draft:           flagReleaseDraft,
 			Prerelease:      flagReleasePrerelease,
 		}
-
-		finalRelease, err := client.CreateRelease(project, params)
+		release, err := client.CreateRelease(project, params)
 		utils.Check(err)
 
-		uploadReleaseAssets(client, finalRelease)
+		if editor != nil {
+			defer editor.DeleteFile()
+		}
 
-		fmt.Printf("\n\nRelease created: %s", finalRelease.HTMLURL)
+		if flagReleaseAssets != "" {
+			finder := assetFinder{}
+			paths, err := finder.Find(flagReleaseAssets)
+			utils.Check(err)
+
+			uploader := assetUploader{
+				Client:  client,
+				Release: release,
+			}
+			err = uploader.UploadAll(paths)
+			utils.Check(err)
+		}
+
+		fmt.Printf("\n\nRelease created: %s\n", release.HTMLURL)
 	})
 }
 
-func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string) (string, string, error) {
+func releaseMessage(tag, projectName, currentBranch string) string {
 	message := `
 # Creating release %s for %s from %s
 #
 # Write a message for this release. The first block
 # of text is the title and the rest is description.
 `
-	message = fmt.Sprintf(message, tag, project.Name, currentBranch)
-
-	editor, err := github.NewEditor("RELEASE", "release", message)
-	if err != nil {
-		return "", "", err
-	}
-
-	return editor.EditTitleAndBody()
+	return fmt.Sprintf(message, tag, projectName, currentBranch)
 }
 
-func uploadReleaseAssets(client *github.Client, release *octokit.Release) {
-	if flagReleaseAssets == "" {
-		return
+type assetUploader struct {
+	Client  *github.Client
+	Release *octokit.Release
+}
+
+func (a *assetUploader) UploadAll(paths []string) error {
+	errChan := make(chan error)
+	successChan := make(chan bool)
+	total := len(paths)
+	count := 0
+
+	for _, path := range paths {
+		go a.uploadAsync(path, successChan, errChan)
 	}
 
-	assetInfo, err := os.Stat(flagReleaseAssets)
-	utils.Check(err)
+	a.printUploadProgress(count, total)
 
-	var wg sync.WaitGroup
-	var totalAssets, countAssets uint64
+	for {
+		select {
+		case _ = <-successChan:
+			count++
+			a.printUploadProgress(count, total)
+		case err := <-errChan:
+			return err
+		}
 
-	notifyProgress := func() {
-		atomic.AddUint64(&countAssets, uint64(1))
-		printUploadProgress(&countAssets, totalAssets)
-		wg.Done()
+		if count == total {
+			break
+		}
 	}
 
-	if assetInfo.IsDir() {
-		filepath.Walk(flagReleaseAssets, func(path string, fi os.FileInfo, err error) error {
-			if !fi.IsDir() {
-				totalAssets += 1
-			}
-			return nil
-		})
+	return nil
+}
 
-		printUploadProgress(&countAssets, totalAssets)
-
-		filepath.Walk(flagReleaseAssets, func(path string, fi os.FileInfo, err error) error {
-			if !fi.IsDir() {
-				wg.Add(1)
-				go uploadAsset(client, release, fi, path, notifyProgress)
-			}
-			return nil
-		})
+func (a *assetUploader) uploadAsync(path string, successChan chan bool, errChan chan error) {
+	err := a.Upload(path)
+	if err == nil {
+		successChan <- true
 	} else {
-		totalAssets = 1
-		printUploadProgress(&countAssets, totalAssets)
-		wg.Add(1)
-		uploadAsset(client, release, assetInfo, flagReleaseAssets, notifyProgress)
+		errChan <- err
+	}
+}
+
+func (a *assetUploader) Upload(path string) error {
+	contentType, err := a.detectContentType(path)
+	if err != nil {
+		return err
 	}
 
-	wg.Wait()
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	uploadUrl, err := a.Release.UploadURL.Expand(octokit.M{"name": filepath.Base(path)})
+	if err != nil {
+		return err
+	}
+
+	return a.Client.UploadReleaseAsset(uploadUrl, f, contentType)
 }
 
-func uploadAsset(gh *github.Client, release *octokit.Release, fi os.FileInfo, path string, notifyProgress func()) {
-	defer notifyProgress()
-	uploadUrl, err := release.UploadURL.Expand(octokit.M{"name": fi.Name()})
-	utils.Check(err)
-
-	contentType := detectContentType(path, fi)
-
+func (a *assetUploader) detectContentType(path string) (string, error) {
 	file, err := os.Open(path)
-	utils.Check(err)
+	if err != nil {
+		return "", err
+	}
 	defer file.Close()
 
-	err = gh.UploadReleaseAsset(uploadUrl, file, contentType)
-	utils.Check(err)
-}
-
-func detectContentType(path string, fi os.FileInfo) string {
-	file, err := os.Open(path)
-	utils.Check(err)
-	defer file.Close()
+	fi, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
 
 	fileHeader := &bytes.Buffer{}
 	headerSize := int64(512)
@@ -207,12 +227,37 @@ func detectContentType(path string, fi os.FileInfo) string {
 	// The content type detection only uses 512 bytes at most.
 	// This way we avoid copying the whole content for big files.
 	_, err = io.CopyN(fileHeader, file, headerSize)
-	utils.Check(err)
+	if err != nil {
+		return "", err
+	}
 
-	return http.DetectContentType(fileHeader.Bytes())
+	t := http.DetectContentType(fileHeader.Bytes())
+
+	return strings.Split(t, ";")[0], nil
 }
 
-func printUploadProgress(count *uint64, total uint64) {
-	out := fmt.Sprintf("Uploading assets (%d/%d)", atomic.LoadUint64(count), total)
+func (a *assetUploader) printUploadProgress(count int, total int) {
+	out := fmt.Sprintf("Uploading assets (%d/%d)", count, total)
 	fmt.Print("\r" + out)
+}
+
+type assetFinder struct {
+}
+
+func (a *assetFinder) Find(path string) ([]string, error) {
+	result := make([]string, 0)
+
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			result = append(result, path)
+		}
+
+		return nil
+	})
+
+	return result, err
 }
