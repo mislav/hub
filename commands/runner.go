@@ -39,10 +39,14 @@ func newExecError(err error) ExecError {
 
 type Runner struct {
 	commands map[string]*Command
+	execute  func(cmds []*cmd.Cmd) error
 }
 
 func NewRunner() *Runner {
-	return &Runner{commands: make(map[string]*Command)}
+	return &Runner{
+		commands: make(map[string]*Command),
+		execute:  executeCommands,
+	}
 }
 
 func (r *Runner) All() map[string]*Command {
@@ -93,7 +97,7 @@ func (r *Runner) Call(cmd *Command, args *Args) ExecError {
 	if args.Noop {
 		printCommands(cmds)
 	} else {
-		err = executeCommands(cmds)
+		err = r.execute(cmds)
 	}
 
 	return newExecError(err)
