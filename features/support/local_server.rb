@@ -70,11 +70,7 @@ module Hub
           require 'rack/auth/basic'
           auth = Rack::Auth::Basic::Request.new(env)
           if auth.credentials != expected
-            halt 401, json(
-              :message => "expected %p; got %p" % [
-                expected, auth.credentials
-              ]
-            )
+            halt 401, json(:message => "Bad credentials")
           end
         end
 
