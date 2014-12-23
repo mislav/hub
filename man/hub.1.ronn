@@ -24,7 +24,7 @@ hub(1) -- git + hub = github
 ### Custom git commands:
 
 `git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]  
-`git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
+`git browse` [`-u`] [[<USER>`/`]<REPOSITORY>|-- [SUBPAGE]]  
 `git compare` [`-u`] [<USER>] [[<START>...]<END>]  
 `git fork` [`--no-remote`]  
 `git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>]  
@@ -121,7 +121,7 @@ hub also adds some custom commands that are otherwise not present in git:
     member of. With `-p`, create a private repository, and with `-d` and `-h`
     set the repository's description and homepage URL, respectively.
 
-  * `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]:
+  * `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>|-- [SUBPAGE]]:
     Open repository's GitHub page in the system's default web browser using
     `open(1)` or the `BROWSER` env variable. If the repository isn't
     specified, `browse` opens the page of the repository found in the current

@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "February 2014" "GITHUB" "Hub Manual"
+.TH "HUB" "1" "December 2014" "GITHUB" "Hub Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -52,7 +52,7 @@
 \fBgit create\fR [\fINAME\fR] [\fB\-p\fR] [\fB\-d\fR \fIDESCRIPTION\fR] [\fB\-h\fR \fIHOMEPAGE\fR]
 .
 .br
-\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
+\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR|\-\- [SUBPAGE]]
 .
 .br
 \fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [[\fISTART\fR\.\.\.]\fIEND\fR]
@@ -136,7 +136,7 @@ hub also adds some custom commands that are otherwise not present in git:
 Create a new public GitHub repository from the current git repository and add remote \fBorigin\fR at "git@github\.com:\fIUSER\fR/\fIREPOSITORY\fR\.git"; \fIUSER\fR is your GitHub username and \fIREPOSITORY\fR is the current working directory name\. To explicitly name the new repository, pass in \fINAME\fR, optionally in \fIORGANIZATION\fR/\fINAME\fR form to create under an organization you\'re a member of\. With \fB\-p\fR, create a private repository, and with \fB\-d\fR and \fB\-h\fR set the repository\'s description and homepage URL, respectively\.
 .
 .TP
-\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
+\fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR|\-\- [SUBPAGE]]
 Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
 .
 .TP
@@ -327,7 +327,7 @@ $ git pull\-request \-m "Implemented feature X" \-b defunkt:master \-h mislav:fe
 .nf
 
 $ git checkout https://github\.com/defunkt/hub/pull/73
-> git remote add \-f \-t feature git://github:com/mislav/hub\.git
+> git remote add \-f \-t feature mislav git://github\.com/mislav/hub\.git
 > git checkout \-\-track \-B mislav\-feature mislav/feature
 
 $ git checkout https://github\.com/defunkt/hub/pull/73 custom\-branch\-name

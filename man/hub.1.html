@@ -97,7 +97,7 @@
 <h3 id="Custom-git-commands-">Custom git commands:</h3>
 
 <p><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]<br />
-<code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
+<code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>|-- [SUBPAGE]]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]<br />
 <code>git fork</code> [<code>--no-remote</code>]<br />
 <code>git pull-request</code> [<code>-o</code>|<code>--browse</code>] [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]<br />
@@ -169,7 +169,7 @@ To explicitly name the new repository, pass in <var>NAME</var>, optionally in
 <var>ORGANIZATION</var>/<var>NAME</var> form to create under an organization you're a
 member of. With <code>-p</code>, create a private repository, and with <code>-d</code> and <code>-h</code>
 set the repository's description and homepage URL, respectively.</p></dd>
-<dt><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser using
+<dt><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>|-- [SUBPAGE]]</dt><dd><p>Open repository's GitHub page in the system's default web browser using
 <code>open(1)</code> or the <code>BROWSER</code> env variable. If the repository isn't
 specified, <code>browse</code> opens the page of the repository found in the current
 directory. If SUBPAGE is specified, the browser will open on the specified
@@ -330,7 +330,7 @@ $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:featur
 <h3 id="git-checkout">git checkout</h3>
 
 <pre><code>$ git checkout https://github.com/defunkt/hub/pull/73
-&gt; git remote add -f -t feature git://github:com/mislav/hub.git
+&gt; git remote add -f -t feature mislav git://github.com/mislav/hub.git
 &gt; git checkout --track -B mislav-feature mislav/feature
 
 $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
@@ -459,7 +459,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>February 2014</li>
+    <li class='tc'>December 2014</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
