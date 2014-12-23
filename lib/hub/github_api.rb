@@ -337,7 +337,7 @@ module Hub
         auth_url = URI.parse("https://%s@%s/authorizations" % [CGI.escape(user), host])
         auth_params = {
           :scopes => ['repo'],
-          :note => 'hub',
+          :note => "hub for #{local_user}@#{local_hostname}",
           :note_url => oauth_app_url
         }
         res = nil
@@ -358,6 +358,16 @@ module Hub
         end
 
         res.data['token']
+      end
+
+      def local_user
+        require 'etc'
+        Etc.getlogin
+      end
+
+      def local_hostname
+        require 'socket'
+        Socket.gethostname
       end
     end
 

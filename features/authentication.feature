@@ -5,10 +5,14 @@ Feature: OAuth authentication
   Scenario: Ask for username & password, create authorization
     Given the GitHub API server:
       """
+      require 'socket'
+      require 'etc'
+      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
+
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         assert :scopes => ['repo'],
-               :note => 'hub',
+               :note => "hub for #{machine_id}",
                :note_url => 'http://hub.github.com/'
         json :token => 'OTOKEN'
       }
