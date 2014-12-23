@@ -333,36 +333,49 @@ module Hub
         end
       end
 
-      def obtain_oauth_token host, user, two_factor_code = nil
+      def obtain_oauth_token host, user
         auth_url = URI.parse("https://%s@%s/authorizations" % [CGI.escape(user), host])
+        auth_params = {
+          :scopes => ['repo'],
+          :note => "hub for #{local_user}@#{local_hostname}",
+          :note_url => oauth_app_url
+        }
+        res = nil
+        two_factor_code = nil
 
-        # dummy request to trigger a 2FA SMS since a HTTP GET won't do it
-        post(auth_url) if !two_factor_code
+        loop do
+          res = post(auth_url, auth_params) do |req|
+            req['X-GitHub-OTP'] = two_factor_code if two_factor_code
+          end
 
-        # first try to fetch existing authorization
-        res = get_all(auth_url) do |req|
-          req['X-GitHub-OTP'] = two_factor_code if two_factor_code
-        end
-        unless res.success?
-          if !two_factor_code && res['X-GitHub-OTP'].to_s.include?('required')
+          if res.success?
+            break
+          elsif res.status == 401 && res['X-GitHub-OTP'].to_s.include?('required')
+            $stderr.puts "warning: invalid two-factor code" if two_factor_code
             two_factor_code = config.prompt_auth_code
-            return obtain_oauth_token(host, user, two_factor_code)
+          elsif res.status == 422 && 'already_exists' == res.data['errors'][0]['code']
+            if auth_params[:note] =~ / (\d+)$/
+              res.error! if $1.to_i >= 9
+              auth_params[:note].succ!
+            else
+              auth_params[:note] += ' 2'
+            end
           else
             res.error!
           end
         end
 
-        if found = res.data.find {|auth| auth['note'] == 'hub' || auth['note_url'] == oauth_app_url }
-          found['token']
-        else
-          # create a new authorization
-          res = post auth_url,
-            :scopes => %w[repo], :note => 'hub', :note_url => oauth_app_url do |req|
-              req['X-GitHub-OTP'] = two_factor_code if two_factor_code
-            end
-          res.error! unless res.success?
-          res.data['token']
-        end
+        res.data['token']
+      end
+
+      def local_user
+        require 'etc'
+        Etc.getlogin
+      end
+
+      def local_hostname
+        require 'socket'
+        Socket.gethostname
       end
     end
 

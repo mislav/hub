@@ -1157,8 +1157,7 @@ help
 
     def display_api_exception(action, response)
       $stderr.puts "Error #{action}: #{response.message.strip} (HTTP #{response.status})"
-      if 422 == response.status and response.error_message?
-        # display validation errors
+      if [401, 403, 422].include?(response.status) && response.error_message?
         msg = response.error_message
         msg = msg.join("\n") if msg.respond_to? :join
         warn msg
