@@ -157,6 +157,39 @@ Feature: OAuth authentication
     And I type "112233"
     Then the output should contain "github.com password for mislav (never stored):"
     Then the output should contain "two-factor authentication code:"
+    And the output should not contain "warning: invalid two-factor code"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+
+  Scenario: Retry entering two-factor authentication code
+    Given the GitHub API server:
+      """
+      previous_otp_code = nil
+      post('/authorizations') {
+        assert_basic_auth 'mislav', 'kitty'
+        if request.env['HTTP_X_GITHUB_OTP'] == '112233'
+          halt 400 unless '666' == previous_otp_code
+          json :token => 'OTOKEN'
+        else
+          previous_otp_code = request.env['HTTP_X_GITHUB_OTP']
+          response.headers['X-GitHub-OTP'] = 'required; app'
+          status 401
+          json :message => "Must specify two-factor authentication OTP code."
+        end
+      }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "mislav"
+    And I type "kitty"
+    And I type "666"
+    And I type "112233"
+    Then the output should contain "warning: invalid two-factor code"
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 

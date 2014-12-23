@@ -351,6 +351,7 @@ module Hub
           if res.success?
             break
           elsif res.status == 401 && res['X-GitHub-OTP'].to_s.include?('required')
+            $stderr.puts "warning: invalid two-factor code" if two_factor_code
             two_factor_code = config.prompt_auth_code
           elsif res.status == 422 && 'already_exists' == res.data['errors'][0]['code']
             if auth_params[:note] =~ / (\d+)$/
