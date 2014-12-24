@@ -1,5 +1,8 @@
 sudo: false
 language: ruby
+before_install:
+  - script/bootstrap
+  - export PATH=~/bin:"$PATH"
 script: script/test
 bundler_args: --without development --deployment --jobs=3 --retry=3
 cache: bundler
