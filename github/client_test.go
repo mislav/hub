@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"testing"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
@@ -61,4 +62,19 @@ func TestClient_warnExistenceOfRepo(t *testing.T) {
 
 	err := warnExistenceOfRepo(project, e)
 	assert.Equal(t, "Are you sure that github.com/github/hub exists?", fmt.Sprintf("%s", err))
+}
+
+func TestAuthTokenNote(t *testing.T) {
+	note, err := authTokenNote(0)
+	assert.Equal(t, nil, err)
+
+	reg := regexp.MustCompile("hub for (.+)@(.+)")
+	assert.T(t, reg.MatchString(note))
+
+	note, err = authTokenNote(2)
+	assert.Equal(t, nil, err)
+
+	reg = regexp.MustCompile("hub for (.+)@(.+) 2")
+	assert.T(t, reg.MatchString(note))
+
 }
