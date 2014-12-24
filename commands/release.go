@@ -131,10 +131,13 @@ func createRelease(cmd *Command, args *Args) {
 				Release: release,
 			}
 			err = uploader.UploadAll(paths)
-			utils.Check(err)
+			if err != nil {
+				fmt.Println("")
+				utils.Check(err)
+			}
 		}
 
-		fmt.Printf("\n\nRelease created: %s\n", release.HTMLURL)
+		fmt.Printf("\n%s\n", release.HTMLURL)
 	})
 }
 
@@ -154,24 +157,27 @@ type assetUploader struct {
 }
 
 func (a *assetUploader) UploadAll(paths []string) error {
-	errChan := make(chan error)
+	errUploadChan := make(chan string)
 	successChan := make(chan bool)
 	total := len(paths)
 	count := 0
 
 	for _, path := range paths {
-		go a.uploadAsync(path, successChan, errChan)
+		go a.uploadAsync(path, successChan, errUploadChan)
 	}
 
 	a.printUploadProgress(count, total)
 
+	errUploads := make([]string, 0)
 	for {
 		select {
 		case _ = <-successChan:
 			count++
 			a.printUploadProgress(count, total)
-		case err := <-errChan:
-			return err
+		case errUpload := <-errUploadChan:
+			errUploads = append(errUploads, errUpload)
+			count++
+			a.printUploadProgress(count, total)
 		}
 
 		if count == total {
@@ -179,15 +185,20 @@ func (a *assetUploader) UploadAll(paths []string) error {
 		}
 	}
 
-	return nil
+	var err error
+	if len(errUploads) > 0 {
+		err = fmt.Errorf("Error uploading %s", strings.Join(errUploads, ", "))
+	}
+
+	return err
 }
 
-func (a *assetUploader) uploadAsync(path string, successChan chan bool, errChan chan error) {
+func (a *assetUploader) uploadAsync(path string, successChan chan bool, errUploadChan chan string) {
 	err := a.Upload(path)
 	if err == nil {
 		successChan <- true
 	} else {
-		errChan <- err
+		errUploadChan <- path
 	}
 }
 
