@@ -96,7 +96,7 @@ Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/)
     end unless upstream == 'refs/heads/master'
   end
   track = type == 'pushed to' ? '--no-track' : '--track'
-  run_silent %(git checkout --quiet -B #{name} #{track} #{upstream})
+  run_silent %(git checkout --quiet -B #{shell_escape name} #{track} #{shell_escape upstream})
 end
 
 Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|
