@@ -465,7 +465,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 		NoteURL: OAuthAppURL,
 	}
 
-	count := 0
+	count := 1
 	for {
 		note, e := authTokenNote(count)
 		if e != nil {
@@ -482,7 +482,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 
 		authErr := &AuthError{result.Err}
 		if authErr.IsDuplicatedTokenError() {
-			if count >= 8 {
+			if count >= 9 {
 				err = authErr
 				break
 			} else {
@@ -636,7 +636,7 @@ func authTokenNote(num int) (string, error) {
 		return "", err
 	}
 
-	if num > 0 {
+	if num > 1 {
 		return fmt.Sprintf("hub for %s@%s %d", n, h, num), nil
 	}
 

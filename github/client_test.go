@@ -65,7 +65,7 @@ func TestClient_warnExistenceOfRepo(t *testing.T) {
 }
 
 func TestAuthTokenNote(t *testing.T) {
-	note, err := authTokenNote(0)
+	note, err := authTokenNote(1)
 	assert.Equal(t, nil, err)
 
 	reg := regexp.MustCompile("hub for (.+)@(.+)")
