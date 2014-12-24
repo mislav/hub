@@ -84,36 +84,41 @@ func createRelease(cmd *Command, args *Args) {
 
 	tag := args.LastParam()
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
-		currentBranch, err := localRepo.CurrentBranch()
-		utils.Check(err)
-		branchName := currentBranch.ShortName()
-
-		title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
+		release, err := client.Release(project, tag)
 		utils.Check(err)
 
-		var editor *github.Editor
-		if title == "" {
-			message := releaseMessage(tag, project.Name, branchName)
-			editor, err = github.NewEditor("RELEASE", "release", message)
+		if release == nil {
+			currentBranch, err := localRepo.CurrentBranch()
+			utils.Check(err)
+			branchName := currentBranch.ShortName()
+
+			title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
 			utils.Check(err)
 
-			title, body, err = editor.EditTitleAndBody()
+			var editor *github.Editor
+			if title == "" {
+				message := releaseMessage(tag, project.Name, branchName)
+				editor, err = github.NewEditor("RELEASE", "release", message)
+				utils.Check(err)
+
+				title, body, err = editor.EditTitleAndBody()
+				utils.Check(err)
+			}
+
+			params := octokit.ReleaseParams{
+				TagName:         tag,
+				TargetCommitish: branchName,
+				Name:            title,
+				Body:            body,
+				Draft:           flagReleaseDraft,
+				Prerelease:      flagReleasePrerelease,
+			}
+			release, err = client.CreateRelease(project, params)
 			utils.Check(err)
-		}
 
-		params := octokit.ReleaseParams{
-			TagName:         tag,
-			TargetCommitish: branchName,
-			Name:            title,
-			Body:            body,
-			Draft:           flagReleaseDraft,
-			Prerelease:      flagReleasePrerelease,
-		}
-		release, err := client.CreateRelease(project, params)
-		utils.Check(err)
-
-		if editor != nil {
-			defer editor.DeleteFile()
+			if editor != nil {
+				defer editor.DeleteFile()
+			}
 		}
 
 		if flagReleaseAssets != "" {
