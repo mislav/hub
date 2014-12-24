@@ -2,8 +2,8 @@ sudo: false
 before_install:
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - export TRAVIS_RUBY_VERSION="$(ruby -e 'puts RUBY_VERSION')-travis"
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq tmux zsh git
+  - script/bootstrap
+  - export PATH=~/bin:"$PATH"
 language: go
 go:
   - 1.4
