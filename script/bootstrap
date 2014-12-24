@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -e
+
+if [ -n "$TRAVIS" ]; then
+  curl -fsSL https://ci-cache.s3.amazonaws.com/tmux-zsh.ubuntu.tgz | tar -xz -C ~
+fi
