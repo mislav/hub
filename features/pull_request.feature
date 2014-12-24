@@ -583,3 +583,15 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Branch with quotation mark in name
+    Given I am on the "feat'ure" branch with upstream "origin/feat'ure"
+    Given the GitHub API server:
+    """
+    post('/repos/mislav/coral/pulls') {
+    assert :head  => "mislav:feat'ure"
+    json :html_url => "the://url"
+    }
+    """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
