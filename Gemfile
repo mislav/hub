@@ -11,5 +11,4 @@ gem 'webmock', '~> 1.9.0'
 
 group :development do
   gem 'ronn', :platform => :mri
-  gem 'ruby-prof'
 end
