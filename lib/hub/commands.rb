@@ -704,9 +704,9 @@ module Hub
 
         path = case subpage
         when 'commits'
-          "/commits/#{branch_in_url(branch)}"
+          "/commits/#{branch_in_url(branch.short_name)}"
         when 'tree', NilClass
-          "/tree/#{branch_in_url(branch)}" if branch and !branch.master?
+          "/tree/#{branch_in_url(branch.short_name)}" if branch and !branch.master?
         else
           "/#{subpage}"
         end
@@ -742,7 +742,8 @@ module Hub
           end
         end
 
-        path = '/compare/%s' % range
+        escaped_range = range.include?('..') ? range : branch_in_url(range)
+        path = '/compare/%s' % escaped_range
         project.web_url(path, api_client.config.method(:protocol))
       end
     end
@@ -842,8 +843,10 @@ module Hub
     # from the command line.
     #
 
-    def branch_in_url(branch)
-      CGI.escape(branch.short_name).gsub("%2F", "/")
+    def branch_in_url(branch_name)
+      branch_name.to_str.gsub(/[^\w!.*'():^~\/-]/) do |char|
+        '%' + char.unpack('H2' * char.bytesize).join('%').upcase
+      end
     end
 
     def api_client

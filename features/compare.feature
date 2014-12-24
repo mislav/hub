@@ -13,6 +13,11 @@ Feature: hub compare
     Then there should be no output
     And "open https://github.com/mislav/dotfiles/compare/feature/foo" should be run
 
+  Scenario: Compare branch with funky characters
+    When I successfully run `hub compare 'my#branch!with.special+chars'`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/my%23branch!with.special%2Bchars" should be run
+
   Scenario: No args, no upstream
     When I run `hub compare`
     Then the exit status should be 1
@@ -37,6 +42,13 @@ Feature: hub compare
     When I successfully run `hub compare`
     Then there should be no output
     And "open https://github.com/mislav/dotfiles/compare/experimental" should be run
+
+  Scenario: Current branch has funky characters
+    Given I am on the "feature" branch with upstream "origin/my#branch!with.special+chars"
+    And git "push.default" is set to "upstream"
+    When I successfully run `hub compare`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/my%23branch!with.special%2Bchars" should be run
 
   Scenario: Compare range
     When I successfully run `hub compare 1.0...fix`
