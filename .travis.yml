@@ -1,3 +1,4 @@
+sudo: false
 before_install:
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - export TRAVIS_RUBY_VERSION="$(ruby -e 'puts RUBY_VERSION')-travis"
@@ -6,10 +7,11 @@ before_install:
 language: go
 go:
   - 1.4
-install:
-  - script/cached-bundle install --deployment --without development --jobs 3 --retry 3
-script:
-  - script/test
+script: script/test
+install: bundle install --without development --deployment --jobs=3 --retry=3
+cache:
+  directories:
+    - vendor/bundle
 notifications:
   email: false
 env:
