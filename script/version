@@ -2,7 +2,7 @@
 # Displays hub's release version
 set -e
 
-version="$(git describe --tags HEAD 2>/dev/null)"
+version="$(git describe --tags HEAD 2>/dev/null || true)"
 
 if [ -z "$version" ]; then
   version="$(grep Version commands/version.go | head -1 | cut -d '"' -f2)"
