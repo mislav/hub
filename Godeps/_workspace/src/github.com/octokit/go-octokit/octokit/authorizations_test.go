@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthorizationsService_One(t *testing.T) {
@@ -19,11 +19,11 @@ func TestAuthorizationsService_One(t *testing.T) {
 	})
 
 	url, err := AuthorizationsURL.Expand(M{"id": 1})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	auth, result := client.Authorizations(url).One()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 1, auth.ID)
 	assert.Equal(t, "https://api.github.com/authorizations/1", auth.URL)
 	assert.Equal(t, "456", auth.Token)
@@ -35,9 +35,9 @@ func TestAuthorizationsService_One(t *testing.T) {
 	app := App{ClientID: "123", URL: "http://localhost:8080", Name: "Test"}
 	assert.Equal(t, app, auth.App)
 
-	assert.Equal(t, 2, len(auth.Scopes))
+	assert.Len(t, auth.Scopes, 2)
 	scopes := []string{"repo", "user"}
-	assert.T(t, reflect.DeepEqual(auth.Scopes, scopes))
+	assert.True(t, reflect.DeepEqual(auth.Scopes, scopes))
 }
 
 func TestAuthorizationsService_All(t *testing.T) {
@@ -50,10 +50,10 @@ func TestAuthorizationsService_All(t *testing.T) {
 	})
 
 	url, err := AuthorizationsURL.Expand(nil)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	auths, result := client.Authorizations(url).All()
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 
 	firstAuth := auths[0]
 	assert.Equal(t, 1, firstAuth.ID)
@@ -67,9 +67,9 @@ func TestAuthorizationsService_All(t *testing.T) {
 	app := App{ClientID: "123", URL: "http://localhost:8080", Name: "Test"}
 	assert.Equal(t, app, firstAuth.App)
 
-	assert.Equal(t, 2, len(firstAuth.Scopes))
+	assert.Len(t, firstAuth.Scopes, 2)
 	scopes := []string{"repo", "user"}
-	assert.T(t, reflect.DeepEqual(firstAuth.Scopes, scopes))
+	assert.True(t, reflect.DeepEqual(firstAuth.Scopes, scopes))
 }
 
 func TestAuthorizationsService_Create(t *testing.T) {
@@ -81,14 +81,14 @@ func TestAuthorizationsService_Create(t *testing.T) {
 	mux.HandleFunc("/authorizations", func(w http.ResponseWriter, r *http.Request) {
 		var authParams AuthorizationParams
 		json.NewDecoder(r.Body).Decode(&authParams)
-		assert.T(t, reflect.DeepEqual(authParams, params))
+		assert.True(t, reflect.DeepEqual(authParams, params))
 
 		testMethod(t, r, "POST")
 		respondWithJSON(w, loadFixture("create_authorization.json"))
 	})
 
 	url, err := AuthorizationsURL.Expand(nil)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	auth, _ := client.Authorizations(url).Create(params)
 
@@ -103,7 +103,7 @@ func TestAuthorizationsService_Create(t *testing.T) {
 	app := App{ClientID: "00000000000000000000", URL: "http://developer.github.com/v3/oauth/#oauth-authorizations-api", Name: "GitHub API"}
 	assert.Equal(t, app, auth.App)
 
-	assert.Equal(t, 1, len(auth.Scopes))
+	assert.Len(t, auth.Scopes, 1)
 	scopes := []string{"public_repo"}
-	assert.T(t, reflect.DeepEqual(auth.Scopes, scopes))
+	assert.True(t, reflect.DeepEqual(auth.Scopes, scopes))
 }

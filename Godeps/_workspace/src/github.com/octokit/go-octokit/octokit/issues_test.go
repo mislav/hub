@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIssuesService_All(t *testing.T) {
@@ -18,11 +18,11 @@ func TestIssuesService_All(t *testing.T) {
 	})
 
 	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	issues, result := client.Issues(url).All()
-	assert.T(t, !result.HasError())
-	assert.Equal(t, 1, len(issues))
+	assert.False(t, result.HasError())
+	assert.Len(t, issues, 1)
 
 	issue := issues[0]
 	validateIssue(t, issue)
@@ -38,11 +38,11 @@ func TestIssuesService_One(t *testing.T) {
 	})
 
 	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World", "number": 1347})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	issue, result := client.Issues(url).One()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	validateIssue(t, *issue)
 }
 
@@ -57,7 +57,7 @@ func TestIssuesService_Create(t *testing.T) {
 	})
 
 	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	params := IssueParams{
 		Title: "title",
@@ -65,7 +65,7 @@ func TestIssuesService_Create(t *testing.T) {
 	}
 	issue, result := client.Issues(url).Create(params)
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	validateIssue(t, *issue)
 }
 
@@ -80,7 +80,7 @@ func TestIssuesService_Update(t *testing.T) {
 	})
 
 	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World", "number": 1347})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	params := IssueParams{
 		Title: "title",
@@ -88,7 +88,7 @@ func TestIssuesService_Update(t *testing.T) {
 	}
 	issue, result := client.Issues(url).Update(params)
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	validateIssue(t, *issue)
 }
 
@@ -107,7 +107,7 @@ func validateIssue(t *testing.T, issue Issue) {
 	assert.Equal(t, "somehexcode", issue.User.GravatarID)
 	assert.Equal(t, "https://api.github.com/users/octocat", issue.User.URL)
 
-	assert.Equal(t, 1, len(issue.Labels))
+	assert.Len(t, issue.Labels, 1)
 	assert.Equal(t, "https://api.github.com/repos/octocat/Hello-World/labels/bug", issue.Labels[0].URL)
 	assert.Equal(t, "bug", issue.Labels[0].Name)
 

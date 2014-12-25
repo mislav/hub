@@ -1,9 +1,10 @@
 package commands
 
 import (
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
-	"github.com/github/hub/github"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/github"
 )
 
 func TestTransformSubmoduleArgs(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 	"path"
 	"time"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/BurntSushi/toml"
+	"github.com/BurntSushi/toml"
 )
 
 func init() {

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer"
+	"github.com/jingweno/go-sawyer"
 )
 
 type ResponseErrorType int

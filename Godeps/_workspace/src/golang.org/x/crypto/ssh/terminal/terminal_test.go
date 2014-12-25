@@ -241,3 +241,29 @@ func TestPasswordNotSaved(t *testing.T) {
 		t.Fatalf("password was saved in history")
 	}
 }
+
+var setSizeTests = []struct {
+	width, height int
+}{
+	{40, 13},
+	{80, 24},
+	{132, 43},
+}
+
+func TestTerminalSetSize(t *testing.T) {
+	for _, setSize := range setSizeTests {
+		c := &MockTerminal{
+			toSend:       []byte("password\r\x1b[A\r"),
+			bytesPerRead: 1,
+		}
+		ss := NewTerminal(c, "> ")
+		ss.SetSize(setSize.width, setSize.height)
+		pw, _ := ss.ReadPassword("Password: ")
+		if pw != "password" {
+			t.Fatalf("failed to read password, got %s", pw)
+		}
+		if string(c.received) != "Password: \r\n" {
+			t.Errorf("failed to set the temporary prompt expected %q, got %q", "Password: ", c.received)
+		}
+	}
+}

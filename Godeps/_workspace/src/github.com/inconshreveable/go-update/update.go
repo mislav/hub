@@ -113,7 +113,7 @@ while outputting a progress meter and supports resuming partial downloads.
 package update
 
 import (
-	"github.com/github/hub/Godeps/_workspace/src/bitbucket.org/kardianos/osext"
+	"bitbucket.org/kardianos/osext"
 	"bytes"
 	"crypto"
 	"crypto/rsa"
@@ -122,8 +122,8 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/inconshreveable/go-update/download"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/kr/binarydist"
+	"github.com/inconshreveable/go-update/download"
+	"github.com/kr/binarydist"
 	"io"
 	"io/ioutil"
 	"os"

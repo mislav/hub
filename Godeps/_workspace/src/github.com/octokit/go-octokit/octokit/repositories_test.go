@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRepositoresService_One(t *testing.T) {
@@ -19,25 +19,25 @@ func TestRepositoresService_One(t *testing.T) {
 	})
 
 	url, err := RepositoryURL.Expand(M{"owner": "jingweno", "repo": "octokat"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	repo, result := client.Repositories(url).One()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 10575811, repo.ID)
 	assert.Equal(t, "octokat", repo.Name)
 	assert.Equal(t, "jingweno/octokat", repo.FullName)
-	assert.T(t, !repo.Private)
-	assert.T(t, !repo.Fork)
+	assert.False(t, repo.Private)
+	assert.False(t, repo.Fork)
 	assert.Equal(t, "https://api.github.com/repos/jingweno/octokat", repo.URL)
 	assert.Equal(t, "https://github.com/jingweno/octokat", repo.HTMLURL)
 	assert.Equal(t, "https://github.com/jingweno/octokat.git", repo.CloneURL)
 	assert.Equal(t, "git://github.com/jingweno/octokat.git", repo.GitURL)
 	assert.Equal(t, "git@github.com:jingweno/octokat.git", repo.SSHURL)
 	assert.Equal(t, "master", repo.MasterBranch)
-	assert.T(t, !repo.Permissions.Admin)
-	assert.T(t, !repo.Permissions.Push)
-	assert.T(t, repo.Permissions.Pull)
+	assert.False(t, repo.Permissions.Admin)
+	assert.False(t, repo.Permissions.Push)
+	assert.True(t, repo.Permissions.Pull)
 }
 
 func TestRepositoresService_All(t *testing.T) {
@@ -55,12 +55,12 @@ func TestRepositoresService_All(t *testing.T) {
 	})
 
 	url, err := OrgRepositoriesURL.Expand(M{"org": "rails"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	repos, result := client.Repositories(url).All()
 
-	assert.T(t, !result.HasError())
-	assert.Equal(t, 30, len(repos))
+	assert.False(t, result.HasError())
+	assert.Len(t, repos, 30)
 	assert.Equal(t, testURLStringOf("organizations/4223/repos?page=2"), string(*result.NextPage))
 	assert.Equal(t, testURLStringOf("organizations/4223/repos?page=3"), string(*result.LastPage))
 }
@@ -94,17 +94,17 @@ func TestRepositoresService_Create(t *testing.T) {
 	})
 
 	url, err := UserRepositoriesURL.Expand(nil)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	repo, result := client.Repositories(url).Create(params)
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 1296269, repo.ID)
 	assert.Equal(t, "Hello-World", repo.Name)
 	assert.Equal(t, "octocat/Hello-World", repo.FullName)
 	assert.Equal(t, "This is your first repo", repo.Description)
-	assert.T(t, !repo.Private)
-	assert.T(t, repo.Fork)
+	assert.False(t, repo.Private)
+	assert.True(t, repo.Fork)
 	assert.Equal(t, "https://api.github.com/repos/octocat/Hello-World", repo.URL)
 	assert.Equal(t, "https://github.com/octocat/Hello-World", repo.HTMLURL)
 	assert.Equal(t, "https://github.com/octocat/Hello-World.git", repo.CloneURL)
@@ -124,17 +124,17 @@ func TestRepositoresService_CreateFork(t *testing.T) {
 	})
 
 	url, err := ForksURL.Expand(M{"owner": "jingweno", "repo": "octokat"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	repo, result := client.Repositories(url).Create(M{"organization": "github"})
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 1296269, repo.ID)
 	assert.Equal(t, "Hello-World", repo.Name)
 	assert.Equal(t, "octocat/Hello-World", repo.FullName)
 	assert.Equal(t, "This is your first repo", repo.Description)
-	assert.T(t, !repo.Private)
-	assert.T(t, repo.Fork)
+	assert.False(t, repo.Private)
+	assert.True(t, repo.Fork)
 	assert.Equal(t, "https://api.github.com/repos/octocat/Hello-World", repo.URL)
 	assert.Equal(t, "https://github.com/octocat/Hello-World", repo.HTMLURL)
 	assert.Equal(t, "https://github.com/octocat/Hello-World.git", repo.CloneURL)

@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/bmizerany/assert"
 )
 
 func TestSSHConfigReader_Read(t *testing.T) {

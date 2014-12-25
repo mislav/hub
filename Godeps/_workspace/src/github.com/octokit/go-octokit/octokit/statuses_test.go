@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStatuses(t *testing.T) {
@@ -18,11 +18,11 @@ func TestStatuses(t *testing.T) {
 
 	sha := "740211b9c6cd8e526a7124fe2b33115602fbc637"
 	url, err := StatusesURL.Expand(M{"owner": "jingweno", "repo": "gh", "ref": sha})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	statuses, err := client.Statuses(url).All()
 
-	assert.Equal(t, 2, len(statuses))
+	assert.Len(t, statuses, 2)
 	firstStatus := statuses[0]
 	assert.Equal(t, "pending", firstStatus.State)
 	assert.Equal(t, "The Travis CI build is in progress", firstStatus.Description)

@@ -12,11 +12,12 @@ setup_gopath() {
   TMPDIR="${LOCALAPPDATA:-$TMPDIR}"
   TMP_GOPATH="${TMPDIR:-/tmp}/go"
   TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
+  GODEPS_PATH="${TMP_SELF}/Godeps/_workspace"
 
   if [ -n "$windows" ]; then
-    export GOPATH="${TMP_GOPATH//\//\\}"
+    export GOPATH="${TMP_GOPATH//\//\\};${GODEPS_PATH//\//\\}"
   else
-    export GOPATH="$TMP_GOPATH"
+    export GOPATH="$TMP_GOPATH:$GODEPS_PATH"
   fi
 
   mkdir -p "${TMP_SELF%/*}"

@@ -3,9 +3,9 @@ package octokit
 import (
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/hypermedia"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/mediaheader"
+	"github.com/jingweno/go-sawyer/hypermedia"
+	"github.com/jingweno/go-sawyer/mediaheader"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewResult_Pageable(t *testing.T) {
@@ -13,7 +13,7 @@ func TestNewResult_Pageable(t *testing.T) {
 	result := newResult(resp, nil)
 
 	assert.Equal(t, "/path", string(*result.NextPage))
-	assert.T(t, result.PrevPage == nil)
-	assert.T(t, result.LastPage == nil)
-	assert.T(t, result.FirstPage == nil)
+	assert.Nil(t, result.PrevPage)
+	assert.Nil(t, result.LastPage)
+	assert.Nil(t, result.FirstPage)
 }

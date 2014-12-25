@@ -8,7 +8,7 @@ import (
 	"time"
 
 	. "gopkg.in/check.v1"
-	"github.com/github/hub/Godeps/_workspace/src/gopkg.in/yaml.v1"
+	"gopkg.in/yaml.v1"
 )
 
 var marshalIntTest = 123

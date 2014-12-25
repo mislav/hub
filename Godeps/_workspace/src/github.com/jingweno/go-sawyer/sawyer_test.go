@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/hypermedia"
+	"github.com/bmizerany/assert"
+	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
 var endpoints = map[string]map[string]string{

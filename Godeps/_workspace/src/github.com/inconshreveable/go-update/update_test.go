@@ -7,7 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/kr/binarydist"
+	"github.com/kr/binarydist"
 	"io/ioutil"
 	"net"
 	"net/http"

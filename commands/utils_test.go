@@ -1,10 +1,11 @@
 package commands
 
 import (
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"io/ioutil"
 	"os"
 	"testing"
+
+	"github.com/bmizerany/assert"
 )
 
 func TestDirIsNotEmpty(t *testing.T) {

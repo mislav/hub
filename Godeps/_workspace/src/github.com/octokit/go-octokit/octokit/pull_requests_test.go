@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPullRequestService_One(t *testing.T) {
@@ -19,11 +19,11 @@ func TestPullRequestService_One(t *testing.T) {
 	})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	pr, result := client.PullRequests(url).One()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 1, pr.ChangedFiles)
 	assert.Equal(t, 1, pr.Deletions)
 	assert.Equal(t, 1, pr.Additions)
@@ -42,7 +42,7 @@ func TestPullRequestService_One(t *testing.T) {
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1", pr.IssueURL)
 	assert.Equal(t, 1, pr.Number)
 	assert.Equal(t, "closed", pr.State)
-	assert.T(t, nil == pr.Assignee)
+	assert.Nil(t, pr.Assignee)
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/commits", pr.CommitsURL)
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/comments", pr.ReviewCommentsURL)
 	assert.Equal(t, "/repos/jingweno/octokat/pulls/comments/{number}", pr.ReviewCommentURL)
@@ -61,7 +61,7 @@ func TestPullRequestService_Post(t *testing.T) {
 	})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	params := PullRequestParams{
 		Base:  "base",
@@ -71,7 +71,7 @@ func TestPullRequestService_Post(t *testing.T) {
 	}
 	pr, result := client.PullRequests(url).Create(params)
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 1, pr.ChangedFiles)
 	assert.Equal(t, 1, pr.Deletions)
 	assert.Equal(t, 1, pr.Additions)
@@ -90,7 +90,7 @@ func TestPullRequestService_Post(t *testing.T) {
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1", pr.IssueURL)
 	assert.Equal(t, 1, pr.Number)
 	assert.Equal(t, "closed", pr.State)
-	assert.T(t, nil == pr.Assignee)
+	assert.Nil(t, pr.Assignee)
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/commits", pr.CommitsURL)
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/comments", pr.ReviewCommentsURL)
 	assert.Equal(t, "/repos/jingweno/octokat/pulls/comments/{number}", pr.ReviewCommentURL)
@@ -110,11 +110,11 @@ func TestPullRequestService_All(t *testing.T) {
 	})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "rails", "repo": "rails"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	prs, result := client.PullRequests(url).All()
-	assert.T(t, !result.HasError())
-	assert.Equal(t, 30, len(prs))
+	assert.False(t, result.HasError())
+	assert.Len(t, prs, 30)
 	assert.Equal(t, testURLStringOf("repositories/8514/pulls?page=2"), string(*result.NextPage))
 	assert.Equal(t, testURLStringOf("repositories/8514/pulls?page=14"), string(*result.LastPage))
 }
@@ -130,13 +130,13 @@ func TestPullRequestService_Diff(t *testing.T) {
 	})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	diff, result := client.PullRequests(url).Diff()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	content, err := ioutil.ReadAll(diff)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "diff --git", string(content))
 }
 
@@ -151,12 +151,12 @@ func TestPullRequestService_Patch(t *testing.T) {
 	})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	patch, result := client.PullRequests(url).Patch()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	content, err := ioutil.ReadAll(patch)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "patches galore", string(content))
 }

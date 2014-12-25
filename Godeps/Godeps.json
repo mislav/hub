@@ -26,7 +26,7 @@
 		},
 		{
 			"ImportPath": "github.com/howeyc/gopass",
-			"Rev": "62ab5a80502a82291f265e6980d72310b8f480d5"
+			"Rev": "1af4cd08f75465cbb0fcec37b64b77c4a6b6d41a"
 		},
 		{
 			"ImportPath": "github.com/inconshreveable/go-update",
@@ -64,8 +64,8 @@
 		},
 		{
 			"ImportPath": "github.com/octokit/go-octokit/octokit",
-			"Comment": "v0.4.0-97-g6909930",
-			"Rev": "69099306b45af55301f9328f52d48338274f8d7d"
+			"Comment": "v0.4.0-108-g8aecf9e",
+			"Rev": "8aecf9e89cd2db2fca04299a34ec84e6d9087d3d"
 		},
 		{
 			"ImportPath": "github.com/ogier/pflag",
@@ -73,8 +73,7 @@
 		},
 		{
 			"ImportPath": "golang.org/x/crypto/ssh/terminal",
-			"Comment": "null-236",
-			"Rev": "69e2a90ed92d03812364aeb947b7068dc42e561e"
+			"Rev": "c89e5683853da5ed97731b507dcd8cda2b11afaf"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v1",

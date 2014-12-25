@@ -3,7 +3,7 @@ package octokit
 import (
 	"net/url"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/jingweno/go-sawyer/hypermedia"
+	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
 type M map[string]interface{}
