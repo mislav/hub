@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -109,7 +110,10 @@ func createRelease(cmd *Command, args *Args) {
 
 			var editor *github.Editor
 			if title == "" {
-				message := releaseMessage(tag, project.Name, branchName)
+				cs := git.CommentChar()
+				message, err := renderReleaseTpl(cs, tag, project.Name, branchName)
+				utils.Check(err)
+
 				editor, err = github.NewEditor("RELEASE", "release", message)
 				utils.Check(err)
 
@@ -156,16 +160,6 @@ func createRelease(cmd *Command, args *Args) {
 
 		fmt.Printf("\n%s\n", release.HTMLURL)
 	})
-}
-
-func releaseMessage(tag, projectName, currentBranch string) string {
-	message := `
-# Creating release %s for %s from %s
-#
-# Write a message for this release. The first block
-# of text is the title and the rest is description.
-`
-	return fmt.Sprintf(message, tag, projectName, currentBranch)
 }
 
 type assetUploader struct {
