@@ -20,8 +20,24 @@ module OS
       end
     end
 
+    def friendly_name
+      if darwin?
+        "mac"
+      elsif linux?
+        "linux"
+      elsif windows?
+        "windows"
+      else
+        raise "Unknown OS type #{RUBY_PLATFORM}"
+      end
+    end
+
     def windows?
       (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def windows_64?
+      windows? && /x64/ =~ RUBY_PLATFORM
     end
 
     def darwin?
@@ -48,9 +64,11 @@ class Packer
   end
 
   def pack!
-    install_gox!
-    build_toolchain!
-    run_tests!
+    unless ENV["SKIP_TOOLCHAIN"]
+      install_gox!
+      build_toolchain!
+    end
+    run_tests! unless OS.windows? || ENV["SKIP_TEST"] # cukes don't run on Windows
     build_hub!
     cp_assets
     tar_gzip
@@ -112,13 +130,20 @@ class Packer
   end
 
   def build_hub!
-    puts "Building for #{OS.type}"
-    release_version = `./script/version`
-    exec!("gox -os=#{OS.type} -output=./target/{{.Dir}}_#{version}_{{.OS}}_{{.Arch}}/{{.Dir}} -ldflags '-X github.com/github/hub/commands.Version #{release_version}'")
+    puts "Building for #{OS.friendly_name}"
+    release_version = `script/version`.strip
+    output = root_path("target", "{{.Dir}}_#{version}_#{OS.friendly_name}_{{.Arch}}", "{{.Dir}}")
+    # gox doesn't build for 64 bit and 32 bit on 64 bit Windows
+    # specifying osarch for Windows
+    # see https://github.com/mitchellh/gox/issues/19#issuecomment-68117016
+    osarch = OS.windows? ? "windows/#{OS.windows_64? ? "amd64" : "386"}" : ""
+    cmd = "gox -os=#{OS.type} -output=#{output} -ldflags \"-X github.com/github/hub/commands.Version #{release_version}\""
+    cmd += " -osarch=#{osarch}" unless osarch.empty?
+    exec!(cmd)
   end
 
   def cp_assets
-    path = root_path("target", "*#{OS.type}*")
+    path = root_path("target", "*#{OS.friendly_name}*")
     glob_dir(path).each do |dir|
       puts "Copying assets to #{dir}"
       ["README.md", "LICENSE", "etc/"].each do |f|
@@ -128,7 +153,7 @@ class Packer
   end
 
   def tar_gzip
-    path = root_path("target", "*#{OS.type}*")
+    path = root_path("target", "*#{OS.friendly_name}*")
     glob_dir(path).each do |dir|
       puts "Archiving #{dir}"
       Dir.chdir(root_path("target")) do
