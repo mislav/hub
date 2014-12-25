@@ -249,9 +249,9 @@ is supported.
 <span class="comment"># whitelist your GitHub Enterprise hostname</span>
 $ git config --global --add hub.host <strong>my.example.org</strong>
 
-<span class="comment"># open a pull request for a branch, put its URL to the clipboard</span>
+<span class="comment"># open a pull request using a message generated from script, then put its URL to the clipboard</span>
 $ git push origin feature
-$ git <strong>pull-request | pbcopy</strong>
+$ git <strong>pull-request -F prepared-message.md | pbcopy</strong>
 <span class="result">→ (URL ready for pasting in a chat room)</span>
 
 <span class="comment"># push to multiple remotes</span>
