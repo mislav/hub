@@ -38,7 +38,19 @@ unless defined?(URI)
     InvalidComponentError = Class.new(Error)
 
     def self.parse(str)
-      URI::HTTP.new(str)
+      m = str.to_s.match(%r{^ ([\w-]+): // (?:([^/@]+)@)? ([^/?#]+) }x)
+      raise InvalidURIError unless m
+
+      _, scheme, userinfo, host = m.to_a
+      default_port = scheme == 'https' ? 443 : 80
+      host, port = host.split(':', 2)
+      port = port ? port.to_i : default_port
+
+      path, fragment = m.post_match.split('#', 2)
+      path, query = path.split('?', 2) if path
+      path = path.to_s
+
+      URI::HTTP.new(scheme, userinfo, host, port, nil, path, nil, query, fragment)
     end
 
     def self.encode_www_form(params)
@@ -61,15 +73,14 @@ unless defined?(URI)
       attr_reader :port
       alias hostname host
 
-      def initialize(str)
-        m = str.to_s.match(%r{^ ([\w-]+): // (?:([^/@]+)@)? ([^/?#]+) }x)
-        raise InvalidURIError unless m
-        _, self.scheme, self.userinfo, host = m.to_a
-        self.host, port = host.split(':', 2)
-        self.port = port ? port.to_i : default_port
-        path, self.fragment = m.post_match.split('#', 2)
-        path, self.query = path.split('?', 2) if path
-        self.path = path.to_s
+      def initialize(scheme, userinfo, host, port, registry, path, opaque, query, fragment, *extra)
+        self.scheme = scheme
+        self.userinfo = userinfo
+        self.host = host
+        self.port = port
+        self.path = path
+        self.query = query
+        self.fragment = fragment
       end
 
       def to_s
