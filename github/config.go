@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/github/hub/utils"
 	"github.com/github/hub/Godeps/_workspace/src/github.com/howeyc/gopass"
+	"github.com/github/hub/utils"
 )
 
 var (
@@ -45,13 +45,20 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	pass := c.PromptForPassword(host, user)
 
 	client := NewClient(host)
-	token, e := client.FindOrCreateToken(user, pass, "")
-	if e != nil {
-		if ae, ok := e.(*AuthError); ok && ae.Is2FAError() {
-			code := c.PromptForOTP()
-			token, err = client.FindOrCreateToken(user, pass, code)
+	var code, token string
+	for {
+		token, err = client.FindOrCreateToken(user, pass, code)
+		if err == nil {
+			break
+		}
+
+		if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
+			if (code != "") {
+				fmt.Fprintln(os.Stderr, "warning: invalid two-factor code")
+			}
+			code = c.PromptForOTP()
 		} else {
-			err = e
+			break
 		}
 	}
 

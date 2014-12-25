@@ -4,7 +4,7 @@ import (
 	"net/url"
 )
 
-var GitTreesURL = Hyperlink("repos/{owner}/{repo}/git/trees/{/sha}{?recursive}")
+var GitTreesURL = Hyperlink("repos/{owner}/{repo}/git/trees/{sha}{?recursive}")
 
 func (c *Client) GitTrees(url *url.URL) (trees *GitTreesService) {
 	trees = &GitTreesService{client: c, URL: url}

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/url"
 	"os"
+	"os/user"
 	"strings"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
@@ -14,7 +15,6 @@ const (
 	GitHubHost    string = "github.com"
 	GitHubApiHost string = "api.github.com"
 	UserAgent     string = "Hub"
-	OAuthAppName  string = "hub"
 	OAuthAppURL   string = "http://hub.github.com/"
 )
 
@@ -27,16 +27,21 @@ func NewClientWithHost(host *Host) *Client {
 }
 
 type AuthError struct {
-	error
+	Err error
 }
 
 func (e *AuthError) Error() string {
-	return e.error.Error()
+	return e.Err.Error()
 }
 
-func (e *AuthError) Is2FAError() bool {
-	re, ok := e.error.(*octokit.ResponseError)
+func (e *AuthError) IsRequired2FACodeError() bool {
+	re, ok := e.Err.(*octokit.ResponseError)
 	return ok && re.Type == octokit.ErrorOneTimePasswordRequired
+}
+
+func (e *AuthError) IsDuplicatedTokenError() bool {
+	re, ok := e.Err.(*octokit.ResponseError)
+	return ok && re.Type == octokit.ErrorUnprocessableEntity
 }
 
 type Client struct {
@@ -455,55 +460,39 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	c := client.newOctokitClient(basicAuth)
 	authsService := c.Authorizations(client.requestURL(authUrl))
 
-	if twoFactorCode == "" {
-		// dummy request to trigger a 2FA SMS since a HTTP GET won't do it
-		authsService.Create(nil)
+	authParam := octokit.AuthorizationParams{
+		Scopes:  []string{"repo"},
+		NoteURL: OAuthAppURL,
 	}
 
-	auths, result := authsService.All()
-	if result.HasError() {
-		err = &AuthError{result.Err}
-		return
-	}
-
-	var moreAuths []octokit.Authorization
-	for result.NextPage != nil {
-		authUrl, e := result.NextPage.Expand(nil)
+	count := 1
+	for {
+		note, e := authTokenNote(count)
 		if e != nil {
-			return "", e
-		}
-		authUrl, _ = url.Parse(authUrl.RequestURI())
-
-		as := c.Authorizations(authUrl)
-		moreAuths, result = as.All()
-		if result.HasError() {
-			err = &AuthError{result.Err}
+			err = e
 			return
 		}
 
-		auths = append(auths, moreAuths...)
-	}
-
-	for _, auth := range auths {
-		if auth.Note == OAuthAppName || auth.NoteURL == OAuthAppURL {
+		authParam.Note = note
+		auth, result := authsService.Create(authParam)
+		if !result.HasError() {
 			token = auth.Token
 			break
 		}
-	}
 
-	if token == "" {
-		authParam := octokit.AuthorizationParams{}
-		authParam.Scopes = append(authParam.Scopes, "repo")
-		authParam.Note = OAuthAppName
-		authParam.NoteURL = OAuthAppURL
-
-		auth, result := authsService.Create(authParam)
-		if result.HasError() {
-			err = &AuthError{result.Err}
-			return
+		authErr := &AuthError{result.Err}
+		if authErr.IsDuplicatedTokenError() {
+			if count >= 9 {
+				err = authErr
+				break
+			} else {
+				count++
+				continue
+			}
+		} else {
+			err = authErr
+			break
 		}
-
-		token = auth.Token
 	}
 
 	return
@@ -577,6 +566,8 @@ func FormatError(action string, err error) (ee error) {
 	switch e := err.(type) {
 	default:
 		ee = err
+	case *AuthError:
+		return FormatError(action, e.Err)
 	case *octokit.ResponseError:
 		statusCode := e.Response.StatusCode
 		var reason string
@@ -586,26 +577,33 @@ func FormatError(action string, err error) (ee error) {
 
 		errStr := fmt.Sprintf("Error %s: %s (HTTP %d)", action, reason, statusCode)
 
-		var messages []string
-		if statusCode == 422 {
-			if e.Message != "" {
-				messages = append(messages, e.Message)
-			}
-
-			if len(e.Errors) > 0 {
-				for _, e := range e.Errors {
-					messages = append(messages, e.Error())
-				}
+		var errorSentences []string
+		for _, err := range e.Errors {
+			switch err.Code {
+			case "custom":
+				errorSentences = append(errorSentences, err.Message)
+			case "missing_field":
+				errorSentences = append(errorSentences, fmt.Sprintf("Missing filed: \"%s\"", err.Field))
+			case "already_exists":
+				errorSentences = append(errorSentences, fmt.Sprintf("Duplicate value for \"%s\"", err.Field))
+			case "invalid":
+				errorSentences = append(errorSentences, fmt.Sprintf("Invalid value for \"%s\"", err.Field))
+			case "unauthorized":
+				errorSentences = append(errorSentences, fmt.Sprintf("Not allowed to change field \"%s\"", err.Field))
 			}
 		}
 
-		if len(messages) > 0 {
-			errStr = fmt.Sprintf("%s\n%s", errStr, strings.Join(messages, "\n"))
+		var errorMessage string
+		if len(errorSentences) > 0 {
+			errorMessage = strings.Join(errorSentences, "\n")
+		} else {
+			errorMessage = e.Message
 		}
 
-		ee = fmt.Errorf(errStr)
-	case *AuthError:
-		errStr := fmt.Sprintf("Error %s: Unauthorized (HTTP 401)", action)
+		if errorMessage != "" {
+			errStr = fmt.Sprintf("%s\n%s", errStr, errorMessage)
+		}
+
 		ee = fmt.Errorf(errStr)
 	}
 
@@ -624,4 +622,23 @@ func warnExistenceOfRepo(project *Project, ee error) (err error) {
 	}
 
 	return
+}
+
+func authTokenNote(num int) (string, error) {
+	u, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+
+	n := u.Username
+	h, err := os.Hostname()
+	if err != nil {
+		return "", err
+	}
+
+	if num > 1 {
+		return fmt.Sprintf("hub for %s@%s %d", n, h, num), nil
+	}
+
+	return fmt.Sprintf("hub for %s@%s", n, h), nil
 }
