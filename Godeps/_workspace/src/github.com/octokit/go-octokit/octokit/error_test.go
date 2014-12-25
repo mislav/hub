@@ -137,3 +137,63 @@ func TestResponseError_Error_415(t *testing.T) {
 	e := err.(*ResponseError)
 	assert.Equal(t, ErrorUnsupportedMediaType, e.Type)
 }
+
+func TestResponseError_403_BadCredentials(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		respondWith(w, `{"message":"Bad credentials", "documentation_url":"https://developer.github.com/v3/"}`)
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Contains(t, err.Error(), "403 - Bad credentials")
+	assert.Contains(t, err.Error(), "// See: https://developer.github.com/v3/")
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorForbidden, e.Type)
+}
+
+func TestResponseError_403_RateLimit(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		respondWith(w, `{"message":"API rate limit exceeded for 1.2.3.4", "documentation_url":"https://developer.github.com/v3/#rate-limiting"}`)
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Contains(t, err.Error(), "403 - API rate limit exceeded for 1.2.3.4")
+	assert.Contains(t, err.Error(), "// See: https://developer.github.com/v3/#rate-limiting")
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorTooManyRequests, e.Type)
+}
+
+func TestResponseError_403_LoginLimit(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		respondWith(w, `{"message":"login attempts exceeded", "documentation_url":"https://developer.github.com/v3/"}`)
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Contains(t, err.Error(), "403 - login attempts exceeded")
+	assert.Contains(t, err.Error(), "// See: https://developer.github.com/v3/")
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorTooManyLoginAttempts, e.Type)
+}
