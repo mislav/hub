@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"regexp"
+	"strings"
+	"net/url"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -72,7 +74,7 @@ func compare(command *Command, args *Args) {
 		}
 	}
 
-	subpage := utils.ConcatPaths("compare", r)
+	subpage := utils.ConcatPaths("compare", rangeQueryEscape(r))
 	url := project.WebURL("", "", subpage)
 	launcher, err := utils.BrowserLauncher()
 	utils.Check(err)
@@ -90,4 +92,22 @@ func parseCompareRange(r string) string {
 	shaOrTagRange := fmt.Sprintf("^%s\\.\\.%s$", shaOrTag, shaOrTag)
 	shaOrTagRangeRegexp := regexp.MustCompile(shaOrTagRange)
 	return shaOrTagRangeRegexp.ReplaceAllString(r, "$1...$2")
+}
+
+// characters we want to allow unencoded in compare views
+var compareUnescaper = strings.NewReplacer(
+	"%2F", "/",
+	"%3A", ":",
+	"%5E", "^",
+	"%7E", "~",
+	"%2A", "*",
+	"%21", "!",
+)
+
+func rangeQueryEscape(r string) string {
+	if strings.Contains(r, "..") {
+		return r
+	} else {
+		return compareUnescaper.Replace(url.QueryEscape(r))
+	}
 }
