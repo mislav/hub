@@ -14,6 +14,17 @@ import (
 	"github.com/github/hub/utils"
 )
 
+type stringSliceValue []string
+
+func (s *stringSliceValue) Set(val string) error {
+	*s = append(*s, val)
+	return nil
+}
+
+func (s *stringSliceValue) String() string {
+	return fmt.Sprintf("%s", *s)
+}
+
 var (
 	cmdRelease = &Command{
 		Run:   release,
@@ -42,15 +53,16 @@ If "-p" is given, it creates a pre-release.
 	flagReleaseDraft,
 	flagReleasePrerelease bool
 
-	flagReleaseAssets,
 	flagReleaseMessage,
 	flagReleaseFile string
+
+	flagReleaseAssets stringSliceValue
 )
 
 func init() {
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
-	cmdCreateRelease.Flag.StringVarP(&flagReleaseAssets, "attach", "a", "", "ATTACH_ASSETS")
+	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
 
@@ -121,10 +133,15 @@ func createRelease(cmd *Command, args *Args) {
 			}
 		}
 
-		if flagReleaseAssets != "" {
-			finder := assetFinder{}
-			paths, err := finder.Find(flagReleaseAssets)
-			utils.Check(err)
+		if len(flagReleaseAssets) > 0 {
+			paths := make([]string, 0)
+			for _, asset := range flagReleaseAssets {
+				finder := assetFinder{}
+				p, err := finder.Find(asset)
+				utils.Check(err)
+
+				paths = append(paths, p...)
+			}
 
 			uploader := assetUploader{
 				Client:  client,
