@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/bmizerany/assert"
 )
 
 func TestRunHelp(t *testing.T) {

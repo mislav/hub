@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
+	flag "github.com/ogier/pflag"
 )
 
 var (

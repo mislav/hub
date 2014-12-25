@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
