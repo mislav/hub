@@ -266,6 +266,33 @@ func (client *Client) Releases(project *Project) (releases []octokit.Release, er
 	return
 }
 
+func (client *Client) Release(project *Project, tagName string) (release *octokit.Release, err error) {
+	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting release", err)
+		return
+	}
+
+	releases, result := api.Releases(client.requestURL(url)).All()
+	if result.HasError() {
+		err = FormatError("creating release", result.Err)
+		return
+	}
+
+	for _, release := range releases {
+		if release.TagName == tagName {
+			return &release, nil
+		}
+	}
+
+	return
+}
+
 func (client *Client) CreateRelease(project *Project, params octokit.ReleaseParams) (release *octokit.Release, err error) {
 	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {

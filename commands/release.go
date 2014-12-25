@@ -8,13 +8,23 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
-	"sync/atomic"
 
+	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
+
+type stringSliceValue []string
+
+func (s *stringSliceValue) Set(val string) error {
+	*s = append(*s, val)
+	return nil
+}
+
+func (s *stringSliceValue) String() string {
+	return fmt.Sprintf("%s", *s)
+}
 
 var (
 	cmdRelease = &Command{
@@ -26,13 +36,12 @@ var (
 	cmdCreateRelease = &Command{
 		Key:   "create",
 		Run:   createRelease,
-		Usage: "release create [-d] [-p] [-a <ASSETS_DIR>] [-m <MESSAGE>|-f <FILE>] <TAG>",
+		Usage: "release create [-d] [-p] [-a <ASSETS_FILE>] [-m <MESSAGE>|-f <FILE>] <TAG>",
 		Short: "Create a new release in GitHub",
 		Long: `Creates a new release in GitHub for the project that the "origin" remote points to.
 It requires the name of the tag to release as a first argument.
 
-Specify the assets to include in the release from a directory via "-a". Without
-"-a", it finds assets from "releases/TAG" of the current directory.
+Specify the assets to include in the release via "-a".
 
 Without <MESSAGE> or <FILE>, a text editor will open in which title and body
 of the release can be entered in the same manner as git commit message.
@@ -45,15 +54,16 @@ If "-p" is given, it creates a pre-release.
 	flagReleaseDraft,
 	flagReleasePrerelease bool
 
-	flagReleaseAssetsDir,
 	flagReleaseMessage,
 	flagReleaseFile string
+
+	flagReleaseAssets stringSliceValue
 )
 
 func init() {
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
-	cmdCreateRelease.Flag.StringVarP(&flagReleaseAssetsDir, "assets", "a", "", "ASSETS_DIR")
+	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
 
@@ -62,11 +72,11 @@ func init() {
 }
 
 func release(cmd *Command, args *Args) {
-	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
 		if args.Noop {
 			fmt.Printf("Would request list of releases for %s\n", project)
 		} else {
-			releases, err := gh.Releases(project)
+			releases, err := client.Releases(project)
 			utils.Check(err)
 			var outputs []string
 			for _, release := range releases {
@@ -86,126 +96,154 @@ func createRelease(cmd *Command, args *Args) {
 	}
 
 	tag := args.LastParam()
-
-	assetsDir, err := getAssetsDirectory(flagReleaseAssetsDir, tag)
-	utils.Check(err)
-
-	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
-		currentBranch, err := localRepo.CurrentBranch()
-		utils.Check(err)
-		branchName := currentBranch.ShortName()
-
-		title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
+	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
+		release, err := client.Release(project, tag)
 		utils.Check(err)
 
-		if title == "" {
-			title, body, err = writeReleaseTitleAndBody(project, tag, branchName)
+		if release == nil {
+			currentBranch, err := localRepo.CurrentBranch()
 			utils.Check(err)
+			branchName := currentBranch.ShortName()
+
+			title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
+			utils.Check(err)
+
+			var editor *github.Editor
+			if title == "" {
+				cs := git.CommentChar()
+				message, err := renderReleaseTpl(cs, tag, project.Name, branchName)
+				utils.Check(err)
+
+				editor, err = github.NewEditor("RELEASE", "release", message)
+				utils.Check(err)
+
+				title, body, err = editor.EditTitleAndBody()
+				utils.Check(err)
+			}
+
+			params := octokit.ReleaseParams{
+				TagName:         tag,
+				TargetCommitish: branchName,
+				Name:            title,
+				Body:            body,
+				Draft:           flagReleaseDraft,
+				Prerelease:      flagReleasePrerelease,
+			}
+			release, err = client.CreateRelease(project, params)
+			utils.Check(err)
+
+			if editor != nil {
+				defer editor.DeleteFile()
+			}
 		}
 
-		params := octokit.ReleaseParams{
-			TagName:         tag,
-			TargetCommitish: branchName,
-			Name:            title,
-			Body:            body,
-			Draft:           flagReleaseDraft,
-			Prerelease:      flagReleasePrerelease}
+		if len(flagReleaseAssets) > 0 {
+			paths := make([]string, 0)
+			for _, asset := range flagReleaseAssets {
+				finder := assetFinder{}
+				p, err := finder.Find(asset)
+				utils.Check(err)
 
-		finalRelease, err := gh.CreateRelease(project, params)
-		utils.Check(err)
+				paths = append(paths, p...)
+			}
 
-		uploadReleaseAssets(gh, finalRelease, assetsDir)
+			uploader := assetUploader{
+				Client:  client,
+				Release: release,
+			}
+			err = uploader.UploadAll(paths)
+			if err != nil {
+				fmt.Println("")
+				utils.Check(err)
+			}
+		}
 
-		fmt.Printf("\n\nRelease created: %s", finalRelease.HTMLURL)
+		fmt.Printf("\n%s\n", release.HTMLURL)
 	})
 }
 
-func writeReleaseTitleAndBody(project *github.Project, tag, currentBranch string) (string, string, error) {
-	message := `
-# Creating release %s for %s from %s
-#
-# Write a message for this release. The first block
-# of text is the title and the rest is description.
-`
-	message = fmt.Sprintf(message, tag, project.Name, currentBranch)
+type assetUploader struct {
+	Client  *github.Client
+	Release *octokit.Release
+}
 
-	editor, err := github.NewEditor("RELEASE", "release", message)
+func (a *assetUploader) UploadAll(paths []string) error {
+	errUploadChan := make(chan string)
+	successChan := make(chan bool)
+	total := len(paths)
+	count := 0
+
+	for _, path := range paths {
+		go a.uploadAsync(path, successChan, errUploadChan)
+	}
+
+	a.printUploadProgress(count, total)
+
+	errUploads := make([]string, 0)
+	for {
+		select {
+		case _ = <-successChan:
+			count++
+			a.printUploadProgress(count, total)
+		case errUpload := <-errUploadChan:
+			errUploads = append(errUploads, errUpload)
+			count++
+			a.printUploadProgress(count, total)
+		}
+
+		if count == total {
+			break
+		}
+	}
+
+	var err error
+	if len(errUploads) > 0 {
+		err = fmt.Errorf("Error uploading %s", strings.Join(errUploads, ", "))
+	}
+
+	return err
+}
+
+func (a *assetUploader) uploadAsync(path string, successChan chan bool, errUploadChan chan string) {
+	err := a.Upload(path)
+	if err == nil {
+		successChan <- true
+	} else {
+		errUploadChan <- path
+	}
+}
+
+func (a *assetUploader) Upload(path string) error {
+	contentType, err := a.detectContentType(path)
 	if err != nil {
-		return "", "", err
+		return err
 	}
 
-	defer editor.DeleteFile()
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
 
-	return editor.EditTitleAndBody()
+	uploadUrl, err := a.Release.UploadURL.Expand(octokit.M{"name": filepath.Base(path)})
+	if err != nil {
+		return err
+	}
+
+	return a.Client.UploadReleaseAsset(uploadUrl, f, contentType)
 }
 
-func getAssetsDirectory(assetsDir, tag string) (string, error) {
-	if assetsDir == "" {
-		pwd, err := os.Getwd()
-		utils.Check(err)
-
-		assetsDir = filepath.Join(pwd, "releases", tag)
-	}
-
-	if !isDir(assetsDir) {
-		return "", fmt.Errorf("The assets directory doesn't exist: %s", assetsDir)
-	}
-
-	if isEmptyDir(assetsDir) {
-		return "", fmt.Errorf("The assets directory is empty: %s", assetsDir)
-	}
-
-	return assetsDir, nil
-}
-
-func uploadReleaseAssets(gh *github.Client, release *octokit.Release, assetsDir string) {
-	var wg sync.WaitGroup
-	var totalAssets, countAssets uint64
-
-	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
-		if !fi.IsDir() {
-			totalAssets += 1
-		}
-		return nil
-	})
-
-	printUploadProgress(&countAssets, totalAssets)
-
-	filepath.Walk(assetsDir, func(path string, fi os.FileInfo, err error) error {
-		if !fi.IsDir() {
-			wg.Add(1)
-
-			go func() {
-				defer func() {
-					atomic.AddUint64(&countAssets, uint64(1))
-					printUploadProgress(&countAssets, totalAssets)
-					wg.Done()
-				}()
-
-				uploadUrl, err := release.UploadURL.Expand(octokit.M{"name": fi.Name()})
-				utils.Check(err)
-
-				contentType := detectContentType(path, fi)
-
-				file, err := os.Open(path)
-				utils.Check(err)
-				defer file.Close()
-
-				err = gh.UploadReleaseAsset(uploadUrl, file, contentType)
-				utils.Check(err)
-			}()
-		}
-
-		return nil
-	})
-
-	wg.Wait()
-}
-
-func detectContentType(path string, fi os.FileInfo) string {
+func (a *assetUploader) detectContentType(path string) (string, error) {
 	file, err := os.Open(path)
-	utils.Check(err)
+	if err != nil {
+		return "", err
+	}
 	defer file.Close()
+
+	fi, err := file.Stat()
+	if err != nil {
+		return "", err
+	}
 
 	fileHeader := &bytes.Buffer{}
 	headerSize := int64(512)
@@ -216,12 +254,37 @@ func detectContentType(path string, fi os.FileInfo) string {
 	// The content type detection only uses 512 bytes at most.
 	// This way we avoid copying the whole content for big files.
 	_, err = io.CopyN(fileHeader, file, headerSize)
-	utils.Check(err)
+	if err != nil {
+		return "", err
+	}
 
-	return http.DetectContentType(fileHeader.Bytes())
+	t := http.DetectContentType(fileHeader.Bytes())
+
+	return strings.Split(t, ";")[0], nil
 }
 
-func printUploadProgress(count *uint64, total uint64) {
-	out := fmt.Sprintf("Uploading assets (%d/%d)", atomic.LoadUint64(count), total)
+func (a *assetUploader) printUploadProgress(count int, total int) {
+	out := fmt.Sprintf("Uploading assets (%d/%d)", count, total)
 	fmt.Print("\r" + out)
+}
+
+type assetFinder struct {
+}
+
+func (a *assetFinder) Find(path string) ([]string, error) {
+	result := make([]string, 0)
+
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			result = append(result, path)
+		}
+
+		return nil
+	})
+
+	return result, err
 }

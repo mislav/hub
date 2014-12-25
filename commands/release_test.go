@@ -1,52 +1,28 @@
 package commands
 
 import (
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"testing"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 )
 
-func TestAssetsDirWithoutFlag(t *testing.T) {
-	dir := createTempDir(t)
-	pwd, err := os.Getwd()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer func() {
-		os.Chdir(pwd)
-		os.RemoveAll(dir)
-	}()
+func TestAssetFinder_Find(t *testing.T) {
+	finder := assetFinder{}
 
-	os.Chdir(dir)
+	paths, err := finder.Find(fixtures.Path("release_dir", "file1"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, 1, len(paths))
 
-	tagDir := filepath.Join(dir, "releases", "v1.0.0")
-	assertAssetsDirSelected(t, tagDir, "")
+	paths, err = finder.Find(fixtures.Path("release_dir", "dir"))
+	assert.Equal(t, nil, err)
+	assert.Equal(t, 3, len(paths))
 }
 
-func TestAssetsDirWithFlag(t *testing.T) {
-	dir := createTempDir(t)
-	defer os.RemoveAll(dir)
-
-	tagDir := filepath.Join(dir, "releases", "v1.0.0")
-	assertAssetsDirSelected(t, tagDir, tagDir)
-}
-
-func assertAssetsDirSelected(t *testing.T, expectedDir, flagDir string) {
-	assets, err := getAssetsDirectory(flagDir, "v1.0.0")
-	assert.NotEqual(t, nil, err) // Error if it doesn't exist
-
-	os.MkdirAll(expectedDir, 0755)
-	assets, err = getAssetsDirectory(flagDir, "v1.0.0")
-	assert.NotEqual(t, nil, err) // Error if it's empty
-
-	ioutil.TempFile(expectedDir, "gh-test")
-	assets, err = getAssetsDirectory(flagDir, "v1.0.0")
-
-	fiExpected, err := os.Stat(expectedDir)
-	fiAssets, err := os.Stat(assets)
+func TestAssetUploader_detectContentType(t *testing.T) {
+	u := &assetUploader{}
+	ct, err := u.detectContentType(fixtures.Path("release_dir", "file1"))
 
 	assert.Equal(t, nil, err)
-	assert.T(t, os.SameFile(fiExpected, fiAssets))
+	assert.Equal(t, "text/plain", ct)
 }
