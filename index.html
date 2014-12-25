@@ -84,6 +84,7 @@
     color: #999;
     font: italic 1.2em "Hoefler Text", "Times New Roman", "Georgia", serif;
   }
+  pre .comment .hidden { color: white }
   pre .result { color: #777; font-style: italic; margin-left: 1em }
   pre strong { color: #894400; font-weight: normal }
   .footer { text-align: center; margin-top: 15px; color: gray; }
@@ -122,31 +123,22 @@
 <em>better at GitHub</em>.
 </p>
 
-<pre><span class="comment"># install on OS X for 2.x preview</span>
+<pre><span class="comment"># OS X: install latest revision</span>
 $ <a href="http://brew.sh/">brew</a> install --HEAD hub
 
-<span class="comment"># install from source for 2.x preview</span>
-<span class="comment"># you need  a Go development environment: http://golang.org/doc/install</span>
+<span class="comment"># Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or</span>
+<span class="comment"># build your own from source. You'll need a <a href="http://golang.org/doc/install">Go development environment</a>.</span>
 $ git clone <strong>https://github.com/github/hub.git</strong>
 $ cd hub
-$ <strong>./script/build</strong>
-$ cp hub YOUR_BIN_PATH
-
-<span class="comment"># install on OS X for 1.x</span>
-$ <a href="http://brew.sh/">brew</a> install hub
-
-<span class="comment"># install from source for 1.x</span>
-$ git clone <strong>https://github.com/github/hub.git</strong>
-$ cd hub
-$ git checkout <strong>1.12-stable</strong>
-$ <strong>rake install</strong> prefix=/usr/local
+$ <strong>script/build</strong>
+$ mv ./hub ~/bin <span class="comment"><span class="hidden">#</span> ← move to somewhere in your PATH</span>
 
 <span class="comment"># alias it as git</span>
-$ alias git=hub
+$ alias <strong>git=hub</strong>
 
 $ git version
-git version 1.7.9
-hub version 1.11.0 <span class="comment"># ← it works!</span>
+git version 2.1.4
+hub version 2.2.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
 </pre>
 </section>
 
