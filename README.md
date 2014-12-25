@@ -38,19 +38,17 @@ supports hub is available:
 
 ~~~ sh
 # Download or clone the project from GitHub:
-$ git clone git://github.com/github/hub.git
+$ git clone git://github.com/github/hub.git -b 1.12-stable
 $ cd hub
-$ rake install
+$ rake install PREFIX=/usr/local
 ~~~
-
-On a Unix-based OS, this installs under `PREFIX`, which is `/usr/local` by default.
 
 Now you should be ready to roll:
 
 ~~~ sh
 $ hub version
-git version 1.7.6
-hub version 1.8.3
+git version 2.1.4
+hub version 1.12.4
 ~~~
 
 #### Windows "Git Bash" (msysGit) note
