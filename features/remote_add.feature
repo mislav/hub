@@ -1,19 +1,12 @@
 Feature: hub remote add
   Background:
-    Given I am in "dotfiles" git repo
+    Given I am "EvilChelu" on GitHub.com
+    And I am in "dotfiles" git repo
 
   Scenario: Add origin remote for my own repo
-    Given I am "mislav" on GitHub.com
-    And there are no remotes
+    Given there are no remotes
     When I successfully run `hub remote add origin`
-    Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
-    And there should be no output
-
-  Scenario: Add private origin remote for my own repo
-    Given I am "mislav" on GitHub.com
-    And there are no remotes
-    When I successfully run `hub remote add -p origin`
-    Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    Then the url for "origin" should be "git@github.com:EvilChelu/dotfiles.git"
     And there should be no output
 
   Scenario: Unchanged public remote add
@@ -56,6 +49,11 @@ Feature: hub remote add
   Scenario: Add private remote
     When I successfully run `hub remote add -p mislav`
     Then the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no output
+
+  Scenario: Remote for my own repo is automatically private
+    When I successfully run `hub remote add evilchelu`
+    Then the url for "evilchelu" should be "git@github.com:EvilChelu/dotfiles.git"
     And there should be no output
 
   Scenario: Add remote with arguments
@@ -103,4 +101,9 @@ Feature: hub remote add
   Scenario: Add named private remote including repo name
     When I successfully run `hub remote add -p mm mislav/dotfilez.js`
     Then the url for "mm" should be "git@github.com:mislav/dotfilez.js.git"
+    And there should be no output
+
+  Scenario: Add named private remote for my own repo including repo name
+    When I successfully run `hub remote add ec evilchelu/dotfilez.js`
+    Then the url for "ec" should be "git@github.com:EvilChelu/dotfilez.js.git"
     And there should be no output

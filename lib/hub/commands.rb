@@ -359,6 +359,11 @@ module Hub
         args.pop
       end
 
+      if user.downcase == github_user.downcase
+        user = github_user
+        ssh = true
+      end
+
       args << git_url(user, repo, :private => ssh)
     end
 
