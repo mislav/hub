@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"regexp"
+	"strings"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -65,16 +66,16 @@ func transformRemoteArgs(args *Args) {
 		name = repoName
 	}
 
+	hostConfig, err := github.CurrentConfig().DefaultHost()
+	if err != nil {
+		utils.Check(github.FormatError("adding remote", err))
+	}
+
 	words := args.Words()
 	isPrivate := parseRemotePrivateFlag(args)
 	if len(words) == 2 && words[1] == "origin" {
 		// Origin special case triggers default user/repo
-		host, err := github.CurrentConfig().DefaultHost()
-		if err != nil {
-			utils.Check(github.FormatError("adding remote", err))
-		}
-
-		owner = host.User
+		owner = hostConfig.User
 		name = repoName
 	} else if len(words) == 2 {
 		// gh remote add jingweno foo/bar
@@ -83,6 +84,11 @@ func transformRemoteArgs(args *Args) {
 		}
 	} else {
 		args.RemoveParam(args.ParamsSize() - 1)
+	}
+
+	if strings.ToLower(owner) == strings.ToLower(hostConfig.User) {
+		owner = hostConfig.User
+		isPrivate = true
 	}
 
 	project := github.NewProject(owner, name, host)
