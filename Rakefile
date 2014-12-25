@@ -151,7 +151,13 @@ task :pages => :gh_pages do
 end
 
 task :gem_release do
-  sh "gem release -t"
+  require File.expand_path('../lib/hub/version', __FILE__)
+  sh "git add lib/hub/version.rb"
+  sh "git commit -m 'hub #{Hub::VERSION}'"
+  sh "git tag v#{Hub::VERSION}"
+  sh "RUBYOPT= git push origin HEAD v#{Hub::VERSION}"
+  sh "gem build hub.gemspec"
+  sh "gem push hub-#{Hub::VERSION}.gem"
 end
 
 desc "Publish to Homebrew"
