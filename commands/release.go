@@ -40,7 +40,7 @@ var (
 		Long: `Creates a new release in GitHub for the project that the "origin" remote points to.
 It requires the name of the tag to release as a first argument.
 
-Specify the assets to include in the release from a directory via "-a".
+Specify the assets to include in the release via "-a".
 
 Without <MESSAGE> or <FILE>, a text editor will open in which title and body
 of the release can be entered in the same manner as git commit message.
