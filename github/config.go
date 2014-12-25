@@ -53,7 +53,9 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		}
 
 		if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
-			fmt.Fprintln(os.Stderr, "warning: invalid two-factor code")
+			if (code != "") {
+				fmt.Fprintln(os.Stderr, "warning: invalid two-factor code")
+			}
 			code = c.PromptForOTP()
 		} else {
 			break
