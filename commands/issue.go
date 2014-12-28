@@ -25,7 +25,7 @@ var (
 Without <MESSAGE> or <FILE>, a text editor will open in which title and body
 of the release can be entered in the same manner as git commit message.
 
-Specify one or more labels via "-a".
+Specify one or more labels via "-l".
 `,
 	}
 
