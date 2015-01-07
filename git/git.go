@@ -10,6 +10,8 @@ import (
 	"github.com/github/hub/cmd"
 )
 
+const AuthorSignatureHeader = "Signed-off-by: "
+
 func Version() (string, error) {
 	output, err := execGitCmd("version")
 	if err != nil {
@@ -189,6 +191,24 @@ func gitConfigCommand(args []string) []string {
 
 func Alias(name string) (string, error) {
 	return Config(fmt.Sprintf("alias.%s", name))
+}
+
+func AuthorSignature() (string, error) {
+	ident, err := AuthorIdent()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s%s", AuthorSignatureHeader, ident), nil
+}
+
+func AuthorIdent() (string, error) {
+	output, err := execGitCmd("var", "GIT_AUTHOR_IDENT")
+	if err != nil {
+		return "", fmt.Errorf("Can't load git var: GIT_AUTHOR_IDENT")
+	}
+
+	return output[0], nil
 }
 
 func Run(command string, args ...string) error {
