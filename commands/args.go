@@ -12,7 +12,7 @@ import (
 
 type Args struct {
 	Executable  string
-	ConfigParam map[string]string
+	GlobalFlags []string
 	Command     string
 	Params      []string
 	beforeChain []*cmd.Cmd
@@ -160,17 +160,34 @@ func (a *Args) HasFlags(flags ...string) bool {
 
 func NewArgs(args []string) *Args {
 	var (
-		globalFlag  flag.FlagSet
-		version     bool
-		help        bool
-		noop        bool
-		configParam mapValue = make(mapValue)
+		globalFlag flag.FlagSet
+
+		noop             bool
+		configParam      mapValue = make(mapValue)
+		paginate         bool
+		noPaginate       bool
+		noReplaceObjects bool
+		bare             bool
+		version          bool
+		help             bool
+
+		execPath string
+		gitDir   string
+		workTree string
 	)
 
-	globalFlag.BoolVarP(&version, "version", "", false, "")
-	globalFlag.BoolVarP(&help, "help", "", false, "")
 	globalFlag.BoolVarP(&noop, "noop", "", false, "")
 	globalFlag.VarP(configParam, "", "c", "")
+	globalFlag.BoolVarP(&paginate, "paginate", "p", false, "")
+	globalFlag.BoolVarP(&noPaginate, "no-pager", "", false, "")
+	globalFlag.BoolVarP(&noReplaceObjects, "no-replace-objects", "", false, "")
+	globalFlag.BoolVarP(&bare, "bare", "", false, "")
+	globalFlag.BoolVarP(&version, "version", "", false, "")
+	globalFlag.BoolVarP(&help, "help", "", false, "")
+
+	globalFlag.StringVarP(&execPath, "exec-path", "", "", "")
+	globalFlag.StringVarP(&gitDir, "git-dir", "", "", "")
+	globalFlag.StringVarP(&workTree, "work-tree", "", "", "")
 
 	globalFlag.SetOutput(ioutil.Discard)
 	globalFlag.Init("hub", flag.ContinueOnError)
@@ -182,12 +199,48 @@ func NewArgs(args []string) *Args {
 		aa = args
 	}
 
+	// manipulate global flags
+	globalFlags := make([]string, 0)
+
 	if version {
 		aa = append([]string{"version"}, aa...)
 	}
 
 	if help {
 		aa = append([]string{"help"}, aa...)
+	}
+
+	for k, v := range configParam {
+		globalFlags = append(globalFlags, "-c")
+		globalFlags = append(globalFlags, fmt.Sprintf("%s=%s", k, v))
+	}
+
+	if paginate {
+		globalFlags = append(globalFlags, "--paginate")
+	}
+
+	if noPaginate {
+		globalFlags = append(globalFlags, "--no-pager")
+	}
+
+	if noReplaceObjects {
+		globalFlags = append(globalFlags, "--no-replace-objects")
+	}
+
+	if bare {
+		globalFlags = append(globalFlags, "--bare")
+	}
+
+	if execPath != "" {
+		globalFlags = append(globalFlags, "--exec-path", execPath)
+	}
+
+	if gitDir != "" {
+		globalFlags = append(globalFlags, "--git-dir", gitDir)
+	}
+
+	if workTree != "" {
+		globalFlags = append(globalFlags, "--work-tree", workTree)
 	}
 
 	var (
@@ -204,7 +257,7 @@ func NewArgs(args []string) *Args {
 
 	return &Args{
 		Executable:  "git",
-		ConfigParam: configParam,
+		GlobalFlags: globalFlags,
 		Command:     command,
 		Params:      params,
 		Noop:        noop,

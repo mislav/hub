@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
@@ -36,10 +37,9 @@ func TestNewArgs(t *testing.T) {
 	assert.T(t, args.Noop)
 	assert.Equal(t, "version", args.Command)
 
-	args = NewArgs([]string{"-c", "foo=bar", "-c", "a=b"})
-	assert.Equal(t, 2, len(args.ConfigParam))
-	assert.Equal(t, "bar", args.ConfigParam["foo"])
-	assert.Equal(t, "b", args.ConfigParam["a"])
+	args = NewArgs([]string{"-c", "foo=bar", "--git-dir=path", "--bare", "-c", "a=b"})
+	assert.Equal(t, 7, len(args.GlobalFlags))
+	assert.Equal(t, "-c foo=bar -c a=b --bare --git-dir path", strings.Join(args.GlobalFlags, " "))
 }
 
 func TestArgs_Words(t *testing.T) {

@@ -10,7 +10,7 @@ import (
 	"github.com/github/hub/cmd"
 )
 
-var ConfigParam map[string]string = make(map[string]string)
+var GlobalFlags []string
 
 func Version() (string, error) {
 	output, err := gitOutput("version")
@@ -196,9 +196,8 @@ func Alias(name string) (string, error) {
 func Run(command string, args ...string) error {
 	cmd := cmd.New("git")
 
-	for k, v := range ConfigParam {
-		cmd.WithArg("-c")
-		cmd.WithArg(fmt.Sprintf("%s=%s", k, v))
+	for _, v := range GlobalFlags {
+		cmd.WithArg(v)
 	}
 
 	cmd.WithArg(command)
@@ -213,9 +212,8 @@ func Run(command string, args ...string) error {
 func gitOutput(input ...string) (outputs []string, err error) {
 	cmd := cmd.New("git")
 
-	for k, v := range ConfigParam {
-		cmd.WithArg("-c")
-		cmd.WithArg(fmt.Sprintf("%s=%s", k, v))
+	for _, v := range GlobalFlags {
+		cmd.WithArg(v)
 	}
 
 	for _, i := range input {
