@@ -1,7 +1,7 @@
 .\" generated with Ronn/v0.7.3
 .\" http://github.com/rtomayko/ronn/tree/0.7.3
 .
-.TH "HUB" "1" "October 2014" "GITHUB" "Hub Manual"
+.TH "HUB" "1" "January 2015" "GITHUB" "Hub Manual"
 .
 .SH "NAME"
 \fBhub\fR \- git + hub = github
@@ -137,7 +137,7 @@ Create a new public GitHub repository from the current git repository and add re
 .
 .TP
 \fBgit browse\fR [\fB\-u\fR] [[\fIUSER\fR\fB/\fR]\fIREPOSITORY\fR] [SUBPAGE]
-Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
+Open repository\'s GitHub page in the system\'s default web browser using \fBopen(1)\fR or the \fBBROWSER\fR env variable\. If the repository isn\'t specified, \fBbrowse\fR opens the page of the repository found in the current directory\. If SUBPAGE is specified, the browser will open on the specified subpage: one of "wiki", "commits", "issues" or other (the default is "tree")\. A specific commit in the default repository can be opened with \fBgit browse \-\- commit/<COMMIT>\fR\. With \fB\-u\fR, outputs the URL rather than opening the browser\.
 .
 .TP
 \fBgit compare\fR [\fB\-u\fR] [\fIUSER\fR] [[\fISTART\fR\.\.\.]\fIEND\fR]
@@ -215,7 +215,7 @@ $ git config \-\-global \-\-add hub\.host my\.git\.org
 .IP "" 0
 .
 .P
-The default host for commands like \fBinit\fR and \fBclone\fR is still github\.com, but this can be affected with the \fIGITHUB_HOST\fR environment variable:
+The default host for commands like \fBinit\fR and \fBclone\fR is still github\.com, but this can be affected with the \fBGITHUB_HOST\fR environment variable:
 .
 .IP "" 4
 .

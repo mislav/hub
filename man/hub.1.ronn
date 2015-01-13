@@ -125,9 +125,12 @@ hub also adds some custom commands that are otherwise not present in git:
     Open repository's GitHub page in the system's default web browser using
     `open(1)` or the `BROWSER` env variable. If the repository isn't
     specified, `browse` opens the page of the repository found in the current
-    directory. If SUBPAGE is specified, the browser will open on the specified
+    directory.
+    If SUBPAGE is specified, the browser will open on the specified
     subpage: one of "wiki", "commits", "issues" or other (the default is
-    "tree"). With `-u`, outputs the URL rather than opening the browser.
+    "tree"). A specific commit in the default repository can be opened with
+    `git browse -- commit/<COMMIT>`.
+    With `-u`, outputs the URL rather than opening the browser.
 
   * `git compare` [`-u`] [<USER>] [[<START>...]<END>]:
     Open a GitHub compare view page in the system's default web browser.
