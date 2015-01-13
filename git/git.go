@@ -10,6 +10,8 @@ import (
 	"github.com/github/hub/cmd"
 )
 
+var ConfigParam map[string]string = make(map[string]string)
+
 func Version() (string, error) {
 	output, err := execGitCmd("version")
 	if err != nil {
@@ -193,7 +195,14 @@ func Alias(name string) (string, error) {
 
 func Run(command string, args ...string) error {
 	cmd := cmd.New("git")
+
+	for k, v := range ConfigParam {
+		cmd.WithArg("-c")
+		cmd.WithArg(fmt.Sprintf("%s=%s", k, v))
+	}
+
 	cmd.WithArg(command)
+
 	for _, a := range args {
 		cmd.WithArg(a)
 	}
@@ -203,6 +212,12 @@ func Run(command string, args ...string) error {
 
 func execGitCmd(input ...string) (outputs []string, err error) {
 	cmd := cmd.New("git")
+
+	for k, v := range ConfigParam {
+		cmd.WithArg("-c")
+		cmd.WithArg(fmt.Sprintf("%s=%s", k, v))
+	}
+
 	for _, i := range input {
 		cmd.WithArg(i)
 	}

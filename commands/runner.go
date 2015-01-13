@@ -73,6 +73,7 @@ func (r *Runner) Execute() ExecError {
 	err := updater.PromptForUpdate()
 	utils.Check(err)
 
+	git.ConfigParam = args.ConfigParam // preserve git config param specified with `-c`
 	expandAlias(args)
 
 	cmd := r.Lookup(args.Command)

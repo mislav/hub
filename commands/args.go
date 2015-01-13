@@ -2,13 +2,17 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/github/hub/cmd"
+
+	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
 )
 
 type Args struct {
 	Executable  string
+	ConfigParam map[string]string
 	Command     string
 	Params      []string
 	beforeChain []*cmd.Cmd
@@ -156,46 +160,57 @@ func (a *Args) HasFlags(flags ...string) bool {
 
 func NewArgs(args []string) *Args {
 	var (
-		command string
-		params  []string
-		noop    bool
+		globalFlag  flag.FlagSet
+		version     bool
+		help        bool
+		noop        bool
+		configParam mapValue = make(mapValue)
 	)
 
-	args, noop = slurpGlobalFlags(args)
+	globalFlag.BoolVarP(&version, "version", "", false, "")
+	globalFlag.BoolVarP(&help, "help", "", false, "")
+	globalFlag.BoolVarP(&noop, "noop", "", false, "")
+	globalFlag.VarP(configParam, "", "c", "")
 
-	if len(args) == 0 {
+	globalFlag.SetOutput(ioutil.Discard)
+	globalFlag.Init("hub", flag.ContinueOnError)
+	aa := make([]string, 0)
+	err := globalFlag.Parse(args)
+	if err == nil {
+		aa = globalFlag.Args()
+	} else {
+		aa = args
+	}
+
+	if version {
+		aa = append([]string{"version"}, aa...)
+	}
+
+	if help {
+		aa = append([]string{"help"}, aa...)
+	}
+
+	var (
+		command string
+		params  []string
+	)
+
+	if len(aa) == 0 {
 		params = []string{}
 	} else {
-		command = args[0]
-		params = args[1:]
+		command = aa[0]
+		params = aa[1:]
 	}
 
 	return &Args{
 		Executable:  "git",
+		ConfigParam: configParam,
 		Command:     command,
 		Params:      params,
 		Noop:        noop,
 		beforeChain: make([]*cmd.Cmd, 0),
 		afterChain:  make([]*cmd.Cmd, 0),
 	}
-}
-
-func slurpGlobalFlags(args []string) (aa []string, noop bool) {
-	aa = make([]string, 0)
-	for _, arg := range args {
-		if arg == "--noop" {
-			noop = true
-			continue
-		}
-
-		if arg == "--version" || arg == "--help" {
-			arg = strings.TrimPrefix(arg, "--")
-		}
-
-		aa = append(aa, arg)
-	}
-
-	return
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {
