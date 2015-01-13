@@ -1,8 +1,9 @@
 package commands
 
 import (
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"testing"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 )
 
 func TestCommandUseSelf(t *testing.T) {
@@ -10,7 +11,7 @@ func TestCommandUseSelf(t *testing.T) {
 
 	args := NewArgs([]string{"foo"})
 
-	run, err := lookupCommand(c, args)
+	run, err := c.lookupSubCommand(args)
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, c, run)
@@ -23,7 +24,7 @@ func TestCommandUseSubcommand(t *testing.T) {
 
 	args := NewArgs([]string{"foo", "bar"})
 
-	run, err := lookupCommand(c, args)
+	run, err := c.lookupSubCommand(args)
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, s, run)
@@ -36,7 +37,7 @@ func TestCommandUseErrorWhenMissingSubcommand(t *testing.T) {
 
 	args := NewArgs([]string{"foo", "baz"})
 
-	_, err := lookupCommand(c, args)
+	_, err := c.lookupSubCommand(args)
 
 	assert.NotEqual(t, nil, err)
 }
@@ -46,7 +47,7 @@ func TestArgsForCommand(t *testing.T) {
 
 	args := NewArgs([]string{"foo", "bar", "baz"})
 
-	lookupCommand(c, args)
+	c.lookupSubCommand(args)
 
 	assert.Equal(t, 2, len(args.Params))
 }
@@ -58,7 +59,7 @@ func TestArgsForSubCommand(t *testing.T) {
 
 	args := NewArgs([]string{"foo", "bar", "baz"})
 
-	lookupCommand(c, args)
+	c.lookupSubCommand(args)
 
 	assert.Equal(t, 1, len(args.Params))
 }
