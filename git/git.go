@@ -10,8 +10,10 @@ import (
 	"github.com/github/hub/cmd"
 )
 
+var GlobalFlags []string
+
 func Version() (string, error) {
-	output, err := execGitCmd("version")
+	output, err := gitOutput("version")
 	if err != nil {
 		return "", fmt.Errorf("Can't load git version")
 	}
@@ -20,7 +22,7 @@ func Version() (string, error) {
 }
 
 func Dir() (string, error) {
-	output, err := execGitCmd("rev-parse", "-q", "--git-dir")
+	output, err := gitOutput("rev-parse", "-q", "--git-dir")
 	if err != nil {
 		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
 	}
@@ -77,7 +79,7 @@ func BranchAtRef(paths ...string) (name string, err error) {
 }
 
 func Editor() (string, error) {
-	output, err := execGitCmd("var", "GIT_EDITOR")
+	output, err := gitOutput("var", "GIT_EDITOR")
 	if err != nil {
 		return "", fmt.Errorf("Can't load git var: GIT_EDITOR")
 	}
@@ -90,7 +92,7 @@ func Head() (string, error) {
 }
 
 func SymbolicFullName(name string) (string, error) {
-	output, err := execGitCmd("rev-parse", "--symbolic-full-name", name)
+	output, err := gitOutput("rev-parse", "--symbolic-full-name", name)
 	if err != nil {
 		return "", fmt.Errorf("Unknown revision or path not in the working tree: %s", name)
 	}
@@ -99,7 +101,7 @@ func SymbolicFullName(name string) (string, error) {
 }
 
 func Ref(ref string) (string, error) {
-	output, err := execGitCmd("rev-parse", "-q", ref)
+	output, err := gitOutput("rev-parse", "-q", ref)
 	if err != nil {
 		return "", fmt.Errorf("Unknown revision or path not in the working tree: %s", ref)
 	}
@@ -109,7 +111,7 @@ func Ref(ref string) (string, error) {
 
 func RefList(a, b string) ([]string, error) {
 	ref := fmt.Sprintf("%s...%s", a, b)
-	output, err := execGitCmd("rev-list", "--cherry-pick", "--right-only", "--no-merges", ref)
+	output, err := gitOutput("rev-list", "--cherry-pick", "--right-only", "--no-merges", ref)
 	if err != nil {
 		return []string{}, fmt.Errorf("Can't load rev-list for %s", ref)
 	}
@@ -153,7 +155,7 @@ func Log(sha1, sha2 string) (string, error) {
 }
 
 func Remotes() ([]string, error) {
-	return execGitCmd("remote", "-v")
+	return gitOutput("remote", "-v")
 }
 
 func Config(name string) (string, error) {
@@ -170,7 +172,7 @@ func SetGlobalConfig(name, value string) error {
 }
 
 func gitGetConfig(args ...string) (string, error) {
-	output, err := execGitCmd(gitConfigCommand(args)...)
+	output, err := gitOutput(gitConfigCommand(args)...)
 	if err != nil {
 		return "", fmt.Errorf("Unknown config %s", args[len(args)-1])
 	}
@@ -179,7 +181,7 @@ func gitGetConfig(args ...string) (string, error) {
 }
 
 func gitConfig(args ...string) ([]string, error) {
-	return execGitCmd(gitConfigCommand(args)...)
+	return gitOutput(gitConfigCommand(args)...)
 }
 
 func gitConfigCommand(args []string) []string {
@@ -193,7 +195,13 @@ func Alias(name string) (string, error) {
 
 func Run(command string, args ...string) error {
 	cmd := cmd.New("git")
+
+	for _, v := range GlobalFlags {
+		cmd.WithArg(v)
+	}
+
 	cmd.WithArg(command)
+
 	for _, a := range args {
 		cmd.WithArg(a)
 	}
@@ -201,8 +209,13 @@ func Run(command string, args ...string) error {
 	return cmd.Run()
 }
 
-func execGitCmd(input ...string) (outputs []string, err error) {
+func gitOutput(input ...string) (outputs []string, err error) {
 	cmd := cmd.New("git")
+
+	for _, v := range GlobalFlags {
+		cmd.WithArg(v)
+	}
+
 	for _, i := range input {
 		cmd.WithArg(i)
 	}

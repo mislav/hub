@@ -30,7 +30,7 @@ type Command struct {
 }
 
 func (c *Command) Call(args *Args) (err error) {
-	runCommand, err := lookupCommand(c, args)
+	runCommand, err := c.lookupSubCommand(args)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -113,7 +113,7 @@ func (c *Command) List() bool {
 	return c.Short != ""
 }
 
-func lookupCommand(c *Command, args *Args) (runCommand *Command, err error) {
+func (c *Command) lookupSubCommand(args *Args) (runCommand *Command, err error) {
 	if len(c.subCommands) > 0 && args.HasSubcommand() {
 		subCommandName := args.FirstParam()
 		if subCommand, ok := c.subCommands[subCommandName]; ok {

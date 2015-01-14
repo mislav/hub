@@ -73,6 +73,7 @@ func (r *Runner) Execute() ExecError {
 	err := updater.PromptForUpdate()
 	utils.Check(err)
 
+	git.GlobalFlags = args.GlobalFlags // preserve git global flags
 	expandAlias(args)
 
 	cmd := r.Lookup(args.Command)

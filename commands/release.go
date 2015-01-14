@@ -15,17 +15,6 @@ import (
 	"github.com/github/hub/utils"
 )
 
-type stringSliceValue []string
-
-func (s *stringSliceValue) Set(val string) error {
-	*s = append(*s, val)
-	return nil
-}
-
-func (s *stringSliceValue) String() string {
-	return fmt.Sprintf("%s", *s)
-}
-
 var (
 	cmdRelease = &Command{
 		Run:   release,
