@@ -37,9 +37,9 @@ func TestNewArgs(t *testing.T) {
 	assert.T(t, args.Noop)
 	assert.Equal(t, "version", args.Command)
 
-	args = NewArgs([]string{"-c", "foo=bar", "--git-dir=path", "--bare", "-c", "a=b"})
-	assert.Equal(t, 7, len(args.GlobalFlags))
-	assert.Equal(t, "-c foo=bar -c a=b --bare --git-dir path", strings.Join(args.GlobalFlags, " "))
+	args = NewArgs([]string{"-c", "foo=bar", "--git-dir=path", "--bare"})
+	assert.Equal(t, 5, len(args.GlobalFlags))
+	assert.Equal(t, "-c foo=bar --bare --git-dir path", strings.Join(args.GlobalFlags, " "))
 }
 
 func TestArgs_Words(t *testing.T) {
