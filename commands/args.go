@@ -160,9 +160,36 @@ func (a *Args) HasFlags(flags ...string) bool {
 
 func NewArgs(args []string) *Args {
 	var (
-		globalFlag flag.FlagSet
+		command     string
+		params      []string
+		noop        bool
+		globalFlags []string
+	)
 
-		noop             bool
+	slurpGlobalFlags(&args, &globalFlags, &noop)
+
+	if len(args) == 0 {
+		params = []string{}
+	} else {
+		command = args[0]
+		params = args[1:]
+	}
+
+	return &Args{
+		Executable:  "git",
+		GlobalFlags: globalFlags,
+		Command:     command,
+		Params:      params,
+		Noop:        noop,
+		beforeChain: make([]*cmd.Cmd, 0),
+		afterChain:  make([]*cmd.Cmd, 0),
+	}
+}
+
+func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
+	var (
+		globalFlagSet flag.FlagSet
+
 		configParam      mapValue = make(mapValue)
 		paginate         bool
 		noPaginate       bool
@@ -176,32 +203,31 @@ func NewArgs(args []string) *Args {
 		workTree string
 	)
 
-	globalFlag.BoolVarP(&noop, "noop", "", false, "")
-	globalFlag.VarP(configParam, "", "c", "")
-	globalFlag.BoolVarP(&paginate, "paginate", "p", false, "")
-	globalFlag.BoolVarP(&noPaginate, "no-pager", "", false, "")
-	globalFlag.BoolVarP(&noReplaceObjects, "no-replace-objects", "", false, "")
-	globalFlag.BoolVarP(&bare, "bare", "", false, "")
-	globalFlag.BoolVarP(&version, "version", "", false, "")
-	globalFlag.BoolVarP(&help, "help", "", false, "")
+	globalFlagSet.BoolVarP(noop, "noop", "", false, "")
+	globalFlagSet.VarP(configParam, "", "c", "")
+	globalFlagSet.BoolVarP(&paginate, "paginate", "p", false, "")
+	globalFlagSet.BoolVarP(&noPaginate, "no-pager", "", false, "")
+	globalFlagSet.BoolVarP(&noReplaceObjects, "no-replace-objects", "", false, "")
+	globalFlagSet.BoolVarP(&bare, "bare", "", false, "")
+	globalFlagSet.BoolVarP(&version, "version", "", false, "")
+	globalFlagSet.BoolVarP(&help, "help", "", false, "")
 
-	globalFlag.StringVarP(&execPath, "exec-path", "", "", "")
-	globalFlag.StringVarP(&gitDir, "git-dir", "", "", "")
-	globalFlag.StringVarP(&workTree, "work-tree", "", "", "")
+	globalFlagSet.StringVarP(&execPath, "exec-path", "", "", "")
+	globalFlagSet.StringVarP(&gitDir, "git-dir", "", "", "")
+	globalFlagSet.StringVarP(&workTree, "work-tree", "", "", "")
 
-	globalFlag.SetOutput(ioutil.Discard)
-	globalFlag.Init("hub", flag.ContinueOnError)
+	globalFlagSet.SetOutput(ioutil.Discard)
+	globalFlagSet.Init("hub", flag.ContinueOnError)
+
 	aa := make([]string, 0)
-	err := globalFlag.Parse(args)
+	err := globalFlagSet.Parse(*args)
 	if err == nil {
-		aa = globalFlag.Args()
+		aa = globalFlagSet.Args()
 	} else {
-		aa = args
+		aa = *args
 	}
 
 	// manipulate global flags
-	globalFlags := make([]string, 0)
-
 	if version {
 		aa = append([]string{"version"}, aa...)
 	}
@@ -211,59 +237,39 @@ func NewArgs(args []string) *Args {
 	}
 
 	for k, v := range configParam {
-		globalFlags = append(globalFlags, "-c")
-		globalFlags = append(globalFlags, fmt.Sprintf("%s=%s", k, v))
+		*globalFlags = append(*globalFlags, "-c")
+		*globalFlags = append(*globalFlags, fmt.Sprintf("%s=%s", k, v))
 	}
 
 	if paginate {
-		globalFlags = append(globalFlags, "--paginate")
+		*globalFlags = append(*globalFlags, "--paginate")
 	}
 
 	if noPaginate {
-		globalFlags = append(globalFlags, "--no-pager")
+		*globalFlags = append(*globalFlags, "--no-pager")
 	}
 
 	if noReplaceObjects {
-		globalFlags = append(globalFlags, "--no-replace-objects")
+		*globalFlags = append(*globalFlags, "--no-replace-objects")
 	}
 
 	if bare {
-		globalFlags = append(globalFlags, "--bare")
+		*globalFlags = append(*globalFlags, "--bare")
 	}
 
 	if execPath != "" {
-		globalFlags = append(globalFlags, "--exec-path", execPath)
+		*globalFlags = append(*globalFlags, "--exec-path", execPath)
 	}
 
 	if gitDir != "" {
-		globalFlags = append(globalFlags, "--git-dir", gitDir)
+		*globalFlags = append(*globalFlags, "--git-dir", gitDir)
 	}
 
 	if workTree != "" {
-		globalFlags = append(globalFlags, "--work-tree", workTree)
+		*globalFlags = append(*globalFlags, "--work-tree", workTree)
 	}
 
-	var (
-		command string
-		params  []string
-	)
-
-	if len(aa) == 0 {
-		params = []string{}
-	} else {
-		command = aa[0]
-		params = aa[1:]
-	}
-
-	return &Args{
-		Executable:  "git",
-		GlobalFlags: globalFlags,
-		Command:     command,
-		Params:      params,
-		Noop:        noop,
-		beforeChain: make([]*cmd.Cmd, 0),
-		afterChain:  make([]*cmd.Cmd, 0),
-	}
+	*args = aa
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {
