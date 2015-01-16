@@ -2,13 +2,17 @@ package commands
 
 import (
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/github/hub/cmd"
+
+	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
 )
 
 type Args struct {
 	Executable  string
+	GlobalFlags []string
 	Command     string
 	Params      []string
 	beforeChain []*cmd.Cmd
@@ -156,12 +160,13 @@ func (a *Args) HasFlags(flags ...string) bool {
 
 func NewArgs(args []string) *Args {
 	var (
-		command string
-		params  []string
-		noop    bool
+		command     string
+		params      []string
+		noop        bool
+		globalFlags []string
 	)
 
-	args, noop = slurpGlobalFlags(args)
+	slurpGlobalFlags(&args, &globalFlags, &noop)
 
 	if len(args) == 0 {
 		params = []string{}
@@ -172,6 +177,7 @@ func NewArgs(args []string) *Args {
 
 	return &Args{
 		Executable:  "git",
+		GlobalFlags: globalFlags,
 		Command:     command,
 		Params:      params,
 		Noop:        noop,
@@ -180,22 +186,90 @@ func NewArgs(args []string) *Args {
 	}
 }
 
-func slurpGlobalFlags(args []string) (aa []string, noop bool) {
-	aa = make([]string, 0)
-	for _, arg := range args {
-		if arg == "--noop" {
-			noop = true
-			continue
-		}
+func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
+	var (
+		globalFlagSet flag.FlagSet
 
-		if arg == "--version" || arg == "--help" {
-			arg = strings.TrimPrefix(arg, "--")
-		}
+		configParam      mapValue = make(mapValue)
+		paginate         bool
+		noPaginate       bool
+		noReplaceObjects bool
+		bare             bool
+		version          bool
+		help             bool
 
-		aa = append(aa, arg)
+		execPath string
+		gitDir   string
+		workTree string
+	)
+
+	globalFlagSet.BoolVarP(noop, "noop", "", false, "")
+	globalFlagSet.VarP(configParam, "", "c", "")
+	globalFlagSet.BoolVarP(&paginate, "paginate", "p", false, "")
+	globalFlagSet.BoolVarP(&noPaginate, "no-pager", "", false, "")
+	globalFlagSet.BoolVarP(&noReplaceObjects, "no-replace-objects", "", false, "")
+	globalFlagSet.BoolVarP(&bare, "bare", "", false, "")
+	globalFlagSet.BoolVarP(&version, "version", "", false, "")
+	globalFlagSet.BoolVarP(&help, "help", "", false, "")
+
+	globalFlagSet.StringVarP(&execPath, "exec-path", "", "", "")
+	globalFlagSet.StringVarP(&gitDir, "git-dir", "", "", "")
+	globalFlagSet.StringVarP(&workTree, "work-tree", "", "", "")
+
+	globalFlagSet.SetOutput(ioutil.Discard)
+	globalFlagSet.Init("hub", flag.ContinueOnError)
+
+	aa := make([]string, 0)
+	err := globalFlagSet.Parse(*args)
+	if err == nil {
+		aa = globalFlagSet.Args()
+	} else {
+		aa = *args
 	}
 
-	return
+	// manipulate global flags
+	if version {
+		aa = append([]string{"version"}, aa...)
+	}
+
+	if help {
+		aa = append([]string{"help"}, aa...)
+	}
+
+	for k, v := range configParam {
+		*globalFlags = append(*globalFlags, "-c")
+		*globalFlags = append(*globalFlags, fmt.Sprintf("%s=%s", k, v))
+	}
+
+	if paginate {
+		*globalFlags = append(*globalFlags, "--paginate")
+	}
+
+	if noPaginate {
+		*globalFlags = append(*globalFlags, "--no-pager")
+	}
+
+	if noReplaceObjects {
+		*globalFlags = append(*globalFlags, "--no-replace-objects")
+	}
+
+	if bare {
+		*globalFlags = append(*globalFlags, "--bare")
+	}
+
+	if execPath != "" {
+		*globalFlags = append(*globalFlags, "--exec-path", execPath)
+	}
+
+	if gitDir != "" {
+		*globalFlags = append(*globalFlags, "--git-dir", gitDir)
+	}
+
+	if workTree != "" {
+		*globalFlags = append(*globalFlags, "--work-tree", workTree)
+	}
+
+	*args = aa
 }
 
 func removeItem(slice []string, index int) (newSlice []string, item string) {

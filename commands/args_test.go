@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
@@ -31,6 +32,14 @@ func TestNewArgs(t *testing.T) {
 	args = NewArgs([]string{"--help"})
 	assert.Equal(t, "help", args.Command)
 	assert.Equal(t, 0, args.ParamsSize())
+
+	args = NewArgs([]string{"--noop", "--version"})
+	assert.T(t, args.Noop)
+	assert.Equal(t, "version", args.Command)
+
+	args = NewArgs([]string{"-c", "foo=bar", "--git-dir=path", "--bare"})
+	assert.Equal(t, 5, len(args.GlobalFlags))
+	assert.Equal(t, "-c foo=bar --bare --git-dir path", strings.Join(args.GlobalFlags, " "))
 }
 
 func TestArgs_Words(t *testing.T) {
@@ -63,12 +72,4 @@ func TestArgs_Remove(t *testing.T) {
 	assert.Equal(t, 2, args.ParamsSize())
 	assert.Equal(t, "2", args.FirstParam())
 	assert.Equal(t, "4", args.GetParam(1))
-}
-
-func TestSlurpGlobalFlags(t *testing.T) {
-	args := []string{"--noop", "--version"}
-	aa, noop := slurpGlobalFlags(args)
-
-	assert.T(t, noop)
-	assert.Equal(t, []string{"version"}, aa)
 }
