@@ -595,3 +595,48 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Message template should include author signature
+    Given the text editor adds:
+      """
+      Hello
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        status 500
+      }
+      """
+    Given I am on the "master" branch
+    And I make a commit with message "One on master"
+    And I make a commit with message "Two on master"
+    And the "master" branch is pushed to "origin/master"
+    Given I successfully run `git reset --hard HEAD~2`
+    And I successfully run `git checkout --quiet -B topic origin/master`
+    Given I make a commit with message "One on topic"
+    And I make a commit with message "Two on topic"
+    Given the "topic" branch is pushed to "origin/topic"
+    And I successfully run `git reset --hard HEAD~1`
+    When I run `hub pull-request -s`
+    Given the SHAs and timestamps are normalized in ".git/PULLREQ_EDITMSG"
+    Then the file ".git/PULLREQ_EDITMSG" should contain exactly:
+      """
+      Hello
+
+
+Signed-off-by: Hub <hub@test.local>
+
+# Requesting a pull to mislav:master from mislav:topic
+#
+# Write a message for this pull request. The first block
+# of text is the title and the rest is description.
+#
+# Changes:
+#
+# SHA1SHA (Hub, 0 seconds ago)
+#    Two on topic
+#
+# SHA1SHA (Hub, 0 seconds ago)
+#    One on topic
+
+      """

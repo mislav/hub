@@ -164,6 +164,11 @@ func Config(name string) (string, error) {
 	return gitGetConfig(name)
 }
 
+func SetConfig(name, value string) error {
+	_, err := gitConfig(name, value)
+	return err
+}
+
 func GlobalConfig(name string) (string, error) {
 	return gitGetConfig("--global", name)
 }
@@ -196,7 +201,7 @@ func Alias(name string) (string, error) {
 }
 
 func AuthorSignature() (string, error) {
-	ident, err := AuthorIdent()
+	ident, err := authorIdent()
 	if err != nil {
 		return "", err
 	}
@@ -204,13 +209,24 @@ func AuthorSignature() (string, error) {
 	return fmt.Sprintf("%s%s", AuthorSignatureHeader, ident), nil
 }
 
-func AuthorIdent() (string, error) {
-	output, err := gitOutput("var", "GIT_AUTHOR_IDENT")
+func authorIdent() (string, error) {
+	name, err := gitGetConfig("user.name")
 	if err != nil {
-		return "", fmt.Errorf("Can't load git var: GIT_AUTHOR_IDENT")
+		name = os.Getenv("GIT_AUTHOR_NAME")
+		if name == "" {
+			return "", fmt.Errorf("Can't load git config: user.name")
+		}
 	}
 
-	return output[0], nil
+	email, err := gitGetConfig("user.email")
+	if err != nil {
+		email = os.Getenv("GIT_AUTHOR_EMAIL")
+		if email == "" {
+			return "", fmt.Errorf("Can't load git config: user.email")
+		}
+	}
+
+	return fmt.Sprintf("%s <%s>", name, email), nil
 }
 
 func Run(command string, args ...string) error {

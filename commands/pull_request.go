@@ -250,7 +250,7 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 	if flagPullRequestSignOff && !strings.Contains(defaultMsg, git.AuthorSignatureHeader) {
 		sign, err := git.AuthorSignature()
 		if err == nil {
-			defaultMsg = fmt.Sprintf("%s\n\n%s", defaultMsg, sign)
+			defaultMsg = fmt.Sprintf("%s\n%s", defaultMsg, sign)
 		}
 	}
 
