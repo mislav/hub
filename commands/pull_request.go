@@ -247,7 +247,7 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 		}
 	}
 
-	if flagPullRequestSignOff && !strings.Contains(defaultMsg, git.AuthorSignatureHeader) {
+	if signPullRequest(defaultMsg) {
 		sign, err := git.AuthorSignature()
 		if err == nil {
 			defaultMsg = fmt.Sprintf("%s\n%s", defaultMsg, sign)
@@ -289,4 +289,10 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
+}
+
+func signPullRequest(defaultMsg string) bool {
+	return (flagPullRequestSignOff ||
+		git.BoolConfig("hub.pullrequest.signoff")) &&
+		!strings.Contains(defaultMsg, git.AuthorSignatureHeader)
 }

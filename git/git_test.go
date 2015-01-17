@@ -106,3 +106,28 @@ func TestGitSignatureWithEnv(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "Signed-off-by: Some Hacker <hacker@example.com>", s)
 }
+
+func TestBoolConfig(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	boolTestCases := map[string]bool{
+		"true":  true,
+		"yes":   true,
+		"on":    true,
+		"1":     true,
+		"false": false,
+		"no":    false,
+		"off":   false,
+		"-1":    false,
+		"0":     false,
+	}
+
+	for k, v := range boolTestCases {
+		err := SetConfig("hub.pullrequest.signoff", k)
+		assert.Equal(t, nil, err)
+
+		e := BoolConfig("hub.pullrequest.signoff")
+		assert.Equal(t, v, e)
+	}
+}

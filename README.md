@@ -183,6 +183,10 @@ superpowers:
     # explicit pull-request sign off:
     $ git pull-request -s
 
+    # sign all pull requests by default:
+    $ git config --global --add hub.pullrequest.signoff true
+    $ git pull-request
+
 ### git checkout
 
     $ git checkout https://github.com/defunkt/hub/pull/73

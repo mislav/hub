@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/github/hub/cmd"
@@ -162,6 +163,35 @@ func Remotes() ([]string, error) {
 
 func Config(name string) (string, error) {
 	return gitGetConfig(name)
+}
+
+func BoolConfig(name string) bool {
+	v, err := gitGetConfig(name)
+	if err != nil {
+		return false
+	}
+
+	v = strings.ToLower(v)
+	if v == "" ||
+		v == "true" ||
+		v == "yes" ||
+		v == "on" {
+		return true
+	}
+
+	if v == "false" ||
+		v == "no" ||
+		v == "off" ||
+		v[0] == '0' {
+		return false
+	}
+
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		return false
+	}
+
+	return i > 0
 }
 
 func SetConfig(name, value string) error {
