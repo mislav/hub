@@ -42,6 +42,12 @@ $ brew install --HEAD hub
 [compiled binaries](https://github.com/github/hub/releases) and put it anywhere
 in your executable path.
 
+Precompiled binaries are also available on [Homebrew cask](https://github.com/caskroom/homebrew-cask).
+
+~~~ sh
+$ brew cask install hub
+~~~
+
 #### Source
 
 To install `hub` 2.x from source, you need to have a [Go development environment](http://golang.org/doc/install),
