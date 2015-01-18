@@ -11,11 +11,11 @@ import (
 var cmdCheckout = &Command{
 	Run:          checkout,
 	GitExtension: true,
-	Usage:        "checkout PULLREQ-URL [BRANCH]",
+	Usage:        "checkout PULLREQ-URL|BRANCH-URL [BRANCH]",
 	Short:        "Switch the active branch to another branch",
-	Long: `Checks out the head of the pull request as a local branch, to allow for
+	Long: `Checks out the head of the pull request or branch as a local branch, to allow for
 reviewing, rebasing and otherwise cleaning up the commits in the pull
-request before merging. The name of the local branch can explicitly be
+request or branch before merging. The name of the local branch can explicitly be
 set with BRANCH.
 `,
 }
@@ -57,29 +57,44 @@ func transformCheckoutArgs(args *Args) error {
 		return nil
 	}
 
+	treeURLRegex := regexp.MustCompile("^tree/(.+)")
 	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
 	projectPath := url.ProjectPath()
-	if !pullURLRegex.MatchString(projectPath) {
+	
+	user := ""
+	branch := ""
+	isPrivateRepo := false
+
+	if treeURLRegex.MatchString(projectPath) {
+		tree := treeURLRegex.FindStringSubmatch(projectPath)[1]
+		branch = tree
+		user = url.User()
+	} else if !pullURLRegex.MatchString(projectPath) {
+		id := pullURLRegex.FindStringSubmatch(projectPath)[1]
+		gh := github.NewClient(url.Project.Host)
+		pullRequest, err := gh.PullRequest(url.Project, id)
+		if err != nil {
+			return err
+		}
+		
+		user, branch = parseUserBranchFromPR(pullRequest)
+		if pullRequest.Head.Repo == nil {
+			return fmt.Errorf("Error: %s's fork is not available anymore", user)
+		}
+
+		isPrivateRepo = pullRequest.Head.Repo.Private
+	} else {
 		// not a valid PR URL
 		return nil
+
 	}
 
-	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
-	gh := github.NewClient(url.Project.Host)
-	pullRequest, err := gh.PullRequest(url.Project, id)
-	if err != nil {
-		return err
-	}
-
+	
 	if idx := args.IndexOfParam(newBranchName); idx >= 0 {
 		args.RemoveParam(idx)
 	}
 
-	user, branch := parseUserBranchFromPR(pullRequest)
-	if pullRequest.Head.Repo == nil {
-		return fmt.Errorf("Error: %s's fork is not available anymore", user)
-	}
-
+	
 	if newBranchName == "" {
 		newBranchName = fmt.Sprintf("%s-%s", user, branch)
 	}
@@ -93,7 +108,7 @@ func transformCheckoutArgs(args *Args) error {
 		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
 		args.Before("git", "fetch", user, remoteURL)
 	} else {
-		u := url.Project.GitURL("", user, pullRequest.Head.Repo.Private)
+		u := url.Project.GitURL("", user, isPrivateRepo)
 		args.Before("git", "remote", "add", "-f", "-t", branch, user, u)
 	}
 
