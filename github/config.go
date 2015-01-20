@@ -41,7 +41,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		return
 	}
 
-	user := c.PromptForUser()
+	user := c.PromptForUser(host)
 	pass := c.PromptForPassword(host, user)
 
 	client := NewClient(host)
@@ -53,7 +53,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		}
 
 		if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
-			if (code != "") {
+			if code != "" {
 				fmt.Fprintln(os.Stderr, "warning: invalid two-factor code")
 			}
 			code = c.PromptForOTP()
@@ -84,13 +84,13 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	return
 }
 
-func (c *Config) PromptForUser() (user string) {
+func (c *Config) PromptForUser(host string) (user string) {
 	user = os.Getenv("GITHUB_USER")
 	if user != "" {
 		return
 	}
 
-	fmt.Printf("%s username: ", GitHubHost)
+	fmt.Printf("%s username: ", host)
 	user = c.scanLine()
 
 	return
