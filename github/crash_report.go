@@ -124,7 +124,7 @@ func saveReportConfiguration(confirm string, always bool) {
 }
 
 func reportCrashConfig() (opt string) {
-	opt = os.Getenv("GH_REPORT_CRASH")
+	opt = os.Getenv("HUB_REPORT_CRASH")
 	if opt == "" {
 		opt, _ = git.GlobalConfig(hubReportCrashConfig)
 	}

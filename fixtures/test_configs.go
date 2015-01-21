@@ -10,7 +10,7 @@ type TestConfigs struct {
 }
 
 func (c *TestConfigs) TearDown() {
-	os.Setenv("GH_CONFIG", "")
+	os.Setenv("HUB_CONFIG", "")
 	os.RemoveAll(c.Path)
 }
 
@@ -23,7 +23,7 @@ func SetupTomlTestConfig() *TestConfigs {
   access_token = "123"
   protocol = "http"`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
-	os.Setenv("GH_CONFIG", file.Name())
+	os.Setenv("HUB_CONFIG", file.Name())
 
 	return &TestConfigs{file.Name()}
 }
@@ -37,7 +37,7 @@ github.com:
   oauth_token: 123
   protocol: http`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
-	os.Setenv("GH_CONFIG", file.Name())
+	os.Setenv("HUB_CONFIG", file.Name())
 
 	return &TestConfigs{file.Name()}
 }
