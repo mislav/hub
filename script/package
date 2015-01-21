@@ -157,7 +157,7 @@ class Packer
     glob_dir(path).each do |dir|
       puts "Archiving #{dir}"
       Dir.chdir(root_path("target")) do
-        exec!("tar -zcf #{File.basename(dir)}.gz.tar #{File.basename(dir)}")
+        exec!("tar -zcf #{File.basename(dir)}.tar.gz #{File.basename(dir)}")
       end
     end
   end
