@@ -177,7 +177,7 @@ func (c *Config) selectHost() *Host {
 }
 
 func configsFile() string {
-	configsFile := os.Getenv("GH_CONFIG")
+	configsFile := os.Getenv("HUB_CONFIG")
 	if configsFile == "" {
 		configsFile = defaultConfigsFile
 	}

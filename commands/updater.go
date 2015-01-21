@@ -26,7 +26,7 @@ const (
 var EnableAutoUpdate = false
 
 func NewUpdater() *Updater {
-	version := os.Getenv("GH_VERSION")
+	version := os.Getenv("HUB_VERSION")
 	if version == "" {
 		version = Version
 	}
