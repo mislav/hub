@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strconv"
 
@@ -12,9 +13,23 @@ import (
 	"github.com/github/hub/utils"
 )
 
-var (
-	defaultConfigsFile = filepath.Join(os.Getenv("HOME"), ".config", "hub")
-)
+var defaultConfigsFile string
+
+func init() {
+	homeDir := os.Getenv("HOME")
+
+	if homeDir == "" {
+		if u, err := user.Current(); err == nil {
+			homeDir = u.HomeDir
+		}
+	}
+
+	if homeDir == "" {
+		utils.Check(fmt.Errorf("Can't get current user's home dir"))
+	}
+
+	defaultConfigsFile = filepath.Join(homeDir, ".config", "hub")
+}
 
 type yamlHost struct {
 	User       string `yaml:"user"`
@@ -53,7 +68,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		}
 
 		if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
-			if (code != "") {
+			if code != "" {
 				fmt.Fprintln(os.Stderr, "warning: invalid two-factor code")
 			}
 			code = c.PromptForOTP()
