@@ -93,7 +93,7 @@ func transformCheckoutArgs(args *Args) error {
 		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
 		args.Before("git", "fetch", user, remoteURL)
 	} else {
-		u := url.Project.GitURL("", user, pullRequest.Head.Repo.Private)
+		u := url.Project.GitURL(pullRequest.Head.Repo.Name, user, pullRequest.Head.Repo.Private)
 		args.Before("git", "remote", "add", "-f", "-t", branch, user, u)
 	}
 
