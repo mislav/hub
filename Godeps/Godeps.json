@@ -60,7 +60,7 @@
 		},
 		{
 			"ImportPath": "github.com/mattn/go-isatty",
-			"Rev": "fdbe02a1b44e75977b2690062b83cf507d70c013"
+			"Rev": "6152ce208cfa13d58f065348a3312b4160fb98d1"
 		},
 		{
 			"ImportPath": "github.com/octokit/go-octokit/octokit",
