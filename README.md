@@ -54,6 +54,13 @@ $ ./script/build
 $ cp hub YOUR_BIN_PATH
 ~~~
 
+Or, if you've done Go development before and your $GOPATH/bin
+directory is already in your PATH:
+
+~~~ sh
+$ go get github.com/github/hub
+~~~
+
 ### 1.x
 
 #### Homebrew
