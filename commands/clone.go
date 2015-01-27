@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"os"
 	"regexp"
 	"strings"
 
@@ -58,7 +59,7 @@ func transformCloneArgs(args *Args) {
 			if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
 				name, owner := parseCloneNameAndOwner(a)
 				var host *github.Host
-				if owner == "" {
+				if owner == "" || os.Getenv("HUB_CHOOSE_HOST") != "" {
 					config := github.CurrentConfig()
 					h, err := config.DefaultHost()
 					if err != nil {
