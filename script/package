@@ -146,7 +146,7 @@ class Packer
     path = root_path("target", "*#{OS.friendly_name}*")
     glob_dir(path).each do |dir|
       puts "Copying assets to #{dir}"
-      ["README.md", "LICENSE", "etc/"].each do |f|
+      ["README.md", "LICENSE", "etc/", "man/"].each do |f|
         cp_r f, File.join(dir, f)
       end
     end
