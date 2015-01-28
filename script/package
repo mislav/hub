@@ -132,7 +132,7 @@ class Packer
   def build_hub!
     puts "Building for #{OS.friendly_name}"
     release_version = `script/version`.strip
-    output = root_path("target", "{{.Dir}}_#{version}_#{OS.friendly_name}_{{.Arch}}", "{{.Dir}}")
+    output = root_path("target", "{{.Dir}}_#{OS.friendly_name}_{{.Arch}}_v#{version}", "{{.Dir}}")
     # gox doesn't build for 64 bit and 32 bit on 64 bit Windows
     # specifying osarch for Windows
     # see https://github.com/mitchellh/gox/issues/19#issuecomment-68117016
@@ -146,7 +146,7 @@ class Packer
     path = root_path("target", "*#{OS.friendly_name}*")
     glob_dir(path).each do |dir|
       puts "Copying assets to #{dir}"
-      ["README.md", "LICENSE", "etc/"].each do |f|
+      ["README.md", "LICENSE", "etc/", "man/"].each do |f|
         cp_r f, File.join(dir, f)
       end
     end
