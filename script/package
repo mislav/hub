@@ -132,7 +132,7 @@ class Packer
   def build_hub!
     puts "Building for #{OS.friendly_name}"
     release_version = `script/version`.strip
-    output = root_path("target", "{{.Dir}}_#{OS.friendly_name}_{{.Arch}}_v#{version}", "{{.Dir}}")
+    output = root_path("target", "{{.Dir}}-#{OS.friendly_name}-{{.Arch}}-#{version}", "{{.Dir}}")
     # gox doesn't build for 64 bit and 32 bit on 64 bit Windows
     # specifying osarch for Windows
     # see https://github.com/mitchellh/gox/issues/19#issuecomment-68117016
