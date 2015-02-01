@@ -1,3 +1,6 @@
+os:
+  - linux
+  - osx
 sudo: false
 before_install:
   - export BUNDLE_GEMFILE=$PWD/Gemfile
