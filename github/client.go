@@ -610,7 +610,7 @@ func FormatError(action string, err error) (ee error) {
 			case "custom":
 				errorSentences = append(errorSentences, err.Message)
 			case "missing_field":
-				errorSentences = append(errorSentences, fmt.Sprintf("Missing filed: \"%s\"", err.Field))
+				errorSentences = append(errorSentences, fmt.Sprintf("Missing field: \"%s\"", err.Field))
 			case "already_exists":
 				errorSentences = append(errorSentences, fmt.Sprintf("Duplicate value for \"%s\"", err.Field))
 			case "invalid":
