@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"path/filepath"
+
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -37,14 +39,32 @@ func transformInitArgs(args *Args) error {
 		return nil
 	}
 
-	name, err := utils.DirName()
-	if err != nil {
-		return err
+	var (
+		name   string
+		newDir bool
+		err    error
+	)
+
+	if args.IsParamsEmpty() {
+		name, err = utils.DirName()
+		if err != nil {
+			return err
+		}
+	} else {
+		name = args.LastParam()
+		newDir = true
 	}
 
 	project := github.NewProject("", name, "")
 	url := project.GitURL("", "", true)
-	args.After("git", "remote", "add", "origin", url)
+
+	cmds := []string{"git"}
+	if newDir {
+		cmds = append(cmds, "--git-dir", filepath.Join(name, ".git"))
+	}
+
+	cmds = append(cmds, "remote", "add", "origin", url)
+	args.After(cmds...)
 
 	return nil
 }
