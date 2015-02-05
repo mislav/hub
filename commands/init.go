@@ -3,6 +3,7 @@ package commands
 import (
 	"path/filepath"
 
+	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -35,32 +36,38 @@ func gitInit(command *Command, args *Args) {
 }
 
 func transformInitArgs(args *Args) error {
-	if !parseInitFlag(args) {
+	f := parseInitFlag(args.Params)
+	if !f.AddRemote {
 		return nil
 	}
 
+	// remove "-g" from args so that `git-init` wont complain
+	if i := args.IndexOfParam("-g"); i != -1 {
+		args.RemoveParam(i)
+	}
+
 	var (
-		name   string
+		dir    string
 		newDir bool
 		err    error
 	)
 
-	if args.IsParamsEmpty() {
-		name, err = utils.DirName()
+	if f.Dir == "" {
+		dir, err = utils.DirName()
 		if err != nil {
 			return err
 		}
 	} else {
-		name = args.LastParam()
+		dir = f.Dir
 		newDir = true
 	}
 
-	project := github.NewProject("", name, "")
+	project := github.NewProject("", dir, "")
 	url := project.GitURL("", "", true)
 
 	cmds := []string{"git"}
 	if newDir {
-		cmds = append(cmds, "--git-dir", filepath.Join(name, ".git"))
+		cmds = append(cmds, "--git-dir", filepath.Join(dir, ".git"))
 	}
 
 	cmds = append(cmds, "remote", "add", "origin", url)
@@ -69,11 +76,37 @@ func transformInitArgs(args *Args) error {
 	return nil
 }
 
-func parseInitFlag(args *Args) bool {
-	if i := args.IndexOfParam("-g"); i != -1 {
-		args.RemoveParam(i)
-		return true
+type initFlag struct {
+	AddRemote bool
+	Dir       string
+}
+
+func parseInitFlag(params []string) *initFlag {
+	var (
+		initFlagSet flag.FlagSet
+
+		initFlag       = &initFlag{}
+		quiet          bool
+		bare           bool
+		template       string
+		separateGitDir string
+		shared         string
+	)
+
+	initFlagSet.BoolVarP(&initFlag.AddRemote, "", "g", false, "")
+	initFlagSet.BoolVarP(&quiet, "quiet", "q", false, "")
+	initFlagSet.BoolVar(&bare, "bare", false, "")
+	initFlagSet.StringVar(&template, "template", "", "")
+	initFlagSet.StringVar(&separateGitDir, "separate-git-dir", "", "")
+	initFlagSet.StringVar(&shared, "shared", "", "")
+
+	err := initFlagSet.Parse(params)
+	utils.Check(err)
+
+	a := initFlagSet.Args()
+	if len(a) != 0 {
+		initFlag.Dir = a[0]
 	}
 
-	return false
+	return initFlag
 }
