@@ -10,8 +10,17 @@ Feature: hub init
 
   Scenario: Initializes a git repo in a new directory with remote
     When I successfully run `hub init -g new_dir`
-    And I cd to "new_dir"
+    Then a directory named ".git" should not exist
+    When I cd to "new_dir"
     Then the url for "origin" should be "git@github.com:mislav/new_dir.git"
+
+  Scenario: Initializes a git repo in a new directory with remote with --separate-git-dir
+    When I successfully run `hub init --separate-git-dir=git_bare -g new_dir`
+    Then a directory named ".git" should not exist
+    When I cd to "new_dir"
+    Then a file named ".git" should exist
+    And the file ".git" should contain "git_bare"
+    And the url for "origin" should be "git@github.com:mislav/new_dir.git"
 
   Scenario: Enterprise host
     Given $GITHUB_HOST is "git.my.org"
