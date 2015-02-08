@@ -16,7 +16,7 @@ fi
 { ruby --version
   bundle install --path vendor/bundle -j 4
 } || {
-  echo "You need Ruby 2.1 and Bundler to run hub tests" >&2
+  echo "You need Ruby 1.9+ and Bundler to run hub tests" >&2
   STATUS=1
 }
 
