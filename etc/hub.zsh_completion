@@ -9,6 +9,39 @@
 # This gets also done for `alias git=hub` by default, and can be forced using
 # `compdef _hub git`.
 
+# INSTALLATION DETAILS: {{{
+# 1. Copy/symlink `_hub` into your zsh's $fpath
+# 1a. See `echo $fpath` for the list of existing/configured ones.
+# 1b. You can add an own directory to it (from your ~/.zshrc):
+#     fpath=(~/.my-zsh-functions $fpath)
+# 2. Make sure that you run compinit from your ~/.zshrc, which should be the
+#    case if your completion is working in general:
+#    autoload -U compinit && compinit
+# 3. Start a new shell (or replace the existing one using `exec zsh`).
+# 4. Test the completion using `hub crea<tab>`.
+# }}}
+
+# TROUBLESHOOTING: {{{
+# In case of problems please inspect the following commands, which should
+# result in the mentioned output.  Please start with a new shell.
+#   % which _hub
+#   _hub () {
+#   	# undefined
+#    builtin autoload -XUz
+#   }
+#
+#   % hub crea<tab>
+#   % which _hub
+#   _hub () {
+#   	service=git
+#   	_git
+#   }
+#
+#   % which _git|grep _call_program || which _git
+#   ... aliases=(${(0)"$(_call_program aliases git config -z --get-regexp '\^alias\.')"})
+# }}}
+
+
 (( $+functions[_git-alias] )) ||
 _git-alias () {
   _arguments \
@@ -78,3 +111,6 @@ _hub() {
 
 # Make sure we actually attempt to complete on the first "tab" from the user.
 _hub
+
+
+# vim: ft=zsh fdm=marker fdl=0
