@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -50,7 +51,7 @@ func init() {
 func issue(cmd *Command, args *Args) {
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
-			fmt.Printf("Would request list of issues for %s\n", project)
+			ui.Printf("Would request list of issues for %s\n", project)
 		} else {
 			issues, err := gh.Issues(project)
 			utils.Check(err)
@@ -63,7 +64,7 @@ func issue(cmd *Command, args *Args) {
 					url = issue.HTMLURL
 				}
 				// "nobody" should have more than 1 million github issues
-				fmt.Printf("% 7d] %s ( %s )\n", issue.Number, issue.Title, url)
+				ui.Printf("% 7d] %s ( %s )\n", issue.Number, issue.Title, url)
 			}
 		}
 	})
@@ -72,7 +73,7 @@ func issue(cmd *Command, args *Args) {
 func createIssue(cmd *Command, args *Args) {
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {
 		if args.Noop {
-			fmt.Printf("Would create an issue for %s\n", project)
+			ui.Printf("Would create an issue for %s\n", project)
 		} else {
 			title, body, err := getTitleAndBodyFromFlags(flagIssueMessage, flagIssueFile)
 			utils.Check(err)
@@ -85,7 +86,7 @@ func createIssue(cmd *Command, args *Args) {
 			issue, err := gh.CreateIssue(project, title, body, flagIssueLabels)
 			utils.Check(err)
 
-			fmt.Println(issue.HTMLURL)
+			ui.Println(issue.HTMLURL)
 		}
 	})
 }

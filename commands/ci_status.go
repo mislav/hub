@@ -6,6 +6,7 @@ import (
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -65,14 +66,14 @@ func ciStatus(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	if args.Noop {
-		fmt.Printf("Would request CI status for %s\n", sha)
+		ui.Printf("Would request CI status for %s\n", sha)
 	} else {
 		state, targetURL, exitCode, err := fetchCiStatus(project, sha)
 		utils.Check(err)
 		if flagCiStatusVerbose && targetURL != "" {
-			fmt.Printf("%s: %s\n", state, targetURL)
+			ui.Printf("%s: %s\n", state, targetURL)
 		} else {
-			fmt.Println(state)
+			ui.Println(state)
 		}
 
 		os.Exit(exitCode)

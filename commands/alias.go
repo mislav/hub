@@ -2,10 +2,12 @@ package commands
 
 import (
 	"fmt"
-	"github.com/github/hub/utils"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/github/hub/ui"
+	"github.com/github/hub/utils"
 )
 
 var cmdAlias = &Command{
@@ -61,7 +63,7 @@ func alias(command *Command, args *Args) {
 			alias = "alias git=hub"
 		}
 
-		fmt.Println(alias)
+		ui.Println(alias)
 	} else {
 		var profile string
 		switch shell {
@@ -82,7 +84,7 @@ func alias(command *Command, args *Args) {
 		}
 
 		msg := fmt.Sprintf("# Wrap git automatically by adding the following to %s:\n", profile)
-		fmt.Println(msg)
+		ui.Println(msg)
 
 		var eval string
 		switch shell {
@@ -93,7 +95,7 @@ func alias(command *Command, args *Args) {
 		default:
 			eval = `eval "$(hub alias -s)"`
 		}
-		fmt.Println(eval)
+		ui.Println(eval)
 	}
 
 	os.Exit(0)

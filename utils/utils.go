@@ -2,17 +2,18 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/github/hub/ui"
 )
 
 func Check(err error) {
 	if err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		ui.Errorln(err)
 		os.Exit(1)
 	}
 }

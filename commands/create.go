@@ -7,6 +7,7 @@ import (
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -91,7 +92,7 @@ func create(command *Command, args *Args) {
 
 	var action string
 	if gh.IsRepositoryExist(project) {
-		fmt.Printf("%s already exists on %s\n", project, project.Host)
+		ui.Printf("%s already exists on %s\n", project, project.Host)
 		action = "set remote origin"
 	} else {
 		action = "created repository"

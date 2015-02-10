@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/howeyc/gopass"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -69,7 +70,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 
 		if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
 			if code != "" {
-				fmt.Fprintln(os.Stderr, "warning: invalid two-factor code")
+				ui.Errorln("warning: invalid two-factor code")
 			}
 			code = c.PromptForOTP()
 		} else {
@@ -105,7 +106,7 @@ func (c *Config) PromptForUser(host string) (user string) {
 		return
 	}
 
-	fmt.Printf("%s username: ", host)
+	ui.Printf("%s username: ", host)
 	user = c.scanLine()
 
 	return
@@ -117,7 +118,7 @@ func (c *Config) PromptForPassword(host, user string) (pass string) {
 		return
 	}
 
-	fmt.Printf("%s password for %s (never stored): ", host, user)
+	ui.Printf("%s password for %s (never stored): ", host, user)
 	if isTerminal(os.Stdout.Fd()) {
 		pass = string(gopass.GetPasswd())
 	} else {
@@ -166,7 +167,7 @@ func (c *Config) selectHost() *Host {
 	}
 	prompt += fmt.Sprint("> ")
 
-	fmt.Printf(prompt)
+	ui.Printf(prompt)
 	index := c.scanLine()
 	i, err := strconv.Atoi(index)
 	if err != nil || i < 1 || i > options {
