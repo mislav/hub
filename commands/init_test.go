@@ -1,32 +1,92 @@
 package commands
 
 import (
+	"fmt"
+	"os"
+	"path/filepath"
+	"testing"
+
 	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
 	"github.com/github/hub/github"
-	"os"
-	"regexp"
-	"testing"
 )
 
-func TestTransformInitArgs(t *testing.T) {
+func setup() {
 	os.Setenv("HUB_PROTOCOL", "git")
 	github.CreateTestConfigs("jingweno", "123")
+}
+
+func TestEmptyParams(t *testing.T) {
+	setup()
 
 	args := NewArgs([]string{"init"})
 	err := transformInitArgs(args)
 
 	assert.Equal(t, nil, err)
 	assert.Equal(t, true, args.IsParamsEmpty())
+}
 
-	args = NewArgs([]string{"init", "-g"})
-	err = transformInitArgs(args)
+func TestFlagToAddRemote(t *testing.T) {
+	setup()
 
+	args := NewArgs([]string{"init", "-g", "--quiet"})
+	err := transformInitArgs(args)
 	assert.Equal(t, nil, err)
-	assert.Equal(t, true, args.IsParamsEmpty())
 
 	commands := args.Commands()
 	assert.Equal(t, 2, len(commands))
-	assert.Equal(t, "git init", commands[0].String())
-	reg := regexp.MustCompile("git remote add origin git@github.com:jingweno/.+\\.git")
-	assert.T(t, reg.MatchString(commands[1].String()))
+	assert.Equal(t, "git init --quiet", commands[0].String())
+
+	currentDir, err := os.Getwd()
+	assert.Equal(t, nil, err)
+
+	expected := fmt.Sprintf(
+		"git --git-dir %s remote add origin git@github.com:jingweno/%s.git",
+		filepath.Join(currentDir, ".git"),
+		filepath.Base(currentDir),
+	)
+	assert.Equal(t, expected, commands[1].String())
+}
+
+func TestInitInAnotherDir(t *testing.T) {
+	setup()
+
+	args := NewArgs([]string{"init", "-g", "--template", "mytpl", "my project"})
+	err := transformInitArgs(args)
+	assert.Equal(t, nil, err)
+
+	commands := args.Commands()
+	assert.Equal(t, 2, len(commands))
+	assert.Equal(t, "git init --template mytpl my project", commands[0].String())
+
+	currentDir, err := os.Getwd()
+	assert.Equal(t, nil, err)
+
+	expected := fmt.Sprintf(
+		"git --git-dir %s remote add origin git@github.com:jingweno/%s.git",
+		filepath.Join(currentDir, "my project", ".git"),
+		"my-project",
+	)
+	assert.Equal(t, expected, commands[1].String())
+}
+
+func TestSeparateGitDir(t *testing.T) {
+	setup()
+
+	args := NewArgs([]string{"init", "-g", "--separate-git-dir", "/tmp/where-i-play.git", "my/playground"})
+	err := transformInitArgs(args)
+	assert.Equal(t, nil, err)
+
+	commands := args.Commands()
+	assert.Equal(t, 2, len(commands))
+	assert.Equal(t, "git init --separate-git-dir /tmp/where-i-play.git my/playground", commands[0].String())
+
+	currentDir, err := os.Getwd()
+	assert.Equal(t, nil, err)
+
+	expected := fmt.Sprintf(
+		"git --git-dir %s remote add origin git@github.com:jingweno/%s.git",
+		filepath.Join(currentDir, "my", "playground", ".git"),
+		"playground",
+	)
+	assert.Equal(t, expected, commands[1].String())
 }
