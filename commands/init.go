@@ -2,6 +2,8 @@ package commands
 
 import (
 	"path/filepath"
+	"regexp"
+	"strings"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -28,10 +30,8 @@ func init() {
   > git remote add origin git@github.com:USER/REPO.git
 */
 func gitInit(command *Command, args *Args) {
-	if !args.IsParamsEmpty() {
-		err := transformInitArgs(args)
-		utils.Check(err)
-	}
+	err := transformInitArgs(args)
+	utils.Check(err)
 }
 
 func transformInitArgs(args *Args) error {
@@ -39,32 +39,38 @@ func transformInitArgs(args *Args) error {
 		return nil
 	}
 
-	var (
-		name   string
-		newDir bool
-		err    error
-	)
+	var err error
+	dirToInit := "."
+	hasValueRegxp := regexp.MustCompile("^--(template|separate-git-dir|shared)$")
 
-	if args.IsParamsEmpty() {
-		name, err = utils.DirName()
-		if err != nil {
-			return err
+	// Find the first argument that isn't related to any of the init flags.
+	// We assume this is the optional `directory` argument to git init.
+	for i := 0; i < args.ParamsSize(); i++ {
+		arg := args.Params[i]
+		if hasValueRegxp.MatchString(arg) {
+			i++
+		} else if !strings.HasPrefix(arg, "-") {
+			dirToInit = arg
+			break
 		}
-	} else {
-		name = args.LastParam()
-		newDir = true
 	}
 
-	project := github.NewProject("", name, "")
+	dirToInit, err = filepath.Abs(dirToInit)
+	if err != nil {
+		return err
+	}
+
+	// Assume that the name of the working directory is going to be the name of
+	// the project on GitHub.
+	projectName := strings.Replace(filepath.Base(dirToInit), " ", "-", -1)
+	project := github.NewProject("", projectName, "")
 	url := project.GitURL("", "", true)
 
-	cmds := []string{"git"}
-	if newDir {
-		cmds = append(cmds, "--git-dir", filepath.Join(name, ".git"))
+	addRemote := []string{
+		"git", "--git-dir", filepath.Join(dirToInit, ".git"),
+		"remote", "add", "origin", url,
 	}
-
-	cmds = append(cmds, "remote", "add", "origin", url)
-	args.After(cmds...)
+	args.After(addRemote...)
 
 	return nil
 }
