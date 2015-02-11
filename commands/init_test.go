@@ -50,13 +50,13 @@ func TestFlagToAddRemote(t *testing.T) {
 func TestInitInAnotherDir(t *testing.T) {
 	setupInitContext()
 
-	args := NewArgs([]string{"init", "-g", "--template", "mytpl", "my project"})
+	args := NewArgs([]string{"init", "-g", "--template", "mytpl", "--shared=umask", "my project"})
 	err := transformInitArgs(args)
 	assert.Equal(t, nil, err)
 
 	commands := args.Commands()
 	assert.Equal(t, 2, len(commands))
-	assert.Equal(t, "git init --template mytpl my project", commands[0].String())
+	assert.Equal(t, "git init --template mytpl --shared=umask my project", commands[0].String())
 
 	currentDir, err := os.Getwd()
 	assert.Equal(t, nil, err)
