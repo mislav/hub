@@ -10,13 +10,13 @@ import (
 	"github.com/github/hub/github"
 )
 
-func setup() {
+func setupInitContext() {
 	os.Setenv("HUB_PROTOCOL", "git")
 	github.CreateTestConfigs("jingweno", "123")
 }
 
 func TestEmptyParams(t *testing.T) {
-	setup()
+	setupInitContext()
 
 	args := NewArgs([]string{"init"})
 	err := transformInitArgs(args)
@@ -26,7 +26,7 @@ func TestEmptyParams(t *testing.T) {
 }
 
 func TestFlagToAddRemote(t *testing.T) {
-	setup()
+	setupInitContext()
 
 	args := NewArgs([]string{"init", "-g", "--quiet"})
 	err := transformInitArgs(args)
@@ -48,7 +48,7 @@ func TestFlagToAddRemote(t *testing.T) {
 }
 
 func TestInitInAnotherDir(t *testing.T) {
-	setup()
+	setupInitContext()
 
 	args := NewArgs([]string{"init", "-g", "--template", "mytpl", "my project"})
 	err := transformInitArgs(args)
@@ -70,7 +70,7 @@ func TestInitInAnotherDir(t *testing.T) {
 }
 
 func TestSeparateGitDir(t *testing.T) {
-	setup()
+	setupInitContext()
 
 	args := NewArgs([]string{"init", "-g", "--separate-git-dir", "/tmp/where-i-play.git", "my/playground"})
 	err := transformInitArgs(args)
