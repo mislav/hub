@@ -19,6 +19,7 @@ Feature: hub merge
     And there is a commit named "jfirebaugh/hub_merge"
     When I successfully run `hub merge https://github.com/defunkt/hub/pull/164`
     Then "git fetch git://github.com/jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
+    And "git merge jfirebaugh/hub_merge --no-ff -m Merge pull request #164 from jfirebaugh/hub_merge" should be run
     When I successfully run `git show -s --format=%B`
     Then the output should contain:
       """
@@ -42,6 +43,29 @@ Feature: hub merge
     And there is a commit named "jfirebaugh/hub_merge"
     When I successfully run `hub merge --ff-only https://github.com/defunkt/hub/pull/164`
     Then "git fetch git://github.com/jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
+    And "git merge --ff-only jfirebaugh/hub_merge -m Merge pull request #164 from jfirebaugh/hub_merge" should be run
+    When I successfully run `git show -s --format=%B`
+    Then the output should contain:
+      """
+      Fast-forward (no commit created; -m option ignored)
+      """
+
+  Scenario: Merge pull request with --squash option
+    Given the GitHub API server:
+      """
+      require 'json'
+      get('/repos/defunkt/hub/pulls/164') { json \
+        :head => {
+          :label => 'jfirebaugh:hub_merge',
+          :repo  => {:private => false, :name=>"hub"}
+        },
+        :title => "Add `hub merge` command"
+      }
+      """
+    And there is a commit named "jfirebaugh/hub_merge"
+    When I successfully run `hub merge --squash https://github.com/defunkt/hub/pull/164`
+    Then "git fetch git://github.com/jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
+    And "git merge --squash jfirebaugh/hub_merge -m Merge pull request #164 from jfirebaugh/hub_merge" should be run
     When I successfully run `git show -s --format=%B`
     Then the output should contain:
       """
