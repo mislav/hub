@@ -1,14 +1,15 @@
 package commands
 
 import (
+	"bufio"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
 
 type listFlag []string
@@ -94,10 +95,13 @@ func getTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string,
 }
 
 func readMsg(msg string) (title, body string) {
-	split := strings.SplitN(msg, "\n\n", 2)
-	title = strings.TrimSpace(split[0])
-	if len(split) > 1 {
-		body = strings.TrimSpace(split[1])
+	s := bufio.NewScanner(strings.NewReader(msg))
+	if s.Scan() {
+		title = s.Text()
+		body = strings.TrimLeft(msg, title)
+
+		title = strings.TrimSpace(title)
+		body = strings.TrimSpace(body)
 	}
 
 	return
