@@ -22,29 +22,26 @@ Dependencies:
 
 * **git 1.7.3** or newer
 
-### 2.x
-
-Starting from 2.2.0, `hub` is [powered by Go](https://github.com/github/hub/issues/475).
-It should maintain a high backward compatibility with 1.x. Note that 2.x is in preview.
-
 #### Homebrew
 
-`hub` 2.x can be installed through Homebrew. Since it's in preview, you need to compile
-from HEAD:
+`hub` can be installed through Homebrew:
 
 ~~~ sh
-$ brew install --HEAD hub
+$ brew install hub
+$ hub version
+git version 1.7.6
+hub version 2.2.0
 ~~~
 
 #### Standalone
 
-`hub` 2.x can be easily installed as an executable. Download the latest
+`hub` can be easily installed as an executable. Download the latest
 [compiled binaries](https://github.com/github/hub/releases) and put it anywhere
 in your executable path.
 
 #### Source
 
-To install `hub` 2.x from source, you need to have a [Go development environment](http://golang.org/doc/install),
+To install `hub` from source, you need to have a [Go development environment](http://golang.org/doc/install),
 version 1.4 or better:
 
 ~~~ sh
@@ -60,25 +57,6 @@ directory is already in your PATH:
 ~~~ sh
 $ go get github.com/github/hub
 ~~~
-
-### 1.x
-
-#### Homebrew
-
-Installing on OS X is easiest with Homebrew:
-
-~~~ sh
-$ brew install hub
-~~~
-
-Now you should be ready to roll:
-
-~~~ sh
-$ hub version
-git version 1.7.6
-hub version 1.8.3
-~~~
-
 
 Aliasing
 --------
