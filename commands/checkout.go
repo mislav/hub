@@ -97,9 +97,14 @@ func transformCheckoutArgs(args *Args) error {
 		args.Before("git", "remote", "add", "-f", "-t", branch, user, u)
 	}
 
-	idx := args.IndexOfParam(checkoutURL)
-	args.RemoveParam(idx)
-	args.InsertParam(idx, "--track", "-B", newBranchName, fmt.Sprintf("%s/%s", user, branch))
+	remoteName := fmt.Sprintf("%s/%s", user, branch)
+	replaceCheckoutParam(args, checkoutURL, newBranchName, remoteName)
 
 	return nil
+}
+
+func replaceCheckoutParam(args *Args, checkoutURL, branchName, remoteName string) {
+	idx := args.IndexOfParam(checkoutURL)
+	args.RemoveParam(idx)
+	args.InsertParam(idx, "--track", "-B", branchName, remoteName)
 }
