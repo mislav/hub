@@ -64,6 +64,11 @@ func transformCheckoutArgs(args *Args) error {
 		return nil
 	}
 
+	err = sanitizeCheckoutFlags(args)
+	if err != nil {
+		return err
+	}
+
 	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
 	gh := github.NewClient(url.Project.Host)
 	pullRequest, err := gh.PullRequest(url.Project, id)
@@ -99,6 +104,18 @@ func transformCheckoutArgs(args *Args) error {
 
 	remoteName := fmt.Sprintf("%s/%s", user, branch)
 	replaceCheckoutParam(args, checkoutURL, newBranchName, remoteName)
+
+	return nil
+}
+
+func sanitizeCheckoutFlags(args *Args) error {
+	if i := args.IndexOfParam("-b"); i != -1 {
+		return fmt.Errorf("Unsupported flag -b when checking out pull request")
+	}
+
+	if i := args.IndexOfParam("--orphan"); i != -1 {
+		return fmt.Errorf("Unsupported flag --orphan when checking out pull request")
+	}
 
 	return nil
 }
