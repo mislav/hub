@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
+	"github.com/github/hub/ui"
 )
 
 var (
@@ -32,7 +33,7 @@ type Command struct {
 func (c *Command) Call(args *Args) (err error) {
 	runCommand, err := c.lookupSubCommand(args)
 	if err != nil {
-		fmt.Println(err)
+		ui.Errorln(err)
 		return
 	}
 
@@ -68,10 +69,10 @@ func (c *Command) Use(subCommand *Command) {
 
 func (c *Command) PrintUsage() {
 	if c.Runnable() {
-		fmt.Printf("usage: %s\n\n", c.FormattedUsage())
+		ui.Printf("usage: %s\n\n", c.FormattedUsage())
 	}
 
-	fmt.Println(strings.Trim(c.Long, "\n"))
+	ui.Println(strings.Trim(c.Long, "\n"))
 }
 
 func (c *Command) FormattedUsage() string {

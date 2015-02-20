@@ -16,6 +16,7 @@ import (
 	goupdate "github.com/github/hub/Godeps/_workspace/src/github.com/inconshreveable/go-update"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -67,8 +68,8 @@ func (updater *Updater) PromptForUpdate() (err error) {
 		case "always":
 			err = updater.updateTo(releaseName, version)
 		default:
-			fmt.Println("There is a newer version of hub available.")
-			fmt.Print("Would you like to update? ([Y]es/[N]o/[A]lways/N[e]ver): ")
+			ui.Println("There is a newer version of hub available.")
+			ui.Printf("Would you like to update? ([Y]es/[N]o/[A]lways/N[e]ver): ")
 			var confirm string
 			fmt.Scan(&confirm)
 
@@ -87,18 +88,18 @@ func (updater *Updater) PromptForUpdate() (err error) {
 func (updater *Updater) Update() (err error) {
 	config := autoUpdateConfig()
 	if config == "never" {
-		fmt.Println("Update is disabled")
+		ui.Println("Update is disabled")
 		return
 	}
 
 	releaseName, version := updater.latestReleaseNameAndVersion()
 	if version == "" {
-		fmt.Println("There is no newer version of hub available.")
+		ui.Println("There is no newer version of hub available.")
 		return
 	}
 
 	if version == updater.CurrentVersion {
-		fmt.Printf("You're already on the latest version: %s\n", version)
+		ui.Printf("You're already on the latest version: %s\n", version)
 	} else {
 		err = updater.updateTo(releaseName, version)
 	}
@@ -116,7 +117,7 @@ func (updater *Updater) latestReleaseNameAndVersion() (name, version string) {
 }
 
 func (updater *Updater) updateTo(releaseName, version string) (err error) {
-	fmt.Printf("Updating gh to %s...\n", version)
+	ui.Printf("Updating gh to %s...\n", version)
 	downloadURL := fmt.Sprintf("https://%s/github/hub/releases/download/%s/hub%s_%s_%s.zip", updater.Host, releaseName, version, runtime.GOOS, runtime.GOARCH)
 	path, err := downloadFile(downloadURL)
 	if err != nil {
@@ -130,7 +131,7 @@ func (updater *Updater) updateTo(releaseName, version string) (err error) {
 
 	err, _ = goupdate.New().FromFile(exec)
 	if err == nil {
-		fmt.Println("Done!")
+		ui.Println("Done!")
 	}
 
 	return

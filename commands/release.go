@@ -12,6 +12,7 @@ import (
 	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -63,7 +64,7 @@ func init() {
 func release(cmd *Command, args *Args) {
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
 		if args.Noop {
-			fmt.Printf("Would request list of releases for %s\n", project)
+			ui.Printf("Would request list of releases for %s\n", project)
 		} else {
 			releases, err := client.Releases(project)
 			utils.Check(err)
@@ -73,7 +74,7 @@ func release(cmd *Command, args *Args) {
 				outputs = append(outputs, out)
 			}
 
-			fmt.Println(strings.Join(outputs, "\n\n"))
+			ui.Println(strings.Join(outputs, "\n\n"))
 		}
 	})
 }
@@ -142,12 +143,12 @@ func createRelease(cmd *Command, args *Args) {
 			}
 			err = uploader.UploadAll(paths)
 			if err != nil {
-				fmt.Println("")
+				ui.Println("")
 				utils.Check(err)
 			}
 		}
 
-		fmt.Printf("\n%s\n", release.HTMLURL)
+		ui.Printf("\n%s\n", release.HTMLURL)
 	})
 }
 

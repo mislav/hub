@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/github/hub/git"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -27,8 +28,8 @@ func runVersion(cmd *Command, args *Args) {
 
 	ghVersion := fmt.Sprintf("hub version %s", Version)
 
-	fmt.Println(gitVersion)
-	fmt.Println(ghVersion)
+	ui.Println(gitVersion)
+	ui.Println(ghVersion)
 
 	os.Exit(0)
 }
