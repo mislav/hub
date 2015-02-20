@@ -62,6 +62,19 @@ func TestArgs_Insert(t *testing.T) {
 
 	assert.Equal(t, 5, args.ParamsSize())
 	assert.Equal(t, "foo", args.Params[3])
+
+	args = NewArgs([]string{"checkout", "-b"})
+	args.InsertParam(1, "foo")
+
+	assert.Equal(t, 2, args.ParamsSize())
+	assert.Equal(t, "-b", args.Params[0])
+	assert.Equal(t, "foo", args.Params[1])
+
+	args = NewArgs([]string{"checkout"})
+	args.InsertParam(1, "foo")
+
+	assert.Equal(t, 1, args.ParamsSize())
+	assert.Equal(t, "foo", args.Params[0])
 }
 
 func TestArgs_Remove(t *testing.T) {

@@ -64,6 +64,11 @@ func transformCheckoutArgs(args *Args) error {
 		return nil
 	}
 
+	err = sanitizeCheckoutFlags(args)
+	if err != nil {
+		return err
+	}
+
 	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
 	gh := github.NewClient(url.Project.Host)
 	pullRequest, err := gh.PullRequest(url.Project, id)
@@ -97,9 +102,26 @@ func transformCheckoutArgs(args *Args) error {
 		args.Before("git", "remote", "add", "-f", "-t", branch, user, u)
 	}
 
-	idx := args.IndexOfParam(checkoutURL)
-	args.RemoveParam(idx)
-	args.InsertParam(idx, "--track", "-B", newBranchName, fmt.Sprintf("%s/%s", user, branch))
+	remoteName := fmt.Sprintf("%s/%s", user, branch)
+	replaceCheckoutParam(args, checkoutURL, newBranchName, remoteName)
 
 	return nil
+}
+
+func sanitizeCheckoutFlags(args *Args) error {
+	if i := args.IndexOfParam("-b"); i != -1 {
+		return fmt.Errorf("Unsupported flag -b when checking out pull request")
+	}
+
+	if i := args.IndexOfParam("--orphan"); i != -1 {
+		return fmt.Errorf("Unsupported flag --orphan when checking out pull request")
+	}
+
+	return nil
+}
+
+func replaceCheckoutParam(args *Args, checkoutURL, branchName, remoteName string) {
+	idx := args.IndexOfParam(checkoutURL)
+	args.RemoveParam(idx)
+	args.InsertParam(idx, "--track", "-B", branchName, remoteName)
 }

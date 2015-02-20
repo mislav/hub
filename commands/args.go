@@ -95,11 +95,15 @@ func (a *Args) HasSubcommand() bool {
 }
 
 func (a *Args) InsertParam(i int, items ...string) {
-	if i < 0 || (i != 0 && i > a.ParamsSize()-1) {
+	if i < 0 {
 		panic(fmt.Sprintf("Index %d is out of bound", i))
 	}
 
-	newParams := []string{}
+	if i > a.ParamsSize() {
+		i = a.ParamsSize()
+	}
+
+	newParams := make([]string, 0)
 	newParams = append(newParams, a.Params[:i]...)
 	newParams = append(newParams, items...)
 	newParams = append(newParams, a.Params[i:]...)
