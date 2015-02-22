@@ -23,9 +23,7 @@ func init() {
 		if u, err := user.Current(); err == nil {
 			homeDir = u.HomeDir
 		}
-	}
-
-	if homeDir == "" {
+		
 		utils.Check(fmt.Errorf("Can't get current user's home dir"))
 	}
 
