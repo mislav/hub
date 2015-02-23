@@ -13,9 +13,10 @@ Feature: hub checkout <PULLREQ-URL>
       get('/repos/mojombo/jekyll/pulls/77') {
         halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :head => {
-          :label => 'mislav:fixes',
+          :ref => "fixes",
           :repo => {
-            :name => 'jekyll',
+            :owner => { :name => "mislav" },
+            :name => "jekyll",
             :private => false
           }
         }
@@ -30,9 +31,10 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
+          :ref => "fixes",
           :repo => {
-            :name => 'jekyll-blog',
+            :owner => { :name => "mislav" },
+            :name => "jekyll-blog",
             :private => false
           }
         }
@@ -47,9 +49,10 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
+          :ref => "fixes",
           :repo => {
-            :name => 'jekyll',
+            :owner => { :name => "mislav" },
+            :name => "jekyll",
             :private => false
           }
         }
@@ -64,9 +67,10 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
+          :ref => "fixes",
           :repo => {
-            :name => 'jekyll',
+            :owner => { :name => "mislav" },
+            :name => "jekyll",
             :private => true
           }
         }
@@ -81,9 +85,10 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
+          :ref => "fixes",
           :repo => {
-            :name => 'jekyll',
+            :owner => { :name => "mislav" },
+            :name => "jekyll",
             :private => false
           }
         }
@@ -98,9 +103,10 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
+          :ref => "fixes",
           :repo => {
-            :name => 'jekyll',
+            :owner => { :name => "mislav" },
+            :name => "jekyll",
             :private => false
           }
         }

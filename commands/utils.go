@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -38,18 +37,6 @@ func isDir(file string) bool {
 	}
 
 	return fi.IsDir()
-}
-
-func parseUserBranchFromPR(pullRequest *octokit.PullRequest) (user string, branch string) {
-	userBranch := strings.SplitN(pullRequest.Head.Label, ":", 2)
-	user = userBranch[0]
-	if len(userBranch) > 1 {
-		branch = userBranch[1]
-	} else {
-		branch = pullRequest.Head.Ref
-	}
-
-	return
 }
 
 func gitRemoteForProject(project *github.Project) (foundRemote *github.Remote) {
