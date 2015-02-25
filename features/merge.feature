@@ -7,11 +7,14 @@ Feature: hub merge
   Scenario: Merge pull request
     Given the GitHub API server:
       """
-      require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false, :name=>"hub"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :name => "jfirebaugh" },
+            :name => "hub",
+            :private => false
+          }
         },
         :title => "Add `hub merge` command"
       }
@@ -34,8 +37,12 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false, :name=>"hub"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :name => "jfirebaugh" },
+            :name => "hub",
+            :private => false
+          }
         },
         :title => "Add `hub merge` command"
       }
@@ -56,8 +63,12 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false, :name=>"hub"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :name => "jfirebaugh" },
+            :name => "hub",
+            :private => false
+          }
         },
         :title => "Add `hub merge` command"
       }
@@ -78,8 +89,12 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => true, :name=>"hub"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :name => "jfirebaugh" },
+            :name => "hub",
+            :private => true
+          }
         },
         :title => "Add `hub merge` command"
       }
@@ -94,8 +109,8 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => nil
+          :ref => "hub_merge",
+          :repo => nil
         }
       }
       """
@@ -103,7 +118,7 @@ Feature: hub merge
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error: jfirebaugh's fork is not available anymore\n
+      Error: that fork is not available anymore\n
       """
 
   Scenario: Renamed repo
@@ -112,8 +127,12 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false, :name=>"hub-1"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :name => "jfirebaugh" },
+            :name => "hub-1",
+            :private => false
+          }
         }
       }
       """

@@ -59,13 +59,14 @@ func transformMergeArgs(args *Args) error {
 		return err
 	}
 
-	user, branch := parseUserBranchFromPR(pullRequest)
-	if pullRequest.Head.Repo == nil {
-		return fmt.Errorf("Error: %s's fork is not available anymore", user)
+	branch := pullRequest.Head.Ref
+	headRepo := pullRequest.Head.Repo
+	if headRepo == nil {
+		return fmt.Errorf("Error: that fork is not available anymore")
 	}
 
-	u := url.GitURL(pullRequest.Head.Repo.Name, user, pullRequest.Head.Repo.Private)
-	mergeHead := fmt.Sprintf("%s/%s", user, branch)
+	u := url.GitURL(headRepo.Name, headRepo.Owner.Name, headRepo.Private)
+	mergeHead := fmt.Sprintf("%s/%s", headRepo.Owner.Name, branch)
 	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
 	args.Before("git", "fetch", u, ref)
 

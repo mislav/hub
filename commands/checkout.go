@@ -80,10 +80,12 @@ func transformCheckoutArgs(args *Args) error {
 		args.RemoveParam(idx)
 	}
 
-	user, branch := parseUserBranchFromPR(pullRequest)
-	if pullRequest.Head.Repo == nil {
-		return fmt.Errorf("Error: %s's fork is not available anymore", user)
+	branch := pullRequest.Head.Ref
+	headRepo := pullRequest.Head.Repo
+	if headRepo == nil {
+		return fmt.Errorf("Error: that fork is not available anymore")
 	}
+	user := headRepo.Owner.Name
 
 	if newBranchName == "" {
 		newBranchName = fmt.Sprintf("%s-%s", user, branch)
