@@ -85,7 +85,7 @@ func transformCheckoutArgs(args *Args) error {
 	if headRepo == nil {
 		return fmt.Errorf("Error: that fork is not available anymore")
 	}
-	user := headRepo.Owner.Name
+	user := headRepo.Owner.Login
 
 	if newBranchName == "" {
 		newBranchName = fmt.Sprintf("%s-%s", user, branch)
