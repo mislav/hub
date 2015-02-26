@@ -15,7 +15,7 @@ Feature: hub checkout <PULLREQ-URL>
         json :head => {
           :ref => "fixes",
           :repo => {
-            :owner => { :name => "mislav" },
+            :owner => { :login => "mislav" },
             :name => "jekyll",
             :private => false
           }
@@ -33,7 +33,7 @@ Feature: hub checkout <PULLREQ-URL>
         json :head => {
           :ref => "fixes",
           :repo => {
-            :owner => { :name => "mislav" },
+            :owner => { :login => "mislav" },
             :name => "jekyll-blog",
             :private => false
           }
@@ -51,7 +51,7 @@ Feature: hub checkout <PULLREQ-URL>
         json :head => {
           :ref => "fixes",
           :repo => {
-            :owner => { :name => "mislav" },
+            :owner => { :login => "mislav" },
             :name => "jekyll",
             :private => false
           }
@@ -69,7 +69,7 @@ Feature: hub checkout <PULLREQ-URL>
         json :head => {
           :ref => "fixes",
           :repo => {
-            :owner => { :name => "mislav" },
+            :owner => { :login => "mislav" },
             :name => "jekyll",
             :private => true
           }
@@ -87,7 +87,7 @@ Feature: hub checkout <PULLREQ-URL>
         json :head => {
           :ref => "fixes",
           :repo => {
-            :owner => { :name => "mislav" },
+            :owner => { :login => "mislav" },
             :name => "jekyll",
             :private => false
           }
@@ -105,7 +105,7 @@ Feature: hub checkout <PULLREQ-URL>
         json :head => {
           :ref => "fixes",
           :repo => {
-            :owner => { :name => "mislav" },
+            :owner => { :login => "mislav" },
             :name => "jekyll",
             :private => false
           }
