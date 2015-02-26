@@ -11,7 +11,7 @@ Feature: hub merge
         :head => {
           :ref => "hub_merge",
           :repo => {
-            :owner => { :name => "jfirebaugh" },
+            :owner => { :login => "jfirebaugh" },
             :name => "hub",
             :private => false
           }
@@ -39,7 +39,7 @@ Feature: hub merge
         :head => {
           :ref => "hub_merge",
           :repo => {
-            :owner => { :name => "jfirebaugh" },
+            :owner => { :login => "jfirebaugh" },
             :name => "hub",
             :private => false
           }
@@ -65,7 +65,7 @@ Feature: hub merge
         :head => {
           :ref => "hub_merge",
           :repo => {
-            :owner => { :name => "jfirebaugh" },
+            :owner => { :login => "jfirebaugh" },
             :name => "hub",
             :private => false
           }
@@ -91,7 +91,7 @@ Feature: hub merge
         :head => {
           :ref => "hub_merge",
           :repo => {
-            :owner => { :name => "jfirebaugh" },
+            :owner => { :login => "jfirebaugh" },
             :name => "hub",
             :private => true
           }
@@ -129,7 +129,7 @@ Feature: hub merge
         :head => {
           :ref => "hub_merge",
           :repo => {
-            :owner => { :name => "jfirebaugh" },
+            :owner => { :login => "jfirebaugh" },
             :name => "hub-1",
             :private => false
           }
