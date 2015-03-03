@@ -11,10 +11,14 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json'
+        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :head => {
-          :label => 'mislav:fixes',
-          :repo => { :private => false }
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => false
+          }
         }
       }
       """
@@ -22,13 +26,35 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git remote add -f -t fixes mislav git://github.com/mislav/jekyll.git" should be run
     And "git checkout -f --track -B mislav-fixes mislav/fixes -q" should be run
 
+  Scenario: Pull request from a renamed fork
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll-blog",
+            :private => false
+          }
+        }
+      }
+      """
+    When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
+    Then "git remote add -f -t fixes mislav git://github.com/mislav/jekyll-blog.git" should be run
+    And "git checkout --track -B mislav-fixes mislav/fixes" should be run
+
   Scenario: Custom name for new branch
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
-          :repo => { :private => false }
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => false
+          }
         }
       }
       """
@@ -41,8 +67,12 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
-          :repo => { :private => true }
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => true
+          }
         }
       }
       """
@@ -55,8 +85,12 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
-          :repo => { :private => false }
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => false
+          }
         }
       }
       """
@@ -69,8 +103,12 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         json :head => {
-          :label => 'mislav:fixes',
-          :repo => { :private => false }
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => false
+          }
         }
       }
       """

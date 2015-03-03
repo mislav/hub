@@ -43,6 +43,11 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m ăéñøü`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Invalid flag
+    When I run `hub pull-request -yelp`
+    Then the stderr should contain "unknown shorthand flag: 'y' in -yelp\n"
+    And the exit status should be 1
+
   Scenario: With Unicode characters in the changelog
     Given the text editor adds:
       """
@@ -72,38 +77,60 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         halt 400 if request.content_charset != 'utf-8'
-        assert :title => 'This is somewhat of a longish title that does not get wrapped and references #1234',
+        assert :title => 'This is somewhat of a longish title that does not get wrapped & references #1234',
                :body => nil
         json :html_url => "the://url"
       }
       """
     Given I am on the "master" branch pushed to "origin/master"
     When I successfully run `git checkout --quiet -b topic`
-    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped and references #1234"
+    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped & references #1234"
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Deprecated title argument
+  Scenario: Message template should include git log summary between base and head
+    Given the text editor adds:
+      """
+      Hello
+      """
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        halt 422 if params[:title] != 'mytitle'
-        json :html_url => "the://url"
+        status 500
       }
       """
-    When I successfully run `hub pull-request mytitle`
-    Then the stderr should contain exactly:
+    Given I am on the "master" branch
+    And I make a commit with message "One on master"
+    And I make a commit with message "Two on master"
+    And the "master" branch is pushed to "origin/master"
+    Given I successfully run `git reset --hard HEAD~2`
+    And I successfully run `git checkout --quiet -B topic origin/master`
+    Given I make a commit with message "One on topic"
+    And I make a commit with message "Two on topic"
+    Given the "topic" branch is pushed to "origin/topic"
+    And I successfully run `git reset --hard HEAD~1`
+    When I run `hub pull-request`
+    Given the SHAs and timestamps are normalized in ".git/PULLREQ_EDITMSG"
+    Then the file ".git/PULLREQ_EDITMSG" should contain exactly:
       """
-      hub: Specifying pull request title without a flag is deprecated.
-      Please use one of `-m' or `-F' options.\n
-      """
-    And the stdout should contain exactly "the://url\n"
+      Hello
 
-  Scenario: Deprecated title argument can't start with a dash
-    When I run `hub pull-request -help`
-    Then the stderr should contain "invalid argument: -help\n"
-    And the exit status should be 1
+
+# Requesting a pull to mislav:master from mislav:topic
+#
+# Write a message for this pull request. The first block
+# of text is the title and the rest is description.
+#
+# Changes:
+#
+# SHA1SHA (Hub, 0 seconds ago)
+#    Two on topic
+#
+# SHA1SHA (Hub, 0 seconds ago)
+#    One on topic
+
+      """
 
   Scenario: Non-existing base
     Given the GitHub API server:
@@ -219,26 +246,6 @@ Feature: hub pull-request
     Given the text editor adds:
       """
       But this title will prevail
-      """
-    When I successfully run `hub pull-request`
-    Then the file ".git/PULLREQ_EDITMSG" should not exist
-
-  Scenario: Ignore outdated PULLREQ_EDITMSG
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        assert :title => "Added interactively", :body => nil
-        json :html_url => "https://github.com/mislav/coral/pull/12"
-      }
-      """
-    And a file named ".git/PULLREQ_EDITMSG" with:
-      """
-      Outdated message from old version of hub
-      """
-    Given the file named ".git/PULLREQ_EDITMSG" is older than hub source
-    And the text editor adds:
-      """
-      Added interactively
       """
     When I successfully run `hub pull-request`
     Then the file ".git/PULLREQ_EDITMSG" should not exist
@@ -465,7 +472,25 @@ Feature: hub pull-request
     And "git.my.org" is a whitelisted Enterprise host
     Given the GitHub API server:
       """
-      post('/api/v3/repos/mislav/coral/pulls') {
+      post('/api/v3/repos/mislav/coral/pulls', :host_name => 'git.my.org') {
+        assert :base => 'master',
+               :head => 'mislav:master'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m enterprisey`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Enterprise remote witch matching branch but no tracking
+    Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    And I am on the "feature" branch pushed to "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/api/v3/repos/mislav/coral/pulls', :host_name => 'git.my.org') {
+        assert :base => 'master',
+               :head => 'mislav:feature'
         json :html_url => "the://url"
       }
       """
@@ -481,6 +506,22 @@ Feature: hub pull-request
       post('/repos/github/coral/pulls') {
         assert :base  => 'master',
                :head  => 'github:feature',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request from branch on the personal fork case sensitive
+    Given the "origin" remote has url "git://github.com/github/coral.git"
+    And the "doge" remote has url "git://github.com/Mislav/coral.git"
+    And I am on the "feature" branch pushed to "doge/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'Mislav:feature',
                :title => 'hereyougo'
         json :html_url => "the://url"
       }
@@ -528,3 +569,29 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -o -m hereyougo`
     Then "open the://url" should be run
+
+  Scenario: Current branch is tracking local branch
+    Given git "push.default" is set to "upstream"
+    And I am on the "feature" branch with upstream "refs/heads/master"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:feature'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Branch with quotation mark in name
+    Given I am on the "feat'ure" branch with upstream "origin/feat'ure"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feat'ure"
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"

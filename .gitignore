@@ -4,3 +4,6 @@
 .bundle
 vendor/bundle/
 tmp/
+*.test
+target
+.vagrant

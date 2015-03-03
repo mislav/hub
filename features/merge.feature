@@ -7,11 +7,14 @@ Feature: hub merge
   Scenario: Merge pull request
     Given the GitHub API server:
       """
-      require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false, :name=>"hub"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :login => "jfirebaugh" },
+            :name => "hub",
+            :private => false
+          }
         },
         :title => "Add `hub merge` command"
       }
@@ -19,6 +22,7 @@ Feature: hub merge
     And there is a commit named "jfirebaugh/hub_merge"
     When I successfully run `hub merge https://github.com/defunkt/hub/pull/164`
     Then "git fetch git://github.com/jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
+    And "git merge jfirebaugh/hub_merge --no-ff -m Merge pull request #164 from jfirebaugh/hub_merge" should be run
     When I successfully run `git show -s --format=%B`
     Then the output should contain:
       """
@@ -33,8 +37,12 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false, :name=>"hub"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :login => "jfirebaugh" },
+            :name => "hub",
+            :private => false
+          }
         },
         :title => "Add `hub merge` command"
       }
@@ -42,6 +50,33 @@ Feature: hub merge
     And there is a commit named "jfirebaugh/hub_merge"
     When I successfully run `hub merge --ff-only https://github.com/defunkt/hub/pull/164`
     Then "git fetch git://github.com/jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
+    And "git merge --ff-only jfirebaugh/hub_merge -m Merge pull request #164 from jfirebaugh/hub_merge" should be run
+    When I successfully run `git show -s --format=%B`
+    Then the output should contain:
+      """
+      Fast-forward (no commit created; -m option ignored)
+      """
+
+  Scenario: Merge pull request with --squash option
+    Given the GitHub API server:
+      """
+      require 'json'
+      get('/repos/defunkt/hub/pulls/164') { json \
+        :head => {
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :login => "jfirebaugh" },
+            :name => "hub",
+            :private => false
+          }
+        },
+        :title => "Add `hub merge` command"
+      }
+      """
+    And there is a commit named "jfirebaugh/hub_merge"
+    When I successfully run `hub merge --squash https://github.com/defunkt/hub/pull/164`
+    Then "git fetch git://github.com/jfirebaugh/hub.git +refs/heads/hub_merge:refs/remotes/jfirebaugh/hub_merge" should be run
+    And "git merge --squash jfirebaugh/hub_merge -m Merge pull request #164 from jfirebaugh/hub_merge" should be run
     When I successfully run `git show -s --format=%B`
     Then the output should contain:
       """
@@ -54,8 +89,12 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => true, :name=>"hub"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :login => "jfirebaugh" },
+            :name => "hub",
+            :private => true
+          }
         },
         :title => "Add `hub merge` command"
       }
@@ -70,8 +109,8 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => nil
+          :ref => "hub_merge",
+          :repo => nil
         }
       }
       """
@@ -79,7 +118,7 @@ Feature: hub merge
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error: jfirebaugh's fork is not available anymore\n
+      Error: that fork is not available anymore\n
       """
 
   Scenario: Renamed repo
@@ -88,8 +127,12 @@ Feature: hub merge
       require 'json'
       get('/repos/defunkt/hub/pulls/164') { json \
         :head => {
-          :label => 'jfirebaugh:hub_merge',
-          :repo  => {:private => false, :name=>"hub-1"}
+          :ref => "hub_merge",
+          :repo => {
+            :owner => { :login => "jfirebaugh" },
+            :name => "hub-1",
+            :private => false
+          }
         }
       }
       """

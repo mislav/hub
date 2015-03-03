@@ -180,7 +180,7 @@ Given(/^I'm using ((?:zsh|git)-distributed) base git completions$/) do |type|
   case type
   when 'zsh-distributed'
     raise "this combination makes no sense!" if 'bash' == shell
-    (cpldir + '_git').exist?.should be_false
+    expect((cpldir + '_git')).to_not be_exist
   when 'git-distributed'
     if 'zsh' == shell
       if git_zsh_completion = git_distributed_zsh_completion.call
@@ -212,26 +212,26 @@ Then(/^the completion menu should offer "([^"]+?)"( unsorted)?$/) do |items, uns
     menu.sort!
     items = items.split(' ').sort.join(' ')
   end
-  menu.join(' ').should eq(items)
+  expect(menu.join(' ')).to eq(items)
 end
 
 Then(/^the completion menu should offer "(.+?)" with description "(.+?)"$/) do |item, description|
   menu = tmux_completion_menu
-  menu.keys.should include(item)
-  menu[item].should eq(description)
+  expect(menu.keys).to include(item)
+  expect(menu[item]).to eq(description)
 end
 
 Then(/^the completion menu should offer:/) do |table|
   menu = tmux_completion_menu
-  menu.should eq(table.rows_hash)
+  expect(menu).to eq(table.rows_hash)
 end
 
 Then(/^the command should expand to "(.+?)"$/) do |cmd|
   tmux_wait_for_completion
-  tmux_pane_contents.should match(/^\$ #{cmd}$/)
+  expect(tmux_pane_contents).to match(/^\$ #{cmd}$/)
 end
 
 Then(/^the command should not expand$/) do
   tmux_wait_for_completion { false }
-  tmux_pane_contents.should match(/^\$ #{@last_command}$/)
+  expect(tmux_pane_contents).to match(/^\$ #{@last_command}$/)
 end

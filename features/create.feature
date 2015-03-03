@@ -98,6 +98,17 @@ Feature: hub create
     When I successfully run `hub create`
     Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
 
+  Scenario: Another remote already exists
+    Given the GitHub API server:
+      """
+      post('/user/repos') {
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    And the "github" remote has url "git://github.com/mislav/dotfiles.git"
+    When I successfully run `hub create`
+    Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+
   Scenario: GitHub repo already exists
     Given the GitHub API server:
       """

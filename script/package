@@ -1,0 +1,166 @@
+#!/usr/bin/env ruby
+# Usage: script/package
+#
+# Packages `hub` for release for current platform
+
+require "fileutils"
+include FileUtils
+
+module OS
+  class << self
+    def type
+      if darwin?
+        "darwin"
+      elsif linux?
+        "linux"
+      elsif windows?
+        "windows"
+      else
+        raise "Unknown OS type #{RUBY_PLATFORM}"
+      end
+    end
+
+    def friendly_name
+      if darwin?
+        "mac"
+      elsif linux?
+        "linux"
+      elsif windows?
+        "windows"
+      else
+        raise "Unknown OS type #{RUBY_PLATFORM}"
+      end
+    end
+
+    def windows?
+      (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def windows_64?
+      windows? && /x64/ =~ RUBY_PLATFORM
+    end
+
+    def darwin?
+      (/darwin/ =~ RUBY_PLATFORM) != nil
+    end
+
+    def linux?
+      (/linux/ =~ RUBY_PLATFORM) != nil
+    end
+  end
+end
+
+class Packer
+  class << self
+    def pack!
+      self.new.pack!
+    end
+  end
+
+  attr_reader :version
+
+  def initialize
+    @version = parse_version!
+  end
+
+  def pack!
+    unless ENV["SKIP_TOOLCHAIN"]
+      install_gox!
+      build_toolchain!
+    end
+    run_tests! unless OS.windows? || ENV["SKIP_TEST"] # cukes don't run on Windows
+    build_hub!
+    cp_assets
+    tar_gzip
+  end
+
+  private
+
+  def exec!(cmd)
+    io = IO.popen(cmd)
+    begin
+      while line = io.gets
+        puts line.chomp
+      end
+    ensure
+      io.close
+    end
+
+    raise "Fail to execute #{cmd}" unless $?.to_i == 0
+  end
+
+  # Returns the root path to paths
+  def root_path(*paths)
+    current = File.expand_path(File.dirname(__FILE__)) # current is the target folder
+    File.expand_path File.join(current, "..", paths)
+  end
+
+  def glob_dir(path)
+    Dir[path].select { |d| File.directory?(d) }
+  end
+
+  def parse_version!
+    content = File.read root_path("commands", "version.go")
+    match = /var Version = "(.+)"/.match content
+    raise "Fail to parse Hub version" unless match
+
+    match[1]
+  end
+
+  def install_gox!
+    puts "Installing github.com/mitchellh/gox"
+    result = system "go get github.com/mitchellh/gox"
+    raise "Fail to install gox" unless result
+  end
+
+  def build_toolchain!
+    puts "Building Go toolchain"
+    result = system "gox -build-toolchain -os=#{OS.type}"
+    raise "Fail to build Go toolchain" unless result
+  end
+
+  def run_tests!
+    puts "Running Hub tests"
+
+    bootstrap_script = root_path("script", "bootstrap")
+    exec!(bootstrap_script)
+
+    test_script = root_path("script", "test")
+    exec!(test_script)
+  end
+
+  def build_hub!
+    puts "Building for #{OS.friendly_name}"
+    release_version = `script/version`.strip
+    output = root_path("target", "{{.Dir}}-#{OS.friendly_name}-{{.Arch}}-#{version}", "{{.Dir}}")
+    # gox doesn't build for 64 bit and 32 bit on 64 bit Windows
+    # specifying osarch for Windows
+    # see https://github.com/mitchellh/gox/issues/19#issuecomment-68117016
+    osarch = OS.windows? ? "windows/#{OS.windows_64? ? "amd64" : "386"}" : ""
+    cmd = "gox -os=#{OS.type} -output=#{output} -ldflags \"-X github.com/github/hub/commands.Version #{release_version}\""
+    cmd += " -osarch=#{osarch}" unless osarch.empty?
+    exec!(cmd)
+  end
+
+  def cp_assets
+    path = root_path("target", "*#{OS.friendly_name}*")
+    glob_dir(path).each do |dir|
+      puts "Copying assets to #{dir}"
+      ["README.md", "LICENSE", "etc/", "man/"].each do |f|
+        cp_r f, File.join(dir, f)
+      end
+    end
+  end
+
+  def tar_gzip
+    path = root_path("target", "*#{OS.friendly_name}*")
+    glob_dir(path).each do |dir|
+      puts "Archiving #{dir}"
+      Dir.chdir(root_path("target")) do
+        exec!("tar -zcf #{File.basename(dir)}.tar.gz #{File.basename(dir)}")
+      end
+    end
+  end
+end
+
+Packer.pack!

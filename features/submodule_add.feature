@@ -16,6 +16,11 @@ Feature: hub submodule add
     When I successfully run `hub submodule add -p mojombo/grit vendor/grit`
     Then the "vendor/grit" submodule url should be "git@github.com:mojombo/grit.git"
 
+  Scenario: A submodule for my own repo is public nevertheless
+    Given I am "EvilChelu" on GitHub.com
+    When I successfully run `hub submodule add grit vendor/grit`
+    Then the "vendor/grit" submodule url should be "git://github.com/EvilChelu/grit.git"
+
   Scenario: Add submodule with arguments
     When I successfully run `hub submodule add -b foo --name grit mojombo/grit vendor/grit`
     Then "git submodule add -b foo --name grit git://github.com/mojombo/grit.git vendor/grit" should be run

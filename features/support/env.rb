@@ -1,10 +1,23 @@
 require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
+require 'tmpdir'
+
+# Ruby 2.2.0 compat
+Cucumber::Ast::Step.class_eval do
+  undef_method :text_length
+  def text_length(name=name())
+    self.class::INDENT + self.class::INDENT +
+      keyword.unpack('U*').length +
+      name.unpack('U*').length
+  end
+end
 
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
+hub_dir = Dir.mktmpdir('hub_build')
+raise 'hub build failed' unless system("./script/build -o #{hub_dir}/hub")
 
 Before do
   # don't want hub to run in bundle
@@ -14,7 +27,7 @@ Before do
   # speed up load time by skipping RubyGems
   set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
-  set_env 'PATH', "#{bin_dir}:#{ENV['PATH']}"
+  set_env 'PATH', "#{hub_dir}:#{bin_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
   set_env 'GIT', nil
   # exclude this project's git directory from use in testing
@@ -41,6 +54,9 @@ Before do
   set_env 'GIT_AUTHOR_EMAIL',    author_email
   set_env 'GIT_COMMITTER_EMAIL', author_email
 
+  set_env 'HUB_VERSION', 'dev'
+  set_env 'HUB_REPORT_CRASH', 'never'
+
   FileUtils.mkdir_p ENV['HOME']
 
   # increase process exit timeout from the default of 3 seconds
@@ -63,7 +79,7 @@ RSpec::Matchers.define :be_successful_command do
     cmd.success?
   end
 
-  failure_message_for_should do |cmd|
+  failure_message do |cmd|
     %(command "#{cmd}" exited with status #{cmd.status}:) <<
       cmd.output.gsub(/^/, ' ' * 2)
   end
@@ -98,6 +114,14 @@ class SimpleCommand
 end
 
 World Module.new {
+  # If there are multiple inputs, e.g., type in username and then type in password etc.,
+  # the Go program will freeze on the second input. Giving it a small time interval
+  # temporarily solves the problem.
+  # See https://github.com/cucumber/aruba/blob/7afbc5c0cbae9c9a946d70c4c2735ccb86e00f08/lib/aruba/api.rb#L379-L382
+  def type(*args)
+    super.tap { sleep 0.1 }
+  end
+
   def history
     histfile = File.join(ENV['HOME'], '.history')
     if File.exist? histfile
@@ -109,7 +133,7 @@ World Module.new {
 
   def assert_command_run cmd
     cmd += "\n" unless cmd[-1..-1] == "\n"
-    history.should include(cmd)
+    expect(history).to include(cmd)
   end
 
   def edit_hub_config
@@ -135,7 +159,7 @@ World Module.new {
   def run_silent cmd
     in_current_dir do
       command = SimpleCommand.run(cmd)
-      command.should be_successful_command
+      expect(command).to be_successful_command
       command.output
     end
   end
@@ -148,5 +172,9 @@ World Module.new {
   # Aruba unnecessarily creates new Announcer instance on each invocation
   def announcer
     @announcer ||= super
+  end
+
+  def shell_escape(message)
+    message.to_s.gsub(/['"\\ $]/) { |m| "\\#{m}" }
   end
 }

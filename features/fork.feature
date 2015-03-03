@@ -60,7 +60,7 @@ Feature: hub fork
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
-        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json'
+        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :parent => { :html_url => 'https://github.com/unrelated/dotfiles' }
       }
       """
@@ -141,6 +141,7 @@ Scenario: Related fork already exists
       """
       before {
         halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'http'
+        halt 400 unless request.env['HTTP_X_ORIGINAL_PORT'] == '80'
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
       }
       post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }

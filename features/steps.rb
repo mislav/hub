@@ -5,7 +5,8 @@ Given(/^HTTPS is preferred$/) do
 end
 
 Given(/^there are no remotes$/) do
-  run_silent('git remote').should be_empty
+  result = run_silent('git remote')
+  expect(result).to be_empty
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
@@ -28,8 +29,8 @@ end
 Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, host, token|
   edit_hub_config do |cfg|
     entry = {'user' => name}
-    entry['oauth_token'] = token if token
     host = host.sub(%r{^([\w-]+)://}, '')
+    entry['oauth_token'] = token if token
     entry['protocol'] = $1 if $1
     cfg[host.downcase] = [entry]
   end
@@ -40,7 +41,7 @@ Given(/^\$(\w+) is "([^"]*)"$/) do |name, value|
 end
 
 Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
-  if dir_name.include? '://'
+  if dir_name.include?(':')
     origin_url = dir_name
     dir_name = File.basename origin_url, '.git'
   end
@@ -68,6 +69,11 @@ When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num.times { empty_commit(msg) }
 end
 
+Then(/^the latest commit message should be "([^"]+)"$/) do |subject|
+  step %(I successfully run `git log -1 --format=%s`)
+  step %(the output should contain exactly "#{subject}\\n")
+end
+
 Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
   full_upstream = ".git/refs/remotes/#{upstream}"
   in_current_dir do
@@ -79,14 +85,18 @@ end
 Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/) do |name, type, upstream|
   empty_commit
   if upstream
-    full_upstream = ".git/refs/remotes/#{upstream}"
+    if upstream =~ /^refs\//
+      full_upstream = ".git/#{upstream}"
+    else
+      full_upstream = ".git/refs/remotes/#{upstream}"
+    end
     in_current_dir do
       FileUtils.mkdir_p File.dirname(full_upstream)
       FileUtils.cp '.git/refs/heads/master', full_upstream
-    end
+    end unless upstream == 'refs/heads/master'
   end
   track = type == 'pushed to' ? '--no-track' : '--track'
-  run_silent %(git checkout --quiet -B #{name} #{track} #{upstream})
+  run_silent %(git checkout --quiet -B #{shell_escape name} #{track} #{shell_escape upstream})
 end
 
 Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|
@@ -116,7 +126,7 @@ Given(/^the GitHub API server:$/) do |endpoints_str|
     eval endpoints_str, binding
   end
   # hit our Sinatra server instead of github.com
-  set_env 'HUB_TEST_HOST', "127.0.0.1:#{@server.port}"
+  set_env 'HUB_TEST_HOST', "http://127.0.0.1:#{@server.port}"
 end
 
 Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|
@@ -139,8 +149,12 @@ Then(/^it should clone "([^"]*)"$/) do |repo|
   step %("git clone #{repo}" should be run)
 end
 
+Then(/^it should not clone anything$/) do
+  history.each { |h| expect(h).to_not match(/^git clone/) }
+end
+
 Then(/^"([^"]+)" should not be run$/) do |pattern|
-  history.all? {|h| h.should_not include(pattern) }
+  history.each { |h| expect(h).to_not include(pattern) }
 end
 
 Then(/^there should be no output$/) do
@@ -148,29 +162,29 @@ Then(/^there should be no output$/) do
 end
 
 Then(/^the git command should be unchanged$/) do
-  @commands.should_not be_empty
+  expect(@commands).to_not be_empty
   assert_command_run @commands.last.sub(/^hub\b/, 'git')
 end
 
 Then(/^the url for "([^"]*)" should be "([^"]*)"$/) do |name, url|
   found = run_silent %(git config --get-all remote.#{name}.url)
-  found.should eql(url)
+  expect(found).to eql(url)
 end
 
 Then(/^the "([^"]*)" submodule url should be "([^"]*)"$/) do |name, url|
   found = run_silent %(git config --get-all submodule."#{name}".url)
-  found.should eql(url)
+  expect(found).to eql(url)
 end
 
 Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
   remotes = run_silent('git remote').split("\n")
-  remotes.should_not include(remote_name)
+  expect(remotes).to_not include(remote_name)
 end
 
 Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
   prep_for_fs_check do
     mode = File.stat(file).mode
-    mode.to_s(8).should =~ /#{expected_mode}$/
+    expect(mode.to_s(8)).to match(/#{expected_mode}$/)
   end
 end
 
@@ -228,4 +242,18 @@ end
 
 Given(/^the git commit editor is "([^"]+)"$/) do |cmd|
   set_env('GIT_EDITOR', cmd)
+end
+
+Given(/^the SSH config:$/) do |config_lines|
+  ssh_config = "#{ENV['HOME']}/.ssh/config"
+  FileUtils.mkdir_p(File.dirname(ssh_config))
+  File.open(ssh_config, 'w') {|f| f << config_lines }
+end
+
+Given(/^the SHAs and timestamps are normalized in "([^"]+)"$/) do |file|
+  in_current_dir do
+    contents = File.read(file)
+    contents.gsub!(/[0-9a-f]{7} \(Hub, \d seconds? ago\)/, "SHA1SHA (Hub, 0 seconds ago)")
+    File.open(file, "w") { |f| f.write(contents) }
+  end
 end
