@@ -13,6 +13,9 @@ func TestSSHConfigReader_Read(t *testing.T) {
 	c := `Host github.com
   Hostname ssh.github.com
   Port 443
+
+	host other
+	Hostname 10.0.0.1
 	`
 
 	ioutil.WriteFile(f.Name(), []byte(c), os.ModePerm)
