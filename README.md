@@ -39,6 +39,9 @@ hub version 2.2.0
 [compiled binaries](https://github.com/github/hub/releases) and put it anywhere
 in your executable path.
 
+*or*,synlink the hub executible using 
+```ln -s /path/to/hub/executable /usr/bin/hub```
+
 #### Source
 
 To install `hub` from source, you need to have a [Go development environment](http://golang.org/doc/install),
