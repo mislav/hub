@@ -40,7 +40,10 @@ hub version 2.2.0
 in your executable path.
 
 *or*,synlink the hub executible using 
-```ln -s /path/to/hub/executable /usr/bin/hub```
+```ln -s /path/to/hub/executable /usr/bin/hub
+    cp /path/to/hub/etc/hub.bash-completion.sh  /etc/bash_completion.d/
+    cp /path/to/hub/etc/hub.zsh-completion.sh   any/of/$fapth
+```
 
 #### Source
 
