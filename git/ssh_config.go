@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	hostReStr = "^[ \t]*(Host|HostName|Hostname)[ \t]+(.+)$"
+	hostReStr = "(?i)^[ \t]*(host|hostname)[ \t]+(.+)$"
 )
 
 type SSHConfig map[string]string
@@ -56,7 +56,7 @@ func (r *SSHConfigReader) readFile(c SSHConfig, re *regexp.Regexp, f string) err
 		}
 
 		names := strings.Fields(match[2])
-		if match[1] == "Host" {
+		if strings.EqualFold(match[1], "host") {
 			hosts = names
 		} else {
 			for _, host := range hosts {
