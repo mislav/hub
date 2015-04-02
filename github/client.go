@@ -428,6 +428,28 @@ func (client *Client) CreateIssue(project *Project, title, body string, labels [
 	return
 }
 
+func (client *Client) UpdateIssue(project *Project, number int, assignee string) (err error) {
+	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": number})
+	if err != nil {
+		return
+	}
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("update issues", err)
+		return
+	}
+
+	params := octokit.IssueParams{
+		Assignee: assignee,
+	}
+	_, result := api.Issues(client.requestURL(url)).Update(params)
+	if result.HasError() {
+		err = FormatError("getting issues", result.Err)
+	}
+	return
+}
+
 func (client *Client) GhLatestTagName() (tagName string, err error) {
 	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": "jingweno", "repo": "gh"})
 	if err != nil {

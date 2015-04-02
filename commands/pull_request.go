@@ -5,15 +5,15 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] ",
+	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] [-a <USER>]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -30,6 +30,8 @@ Pull request message can also be passed via stdin with "-F -".
 If instead of normal <TITLE> an issue number is given with "-i", the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
 of title you can paste a full URL to an issue on GitHub.
+
+You can assign the PR to a user with "-a <USER>".
 `,
 }
 
@@ -38,6 +40,7 @@ var (
 	flagPullRequestHead,
 	flagPullRequestIssue,
 	flagPullRequestMessage,
+	flagPullRequestAssignee,
 	flagPullRequestFile string
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
@@ -51,6 +54,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -208,7 +212,13 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 
 		utils.Check(err)
+
 		pullRequestURL = pr.HTMLURL
+
+		if flagPullRequestAssignee != "" {
+			err = client.UpdateIssue(baseProject, pr.Number, flagPullRequestAssignee)
+			utils.Check(err)
+		}
 	}
 
 	if flagPullRequestBrowse {
