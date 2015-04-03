@@ -30,6 +30,8 @@ Pull request message can also be passed via stdin with "-F -".
 If instead of normal <TITLE> an issue number is given with "-i", the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
 of title you can paste a full URL to an issue on GitHub.
+
+If "-o" is specified, the pull request will be opened, otherwise the url is printed to stdout.
 `,
 }
 
