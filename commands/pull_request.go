@@ -216,7 +216,7 @@ func pullRequest(cmd *Command, args *Args) {
 		pullRequestURL = pr.HTMLURL
 
 		if flagPullRequestAssignee != "" {
-			err = client.UpdateIssue(baseProject, pr.Number, flagPullRequestAssignee)
+			err = client.UpdateIssueAssignee(baseProject, pr.Number, flagPullRequestAssignee)
 			utils.Check(err)
 		}
 	}

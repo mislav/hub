@@ -595,3 +595,19 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request with assignee
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        json :html_url => "the://url", :number => 1234
+      }
+      patch('/repos/mislav/coral/issues/1234') {
+        assert :assignee => "mislav"
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -a mislav`
+    Then the output should contain exactly "the://url\n"
