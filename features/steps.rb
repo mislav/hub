@@ -257,3 +257,7 @@ Given(/^the SHAs and timestamps are normalized in "([^"]+)"$/) do |file|
     File.open(file, "w") { |f| f.write(contents) }
   end
 end
+
+Given(/^that pull requests require signature$/) do
+  run_silent %(git config --global --add hub.pullrequest.signoff "true")
+end

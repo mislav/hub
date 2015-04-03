@@ -5,10 +5,13 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/github/hub/cmd"
 )
+
+const AuthorSignatureHeader = "Signed-off-by: "
 
 var GlobalFlags []string
 
@@ -162,6 +165,40 @@ func Config(name string) (string, error) {
 	return gitGetConfig(name)
 }
 
+func BoolConfig(name string) bool {
+	v, err := gitGetConfig(name)
+	if err != nil {
+		return false
+	}
+
+	v = strings.ToLower(v)
+	if v == "" ||
+		v == "true" ||
+		v == "yes" ||
+		v == "on" {
+		return true
+	}
+
+	if v == "false" ||
+		v == "no" ||
+		v == "off" ||
+		v[0] == '0' {
+		return false
+	}
+
+	i, err := strconv.Atoi(v)
+	if err != nil {
+		return false
+	}
+
+	return i > 0
+}
+
+func SetConfig(name, value string) error {
+	_, err := gitConfig(name, value)
+	return err
+}
+
 func GlobalConfig(name string) (string, error) {
 	return gitGetConfig("--global", name)
 }
@@ -191,6 +228,35 @@ func gitConfigCommand(args []string) []string {
 
 func Alias(name string) (string, error) {
 	return Config(fmt.Sprintf("alias.%s", name))
+}
+
+func AuthorSignature() (string, error) {
+	ident, err := authorIdent()
+	if err != nil {
+		return "", err
+	}
+
+	return fmt.Sprintf("%s%s", AuthorSignatureHeader, ident), nil
+}
+
+func authorIdent() (string, error) {
+	name, err := gitGetConfig("user.name")
+	if err != nil {
+		name = os.Getenv("GIT_AUTHOR_NAME")
+		if name == "" {
+			return "", fmt.Errorf("Can't load git config: user.name")
+		}
+	}
+
+	email, err := gitGetConfig("user.email")
+	if err != nil {
+		email = os.Getenv("GIT_AUTHOR_EMAIL")
+		if email == "" {
+			return "", fmt.Errorf("Can't load git config: user.email")
+		}
+	}
+
+	return fmt.Sprintf("%s <%s>", name, email), nil
 }
 
 func Run(command string, args ...string) error {

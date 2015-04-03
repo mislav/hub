@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 )
 
 var cmdPullRequest = &Command{
@@ -41,6 +41,7 @@ var (
 	flagPullRequestFile string
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
+	flagPullRequestSignOff bool
 )
 
 func init() {
@@ -51,6 +52,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestSignOff, "signoff", "s", false, "SIGNOFF")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -245,6 +247,13 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 		}
 	}
 
+	if signPullRequest(defaultMsg) {
+		sign, err := git.AuthorSignature()
+		if err == nil {
+			defaultMsg = fmt.Sprintf("%s\n%s", defaultMsg, sign)
+		}
+	}
+
 	cs := git.CommentChar()
 
 	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
@@ -280,4 +289,10 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
+}
+
+func signPullRequest(defaultMsg string) bool {
+	return (flagPullRequestSignOff ||
+		git.BoolConfig("hub.pullrequest.signoff")) &&
+		!strings.Contains(defaultMsg, git.AuthorSignatureHeader)
 }

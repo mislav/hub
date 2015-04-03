@@ -1,6 +1,7 @@
 package git
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -76,4 +77,57 @@ func TestGitConfig(t *testing.T) {
 	v, err = GlobalConfig("gh.test")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "1", v)
+}
+
+func TestGitSignatureWithConfig(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	err := SetConfig("user.name", "Some Hacker")
+	assert.Equal(t, nil, err)
+	err = SetConfig("user.email", "hacker@example.com")
+	assert.Equal(t, nil, err)
+
+	s, err := AuthorSignature()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "Signed-off-by: Some Hacker <hacker@example.com>", s)
+}
+
+func TestGitSignatureWithEnv(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	os.Setenv("GIT_AUTHOR_NAME", "Some Hacker")
+	defer os.Setenv("GIT_AUTHOR_NAME", "")
+	os.Setenv("GIT_AUTHOR_EMAIL", "hacker@example.com")
+	defer os.Setenv("GIT_AUTHOR_EMAIL", "")
+
+	s, err := AuthorSignature()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "Signed-off-by: Some Hacker <hacker@example.com>", s)
+}
+
+func TestBoolConfig(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	boolTestCases := map[string]bool{
+		"true":  true,
+		"yes":   true,
+		"on":    true,
+		"1":     true,
+		"false": false,
+		"no":    false,
+		"off":   false,
+		"-1":    false,
+		"0":     false,
+	}
+
+	for k, v := range boolTestCases {
+		err := SetConfig("hub.pullrequest.signoff", k)
+		assert.Equal(t, nil, err)
+
+		e := BoolConfig("hub.pullrequest.signoff")
+		assert.Equal(t, v, e)
+	}
 }
