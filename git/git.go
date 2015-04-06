@@ -177,6 +177,10 @@ func gitGetConfig(args ...string) (string, error) {
 		return "", fmt.Errorf("Unknown config %s", args[len(args)-1])
 	}
 
+	if len(output) == 0 {
+		return "", nil
+	}
+
 	return output[0], nil
 }
 
