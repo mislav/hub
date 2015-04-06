@@ -100,7 +100,7 @@ class Packer
   end
 
   def parse_version!
-    content = File.read root_path("commands", "version.go")
+    content = File.read root_path("version", "version.go")
     match = /var Version = "(.+)"/.match content
     raise "Fail to parse Hub version" unless match
 
@@ -137,7 +137,7 @@ class Packer
     # specifying osarch for Windows
     # see https://github.com/mitchellh/gox/issues/19#issuecomment-68117016
     osarch = OS.windows? ? "windows/#{OS.windows_64? ? "amd64" : "386"}" : ""
-    cmd = "gox -os=#{OS.type} -output=#{output} -ldflags \"-X github.com/github/hub/commands.Version #{release_version}\""
+    cmd = "gox -os=#{OS.type} -output=#{output} -ldflags \"-X github.com/github/hub/version.Version #{release_version}\""
     cmd += " -osarch=#{osarch}" unless osarch.empty?
     exec!(cmd)
   end

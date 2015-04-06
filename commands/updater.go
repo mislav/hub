@@ -18,6 +18,7 @@ import (
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/github/hub/version"
 )
 
 const (
@@ -27,15 +28,15 @@ const (
 var EnableAutoUpdate = false
 
 func NewUpdater() *Updater {
-	version := os.Getenv("HUB_VERSION")
-	if version == "" {
-		version = Version
+	ver := os.Getenv("HUB_VERSION")
+	if ver == "" {
+		ver = version.Version
 	}
 
 	timestampPath := filepath.Join(os.Getenv("HOME"), ".config", "hub-update")
 	return &Updater{
 		Host:           github.DefaultGitHubHost(),
-		CurrentVersion: version,
+		CurrentVersion: ver,
 		timestampPath:  timestampPath,
 	}
 }
