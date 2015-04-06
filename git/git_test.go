@@ -69,11 +69,16 @@ func TestGitConfig(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	v, err := GlobalConfig("gh.test")
+	v, err := GlobalConfig("hub.test")
 	assert.NotEqual(t, nil, err)
 
-	SetGlobalConfig("gh.test", "1")
-	v, err = GlobalConfig("gh.test")
+	SetGlobalConfig("hub.test", "1")
+	v, err = GlobalConfig("hub.test")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "1", v)
+
+	SetGlobalConfig("hub.test", "")
+	v, err = GlobalConfig("hub.test")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "", v)
 }
