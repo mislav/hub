@@ -12,6 +12,7 @@ import (
 	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/github/hub/version"
 )
 
 const (
@@ -74,19 +75,31 @@ func report(reportedError error, stack string) {
 	ui.Println(issue.HTMLURL)
 }
 
-func reportTitleAndBody(reportedError error, stack string) (title, body string, err error) {
-	message := "Crash report - %v\n\nError (%s): `%v`\n\nStack:\n\n```\n%s\n```\n\nRuntime:\n\n```\n%s\n```\n\n"
-	message += `
+const crashReportTmpl = "Crash report - %v\n\n" +
+	"Error (%s): `%v`\n\n" +
+	"Stack:\n\n```\n%s\n```\n\n" +
+	"Runtime:\n\n```\n%s\n```\n\n" +
+	"Version:\n\n```\n%s\n```\n" +
+	`
 # Creating crash report:
 #
-# This information will be posted as a new issue under jingweno/gh.
+# This information will be posted as a new issue under github/hub.
 # We're NOT including any information about the command that you were executing,
 # but knowing a little bit more about it would really help us to solve this problem.
 # Feel free to modify the title and the description for this issue.
 `
 
+func reportTitleAndBody(reportedError error, stack string) (title, body string, err error) {
 	errType := reflect.TypeOf(reportedError).String()
-	message = fmt.Sprintf(message, reportedError, errType, reportedError, stack, runtimeInfo())
+	message := fmt.Sprintf(
+		crashReportTmpl,
+		reportedError,
+		errType,
+		reportedError,
+		stack,
+		runtimeInfo(),
+		version.FullVersion(),
+	)
 
 	editor, err := NewEditor("CRASH_REPORT", "crash report", message)
 	if err != nil {
