@@ -31,7 +31,7 @@ If instead of normal <TITLE> an issue number is given with "-i", the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
 of title you can paste a full URL to an issue on GitHub.
 
-You can assign the PR to a user with "-a <USER>".
+You can assign the new pull request to a user with "-a <USER>".
 `,
 }
 
