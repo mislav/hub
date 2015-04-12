@@ -6,7 +6,7 @@ before_install:
   - export PATH=~/bin:"$PATH"
 language: go
 go:
-  - 1.4.1
+  - 1.4.2
 script: script/test
 install: bundle install --path "$HOME/build/$TRAVIS_REPO_SLUG/vendor/bundle" --without development --deployment --jobs=3 --retry=3
 cache:

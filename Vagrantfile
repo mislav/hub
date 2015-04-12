@@ -10,7 +10,7 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 GO_ARCHIVES = {
-  "linux" => "go1.4.1.linux-amd64.tar.gz",
+  "linux" => "go1.4.2.linux-amd64.tar.gz",
 }
 
 INSTALL = {
