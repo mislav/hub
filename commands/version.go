@@ -9,7 +9,7 @@ import (
 	"github.com/github/hub/utils"
 )
 
-var Version = "2.2.0"
+var Version = "2.2.1"
 
 var cmdVersion = &Command{
 	Run:   runVersion,
