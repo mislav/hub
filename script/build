@@ -28,7 +28,7 @@ setup_gopath() {
 }
 
 find_source_files() {
-  find . -maxdepth 2 -name '*.go' -not -name '*_test.go' "$@"
+  find . -maxdepth 2 -name '*.go' '!' -name '*_test.go' "$@"
 }
 
 count_changed_files() {
