@@ -5,10 +5,10 @@ hub is a command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
 
 ~~~ sh
-$ hub clone rtomayko/tilt
+$ hub clone github/hub
 
 # expands to:
-$ git clone git://github.com/rtomayko/tilt.git
+$ git clone git://github.com/github/hub.git
 ~~~
 
 hub is best aliased as `git`, so you can type `$ git <command>` in the shell and
