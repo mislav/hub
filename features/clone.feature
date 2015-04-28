@@ -53,6 +53,13 @@ Feature: hub clone
 
   Scenario: Clone a public repo with HTTPS
     Given HTTPS is preferred
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "https://github.com/rtomayko/ronn.git"
     And there should be no output
@@ -112,11 +119,25 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Preview cloning a private repo
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub --noop clone -p rtomayko/ronn`
     Then the output should contain exactly "git clone git@github.com:rtomayko/ronn.git\n"
     But it should not clone anything
 
   Scenario: Clone a private repo
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub clone -p rtomayko/ronn`
     Then it should clone "git@github.com:rtomayko/ronn.git"
     And there should be no output
@@ -132,6 +153,17 @@ Feature: hub clone
     When I successfully run `hub clone dotfiles`
     Then it should clone "git@github.com:mislav/dotfiles.git"
     And there should be no output
+
+  Scenario: Clone my repo that doesn't exist
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { status 404 }
+      """
+    When I run `hub clone dotfiles`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly "Error: repository mislav/dotfiles doesn't exist\n"
+    And it should not clone anything
 
   Scenario: Clone my repo with arguments
     Given the GitHub API server:
@@ -200,9 +232,25 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
-             :permissions => { :push => false }
+             :permissions => { :push => false },
+             :has_wiki => true
       }
       """
     When I successfully run `hub clone rtomayko/ronn.wiki`
     Then it should clone "git://github.com/rtomayko/ronn.wiki.git"
     And there should be no output
+
+  Scenario: Clone a nonexisting wiki
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false },
+             :has_wiki => false
+      }
+      """
+    When I run `hub clone rtomayko/ronn.wiki`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly "Error: rtomayko/ronn doesn't have a wiki\n"
+    And it should not clone anything
