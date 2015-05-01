@@ -15,7 +15,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-fos] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
@@ -25,6 +25,9 @@ pull-request -i <ISSUE>
 ## Options:
 	-f, --force
 		Skip the check for unpushed commits.
+
+	-s, --stat
+		Append a diffstat to pull request description.
 
 	-m, --message <MESSAGE>
 		Use the first line of <MESSAGE> as pull request title, and the rest as pull
@@ -73,6 +76,7 @@ var (
 
 	flagPullRequestBrowse,
 	flagPullRequestEdit,
+	flagPullRequestDiffstat,
 	flagPullRequestForce bool
 
 	flagPullRequestMilestone uint64
@@ -86,6 +90,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestDiffstat, "stat", "s", false, "DIFFSTAT")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
@@ -281,6 +286,7 @@ func pullRequest(cmd *Command, args *Args) {
 func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {
 	var (
 		defaultMsg string
+		diffstat   string
 		commitLogs string
 		err        error
 	)
@@ -310,6 +316,13 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		}
 	}
 
+	if flagPullRequestDiffstat {
+		diffstat, err = git.DiffStat(base, head)
+		if err != nil {
+			return "", err
+		}
+		defaultMsg = defaultMsg + "\n---\n" + diffstat
+	}
 	cs := git.CommentChar()
 
 	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
