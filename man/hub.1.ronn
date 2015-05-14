@@ -160,7 +160,7 @@ hub also adds some custom commands that are otherwise not present in git:
 
     With `-o` or `--browse`, the new pull request will open in the web browser.
 
-    Wirh `-a` or `--assign`, the new pull request will be assigned to <USER>.
+    With `-a` or `--assign`, the new pull request will be assigned to <USER>.
 
     Issue to pull request conversion via `-i <ISSUE>` or <ISSUE-URL>
     arguments is deprecated and will likely be removed from the future versions
