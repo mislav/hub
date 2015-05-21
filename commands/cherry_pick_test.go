@@ -45,6 +45,6 @@ func TestTransformCherryPickArgs(t *testing.T) {
 
 	cmds = args.Commands()
 	assert.Equal(t, 2, len(cmds))
-	assert.Equal(t, "git remote add -f jingweno git://github.com/jingweno/gh.git", cmds[0].String())
+	assert.Equal(t, "git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git", cmds[0].String())
 	assert.Equal(t, "git cherry-pick a319d88", cmds[1].String())
 }

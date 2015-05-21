@@ -26,7 +26,7 @@ func init() {
 
 /**
   $ gh checkout https://github.com/jingweno/gh/pull/73
-  > git remote add -f -t feature git://github:com/foo/gh.git
+  > git remote add -f --no-tags -t feature git://github:com/foo/gh.git
   > git checkout --track -B foo-feature foo/feature
 
   $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
@@ -101,7 +101,7 @@ func transformCheckoutArgs(args *Args) error {
 		args.Before("git", "fetch", user, remoteURL)
 	} else {
 		u := url.Project.GitURL(pullRequest.Head.Repo.Name, user, pullRequest.Head.Repo.Private)
-		args.Before("git", "remote", "add", "-f", "-t", branch, user, u)
+		args.Before("git", "remote", "add", "-f", "--no-tags", "-t", branch, user, u)
 	}
 
 	remoteName := fmt.Sprintf("%s/%s", user, branch)

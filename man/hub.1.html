@@ -301,11 +301,11 @@ $ git fetch mislav,xoebus
 <h3 id="git-cherry-pick">git cherry-pick</h3>
 
 <pre><code>$ git cherry-pick http://github.com/mislav/REPO/commit/SHA
-&gt; git remote add -f mislav git://github.com/mislav/REPO.git
+&gt; git remote add -f --no-tags mislav git://github.com/mislav/REPO.git
 &gt; git cherry-pick SHA
 
 $ git cherry-pick mislav@SHA
-&gt; git remote add -f mislav git://github.com/mislav/CURRENT_REPO.git
+&gt; git remote add -f --no-tags mislav git://github.com/mislav/CURRENT_REPO.git
 &gt; git cherry-pick SHA
 
 $ git cherry-pick mislav@SHA
@@ -349,7 +349,7 @@ $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:featur
 <h3 id="git-checkout">git checkout</h3>
 
 <pre><code>$ git checkout https://github.com/defunkt/hub/pull/73
-&gt; git remote add -f -t feature mislav git://github.com/mislav/hub.git
+&gt; git remote add -f --no-tags -t feature mislav git://github.com/mislav/hub.git
 &gt; git checkout --track -B mislav-feature mislav/feature
 
 $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
