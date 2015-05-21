@@ -23,7 +23,7 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git remote add -f -t fixes mislav git://github.com/mislav/jekyll.git" should be run
+    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll.git" should be run
     And "git checkout -f --track -B mislav-fixes mislav/fixes -q" should be run
 
   Scenario: Pull request from a renamed fork
@@ -41,7 +41,7 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
-    Then "git remote add -f -t fixes mislav git://github.com/mislav/jekyll-blog.git" should be run
+    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll-blog.git" should be run
     And "git checkout --track -B mislav-fixes mislav/fixes" should be run
 
   Scenario: Custom name for new branch
@@ -59,7 +59,7 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 fixes-from-mislav`
-    Then "git remote add -f -t fixes mislav git://github.com/mislav/jekyll.git" should be run
+    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll.git" should be run
     And "git checkout --track -B fixes-from-mislav mislav/fixes" should be run
 
   Scenario: Private pull request
@@ -77,7 +77,7 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git remote add -f -t fixes mislav git@github.com:mislav/jekyll.git" should be run
+    Then "git remote add -f --no-tags -t fixes mislav git@github.com:mislav/jekyll.git" should be run
     And "git checkout -f --track -B mislav-fixes mislav/fixes -q" should be run
 
   Scenario: Custom name for new branch
@@ -95,7 +95,7 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 fixes-from-mislav`
-    Then "git remote add -f -t fixes mislav git://github.com/mislav/jekyll.git" should be run
+    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll.git" should be run
     And "git checkout --track -B fixes-from-mislav mislav/fixes" should be run
 
   Scenario: Remote for user already exists
