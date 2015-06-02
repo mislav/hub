@@ -60,6 +60,9 @@ case "$1" in
 test )
   test_hub
   ;;
+files )
+  find_source_files
+  ;;
 -h | --help )
   sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
   exit
