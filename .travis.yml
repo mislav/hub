@@ -17,3 +17,8 @@ cache:
     - vendor/bundle
 notifications:
   email: false
+env:
+  global:
+    - AMAZON_S3_BUCKET=ci-cache
+    - AMAZON_ACCESS_KEY_ID=AKIAJQCVTDEWQHRPBPGQ
+    - secure: "XAZv5xyNjWt7F9hG0MZhDANVJ5h/ajEZvfJOEIZRQlE3X5x6oVgI8blLh/MmlRSF0kIyLckcn6t2ccjSOvwN2hca5bwZSjIqoKbJyNe2cmkxfi2432vEOu3Ve6PT5hZWX4R5RgT+xWyMjIJcdF3gUMP7ErXl64aEncBzeW6OoXM="
