@@ -2,7 +2,16 @@
 set -e
 
 if [ -n "$TRAVIS" ]; then
-  curl -fsSL https://ci-cache.s3.amazonaws.com/tmux-zsh.ubuntu.tgz | tar -xz -C ~
+  case "$TRAVIS_OS_NAME" in
+    linux ) cache_name="tmux-zsh.ubuntu" ;;
+    osx ) cache_name="tmux.osx" ;;
+    * )
+      echo "unknown OS: $TRAVIS_OS_NAME" >&2
+      exit 1
+      ;;
+  esac
+
+  curl -fsSL "https://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${cache_name}.tgz" | tar -xz -C ~
   exit 0
 fi
 
