@@ -34,6 +34,7 @@ git_distributed_zsh_completion = lambda {
 
 git_distributed_bash_completion = lambda {
   [ git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash',
+    git_prefix.call + 'share/git-core/git-completion.bash',
     git_prefix.call + 'etc/bash_completion.d/git-completion.bash',
     Pathname.new('/etc/bash_completion.d/git'),
     Pathname.new('/usr/share/bash-completion/completions/git'),
