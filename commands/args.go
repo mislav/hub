@@ -18,6 +18,7 @@ type Args struct {
 	beforeChain []*cmd.Cmd
 	afterChain  []*cmd.Cmd
 	Noop        bool
+	Terminator  bool
 }
 
 func (a *Args) Words() []string {

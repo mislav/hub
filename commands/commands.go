@@ -54,6 +54,11 @@ func (c *Command) parseArguments(args *Args) (err error) {
 	c.Flag.Init(c.Name(), flag.ContinueOnError)
 	c.Flag.Usage = c.PrintUsage
 	if err = c.Flag.Parse(args.Params); err == nil {
+		for _, arg := range args.Params {
+			if arg == "--" {
+				args.Terminator = true
+			}
+		}
 		args.Params = c.Flag.Args()
 	}
 
