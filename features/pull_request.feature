@@ -279,6 +279,35 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+  Scenario: Edit title and body from file
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Edit title from file',
+               :body  => "Edit body from file as well.\n\nMultiline, even!"
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    And a file named "pullreq-msg" with:
+      """
+      Title from file
+
+      Body from file as well.
+
+      Multiline, even!
+      """
+    When I run `hub pull-request -F pullreq-msg --edit` interactively
+    And I pass in:
+      """
+      Edit title from file
+
+      Edit body from file as well.
+
+      Multiline, even!
+      """
+    Then the exit status should be 0
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
   Scenario: Title and body from stdin
     Given the GitHub API server:
       """

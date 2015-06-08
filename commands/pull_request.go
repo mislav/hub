@@ -43,7 +43,8 @@ var (
 	flagPullRequestAssignee,
 	flagPullRequestFile string
 	flagPullRequestBrowse,
-	flagPullRequestForce bool
+	flagPullRequestForce,
+	flagPullRequestEdit bool
 )
 
 func init() {
@@ -55,6 +56,7 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -180,6 +182,14 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
+		utils.Check(err)
+
+		title, body, err = editor.EditTitleAndBody()
+		utils.Check(err)
+	}
+
+	if flagPullRequestFile != "" && flagPullRequestEdit {
+		editor, err = github.NewEditor("PULLREQ", "pull request", title + "\n\n" + body)
 		utils.Check(err)
 
 		title, body, err = editor.EditTitleAndBody()
