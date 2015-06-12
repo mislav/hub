@@ -58,6 +58,10 @@
 			"Rev": "6807e777504f54ad073ecef66747de158294b639"
 		},
 		{
+			"ImportPath": "github.com/mattn/go-colorable",
+			"Rev": "d67e0b7d1797975196499f79bcc322c08b9f218b"
+		},
+		{
 			"ImportPath": "github.com/mattn/go-isatty",
 			"Rev": "6152ce208cfa13d58f065348a3312b4160fb98d1"
 		},
