@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -134,7 +135,7 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		},
 		Verbose:     verbose,
 		OverrideURL: testURL,
-		Out:         os.Stderr,
+		Out:         ui.Stderr,
 		Colorized:   isTerminal(os.Stderr.Fd()),
 	}
 	return &http.Client{Transport: tr}
