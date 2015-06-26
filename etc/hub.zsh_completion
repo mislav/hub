@@ -46,7 +46,7 @@
 _git-alias () {
   _arguments \
     '-s[output shell script suitable for eval]' \
-    '1::shell:(zsh bash csh)'
+    '1::shell:(bash zsh sh ksh csh tcsh fish)'
 }
 
 (( $+functions[_git-browse] )) ||
