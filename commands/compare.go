@@ -2,9 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
-	"net/url"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -26,10 +26,12 @@ With "-u", outputs the URL rather than opening the browser.
 
 var (
 	flagCompareURLOnly bool
+	flagCompareBase    string
 )
 
 func init() {
 	cmdCompare.Flag.BoolVarP(&flagCompareURLOnly, "url-only", "u", false, "URL only")
+	cmdCompare.Flag.StringVarP(&flagCompareBase, "base", "b", "", "BASE")
 
 	CmdRunner.Use(cmdCompare)
 }
@@ -58,19 +60,30 @@ func compare(command *Command, args *Args) {
 	utils.Check(err)
 
 	if args.IsParamsEmpty() {
-		if branch != nil && !branch.IsMaster() {
-			r = branch.ShortName()
-		} else {
+		if branch == nil ||
+			(branch.IsMaster() && flagCompareBase == "") ||
+			(flagCompareBase == branch.ShortName()) {
+
 			err = fmt.Errorf("Usage: hub compare [USER] [<START>...]<END>")
 			utils.Check(err)
+		} else {
+			r = branch.ShortName()
+			if flagCompareBase != "" {
+				r = parseCompareRange(flagCompareBase + "..." + r)
+			}
 		}
 	} else {
-		r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
-		if args.IsParamsEmpty() {
-			project, err = localRepo.CurrentProject()
+		if flagCompareBase != "" {
+			err = fmt.Errorf("Usage: hub compare [USER] [<START>...]<END>")
 			utils.Check(err)
 		} else {
-			project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), "", "")
+			r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
+			if args.IsParamsEmpty() {
+				project, err = localRepo.CurrentProject()
+				utils.Check(err)
+			} else {
+				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), "", "")
+			}
 		}
 	}
 

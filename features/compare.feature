@@ -63,6 +63,41 @@ Feature: hub compare
       https://github.com/mislav/dotfiles/compare/1.0...fix\n
       """
 
+  Scenario: Compare base in branch that is not master
+    Given I am on the "feature" branch with upstream "origin/experimental"
+    And git "push.default" is set to "upstream"
+    When I successfully run `hub compare -b master`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/master...experimental" should be run
+
+  Scenario: Compare base in master branch
+    Given I am on the "master" branch with upstream "origin/master"
+    And git "push.default" is set to "upstream"
+    When I successfully run `hub compare -b experimental`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/experimental...master" should be run
+
+  Scenario: Compare base with same branch as the current branch
+    Given I am on the "feature" branch with upstream "origin/experimental"
+    And git "push.default" is set to "upstream"
+    When I run `hub compare -b experimental`
+    Then "open https://github.com/mislav/dotfiles/compare/experimental...experimental" should not be run
+    And the exit status should be 1
+    And the stderr should contain:
+      """
+      hub compare [USER] [<START>...]<END>
+      """
+
+  Scenario: Compare base with parameters
+    Given I am on the "master" branch with upstream "origin/master"
+    When I run `hub compare -b master experimental..master`
+    Then "open https://github.com/mislav/dotfiles/compare/experimental...master" should not be run
+    And the exit status should be 1
+    And the stderr should contain:
+      """
+      hub compare [USER] [<START>...]<END>
+      """
+
   Scenario: Compare 2-dots range for tags
     When I successfully run `hub compare 1.0..fix`
     Then there should be no output
