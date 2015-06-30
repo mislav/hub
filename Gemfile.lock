@@ -27,8 +27,8 @@ GEM
     hpricot (0.8.4)
     jruby-openssl (0.7.7)
       bouncy-castle-java (>= 1.5.0146.1)
-    json (1.8.0)
-    json (1.8.0-java)
+    json (1.8.2)
+    json (1.8.2-java)
     minitest (5.0.5)
     multi_json (1.10.1)
     multi_test (0.1.1)
@@ -71,3 +71,6 @@ DEPENDENCIES
   ruby-prof
   sinatra
   webmock (~> 1.9.0)
+
+BUNDLED WITH
+   1.10.3
