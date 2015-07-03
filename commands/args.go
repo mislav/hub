@@ -200,6 +200,7 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
 		noPaginate       bool
 		noReplaceObjects bool
 		bare             bool
+		literalPathspecs bool
 		version          bool
 		help             bool
 
@@ -214,6 +215,7 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
 	globalFlagSet.BoolVarP(&noPaginate, "no-pager", "", false, "")
 	globalFlagSet.BoolVarP(&noReplaceObjects, "no-replace-objects", "", false, "")
 	globalFlagSet.BoolVarP(&bare, "bare", "", false, "")
+	globalFlagSet.BoolVarP(&literalPathspecs, "literal-pathspecs", "", false, "")
 	globalFlagSet.BoolVarP(&version, "version", "", false, "")
 	globalFlagSet.BoolVarP(&help, "help", "", false, "")
 
@@ -260,6 +262,10 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
 
 	if bare {
 		*globalFlags = append(*globalFlags, "--bare")
+	}
+
+	if literalPathspecs {
+		*globalFlags = append(*globalFlags, "--literal-pathspecs")
 	}
 
 	if execPath != "" {
