@@ -201,6 +201,9 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
 		noReplaceObjects bool
 		bare             bool
 		literalPathspecs bool
+		globPathspecs    bool
+		noglobPathspecs  bool
+		icasePathspecs   bool
 		version          bool
 		help             bool
 
@@ -216,6 +219,9 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
 	globalFlagSet.BoolVarP(&noReplaceObjects, "no-replace-objects", "", false, "")
 	globalFlagSet.BoolVarP(&bare, "bare", "", false, "")
 	globalFlagSet.BoolVarP(&literalPathspecs, "literal-pathspecs", "", false, "")
+	globalFlagSet.BoolVarP(&globPathspecs, "glob-pathspecs", "", false, "")
+	globalFlagSet.BoolVarP(&noglobPathspecs, "noglob-pathspecs", "", false, "")
+	globalFlagSet.BoolVarP(&icasePathspecs, "icase-pathspecs", "", false, "")
 	globalFlagSet.BoolVarP(&version, "version", "", false, "")
 	globalFlagSet.BoolVarP(&help, "help", "", false, "")
 
@@ -266,6 +272,18 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
 
 	if literalPathspecs {
 		*globalFlags = append(*globalFlags, "--literal-pathspecs")
+	}
+
+	if globPathspecs {
+		*globalFlags = append(*globalFlags, "--glob-pathspecs")
+	}
+
+	if noglobPathspecs {
+		*globalFlags = append(*globalFlags, "--noglob-pathspecs")
+	}
+
+	if icasePathspecs {
+		*globalFlags = append(*globalFlags, "--icase-pathspecs")
 	}
 
 	if execPath != "" {
