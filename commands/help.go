@@ -17,7 +17,7 @@ var cmdHelp = &Command{
 func init() {
 	cmdHelp.Run = runHelp
 
-	CmdRunner.Use(cmdHelp)
+	CmdRunner.Use(cmdHelp, "--help")
 }
 
 func runHelp(cmd *Command, args *Args) {

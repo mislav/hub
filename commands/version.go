@@ -19,7 +19,7 @@ var cmdVersion = &Command{
 }
 
 func init() {
-	CmdRunner.Use(cmdVersion)
+	CmdRunner.Use(cmdVersion, "--version")
 }
 
 func runVersion(cmd *Command, args *Args) {
