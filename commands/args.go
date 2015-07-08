@@ -168,7 +168,8 @@ func NewArgs(args []string) *Args {
 		globalFlags []string
 	)
 
-	slurpGlobalFlags(&args, &globalFlags, &noop)
+	slurpGlobalFlags(&args, &globalFlags)
+	noop = removeValue(&globalFlags, "--noop")
 
 	if len(args) == 0 {
 		params = []string{}
@@ -188,7 +189,7 @@ func NewArgs(args []string) *Args {
 	}
 }
 
-func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
+func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
 	slurpNextValue := false
 	commandIndex := 0
 
@@ -208,15 +209,8 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string, noop *bool) {
 
 	if commandIndex > 0 {
 		aa := *args
+		*globalFlags = aa[0:commandIndex]
 		*args = aa[commandIndex:]
-
-		for _, arg := range aa[0:commandIndex] {
-			if arg == "--noop" {
-				*noop = true
-			} else {
-				*globalFlags = append(*globalFlags, arg)
-			}
-		}
 	}
 }
 
@@ -229,4 +223,17 @@ func removeItem(slice []string, index int) (newSlice []string, item string) {
 	newSlice = append(slice[:index], slice[index+1:]...)
 
 	return newSlice, item
+}
+
+func removeValue(slice *[]string, value string) (found bool) {
+	var newSlice []string
+	for _, item := range *slice {
+		if item == value {
+			found = true
+		} else {
+			newSlice = append(newSlice, item)
+		}
+	}
+	*slice = newSlice
+	return found
 }
