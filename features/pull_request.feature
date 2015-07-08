@@ -120,7 +120,7 @@ Feature: hub pull-request
 # Requesting a pull to mislav:master from mislav:topic
 #
 # Write a message for this pull request. The first block
-# of text is the title and the rest is description.
+# of text is the title and the rest is the description.
 #
 # Changes:
 #

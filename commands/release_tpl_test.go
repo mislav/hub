@@ -12,7 +12,7 @@ func TestRenderReleaseTpl(t *testing.T) {
 
 	expMsg := `# Creating release 1.0 for hub from master
 #
-# Write a message for this release. The first block
-# of text is the title and the rest is description.`
+# Write a message for this release. The first block of
+# text is the title and the rest is the description.`
 	assert.Equal(t, expMsg, msg)
 }
