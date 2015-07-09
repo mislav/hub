@@ -117,6 +117,25 @@ Feature: OAuth authentication
     Then the output should not contain "github.com password for mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
+  Scenario: Credentials from GITHUB_TOKEN
+    Given the GitHub API server:
+      """
+      get('/user') {
+        halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
+        p request.env
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    Given $GITHUB_TOKEN is "OTOKEN"
+    When I successfully run `hub create`
+    Then the output should not contain "github.com password"
+    And the output should not contain "github.com username"
+    And the file "../home/.config/hub" should not exist
+
   Scenario: Wrong password
     Given the GitHub API server:
       """

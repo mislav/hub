@@ -57,29 +57,37 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		return
 	}
 
-	user := c.PromptForUser(host)
-	pass := c.PromptForPassword(host, user)
-
 	client := NewClient(host)
-	var code, token string
-	for {
-		token, err = client.FindOrCreateToken(user, pass, code)
-		if err == nil {
-			break
-		}
 
-		if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
-			if code != "" {
-				ui.Errorln("warning: invalid two-factor code")
+	var user, pass, token string
+	token = c.DetectToken(host)
+	usingEnvVarToken := true
+
+	if token == "" {
+		usingEnvVarToken = false
+		user = c.PromptForUser(host)
+		pass = c.PromptForPassword(host, user)
+
+		var code string
+		for {
+			token, err = client.FindOrCreateToken(user, pass, code)
+			if err == nil {
+				break
 			}
-			code = c.PromptForOTP()
-		} else {
-			break
-		}
-	}
 
-	if err != nil {
-		return
+			if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
+				if code != "" {
+					ui.Errorln("warning: invalid two-factor code")
+				}
+				code = c.PromptForOTP()
+			} else {
+				break
+			}
+		}
+
+		if err != nil {
+			return
+		}
 	}
 
 	client.Host.AccessToken = token
@@ -95,7 +103,10 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		Protocol:    "https",
 	}
 	c.Hosts = append(c.Hosts, *h)
-	err = newConfigService().Save(configsFile(), c)
+
+	if !usingEnvVarToken {
+		err = newConfigService().Save(configsFile(), c)
+	}
 
 	return
 }
@@ -110,6 +121,10 @@ func (c *Config) PromptForUser(host string) (user string) {
 	user = c.scanLine()
 
 	return
+}
+
+func (c *Config) DetectToken(host string) string {
+	return os.Getenv("GITHUB_TOKEN")
 }
 
 func (c *Config) PromptForPassword(host, user string) (pass string) {
