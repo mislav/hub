@@ -89,3 +89,11 @@ func TestArgs_GlobalFlags_Noop(t *testing.T) {
 	assert.Equal(t, []string{"-s", "-b"}, args.Params)
 	assert.Equal(t, true, args.Noop)
 }
+
+func TestArgs_GlobalFlags_Repeated(t *testing.T) {
+	args := NewArgs([]string{"-C", "mydir", "-c", "a=b", "--bare", "-c", "c=d", "-c", "e=f", "status"})
+	assert.Equal(t, "status", args.Command)
+	assert.Equal(t, []string{"-C", "mydir", "-c", "a=b", "--bare", "-c", "c=d", "-c", "e=f"}, args.GlobalFlags)
+	assert.Equal(t, 0, len(args.Params))
+	assert.Equal(t, false, args.Noop)
+}
