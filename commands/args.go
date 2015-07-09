@@ -21,7 +21,7 @@ type Args struct {
 func (a *Args) Words() []string {
 	aa := make([]string, 0)
 	for _, p := range a.Params {
-		if !strings.HasPrefix(p, "-") {
+		if !looksLikeFlag(p) {
 			aa = append(aa, p)
 		}
 	}
@@ -194,7 +194,12 @@ const (
 	helpFlag    = "--help"
 	configFlag  = "-c"
 	chdirFlag   = "-C"
+	flagPrefix  = "-"
 )
+
+func looksLikeFlag(value string) bool {
+	return strings.HasPrefix(value, flagPrefix)
+}
 
 func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
 	slurpNextValue := false
@@ -204,7 +209,7 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
 		if slurpNextValue {
 			commandIndex = i + 1
 			slurpNextValue = false
-		} else if arg == versionFlag || arg == helpFlag || !strings.HasPrefix(arg, "-") {
+		} else if arg == versionFlag || arg == helpFlag || !looksLikeFlag(arg) {
 			break
 		} else {
 			commandIndex = i + 1
