@@ -169,7 +169,7 @@ func NewArgs(args []string) *Args {
 	)
 
 	slurpGlobalFlags(&args, &globalFlags)
-	noop = removeValue(&globalFlags, "--noop")
+	noop = removeValue(&globalFlags, noopFlag)
 
 	if len(args) == 0 {
 		params = []string{}
@@ -190,6 +190,7 @@ func NewArgs(args []string) *Args {
 }
 
 const (
+	noopFlag    = "--noop"
 	versionFlag = "--version"
 	helpFlag    = "--help"
 	configFlag  = "-c"
@@ -238,14 +239,13 @@ func removeItem(slice []string, index int) (newSlice []string, item string) {
 }
 
 func removeValue(slice *[]string, value string) (found bool) {
-	var newSlice []string
-	for _, item := range *slice {
-		if item == value {
+	aa := *slice
+	for i := len(aa) - 1; i >= 0; i-- {
+		arg := aa[i]
+		if arg == value {
 			found = true
-		} else {
-			newSlice = append(newSlice, item)
+			*slice, _ = removeItem(*slice, i)
 		}
 	}
-	*slice = newSlice
 	return found
 }
