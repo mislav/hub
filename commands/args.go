@@ -189,6 +189,13 @@ func NewArgs(args []string) *Args {
 	}
 }
 
+const (
+	versionFlag = "--version"
+	helpFlag    = "--help"
+	configFlag  = "-c"
+	chdirFlag   = "-C"
+)
+
 func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
 	slurpNextValue := false
 	commandIndex := 0
@@ -197,11 +204,11 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
 		if slurpNextValue {
 			commandIndex = i + 1
 			slurpNextValue = false
-		} else if arg == "--version" || arg == "--help" || !strings.HasPrefix(arg, "-") {
+		} else if arg == versionFlag || arg == helpFlag || !strings.HasPrefix(arg, "-") {
 			break
 		} else {
 			commandIndex = i + 1
-			if arg == "-c" || arg == "-C" {
+			if arg == configFlag || arg == chdirFlag {
 				slurpNextValue = true
 			}
 		}
