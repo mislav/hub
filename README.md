@@ -78,9 +78,10 @@ eval "$(hub alias -s)"
 hub repository contains tab-completion scripts for bash and zsh. These scripts
 complement existing completion scripts that ship with git.
 
+[Installation instructions](etc)
+
 * [hub bash completion](https://github.com/github/hub/blob/master/etc/hub.bash_completion.sh)
 * [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
-
 
 Commands
 --------
