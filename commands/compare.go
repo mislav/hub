@@ -2,9 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
-	"net/url"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
