@@ -41,9 +41,11 @@ var (
 	flagPullRequestIssue,
 	flagPullRequestMessage,
 	flagPullRequestAssignee,
+	flagPullRequestLabels,
 	flagPullRequestFile string
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
+	flagPullRequestMilestone uint64
 )
 
 func init() {
@@ -55,6 +57,8 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
+	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestLabels, "labels", "l", "", "LABELS")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -215,8 +219,16 @@ func pullRequest(cmd *Command, args *Args) {
 
 		pullRequestURL = pr.HTMLURL
 
-		if flagPullRequestAssignee != "" {
-			err = client.UpdateIssueAssignee(baseProject, pr.Number, flagPullRequestAssignee)
+		if flagPullRequestAssignee != "" || flagPullRequestMilestone > 0 ||
+			flagPullRequestLabels != "" {
+
+			params := octokit.IssueParams{
+				Assignee:  flagPullRequestAssignee,
+				Milestone: flagPullRequestMilestone,
+				Labels:    strings.Split(flagPullRequestLabels, ","),
+			}
+
+			err = client.UpdateIssue(baseProject, pr.Number, params)
 			utils.Check(err)
 		}
 	}
