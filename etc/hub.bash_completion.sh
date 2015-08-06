@@ -225,13 +225,13 @@ EOF
     fi
   }
 
-  # hub pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-b <BASE>] [-h <HEAD>]
+  # hub pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]
   _git_pull_request() {
-    local i c=2 flags="-f -m -F -i -b -h"
+    local i c=2 flags="-f -m -F -i -b -h -a -M -l"
     while [ $c -lt $cword ]; do
       i="${words[c]}"
       case "$i" in
-        -m|-F|-i|-b|-h)
+        -m|-F|-i|-b|-h|-a|-M|-l)
           ((c++))
           flags=${flags/$i/}
           ;;
@@ -245,7 +245,7 @@ EOF
       -i)
         COMPREPLY=()
         ;;
-      -b|-h)
+      -b|-h|-a|-M|-l)
         # (Doesn't seem to need this...)
         # Uncomment the following line when 'owner/repo:[TAB]' misbehaved
         #_get_comp_words_by_ref -n : cur

@@ -26,6 +26,9 @@ Feature: zsh tab-completion
       | -F | file                                 |
       | -i | issue                                |
       | -f | force (skip check for local commits) |
+      | -a | user                                 |
+      | -M | milestone                            |
+      | -l | labels                               |
 
   Scenario: Completion of fork arguments
     When I type "git fork -" and press <Tab>
