@@ -113,6 +113,24 @@ Feature: hub clone
     Then it should clone "git@github.com:mislav/dotfiles.git"
     And there should be no output
 
+  Scenario: Clone my repo with GITHUB_TOKEN env var
+    Given the GitHub API server:
+      """
+      get('/user') {
+        halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
+        json :login => 'mislav2'
+      }
+      get('/repos/mislav2/dotfiles') {
+        halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
+        json :private => false,
+             :permissions => { :push => true }
+      }
+      """
+    And $GITHUB_TOKEN is "OTOKEN"
+    When I successfully run `hub clone dotfiles`
+    Then it should clone "git@github.com:mislav2/dotfiles.git"
+    And there should be no output
+
   Scenario: Clone my repo with arguments
     Given the GitHub API server:
       """

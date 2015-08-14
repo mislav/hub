@@ -286,6 +286,9 @@ the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
 To avoid being prompted, use **GITHUB_USER** and **GITHUB_PASSWORD** environment
 variables.
 
+Alternatively, you may provide **GITHUB_TOKEN**, an access token with
+**repo** permissions. This will not be written to `~/.config/hub`.
+
 ### HTTPS instead of git protocol
 
 If you prefer the HTTPS protocol for GitHub repositories, you can set
