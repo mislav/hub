@@ -51,6 +51,14 @@ $ ./script/build
 $ cp hub YOUR_BIN_PATH
 ~~~
 
+#### Brew
+
+To install `hub` on Mac OSX, you can also use brew:
+
+~~~ brew
+$ brew install hub
+~~~
+
 Or, if you've done Go development before and your $GOPATH/bin
 directory is already in your PATH:
 
