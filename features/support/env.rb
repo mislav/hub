@@ -46,6 +46,8 @@ Before do
   set_env 'GIT_EDITOR', 'false'
   # reset current localization settings
   set_env 'LANG', nil
+  # ignore current user's token
+  set_env 'GITHUB_TOKEN', nil
 
   author_name  = "Hub"
   author_email = "hub@test.local"
