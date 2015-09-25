@@ -211,11 +211,18 @@ func configsFile() string {
 	return configsFile
 }
 
-func CurrentConfig() *Config {
-	c := &Config{}
-	newConfigService().Load(configsFile(), c)
+var currentConfig *Config
+var configLoadedFrom = ""
 
-	return c
+func CurrentConfig() *Config {
+	filename := configsFile()
+	if configLoadedFrom != filename {
+		currentConfig = &Config{}
+		newConfigService().Load(filename, currentConfig)
+		configLoadedFrom = filename
+	}
+
+	return currentConfig
 }
 
 func (c *Config) DefaultHost() (host *Host, err error) {
