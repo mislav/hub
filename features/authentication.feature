@@ -126,7 +126,6 @@ Feature: OAuth authentication
       }
       post('/user/repos') {
         halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
-        p request.env
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -135,6 +134,26 @@ Feature: OAuth authentication
     Then the output should not contain "github.com password"
     And the output should not contain "github.com username"
     And the file "../home/.config/hub" should not exist
+
+  Scenario: Credentials from GITHUB_TOKEN override those from config file
+    Given I am "mislav" on github.com with OAuth token "OTOKEN"
+    Given the GitHub API server:
+      """
+      get('/user') {
+        halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token PTOKEN"
+        json :login => 'parkr'
+      }
+      get('/repos/parkr/dotfiles') {
+        halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token PTOKEN"
+        json :private => false,
+             :permissions => { :push => true }
+      }
+      """
+    Given $GITHUB_TOKEN is "PTOKEN"
+    When I successfully run `hub clone dotfiles`
+    Then it should clone "git@github.com:parkr/dotfiles.git"
+    And the file "../home/.config/hub" should contain "user: mislav"
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
   Scenario: Wrong password
     Given the GitHub API server:
