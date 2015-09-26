@@ -31,24 +31,33 @@ exename="${tmpdir}/bin/hub"
 mkdir -p "${exename%/*}"
 script/build -o "$exename"
 
+crlf() {
+  sed $'s/$/\r/' "$1" > "$2"
+}
+
 if [ "$os" = "windows" ]; then
-  cp README.md "${tmpdir}/README.txt"
-  cp LICENSE "${tmpdir}/LICENSE.txt"
-  cp man/hub.1.html "${tmpdir}/hub.html"
+  crlf README.md "${tmpdir}/README.txt"
+  crlf LICENSE "${tmpdir}/LICENSE.txt"
+  crlf man/hub.1.html "${tmpdir}/hub.html"
+  crlf script/install.bat "${tmpdir}/install.bat"
 else
   cp -R README.md LICENSE etc "$tmpdir"
   mkdir -p "${tmpdir}/share/man/man1"
   cp man/hub.1 "${tmpdir}/share/man/man1"
+  cp script/install.sh "${tmpdir}/install"
+  chmod +x "${tmpdir}/install"
 fi
 
-pushd "${tmpdir%/*}" >/dev/null
-
 if [ "$os" = "windows" ]; then
-  file="${release}.zip"
-  zip -r "$file" "$release" >/dev/null
+  file="${PWD}/${tmpdir}.zip"
+  rm -f "$file"
+  pushd "$tmpdir" >/dev/null
+  zip -r "$file" * >/dev/null
 else
-  file="${release}.tgz"
+  file="${PWD}/${tmpdir}.tgz"
+  rm -f "$file"
+  pushd "${tmpdir%/*}" >/dev/null
   tar -czf "$file" "$release"
 fi
 
-echo "${PWD}/${file}"
+echo "$file"
