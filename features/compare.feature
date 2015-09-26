@@ -23,7 +23,7 @@ Feature: hub compare
     Then the exit status should be 1
     And the stderr should contain:
       """
-      hub compare [USER] [<START>...]<END>
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
       """
 
   Scenario: Can't compare default branch to self
@@ -33,7 +33,7 @@ Feature: hub compare
     Then the exit status should be 1
     And the stderr should contain:
       """
-      hub compare [USER] [<START>...]<END>
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
       """
 
   Scenario: No args, has upstream branch
@@ -85,7 +85,7 @@ Feature: hub compare
     And the exit status should be 1
     And the stderr should contain:
       """
-      hub compare [USER] [<START>...]<END>
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
       """
 
   Scenario: Compare base with parameters
@@ -95,7 +95,7 @@ Feature: hub compare
     And the exit status should be 1
     And the stderr should contain:
       """
-      hub compare [USER] [<START>...]<END>
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
       """
 
   Scenario: Compare 2-dots range for tags
