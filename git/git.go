@@ -39,7 +39,7 @@ func Dir() (string, error) {
 func HasFile(segments ...string) bool {
 	// The blessed way to resolve paths within git dir since Git 2.5.0
 	output, err := gitOutput("rev-parse", "-q", "--git-path", filepath.Join(segments...))
-	if err == nil {
+	if err == nil && output[0] != "--git-path" {
 		if _, err := os.Stat(output[0]); err == nil {
 			return true
 		}
