@@ -27,7 +27,7 @@ hub(1) -- git + hub = github
 `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
 `git compare` [`-u`] [<USER>] [[<START>...]<END>]  
 `git fork` [`--no-remote`]  
-`git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>] [`-a` <USER>] [`-M` <MILESTONE>] [`-l` <LABELS>]:
+`git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>] [`-a` <USER>] [`-M` <MILESTONE>] [`-l` <LABELS>]:  
 `git ci-status` [`-v`] [<COMMIT>]
 
 ## DESCRIPTION
@@ -145,7 +145,7 @@ hub also adds some custom commands that are otherwise not present in git:
     Forks the original project (referenced by "origin" remote) on GitHub and
     adds a new remote for it under your username.
 
-  * `git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>] [`-a` <USER>]:
+  * `git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>] [`-a` <USER>] [`-M` <MILESTONE>] [`-l` <LABELS>]:
     Opens a pull request on GitHub for the project that the "origin" remote
     points to. The default head of the pull request is the current branch.
     Both base and head of the pull request can be explicitly given in one of
@@ -161,6 +161,8 @@ hub also adds some custom commands that are otherwise not present in git:
     With `-o` or `--browse`, the new pull request will open in the web browser.
 
     With `-a` or `--assign`, the new pull request will be assigned to <USER>.
+    With `-M` or `--milestone`, it will be added to milestone with ID <MILESTONE>.
+    With `-l` or `--labels`, the comma-separated list of labels will be applied.
 
     Issue to pull request conversion via `-i <ISSUE>` or <ISSUE-URL>
     arguments is deprecated and will likely be removed from the future versions

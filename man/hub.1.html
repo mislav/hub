@@ -187,7 +187,7 @@ If <var>END</var> is omitted, GitHub compare view is opened for the current bran
 With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
 <dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
 adds a new remote for it under your username.</p></dd>
-<dt><code>git pull-request</code> [<code>-o</code>|<code>--browse</code>] [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>] [<code>-a</code> <var>USER</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
+<dt><code>git pull-request</code> [<code>-o</code>|<code>--browse</code>] [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>] [<code>-a</code> <var>USER</var>] [<code>-M</code> <var>MILESTONE</var>] [<code>-l</code> <var>LABELS</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
 Both base and head of the pull request can be explicitly given in one of
 the following formats: "branch", "owner:branch", "owner/repo:branch".
@@ -201,7 +201,9 @@ Pull request message can also be passed via stdin with <code>-F -</code>.</p>
 
 <p>With <code>-o</code> or <code>--browse</code>, the new pull request will open in the web browser.</p>
 
-<p>With <code>-a</code> or <code>--assign</code>, the new pull request will be assigned to <var>USER</var>.</p>
+<p>With <code>-a</code> or <code>--assign</code>, the new pull request will be assigned to <var>USER</var>.
+With <code>-M</code> or <code>--milestone</code>, it will be added to milestone with ID <var>MILESTONE</var>.
+With <code>-l</code> or <code>--labels</code>, the comma-separated list of labels will be applied.</p>
 
 <p>Issue to pull request conversion via <code>-i &lt;ISSUE></code> or <var>ISSUE-URL</var>
 arguments is deprecated and will likely be removed from the future versions
@@ -223,6 +225,9 @@ the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</
 
 <p>To avoid being prompted, use <var>GITHUB_USER</var> and <var>GITHUB_PASSWORD</var> environment
 variables.</p>
+
+<p>Alternatively, you may provide <var>GITHUB_TOKEN</var>, an access token with
+<var>repo</var> permissions. This will not be written to <code>~/.config/hub</code>.</p>
 
 <h3 id="HTTPS-instead-of-git-protocol">HTTPS instead of git protocol</h3>
 
@@ -481,7 +486,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>May 2015</li>
+    <li class='tc'>September 2015</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
