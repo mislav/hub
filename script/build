@@ -41,7 +41,7 @@ up_to_date() {
 
 build_hub() {
   setup_gopath
-  [ -n "$1" ] && (up_to_date "$1" || go build -ldflags "-X github.com/github/hub/version.Version `./script/version`" -o "$1")
+  [ -n "$1" ] && (up_to_date "$1" || go build -ldflags "-X github.com/github/hub/version.Version=`./script/version`" -o "$1")
 }
 
 test_hub() {

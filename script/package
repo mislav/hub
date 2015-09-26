@@ -11,7 +11,7 @@ version="${3?}"
 release="hub-${os}-${arch}-${version}"
 
 case "$os" in
-  darwin | freebsd | linux | windows ) ;;
+  darwin | freebsd | linux | netbsd | openbsd | solaris | windows ) ;;
   * ) echo "unsupported OS: $os" >&2; exit 1 ;;
 esac
 
@@ -20,9 +20,8 @@ case "$arch" in
   * ) echo "unsupported arch: $arch" >&2; exit 1 ;;
 esac
 
-export GIMME_OS="$os"
-export GIMME_ARCH="$arch"
-eval "$(gimme "$TRAVIS_GO_VERSION")" >/dev/null
+export GOOS="$os"
+export GOARCH="$arch"
 
 tmpdir="tmp/${release}"
 rm -rf "$tmpdir"

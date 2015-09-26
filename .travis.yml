@@ -9,7 +9,7 @@ before_install:
   - export PATH=~/bin:"$PATH"
 language: go
 go:
-  - 1.4.2
+  - 1.5.1
 script: script/test
 install: script/cached-bundle install --without development --deployment --jobs=3 --retry=3
 after_success: script/publish-release
