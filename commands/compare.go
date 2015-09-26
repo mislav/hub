@@ -26,10 +26,12 @@ With "-u", outputs the URL rather than opening the browser.
 
 var (
 	flagCompareURLOnly bool
+	flagCompareBase    string
 )
 
 func init() {
 	cmdCompare.Flag.BoolVarP(&flagCompareURLOnly, "url-only", "u", false, "URL only")
+	cmdCompare.Flag.StringVarP(&flagCompareBase, "base", "b", "", "BASE")
 
 	CmdRunner.Use(cmdCompare)
 }
@@ -57,20 +59,33 @@ func compare(command *Command, args *Args) {
 	branch, project, err = localRepo.RemoteBranchAndProject("", false)
 	utils.Check(err)
 
+	usageHelp := func() {
+		utils.Check(fmt.Errorf("Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]"))
+	}
+
 	if args.IsParamsEmpty() {
-		if branch != nil && !branch.IsMaster() {
-			r = branch.ShortName()
+		if branch == nil ||
+			(branch.IsMaster() && flagCompareBase == "") ||
+			(flagCompareBase == branch.ShortName()) {
+
+			usageHelp()
 		} else {
-			err = fmt.Errorf("Usage: hub compare [USER] [<START>...]<END>")
-			utils.Check(err)
+			r = branch.ShortName()
+			if flagCompareBase != "" {
+				r = parseCompareRange(flagCompareBase + "..." + r)
+			}
 		}
 	} else {
-		r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
-		if args.IsParamsEmpty() {
-			project, err = localRepo.CurrentProject()
-			utils.Check(err)
+		if flagCompareBase != "" {
+			usageHelp()
 		} else {
-			project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), "", "")
+			r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
+			if args.IsParamsEmpty() {
+				project, err = localRepo.CurrentProject()
+				utils.Check(err)
+			} else {
+				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), "", "")
+			}
 		}
 	}
 

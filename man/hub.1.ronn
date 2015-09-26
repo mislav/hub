@@ -25,7 +25,7 @@ hub(1) -- git + hub = github
 
 `git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]  
 `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
-`git compare` [`-u`] [<USER>] [[<START>...]<END>]  
+`git compare` [`-u`] [`-b` <BASE>] [<USER>] [[<START>...]<END>]  
 `git fork` [`--no-remote`]  
 `git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>] [`-a` <USER>] [`-M` <MILESTONE>] [`-l` <LABELS>]:  
 `git ci-status` [`-v`] [<COMMIT>]
@@ -132,14 +132,15 @@ hub also adds some custom commands that are otherwise not present in git:
     `git browse -- commit/<COMMIT>`.
     With `-u`, outputs the URL rather than opening the browser.
 
-  * `git compare` [`-u`] [<USER>] [[<START>...]<END>]:
+  * `git compare` [`-u`] [`-b` <BASE>] [<USER>] [[<START>...]<END>]:
     Open a GitHub compare view page in the system's default web browser.
     <START> to <END> are branch names, tag names, or commit SHA1s specifying
     the range of history to compare. If a range with two dots (`a..b`) is given,
     it will be transformed into one with three dots. If <START> is omitted,
     GitHub will compare against the base branch (the default is "master").
     If <END> is omitted, GitHub compare view is opened for the current branch.
-    With `-u`, outputs the URL rather than opening the browser.
+    With `-u`, outputs the URL rather than opening the browser. With `-b`, uses
+    <BASE> as base branch rather than the default branch (master).
 
   * `git fork` [`--no-remote`]:
     Forks the original project (referenced by "origin" remote) on GitHub and
