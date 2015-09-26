@@ -2,6 +2,7 @@ package github
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -132,7 +133,7 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		Verbose:     verbose,
 		OverrideURL: testURL,
 		Out:         ui.Stderr,
-		Colorized:   isTerminal(os.Stderr.Fd()),
+		Colorized:   IsTerminal(os.Stderr),
 	}
 	return &http.Client{Transport: tr}
 }
@@ -170,4 +171,46 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 	}
 
 	return proxyURL, nil
+}
+
+type simpleClient struct {
+	httpClient  *http.Client
+	rootUrl     *url.URL
+	accessToken string
+}
+
+func (c *simpleClient) Get(path string) (res *simpleResponse, err error) {
+	url, err := url.Parse(path)
+	if err != nil {
+		return
+	}
+
+	url = c.rootUrl.ResolveReference(url)
+	req, err := http.NewRequest("GET", url.String(), nil)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Authorization", "token "+c.accessToken)
+
+	httpResponse, err := c.httpClient.Do(req)
+	if err == nil {
+		res = &simpleResponse{httpResponse}
+	}
+
+	return
+}
+
+type simpleResponse struct {
+	*http.Response
+}
+
+func (res *simpleResponse) Parse(dest interface{}) (err error) {
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	return json.Unmarshal(body, dest)
 }

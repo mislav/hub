@@ -174,7 +174,7 @@ hub also adds some custom commands that are otherwise not present in git:
     status. Exits with one of:  
     success (0), error (1), failure (1), pending (2), no status (3)
 
-    If `-v` is given, additionally print the URL to CI build results.
+    If `-v` is given, additionally print detailed report of all checks and their URLs.
 
 ## CONFIGURATION
 
