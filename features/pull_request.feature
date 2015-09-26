@@ -611,3 +611,35 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo -a mislav`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request with milestone
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        json :html_url => "the://url", :number => 1234
+      }
+      patch('/repos/mislav/coral/issues/1234') {
+        assert :milestone => 1234
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -M 1234`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request with labels
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        json :html_url => "the://url", :number => 1234
+      }
+      patch('/repos/mislav/coral/issues/1234') {
+        assert :labels => ["feature", "release"]
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -l feature,release`
+    Then the output should contain exactly "the://url\n"

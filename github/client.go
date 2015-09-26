@@ -428,7 +428,7 @@ func (client *Client) CreateIssue(project *Project, title, body string, labels [
 	return
 }
 
-func (client *Client) UpdateIssueAssignee(project *Project, issueNumber int, assignee string) (err error) {
+func (client *Client) UpdateIssue(project *Project, issueNumber int, params octokit.IssueParams) (err error) {
 	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": issueNumber})
 	if err != nil {
 		return
@@ -440,9 +440,6 @@ func (client *Client) UpdateIssueAssignee(project *Project, issueNumber int, ass
 		return
 	}
 
-	params := octokit.IssueParams{
-		Assignee: assignee,
-	}
 	_, result := api.Issues(client.requestURL(url)).Update(params)
 	if result.HasError() {
 		err = FormatError("updating issue", result.Err)
