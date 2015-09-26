@@ -65,10 +65,6 @@ func (t *verboseTransport) dumpRequest(req *http.Request) {
 
 func (t *verboseTransport) dumpResponse(resp *http.Response) {
 	info := fmt.Sprintf("< HTTP %d", resp.StatusCode)
-	location, err := resp.Location()
-	if err == nil {
-		info = fmt.Sprintf("%s\n< Location: %s", info, location.String())
-	}
 	t.verbosePrintln(info)
 	t.dumpHeaders(resp.Header, "<")
 	body := t.dumpBody(resp.Body)
@@ -79,7 +75,7 @@ func (t *verboseTransport) dumpResponse(resp *http.Response) {
 }
 
 func (t *verboseTransport) dumpHeaders(header http.Header, indent string) {
-	dumpHeaders := []string{"Authorization", "X-GitHub-OTP", "Localtion"}
+	dumpHeaders := []string{"Authorization", "X-GitHub-OTP", "Location"}
 	for _, h := range dumpHeaders {
 		v := header.Get(h)
 		if v != "" {
