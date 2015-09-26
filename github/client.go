@@ -335,27 +335,34 @@ func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, con
 	return
 }
 
-func (client *Client) CIStatus(project *Project, sha string) (status *octokit.Status, err error) {
-	url, err := octokit.StatusesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "ref": sha})
+type CIStatusResponse struct {
+	State    string      `json:"state"`
+	Statuses []*CIStatus `json:"statuses"`
+}
+
+type CIStatus struct {
+	State     string `json:"state"`
+	Context   string `json:"context"`
+	TargetUrl string `json:"target_url"`
+}
+
+func (client *Client) FetchCIStatus(project *Project, sha string) (status *CIStatusResponse, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
+	res, err := api.Get("repos/" + project.Owner + "/" + project.Name + "/commits/" + sha + "/status")
 	if err != nil {
-		err = FormatError("getting CI status", err)
+		return
+	}
+	if res.StatusCode != 200 {
+		err = fmt.Errorf("Unexpected HTTP status code: %d", res.StatusCode)
 		return
 	}
 
-	statuses, result := api.Statuses(client.requestURL(url)).All()
-	if result.HasError() {
-		err = FormatError("getting CI status", result.Err)
-		return
-	}
-
-	if len(statuses) > 0 {
-		status = &statuses[0]
-	}
+	status = &CIStatusResponse{}
+	err = res.Parse(status)
 
 	return
 }
@@ -525,19 +532,42 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	return
 }
 
-func (client *Client) api() (c *octokit.Client, err error) {
+func (client *Client) ensureAccessToken() (err error) {
 	if client.Host.AccessToken == "" {
-		host, e := CurrentConfig().PromptForHost(client.Host.Host)
-		if e != nil {
-			err = e
-			return
+		host, err := CurrentConfig().PromptForHost(client.Host.Host)
+		if err == nil {
+			client.Host = host
 		}
-		client.Host = host
+	}
+	return
+}
+
+func (client *Client) api() (c *octokit.Client, err error) {
+	err = client.ensureAccessToken()
+	if err != nil {
+		return
 	}
 
 	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
 	c = client.newOctokitClient(tokenAuth)
 
+	return
+}
+
+func (client *Client) simpleApi() (c *simpleClient, err error) {
+	err = client.ensureAccessToken()
+	if err != nil {
+		return
+	}
+
+	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
+	apiRoot := client.absolute(normalizeHost(client.Host.Host))
+
+	c = &simpleClient{
+		httpClient:  httpClient,
+		rootUrl:     apiRoot,
+		accessToken: client.Host.AccessToken,
+	}
 	return
 }
 
@@ -555,15 +585,11 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 	return c
 }
 
-func (client *Client) absolute(endpoint string) *url.URL {
-	u, _ := url.Parse(endpoint)
-	if u.Scheme == "" && client.Host != nil {
+func (client *Client) absolute(host string) *url.URL {
+	u, _ := url.Parse("https://" + host)
+	if client.Host != nil && client.Host.Protocol != "" {
 		u.Scheme = client.Host.Protocol
 	}
-	if u.Scheme == "" {
-		u.Scheme = "https"
-	}
-
 	return u
 }
 
