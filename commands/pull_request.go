@@ -13,7 +13,7 @@ import (
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] [-a <USER>]",
+	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -31,7 +31,8 @@ If instead of normal <TITLE> an issue number is given with "-i", the pull
 request will be attached to an existing GitHub issue. Alternatively, instead
 of title you can paste a full URL to an issue on GitHub.
 
-You can assign the new pull request to a user with "-a <USER>".
+You can assign the new pull request to a user with "-a <USER>", add it to a
+milestone with "-M <MILESTONE>" and apply labels with "-l <LABELS>".
 `,
 }
 
@@ -41,9 +42,11 @@ var (
 	flagPullRequestIssue,
 	flagPullRequestMessage,
 	flagPullRequestAssignee,
+	flagPullRequestLabels,
 	flagPullRequestFile string
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
+	flagPullRequestMilestone uint64
 )
 
 func init() {
@@ -55,6 +58,8 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
+	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestLabels, "labels", "l", "", "LABELS")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -215,8 +220,16 @@ func pullRequest(cmd *Command, args *Args) {
 
 		pullRequestURL = pr.HTMLURL
 
-		if flagPullRequestAssignee != "" {
-			err = client.UpdateIssueAssignee(baseProject, pr.Number, flagPullRequestAssignee)
+		if flagPullRequestAssignee != "" || flagPullRequestMilestone > 0 ||
+			flagPullRequestLabels != "" {
+
+			params := octokit.IssueParams{
+				Assignee:  flagPullRequestAssignee,
+				Milestone: flagPullRequestMilestone,
+				Labels:    strings.Split(flagPullRequestLabels, ","),
+			}
+
+			err = client.UpdateIssue(baseProject, pr.Number, params)
 			utils.Check(err)
 		}
 	}

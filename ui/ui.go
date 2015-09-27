@@ -3,7 +3,8 @@ package ui
 import (
 	"fmt"
 	"io"
-	"os"
+
+	"github.com/github/hub/Godeps/_workspace/src/github.com/mattn/go-colorable"
 )
 
 type UI interface {
@@ -13,7 +14,11 @@ type UI interface {
 	Errorln(a ...interface{}) (n int, err error)
 }
 
-var Default UI = Console{Stdout: os.Stdout, Stderr: os.Stderr}
+var (
+	Stdout     = colorable.NewColorableStdout()
+	Stderr     = colorable.NewColorableStderr()
+	Default UI = Console{Stdout: Stdout, Stderr: Stderr}
+)
 
 func Printf(format string, a ...interface{}) (n int, err error) {
 	return Default.Printf(format, a...)
