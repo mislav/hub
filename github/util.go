@@ -1,6 +1,8 @@
 package github
 
 import (
+	"os"
+
 	"github.com/github/hub/Godeps/_workspace/src/github.com/mattn/go-isatty"
 	"github.com/github/hub/git"
 )
@@ -19,6 +21,6 @@ func IsHttpsProtocol() bool {
 	return false
 }
 
-func isTerminal(fd uintptr) bool {
-	return isatty.IsTerminal(fd)
+func IsTerminal(f *os.File) bool {
+	return isatty.IsTerminal(f.Fd())
 }
