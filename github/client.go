@@ -336,8 +336,8 @@ func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, con
 }
 
 type CIStatusResponse struct {
-	State    string      `json:"state"`
-	Statuses []*CIStatus `json:"statuses"`
+	State    string     `json:"state"`
+	Statuses []CIStatus `json:"statuses"`
 }
 
 type CIStatus struct {
@@ -352,7 +352,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 
-	res, err := api.Get("repos/" + project.Owner + "/" + project.Name + "/commits/" + sha + "/status")
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
 	if err != nil {
 		return
 	}
@@ -362,7 +362,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	}
 
 	status = &CIStatusResponse{}
-	err = res.Parse(status)
+	err = res.Unmarshal(status)
 
 	return
 }

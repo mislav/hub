@@ -204,7 +204,7 @@ type simpleResponse struct {
 	*http.Response
 }
 
-func (res *simpleResponse) Parse(dest interface{}) (err error) {
+func (res *simpleResponse) Unmarshal(dest interface{}) (err error) {
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
