@@ -128,6 +128,10 @@ func verboseFormat(statuses []*github.CIStatus) {
 			stateMarker = fmt.Sprintf("\033[%dm%s\033[0m", color, stateMarker)
 		}
 
-		ui.Printf("%s\t%-*s\t%s\n", stateMarker, contextWidth, status.Context, status.TargetUrl)
+		if status.TargetUrl == "" {
+			ui.Printf("%s\t%s\n", stateMarker, status.Context)
+		} else {
+			ui.Printf("%s\t%-*s\t%s\n", stateMarker, contextWidth, status.Context, status.TargetUrl)
+		}
 	}
 }

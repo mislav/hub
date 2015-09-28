@@ -32,10 +32,12 @@ Feature: hub ci-status
             :target_url => "https://travis-ci.org/michiels/pencilbox/builds/1234567" },
           { :state => "pending",
             :context => "continuous-integration/travis-ci/merge",
-            :target_url => "https://travis-ci.org/michiels/pencilbox/builds/1234567" },
+            :target_url => nil },
           { :state => "failure",
             :context => "GitHub CLA",
             :target_url => "https://cla.github.com/michiels/pencilbox/accept/mislav" },
+          { :state => "error",
+            :context => "whatevs!" }
         ]
       }
       """
@@ -43,8 +45,9 @@ Feature: hub ci-status
     Then the output should contain exactly:
       """
       ✔︎	continuous-integration/travis-ci/push 	https://travis-ci.org/michiels/pencilbox/builds/1234567
-      ●	continuous-integration/travis-ci/merge	https://travis-ci.org/michiels/pencilbox/builds/1234567
-      ✖︎	GitHub CLA                            	https://cla.github.com/michiels/pencilbox/accept/mislav\n
+      ●	continuous-integration/travis-ci/merge
+      ✖︎	GitHub CLA                            	https://cla.github.com/michiels/pencilbox/accept/mislav
+      ✖︎	whatevs!\n
       """
     And the exit status should be 2
 
