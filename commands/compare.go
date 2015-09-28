@@ -74,6 +74,11 @@ func compare(command *Command, args *Args) {
 		}
 	}
 
+	if project == nil {
+		project, err = localRepo.CurrentProject()
+		utils.Check(err)
+	}
+
 	subpage := utils.ConcatPaths("compare", rangeQueryEscape(r))
 	url := project.WebURL("", "", subpage)
 	launcher, err := utils.BrowserLauncher()
