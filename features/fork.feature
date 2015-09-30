@@ -76,7 +76,7 @@ Scenario: Related fork already exists
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
-        json :parent => { :html_url => 'https://github.com/evilchelu/dotfiles' }
+        json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
       }
       """
     When I run `hub fork`
