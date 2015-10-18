@@ -1,23 +1,14 @@
 # Installation instructions
 
+## bash + Homebrew
+
+If you're using Homebrew, just run `brew install hub` and you should be all set with auto-completion.
+
 ## bash
 
-Open your `.bashrc` file and add:
-
-> If you want to set up Git to automatically have Bash shell completion for all users, copy the `hub.bash_completion` script to the `/opt/local/etc/bash_completion.d` directory on Mac systems or to the `/etc/bash_completion.d/` directory on Linux systems. ([Source](https://git-scm.com/book/en/v1/Git-Basics-Tips-and-Tricks#Auto-Completion))
-
-* [Link to git auto-completion bash file](https://github.com/git/git/blob/master/contrib/completion/git-completion.bash)
+Open your `.bashrc` file if you're on Linux, or your `.bash_profile` if you're on OS X and add:
 
 ```sh
-# Make sure you've aliased hub to git
-eval "$(hub alias -s)"
-
-# And make sure that the git auto-completion is being loaded
-if [ -f /path/to/git-completion.bash ]; then
-    . /path/to/git-completion.bash
-fi
-
-# Load hub autocompletion
 if [ -f /path/to/hub.bash_completion ]; then
     . /path/to/hub.bash_completion
 fi
