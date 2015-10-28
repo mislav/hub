@@ -3,8 +3,6 @@ package github
 import (
 	"fmt"
 	"net/url"
-	"regexp"
-	"strings"
 
 	"github.com/github/hub/git"
 )
@@ -27,23 +25,10 @@ func (remote *Remote) Project() (*Project, error) {
 }
 
 func Remotes() (remotes []Remote, err error) {
-	re := regexp.MustCompile(`(.+)\s+(.+)\s+\((push|fetch)\)`)
-
-	rs, err := git.Remotes()
+	remotesMap, err := git.Remotes()
 	if err != nil {
 		err = fmt.Errorf("Can't load git remote")
 		return
-	}
-
-	// build the remotes map
-	remotesMap := make(map[string]string)
-	for _, r := range rs {
-		if re.MatchString(r) {
-			match := re.FindStringSubmatch(r)
-			name := strings.TrimSpace(match[1])
-			url := strings.TrimSpace(match[2])
-			remotesMap[name] = url
-		}
 	}
 
 	// construct remotes in priority order
