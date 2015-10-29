@@ -17,7 +17,7 @@ Feature: hub ci-status
     When I run `hub ci-status the_sha -v`
     Then the output should contain exactly:
       """
-      ✔︎	continuous-integration/travis-ci/push	https://travis-ci.org/michiels/pencilbox/builds/1234567\n
+      success: https://travis-ci.org/michiels/pencilbox/builds/1234567\n
       """
     And the exit status should be 0
 
@@ -25,7 +25,7 @@ Feature: hub ci-status
     Given there is a commit named "the_sha"
     Given the remote commit states of "michiels/pencilbox" "the_sha" are:
       """
-      { :state => "pending",
+      { :state => "failure",
         :statuses => [
           { :state => "success",
             :context => "continuous-integration/travis-ci/push",
@@ -44,12 +44,9 @@ Feature: hub ci-status
     When I run `hub ci-status -v the_sha`
     Then the output should contain exactly:
       """
-      ✔︎	continuous-integration/travis-ci/push 	https://travis-ci.org/michiels/pencilbox/builds/1234567
-      ●	continuous-integration/travis-ci/merge
-      ✖︎	GitHub CLA                            	https://cla.github.com/michiels/pencilbox/accept/mislav
-      ✖︎	whatevs!\n
+      failure: https://cla.github.com/michiels/pencilbox/accept/mislav\n
       """
-    And the exit status should be 2
+    And the exit status should be 1
 
   Scenario: Exit status 1 for 'error' and 'failure'
     Given the remote commit state of "michiels/pencilbox" "HEAD" is "error"

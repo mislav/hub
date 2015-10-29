@@ -85,8 +85,10 @@ func ciStatus(cmd *Command, args *Args) {
 			exitCode = 3
 		}
 
-		if flagCiStatusVerbose && len(response.Statuses) > 0 {
-			verboseFormat(response.Statuses)
+		targetUrl := relevantTargetUrl(response.Statuses, state)
+
+		if flagCiStatusVerbose && targetUrl != "" {
+			ui.Printf("%s: %s\n", state, targetUrl)
 		} else {
 			if state != "" {
 				ui.Println(state)
@@ -97,6 +99,15 @@ func ciStatus(cmd *Command, args *Args) {
 
 		os.Exit(exitCode)
 	}
+}
+
+func relevantTargetUrl(statuses []github.CIStatus, state string) string {
+	for _, status := range statuses {
+		if status.State == state {
+			return status.TargetUrl
+		}
+	}
+	return ""
 }
 
 func verboseFormat(statuses []github.CIStatus) {
