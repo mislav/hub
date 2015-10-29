@@ -25,11 +25,11 @@ func init() {
 
 /*
   $ gh cherry-pick https://github.com/jingweno/gh/commit/a319d88#comments
-  > git remote add -f jingweno git://github.com/jingweno/gh.git
+  > git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
   > git cherry-pick a319d88
 
   $ gh cherry-pick jingweno@a319d88
-  > git remote add -f jingweno git://github.com/jingweno/gh.git
+  > git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
   > git cherry-pick a319d88
 
   $ gh cherry-pick jingweno@SHA
@@ -56,7 +56,7 @@ func transformCherryPickArgs(args *Args) {
 		if remote != nil {
 			args.Before("git", "fetch", remote.Name)
 		} else {
-			args.Before("git", "remote", "add", "-f", project.Owner, project.GitURL("", "", false))
+			args.Before("git", "remote", "add", "-f", "--no-tags", project.Owner, project.GitURL("", "", false))
 		}
 	}
 }

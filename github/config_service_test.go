@@ -54,19 +54,19 @@ func TestConfigService_TomlSave(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 	defer os.RemoveAll(file.Name())
 
-	host := Host{
+	host := &Host{
 		Host:        "github.com",
 		User:        "jingweno",
 		AccessToken: "123",
 		Protocol:    "https",
 	}
-	c := Config{Hosts: []Host{host}}
+	c := &Config{Hosts: []*Host{host}}
 
 	cs := &configService{
 		Encoder: &tomlConfigEncoder{},
 		Decoder: &tomlConfigDecoder{},
 	}
-	err := cs.Save(file.Name(), &c)
+	err := cs.Save(file.Name(), c)
 	assert.Equal(t, nil, err)
 
 	b, _ := ioutil.ReadFile(file.Name())
@@ -82,19 +82,19 @@ func TestConfigService_YamlSave(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 	defer os.RemoveAll(file.Name())
 
-	host := Host{
+	host := &Host{
 		Host:        "github.com",
 		User:        "jingweno",
 		AccessToken: "123",
 		Protocol:    "https",
 	}
-	c := Config{Hosts: []Host{host}}
+	c := &Config{Hosts: []*Host{host}}
 
 	cs := &configService{
 		Encoder: &yamlConfigEncoder{},
 		Decoder: &yamlConfigDecoder{},
 	}
-	err := cs.Save(file.Name(), &c)
+	err := cs.Save(file.Name(), c)
 	assert.Equal(t, nil, err)
 
 	b, _ := ioutil.ReadFile(file.Name())

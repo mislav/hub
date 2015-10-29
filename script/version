@@ -5,7 +5,7 @@ set -e
 version="$(git describe --tags HEAD 2>/dev/null || true)"
 
 if [ -z "$version" ]; then
-  version="$(grep Version commands/version.go | head -1 | cut -d '"' -f2)"
+  version="$(grep Version version/version.go | head -1 | cut -d '"' -f2)"
   sha="$(git rev-parse --short HEAD 2>/dev/null || true)"
   [ -z "$sha" ] || version="${version}-g${sha}"
 fi

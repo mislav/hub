@@ -202,8 +202,8 @@ Given(/^the remote commit states of "(.*?)" "(.*?)" are:$/) do |proj, ref, json_
   rev = run_silent %(git rev-parse #{ref})
 
   status_endpoint = <<-EOS
-    get('/repos/#{proj}/statuses/#{rev}') {
-      json #{json_value}
+    get('/repos/#{proj}/commits/#{rev}/status') {
+      json(#{json_value})
     }
     EOS
   step %{the GitHub API server:}, status_endpoint
@@ -211,13 +211,19 @@ end
 
 Given(/^the remote commit state of "(.*?)" "(.*?)" is "(.*?)"$/) do |proj, ref, status|
   step %{the remote commit states of "#{proj}" "#{ref}" are:}, <<-EOS
-    [ { :state => \"#{status}\",
-        :target_url => 'https://travis-ci.org/#{proj}/builds/1234567' } ]
-    EOS
+    { :state => "#{status}",
+      :statuses => [
+        { :state => "#{status}",
+          :context => "continuous-integration/travis-ci/push",
+          :target_url => 'https://travis-ci.org/#{proj}/builds/1234567' }
+      ]
+    }
+  EOS
 end
 
 Given(/^the remote commit state of "(.*?)" "(.*?)" is nil$/) do |proj, ref|
-  step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ ]"
+  step %{the remote commit states of "#{proj}" "#{ref}" are:},
+    %({ :state => "pending", :statuses => [] })
 end
 
 Given(/^the text editor exits with error status$/) do
