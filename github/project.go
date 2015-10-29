@@ -22,7 +22,9 @@ func (p Project) String() string {
 }
 
 func (p *Project) SameAs(other *Project) bool {
-	return p.Owner == other.Owner && p.Name == other.Name && p.Host == other.Host
+	return strings.ToLower(p.Owner) == strings.ToLower(other.Owner) &&
+		strings.ToLower(p.Name) == strings.ToLower(other.Name) &&
+		strings.ToLower(p.Host) == strings.ToLower(other.Host)
 }
 
 func (p *Project) WebURL(name, owner, path string) string {
@@ -69,9 +71,9 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 
 	host := rawHost(p.Host)
 
-	if useHttpProtocol() {
+	if preferredProtocol() == "https" {
 		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
-	} else if isSSH {
+	} else if isSSH || preferredProtocol() == "ssh" {
 		url = fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
 	} else {
 		url = fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
@@ -92,13 +94,12 @@ func rawHost(host string) string {
 	}
 }
 
-func useHttpProtocol() bool {
-	https := os.Getenv("HUB_PROTOCOL")
-	if https == "" {
-		https, _ = git.Config("hub.protocol")
+func preferredProtocol() string {
+	userProtocol := os.Getenv("HUB_PROTOCOL")
+	if userProtocol == "" {
+		userProtocol, _ = git.Config("hub.protocol")
 	}
-
-	return https == "https"
+	return userProtocol
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {

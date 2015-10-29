@@ -101,3 +101,14 @@ Feature: hub compare
     When I successfully run `hub compare refactor`
     Then there should be no output
     And "open http://git.my.org/mislav/dotfiles/compare/refactor" should be run
+
+  Scenario: Compare in non-GitHub repo
+    Given the "origin" remote has url "git@bitbucket.org:mislav/dotfiles.git"
+    And I am on the "feature" branch
+    When I run `hub compare`
+    Then the stdout should contain exactly ""
+    And the stderr should contain exactly:
+      """
+      Aborted: the origin remote doesn't point to a GitHub repository.\n
+      """
+    And the exit status should be 1

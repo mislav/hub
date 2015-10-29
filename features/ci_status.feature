@@ -15,19 +15,38 @@ Feature: hub ci-status
     Given there is a commit named "the_sha"
     Given the remote commit state of "michiels/pencilbox" "the_sha" is "success"
     When I run `hub ci-status the_sha -v`
-    Then the output should contain "success: https://travis-ci.org/michiels/pencilbox/builds/1234567"
+    Then the output should contain exactly:
+      """
+      success: https://travis-ci.org/michiels/pencilbox/builds/1234567\n
+      """
     And the exit status should be 0
 
-  Scenario: Multiple statuses, latest is passing
+  Scenario: Multiple statuses with verbose output
     Given there is a commit named "the_sha"
     Given the remote commit states of "michiels/pencilbox" "the_sha" are:
       """
-      [ { :state => 'success' },
-        { :state => 'pending' }  ]
+      { :state => "failure",
+        :statuses => [
+          { :state => "success",
+            :context => "continuous-integration/travis-ci/push",
+            :target_url => "https://travis-ci.org/michiels/pencilbox/builds/1234567" },
+          { :state => "pending",
+            :context => "continuous-integration/travis-ci/merge",
+            :target_url => nil },
+          { :state => "failure",
+            :context => "GitHub CLA",
+            :target_url => "https://cla.github.com/michiels/pencilbox/accept/mislav" },
+          { :state => "error",
+            :context => "whatevs!" }
+        ]
+      }
       """
-    When I run `hub ci-status the_sha`
-    Then the output should contain exactly "success\n"
-    And the exit status should be 0
+    When I run `hub ci-status -v the_sha`
+    Then the output should contain exactly:
+      """
+      failure: https://cla.github.com/michiels/pencilbox/accept/mislav\n
+      """
+    And the exit status should be 1
 
   Scenario: Exit status 1 for 'error' and 'failure'
     Given the remote commit state of "michiels/pencilbox" "HEAD" is "error"

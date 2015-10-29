@@ -1,6 +1,7 @@
 package git
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -18,7 +19,16 @@ func TestGitDir(t *testing.T) {
 
 func TestGitEditor(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
-	defer repo.TearDown()
+	editor := os.Getenv("GIT_EDITOR")
+	if err := os.Unsetenv("GIT_EDITOR"); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		repo.TearDown()
+		if err := os.Setenv("GIT_EDITOR", editor); err != nil {
+			t.Fatal(err)
+		}
+	}()
 
 	SetGlobalConfig("core.editor", "foo")
 	gitEditor, err := Editor()

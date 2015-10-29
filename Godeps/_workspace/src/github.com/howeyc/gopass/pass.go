@@ -22,7 +22,7 @@ func getPasswd(masked bool) []byte {
 			}
 		} else if v == 13 || v == 10 {
 			break
-		} else {
+		} else if v != 0 {
 			pass = append(pass, v)
 			os.Stdout.Write(mask)
 		}

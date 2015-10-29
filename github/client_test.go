@@ -18,10 +18,6 @@ func TestClient_newOctokitClient(t *testing.T) {
 	c = NewClient("github.corporate.com")
 	cc = c.newOctokitClient(nil)
 	assert.Equal(t, "https://github.corporate.com", cc.Endpoint.String())
-
-	c = NewClient("http://github.corporate.com")
-	cc = c.newOctokitClient(nil)
-	assert.Equal(t, "http://github.corporate.com", cc.Endpoint.String())
 }
 
 func TestClient_FormatError(t *testing.T) {

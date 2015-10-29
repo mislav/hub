@@ -13,7 +13,7 @@ const pullRequestTmpl = `{{if .InitMsg}}{{.InitMsg}}
 {{.CS}} Requesting a pull to {{.Base}} from {{.Head}}
 {{.CS}}
 {{.CS}} Write a message for this pull request. The first block
-{{.CS}} of text is the title and the rest is description.{{if .HasCommitLogs}}
+{{.CS}} of text is the title and the rest is the description.{{if .HasCommitLogs}}
 {{.CS}}
 {{.CS}} Changes:
 {{.CS}}{{if .HasCommitLogs}}

@@ -29,12 +29,7 @@ func getch() byte {
 	var n uint16
 	procReadConsole.Call(uintptr(syscall.Stdin), uintptr(unsafe.Pointer(pLine)), uintptr(len(line)), uintptr(unsafe.Pointer(&n)))
 
-	// For some reason n returned seems to big by 2 (Null terminated maybe?)
-	if n > 2 {
-		n -= 2
-	}
-
-	b := []byte(string(utf16.Decode(line[:n])))
+	b := []byte(string(utf16.Decode(line)))
 
 	procSetConsoleMode.Call(uintptr(syscall.Stdin), uintptr(mode))
 

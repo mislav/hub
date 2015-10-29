@@ -2,9 +2,9 @@ package commands
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"strings"
-	"net/url"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -72,6 +72,11 @@ func compare(command *Command, args *Args) {
 		} else {
 			project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), "", "")
 		}
+	}
+
+	if project == nil {
+		project, err = localRepo.CurrentProject()
+		utils.Check(err)
 	}
 
 	subpage := utils.ConcatPaths("compare", rangeQueryEscape(r))

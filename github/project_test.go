@@ -50,6 +50,10 @@ func TestProject_GitURL(t *testing.T) {
 	url = project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "git://github.com/jingweno/gh.git", url)
 
+	os.Setenv("HUB_PROTOCOL", "ssh")
+	url = project.GitURL("gh", "jingweno", true)
+	assert.Equal(t, "git@github.com:jingweno/gh.git", url)
+
 	url = project.GitURL("gh", "jingweno", true)
 	assert.Equal(t, "git@github.com:jingweno/gh.git", url)
 }
@@ -66,6 +70,10 @@ func TestProject_GitURLEnterprise(t *testing.T) {
 	os.Setenv("HUB_PROTOCOL", "https")
 	url := project.GitURL("gh", "jingweno", false)
 	assert.Equal(t, "https://github.corporate.com/jingweno/gh.git", url)
+
+	os.Setenv("HUB_PROTOCOL", "ssh")
+	url = project.GitURL("gh", "jingweno", false)
+	assert.Equal(t, "git@github.corporate.com:jingweno/gh.git", url)
 
 	os.Setenv("HUB_PROTOCOL", "git")
 	url = project.GitURL("gh", "jingweno", false)

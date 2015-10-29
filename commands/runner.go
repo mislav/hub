@@ -54,8 +54,11 @@ func (r *Runner) All() map[string]*Command {
 	return r.commands
 }
 
-func (r *Runner) Use(command *Command) {
+func (r *Runner) Use(command *Command, aliases ...string) {
 	r.commands[command.Name()] = command
+	if len(aliases) > 0 {
+		r.commands[aliases[0]] = command
+	}
 }
 
 func (r *Runner) Lookup(name string) *Command {
