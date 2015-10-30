@@ -176,7 +176,7 @@ func Remotes() (map[string]string, error) {
 			return nil, fmt.Errorf("couldn't get url for remote %s: %v", name, err)
 		}
 		if len(out) != 1 {
-			return nil, fmt.Errorf("")
+			return nil, fmt.Errorf("unexpected number of remote urls %s", out)
 		}
 		remotes[name] = out[0]
 	}
