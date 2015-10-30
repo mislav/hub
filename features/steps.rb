@@ -17,12 +17,15 @@ Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
   run_silent %(git config #{key} "#{value}")
 end
 
-Given(/^the "([^"]*)" remote has url "([^"]*)"$/) do |remote_name, url|
+Given(/^the "([^"]*)" remote has(?: (push))? url "([^"]*)"$/) do |remote_name, push, url|
   remotes = run_silent('git remote').split("\n")
+  if push
+    push = "--push"
+  end
   unless remotes.include? remote_name
     run_silent %(git remote add #{remote_name} "#{url}")
   else
-    run_silent %(git remote set-url #{remote_name} "#{url}")
+    run_silent %(git remote set-url #{push} #{remote_name} "#{url}")
   end
 end
 
