@@ -100,7 +100,7 @@ func ciStatus(cmd *Command, args *Args) {
 }
 
 func verboseFormat(statuses []github.CIStatus) {
-	colorize := github.IsTerminal(os.Stdout)
+	colorize := ui.IsTerminal(os.Stdout)
 
 	contextWidth := 0
 	for _, status := range statuses {
