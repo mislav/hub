@@ -643,3 +643,19 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo -l feature,release`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request to a fetch-only upstream
+    Given the "upstream" remote has url "git://github.com/github/coral.git"
+    And the "upstream" remote has push url "no_push"
+    And I am on the "master" branch pushed to "origin/master"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:master',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
