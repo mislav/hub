@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -36,6 +37,7 @@ func (cmd *Cmd) WithArgs(args ...string) *Cmd {
 }
 
 func (cmd *Cmd) CombinedOutput() (string, error) {
+	verboseLog(cmd)
 	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
 
 	return string(output), err
@@ -53,6 +55,7 @@ func (cmd *Cmd) Run() error {
 
 // Spawn runs command with spawn(3)
 func (cmd *Cmd) Spawn() error {
+	verboseLog(cmd)
 	c := exec.Command(cmd.Name, cmd.Args...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
@@ -72,6 +75,7 @@ func (cmd *Cmd) Exec() error {
 	args := []string{binary}
 	args = append(args, cmd.Args...)
 
+	verboseLog(cmd)
 	return syscall.Exec(binary, args, os.Environ())
 }
 
@@ -89,4 +93,14 @@ func New(cmd string) *Cmd {
 
 func NewWithArray(cmd []string) *Cmd {
 	return &Cmd{Name: cmd[0], Args: cmd[1:]}
+}
+
+func verboseLog(cmd *Cmd) {
+	if os.Getenv("HUB_VERBOSE") != "" {
+		msg := fmt.Sprintf("$ %s %s", cmd.Name, strings.Join(cmd.Args, " "))
+		if ui.IsTerminal(os.Stderr) {
+			msg = fmt.Sprintf("\033[35m%s\033[0m", msg)
+		}
+		ui.Errorln(msg)
+	}
 }

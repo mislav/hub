@@ -3,8 +3,10 @@ package ui
 import (
 	"fmt"
 	"io"
+	"os"
 
 	"github.com/github/hub/Godeps/_workspace/src/github.com/mattn/go-colorable"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/mattn/go-isatty"
 )
 
 type UI interface {
@@ -34,6 +36,10 @@ func Errorf(format string, a ...interface{}) (n int, err error) {
 
 func Errorln(a ...interface{}) (n int, err error) {
 	return Default.Errorln(a...)
+}
+
+func IsTerminal(f *os.File) bool {
+	return isatty.IsTerminal(f.Fd())
 }
 
 type Console struct {
