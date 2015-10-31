@@ -184,8 +184,24 @@ func Log(sha1, sha2 string) (string, error) {
 	return outputs, nil
 }
 
-func Remotes() ([]string, error) {
-	return gitOutput("remote", "-v")
+func Remotes() (map[string]string, error) {
+	names, err := gitOutput("remote")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't list remote names: %v", err)
+	}
+
+	remotes := make(map[string]string)
+	for _, name := range names {
+		out, err := gitOutput("ls-remote", "--get-url", name)
+		if err != nil {
+			return nil, fmt.Errorf("couldn't get url for remote %s: %v", name, err)
+		}
+		if len(out) != 1 {
+			return nil, fmt.Errorf("unexpected number of remote urls %s", out)
+		}
+		remotes[name] = out[0]
+	}
+	return remotes, nil
 }
 
 func Config(name string) (string, error) {
