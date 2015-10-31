@@ -21,7 +21,13 @@ func Version() (string, error) {
 	return output[0], nil
 }
 
+var cachedDir string
+
 func Dir() (string, error) {
+	if cachedDir != "" {
+		return cachedDir, nil
+	}
+
 	output, err := gitOutput("rev-parse", "-q", "--git-dir")
 	if err != nil {
 		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
@@ -54,6 +60,7 @@ func Dir() (string, error) {
 		gitDir = filepath.Clean(gitDir)
 	}
 
+	cachedDir = gitDir
 	return gitDir, nil
 }
 
