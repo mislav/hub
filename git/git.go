@@ -27,10 +27,31 @@ func Dir() (string, error) {
 		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
 	}
 
+	var chdir string
+	for i, flag := range GlobalFlags {
+		if (flag == "-C") {
+			dir := GlobalFlags[i+1]
+			if (filepath.IsAbs(dir)) {
+				chdir = dir
+			} else {
+				chdir = filepath.Join(chdir, dir)
+			}
+		}
+	}
+
 	gitDir := output[0]
-	gitDir, err = filepath.Abs(gitDir)
-	if err != nil {
-		return "", err
+
+	if (!filepath.IsAbs(gitDir)) {
+		if (chdir != "") {
+			gitDir = filepath.Join(chdir, gitDir)
+		}
+
+		gitDir, err = filepath.Abs(gitDir)
+		if err != nil {
+			return "", err
+		}
+
+		gitDir = filepath.Clean(gitDir)
 	}
 
 	return gitDir, nil
