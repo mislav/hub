@@ -29,9 +29,9 @@ func Dir() (string, error) {
 
 	var chdir string
 	for i, flag := range GlobalFlags {
-		if (flag == "-C") {
+		if flag == "-C" {
 			dir := GlobalFlags[i+1]
-			if (filepath.IsAbs(dir)) {
+			if filepath.IsAbs(dir) {
 				chdir = dir
 			} else {
 				chdir = filepath.Join(chdir, dir)
@@ -41,8 +41,8 @@ func Dir() (string, error) {
 
 	gitDir := output[0]
 
-	if (!filepath.IsAbs(gitDir)) {
-		if (chdir != "") {
+	if !filepath.IsAbs(gitDir) {
+		if chdir != "" {
 			gitDir = filepath.Join(chdir, gitDir)
 		}
 
