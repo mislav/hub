@@ -149,6 +149,10 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (
 }
 
 func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
+	return r.RemoteByName("origin")
+}
+
+func (r *GitHubRepo) MainRemote() (remote *Remote, err error) {
 	r.loadRemotes()
 
 	if len(r.remotes) > 0 {
@@ -163,7 +167,7 @@ func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
 }
 
 func (r *GitHubRepo) MainProject() (project *Project, err error) {
-	origin, err := r.OriginRemote()
+	origin, err := r.MainRemote()
 	if err != nil {
 		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
 
