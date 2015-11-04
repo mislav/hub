@@ -1,6 +1,8 @@
 package github
 
 import (
+	"fmt"
+	"net/url"
 	"os"
 	"strings"
 
@@ -12,6 +14,14 @@ var (
 )
 
 type GitHubHosts []string
+
+type GithubHostError struct {
+	url *url.URL
+}
+
+func (e *GithubHostError) Error() string {
+	return fmt.Sprintf("Invalid GitHub URL: %s", e.url)
+}
 
 func (h GitHubHosts) Include(host string) bool {
 	for _, hh := range h {

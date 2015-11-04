@@ -46,6 +46,19 @@ func (r *TestRepo) Setup() {
 	}
 }
 
+func (r *TestRepo) AddRemote(name, url, pushURL string) {
+	add := cmd.New("git").WithArgs("remote", "add", name, url)
+	if _, err := add.CombinedOutput(); err != nil {
+		panic(err)
+	}
+	if pushURL != "" {
+		set := cmd.New("git").WithArgs("remote", "set-url", "--push", name, pushURL)
+		if _, err := set.CombinedOutput(); err != nil {
+			panic(err)
+		}
+	}
+}
+
 func (r *TestRepo) clone(repo, dir string) error {
 	cmd := cmd.New("git").WithArgs("clone", repo, dir)
 	output, err := cmd.CombinedOutput()

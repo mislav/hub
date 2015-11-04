@@ -104,7 +104,7 @@ func preferredProtocol() string {
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	if !knownGitHubHosts().Include(url.Host) {
-		err = fmt.Errorf("Invalid GitHub URL: %s", url)
+		err = &GithubHostError{url}
 		return
 	}
 
