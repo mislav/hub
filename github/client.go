@@ -257,10 +257,21 @@ func (client *Client) Releases(project *Project) (releases []octokit.Release, er
 		return
 	}
 
-	releases, result := api.Releases(client.requestURL(url)).All()
-	if result.HasError() {
-		err = FormatError("getting release", result.Err)
-		return
+	for url != nil {
+		page, result := api.Releases(client.requestURL(url)).All()
+		if result.HasError() {
+			err = FormatError("getting release", result.Err)
+			return
+		}
+		releases = append(releases, page...)
+		if result.NextPage == nil {
+			url = nil
+		} else {
+			url, err = result.NextPage.Expand(nil)
+			if err != nil {
+				return
+			}
+		}
 	}
 
 	return
