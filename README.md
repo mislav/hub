@@ -41,7 +41,7 @@ in your executable path.
 
 #### Source
 
-To install `hub` from source, you need to have a [Go development environment](http://golang.org/doc/install),
+To install `hub` from source, you need to have a [Go development environment](https://golang.org/doc/install),
 version 1.4 or better:
 
 ~~~ sh
@@ -124,7 +124,7 @@ superpowers:
 
 ### git cherry-pick
 
-    $ git cherry-pick http://github.com/mislav/REPO/commit/SHA
+    $ git cherry-pick https://github.com/mislav/REPO/commit/SHA
     > git remote add -f --no-tags mislav git://github.com/mislav/REPO.git
     > git cherry-pick SHA
 
@@ -138,7 +138,7 @@ superpowers:
 
 ### git am, git apply
 
-    $ git am https://github.com/defunkt/hub/pull/55
+    $ git am https://github.com/github/hub/pull/55
     [ downloads patch via API ]
     > git am /tmp/55.patch
 
@@ -168,15 +168,15 @@ superpowers:
 
 ### git checkout
 
-    $ git checkout https://github.com/defunkt/hub/pull/73
+    $ git checkout https://github.com/github/hub/pull/73
     > git remote add -f --no-tags -t feature mislav git://github.com/mislav/hub.git
     > git checkout --track -B mislav-feature mislav/feature
 
-    $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
+    $ git checkout https://github.com/github/hub/pull/73 custom-branch-name
 
 ### git merge
 
-    $ git merge https://github.com/defunkt/hub/pull/73
+    $ git merge https://github.com/github/hub/pull/73
     > git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
     > git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
 
@@ -336,5 +336,5 @@ These projects also aim to either improve git or make interacting with
 GitHub simpler:
 
 * [hub in Ruby](https://github.com/github/hub/tree/1.12-stable) (previous implementation)
-* [eg](http://www.gnome.org/~newren/eg/)
+* [eg](https://people.gnome.org/~newren/eg/)
 * [github-gem](https://github.com/defunkt/github-gem)
