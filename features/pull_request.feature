@@ -481,7 +481,7 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m enterprisey`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Enterprise remote witch matching branch but no tracking
+  Scenario: Enterprise remote with matching branch but no tracking
     Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
