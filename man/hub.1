@@ -145,7 +145,7 @@ Open a GitHub compare view page in the system\'s default web browser\. \fISTART\
 .
 .TP
 \fBgit fork\fR [\fB\-\-no\-remote\fR]
-Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote for it under your username\.
+Forks the original project (referenced by "origin" remote) on GitHub and adds a new remote as origin, renaming the original to "upstream"\.
 .
 .TP
 \fBgit pull\-request\fR [\fB\-o\fR|\fB\-\-browse\fR] [\fB\-f\fR] [\fB\-m\fR \fIMESSAGE\fR|\fB\-F\fR \fIFILE\fR|\fB\-i\fR \fIISSUE\fR|\fIISSUE\-URL\fR] [\fB\-b\fR \fIBASE\fR] [\fB\-h\fR \fIHEAD\fR] [\fB\-a\fR \fIUSER\fR] [\fB\-M\fR \fIMILESTONE\fR] [\fB\-l\fR \fILABELS\fR]
@@ -322,7 +322,8 @@ $ git apply https://gist\.github\.com/8da7fb575debd88c54cf
 
 $ git fork
 [ repo forked on GitHub ]
-> git remote add \-f YOUR_USER git@github\.com:YOUR_USER/CURRENT_REPO\.git
+> git remote rename upstream origin
+> git remote add \-f origin git@github\.com:YOUR_USER/CURRENT_REPO\.git
 .
 .fi
 .

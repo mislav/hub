@@ -300,4 +300,5 @@ Feature: OAuth authentication
     And the file "../home/.config/hub" should contain "git.my.org"
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-    And the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+    And the url for "upstream" should be "git@git.my.org:evilchelu/dotfiles.git"
+    And the url for "origin" should be "git@git.my.org:mislav/dotfiles.git"
