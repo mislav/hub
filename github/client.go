@@ -381,8 +381,6 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 
 	repo, result := api.Repositories(client.requestURL(url)).Create(nil)
 	if result.HasError() {
-		fmt.Println(client.requestURL(url))
-		fmt.Println("test")
 		err = FormatError("creating fork", result.Err)
 		return
 	}
