@@ -112,6 +112,21 @@ Scenario: Related fork already exists
     Then the exit status should be 1
     And the stderr should contain "fatal: Not a git repository"
 
+  Scenario: Origin remote doesn't exist
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/dotfiles/forks') { '' }
+      """
+    And I run `git remote rm origin`
+    And the "mislav" remote has url "https://github.com/mislav/dotfiles.git"
+    When I run `hub fork`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Error creating fork: No git remote with name origin\n
+      """
+    And there should be no "origin" remote
+
   Scenario: Unknown host
     Given the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
     When I run `hub fork`
