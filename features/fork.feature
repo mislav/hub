@@ -113,11 +113,7 @@ Scenario: Related fork already exists
     And the stderr should contain "fatal: Not a git repository"
 
   Scenario: Origin remote doesn't exist
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/dotfiles/forks') { '' }
-      """
-    And I run `git remote rm origin`
+    Given I run `git remote rm origin`
     And the "mislav" remote has url "https://github.com/mislav/dotfiles.git"
     When I run `hub fork`
     Then the exit status should be 1
