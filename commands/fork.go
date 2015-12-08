@@ -48,6 +48,11 @@ func fork(cmd *Command, args *Args) {
 		utils.Check(github.FormatError("forking repository", err))
 	}
 
+	originRemote, err := localRepo.OriginRemote()
+	if err != nil {
+		utils.Check(fmt.Errorf("Error creating fork: %s", err))
+	}
+
 	forkProject := github.NewProject(host.User, project.Name, project.Host)
 	client := github.NewClient(project.Host)
 	existingRepo, err := client.Repository(forkProject)
@@ -71,7 +76,6 @@ func fork(cmd *Command, args *Args) {
 	if flagForkNoRemote {
 		os.Exit(0)
 	} else {
-		originRemote, _ := localRepo.OriginRemote()
 		originURL := originRemote.URL.String()
 		url := forkProject.GitURL("", "", true)
 		args.Replace("git", "remote", "add", "-f", forkProject.Owner, originURL)
