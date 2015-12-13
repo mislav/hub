@@ -1,5 +1,16 @@
 @echo off
 CLS
+goto checkPrivileges
+
+:appendToPath
+set "RUNPS=powershell -NoProfile -ExecutionPolicy Bypass -Command"
+set "OLDPATHPS=[Environment]::GetEnvironmentVariable('PATH', 'User')"
+for /f "delims=" %%i in ('%RUNPS% "%OLDPATHPS%"') do (
+    set OLDPATH=%%i
+)
+set NEWPATH=%OLDPATH%;%1
+%RUNPS% "[Environment]::SetEnvironmentVariable('PATH', '%NEWPATH%', 'User')"
+goto :eof
 
 :checkPrivileges
 NET FILE 1>NUL 2>NUL
@@ -28,7 +39,7 @@ set HUB_BIN_PATH="%LOCALAPPDATA%\GitHubCLI\bin"
 IF EXIST %HUB_BIN_PATH% GOTO DIRECTORY_EXISTS
 mkdir %HUB_BIN_PATH%
 set "path=%PATH%;%HUB_BIN_PATH:"=%"
-1>NUL setx PATH "%PATH%" /M
+call :apppendToPath %HUB_BIN_PATH:"=%
 :DIRECTORY_EXISTS
 
 :: Delete any existing programs
