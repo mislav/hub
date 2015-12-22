@@ -4,3 +4,4 @@
 .bundle
 vendor/bundle/
 tmp/
+.idea
