@@ -12,6 +12,7 @@ import (
 	"github.com/github/hub/Godeps/_workspace/src/github.com/howeyc/gopass"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/github/hub/Godeps/_workspace/src/github.com/cep21/xdgbasedir"
 )
 
 var defaultConfigsFile string
@@ -29,7 +30,12 @@ func init() {
 		utils.Check(fmt.Errorf("Can't get current user's home dir"))
 	}
 
-	defaultConfigsFile = filepath.Join(homeDir, ".config", "hub")
+	// Config file using XDG Base Directory spec
+	defaultConfigsDir, xdgerror := xdgbasedir.ConfigHomeDirectory()
+	if xdgerror != nil {
+		utils.Check(xdgerror)
+	}
+	defaultConfigsFile = filepath.Join(defaultConfigsDir, "hub")
 }
 
 type yamlHost struct {

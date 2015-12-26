@@ -11,6 +11,10 @@
 			"Rev": "3883ac1ce943878302255f538fce319d23226223"
 		},
 		{
+			"ImportPath": "github.com/cep21/xdgbasedir",
+			"Rev": "b123604ccc445c5759d1bc3b425defff797c3d8c"
+		},
+		{
 			"ImportPath": "github.com/bmizerany/assert",
 			"Comment": "release.r60-6-ge17e998",
 			"Rev": "e17e99893cb6509f428e1728281c2ad60a6b31e3"
