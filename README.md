@@ -73,6 +73,12 @@ You should place this command in your `.bash_profile` or other startup script:
 eval "$(hub alias -s)"
 ~~~
 
+OR
+
+~~~sh
+alias git=hub
+~~~
+
 ### Shell tab-completion
 
 hub repository contains tab-completion scripts for bash and zsh. These scripts
