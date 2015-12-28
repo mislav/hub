@@ -219,16 +219,26 @@ success (0), error (1), failure (1), pending (2), no status (3)</p>
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
 
+<h3 id="Configuration-file">Configuration file</h3>
+
+<p>Hub stores its configuration in a file named "hub", located in a directory
+determined in accordance with the
+<a href="http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html">XDG Base Directory Specification</a>.
+If the environment variable "$XDG_CONFIG_HOME" is set, it's value is taken
+to be the full path to the configuration directory. If it is unset or empty,
+the default "~/.config/" is used.</p>
+
 <h3 id="GitHub-OAuth-authentication">GitHub OAuth authentication</h3>
 
 <p>Hub will prompt for GitHub username &amp; password the first time it needs to access
-the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</p>
+the API and exchange it for an OAuth token, which it saves in the configuration
+file as described above.</p>
 
 <p>To avoid being prompted, use <var>GITHUB_USER</var> and <var>GITHUB_PASSWORD</var> environment
 variables.</p>
 
 <p>Alternatively, you may provide <var>GITHUB_TOKEN</var>, an access token with
-<var>repo</var> permissions. This will not be written to <code>~/.config/hub</code>.</p>
+<var>repo</var> permissions. This will not be written to the configuration file.</p>
 
 <h3 id="HTTPS-instead-of-git-protocol">HTTPS instead of git protocol</h3>
 
@@ -487,7 +497,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>September 2015</li>
+    <li class='tc'>December 2015</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
