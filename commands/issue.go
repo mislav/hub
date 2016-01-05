@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 
+	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
@@ -11,7 +12,7 @@ import (
 var (
 	cmdIssue = &Command{
 		Run:   issue,
-		Usage: "issue",
+		Usage: "issue [-i <ID>]",
 		Short: "List issues on GitHub",
 		Long:  `List summary of the open issues for the project that the "origin" remote points to.`,
 	}
@@ -30,6 +31,8 @@ Specify one or more labels via "-l".
 `,
 	}
 
+	flagIssueId string
+
 	flagIssueMessage,
 	flagIssueFile string
 
@@ -37,6 +40,8 @@ Specify one or more labels via "-l".
 )
 
 func init() {
+	cmdIssue.Flag.StringVarP(&flagIssueId, "id", "i", "", "ID")
+
 	cmdCreateIssue.Flag.StringVarP(&flagIssueMessage, "message", "m", "", "MESSAGE")
 	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "f", "", "FILE")
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
@@ -53,8 +58,19 @@ func issue(cmd *Command, args *Args) {
 		if args.Noop {
 			ui.Printf("Would request list of issues for %s\n", project)
 		} else {
-			issues, err := gh.Issues(project)
-			utils.Check(err)
+			var issues []octokit.Issue
+
+			if flagIssueId != "" {
+				issue, err := gh.Issue(project, flagIssueId)
+				utils.Check(err)
+
+				issues = []octokit.Issue{*issue}
+			} else {
+				var err error
+				issues, err = gh.Issues(project)
+				utils.Check(err)
+			}
+
 			for _, issue := range issues {
 				var url string
 				// use the pull request URL if we have one
