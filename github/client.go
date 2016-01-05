@@ -388,6 +388,27 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 	return
 }
 
+func (client *Client) Issue(project *Project, id string) (issue *octokit.Issue, err error) {
+	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
+	if err != nil {
+		return
+	}
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting issue", err)
+		return
+	}
+
+	issue, result := api.Issues(client.requestURL(url)).One()
+	if result.HasError() {
+		err = FormatError("getting issue", result.Err)
+		return
+	}
+
+	return
+}
+
 func (client *Client) Issues(project *Project) (issues []octokit.Issue, err error) {
 	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
