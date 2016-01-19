@@ -36,7 +36,7 @@ func alias(command *Command, args *Args) {
 	}
 
 	if shell == "" {
-		utils.Check(fmt.Errorf("Unknown shell"))
+		utils.Check(fmt.Errorf("Error: couldn't detect shell type. Please specify your shell with 'hub alias <shell>'"))
 	}
 
 	shells := []string{"bash", "zsh", "sh", "ksh", "csh", "tcsh", "fish"}
