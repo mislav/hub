@@ -25,19 +25,19 @@ func init() {
 }
 
 /**
-  $ gh clone jingweno/gh
+  $ hub clone jingweno/gh
   > git clone git://github.com/jingweno/gh.git
 
-  $ gh clone -p jingweno/gh
+  $ hub clone -p jingweno/gh
   > git clone git@github.com:jingweno/gh.git
 
-  $ gh clone jekyll_and_hyde
+  $ hub clone jekyll_and_hyde
   > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git
 
-  $ gh clone -p jekyll_and_hyde
+  $ hub clone -p jekyll_and_hyde
   > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
 
-  $ gh clone jekyll_and_hyde jekyll
+  $ hub clone jekyll_and_hyde jekyll
   > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git jekyll
 */
 func clone(command *Command, args *Args) {

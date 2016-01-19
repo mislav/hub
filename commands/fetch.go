@@ -23,7 +23,7 @@ func init() {
 }
 
 /*
-  $ gh fetch jingweno
+  $ hub fetch jingweno
   > git remote add jingweno git://github.com/jingweno/REPO.git
   > git fetch jingweno
 

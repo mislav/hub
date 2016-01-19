@@ -26,11 +26,11 @@ func init() {
 }
 
 /*
-  $ gh fork
+  $ hub fork
   [ repo forked on GitHub ]
   > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
-  $ gh fork --no-remote
+  $ hub fork --no-remote
   [ repo forked on GitHub ]
 */
 func fork(cmd *Command, args *Args) {

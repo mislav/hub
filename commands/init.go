@@ -25,7 +25,7 @@ func init() {
 }
 
 /*
-  $ gh init -g
+  $ hub init -g
   > git init
   > git remote add origin git@github.com:USER/REPO.git
 */

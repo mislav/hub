@@ -33,19 +33,19 @@ func init() {
 }
 
 /*
-  $ gh browse
+  $ hub browse
   > open https://github.com/CURRENT_REPO
 
-  $ gh browse -- issues
+  $ hub browse -- issues
   > open https://github.com/CURRENT_REPO/issues
 
-  $ gh browse jingweno/gh
+  $ hub browse jingweno/gh
   > open https://github.com/jingweno/gh
 
-  $ gh browse gh
+  $ hub browse gh
   > open https://github.com/YOUR_LOGIN/gh
 
-  $ gh browse gh wiki
+  $ hub browse gh wiki
   > open https://github.com/YOUR_LOGIN/gh/wiki
 */
 func browse(command *Command, args *Args) {

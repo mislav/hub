@@ -16,13 +16,13 @@ func init() {
 }
 
 /**
-  $ gh submodule add jingweno/gh vendor/gh
+  $ hub submodule add jingweno/gh vendor/gh
   > git submodule add git://github.com/jingweno/gh.git vendor/gh
 
-  $ gh submodule add -p jingweno/gh vendor/gh
+  $ hub submodule add -p jingweno/gh vendor/gh
   > git submodule add git@github.com:jingweno/gh.git vendor/gh
 
-  $ gh submodule add -b gh --name gh jingweno/gh vendor/gh
+  $ hub submodule add -b gh --name gh jingweno/gh vendor/gh
   > git submodule add -b gh --name gh git://github.com/jingweno/gh.git vendor/gh
 **/
 
