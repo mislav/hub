@@ -31,16 +31,16 @@ func init() {
 }
 
 /*
-  $ gh ci-status
+  $ hub ci-status
   > (prints CI state of HEAD and exits with appropriate code)
 
-  $ gh ci-status -v
+  $ hub ci-status -v
   > (prints CI states and URLs to CI build results for HEAD and exits with appropriate code)
 
-  $ gh ci-status BRANCH
+  $ hub ci-status BRANCH
   > (prints CI state of BRANCH and exits with appropriate code)
 
-  $ gh ci-status SHA
+  $ hub ci-status SHA
   > (prints CI state of SHA and exits with appropriate code)
 */
 func ciStatus(cmd *Command, args *Args) {

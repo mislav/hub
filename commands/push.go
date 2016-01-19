@@ -21,12 +21,12 @@ func init() {
 }
 
 /*
-  $ gh push origin,staging,qa bert_timeout
+  $ hub push origin,staging,qa bert_timeout
   > git push origin bert_timeout
   > git push staging bert_timeout
   > git push qa bert_timeout
 
-  $ gh push origin
+  $ hub push origin
   > git push origin HEAD
 */
 func push(command *Command, args *Args) {

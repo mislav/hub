@@ -24,15 +24,15 @@ func init() {
 }
 
 /*
-  $ gh cherry-pick https://github.com/jingweno/gh/commit/a319d88#comments
+  $ hub cherry-pick https://github.com/jingweno/gh/commit/a319d88#comments
   > git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
   > git cherry-pick a319d88
 
-  $ gh cherry-pick jingweno@a319d88
+  $ hub cherry-pick jingweno@a319d88
   > git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
   > git cherry-pick a319d88
 
-  $ gh cherry-pick jingweno@SHA
+  $ hub cherry-pick jingweno@SHA
   > git fetch jingweno
   > git cherry-pick SHA
 */
