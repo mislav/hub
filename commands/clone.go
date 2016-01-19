@@ -11,7 +11,7 @@ import (
 var cmdClone = &Command{
 	Run:          clone,
 	GitExtension: true,
-	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
+	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY [DIRECTORY]",
 	Short:        "Clone a remote repository into a new directory",
 	Long: `Clone repository "git://github.com/USER/REPOSITORY.git" into
 DIRECTORY as with git-clone(1). When USER/ is omitted, assumes
@@ -36,6 +36,9 @@ func init() {
 
   $ gh clone -p jekyll_and_hyde
   > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
+
+  $ gh clone jekyll_and_hyde jekyll
+  > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git jekyll
 */
 func clone(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
