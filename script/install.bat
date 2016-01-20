@@ -2,14 +2,22 @@
 CLS
 goto checkPrivileges
 
-:appendToPath
-set "RUNPS=powershell -NoProfile -ExecutionPolicy Bypass -Command"
-set "OLDPATHPS=[Environment]::GetEnvironmentVariable('PATH', 'User')"
+:: Unfortunately, Windows doesn't have a decent built-in way to append a string to the $PATH.
+:: setx is convenient, but it 1) truncates paths longer than 1024 characters, and
+:: 2) mucks up the user path with the machine-wide path.
+:: This function takes care of these problems by calling Environment.Get/SetEnvironmentVariable
+:: via PowerShell, which lacks these issues.
+:appendToUserPath
+set "RUNPS=powershell -NoProfile -ExecutionPolicy Bypass -Command" :: Command to start PowerShell.
+set "OLDPATHPS=[Environment]::GetEnvironmentVariable('PATH', 'User')" :: PowerShell command to run to get the old $PATH for the current user.
+
+:: Capture the output of %RUNPS% "%OLDPATHPS%" and set it to OLDPATH
 for /f "delims=" %%i in ('%RUNPS% "%OLDPATHPS%"') do (
-    set OLDPATH=%%i
+    set "OLDPATH=%%i"
 )
-set NEWPATH=%OLDPATH%;%1
-%RUNPS% "[Environment]::SetEnvironmentVariable('PATH', '%NEWPATH%', 'User')"
+
+set "NEWPATH=%OLDPATH%;%1"
+%RUNPS% "[Environment]::SetEnvironmentVariable('PATH', '%NEWPATH%', 'User')" :: Set the new $PATH
 goto :eof
 
 :checkPrivileges
@@ -39,7 +47,7 @@ set HUB_BIN_PATH="%LOCALAPPDATA%\GitHubCLI\bin"
 IF EXIST %HUB_BIN_PATH% GOTO DIRECTORY_EXISTS
 mkdir %HUB_BIN_PATH%
 set "path=%PATH%;%HUB_BIN_PATH:"=%"
-call :apppendToPath %HUB_BIN_PATH:"=%
+call :apppendToUserPath %HUB_BIN_PATH:"=%
 :DIRECTORY_EXISTS
 
 :: Delete any existing programs
