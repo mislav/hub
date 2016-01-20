@@ -41,7 +41,7 @@ func init() {
 }
 
 /*
-  $ gh apply https://github.com/jingweno/gh/pull/55
+  $ hub apply https://github.com/jingweno/gh/pull/55
   > curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
   > git apply /tmp/55.patch
 

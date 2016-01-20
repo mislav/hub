@@ -27,13 +27,13 @@ func init() {
 }
 
 /*
-  $ gh remote add jingweno
+  $ hub remote add jingweno
   > git remote add jingweno git://github.com/jingweno/THIS_REPO.git
 
-  $ gh remote add -p jingweno
+  $ hub remote add -p jingweno
   > git remote add jingweno git@github.com:jingweno/THIS_REPO.git
 
-  $ gh remote add origin
+  $ hub remote add origin
   > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
 */
 func remote(command *Command, args *Args) {
