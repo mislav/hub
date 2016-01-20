@@ -33,6 +33,10 @@ find_source_files() {
   find . -maxdepth 2 -name '*.go' '!' -name '*_test.go' "$@"
 }
 
+find_packages() {
+  find_source_files | cut -d/ -f2 | sort -u | grep -v '.go$' | sed 's!^!github.com/github/hub/!'
+}
+
 count_changed_files() {
   printf %d $(find_source_files -newer "$1" | wc -l)
 }
@@ -48,7 +52,7 @@ build_hub() {
 
 test_hub() {
   setup_gopath
-  go test ./...
+  find_packages | xargs go test
 }
 
 case "$1" in
