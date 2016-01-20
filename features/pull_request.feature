@@ -605,7 +605,7 @@ Feature: hub pull-request
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :assignee => "mislav"
+        assert :assignee => "mislav", :labels => nil
         json :html_url => "the://url"
       }
       """
