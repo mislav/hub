@@ -47,6 +47,9 @@ func init() {
 
   $ hub browse gh wiki
   > open https://github.com/YOUR_LOGIN/gh/wiki
+
+  $ gh browse upstream
+  > open https://github.com/UPSTREAM_REMOTE_REPO
 */
 func browse(command *Command, args *Args) {
 	var (
@@ -72,7 +75,13 @@ func browse(command *Command, args *Args) {
 	}
 
 	localRepo, _ := github.LocalRepo()
-	if dest != "" {
+	if dest == "upstream" {
+		remotes, _ := github.Remotes()
+		if remotes[0].Name == "upstream" {
+			project, _ = github.NewProjectFromURL(remotes[0].URL)
+			branch = localRepo.MasterBranch()
+		}
+	} else if dest != "" && dest != "upstream" {
 		project = github.NewProject("", dest, "")
 		branch = localRepo.MasterBranch()
 	} else if subpage != "" && subpage != "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" {
