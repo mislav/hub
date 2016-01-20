@@ -1,6 +1,7 @@
 *.swp
 *~
 /hub
+/bin
 .bundle
 vendor/bundle/
 tmp/
