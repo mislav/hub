@@ -62,6 +62,22 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles/tree/experimental" should be run
 
+  Scenario: Current branch pushed to fork
+    Given I am in "git://github.com/blueyed/dotfiles.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/dotfiles.git"
+    And I am on the "feature" branch with upstream "mislav/experimental"
+    And git "push.default" is set to "upstream"
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles/tree/experimental" should be run
+
+  Scenario: Current branch pushed to fork with simple tracking
+    Given I am in "git://github.com/blueyed/dotfiles.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/dotfiles.git"
+    And I am on the "feature" branch with upstream "mislav/feature"
+    And git "push.default" is set to "simple"
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles/tree/feature" should be run
+
   Scenario: Default branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And the default branch for "origin" is "develop"

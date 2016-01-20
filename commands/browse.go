@@ -85,7 +85,18 @@ func browse(command *Command, args *Args) {
 			currentBranch = localRepo.MasterBranch()
 		}
 
-		branch, project, _ = localRepo.RemoteBranchAndProject("", currentBranch.IsMaster())
+		var owner string
+		mainProject, err := localRepo.MainProject()
+		if err == nil {
+			host, err := github.CurrentConfig().PromptForHost(mainProject.Host)
+			if err != nil {
+				utils.Check(github.FormatError("in browse", err))
+			} else {
+				owner = host.User
+			}
+		}
+
+		branch, project, _ = localRepo.RemoteBranchAndProject(owner, currentBranch.IsMaster())
 		if branch == nil {
 			branch = localRepo.MasterBranch()
 		}
