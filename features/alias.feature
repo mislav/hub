@@ -99,3 +99,21 @@ Feature: hub alias
       supported shells: bash zsh sh ksh csh tcsh fish\n
       """
     And the exit status should be 1
+
+  Scenario: unknown shell
+    Given $SHELL is ""
+    When I run `hub alias`
+    Then the output should contain exactly:
+      """
+      Error: couldn't detect shell type. Please specify your shell with `hub alias <shell>`\n
+      """
+    And the exit status should be 1
+
+  Scenario: unknown shell output
+    Given $SHELL is ""
+    When I run `hub alias -s`
+    Then the output should contain exactly:
+      """
+      Error: couldn't detect shell type. Please specify your shell with `hub alias -s <shell>`\n
+      """
+    And the exit status should be 1
