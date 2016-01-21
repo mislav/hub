@@ -13,7 +13,7 @@ import (
 
 var cmdPullRequest = &Command{
 	Run:   pullRequest,
-	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]",
+	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-w] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]",
 	Short: "Open a pull request on GitHub",
 	Long: `Opens a pull request on GitHub for the project that the "origin" remote
 points to. The default head of the pull request is the current branch.
@@ -47,6 +47,7 @@ var (
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
 	flagPullRequestMilestone uint64
+	flagPullRequestWeb bool
 )
 
 func init() {
@@ -60,6 +61,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
 	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestLabels, "labels", "l", "", "LABELS")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestWeb, "web", "w", false, "WEB")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -105,10 +107,11 @@ func pullRequest(cmd *Command, args *Args) {
 
 	var (
 		base, head string
-		force      bool
+		force, web bool
 	)
 
 	force = flagPullRequestForce
+	web = flagPullRequestWeb
 
 	if flagPullRequestBase != "" {
 		baseProject, base = parsePullRequestProject(baseProject, flagPullRequestBase)
@@ -155,6 +158,16 @@ func pullRequest(cmd *Command, args *Args) {
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
+
+	if web {
+		openPullRequestURL := fmt.Sprintf("https://github.com/%s/compare/%s...%s?expand=1", baseProject, base, fullHead)
+		launcher, err := utils.BrowserLauncher()
+		utils.Check(err)
+		args.Replace(launcher[0], "", launcher[1:]...)
+		args.AppendParams(openPullRequestURL)
+		return
+	}
+
 
 	if !force && trackedBranch != nil {
 		remoteCommits, _ := git.RefList(trackedBranch.LongName(), "")
