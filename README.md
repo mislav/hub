@@ -279,16 +279,26 @@ superpowers:
 Configuration
 -------------
 
+### Configuration file
+
+Hub stores its configuration in a file named "hub", located in a directory
+determined in accordance with the 
+[XDG Base Directory Specification](http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html).
+If the environment variable "$XDG_CONFIG_HOME" is set, it's value is taken
+to be the full path to the configuration directory. If it is unset or empty, 
+the default "~/.config/" is used.
+
 ### GitHub OAuth authentication
 
 Hub will prompt for GitHub username & password the first time it needs to access
-the API and exchange it for an OAuth token, which it saves in "~/.config/hub".
+the API and exchange it for an OAuth token, which it saves in the configuration
+file as described above.
 
 To avoid being prompted, use **GITHUB_USER** and **GITHUB_PASSWORD** environment
 variables.
 
 Alternatively, you may provide **GITHUB_TOKEN**, an access token with
-**repo** permissions. This will not be written to `~/.config/hub`.
+**repo** permissions. This will not be written to the configuration file.
 
 ### HTTPS instead of git protocol
 
