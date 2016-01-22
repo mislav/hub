@@ -5,8 +5,8 @@ import (
 	"io"
 	"os"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/mattn/go-colorable"
-	"github.com/github/hub/Godeps/_workspace/src/github.com/mattn/go-isatty"
+	"github.com/mattn/go-colorable"
+	"github.com/mattn/go-isatty"
 )
 
 type UI interface {
