@@ -277,3 +277,9 @@ func gitOutput(input ...string) (outputs []string, err error) {
 
 	return outputs, err
 }
+
+func ForwardGitHelp() error {
+	cmd := cmd.New("git")
+	cmd.WithArgs("help")
+	return cmd.Spawn()
+}
