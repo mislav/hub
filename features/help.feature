@@ -12,3 +12,7 @@ Feature: hub help
   Scenario: Appends hub commands to `--all` output
     When I successfully run `hub help -a`
     Then the output should contain "pull-request"
+
+  Scenario: Opens man page
+    When I successfully run `hub help hub`
+    Then "man hub" should be run

@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
 	"github.com/github/hub/utils"
 )
@@ -23,13 +24,25 @@ func init() {
 	CmdRunner.Use(cmdHelp, "--help")
 }
 
-func runHelp(cmd *Command, args *Args) {
+func runHelp(helpCmd *Command, args *Args) {
 	if args.IsParamsEmpty() {
 		printUsage()
 		os.Exit(0)
 	}
 
 	command := args.FirstParam()
+
+	if command == "hub" {
+		man := cmd.New("man")
+		man.WithArg("hub")
+		err := man.Run()
+		if err == nil {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
+	}
+
 	c := CmdRunner.Lookup(command)
 	if c != nil && !c.GitExtension {
 		c.PrintUsage()
