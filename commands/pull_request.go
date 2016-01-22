@@ -5,10 +5,10 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 var cmdPullRequest = &Command{
@@ -57,23 +57,23 @@ func init() {
 
 /*
   # while on a topic branch called "feature":
-  $ gh pull-request
+  $ hub pull-request
   [ opens text editor to edit title & body for the request ]
   [ opened pull request on GitHub for "YOUR_USER:feature" ]
 
   # explicit pull base & head:
-  $ gh pull-request -b jingweno:master -h jingweno:feature
+  $ hub pull-request -b jingweno:master -h jingweno:feature
 
-  $ gh pull-request -m "title\n\nbody"
+  $ hub pull-request -m "title\n\nbody"
   [ create pull request with title & body  ]
 
-  $ gh pull-request -i 123
+  $ hub pull-request -i 123
   [ attached pull request to issue #123 ]
 
-  $ gh pull-request https://github.com/jingweno/gh/pull/123
+  $ hub pull-request https://github.com/jingweno/gh/pull/123
   [ attached pull request to issue #123 ]
 
-  $ gh pull-request -F FILE
+  $ hub pull-request -F FILE
   [ create pull request with title & body from FILE ]
 */
 func pullRequest(cmd *Command, args *Args) {

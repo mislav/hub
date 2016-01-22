@@ -5,10 +5,10 @@ import (
 	"io"
 	"net/url"
 	"os"
-	"os/user"
+	"os/exec"
 	"strings"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
@@ -678,12 +678,21 @@ func warnExistenceOfRepo(project *Project, ee error) (err error) {
 }
 
 func authTokenNote(num int) (string, error) {
-	u, err := user.Current()
-	if err != nil {
-		return "", err
+	n := os.Getenv("USER")
+
+	if n == "" {
+		n = os.Getenv("USERNAME")
 	}
 
-	n := u.Username
+	if n == "" {
+		whoami := exec.Command("whoami")
+		whoamiOut, err := whoami.Output()
+		if err != nil {
+			return "", err
+		}
+		n = strings.TrimSpace(string(whoamiOut))
+	}
+
 	h, err := os.Hostname()
 	if err != nil {
 		return "", err

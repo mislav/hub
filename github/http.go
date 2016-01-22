@@ -133,7 +133,7 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		Verbose:     verbose,
 		OverrideURL: testURL,
 		Out:         ui.Stderr,
-		Colorized:   IsTerminal(os.Stderr),
+		Colorized:   ui.IsTerminal(os.Stderr),
 	}
 	return &http.Client{Transport: tr}
 }

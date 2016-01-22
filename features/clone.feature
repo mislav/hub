@@ -38,6 +38,19 @@ Feature: hub clone
     Then it should clone "git://github.com/zhuangya/.vim.git"
     And there should be no output
 
+  Scenario: Clone a repo even if same-named directory exists
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
+    And a directory named "rtomayko/ronn"
+    When I successfully run `hub clone rtomayko/ronn`
+    Then it should clone "git://github.com/rtomayko/ronn.git"
+    And there should be no output
+
   Scenario: Clone a public repo with HTTPS
     Given HTTPS is preferred
     When I successfully run `hub clone rtomayko/ronn`
@@ -82,7 +95,14 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Unchanged local clone with destination
+    Given a directory named ".git"
     When I successfully run `hub clone -l . ../copy`
+    Then the git command should be unchanged
+    And there should be no output
+
+  Scenario: Unchanged local clone from bare repo
+    Given a bare git repo in "rtomayko/ronn"
+    When I successfully run `hub clone rtomayko/ronn`
     Then the git command should be unchanged
     And there should be no output
 
@@ -164,8 +184,14 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Clone from existing directory is a local clone
-    Given a directory named "dotfiles"
+    Given a directory named "dotfiles/.git"
     When I successfully run `hub clone dotfiles`
+    Then the git command should be unchanged
+    And there should be no output
+
+  Scenario: Clone from git bundle is a local clone
+    Given a git bundle named "my-bundle"
+    When I successfully run `hub clone my-bundle`
     Then the git command should be unchanged
     And there should be no output
 

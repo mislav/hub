@@ -26,11 +26,11 @@ func init() {
 }
 
 /*
-  $ gh fork
+  $ hub fork
   [ repo forked on GitHub ]
   > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
 
-  $ gh fork --no-remote
+  $ hub fork --no-remote
   [ repo forked on GitHub ]
 */
 func fork(cmd *Command, args *Args) {
@@ -46,6 +46,11 @@ func fork(cmd *Command, args *Args) {
 	host, err := config.PromptForHost(project.Host)
 	if err != nil {
 		utils.Check(github.FormatError("forking repository", err))
+	}
+
+	originRemote, err := localRepo.OriginRemote()
+	if err != nil {
+		utils.Check(fmt.Errorf("Error creating fork: %s", err))
 	}
 
 	forkProject := github.NewProject(host.User, project.Name, project.Host)
@@ -71,7 +76,6 @@ func fork(cmd *Command, args *Args) {
 	if flagForkNoRemote {
 		os.Exit(0)
 	} else {
-		originRemote, _ := localRepo.OriginRemote()
 		originURL := originRemote.URL.String()
 		url := forkProject.GitURL("", "", true)
 		args.Replace("git", "remote", "add", "-f", forkProject.Owner, originURL)

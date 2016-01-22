@@ -19,6 +19,8 @@ setup_gopath() {
     export GOPATH="$TMP_GOPATH"
   fi
 
+  export GO15VENDOREXPERIMENT=1
+
   mkdir -p "${TMP_SELF%/*}"
   ln -snf "$PWD" "$TMP_SELF" 2>/dev/null || {
     rm -rf "$TMP_SELF"
@@ -29,6 +31,10 @@ setup_gopath() {
 
 find_source_files() {
   find . -maxdepth 2 -name '*.go' '!' -name '*_test.go' "$@"
+}
+
+find_packages() {
+  find_source_files | cut -d/ -f2 | sort -u | grep -v '.go$' | sed 's!^!github.com/github/hub/!'
 }
 
 count_changed_files() {
@@ -46,7 +52,7 @@ build_hub() {
 
 test_hub() {
   setup_gopath
-  go test ./...
+  find_packages | xargs go test
 }
 
 case "$1" in

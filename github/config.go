@@ -5,29 +5,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strconv"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/howeyc/gopass"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/howeyc/gopass"
+	"github.com/mitchellh/go-homedir"
 )
 
 var defaultConfigsFile string
 
 func init() {
-	homeDir := os.Getenv("HOME")
-
-	if homeDir == "" {
-		if u, err := user.Current(); err == nil {
-			homeDir = u.HomeDir
-		}
-	}
-
-	if homeDir == "" {
-		utils.Check(fmt.Errorf("Can't get current user's home dir"))
-	}
+	homeDir, err := homedir.Dir()
+	utils.Check(err)
 
 	defaultConfigsFile = filepath.Join(homeDir, ".config", "hub")
 }
@@ -144,7 +135,7 @@ func (c *Config) PromptForPassword(host, user string) (pass string) {
 	}
 
 	ui.Printf("%s password for %s (never stored): ", host, user)
-	if IsTerminal(os.Stdout) {
+	if ui.IsTerminal(os.Stdout) {
 		pass = string(gopass.GetPasswd())
 	} else {
 		pass = c.scanLine()

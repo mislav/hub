@@ -46,7 +46,7 @@ func init() {
 }
 
 /*
-  $ gh issue
+  $ hub issue
 */
 func issue(cmd *Command, args *Args) {
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, gh *github.Client) {

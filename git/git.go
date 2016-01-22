@@ -21,18 +21,46 @@ func Version() (string, error) {
 	return output[0], nil
 }
 
+var cachedDir string
+
 func Dir() (string, error) {
+	if cachedDir != "" {
+		return cachedDir, nil
+	}
+
 	output, err := gitOutput("rev-parse", "-q", "--git-dir")
 	if err != nil {
 		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
 	}
 
-	gitDir := output[0]
-	gitDir, err = filepath.Abs(gitDir)
-	if err != nil {
-		return "", err
+	var chdir string
+	for i, flag := range GlobalFlags {
+		if flag == "-C" {
+			dir := GlobalFlags[i+1]
+			if filepath.IsAbs(dir) {
+				chdir = dir
+			} else {
+				chdir = filepath.Join(chdir, dir)
+			}
+		}
 	}
 
+	gitDir := output[0]
+
+	if !filepath.IsAbs(gitDir) {
+		if chdir != "" {
+			gitDir = filepath.Join(chdir, gitDir)
+		}
+
+		gitDir, err = filepath.Abs(gitDir)
+		if err != nil {
+			return "", err
+		}
+
+		gitDir = filepath.Clean(gitDir)
+	}
+
+	cachedDir = gitDir
 	return gitDir, nil
 }
 
@@ -222,6 +250,12 @@ func Run(command string, args ...string) error {
 	return cmd.Run()
 }
 
+func IsGitDir(dir string) bool {
+	cmd := cmd.New("git")
+	cmd.WithArgs("--git-dir=" + dir, "rev-parse", "--git-dir")
+	return cmd.Success()
+}
+
 func gitOutput(input ...string) (outputs []string, err error) {
 	cmd := cmd.New("git")
 
@@ -242,4 +276,10 @@ func gitOutput(input ...string) (outputs []string, err error) {
 	}
 
 	return outputs, err
+}
+
+func ForwardGitHelp() error {
+	cmd := cmd.New("git")
+	cmd.WithArgs("help")
+	return cmd.Spawn()
 }

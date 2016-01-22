@@ -17,12 +17,15 @@ Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
   run_silent %(git config #{key} "#{value}")
 end
 
-Given(/^the "([^"]*)" remote has url "([^"]*)"$/) do |remote_name, url|
+Given(/^the "([^"]*)" remote has(?: (push))? url "([^"]*)"$/) do |remote_name, push, url|
   remotes = run_silent('git remote').split("\n")
+  if push
+    push = "--push"
+  end
   unless remotes.include? remote_name
     run_silent %(git remote add #{remote_name} "#{url}")
   else
-    run_silent %(git remote set-url #{remote_name} "#{url}")
+    run_silent %(git remote set-url #{push} #{remote_name} "#{url}")
   end
 end
 
@@ -50,11 +53,26 @@ Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
   step %(the "origin" remote has url "#{origin_url}") if origin_url
 end
 
-Given(/^a git repo in "([^"]*)"$/) do |dir_name|
+Given(/^a (bare )?git repo in "([^"]*)"$/) do |bare, dir_name|
   step %(a directory named "#{dir_name}")
   dirs << dir_name
-  step %(I successfully run `git init --quiet`)
+  step %(I successfully run `git init --quiet #{"--bare" if bare}`)
   dirs.pop
+end
+
+Given(/^a git bundle named "([^"]*)"$/) do |file|
+  in_current_dir do
+    FileUtils.mkdir_p File.dirname(file)
+    dest = File.expand_path(file)
+
+    Dir.mktmpdir do |tmpdir|
+      dirs << tmpdir
+      run_silent %(git init --quiet)
+      empty_commit
+      run_silent %(git bundle create "#{dest}" master)
+      dirs.pop
+    end
+  end
 end
 
 Given(/^there is a commit named "([^"]+)"$/) do |name|

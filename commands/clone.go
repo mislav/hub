@@ -11,7 +11,7 @@ import (
 var cmdClone = &Command{
 	Run:          clone,
 	GitExtension: true,
-	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
+	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY [DIRECTORY]",
 	Short:        "Clone a remote repository into a new directory",
 	Long: `Clone repository "git://github.com/USER/REPOSITORY.git" into
 DIRECTORY as with git-clone(1). When USER/ is omitted, assumes
@@ -25,17 +25,20 @@ func init() {
 }
 
 /**
-  $ gh clone jingweno/gh
+  $ hub clone jingweno/gh
   > git clone git://github.com/jingweno/gh.git
 
-  $ gh clone -p jingweno/gh
+  $ hub clone -p jingweno/gh
   > git clone git@github.com:jingweno/gh.git
 
-  $ gh clone jekyll_and_hyde
+  $ hub clone jekyll_and_hyde
   > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git
 
-  $ gh clone -p jekyll_and_hyde
+  $ hub clone -p jekyll_and_hyde
   > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
+
+  $ hub clone jekyll_and_hyde jekyll
+  > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git jekyll
 */
 func clone(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
@@ -55,7 +58,7 @@ func transformCloneArgs(args *Args) {
 				i++
 			}
 		} else {
-			if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
+			if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
 				name, owner := parseCloneNameAndOwner(a)
 				var host *github.Host
 				if owner == "" {

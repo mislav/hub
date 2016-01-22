@@ -25,11 +25,11 @@ func init() {
 }
 
 /**
-  $ gh checkout https://github.com/jingweno/gh/pull/73
+  $ hub checkout https://github.com/jingweno/gh/pull/73
   > git remote add -f --no-tags -t feature git://github:com/foo/gh.git
   > git checkout --track -B foo-feature foo/feature
 
-  $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
+  $ hub checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
 **/
 func checkout(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {

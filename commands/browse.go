@@ -33,19 +33,19 @@ func init() {
 }
 
 /*
-  $ gh browse
+  $ hub browse
   > open https://github.com/CURRENT_REPO
 
-  $ gh browse -- issues
+  $ hub browse -- issues
   > open https://github.com/CURRENT_REPO/issues
 
-  $ gh browse jingweno/gh
+  $ hub browse jingweno/gh
   > open https://github.com/jingweno/gh
 
-  $ gh browse gh
+  $ hub browse gh
   > open https://github.com/YOUR_LOGIN/gh
 
-  $ gh browse gh wiki
+  $ hub browse gh wiki
   > open https://github.com/YOUR_LOGIN/gh/wiki
 */
 func browse(command *Command, args *Args) {
@@ -85,7 +85,18 @@ func browse(command *Command, args *Args) {
 			currentBranch = localRepo.MasterBranch()
 		}
 
-		branch, project, _ = localRepo.RemoteBranchAndProject("", currentBranch.IsMaster())
+		var owner string
+		mainProject, err := localRepo.MainProject()
+		if err == nil {
+			host, err := github.CurrentConfig().PromptForHost(mainProject.Host)
+			if err != nil {
+				utils.Check(github.FormatError("in browse", err))
+			} else {
+				owner = host.User
+			}
+		}
+
+		branch, project, _ = localRepo.RemoteBranchAndProject(owner, currentBranch.IsMaster())
 		if branch == nil {
 			branch = localRepo.MasterBranch()
 		}
