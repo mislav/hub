@@ -60,10 +60,16 @@ func transformInitArgs(args *Args) error {
 		return err
 	}
 
+	config := github.CurrentConfig()
+	host, err := config.DefaultHost()
+	if err != nil {
+		utils.Check(github.FormatError("initializing repository", err))
+	}
+
 	// Assume that the name of the working directory is going to be the name of
 	// the project on GitHub.
 	projectName := strings.Replace(filepath.Base(dirToInit), " ", "-", -1)
-	project := github.NewProject("", projectName, "")
+	project := github.NewProject(host.User, projectName, "")
 	url := project.GitURL("", "", true)
 
 	addRemote := []string{
