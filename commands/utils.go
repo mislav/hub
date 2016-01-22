@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -24,7 +25,7 @@ func (l *listFlag) Set(value string) error {
 	return nil
 }
 
-func isDir(file string) bool {
+func isCloneable(file string) bool {
 	f, err := os.Open(file)
 	if err != nil {
 		return false
@@ -36,7 +37,23 @@ func isDir(file string) bool {
 		return false
 	}
 
-	return fi.IsDir()
+	if fi.IsDir() {
+		gitf, err := os.Open(filepath.Join(file, ".git"))
+		if err == nil {
+			gitf.Close()
+			return true
+		} else {
+			return git.IsGitDir(file)
+		}
+	} else {
+		reader := bufio.NewReader(f)
+		line, err := reader.ReadString('\n')
+		if err == nil {
+			return strings.Contains(line, "git bundle")
+		} else {
+			return false
+		}
+	}
 }
 
 func gitRemoteForProject(project *github.Project) (foundRemote *github.Remote) {

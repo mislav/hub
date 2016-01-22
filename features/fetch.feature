@@ -6,8 +6,19 @@ Feature: hub fetch
 
   Scenario: Fetch existing remote
     When I successfully run `hub fetch origin`
-    Then "git fetch origin" should be run
+    Then the git command should be unchanged
     And there should be no output
+
+  Scenario: Fetch from local bundle
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { json :private => false }
+      """
+    And a git bundle named "mislav"
+    When I successfully run `hub fetch mislav`
+    Then the git command should be unchanged
+    And there should be no output
+    And there should be no "mislav" remote
 
   Scenario: Creates new remote
     Given the GitHub API server:
@@ -95,5 +106,5 @@ Feature: hub fetch
       get('/repos/mislav/dotfiles') { status 404 }
       """
     When I successfully run `hub fetch mislav`
-    Then "git fetch mislav" should be run
+    Then the git command should be unchanged
     And there should be no "mislav" remote

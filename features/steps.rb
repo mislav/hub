@@ -53,11 +53,26 @@ Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
   step %(the "origin" remote has url "#{origin_url}") if origin_url
 end
 
-Given(/^a git repo in "([^"]*)"$/) do |dir_name|
+Given(/^a (bare )?git repo in "([^"]*)"$/) do |bare, dir_name|
   step %(a directory named "#{dir_name}")
   dirs << dir_name
-  step %(I successfully run `git init --quiet`)
+  step %(I successfully run `git init --quiet #{"--bare" if bare}`)
   dirs.pop
+end
+
+Given(/^a git bundle named "([^"]*)"$/) do |file|
+  in_current_dir do
+    FileUtils.mkdir_p File.dirname(file)
+    dest = File.expand_path(file)
+
+    Dir.mktmpdir do |tmpdir|
+      dirs << tmpdir
+      run_silent %(git init --quiet)
+      empty_commit
+      run_silent %(git bundle create "#{dest}" master)
+      dirs.pop
+    end
+  end
 end
 
 Given(/^there is a commit named "([^"]+)"$/) do |name|

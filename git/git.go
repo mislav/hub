@@ -250,6 +250,12 @@ func Run(command string, args ...string) error {
 	return cmd.Run()
 }
 
+func IsGitDir(dir string) bool {
+	cmd := cmd.New("git")
+	cmd.WithArgs("--git-dir=" + dir, "rev-parse", "--git-dir")
+	return cmd.Success()
+}
+
 func gitOutput(input ...string) (outputs []string, err error) {
 	cmd := cmd.New("git")
 
