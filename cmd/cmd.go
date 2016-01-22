@@ -43,6 +43,12 @@ func (cmd *Cmd) CombinedOutput() (string, error) {
 	return string(output), err
 }
 
+func (cmd *Cmd) Success() bool {
+	verboseLog(cmd)
+	err := exec.Command(cmd.Name, cmd.Args...).Run()
+	return err == nil
+}
+
 // Run runs command with `Exec` on platforms except Windows
 // which only supports `Spawn`
 func (cmd *Cmd) Run() error {

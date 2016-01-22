@@ -59,7 +59,7 @@ func transformCloneArgs(args *Args) {
 				i++
 			}
 		} else {
-			if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
+			if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
 				name, owner := parseCloneNameAndOwner(a)
 				var host *github.Host
 				if owner == "" {
