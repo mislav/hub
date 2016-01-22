@@ -42,7 +42,7 @@ func runHelp(cmd *Command, args *Args) {
 func customCommands() []string {
 	cmds := []string{}
 	for n, c := range CmdRunner.All() {
-		if !c.GitExtension {
+		if !c.GitExtension && !strings.HasPrefix(n, "--") {
 			cmds = append(cmds, n)
 		}
 	}
