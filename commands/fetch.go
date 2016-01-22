@@ -53,7 +53,7 @@ func tranformFetchArgs(args *Args) error {
 	projects := make(map[*github.Project]bool)
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
-		if ownerRegexp.MatchString(name) {
+		if ownerRegexp.MatchString(name) && !isCloneable(name) {
 			_, err := localRepo.RemoteByName(name)
 			if err != nil {
 				project := github.NewProject(name, "", "")
