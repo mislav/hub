@@ -13,7 +13,6 @@ case "$1" in
 esac
 
 ctags -R --tag-relative -f "${1:-.git/tags}" \
-  --exclude=Godeps \
   --exclude=etc \
   --exclude=script \
   --exclude=tmp \
