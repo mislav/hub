@@ -26,7 +26,7 @@ var (
 	cmdCreateRelease = &Command{
 		Key:   "create",
 		Run:   createRelease,
-		Usage: "release create [-d] [-p] [-a <ASSETS_FILE>] [-m <MESSAGE>|-f <FILE>] <TAG>",
+		Usage: "release create [-d] [-p] [-a <ASSETS_FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMITISH>] <TAG>",
 		Short: "Create a new release in GitHub",
 		Long: `Creates a new release in GitHub for the project that the "origin" remote points to.
 It requires the name of the tag to release as a first argument.
@@ -39,13 +39,16 @@ of the release can be entered in the same manner as git commit message.
 If "-d" is given, it creates a draft release.
 
 If "-p" is given, it creates a pre-release.
+
+A specific commit to cut the release at can be specified with "-c".
 `}
 
 	flagReleaseDraft,
 	flagReleasePrerelease bool
 
 	flagReleaseMessage,
-	flagReleaseFile string
+	flagReleaseFile,
+	flagReleaseCommitish string
 
 	flagReleaseAssets stringSliceValue
 )
@@ -56,6 +59,7 @@ func init() {
 	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
+	cmdCreateRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "c", "", "COMMITISH")
 
 	cmdRelease.Use(cmdCreateRelease)
 	CmdRunner.Use(cmdRelease)
@@ -91,9 +95,12 @@ func createRelease(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		if release == nil {
-			currentBranch, err := localRepo.CurrentBranch()
-			utils.Check(err)
-			branchName := currentBranch.ShortName()
+			commitish := flagReleaseCommitish
+			if commitish == "" {
+				currentBranch, err := localRepo.CurrentBranch()
+				utils.Check(err)
+				commitish = currentBranch.ShortName()
+			}
 
 			title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
 			utils.Check(err)
@@ -101,7 +108,7 @@ func createRelease(cmd *Command, args *Args) {
 			var editor *github.Editor
 			if title == "" {
 				cs := git.CommentChar()
-				message, err := renderReleaseTpl(cs, tag, project.Name, branchName)
+				message, err := renderReleaseTpl(cs, tag, project.Name, commitish)
 				utils.Check(err)
 
 				editor, err = github.NewEditor("RELEASE", "release", message)
@@ -113,7 +120,7 @@ func createRelease(cmd *Command, args *Args) {
 
 			params := octokit.ReleaseParams{
 				TagName:         tag,
-				TargetCommitish: branchName,
+				TargetCommitish: commitish,
 				Name:            title,
 				Body:            body,
 				Draft:           flagReleaseDraft,
