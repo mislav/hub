@@ -17,7 +17,8 @@ for /f "delims=" %%i in ('%RUNPS% "%OLDPATHPS%"') do (
 )
 
 set "NEWPATH=%OLDPATH%;%1"
-%RUNPS% "[Environment]::SetEnvironmentVariable('PATH', '%NEWPATH%', 'User')" :: Set the new $PATH
+:: Set the new $PATH
+%RUNPS% "[Environment]::SetEnvironmentVariable('PATH', '%NEWPATH%', 'User')"
 goto :eof
 
 :checkPrivileges
@@ -47,7 +48,7 @@ set HUB_BIN_PATH="%LOCALAPPDATA%\GitHubCLI\bin"
 IF EXIST %HUB_BIN_PATH% GOTO DIRECTORY_EXISTS
 mkdir %HUB_BIN_PATH%
 set "path=%PATH%;%HUB_BIN_PATH:"=%"
-call :apppendToUserPath %HUB_BIN_PATH:"=%
+call :appendToUserPath %HUB_BIN_PATH:"=%
 :DIRECTORY_EXISTS
 
 :: Delete any existing programs
