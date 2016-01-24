@@ -71,7 +71,7 @@ func (r *Runner) Execute() ExecError {
 
 	if args.Command == "" {
 		printUsage()
-		return newExecError(nil)
+		return newExecError(fmt.Errorf(""))
 	}
 
 	updater := NewUpdater()
