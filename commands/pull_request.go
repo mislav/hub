@@ -12,27 +12,47 @@ import (
 )
 
 var cmdPullRequest = &Command{
-	Run:   pullRequest,
-	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]",
-	Short: "Open a pull request on GitHub",
-	Long: `Opens a pull request on GitHub for the project that the "origin" remote
-points to. The default head of the pull request is the current branch.
-Both base and head of the pull request can be explicitly given in one of
-the following formats: "branch", "owner:branch", "owner/repo:branch".
-This command will abort operation if it detects that the current topic
-branch has local commits that are not yet pushed to its upstream branch
-on the remote. To skip this check, use "-f".
+	Run: pullRequest,
+	Usage: `
+pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request -m <MESSAGE>
+pull-request -F <FILE>
+pull-request -i <ISSUE>
+`,
+	Long: `Create a GitHub pull request.
 
-Without <MESSAGE> or <FILE>, a text editor will open in which title and body
-of the pull request can be entered in the same manner as git commit message.
-Pull request message can also be passed via stdin with "-F -".
+## Options:
+	-f, --force
+		Skip the check for unpushed commits.
 
-If instead of normal <TITLE> an issue number is given with "-i", the pull
-request will be attached to an existing GitHub issue. Alternatively, instead
-of title you can paste a full URL to an issue on GitHub.
+	-m, --message <MESSAGE>
+		Use the first line of <MESSAGE> as pull request title, and the rest as pull
+		request description.
 
-You can assign the new pull request to a user with "-a <USER>", add it to a
-milestone with "-M <MILESTONE>" and apply labels with "-l <LABELS>".
+	-F, --file <FILE>
+		Read the pull request title and description from <FILE>.
+
+	-i, --issue <ISSUE>, <ISSUE-URL>
+		(Deprecated) Convert <ISSUE> to a pull request.
+
+	-o, --browse
+		Open the new pull request in a web browser.
+
+	-b, --base <BASE>
+		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
+		(usually "master").
+
+	-h, --head <HEAD>
+		The base branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
+
+	-a, --assign <USER>
+		Assign GitHub <USER> to this pull request.
+
+	-M, --milestone <ID>
+		Add this pull request to a GitHub milestone with id <ID>.
+
+	-l, --labels <LABELS>
+		Add a comma-separated list of labels to this pull request.
 `,
 }
 
@@ -64,27 +84,6 @@ func init() {
 	CmdRunner.Use(cmdPullRequest)
 }
 
-/*
-  # while on a topic branch called "feature":
-  $ hub pull-request
-  [ opens text editor to edit title & body for the request ]
-  [ opened pull request on GitHub for "YOUR_USER:feature" ]
-
-  # explicit pull base & head:
-  $ hub pull-request -b jingweno:master -h jingweno:feature
-
-  $ hub pull-request -m "title\n\nbody"
-  [ create pull request with title & body  ]
-
-  $ hub pull-request -i 123
-  [ attached pull request to issue #123 ]
-
-  $ hub pull-request https://github.com/jingweno/gh/pull/123
-  [ attached pull request to issue #123 ]
-
-  $ hub pull-request -F FILE
-  [ create pull request with title & body from FILE ]
-*/
 func pullRequest(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)

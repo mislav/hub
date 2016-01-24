@@ -5,7 +5,7 @@ Feature: hub browse
   Scenario: No repo
     When I run `hub browse`
     Then the exit status should be 1
-    Then the output should contain exactly "git browse [-u] [[<USER>/]<REPOSITORY>|--] [SUBPAGE]\n"
+    Then the output should contain exactly "Usage: hub browse [-u] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]\n"
 
   Scenario: Project with owner
     When I successfully run `hub browse mislav/dotfiles`

@@ -20,27 +20,36 @@ var (
 	cmdRelease = &Command{
 		Run:   release,
 		Usage: "release",
-		Short: "Retrieve releases from GitHub",
-		Long:  `Retrieves releases from GitHub for the project that the "origin" remote points to.`}
+		Long:  "Retrieve releases from GitHub",
+	}
 
 	cmdCreateRelease = &Command{
 		Key:   "create",
 		Run:   createRelease,
-		Usage: "release create [-d] [-p] [-a <ASSETS_FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMITISH>] <TAG>",
-		Short: "Create a new release in GitHub",
-		Long: `Creates a new release in GitHub for the project that the "origin" remote points to.
-It requires the name of the tag to release as a first argument.
+		Usage: "release create [-d] [-p] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMIT>] <TAG>",
+		Long: `Create a GitHub release.
 
-Specify the assets to include in the release via "-a".
+## Options:
+	-d, --draft
+		Create a draft release.
 
-Without <MESSAGE> or <FILE>, a text editor will open in which title and body
-of the release can be entered in the same manner as git commit message.
+	-p, --prerelease
+		Create a pre-release.
 
-If "-d" is given, it creates a draft release.
+	-a, --asset <FILE>
+		Attach a file as an asset for this release.
 
-If "-p" is given, it creates a pre-release.
+	-m, --message <MESSAGE>
+		Use the first line of <MESSAGE> as release title, and the rest as release description.
 
-A specific commit to cut the release at can be specified with "-c".
+	-f, --file <FILE>
+		Read the release title and description from <FILE>.
+	
+	-c, --commitish <COMMIT>
+		A SHA, tag, or branch name to attach the release to (default: current branch).
+
+	<TAG>
+		The git tag name for this release.
 `}
 
 	flagReleaseDraft,

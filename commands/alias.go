@@ -12,11 +12,15 @@ import (
 
 var cmdAlias = &Command{
 	Run:   alias,
-	Usage: "alias [-s] [SHELL]",
-	Short: "Show shell instructions for wrapping git",
-	Long: `Shows shell instructions for wrapping git. If given, SHELL specifies the
-type of shell; otherwise defaults to the value of SHELL environment
-variable. With -s, outputs shell script suitable for eval.
+	Usage: "alias [-s] [<SHELL>]",
+	Long: `Show shell instructions for wrapping git.
+
+## Options
+	-s
+		Output shell script suitable for 'eval'.
+
+	<SHELL>
+		Specify the type of shell (default: "$SHELL" environment variable).
 `,
 }
 

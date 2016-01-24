@@ -11,9 +11,16 @@ import (
 var cmdFork = &Command{
 	Run:   fork,
 	Usage: "fork [--no-remote]",
-	Short: "Make a fork of a remote repository on GitHub and add as remote",
-	Long: `Forks the original project (referenced by "origin" remote) on GitHub and
-adds a new remote for it under your username.
+	Long: `Fork the current project on GitHub and add a git remote for it.
+
+## Options:
+	--no-remote
+		Skip adding a git remote for the fork.
+
+## Examples:
+		$ hub fork
+		[ repo forked on GitHub ]
+		> git remote add -f USER git@github.com:USER/REPO.git
 `,
 }
 
@@ -25,14 +32,6 @@ func init() {
 	CmdRunner.Use(cmdFork)
 }
 
-/*
-  $ hub fork
-  [ repo forked on GitHub ]
-  > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
-
-  $ hub fork --no-remote
-  [ repo forked on GitHub ]
-*/
 func fork(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)

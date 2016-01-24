@@ -12,12 +12,22 @@ import (
 var cmdClone = &Command{
 	Run:          clone,
 	GitExtension: true,
-	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY [DIRECTORY]",
-	Short:        "Clone a remote repository into a new directory",
-	Long: `Clone repository "git://github.com/USER/REPOSITORY.git" into
-DIRECTORY as with git-clone(1). When USER/ is omitted, assumes
-your GitHub login. With -p, clone private repositories over SSH.
-For repositories under your GitHub login, -p is implicit.
+	Usage:        "clone [-p] [<OPTIONS>] [<USER>/]<REPOSITORY> [<DESTINATION>]",
+	Long: `Clone a repository from GitHub.
+
+## Options:
+	-p
+		(Deprecated) Clone private repositories over SSH.
+
+	[<USER>/]<REPOSITORY>
+		<USER> defaults to your own GitHub username.
+
+	<DESTINATION>
+		Directory name to clone into (default: <REPOSITORY>).
+
+## Examples:
+		$ hub clone rtomayko/ronn
+		> git clone git://github.com/rtomayko/ronn.git
 `,
 }
 
@@ -25,22 +35,6 @@ func init() {
 	CmdRunner.Use(cmdClone)
 }
 
-/**
-  $ hub clone jingweno/gh
-  > git clone git://github.com/jingweno/gh.git
-
-  $ hub clone -p jingweno/gh
-  > git clone git@github.com:jingweno/gh.git
-
-  $ hub clone jekyll_and_hyde
-  > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git
-
-  $ hub clone -p jekyll_and_hyde
-  > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
-
-  $ hub clone jekyll_and_hyde jekyll
-  > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git jekyll
-*/
 func clone(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		transformCloneArgs(args)

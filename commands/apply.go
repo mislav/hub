@@ -12,26 +12,37 @@ import (
 var cmdApply = &Command{
 	Run:          apply,
 	GitExtension: true,
-	Usage:        "apply GITHUB-URL",
-	Short:        "Apply a patch to files and/or to the index",
-	Long: `Downloads the patch file for the pull request or commit at the URL and
-applies that patch from disk with git am or git apply. Similar to
-cherry-pick, but doesn't add new remotes. git am creates commits while
-preserving authorship info while <code>apply</code> only applies the
-patch to the working copy.
+	Usage:        "apply <GITHUB-URL>",
+	Long: `Download a patch from GitHub and apply it locally.
+
+## Options:
+	<GITHUB-URL>
+		A URL to a pull request or commit on GitHub.
+
+## Examples:
+		$ hub apply https://github.com/jingweno/gh/pull/55
+		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
+		> git apply /tmp/55.patch
 `,
 }
 
 var cmdAm = &Command{
 	Run:          apply,
 	GitExtension: true,
-	Usage:        "am GITHUB-URL",
-	Short:        "Apply a patch to files and/or to the index",
-	Long: `Downloads the patch file for the pull request or commit at the URL and
-applies that patch from disk with git am or git apply. Similar to
-cherry-pick, but doesn't add new remotes. git am creates commits while
-preserving authorship info while <code>apply</code> only applies the
-patch to the working copy.
+	Usage:        "am [-3] <GITHUB-URL>",
+	Long: `Replicate commits from a GitHub pull request locally.
+
+## Options:
+	-3
+		(Recommended) See git-am(1).
+
+	<GITHUB-URL>
+		A URL to a pull request or commit on GitHub.
+
+## Examples:
+		$ hub am -3 https://github.com/jingweno/gh/pull/55
+		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
+		> git am -3 /tmp/55.patch
 `,
 }
 
@@ -40,19 +51,6 @@ func init() {
 	CmdRunner.Use(cmdAm)
 }
 
-/*
-  $ hub apply https://github.com/jingweno/gh/pull/55
-  > curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
-  > git apply /tmp/55.patch
-
-  $ git apply --ignore-whitespace https://github.com/jingweno/gh/commit/fdb9921
-  > curl https://github.com/jingweno/gh/commit/fdb9921.patch -o /tmp/fdb9921.patch
-  > git apply --ignore-whitespace /tmp/fdb9921.patch
-
-  $ git apply https://gist.github.com/8da7fb575debd88c54cf
-  > curl https://gist.github.com/8da7fb575debd88c54cf.txt -o /tmp/gist-8da7fb575debd88c54cf.txt
-  > git apply /tmp/gist-8da7fb575debd88c54cf.txt
-*/
 func apply(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		transformApplyArgs(args)

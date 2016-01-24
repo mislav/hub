@@ -13,15 +13,13 @@ import (
 )
 
 var cmdHelp = &Command{
-	Usage:        "help [command]",
-	Short:        "Show help",
-	Long:         `Shows usage for a command.`,
+	Run:          runHelp,
 	GitExtension: true,
+	Usage:        "help [<COMMAND>]",
+	Long:         `Show the help page for a command.`,
 }
 
 func init() {
-	cmdHelp.Run = runHelp
-
 	CmdRunner.Use(cmdHelp, "--help")
 }
 

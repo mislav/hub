@@ -12,13 +12,26 @@ import (
 var cmdRemote = &Command{
 	Run:          remote,
 	GitExtension: true,
-	Usage:        "remote [-p] OPTIONS USER[/REPOSITORY]",
-	Short:        "View and manage a set of remote repositories",
-	Long: `Add remote "git://github.com/USER/REPOSITORY.git" as with
-git-remote(1). When /REPOSITORY is omitted, the basename of the
-current working directory is used. With -p, use private remote
-"git@github.com:USER/REPOSITORY.git". If USER is "origin"
-then uses your GitHub login.
+	Usage: `
+remote add [-p] [<OPTIONS>] <USER>[/<REPOSITORY>]
+remote set-url [-p] [<OPTIONS>] <NAME> <USER>[/<REPOSITORY>]
+`,
+	Long: `Add a git remote for a GitHub repository.
+
+## Options:
+	-p
+		(Deprecated) Use the 'ssh:' protocol for the remote URL.
+
+	<USER>[/<REPOSITORY>]
+		If <USER> is "origin", that value will be substituted for your GitHub
+		username. <REPOSITORY> defaults to the name of the current working directory.
+
+## Examples:
+		$ hub remote add jingweno
+		> git remote add jingweno git://github.com/jingweno/REPO.git
+
+		$ hub remote add origin
+		> git remote add origin git://github.com/USER/REPO.git
 `,
 }
 
@@ -27,15 +40,7 @@ func init() {
 }
 
 /*
-  $ hub remote add jingweno
-  > git remote add jingweno git://github.com/jingweno/THIS_REPO.git
-
-  $ hub remote add -p jingweno
-  > git remote add jingweno git@github.com:jingweno/THIS_REPO.git
-
-  $ hub remote add origin
-  > git remote add origin git://github.com/YOUR_LOGIN/THIS_REPO.git
-*/
+ */
 func remote(command *Command, args *Args) {
 	if !args.IsParamsEmpty() && (args.FirstParam() == "add" || args.FirstParam() == "set-url") {
 		transformRemoteArgs(args)
