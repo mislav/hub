@@ -13,7 +13,7 @@ var cmdFork = &Command{
 	Usage: "fork [--no-remote]",
 	Short: "Make a fork of a remote repository on GitHub and add as remote",
 	Long: `Forks the original project (referenced by "origin" remote) on GitHub and
-adds a new remote for it under your username.
+adds a new remote for it as origin, renaming the origin as upstream.
 `,
 }
 
@@ -28,7 +28,8 @@ func init() {
 /*
   $ hub fork
   [ repo forked on GitHub ]
-  > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
+  > git remote rename origin upstream
+  > git remote add -f origin git@github.com:YOUR_USER/CURRENT_REPO.git
 
   $ hub fork --no-remote
   [ repo forked on GitHub ]
@@ -77,9 +78,17 @@ func fork(cmd *Command, args *Args) {
 		os.Exit(0)
 	} else {
 		originURL := originRemote.URL.String()
+		upstreamRemote, _ := localRepo.RemoteByName("upstream")
 		url := forkProject.GitURL("", "", true)
 		args.Replace("git", "remote", "add", "-f", forkProject.Owner, originURL)
 		args.After("git", "remote", "set-url", forkProject.Owner, url)
-		args.After("echo", fmt.Sprintf("new remote: %s", forkProject.Owner))
+		if upstreamRemote == nil {
+	 		args.After("git", "remote", "rename", "origin", "upstream")
+	 		args.After("echo", fmt.Sprintf("remote renamed: origin is now upstream"))
+			args.After("git", "remote", "rename", forkProject.Owner, "origin")
+			args.After("echo", fmt.Sprintf("new remote: %s", "origin"))
+		} else {
+			args.After("echo", fmt.Sprintf("new remote: %s", forkProject.Owner))
+		}
 	}
 }

@@ -15,10 +15,13 @@ Feature: hub fork
       post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
     When I successfully run `hub fork`
-    Then the output should contain exactly "new remote: mislav\n"
+    Then the output should contain exactly "remote renamed: origin is now upstream\nnew remote: origin\n"
     And "git remote add -f mislav git://github.com/evilchelu/dotfiles.git" should be run
     And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
-    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And "git remote rename origin upstream" should be run
+    And "git remote rename mislav origin" should be run
+    And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    And the url for "upstream" should be "git://github.com/evilchelu/dotfiles.git"
 
   Scenario: Fork the repository when origin URL is private
     Given the "origin" remote has url "git@github.com:evilchelu/dotfiles.git"
@@ -29,10 +32,13 @@ Feature: hub fork
       post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
       """
     When I successfully run `hub fork`
-    Then the output should contain exactly "new remote: mislav\n"
+    Then the output should contain exactly "remote renamed: origin is now upstream\nnew remote: origin\n"
     And "git remote add -f mislav ssh://git@github.com/evilchelu/dotfiles.git" should be run
     And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
-    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And "git remote rename origin upstream" should be run
+    And "git remote rename mislav origin" should be run
+    And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    And the url for "upstream" should be "git@github.com:evilchelu/dotfiles.git"
 
   Scenario: --no-remote
     Given the GitHub API server:
@@ -41,7 +47,6 @@ Feature: hub fork
       """
     When I successfully run `hub fork --no-remote`
     Then there should be no output
-    And there should be no "mislav" remote
 
   Scenario: Fork failed
     Given the GitHub API server:
@@ -54,7 +59,6 @@ Feature: hub fork
       """
       Error creating fork: Internal Server Error (HTTP 500)\n
       """
-    And there should be no "mislav" remote
 
   Scenario: Unrelated fork already exists
     Given the GitHub API server:
@@ -70,9 +74,8 @@ Feature: hub fork
       """
       Error creating fork: mislav/dotfiles already exists on github.com\n
       """
-    And there should be no "mislav" remote
 
-Scenario: Related fork already exists
+  Scenario: Related fork already exists
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
@@ -81,7 +84,7 @@ Scenario: Related fork already exists
       """
     When I run `hub fork`
     Then the exit status should be 0
-    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: Invalid OAuth token
     Given the GitHub API server:
@@ -103,8 +106,8 @@ Scenario: Related fork already exists
       """
     And HTTPS is preferred
     When I successfully run `hub fork`
-    Then the output should contain exactly "new remote: mislav\n"
-    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
+    Then the output should contain exactly "remote renamed: origin is now upstream\nnew remote: origin\n"
+    And the url for "origin" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: Not in repo
     Given the current dir is not a repo
@@ -145,7 +148,8 @@ Scenario: Related fork already exists
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
-    Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+    Then the url for "origin" should be "git@git.my.org:mislav/dotfiles.git"
+    And the "upstream" remote has url "git@git.my.org:evilchelu/dotfiles.git"
 
   Scenario: Enterprise fork using regular HTTP
     Given the GitHub API server:
@@ -161,4 +165,7 @@ Scenario: Related fork already exists
     And I am "mislav" on http://git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
-    Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+    Then "git remote rename origin upstream" should be run
+    And "git remote rename mislav origin" should be run
+    Then the url for "origin" should be "git@git.my.org:mislav/dotfiles.git"
+    And the "upstream" remote has url "git@git.my.org:evilchelu/dotfiles.git"
