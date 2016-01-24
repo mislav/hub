@@ -8,6 +8,7 @@ import (
 
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -45,7 +46,7 @@ func runHelp(helpCmd *Command, args *Args) {
 
 	c := CmdRunner.Lookup(command)
 	if c != nil && !c.GitExtension {
-		c.PrintUsage()
+		ui.Println(c.HelpText())
 		os.Exit(0)
 	} else if c == nil {
 		if args.HasFlags("-a", "--all") {

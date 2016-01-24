@@ -103,7 +103,7 @@ func browse(command *Command, args *Args) {
 	}
 
 	if project == nil {
-		err := fmt.Errorf(command.FormattedUsage())
+		err := fmt.Errorf(command.Synopsis())
 		utils.Check(err)
 	}
 
