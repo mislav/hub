@@ -3,186 +3,45 @@ hub(1) -- git + hub = github
 
 ## SYNOPSIS
 
-`hub` [`--noop`] <COMMAND> <OPTIONS>  
-`hub alias` [`-s`] [<SHELL>]
-
-### Expanded git commands:
-
-`git init -g` <OPTIONS>  
-`git clone` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
-`git remote add` [`-p`] <OPTIONS> <USER>[/<REPOSITORY>]  
-`git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]  
-`git fetch` <USER-1>,[<USER-2>,...]  
-`git checkout` <PULLREQ-URL> [<BRANCH>]  
-`git merge` <PULLREQ-URL>  
-`git cherry-pick` <GITHUB-REF>  
-`git am` <GITHUB-URL>  
-`git apply` <GITHUB-URL>  
-`git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> [<REF>]  
-`git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>  
-
-### Custom git commands:
-
-`git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]  
-`git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]  
-`git compare` [`-u`] [`-b` <BASE>] [<USER>] [[<START>...]<END>]  
-`git fork` [`--no-remote`]  
-`git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>] [`-a` <USER>] [`-M` <MILESTONE>] [`-l` <LABELS>]:  
-`git ci-status` [`-v`] [<COMMIT>]
-
-## DESCRIPTION
-
-hub enhances various git commands to ease most common workflows with GitHub.
-
-  * `hub --noop` <COMMAND>:
-    Shows which command(s) would be run as a result of the current command.
-    Doesn't perform anything.
-
-  * `hub alias` [`-s`] [<SHELL>]:
-    Shows shell instructions for wrapping git. If given, <SHELL> specifies the
-    type of shell; otherwise defaults to the value of SHELL environment
-    variable.  With `-s`, outputs shell script suitable for `eval`.
-
-  * `git init` `-g` <OPTIONS>:
-    Create a git repository as with git-init(1) and add remote `origin` at
-    "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub username and
-    <REPOSITORY> is the current working directory's basename.
-
-  * `git clone` [`-p`] <OPTIONS> [<USER>`/`]<REPOSITORY> <DIRECTORY>:
-    Clone repository "git://github.com/<USER>/<REPOSITORY>.git" into
-    <DIRECTORY> as with git-clone(1). When <USER>/ is omitted, assumes
-    your GitHub login.
-
-    If the repository is private or the current user has push access to the
-    repository, hub will use the ssh protocol for cloning. Use `-p` to select
-    the ssh protocol unconditionally. HTTPS protocol can be used instead by
-    setting "hub.protocol" (see <CONFIGURATION>).
-
-  * `git remote add` [`-p`] <OPTIONS> <USER>[`/`<REPOSITORY>]:
-    Add remote "git://github.com/<USER>/<REPOSITORY>.git" as with
-    git-remote(1). When /<REPOSITORY> is omitted, the basename of the
-    current working directory is used. With `-p`, use private remote
-    "git@github.com:<USER>/<REPOSITORY>.git". If <USER> is "origin"
-    then uses your GitHub login.
-
-  * `git remote set-url` [`-p`] <OPTIONS> <REMOTE-NAME> <USER>[/<REPOSITORY>]:
-    Sets the url of remote <REMOTE-NAME> using the same rules as 
-    `git remote add`.
-
-  * `git fetch` <USER-1>,[<USER-2>,...]:
-    Adds missing remote(s) with `git remote add` prior to fetching. New
-    remotes are only added if they correspond to valid forks on GitHub.
-
-  * `git checkout` <PULLREQ-URL> [<BRANCH>]:
-    Checks out the head of the pull request as a local branch, to allow for
-    reviewing, rebasing and otherwise cleaning up the commits in the pull
-    request before merging. The name of the local branch can explicitly be
-    set with <BRANCH>.
-
-  * `git merge` <PULLREQ-URL>:
-    Merge the pull request with a commit message that includes the pull request
-    ID and title, similar to the GitHub Merge Button.
-
-  * `git cherry-pick` <GITHUB-REF>:
-    Cherry-pick a commit from a fork using either full URL to the commit
-    or GitHub-flavored Markdown notation, which is `user@sha`. If the remote
-    doesn't yet exist, it will be added. A `git fetch <user>` is issued
-    prior to the cherry-pick attempt.
-
-  * `git [am|apply]` <GITHUB-URL>:
-    Downloads the patch file for the pull request or commit at the URL and
-    applies that patch from disk with `git am` or `git apply`. Similar to
-    `cherry-pick`, but doesn't add new remotes. `git am` creates commits while
-    preserving authorship info while `apply` only applies the patch to the
-    working copy.
-
-  * `git push` <REMOTE-1>,<REMOTE-2>,...,<REMOTE-N> [<REF>]:
-    Push <REF> to each of <REMOTE-1> through <REMOTE-N> by executing
-    multiple `git push` commands.
-
-  * `git submodule add` [`-p`] <OPTIONS> [<USER>/]<REPOSITORY> <DIRECTORY>:
-    Submodule repository "git://github.com/<USER>/<REPOSITORY>.git" into
-    <DIRECTORY> as with git-submodule(1). When <USER>/ is omitted, assumes
-    your GitHub login. With `-p`, use private remote
-    "git@github.com:<USER>/<REPOSITORY>.git".
-
-  * `git help`:
-    Display enhanced git-help(1).
-
-hub also adds some custom commands that are otherwise not present in git:
-
-  * `git create` [<NAME>] [`-p`] [`-d` <DESCRIPTION>] [`-h` <HOMEPAGE>]:
-    Create a new public GitHub repository from the current git
-    repository and add remote `origin` at
-    "git@github.com:<USER>/<REPOSITORY>.git"; <USER> is your GitHub
-    username and <REPOSITORY> is the current working directory name.
-    To explicitly name the new repository, pass in <NAME>, optionally in
-    <ORGANIZATION>/<NAME> form to create under an organization you're a
-    member of. With `-p`, create a private repository, and with `-d` and `-h`
-    set the repository's description and homepage URL, respectively.
-
-  * `git browse` [`-u`] [[<USER>`/`]<REPOSITORY>] [SUBPAGE]:
-    Open repository's GitHub page in the system's default web browser using
-    `open(1)` or the `BROWSER` env variable. If the repository isn't
-    specified, `browse` opens the page of the repository found in the current
-    directory.
-    If SUBPAGE is specified, the browser will open on the specified
-    subpage: one of "wiki", "commits", "issues" or other (the default is
-    "tree"). A specific commit in the default repository can be opened with
-    `git browse -- commit/<COMMIT>`.
-    With `-u`, outputs the URL rather than opening the browser.
-
-  * `git compare` [`-u`] [`-b` <BASE>] [<USER>] [[<START>...]<END>]:
-    Open a GitHub compare view page in the system's default web browser.
-    <START> to <END> are branch names, tag names, or commit SHA1s specifying
-    the range of history to compare. If a range with two dots (`a..b`) is given,
-    it will be transformed into one with three dots. If <START> is omitted,
-    GitHub will compare against the base branch (the default is "master").
-    If <END> is omitted, GitHub compare view is opened for the current branch.
-    With `-u`, outputs the URL rather than opening the browser. With `-b`, uses
-    <BASE> as base branch rather than the default branch (master).
-
-  * `git fork` [`--no-remote`]:
-    Forks the original project (referenced by "origin" remote) on GitHub and
-    adds a new remote for it under your username.
-
-  * `git pull-request` [`-o`|`--browse`] [`-f`] [`-m` <MESSAGE>|`-F` <FILE>|`-i` <ISSUE>|<ISSUE-URL>] [`-b` <BASE>] [`-h` <HEAD>] [`-a` <USER>] [`-M` <MILESTONE>] [`-l` <LABELS>]:
-    Opens a pull request on GitHub for the project that the "origin" remote
-    points to. The default head of the pull request is the current branch.
-    Both base and head of the pull request can be explicitly given in one of
-    the following formats: "branch", "owner:branch", "owner/repo:branch".
-    This command will abort operation if it detects that the current topic
-    branch has local commits that are not yet pushed to its upstream branch
-    on the remote. To skip this check, use `-f`.
-
-    Without <MESSAGE> or <FILE>, a text editor will open in which title and body
-    of the pull request can be entered in the same manner as git commit message.
-    Pull request message can also be passed via stdin with `-F -`.
-
-    With `-o` or `--browse`, the new pull request will open in the web browser.
-
-    With `-a` or `--assign`, the new pull request will be assigned to <USER>.
-    With `-M` or `--milestone`, it will be added to milestone with ID <MILESTONE>.
-    With `-l` or `--labels`, the comma-separated list of labels will be applied.
-
-    Issue to pull request conversion via `-i <ISSUE>` or <ISSUE-URL>
-    arguments is deprecated and will likely be removed from the future versions
-    of both hub and GitHub API.
-
-  * `git ci-status` [`-v`] [<COMMIT>]:
-    Looks up the SHA for <COMMIT> in GitHub Status API and displays the latest
-    status. Exits with one of:  
-    success (0), error (1), failure (1), pending (2), no status (3)
-
-    If `-v` is given, additionally print detailed report of all checks and their URLs.
+`hub` [`--noop`] <COMMAND> [<OPTIONS>]  
+`hub alias` [`-s`] [<SHELL>]  
+`hub help` hub-<COMMAND>
 
 ## CONFIGURATION
 
-{{CONFIGS}}
+### GitHub OAuth authentication
 
-## EXAMPLES
+Hub will prompt for GitHub username & password the first time it needs to access
+the API and exchange it for an OAuth token, which it saves in `~/.config/hub`.
 
-{{README}}
+To avoid being prompted, use `GITHUB_USER` and `GITHUB_PASSWORD` environment
+variables.
+
+Alternatively, you may provide `GITHUB_TOKEN`, an access token with
+**repo** permissions. This will not be written to `~/.config/hub`.
+
+### HTTPS instead of git protocol
+
+If you prefer the HTTPS protocol for git operations, you can configure hub to
+generate all URLs with `https:` instead of `git:` or `ssh:`:
+
+    $ git config --global hub.protocol https
+
+This will affect `clone`, `fork`, `remote add` and other hub commands that
+expand shorthand references to GitHub repo URLs.
+
+### GitHub Enterprise
+
+By default, hub will only work with repositories that have remotes which
+point to `github.com`. GitHub Enterprise hosts need to be whitelisted to
+configure hub to treat such remotes same as github.com:
+
+    $ git config --global --add hub.host MY.GIT.ORG
+
+The default host for commands like `init` and `clone` is still `github.com`, but
+this can be affected with the `GITHUB_HOST` environment variable:
+
+    $ GITHUB_HOST=my.git.org git clone myproject
 
 ## BUGS
 
