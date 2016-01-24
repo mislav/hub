@@ -41,8 +41,7 @@ in your executable path.
 
 #### Source
 
-To install `hub` from source, you need to have a [Go development environment](http://golang.org/doc/install),
-version 1.4 or better:
+To install `hub` from source, you need to have a [Go development environment](http://golang.org/doc/install):
 
 ~~~ sh
 $ git clone https://github.com/github/hub.git
