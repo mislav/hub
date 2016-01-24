@@ -51,7 +51,7 @@ func runHelp(helpCmd *Command, args *Args) {
 
 	if c := lookupCmd(command); c != nil {
 		manProgram, err := utils.CommandPath("man")
-		if err == nil {
+		if err == nil && !args.HasFlags("--plain-text") {
 			man := cmd.New(manProgram)
 			manPage := "hub-" + c.Name()
 			manFile, err := localManPage(manPage, args)

@@ -24,7 +24,7 @@ fi
 
 { ruby --version
   bundle install --path vendor/bundle
-  bundle binstub rake cucumber
+  bundle binstub rake cucumber ronn
 } || {
   echo "You need Ruby 1.9 or higher and Bundler to run hub tests" >&2
   STATUS=1
