@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
-# Usage: script/build [-o output] [test]
+# Usage: script/build [-o <EXE>]
+#        script/build test
 #
-# Sets up GOPATH and compiles hub. With `test`, runs tests instead.
+# Sets up GOPATH and compiles hub to <EXE> (default: `bin/hub`).
+#
+# With `test`, runs tests instead.
 
 set -e
 
@@ -47,7 +50,8 @@ up_to_date() {
 
 build_hub() {
   setup_gopath
-  [ -n "$1" ] && (up_to_date "$1" || go build -ldflags "-X github.com/github/hub/version.Version=`./script/version`" -o "$1")
+  mkdir -p "$(dirname "$1")"
+  up_to_date "$1" || go build -ldflags "-X github.com/github/hub/version.Version=`./script/version`" -o "$1"
 }
 
 test_hub() {
@@ -55,13 +59,16 @@ test_hub() {
   find_packages | xargs go test
 }
 
+[ $# -gt 0 ] || set -- -o "bin/hub${windows:+.exe}"
+
 case "$1" in
-"" )
-  build_hub hub${windows:+.exe}
-  ;;
 -o )
   shift
-  build_hub $1
+  if [ -z "$1" ]; then
+    echo "error: argument needed for \`-o'" >&2
+    exit 1
+  fi
+  build_hub "$1"
   ;;
 test )
   test_hub

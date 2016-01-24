@@ -46,8 +46,8 @@ To install `hub` from source, you need to have a [Go development environment](ht
 ~~~ sh
 $ git clone https://github.com/github/hub.git
 $ cd hub
-$ ./script/build
-$ cp hub YOUR_BIN_PATH
+# Assuming `~/bin` is in your PATH:
+$ ./script/build -o ~/bin/hub
 ~~~
 
 Or, if you've done Go development before and your $GOPATH/bin
