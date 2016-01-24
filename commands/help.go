@@ -29,6 +29,12 @@ func runHelp(helpCmd *Command, args *Args) {
 		os.Exit(0)
 	}
 
+	if args.HasFlags("-a", "--all") {
+		args.After("echo", "\nhub custom commands\n")
+		args.After("echo", " ", strings.Join(customCommands(), "  "))
+		return
+	}
+
 	command := args.FirstParam()
 
 	if command == "hub" {
@@ -42,14 +48,21 @@ func runHelp(helpCmd *Command, args *Args) {
 		}
 	}
 
-	c := CmdRunner.Lookup(command)
-	if c != nil && !c.GitExtension {
+	if c := lookupCmd(command); c != nil {
 		ui.Println(c.HelpText())
 		os.Exit(0)
-	} else if c == nil {
-		if args.HasFlags("-a", "--all") {
-			args.After("echo", "\nhub custom commands\n")
-			args.After("echo", " ", strings.Join(customCommands(), "  "))
+	}
+}
+
+func lookupCmd(name string) *Command {
+	if strings.HasPrefix(name, "hub-") {
+		return CmdRunner.Lookup(strings.TrimPrefix(name, "hub-"))
+	} else {
+		cmd := CmdRunner.Lookup(name)
+		if cmd != nil && !cmd.GitExtension {
+			return cmd
+		} else {
+			return nil
 		}
 	}
 }
