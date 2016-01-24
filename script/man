@@ -93,9 +93,20 @@ generate() {
   bin/ronn --roff --organization=GITHUB --manual="Hub Manual" "$ronn" >/dev/null
 }
 
+man_desc() {
+  echo "  * hub-${1}(1):"
+  echo "    $(hub_help "$1" | para == 2 | format_shortdesc)"
+}
+
 script/build
 
 case "$1" in
+--desc )
+  for cmd in $extensions $commands; do
+    man_desc "$cmd"
+    echo
+  done
+  ;;
 * )
   for cmd in ${1:-$commands $extensions}; do
     generate "$cmd"
