@@ -76,7 +76,6 @@ format_rest() {
 
 generate() {
   local cmd="$1"
-  local ronn="man/hub-${cmd}.1.ronn"
   local text="$(hub_help "$cmd")"
   [ -n "$text" ] || continue
 
@@ -88,9 +87,7 @@ generate() {
     para == 1 <<<"$text" | format_synopsis
     echo
     para '>=' 3 <<<"$text" | format_rest
-  } > "$ronn"
-
-  bin/ronn --roff --organization=GITHUB --manual="Hub Manual" "$ronn" >/dev/null
+  } > "man/hub-${cmd}.1.ronn"
 }
 
 man_desc() {
@@ -111,5 +108,7 @@ case "$1" in
   for cmd in ${1:-$commands $extensions}; do
     generate "$cmd"
   done
+
+  bin/ronn --organization=GITHUB --manual="Hub Manual" man/*.ronn
   ;;
 esac

@@ -3,6 +3,8 @@
 /bin
 .bundle
 vendor/bundle/
+man/hub.1
+man/hub.1.html
 man/hub-*
 tmp/
 *.test
