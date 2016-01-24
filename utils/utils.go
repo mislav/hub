@@ -56,6 +56,24 @@ func searchBrowserLauncher(goos string) (browser string) {
 	return browser
 }
 
+func CommandPath(cmd string) (string, error) {
+	if runtime.GOOS == "windows" {
+		cmd = cmd + ".exe"
+	}
+
+	path, err := exec.LookPath(cmd)
+	if err != nil {
+		return "", err
+	}
+
+	path, err = filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.EvalSymlinks(path)
+}
+
 func DirName() (string, error) {
 	dir, err := os.Getwd()
 	if err != nil {

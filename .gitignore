@@ -3,6 +3,7 @@
 /bin
 .bundle
 vendor/bundle/
+man/hub-*
 tmp/
 *.test
 target

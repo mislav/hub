@@ -5,6 +5,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"path/filepath"
 
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
@@ -49,8 +50,43 @@ func runHelp(helpCmd *Command, args *Args) {
 	}
 
 	if c := lookupCmd(command); c != nil {
-		ui.Println(c.HelpText())
-		os.Exit(0)
+		manProgram, err := utils.CommandPath("man")
+		if err == nil {
+			man := cmd.New(manProgram)
+			manPage := "hub-" + c.Name()
+			manFile, err := localManPage(manPage, args)
+			if err == nil {
+				man.WithArg(manFile)
+			} else {
+				man.WithArgs("1", manPage)
+			}
+
+			err = man.Run()
+			if err == nil {
+				os.Exit(0)
+			} else {
+				os.Exit(1)
+			}
+		} else {
+			ui.Println(c.HelpText())
+			os.Exit(0)
+		}
+
+	}
+}
+
+func localManPage(cmd string, args *Args) (string, error) {
+	programPath, err := utils.CommandPath(args.ProgramPath)
+	if err != nil {
+		return "", err
+	}
+
+	manPath := filepath.Join(filepath.Dir(programPath), "..", "man", cmd + ".1")
+	_, err = os.Stat(manPath)
+	if err == nil {
+		return manPath, nil
+	} else {
+		return "", err
 	}
 }
 

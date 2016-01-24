@@ -11,6 +11,7 @@ type Args struct {
 	Executable  string
 	GlobalFlags []string
 	Command     string
+	ProgramPath string
 	Params      []string
 	beforeChain []*cmd.Cmd
 	afterChain  []*cmd.Cmd
