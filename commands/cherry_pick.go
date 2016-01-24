@@ -22,6 +22,10 @@ cherry-pick <USER>@<SHA>
 		> git cherry-pick a319d88
 
 		$ hub cherry-pick jingweno@a319d88
+
+## See also:
+
+hub-am(1), hub(1), git-cherry-pick(1)
 `,
 }
 

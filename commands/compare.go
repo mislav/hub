@@ -35,6 +35,10 @@ var cmdCompare = &Command{
 
 		$ hub compare -u jingweno feature
 		> echo https://github.com/jingweno/REPO/compare/feature
+
+## See also:
+
+hub-browse(1), hub(1)
 `,
 }
 

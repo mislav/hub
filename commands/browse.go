@@ -36,6 +36,10 @@ var cmdBrowse = &Command{
 
 		$ hub browse gh wiki
 		> open https://github.com/USER/gh/wiki
+
+## See also:
+
+hub-compare(1), hub(1)
 `,
 }
 

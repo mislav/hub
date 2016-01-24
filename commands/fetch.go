@@ -20,6 +20,10 @@ var cmdFetch = &Command{
 		> git remote add jingweno git://github.com/mislav/REPO.git
 		> git fetch jingweno
 		> git fetch mislav
+
+## See also:
+
+hub-remote(1), hub(1), git-fetch(1)
 `,
 }
 

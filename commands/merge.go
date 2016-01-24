@@ -18,6 +18,10 @@ var cmdMerge = &Command{
 		$ hub merge https://github.com/jingweno/gh/pull/73
 		> git fetch git://github.com/jingweno/gh.git +refs/heads/feature:refs/remotes/jingweno/feature
 		> git merge jingweno/feature --no-ff -m "Merge pull request #73 from jingweno/feature..."
+
+## See also:
+
+hub-checkout(1), hub(1), git-merge(1)
 `,
 }
 

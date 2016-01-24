@@ -28,6 +28,10 @@ var cmdClone = &Command{
 ## Examples:
 		$ hub clone rtomayko/ronn
 		> git clone git://github.com/rtomayko/ronn.git
+
+## See also:
+
+hub-fork(1), hub(1), git-clone(1)
 `,
 }
 

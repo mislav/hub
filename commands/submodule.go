@@ -9,6 +9,10 @@ var cmdSubmodule = &Command{
 ## Examples:
 		$ hub submodule add jingweno/gh vendor/gh
 		> git submodule add git://github.com/jingweno/gh.git vendor/gh
+
+## See also:
+
+hub-remote(1), hub(1), git-submodule(1)
 `,
 }
 

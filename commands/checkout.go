@@ -18,6 +18,10 @@ var cmdCheckout = &Command{
 		$ hub checkout https://github.com/jingweno/gh/pull/73
 		> git remote add -f --no-tags -t feature git://github:com/jingweno/gh.git
 		> git checkout --track -B jingweno-feature jingweno/feature
+
+## See also:
+
+hub-merge(1), hub-am(1), hub(1), git-checkout(1)
 `,
 }
 

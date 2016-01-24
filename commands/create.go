@@ -40,6 +40,10 @@ var cmdCreate = &Command{
 		$ hub create sinatra/recipes
 		[ repo created in GitHub organization ]
 		> git remote add -f origin git@github.com:sinatra/recipes.git
+
+## See also:
+
+hub-init(1), hub(1)
 `,
 }
 

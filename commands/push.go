@@ -21,6 +21,10 @@ var cmdPush = &Command{
 
 		$ hub push origin
 		> git push origin HEAD
+
+## See also:
+
+hub(1), git-push(1)
 `,
 }
 

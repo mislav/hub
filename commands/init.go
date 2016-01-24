@@ -27,6 +27,10 @@ var cmdInit = &Command{
 		$ hub init -g
 		> git init
 		> git remote add origin git@github.com:USER/REPO.git
+
+## See also:
+
+hub-create(1), hub(1), git-init(1)
 `,
 }
 

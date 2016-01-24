@@ -23,6 +23,10 @@ var cmdApply = &Command{
 		$ hub apply https://github.com/jingweno/gh/pull/55
 		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
 		> git apply /tmp/55.patch
+
+## See also:
+
+hub-am(1), hub(1), git-apply(1)
 `,
 }
 
@@ -43,6 +47,10 @@ var cmdAm = &Command{
 		$ hub am -3 https://github.com/jingweno/gh/pull/55
 		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
 		> git am -3 /tmp/55.patch
+
+## See also:
+
+hub-apply(1), hub-cherry-pick(1), hub(1), git-am(1)
 `,
 }
 

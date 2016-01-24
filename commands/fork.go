@@ -21,6 +21,10 @@ var cmdFork = &Command{
 		$ hub fork
 		[ repo forked on GitHub ]
 		> git remote add -f USER git@github.com:USER/REPO.git
+
+## See also:
+
+hub-clone(1), hub(1)
 `,
 }
 

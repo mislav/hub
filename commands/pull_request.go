@@ -53,6 +53,10 @@ pull-request -i <ISSUE>
 
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request.
+
+## See also:
+
+hub(1), hub-merge(1), hub-checkout(1)
 `,
 }
 

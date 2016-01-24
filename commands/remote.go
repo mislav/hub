@@ -32,6 +32,10 @@ remote set-url [-p] [<OPTIONS>] <NAME> <USER>[/<REPOSITORY>]
 
 		$ hub remote add origin
 		> git remote add origin git://github.com/USER/REPO.git
+
+## See also:
+
+hub-fork(1), hub(1), git-remote(1)
 `,
 }
 

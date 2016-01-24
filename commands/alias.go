@@ -21,6 +21,10 @@ var cmdAlias = &Command{
 
 	<SHELL>
 		Specify the type of shell (default: "$SHELL" environment variable).
+
+## See also:
+
+hub(1)
 `,
 }
 

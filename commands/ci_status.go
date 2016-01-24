@@ -23,6 +23,10 @@ var cmdCiStatus = &Command{
 		A commit SHA or branch name (default: "HEAD").
 
 Exits with one of: success (0), error (1), failure (1), pending (2), no status (3).
+
+## See also:
+
+hub-pull-request(1), hub(1)
 `,
 }
 
