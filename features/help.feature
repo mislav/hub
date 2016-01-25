@@ -13,6 +13,6 @@ Feature: hub help
     When I successfully run `hub help -a`
     Then the output should contain "pull-request"
 
-  Scenario: Opens man page
-    When I successfully run `hub help hub`
-    Then "man hub" should be run
+  Scenario: Shows help for a subcommand
+    When I successfully run `hub help hub-help`
+    Then the output should contain "Usage: hub help"

@@ -3,9 +3,9 @@ package commands
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
-	"path/filepath"
 
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
@@ -39,49 +39,65 @@ func runHelp(helpCmd *Command, args *Args) {
 	command := args.FirstParam()
 
 	if command == "hub" {
-		man := cmd.New("man")
-		man.WithArg("hub")
-		err := man.Run()
-		if err == nil {
-			os.Exit(0)
-		} else {
-			os.Exit(1)
+		err := displayManPage("hub.1", args)
+		if err != nil {
+			utils.Check(err)
 		}
 	}
 
 	if c := lookupCmd(command); c != nil {
-		manProgram, err := utils.CommandPath("man")
-		if err == nil && !args.HasFlags("--plain-text") {
-			man := cmd.New(manProgram)
-			manPage := "hub-" + c.Name()
-			manFile, err := localManPage(manPage, args)
+		if !args.HasFlags("--plain-text") {
+			manPage := fmt.Sprintf("hub-%s.1", c.Name())
+			err := displayManPage(manPage, args)
 			if err == nil {
-				man.WithArg(manFile)
-			} else {
-				man.WithArgs("1", manPage)
+				return
 			}
-
-			err = man.Run()
-			if err == nil {
-				os.Exit(0)
-			} else {
-				os.Exit(1)
-			}
-		} else {
-			ui.Println(c.HelpText())
-			os.Exit(0)
 		}
 
+		ui.Println(c.HelpText())
+		os.Exit(0)
 	}
 }
 
-func localManPage(cmd string, args *Args) (string, error) {
-	programPath, err := utils.CommandPath(args.ProgramPath)
-	if err != nil {
-		return "", err
+func displayManPage(manPage string, args *Args) error {
+	manProgram, _ := utils.CommandPath("man")
+	if manProgram == "" {
+		manPage += ".txt"
+		manProgram = os.Getenv("PAGER")
+		if manProgram == "" {
+			manProgram = "less -R"
+		}
 	}
 
-	manPath := filepath.Join(filepath.Dir(programPath), "..", "man", cmd + ".1")
+	programPath, err := utils.CommandPath(args.ProgramPath)
+	if err != nil {
+		return err
+	}
+
+	installPrefix := filepath.Join(filepath.Dir(programPath), "..")
+	manFile, err := localManPage(manPage, installPrefix)
+	if err != nil {
+		return err
+	}
+
+	man := cmd.New(manProgram)
+	man.WithArg(manFile)
+	if err = man.Run(); err == nil {
+		os.Exit(0)
+	} else {
+		os.Exit(1)
+	}
+	return nil
+}
+
+func localManPage(name, installPrefix string) (string, error) {
+	manPath := filepath.Join(installPrefix, "man", name)
+	_, err := os.Stat(manPath)
+	if err == nil {
+		return manPath, nil
+	}
+
+	manPath = filepath.Join(installPrefix, "share", "man", "man1", name)
 	_, err = os.Stat(manPath)
 	if err == nil {
 		return manPath, nil
