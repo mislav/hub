@@ -16,8 +16,34 @@ import (
 var cmdHelp = &Command{
 	Run:          runHelp,
 	GitExtension: true,
-	Usage:        "help [<COMMAND>]",
-	Long:         `Show the help page for a command.`,
+	Usage: `
+help hub
+help <COMMAND>
+help hub-<COMMAND> [--plain-text]
+`,
+	Long: `Show the help page for a command.
+
+## Options:
+	hub-<COMMAND>
+		Use this format to view help for hub extensions to an existing git command.
+
+	--plain-text
+		Skip man page lookup mechanism and display plain help text.
+
+## Man lookup mechanism:
+
+On systems that have 'man', help pages are looked up in these directories
+relative to 'hub' install prefix:
+
+* 'man/<command>.1'
+* 'share/man/man1/<command>.1'
+
+On systems without 'man', same help pages are looked up with a '.txt' suffix.
+
+## See also:
+
+hub(1), git-help(1)
+`,
 }
 
 func init() {

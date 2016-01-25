@@ -17,6 +17,7 @@ HELP_EXT = \
 	man/hub-cherry-pick.1 \
 	man/hub-clone.1 \
 	man/hub-fetch.1 \
+	man/hub-help.1 \
 	man/hub-init.1 \
 	man/hub-merge.1 \
 	man/hub-push.1 \
