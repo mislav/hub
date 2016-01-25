@@ -1,5 +1,0 @@
-#!/bin/sh
-set -e
-files="$(script/build files | cut -d/ -f1-2 | sort -u)"
-grep '.go$' <<<"$files" | xargs go fmt
-grep -v '.go$' <<<"$files" | xargs go fmt

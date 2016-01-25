@@ -1,4 +1,5 @@
 SOURCES = $(shell script/build files)
+SOURCES_FMT = $(shell script/build files | cut -d/ -f1-2 | sort -u)
 
 HELP_CMD = \
 	man/hub-alias.1 \
@@ -26,7 +27,7 @@ HELP_ALL = man/hub.1 $(HELP_CMD) $(HELP_EXT)
 
 TEXT_WIDTH = 87
 
-.PHONY: clean test test-all man-pages
+.PHONY: clean test test-all man-pages fmt
 
 all: bin/hub
 
@@ -41,6 +42,10 @@ test-all: bin/cucumber
 
 bin/ronn bin/cucumber:
 	script/bootstrap
+
+fmt:
+	go fmt $(filter %.go,$(SOURCES_FMT))
+	go fmt $(filter-out %.go,$(SOURCES_FMT))
 
 man-pages: $(HELP_ALL:=.ronn) $(HELP_ALL) $(HELP_ALL:=.txt)
 
