@@ -12,21 +12,24 @@ var (
 	cmdIssue = &Command{
 		Run:   issue,
 		Usage: "issue",
-		Short: "List issues on GitHub",
-		Long:  `List summary of the open issues for the project that the "origin" remote points to.`,
+		Long:  `List open issues for the current GitHub project.`,
 	}
 
 	cmdCreateIssue = &Command{
 		Key:   "create",
 		Run:   createIssue,
-		Usage: "issue create [-m <MESSAGE>|-f <FILE>] [-l <LABEL-1>,<LABEL-2>...,<LABEL-N>]",
-		Short: "Create an issue on GitHub",
-		Long: `Create an issue for the project that the "origin" remote points to.
+		Usage: "issue create [-m <MESSAGE>|-f <FILE>] [-l <LABELS>]",
+		Long: `File an issue for the current GitHub project.
 
-Without <MESSAGE> or <FILE>, a text editor will open in which title and body
-of the release can be entered in the same manner as git commit message.
+## Options:
+	-m, --message <MESSAGE>
+		Use the first line of <MESSAGE> as issue title, and the rest as issue description.
 
-Specify one or more labels via "-l".
+	-f, --file <FILE>
+		Read the issue title and description from <FILE>.
+
+	-l, --labels <LABELS>
+		Add a comma-separated list of labels to this issue.
 `,
 	}
 

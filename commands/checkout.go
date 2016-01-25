@@ -11,12 +11,17 @@ import (
 var cmdCheckout = &Command{
 	Run:          checkout,
 	GitExtension: true,
-	Usage:        "checkout PULLREQ-URL [BRANCH]",
-	Short:        "Switch the active branch to another branch",
-	Long: `Checks out the head of the pull request as a local branch, to allow for
-reviewing, rebasing and otherwise cleaning up the commits in the pull
-request before merging. The name of the local branch can explicitly be
-set with BRANCH.
+	Usage:        "checkout <PULLREQ-URL> [<BRANCH>]",
+	Long: `Check out the head of a pull request as a local branch.
+
+## Examples:
+		$ hub checkout https://github.com/jingweno/gh/pull/73
+		> git remote add -f --no-tags -t feature git://github:com/jingweno/gh.git
+		> git checkout --track -B jingweno-feature jingweno/feature
+
+## See also:
+
+hub-merge(1), hub-am(1), hub(1), git-checkout(1)
 `,
 }
 
@@ -24,13 +29,6 @@ func init() {
 	CmdRunner.Use(cmdCheckout)
 }
 
-/**
-  $ hub checkout https://github.com/jingweno/gh/pull/73
-  > git remote add -f --no-tags -t feature git://github:com/foo/gh.git
-  > git checkout --track -B foo-feature foo/feature
-
-  $ hub checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
-**/
 func checkout(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		err := transformCheckoutArgs(args)

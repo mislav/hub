@@ -12,13 +12,21 @@ import (
 
 var cmdCiStatus = &Command{
 	Run:   ciStatus,
-	Usage: "ci-status [-v] [COMMIT]",
-	Short: "Show CI status of a commit",
-	Long: `Looks up the SHA for <COMMIT> in GitHub Status API and displays the latest
-status. Exits with one of:
-success (0), error (1), failure (1), pending (2), no status (3)
+	Usage: "ci-status [-v] [<COMMIT>]",
+	Long: `Display GitHub Status information for a commit.
 
-If "-v" is given, additionally print detailed report of all checks and their URLs.
+## Options:
+	-v
+		Print detailed report of all status checks and their URLs.
+
+	<COMMIT>
+		A commit SHA or branch name (default: "HEAD").
+
+Exits with one of: success (0), error (1), failure (1), pending (2), no status (3).
+
+## See also:
+
+hub-pull-request(1), hub(1)
 `,
 }
 
@@ -30,19 +38,6 @@ func init() {
 	CmdRunner.Use(cmdCiStatus)
 }
 
-/*
-  $ hub ci-status
-  > (prints CI state of HEAD and exits with appropriate code)
-
-  $ hub ci-status -v
-  > (prints CI states and URLs to CI build results for HEAD and exits with appropriate code)
-
-  $ hub ci-status BRANCH
-  > (prints CI state of BRANCH and exits with appropriate code)
-
-  $ hub ci-status SHA
-  > (prints CI state of SHA and exits with appropriate code)
-*/
 func ciStatus(cmd *Command, args *Args) {
 	ref := "HEAD"
 	if !args.IsParamsEmpty() {

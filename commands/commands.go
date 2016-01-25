@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 
@@ -23,7 +22,6 @@ type Command struct {
 
 	Key          string
 	Usage        string
-	Short        string
 	Long         string
 	GitExtension bool
 
@@ -52,7 +50,10 @@ func (c *Command) Call(args *Args) (err error) {
 func (c *Command) parseArguments(args *Args) (err error) {
 	c.Flag.SetInterspersed(true)
 	c.Flag.Init(c.Name(), flag.ContinueOnError)
-	c.Flag.Usage = c.PrintUsage
+	c.Flag.Usage = func() {
+		ui.Errorln("")
+		ui.Errorln(c.Synopsis())
+	}
 	if err = c.Flag.Parse(args.Params); err == nil {
 		for _, arg := range args.Params {
 			if arg == "--" {
@@ -72,51 +73,33 @@ func (c *Command) Use(subCommand *Command) {
 	c.subCommands[subCommand.Name()] = subCommand
 }
 
-func (c *Command) PrintUsage() {
-	if c.Runnable() {
-		ui.Printf("usage: %s\n\n", c.FormattedUsage())
-	}
+func (c *Command) Synopsis() string {
+	lines := []string{}
+	usagePrefix := "Usage:"
 
-	ui.Println(strings.Trim(c.Long, "\n"))
+	for _, line := range strings.Split(c.Usage, "\n") {
+		if line != "" {
+			usage := fmt.Sprintf("%s hub %s", usagePrefix, line)
+			usagePrefix = "      "
+			lines = append(lines, usage)
+		}
+	}
+	return strings.Join(lines, "\n")
 }
 
-func (c *Command) FormattedUsage() string {
-	return fmt.Sprintf("git %s", c.Usage)
-}
-
-func (c *Command) subCommandsUsage() string {
-	buffer := bytes.NewBufferString("")
-
-	usage := "usage"
-	usage = printUsageBuffer(c, buffer, usage)
-	for _, s := range c.subCommands {
-		usage = printUsageBuffer(s, buffer, usage)
-	}
-
-	return buffer.String()
-}
-
-func printUsageBuffer(c *Command, b *bytes.Buffer, usage string) string {
-	if c.Runnable() {
-		b.WriteString(fmt.Sprintf("%s: %s\n", usage, c.FormattedUsage()))
-		usage = "   or"
-	}
-	return usage
+func (c *Command) HelpText() string {
+	return fmt.Sprintf("%s\n\n%s", c.Synopsis(), strings.Replace(c.Long, "'", "`", -1))
 }
 
 func (c *Command) Name() string {
 	if c.Key != "" {
 		return c.Key
 	}
-	return strings.Split(c.Usage, " ")[0]
+	return strings.Split(strings.TrimSpace(c.Usage), " ")[0]
 }
 
 func (c *Command) Runnable() bool {
 	return c.Run != nil
-}
-
-func (c *Command) List() bool {
-	return c.Short != ""
 }
 
 func (c *Command) lookupSubCommand(args *Args) (runCommand *Command, err error) {
@@ -126,7 +109,7 @@ func (c *Command) lookupSubCommand(args *Args) (runCommand *Command, err error) 
 			runCommand = subCommand
 			args.Params = args.Params[1:]
 		} else {
-			err = fmt.Errorf("error: Unknown subcommand: %s\n%s", subCommandName, c.subCommandsUsage())
+			err = fmt.Errorf("error: Unknown subcommand: %s", subCommandName)
 		}
 	} else {
 		runCommand = c

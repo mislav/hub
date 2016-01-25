@@ -43,7 +43,7 @@ if [ "$os" = "windows" ]; then
 else
   cp -R README.md LICENSE etc "$tmpdir"
   mkdir -p "${tmpdir}/share/man/man1"
-  cp man/hub.1 "${tmpdir}/share/man/man1"
+  cp man/*.1 man/*.1.txt "${tmpdir}/share/man/man1"
   cp script/install.sh "${tmpdir}/install"
   chmod +x "${tmpdir}/install"
 fi

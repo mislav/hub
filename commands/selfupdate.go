@@ -9,12 +9,7 @@ import (
 var cmdSelfupdate = &Command{
 	Run:   update,
 	Usage: "selfupdate",
-	Short: "Update Hub",
-	Long: `Update Hub to the latest version.
-
-Examples:
-  git selfupdate
-`,
+	Long:  "Update hub to the latest version.",
 }
 
 func init() {

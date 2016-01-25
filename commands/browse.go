@@ -11,14 +11,35 @@ import (
 
 var cmdBrowse = &Command{
 	Run:   browse,
-	Usage: "browse [-u] [[<USER>/]<REPOSITORY>|--] [SUBPAGE]",
-	Short: "Open a GitHub page in the default browser",
-	Long: `Open repository's GitHub page in the system's default web browser using
-"open(1)" or the "BROWSER" env variable. If the repository isn't
-specified, "browse" opens the page of the repository found in the current
-directory. If SUBPAGE is specified, the browser will open on the specified
-subpage: one of "wiki", "commits", "issues" or other (the default is
-"tree"). With "-u", outputs the URL rather than opening the browser.
+	Usage: "browse [-u] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]",
+	Long: `Open a GitHub repository in a web browser.
+
+## Options:
+	-u
+		Print the URL instead of opening it.
+	
+	[<USER>/]<REPOSITORY>
+		Defaults to repository in the current working directory.
+
+	<SUBPAGE>
+		One of "wiki", "commits", "issues", or other (default: "tree").
+
+## Examples:
+		$ hub browse
+		> open https://github.com/REPO
+
+		$ hub browse -- issues
+		> open https://github.com/REPO/issues
+
+		$ hub browse jingweno/gh
+		> open https://github.com/jingweno/gh
+
+		$ hub browse gh wiki
+		> open https://github.com/USER/gh/wiki
+
+## See also:
+
+hub-compare(1), hub(1)
 `,
 }
 
@@ -32,22 +53,6 @@ func init() {
 	CmdRunner.Use(cmdBrowse)
 }
 
-/*
-  $ hub browse
-  > open https://github.com/CURRENT_REPO
-
-  $ hub browse -- issues
-  > open https://github.com/CURRENT_REPO/issues
-
-  $ hub browse jingweno/gh
-  > open https://github.com/jingweno/gh
-
-  $ hub browse gh
-  > open https://github.com/YOUR_LOGIN/gh
-
-  $ hub browse gh wiki
-  > open https://github.com/YOUR_LOGIN/gh/wiki
-*/
 func browse(command *Command, args *Args) {
 	var (
 		dest    string
@@ -103,7 +108,7 @@ func browse(command *Command, args *Args) {
 	}
 
 	if project == nil {
-		err := fmt.Errorf(command.FormattedUsage())
+		err := fmt.Errorf(command.Synopsis())
 		utils.Check(err)
 	}
 

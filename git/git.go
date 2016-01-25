@@ -252,7 +252,7 @@ func Run(command string, args ...string) error {
 
 func IsGitDir(dir string) bool {
 	cmd := cmd.New("git")
-	cmd.WithArgs("--git-dir=" + dir, "rev-parse", "--git-dir")
+	cmd.WithArgs("--git-dir="+dir, "rev-parse", "--git-dir")
 	return cmd.Success()
 }
 

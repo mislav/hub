@@ -29,27 +29,21 @@ feature is a good idea for hub if it improves some workflow for a GitHub user.
 
 ## How to install dependencies and run tests
 
-These instructions assume that _you already have hub installed_ and aliased as
-`git` (see "Aliasing").
-
 1. Clone hub:
-    `git clone github/hub && cd hub`
-1. Install necessary development dependencies:
-    `script/bootstrap`
+    `git clone https://github.com/github/hub.git && cd hub`
 2. Verify that existing tests pass:
-    `script/test`
+    `make test-all`
 3. Create a topic branch:
     `git checkout -b feature`
 4. **Make your changes.**
    (It helps a lot if you write tests first.)
-5. Verify that tests still pass:
-    `script/test`
+5. Verify that the tests still pass.
 6. Fork hub on GitHub (adds a remote named "YOUR-USER"):
-    `git fork`
+    `make && bin/hub fork`
 7. Push to your fork:
-    `git push <YOUR-USER> HEAD`
+    `git push -u <YOUR-USER> HEAD`
 8. Open a pull request describing your changes:
-    `git pull-request`
+    `bin/hub pull-request`
 
 ## How to write tests
 

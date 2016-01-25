@@ -67,10 +67,11 @@ func (r *Runner) Lookup(name string) *Command {
 
 func (r *Runner) Execute() ExecError {
 	args := NewArgs(os.Args[1:])
+	args.ProgramPath = os.Args[0]
 
 	if args.Command == "" {
 		printUsage()
-		return newExecError(nil)
+		return newExecError(fmt.Errorf(""))
 	}
 
 	updater := NewUpdater()
