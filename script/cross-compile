@@ -13,6 +13,8 @@ echo '
   freebsd  amd64    FreeBSD 64-bit
   linux    386      Linux 32-bit
   linux    amd64    Linux 64-bit
+  linux    arm      Linux ARM 32-bit
+  linux    arm64    Linux ARM 64-bit
   windows  386      Windows 32-bit
   windows  amd64    Windows 64-bit
 ' | {
