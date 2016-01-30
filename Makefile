@@ -9,6 +9,7 @@ HELP_CMD = \
 	man/hub-create.1 \
 	man/hub-fork.1 \
 	man/hub-pull-request.1 \
+	man/hub-release.1 \
 
 HELP_EXT = \
 	man/hub-am.1 \

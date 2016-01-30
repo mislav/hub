@@ -21,6 +21,7 @@ var (
 		Run: listReleases,
 		Usage: `
 release
+release show <TAG>
 release create [-dp] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMIT>] <TAG>
 `,
 		Long: `Manage GitHub releases.
@@ -29,7 +30,14 @@ release create [-dp] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMIT>] <TAG>
 
 With no arguments, shows a list of existing releases.
 
-	create
+With '--include-drafs', include draft releases in the listing.
+
+	* _show_:
+		Show GitHub release notes for <TAG>.
+
+		With '--show-downloads' option, include the "Downloads" section.
+
+	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
 		doesn't exist, it will be created at <COMMIT> (default: HEAD).
 
@@ -61,12 +69,18 @@ hub(1), git-tag(1)
 	`,
 	}
 
+	cmdShowRelease = &Command{
+		Key: "show",
+		Run: showRelease,
+	}
+
 	cmdCreateRelease = &Command{
 		Key: "create",
 		Run: createRelease,
 	}
 
-	flagReleaseIncludeDraft,
+	flagReleaseIncludeDrafts,
+	flagReleaseShowDownloads,
 	flagReleaseDraft,
 	flagReleasePrerelease bool
 
@@ -78,7 +92,9 @@ hub(1), git-tag(1)
 )
 
 func init() {
-	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDraft, "include-draft", "d", false, "DRAFT")
+	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDrafts, "include-drafts", "d", false, "DRAFTS")
+
+	cmdShowRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
 
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
@@ -87,6 +103,7 @@ func init() {
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "c", "", "COMMITISH")
 
+	cmdRelease.Use(cmdShowRelease)
 	cmdRelease.Use(cmdCreateRelease)
 	CmdRunner.Use(cmdRelease)
 }
@@ -107,8 +124,49 @@ func listReleases(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		for _, release := range releases {
-			if !release.Draft || flagReleaseIncludeDraft {
+			if !release.Draft || flagReleaseIncludeDrafts {
 				ui.Println(release.TagName)
+			}
+		}
+	}
+
+	os.Exit(0)
+}
+
+func showRelease(cmd *Command, args *Args) {
+	tagName := args.LastParam()
+	if tagName == "" {
+		utils.Check(fmt.Errorf("Missing argument TAG"))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	if args.Noop {
+		ui.Printf("Would display information for `%s' release\n", tagName)
+	} else {
+		release, err := gh.FetchRelease(project, tagName)
+		utils.Check(err)
+
+		body := strings.TrimSpace(release.Body)
+
+		ui.Printf("%s (%s)\n", release.Name, release.TagName)
+		if body != "" {
+			ui.Printf("\n%s\n", body)
+		}
+		if flagReleaseShowDownloads {
+			ui.Printf("\n## Downloads\n\n")
+			for _, asset := range release.Assets {
+				ui.Println(asset.DownloadUrl)
+			}
+			if release.ZipballUrl != "" {
+				ui.Println(release.ZipballUrl)
+				ui.Println(release.TarballUrl)
 			}
 		}
 	}

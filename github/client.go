@@ -252,11 +252,14 @@ type Release struct {
 	Draft      bool           `json:"draft"`
 	Prerelease bool           `json:"prerelease"`
 	Assets     []ReleaseAsset `json:"assets"`
+	TarballUrl string         `json:"tarball_url"`
+	ZipballUrl string         `json:"zipball_url"`
 }
 
 type ReleaseAsset struct {
 	Name  string `json:"name"`
 	Label string `json:"label"`
+	DownloadUrl string `json:"browser_download_url"`
 }
 
 func (client *Client) FetchReleases(project *Project) (response []Release, err error) {
@@ -277,6 +280,25 @@ func (client *Client) FetchReleases(project *Project) (response []Release, err e
 	response = []Release{}
 	err = res.Unmarshal(&response)
 
+	return
+}
+
+func (client *Client) FetchRelease(project *Project, tagName string) (foundRelease *Release, err error) {
+	releases, err := client.FetchReleases(project)
+	if err != nil {
+		return
+	}
+
+	for _, release := range releases {
+		if release.TagName == tagName {
+			foundRelease = &release
+			break
+		}
+	}
+
+	if foundRelease == nil {
+		err = fmt.Errorf("Unable to find release with tag name `%s'", tagName)
+	}
 	return
 }
 
