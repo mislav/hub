@@ -95,7 +95,8 @@ func (c *Command) Name() string {
 	if c.Key != "" {
 		return c.Key
 	}
-	return strings.Split(strings.TrimSpace(c.Usage), " ")[0]
+	usageLine := strings.Split(strings.TrimSpace(c.Usage), "\n")[0]
+	return strings.Split(usageLine, " ")[0]
 }
 
 func (c *Command) Runnable() bool {

@@ -18,16 +18,20 @@ import (
 
 var (
 	cmdRelease = &Command{
-		Run:   release,
-		Usage: "release",
-		Long:  "Retrieve releases from GitHub",
-	}
+		Run: listReleases,
+		Usage: `
+release
+release create [-dp] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMIT>] <TAG>
+`,
+		Long: `Manage GitHub releases.
 
-	cmdCreateRelease = &Command{
-		Key:   "create",
-		Run:   createRelease,
-		Usage: "release create [-d] [-p] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMIT>] <TAG>",
-		Long: `Create a GitHub release.
+## Commands:
+
+With no arguments, shows a list of existing releases.
+
+	create
+		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
+		doesn't exist, it will be created at <COMMIT> (default: HEAD).
 
 ## Options:
 	-d, --draft
@@ -50,7 +54,17 @@ var (
 
 	<TAG>
 		The git tag name for this release.
-`}
+
+## See also:
+
+hub(1), git-tag(1)
+	`,
+	}
+
+	cmdCreateRelease = &Command{
+		Key: "create",
+		Run: createRelease,
+	}
 
 	flagReleaseDraft,
 	flagReleasePrerelease bool
@@ -74,7 +88,7 @@ func init() {
 	CmdRunner.Use(cmdRelease)
 }
 
-func release(cmd *Command, args *Args) {
+func listReleases(cmd *Command, args *Args) {
 	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
 		if args.Noop {
 			ui.Printf("Would request list of releases for %s\n", project)
