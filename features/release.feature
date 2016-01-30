@@ -30,11 +30,6 @@ Feature: hub release
     When I successfully run `hub release`
     Then the output should contain exactly:
       """
-      will_paginate 1.2.0 (v1.2.0)
-
-
-      will_paginate 1.2.0-pre (v1.2.0-pre)
-
-
-      will_paginate 1.0.2 (v1.0.2)\n\n
+      v1.2.0-pre
+      v1.0.2\n
       """

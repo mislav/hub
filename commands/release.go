@@ -89,21 +89,28 @@ func init() {
 }
 
 func listReleases(cmd *Command, args *Args) {
-	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
-		if args.Noop {
-			ui.Printf("Would request list of releases for %s\n", project)
-		} else {
-			releases, err := client.Releases(project)
-			utils.Check(err)
-			var outputs []string
-			for _, release := range releases {
-				out := fmt.Sprintf("%s (%s)\n%s", release.Name, release.TagName, release.Body)
-				outputs = append(outputs, out)
-			}
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
 
-			ui.Println(strings.Join(outputs, "\n\n"))
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	if args.Noop {
+		ui.Printf("Would request list of releases for %s\n", project)
+	} else {
+		releases, err := gh.FetchReleases(project)
+		utils.Check(err)
+
+		for _, release := range releases {
+			if !release.Draft {
+				ui.Println(release.TagName)
+			}
 		}
-	})
+	}
+
+	os.Exit(0)
 }
 
 func createRelease(cmd *Command, args *Args) {

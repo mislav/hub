@@ -245,23 +245,37 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 	return
 }
 
-func (client *Client) Releases(project *Project) (releases []octokit.Release, err error) {
-	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+type Release struct {
+	Name       string         `json:"name"`
+	TagName    string         `json:"tag_name"`
+	Body       string         `json:"body"`
+	Draft      bool           `json:"draft"`
+	Prerelease bool           `json:"prerelease"`
+	Assets     []ReleaseAsset `json:"assets"`
+}
+
+type ReleaseAsset struct {
+	Name  string `json:"name"`
+	Label string `json:"label"`
+}
+
+func (client *Client) FetchReleases(project *Project) (response []Release, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name))
 	if err != nil {
-		err = FormatError("getting release", err)
+		return
+	}
+	if res.StatusCode != 200 {
+		err = fmt.Errorf("Unexpected HTTP status code: %d", res.StatusCode)
 		return
 	}
 
-	releases, result := api.Releases(client.requestURL(url)).All()
-	if result.HasError() {
-		err = FormatError("getting release", result.Err)
-		return
-	}
+	response = []Release{}
+	err = res.Unmarshal(&response)
 
 	return
 }
