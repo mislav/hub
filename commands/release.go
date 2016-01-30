@@ -66,6 +66,7 @@ hub(1), git-tag(1)
 		Run: createRelease,
 	}
 
+	flagReleaseIncludeDraft,
 	flagReleaseDraft,
 	flagReleasePrerelease bool
 
@@ -77,6 +78,8 @@ hub(1), git-tag(1)
 )
 
 func init() {
+	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDraft, "include-draft", "d", false, "DRAFT")
+
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
 	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
@@ -104,7 +107,7 @@ func listReleases(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		for _, release := range releases {
-			if !release.Draft {
+			if !release.Draft || flagReleaseIncludeDraft {
 				ui.Println(release.TagName)
 			}
 		}
