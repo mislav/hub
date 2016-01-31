@@ -1,19 +1,14 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
-	"github.com/octokit/go-octokit/octokit"
 )
 
 var (
@@ -50,6 +45,9 @@ With '--include-drafs', include draft releases in the listing.
 
 	-a, --asset <FILE>
 		Attach a file as an asset for this release.
+
+		If <FILE> is in the "<filename>#<text>" format, the text after the '#'
+		character is taken as asset label.
 
 	-m, --message <MESSAGE>
 		Use the first line of <MESSAGE> as release title, and the rest as release description.
@@ -175,204 +173,99 @@ func showRelease(cmd *Command, args *Args) {
 }
 
 func createRelease(cmd *Command, args *Args) {
-	if args.IsParamsEmpty() {
-		utils.Check(fmt.Errorf("Missed argument TAG"))
+	tagName := args.LastParam()
+	if tagName == "" {
+		utils.Check(fmt.Errorf("Missing argument TAG"))
 		return
 	}
 
-	tag := args.LastParam()
-	runInLocalRepo(func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client) {
-		release, err := client.Release(project, tag)
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.CurrentProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	commitish := flagReleaseCommitish
+	if commitish == "" {
+		currentBranch, err := localRepo.CurrentBranch()
+		utils.Check(err)
+		commitish = currentBranch.ShortName()
+	}
+
+	var title string
+	var body string
+	var editor *github.Editor
+
+	if flagReleaseMessage != "" {
+		title, body = readMsg(flagReleaseMessage)
+	} else if flagReleaseFile != "" {
+		title, body, err = readMsgFromFile(flagReleaseMessage)
+		utils.Check(err)
+	} else {
+		cs := git.CommentChar()
+		message, err := renderReleaseTpl(cs, tagName, project.String(), commitish)
 		utils.Check(err)
 
-		if release == nil {
-			commitish := flagReleaseCommitish
-			if commitish == "" {
-				currentBranch, err := localRepo.CurrentBranch()
-				utils.Check(err)
-				commitish = currentBranch.ShortName()
-			}
+		editor, err := github.NewEditor("RELEASE", "release", message)
+		utils.Check(err)
 
-			title, body, err := getTitleAndBodyFromFlags(flagReleaseMessage, flagReleaseFile)
-			utils.Check(err)
-
-			var editor *github.Editor
-			if title == "" {
-				cs := git.CommentChar()
-				message, err := renderReleaseTpl(cs, tag, project.Name, commitish)
-				utils.Check(err)
-
-				editor, err = github.NewEditor("RELEASE", "release", message)
-				utils.Check(err)
-
-				title, body, err = editor.EditTitleAndBody()
-				utils.Check(err)
-			}
-
-			params := octokit.ReleaseParams{
-				TagName:         tag,
-				TargetCommitish: commitish,
-				Name:            title,
-				Body:            body,
-				Draft:           flagReleaseDraft,
-				Prerelease:      flagReleasePrerelease,
-			}
-			release, err = client.CreateRelease(project, params)
-			utils.Check(err)
-
-			if editor != nil {
-				defer editor.DeleteFile()
-			}
-		}
-
-		if len(flagReleaseAssets) > 0 {
-			paths := make([]string, 0)
-			for _, asset := range flagReleaseAssets {
-				finder := assetFinder{}
-				p, err := finder.Find(asset)
-				utils.Check(err)
-
-				paths = append(paths, p...)
-			}
-
-			uploader := assetUploader{
-				Client:  client,
-				Release: release,
-			}
-			err = uploader.UploadAll(paths)
-			if err != nil {
-				ui.Println("")
-				utils.Check(err)
-			}
-		}
-
-		ui.Printf("\n%s\n", release.HTMLURL)
-	})
-}
-
-type assetUploader struct {
-	Client  *github.Client
-	Release *octokit.Release
-}
-
-func (a *assetUploader) UploadAll(paths []string) error {
-	errUploadChan := make(chan string)
-	successChan := make(chan bool)
-	total := len(paths)
-	count := 0
-
-	for _, path := range paths {
-		go a.uploadAsync(path, successChan, errUploadChan)
+		title, body, err = editor.EditTitleAndBody()
+		utils.Check(err)
 	}
 
-	a.printUploadProgress(count, total)
-
-	errUploads := make([]string, 0)
-	for {
-		select {
-		case _ = <-successChan:
-			count++
-			a.printUploadProgress(count, total)
-		case errUpload := <-errUploadChan:
-			errUploads = append(errUploads, errUpload)
-			count++
-			a.printUploadProgress(count, total)
-		}
-
-		if count == total {
-			break
-		}
+	if title == "" {
+		utils.Check(fmt.Errorf("Aborting release due to empty release title"))
 	}
 
-	var err error
-	if len(errUploads) > 0 {
-		err = fmt.Errorf("Error uploading %s", strings.Join(errUploads, ", "))
+	params := &github.Release{
+		TagName:         tagName,
+		TargetCommitish: commitish,
+		Name:            title,
+		Body:            body,
+		Draft:           flagReleaseDraft,
+		Prerelease:      flagReleasePrerelease,
 	}
 
-	return err
-}
+	var release *github.Release
 
-func (a *assetUploader) uploadAsync(path string, successChan chan bool, errUploadChan chan string) {
-	err := a.Upload(path)
-	if err == nil {
-		successChan <- true
+	if args.Noop {
+		ui.Printf("Would create release `%s' for %s with tag name `%s'\n", title, project, tagName)
 	} else {
-		errUploadChan <- path
-	}
-}
+		release, err = gh.CreateRelease(project, params)
+		utils.Check(err)
 
-func (a *assetUploader) Upload(path string) error {
-	contentType, err := a.detectContentType(path)
-	if err != nil {
-		return err
-	}
-
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	uploadUrl, err := a.Release.UploadURL.Expand(octokit.M{"name": filepath.Base(path)})
-	if err != nil {
-		return err
-	}
-
-	return a.Client.UploadReleaseAsset(uploadUrl, f, contentType)
-}
-
-func (a *assetUploader) detectContentType(path string) (string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	fi, err := file.Stat()
-	if err != nil {
-		return "", err
-	}
-
-	fileHeader := &bytes.Buffer{}
-	headerSize := int64(512)
-	if fi.Size() < headerSize {
-		headerSize = fi.Size()
-	}
-
-	// The content type detection only uses 512 bytes at most.
-	// This way we avoid copying the whole content for big files.
-	_, err = io.CopyN(fileHeader, file, headerSize)
-	if err != nil {
-		return "", err
-	}
-
-	t := http.DetectContentType(fileHeader.Bytes())
-
-	return strings.Split(t, ";")[0], nil
-}
-
-func (a *assetUploader) printUploadProgress(count int, total int) {
-	out := fmt.Sprintf("Uploading assets (%d/%d)", count, total)
-	fmt.Print("\r" + out)
-}
-
-type assetFinder struct {
-}
-
-func (a *assetFinder) Find(path string) ([]string, error) {
-	result := make([]string, 0)
-
-	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+		if editor != nil {
+			defer editor.DeleteFile()
 		}
 
-		if !info.IsDir() {
-			result = append(result, path)
+		ui.Println(release.HtmlUrl)
+	}
+
+	uploadAssets(gh, release, flagReleaseAssets, args)
+	os.Exit(0)
+}
+
+func uploadAssets(gh *github.Client, release *github.Release, assets []string, args *Args) {
+	for _, asset := range assets {
+		var label string
+		parts := strings.SplitN(asset, "#", 2)
+		asset = parts[0]
+		if len(parts) > 1 {
+			label = parts[1]
 		}
 
-		return nil
-	})
-
-	return result, err
+		if args.Noop {
+			if label == "" {
+				ui.Errorf("Would attach release asset `%s'\n", asset)
+			} else {
+				ui.Errorf("Would attach release asset `%s' with label `%s'\n", asset, label)
+			}
+		} else {
+			ui.Errorf("Attaching release asset `%s'...\n", asset)
+			_, err := gh.UploadReleaseAsset(release, asset, label)
+			utils.Check(err)
+		}
+	}
 }

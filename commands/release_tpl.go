@@ -5,7 +5,8 @@ import (
 	"text/template"
 )
 
-const releaseTmpl = `{{.CS}} Creating release {{.TagName}} for {{.ProjectName}} from {{.BranchName}}
+const releaseTmpl = `
+{{.CS}} Creating release {{.TagName}} for {{.ProjectName}} from {{.BranchName}}
 {{.CS}}
 {{.CS}} Write a message for this release. The first block of
 {{.CS}} text is the title and the rest is the description.`

@@ -200,6 +200,66 @@ func (c *simpleClient) Get(path string) (res *simpleResponse, err error) {
 	return
 }
 
+func (c *simpleClient) PostJSON(path string, payload interface{}) (res *simpleResponse, err error) {
+	url, err := url.Parse(path)
+	if err != nil {
+		return
+	}
+
+	json, err := json.Marshal(payload)
+	buf := bytes.NewBuffer(json)
+
+	url = c.rootUrl.ResolveReference(url)
+	req, err := http.NewRequest("POST", url.String(), buf)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "token "+c.accessToken)
+
+	httpResponse, err := c.httpClient.Do(req)
+	if err == nil {
+		res = &simpleResponse{httpResponse}
+	}
+
+	return
+}
+
+func (c *simpleClient) PostFile(path, filename string) (res *simpleResponse, err error) {
+	url, err := url.Parse(path)
+	if err != nil {
+		return
+	}
+
+	stat, err := os.Stat(filename)
+	if err != nil {
+		return
+	}
+	fileSize := stat.Size()
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	url = c.rootUrl.ResolveReference(url)
+	req, err := http.NewRequest("POST", url.String(), file)
+	if err != nil {
+		return
+	}
+	req.ContentLength = fileSize
+	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("Authorization", "token "+c.accessToken)
+
+	httpResponse, err := c.httpClient.Do(req)
+	if err == nil {
+		res = &simpleResponse{httpResponse}
+	}
+
+	return
+}
+
 type simpleResponse struct {
 	*http.Response
 }

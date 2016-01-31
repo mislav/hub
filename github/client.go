@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/octokit/go-octokit/octokit"
@@ -246,19 +247,22 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 }
 
 type Release struct {
-	Name       string         `json:"name"`
-	TagName    string         `json:"tag_name"`
-	Body       string         `json:"body"`
-	Draft      bool           `json:"draft"`
-	Prerelease bool           `json:"prerelease"`
-	Assets     []ReleaseAsset `json:"assets"`
-	TarballUrl string         `json:"tarball_url"`
-	ZipballUrl string         `json:"zipball_url"`
+	Name            string         `json:"name"`
+	TagName         string         `json:"tag_name"`
+	TargetCommitish string         `json:"target_commitish"`
+	Body            string         `json:"body"`
+	Draft           bool           `json:"draft"`
+	Prerelease      bool           `json:"prerelease"`
+	Assets          []ReleaseAsset `json:"assets"`
+	TarballUrl      string         `json:"tarball_url"`
+	ZipballUrl      string         `json:"zipball_url"`
+	HtmlUrl         string         `json:"html_url"`
+	UploadUrl       string         `json:"upload_url"`
 }
 
 type ReleaseAsset struct {
-	Name  string `json:"name"`
-	Label string `json:"label"`
+	Name        string `json:"name"`
+	Label       string `json:"label"`
 	DownloadUrl string `json:"browser_download_url"`
 }
 
@@ -302,72 +306,50 @@ func (client *Client) FetchRelease(project *Project, tagName string) (foundRelea
 	return
 }
 
-func (client *Client) Release(project *Project, tagName string) (release *octokit.Release, err error) {
-	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) CreateRelease(project *Project, releaseParams *Release) (release *Release, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name), releaseParams)
 	if err != nil {
-		err = FormatError("getting release", err)
+		return
+	}
+	if res.StatusCode != 201 {
+		err = fmt.Errorf("Unexpected HTTP status code: %d", res.StatusCode)
 		return
 	}
 
-	releases, result := api.Releases(client.requestURL(url)).All()
-	if result.HasError() {
-		err = FormatError("creating release", result.Err)
-		return
-	}
-
-	for _, release := range releases {
-		if release.TagName == tagName {
-			return &release, nil
-		}
-	}
-
+	release = &Release{}
+	err = res.Unmarshal(release)
 	return
 }
 
-func (client *Client) CreateRelease(project *Project, params octokit.ReleaseParams) (release *octokit.Release, err error) {
-	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) UploadReleaseAsset(release *Release, filename, label string) (asset *ReleaseAsset, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating release", err)
-		return
+	parts := strings.SplitN(release.UploadUrl, "{", 2)
+	uploadUrl := parts[0]
+	uploadUrl += "?name=" + url.QueryEscape(filepath.Base(filename))
+	if label != "" {
+		uploadUrl += "&label=" + url.QueryEscape(label)
 	}
 
-	release, result := api.Releases(client.requestURL(url)).Create(params)
-	if result.HasError() {
-		err = FormatError("creating release", result.Err)
-		return
-	}
-
-	return
-}
-
-func (client *Client) UploadReleaseAsset(uploadUrl *url.URL, asset *os.File, contentType string) (err error) {
-	fileInfo, err := asset.Stat()
+	res, err := api.PostFile(uploadUrl, filename)
 	if err != nil {
 		return
 	}
-
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("uploading asset", err)
+	if res.StatusCode != 201 {
+		err = fmt.Errorf("Unexpected HTTP status code: %d", res.StatusCode)
 		return
 	}
 
-	result := api.Uploads(uploadUrl).UploadAsset(asset, contentType, fileInfo.Size())
-	if result.HasError() {
-		err = FormatError("uploading asset", result.Err)
-		return
-	}
-
+	asset = &ReleaseAsset{}
+	err = res.Unmarshal(asset)
 	return
 }
 
