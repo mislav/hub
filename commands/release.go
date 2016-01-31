@@ -18,7 +18,7 @@ var (
 		Usage: `
 release
 release show <TAG>
-release create [-dp] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <TARGET>] <TAG>
+release create [-dp] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-c <TARGET>] <TAG>
 release edit [<options>] <TAG>
 `,
 		Long: `Manage GitHub releases.
@@ -58,7 +58,7 @@ With '--include-drafs', include draft releases in the listing.
 	-m, --message <MESSAGE>
 		Use the first line of <MESSAGE> as release title, and the rest as release description.
 
-	-f, --file <FILE>
+	-F, --file <FILE>
 		Read the release title and description from <FILE>.
 	
 	-c, --commitish <TARGET>
@@ -109,14 +109,14 @@ func init() {
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
 	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
-	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
+	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "c", "", "COMMITISH")
 
 	cmdEditRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdEditRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
 	cmdEditRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
-	cmdEditRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
+	cmdEditRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "c", "", "COMMITISH")
 
 	cmdRelease.Use(cmdShowRelease)
@@ -220,7 +220,7 @@ func createRelease(cmd *Command, args *Args) {
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagReleaseMessage)
 	} else if cmd.FlagPassed("file") {
-		title, body, err = readMsgFromFile(flagReleaseMessage)
+		title, body, err = readMsgFromFile(flagReleaseFile)
 		utils.Check(err)
 	} else {
 		cs := git.CommentChar()
@@ -307,7 +307,7 @@ func editRelease(cmd *Command, args *Args) {
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagReleaseMessage)
 	} else if cmd.FlagPassed("file") {
-		title, body, err = readMsgFromFile(flagReleaseMessage)
+		title, body, err = readMsgFromFile(flagReleaseFile)
 		utils.Check(err)
 	} else {
 		cs := git.CommentChar()
