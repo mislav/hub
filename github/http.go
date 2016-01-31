@@ -200,6 +200,27 @@ func (c *simpleClient) Get(path string) (res *simpleResponse, err error) {
 	return
 }
 
+func (c *simpleClient) Delete(path string) (res *simpleResponse, err error) {
+	url, err := url.Parse(path)
+	if err != nil {
+		return
+	}
+
+	url = c.rootUrl.ResolveReference(url)
+	req, err := http.NewRequest("DELETE", url.String(), nil)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Authorization", "token "+c.accessToken)
+
+	httpResponse, err := c.httpClient.Do(req)
+	if err == nil {
+		res = &simpleResponse{httpResponse}
+	}
+
+	return
+}
+
 func (c *simpleClient) PostJSON(path string, payload interface{}) (res *simpleResponse, err error) {
 	url, err := url.Parse(path)
 	if err != nil {
@@ -211,6 +232,31 @@ func (c *simpleClient) PostJSON(path string, payload interface{}) (res *simpleRe
 
 	url = c.rootUrl.ResolveReference(url)
 	req, err := http.NewRequest("POST", url.String(), buf)
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "token "+c.accessToken)
+
+	httpResponse, err := c.httpClient.Do(req)
+	if err == nil {
+		res = &simpleResponse{httpResponse}
+	}
+
+	return
+}
+
+func (c *simpleClient) PatchJSON(path string, payload interface{}) (res *simpleResponse, err error) {
+	url, err := url.Parse(path)
+	if err != nil {
+		return
+	}
+
+	json, err := json.Marshal(payload)
+	buf := bytes.NewBuffer(json)
+
+	url = c.rootUrl.ResolveReference(url)
+	req, err := http.NewRequest("PATCH", url.String(), buf)
 	if err != nil {
 		return
 	}

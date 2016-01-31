@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -18,6 +19,7 @@ var (
 release
 release show <TAG>
 release create [-dp] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMIT>] <TAG>
+release edit [<options>] <TAG>
 `,
 		Long: `Manage GitHub releases.
 
@@ -30,11 +32,18 @@ With '--include-drafs', include draft releases in the listing.
 	* _show_:
 		Show GitHub release notes for <TAG>.
 
-		With '--show-downloads' option, include the "Downloads" section.
+		With '--show-downloads', include the "Downloads" section.
 
 	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
 		doesn't exist, it will be created at <COMMIT> (default: HEAD).
+
+	* _edit_:
+		Edit the GitHub release for the specified <TAG> name. Accepts the same
+		options as _create_ command, with addition of:
+
+		With '--publish', set the "draft" property to false.  
+		With '--no-prerelease', set the "prerelease" property to false.
 
 ## Options:
 	-d, --draft
@@ -77,10 +86,17 @@ hub(1), git-tag(1)
 		Run: createRelease,
 	}
 
+	cmdEditRelease = &Command{
+		Key: "edit",
+		Run: editRelease,
+	}
+
 	flagReleaseIncludeDrafts,
 	flagReleaseShowDownloads,
 	flagReleaseDraft,
-	flagReleasePrerelease bool
+	flagReleaseNoDraft,
+	flagReleasePrerelease,
+	flagReleaseNoPrerelease bool
 
 	flagReleaseMessage,
 	flagReleaseFile,
@@ -101,8 +117,18 @@ func init() {
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "c", "", "COMMITISH")
 
+	cmdEditRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
+	cmdEditRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
+	cmdEditRelease.Flag.BoolVarP(&flagReleaseNoDraft, "publish", "", false, "DRAFT")
+	cmdEditRelease.Flag.BoolVarP(&flagReleaseNoPrerelease, "no-prerelease", "", false, "PRERELEASE")
+	cmdEditRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
+	cmdEditRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
+	cmdEditRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
+	cmdEditRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "c", "", "COMMITISH")
+
 	cmdRelease.Use(cmdShowRelease)
 	cmdRelease.Use(cmdCreateRelease)
+	cmdRelease.Use(cmdEditRelease)
 	CmdRunner.Use(cmdRelease)
 }
 
@@ -205,7 +231,7 @@ func createRelease(cmd *Command, args *Args) {
 		utils.Check(err)
 	} else {
 		cs := git.CommentChar()
-		message, err := renderReleaseTpl(cs, tagName, project.String(), commitish)
+		message, err := renderReleaseTpl("Creating", cs, tagName, project.String(), commitish)
 		utils.Check(err)
 
 		editor, err := github.NewEditor("RELEASE", "release", message)
@@ -247,6 +273,88 @@ func createRelease(cmd *Command, args *Args) {
 	os.Exit(0)
 }
 
+func editRelease(cmd *Command, args *Args) {
+	tagName := args.LastParam()
+	if tagName == "" {
+		utils.Check(fmt.Errorf("Missing argument TAG"))
+		return
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.CurrentProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	release, err := gh.FetchRelease(project, tagName)
+	utils.Check(err)
+
+	params := map[string]interface{}{}
+	commitish := release.TargetCommitish
+
+	if flagReleaseCommitish != "" {
+		params["target_commitish"] = flagReleaseCommitish
+		commitish = flagReleaseCommitish
+	}
+
+	if flagReleaseDraft {
+		params["draft"] = true
+	} else if flagReleaseNoDraft {
+		params["draft"] = false
+	}
+
+	if flagReleasePrerelease {
+		params["prerelease"] = true
+	} else if flagReleaseNoPrerelease {
+		params["prerelease"] = false
+	}
+
+	var title string
+	var body string
+	var editor *github.Editor
+
+	if flagReleaseMessage != "" {
+		title, body = readMsg(flagReleaseMessage)
+	} else if flagReleaseFile != "" {
+		title, body, err = readMsgFromFile(flagReleaseMessage)
+		utils.Check(err)
+	} else {
+		cs := git.CommentChar()
+		message, err := renderReleaseTpl("Editing", cs, tagName, project.String(), commitish)
+		utils.Check(err)
+
+		message = fmt.Sprintf("%s\n\n%s\n%s", release.Name, release.Body, message)
+		editor, err := github.NewEditor("RELEASE", "release", message)
+		utils.Check(err)
+
+		title, body, err = editor.EditTitleAndBody()
+		utils.Check(err)
+	}
+
+	if title != "" {
+		params["name"] = title
+	}
+	if body != "" {
+		params["body"] = body
+	}
+
+	if args.Noop {
+		ui.Printf("Would edit release `%s'\n", tagName)
+	} else {
+		release, err = gh.EditRelease(release, params)
+		utils.Check(err)
+
+		if editor != nil {
+			defer editor.DeleteFile()
+		}
+	}
+
+	uploadAssets(gh, release, flagReleaseAssets, args)
+	os.Exit(0)
+}
+
 func uploadAssets(gh *github.Client, release *github.Release, assets []string, args *Args) {
 	for _, asset := range assets {
 		var label string
@@ -263,6 +371,13 @@ func uploadAssets(gh *github.Client, release *github.Release, assets []string, a
 				ui.Errorf("Would attach release asset `%s' with label `%s'\n", asset, label)
 			}
 		} else {
+			for _, existingAsset := range release.Assets {
+				if existingAsset.Name == filepath.Base(asset) {
+					err := gh.DeleteReleaseAsset(&existingAsset)
+					utils.Check(err)
+					break
+				}
+			}
 			ui.Errorf("Attaching release asset `%s'...\n", asset)
 			_, err := gh.UploadReleaseAsset(release, asset, label)
 			utils.Check(err)

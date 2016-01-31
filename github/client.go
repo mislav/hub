@@ -258,12 +258,14 @@ type Release struct {
 	ZipballUrl      string         `json:"zipball_url"`
 	HtmlUrl         string         `json:"html_url"`
 	UploadUrl       string         `json:"upload_url"`
+	ApiUrl          string         `json:"url"`
 }
 
 type ReleaseAsset struct {
 	Name        string `json:"name"`
 	Label       string `json:"label"`
 	DownloadUrl string `json:"browser_download_url"`
+	ApiUrl      string `json:"url"`
 }
 
 func (client *Client) FetchReleases(project *Project) (response []Release, err error) {
@@ -326,6 +328,26 @@ func (client *Client) CreateRelease(project *Project, releaseParams *Release) (r
 	return
 }
 
+func (client *Client) EditRelease(release *Release, releaseParams map[string]interface{}) (updatedRelease *Release, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PatchJSON(release.ApiUrl, releaseParams)
+	if err != nil {
+		return
+	}
+	if res.StatusCode != 200 {
+		err = fmt.Errorf("Unexpected HTTP status code: %d", res.StatusCode)
+		return
+	}
+
+	updatedRelease = &Release{}
+	err = res.Unmarshal(updatedRelease)
+	return
+}
+
 func (client *Client) UploadReleaseAsset(release *Release, filename, label string) (asset *ReleaseAsset, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -350,6 +372,22 @@ func (client *Client) UploadReleaseAsset(release *Release, filename, label strin
 
 	asset = &ReleaseAsset{}
 	err = res.Unmarshal(asset)
+	return
+}
+
+func (client *Client) DeleteReleaseAsset(asset *ReleaseAsset) (err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Delete(asset.ApiUrl)
+	if err != nil {
+		return
+	}
+	if res.StatusCode != 204 {
+		err = fmt.Errorf("Unexpected HTTP status code: %d", res.StatusCode)
+	}
 	return
 }
 

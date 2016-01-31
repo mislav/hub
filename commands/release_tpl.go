@@ -6,25 +6,27 @@ import (
 )
 
 const releaseTmpl = `
-{{.CS}} Creating release {{.TagName}} for {{.ProjectName}} from {{.BranchName}}
+{{.CS}} {{.Operation}} release {{.TagName}} for {{.ProjectName}} from {{.BranchName}}
 {{.CS}}
 {{.CS}} Write a message for this release. The first block of
 {{.CS}} text is the title and the rest is the description.`
 
 type releaseMsg struct {
+	Operation   string
 	CS          string
 	TagName     string
 	ProjectName string
 	BranchName  string
 }
 
-func renderReleaseTpl(cs, tagName, projectName, branchName string) (string, error) {
+func renderReleaseTpl(operation, cs, tagName, projectName, branchName string) (string, error) {
 	t, err := template.New("releaseTmpl").Parse(releaseTmpl)
 	if err != nil {
 		return "", err
 	}
 
 	msg := &releaseMsg{
+		Operation:   operation,
 		CS:          cs,
 		TagName:     tagName,
 		ProjectName: projectName,
