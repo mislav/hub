@@ -357,7 +357,12 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 	if res.StatusCode != 200 {
-		err = fmt.Errorf("Unexpected HTTP status code: %d", res.StatusCode)
+		var errInfo *errorInfo
+		errInfo, err = res.ErrorInfo()
+		if err != nil {
+			return
+		}
+		err = FormatError("fetching statuses", errInfo)
 		return
 	}
 
@@ -622,6 +627,20 @@ func FormatError(action string, err error) (ee error) {
 	case *AuthError:
 		return FormatError(action, e.Err)
 	case *octokit.ResponseError:
+		info := &errorInfo{
+			Message:  e.Message,
+			Response: e.Response,
+			Errors:   []fieldError{},
+		}
+		for _, err := range e.Errors {
+			info.Errors = append(info.Errors, fieldError{
+				Field:   err.Field,
+				Message: err.Message,
+				Code:    err.Code,
+			})
+		}
+		return FormatError(action, info)
+	case *errorInfo:
 		statusCode := e.Response.StatusCode
 		var reason string
 		if s := strings.SplitN(e.Response.Status, " ", 2); len(s) >= 2 {

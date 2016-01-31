@@ -204,6 +204,22 @@ type simpleResponse struct {
 	*http.Response
 }
 
+type errorInfo struct {
+	Message  string       `json:"message"`
+	Errors   []fieldError `json:"errors"`
+	Response *http.Response
+}
+type fieldError struct {
+	Resource string `json:"resource"`
+	Message  string `json:"message"`
+	Code     string `json:"code"`
+	Field    string `json:"field"`
+}
+
+func (e *errorInfo) Error() string {
+	return e.Message
+}
+
 func (res *simpleResponse) Unmarshal(dest interface{}) (err error) {
 	defer res.Body.Close()
 
@@ -213,4 +229,21 @@ func (res *simpleResponse) Unmarshal(dest interface{}) (err error) {
 	}
 
 	return json.Unmarshal(body, dest)
+}
+
+func (res *simpleResponse) ErrorInfo() (msg *errorInfo, err error) {
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return
+	}
+
+	msg = &errorInfo{}
+	err = json.Unmarshal(body, msg)
+	if err == nil {
+		msg.Response = res.Response
+	}
+
+	return
 }
