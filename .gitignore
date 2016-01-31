@@ -11,3 +11,4 @@ tmp/
 *.test
 target
 .vagrant
+*.log
