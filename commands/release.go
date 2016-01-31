@@ -262,14 +262,14 @@ func createRelease(cmd *Command, args *Args) {
 		release, err = gh.CreateRelease(project, params)
 		utils.Check(err)
 
-		if editor != nil {
-			defer editor.DeleteFile()
-		}
-
 		ui.Println(release.HtmlUrl)
 	}
 
 	uploadAssets(gh, release, flagReleaseAssets, args)
+
+	if editor != nil {
+		editor.DeleteFile()
+	}
 	os.Exit(0)
 }
 
@@ -347,7 +347,7 @@ func editRelease(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		if editor != nil {
-			defer editor.DeleteFile()
+			editor.DeleteFile()
 		}
 	}
 
