@@ -93,7 +93,7 @@ MARKDOWN
     When I successfully run `hub release show v1.2.0`
     Then the output should contain exactly:
       """
-      will_paginate 1.2.0 (v1.2.0)
+      will_paginate 1.2.0
 
       ### Hello to my release
 
@@ -129,7 +129,7 @@ MARKDOWN
     When I successfully run `hub release show v1.2.0 --show-downloads`
     Then the output should contain exactly:
       """
-      will_paginate 1.2.0 (v1.2.0)
+      will_paginate 1.2.0
 
       ### Hello to my release
 

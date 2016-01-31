@@ -172,7 +172,7 @@ func showRelease(cmd *Command, args *Args) {
 
 		body := strings.TrimSpace(release.Body)
 
-		ui.Printf("%s (%s)\n", release.Name, release.TagName)
+		ui.Println(release.Name)
 		if body != "" {
 			ui.Printf("\n%s\n", body)
 		}
