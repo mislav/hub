@@ -142,3 +142,82 @@ MARKDOWN
       https://github.com/mislav/will_paginate/archive/v1.2.0.zip
       https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz\n
       """
+
+  Scenario: Create a release
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/will_paginate/releases') {
+        assert :draft => true,
+               :tag_name => "v1.2.0",
+               :target_commitish => "master",
+               :name => "will_paginate 1.2.0: Instant Gratification Monkey",
+               :body => ""
+
+        status 201
+        json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0"
+      }
+      """
+    When I successfully run `hub release create -dm "will_paginate 1.2.0: Instant Gratification Monkey" v1.2.0`
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/will_paginate/releases/v1.2.0\n
+      """
+
+  Scenario: Create a release with assets
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/will_paginate/releases') {
+        status 201
+        json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0",
+             :upload_url => "https://api.github.com/uploads/assets{?name,label}"
+      }
+      post('/uploads/assets') {
+        assert :name => 'hello-1.2.0.tar.gz',
+               :label => 'Hello World'
+        status 201
+      }
+      """
+    And a file named "hello-1.2.0.tar.gz" with:
+      """
+      TARBALL
+      """
+    When I successfully run `hub release create -m "hello" v1.2.0 -a "./hello-1.2.0.tar.gz#Hello World"`
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/will_paginate/releases/v1.2.0
+      Attaching release asset `./hello-1.2.0.tar.gz'...\n
+      """
+
+  Scenario: Edit existing release
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+            tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: true,
+            prerelease: false,
+            body: <<MARKDOWN
+### Hello to my release
+
+Here is what's broken:
+- everything
+MARKDOWN
+          },
+        ]
+      }
+      patch('/repos/mislav/will_paginate/releases/123') {
+        assert :name => 'KITTENS EVERYWHERE',
+               :draft => false,
+               :prerelease => nil
+        json({})
+      }
+      """
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      KITTENS EVERYWHERE
+      """
+    When I successfully run `hub release edit --draft=false v1.2.0`
+    Then there should be no output

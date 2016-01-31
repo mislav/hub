@@ -66,6 +66,25 @@ func (c *Command) parseArguments(args *Args) (err error) {
 	return
 }
 
+func (c *Command) FlagPassed(name string) bool {
+	found := false
+	c.Flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
+}
+
+func (c *Command) Arg(idx int) string {
+	args := c.Flag.Args()
+	if idx < len(args) {
+		return args[idx]
+	} else {
+		return ""
+	}
+}
+
 func (c *Command) Use(subCommand *Command) {
 	if c.subCommands == nil {
 		c.subCommands = make(map[string]*Command)

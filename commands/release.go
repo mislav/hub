@@ -40,10 +40,7 @@ With '--include-drafs', include draft releases in the listing.
 
 	* _edit_:
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
-		options as _create_ command, with addition of:
-
-		With '--publish', set the "draft" property to false.  
-		With '--no-prerelease', set the "prerelease" property to false.
+		options as _create_ command. Publish a draft with '--draft=false'.
 
 ## Options:
 	-d, --draft
@@ -94,9 +91,7 @@ hub(1), git-tag(1)
 	flagReleaseIncludeDrafts,
 	flagReleaseShowDownloads,
 	flagReleaseDraft,
-	flagReleaseNoDraft,
-	flagReleasePrerelease,
-	flagReleaseNoPrerelease bool
+	flagReleasePrerelease bool
 
 	flagReleaseMessage,
 	flagReleaseFile,
@@ -119,8 +114,6 @@ func init() {
 
 	cmdEditRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdEditRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
-	cmdEditRelease.Flag.BoolVarP(&flagReleaseNoDraft, "publish", "", false, "DRAFT")
-	cmdEditRelease.Flag.BoolVarP(&flagReleaseNoPrerelease, "no-prerelease", "", false, "PRERELEASE")
 	cmdEditRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseFile, "file", "f", "", "FILE")
@@ -158,7 +151,7 @@ func listReleases(cmd *Command, args *Args) {
 }
 
 func showRelease(cmd *Command, args *Args) {
-	tagName := args.LastParam()
+	tagName := cmd.Arg(0)
 	if tagName == "" {
 		utils.Check(fmt.Errorf("Missing argument TAG"))
 	}
@@ -199,7 +192,7 @@ func showRelease(cmd *Command, args *Args) {
 }
 
 func createRelease(cmd *Command, args *Args) {
-	tagName := args.LastParam()
+	tagName := cmd.Arg(0)
 	if tagName == "" {
 		utils.Check(fmt.Errorf("Missing argument TAG"))
 		return
@@ -224,9 +217,9 @@ func createRelease(cmd *Command, args *Args) {
 	var body string
 	var editor *github.Editor
 
-	if flagReleaseMessage != "" {
+	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagReleaseMessage)
-	} else if flagReleaseFile != "" {
+	} else if cmd.FlagPassed("file") {
 		title, body, err = readMsgFromFile(flagReleaseMessage)
 		utils.Check(err)
 	} else {
@@ -274,7 +267,7 @@ func createRelease(cmd *Command, args *Args) {
 }
 
 func editRelease(cmd *Command, args *Args) {
-	tagName := args.LastParam()
+	tagName := cmd.Arg(0)
 	if tagName == "" {
 		utils.Check(fmt.Errorf("Missing argument TAG"))
 		return
@@ -294,30 +287,26 @@ func editRelease(cmd *Command, args *Args) {
 	params := map[string]interface{}{}
 	commitish := release.TargetCommitish
 
-	if flagReleaseCommitish != "" {
+	if cmd.FlagPassed("commitish") {
 		params["target_commitish"] = flagReleaseCommitish
 		commitish = flagReleaseCommitish
 	}
 
-	if flagReleaseDraft {
-		params["draft"] = true
-	} else if flagReleaseNoDraft {
-		params["draft"] = false
+	if cmd.FlagPassed("draft") {
+		params["draft"] = flagReleaseDraft
 	}
 
-	if flagReleasePrerelease {
-		params["prerelease"] = true
-	} else if flagReleaseNoPrerelease {
-		params["prerelease"] = false
+	if cmd.FlagPassed("prerelease") {
+		params["prerelease"] = flagReleasePrerelease
 	}
 
 	var title string
 	var body string
 	var editor *github.Editor
 
-	if flagReleaseMessage != "" {
+	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagReleaseMessage)
-	} else if flagReleaseFile != "" {
+	} else if cmd.FlagPassed("file") {
 		title, body, err = readMsgFromFile(flagReleaseMessage)
 		utils.Check(err)
 	} else {
