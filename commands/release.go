@@ -18,7 +18,7 @@ var (
 		Usage: `
 release
 release show <TAG>
-release create [-dp] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <COMMIT>] <TAG>
+release create [-dp] [-a <FILE>] [-m <MESSAGE>|-f <FILE>] [-c <TARGET>] <TAG>
 release edit [<options>] <TAG>
 `,
 		Long: `Manage GitHub releases.
@@ -36,7 +36,7 @@ With '--include-drafs', include draft releases in the listing.
 
 	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
-		doesn't exist, it will be created at <COMMIT> (default: HEAD).
+		doesn't exist, it will be created at <TARGET> (default: current branch).
 
 	* _edit_:
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
@@ -61,7 +61,7 @@ With '--include-drafs', include draft releases in the listing.
 	-f, --file <FILE>
 		Read the release title and description from <FILE>.
 	
-	-c, --commitish <COMMIT>
+	-c, --commitish <TARGET>
 		A SHA, tag, or branch name to attach the release to (default: current branch).
 
 	<TAG>
