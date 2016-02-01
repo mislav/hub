@@ -179,18 +179,21 @@ type simpleClient struct {
 	accessToken string
 }
 
-func (c *simpleClient) Get(path string) (res *simpleResponse, err error) {
+func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
 	url, err := url.Parse(path)
 	if err != nil {
 		return
 	}
 
 	url = c.rootUrl.ResolveReference(url)
-	req, err := http.NewRequest("GET", url.String(), nil)
+	req, err := http.NewRequest(method, url.String(), body)
 	if err != nil {
 		return
 	}
 	req.Header.Set("Authorization", "token "+c.accessToken)
+	if configure != nil {
+		configure(req)
+	}
 
 	httpResponse, err := c.httpClient.Do(req)
 	if err == nil {
@@ -198,6 +201,52 @@ func (c *simpleClient) Get(path string) (res *simpleResponse, err error) {
 	}
 
 	return
+}
+
+func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simpleResponse, error) {
+	json, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	buf := bytes.NewBuffer(json)
+
+	return c.performRequest(method, path, buf, func(req *http.Request) {
+		req.Header.Set("Content-Type", "application/json")
+	})
+}
+
+func (c *simpleClient) Get(path string) (*simpleResponse, error) {
+	return c.performRequest("GET", path, nil, nil)
+}
+
+func (c *simpleClient) Delete(path string) (*simpleResponse, error) {
+	return c.performRequest("DELETE", path, nil, nil)
+}
+
+func (c *simpleClient) PostJSON(path string, payload interface{}) (*simpleResponse, error) {
+	return c.jsonRequest("POST", path, payload)
+}
+
+func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleResponse, error) {
+	return c.jsonRequest("PATCH", path, payload)
+}
+
+func (c *simpleClient) PostFile(path, filename string) (*simpleResponse, error) {
+	stat, err := os.Stat(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	return c.performRequest("POST", path, file, func(req *http.Request) {
+		req.ContentLength = stat.Size()
+		req.Header.Set("Content-Type", "application/octet-stream")
+	})
 }
 
 type simpleResponse struct {
