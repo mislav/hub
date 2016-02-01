@@ -11,8 +11,13 @@ import (
 var (
 	cmdIssue = &Command{
 		Run:   issue,
-		Usage: "issue",
-		Long:  `List open issues for the current GitHub project.`,
+		Usage: "issue [-a <ASSIGNEE>]",
+		Long: `List open issues for the current GitHub project.
+
+## Options:
+	-a, --assignee <ASSIGNEE>
+		Display only issues assigned to <ASSIGNEE>
+`,
 	}
 
 	cmdCreateIssue = &Command{
