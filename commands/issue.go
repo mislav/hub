@@ -33,6 +33,7 @@ var (
 `,
 	}
 
+	flagIssueAssignee,
 	flagIssueMessage,
 	flagIssueFile string
 
@@ -43,6 +44,8 @@ func init() {
 	cmdCreateIssue.Flag.StringVarP(&flagIssueMessage, "message", "m", "", "MESSAGE")
 	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "f", "", "FILE")
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
+
+	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -66,8 +69,11 @@ func issue(cmd *Command, args *Args) {
 				} else {
 					url = issue.HTMLURL
 				}
-				// "nobody" should have more than 1 million github issues
-				ui.Printf("% 7d] %s ( %s )\n", issue.Number, issue.Title, url)
+
+				if flagIssueAssignee == "" || issue.Assignee.Login == flagIssueAssignee {
+					// "nobody" should have more than 1 million github issues
+					ui.Printf("% 7d] %s ( %s )\n", issue.Number, issue.Title, url)
+				}
 			}
 		}
 	})

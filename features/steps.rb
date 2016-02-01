@@ -82,6 +82,15 @@ Given(/^there is a commit named "([^"]+)"$/) do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
+Given(/^the remote issues of "(.*?)" are:$/) do |proj, json_value|
+  status_endpoint = <<-EOS
+    get('/repos/#{proj}/issues') {
+      json(#{json_value})
+    }
+    EOS
+  step %{the GitHub API server:}, status_endpoint
+end
+
 When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num = num == 'a' ? 1 : num.to_i
   num.times { empty_commit(msg) }
