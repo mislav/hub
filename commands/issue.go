@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -11,8 +12,13 @@ import (
 var (
 	cmdIssue = &Command{
 		Run:   issue,
-		Usage: "issue",
-		Long:  `List open issues for the current GitHub project.`,
+		Usage: "issue [-a <ASSIGNEE>]",
+		Long: `List open issues for the current GitHub project.
+
+## Options:
+	-a, --assignee <ASSIGNEE>
+		Display only issues assigned to <ASSIGNEE>
+`,
 	}
 
 	cmdCreateIssue = &Command{
@@ -33,6 +39,7 @@ var (
 `,
 	}
 
+	flagIssueAssignee,
 	flagIssueMessage,
 	flagIssueFile string
 
@@ -43,6 +50,8 @@ func init() {
 	cmdCreateIssue.Flag.StringVarP(&flagIssueMessage, "message", "m", "", "MESSAGE")
 	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "f", "", "FILE")
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
+
+	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -66,8 +75,12 @@ func issue(cmd *Command, args *Args) {
 				} else {
 					url = issue.HTMLURL
 				}
-				// "nobody" should have more than 1 million github issues
-				ui.Printf("% 7d] %s ( %s )\n", issue.Number, issue.Title, url)
+
+				if flagIssueAssignee == "" ||
+					strings.EqualFold(issue.Assignee.Login, flagIssueAssignee) {
+					// "nobody" should have more than 1 million github issues
+					ui.Printf("% 7d] %s ( %s )\n", issue.Number, issue.Title, url)
+				}
 			}
 		}
 	})
