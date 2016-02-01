@@ -353,16 +353,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	}
 
 	res, err := api.Get(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
-	if err != nil {
-		return
-	}
-	if res.StatusCode != 200 {
-		var errInfo *errorInfo
-		errInfo, err = res.ErrorInfo()
-		if err != nil {
-			return
-		}
-		err = FormatError("fetching statuses", errInfo)
+	if err = checkStatus(200, "fetching statuses", res, err); err != nil {
 		return
 	}
 
@@ -618,6 +609,21 @@ func normalizeHost(host string) string {
 	}
 
 	return host
+}
+
+func checkStatus(expectedStatus int, action string, response *simpleResponse, err error) error {
+	if err != nil {
+		return fmt.Errorf("Error %s: %s", action, err.Error())
+	} else if response.StatusCode != expectedStatus {
+		errInfo, err := response.ErrorInfo()
+		if err == nil {
+			return FormatError(action, errInfo)
+		} else {
+			return fmt.Errorf("Error %s: %s (HTTP %d)", action, err.Error(), response.StatusCode)
+		}
+	} else {
+		return nil
+	}
 }
 
 func FormatError(action string, err error) (ee error) {
