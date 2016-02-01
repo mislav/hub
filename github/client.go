@@ -275,16 +275,7 @@ func (client *Client) FetchReleases(project *Project) (response []Release, err e
 	}
 
 	res, err := api.Get(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name))
-	if err != nil {
-		return
-	}
-	if res.StatusCode != 200 {
-		var errInfo *errorInfo
-		errInfo, err = res.ErrorInfo()
-		if err != nil {
-			return
-		}
-		err = FormatError("fetching releases", errInfo)
+	if err = checkStatus(200, "fetching releases", res, err); err != nil {
 		return
 	}
 
@@ -320,16 +311,7 @@ func (client *Client) CreateRelease(project *Project, releaseParams *Release) (r
 	}
 
 	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name), releaseParams)
-	if err != nil {
-		return
-	}
-	if res.StatusCode != 201 {
-		var errInfo *errorInfo
-		errInfo, err = res.ErrorInfo()
-		if err != nil {
-			return
-		}
-		err = FormatError("creating release", errInfo)
+	if err = checkStatus(201, "creating release", res, err); err != nil {
 		return
 	}
 
@@ -345,16 +327,7 @@ func (client *Client) EditRelease(release *Release, releaseParams map[string]int
 	}
 
 	res, err := api.PatchJSON(release.ApiUrl, releaseParams)
-	if err != nil {
-		return
-	}
-	if res.StatusCode != 200 {
-		var errInfo *errorInfo
-		errInfo, err = res.ErrorInfo()
-		if err != nil {
-			return
-		}
-		err = FormatError("editing release", errInfo)
+	if err = checkStatus(200, "editing release", res, err); err != nil {
 		return
 	}
 
@@ -377,16 +350,7 @@ func (client *Client) UploadReleaseAsset(release *Release, filename, label strin
 	}
 
 	res, err := api.PostFile(uploadUrl, filename)
-	if err != nil {
-		return
-	}
-	if res.StatusCode != 201 {
-		var errInfo *errorInfo
-		errInfo, err = res.ErrorInfo()
-		if err != nil {
-			return
-		}
-		err = FormatError("uploading release asset", errInfo)
+	if err = checkStatus(201, "uploading release asset", res, err); err != nil {
 		return
 	}
 
@@ -402,17 +366,8 @@ func (client *Client) DeleteReleaseAsset(asset *ReleaseAsset) (err error) {
 	}
 
 	res, err := api.Delete(asset.ApiUrl)
-	if err != nil {
-		return
-	}
-	if res.StatusCode != 204 {
-		var errInfo *errorInfo
-		errInfo, err = res.ErrorInfo()
-		if err != nil {
-			return
-		}
-		err = FormatError("deleting release asset", errInfo)
-	}
+	err = checkStatus(204, "deleting release asset", res, err)
+
 	return
 }
 
@@ -434,16 +389,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	}
 
 	res, err := api.Get(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
-	if err != nil {
-		return
-	}
-	if res.StatusCode != 200 {
-		var errInfo *errorInfo
-		errInfo, err = res.ErrorInfo()
-		if err != nil {
-			return
-		}
-		err = FormatError("fetching statuses", errInfo)
+	if err = checkStatus(200, "fetching statuses", res, err); err != nil {
 		return
 	}
 
@@ -718,6 +664,21 @@ func normalizeHost(host string) string {
 	}
 
 	return host
+}
+
+func checkStatus(expectedStatus int, action string, response *simpleResponse, err error) error {
+	if err != nil {
+		return fmt.Errorf("Error %s: %s", action, err.Error())
+	} else if response.StatusCode != expectedStatus {
+		errInfo, err := response.ErrorInfo()
+		if err == nil {
+			return FormatError(action, errInfo)
+		} else {
+			return fmt.Errorf("Error %s: %s (HTTP %d)", action, err.Error(), response.StatusCode)
+		}
+	} else {
+		return nil
+	}
 }
 
 func FormatError(action string, err error) (ee error) {

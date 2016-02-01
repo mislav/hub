@@ -65,6 +65,38 @@ Feature: hub release
       v1.0.2\n
       """
 
+  Scenario: Repository not found when listing releases
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        status 404
+        json message: "Not Found",
+             documentation_url: "https://developer.github.com/v3"
+      }
+      """
+    When I run `hub release`
+    Then the stderr should contain exactly:
+      """
+      Error fetching releases: Not Found (HTTP 404)
+      Not Found\n
+      """
+    And the exit status should be 1
+
+  Scenario: Server error when listing releases
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        status 504
+        '<html><title>Its fine</title></html>'
+      }
+      """
+    When I run `hub release`
+    Then the stderr should contain exactly:
+      """
+      Error fetching releases: invalid character '<' looking for beginning of value (HTTP 504)\n
+      """
+    And the exit status should be 1
+
   Scenario: Show specific release
     Given the GitHub API server:
       """
