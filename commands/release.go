@@ -16,7 +16,7 @@ var (
 	cmdRelease = &Command{
 		Run: listReleases,
 		Usage: `
-release
+release [--include-drafts]
 release show <TAG>
 release create [-dp] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-c <TARGET>] <TAG>
 release edit [<options>] <TAG>
@@ -27,7 +27,7 @@ release edit [<options>] <TAG>
 
 With no arguments, shows a list of existing releases.
 
-With '--include-drafs', include draft releases in the listing.
+With '--include-drafts', include draft releases in the listing.
 
 	* _show_:
 		Show GitHub release notes for <TAG>.
