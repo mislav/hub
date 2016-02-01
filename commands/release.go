@@ -42,6 +42,10 @@ With '--include-drafs', include draft releases in the listing.
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
 		options as _create_ command. Publish a draft with '--draft=false'.
 
+		When <MESSAGE> or <FILE> are not specified, a text editor will open
+		pre-populated with current release title and body. To re-use existing title
+		and body unchanged, pass '-m ""'.
+
 ## Options:
 	-d, --draft
 		Create a draft release.
@@ -309,6 +313,10 @@ func editRelease(cmd *Command, args *Args) {
 	} else if cmd.FlagPassed("file") {
 		title, body, err = readMsgFromFile(flagReleaseFile)
 		utils.Check(err)
+
+		if title == "" {
+			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
+		}
 	} else {
 		cs := git.CommentChar()
 		message, err := renderReleaseTpl("Editing", cs, tagName, project.String(), commitish)
@@ -320,6 +328,10 @@ func editRelease(cmd *Command, args *Args) {
 
 		title, body, err = editor.EditTitleAndBody()
 		utils.Check(err)
+
+		if title == "" {
+			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
+		}
 	}
 
 	if title != "" {
@@ -329,14 +341,16 @@ func editRelease(cmd *Command, args *Args) {
 		params["body"] = body
 	}
 
-	if args.Noop {
-		ui.Printf("Would edit release `%s'\n", tagName)
-	} else {
-		release, err = gh.EditRelease(release, params)
-		utils.Check(err)
+	if len(params) > 0 {
+		if args.Noop {
+			ui.Printf("Would edit release `%s'\n", tagName)
+		} else {
+			release, err = gh.EditRelease(release, params)
+			utils.Check(err)
 
-		if editor != nil {
-			editor.DeleteFile()
+			if editor != nil {
+				editor.DeleteFile()
+			}
 		}
 	}
 

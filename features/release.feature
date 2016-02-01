@@ -253,3 +253,44 @@ MARKDOWN
       """
     When I successfully run `hub release edit --draft=false v1.2.0`
     Then there should be no output
+
+  Scenario: Edit existing release by uploading assets
+    Given the GitHub API server:
+      """
+      deleted = false
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+            upload_url: 'https://api.github.com/uploads/assets{?name,label}',
+            tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: true,
+            prerelease: false,
+            assets: [
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/456',
+                name: 'hello-1.2.0.tar.gz',
+              },
+            ],
+          },
+        ]
+      }
+      delete('/repos/mislav/will_paginate/assets/456') {
+        deleted = true
+        status 204
+      }
+      post('/uploads/assets') {
+        halt 422 unless deleted
+        assert :name => 'hello-1.2.0.tar.gz',
+               :label => nil
+        status 201
+      }
+      """
+    And a file named "hello-1.2.0.tar.gz" with:
+      """
+      TARBALL
+      """
+    When I successfully run `hub release edit -m "" v1.2.0 -a hello-1.2.0.tar.gz`
+    Then the output should contain exactly:
+      """
+      Attaching release asset `hello-1.2.0.tar.gz'...\n
+      """
