@@ -66,6 +66,25 @@ func (c *Command) parseArguments(args *Args) (err error) {
 	return
 }
 
+func (c *Command) FlagPassed(name string) bool {
+	found := false
+	c.Flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
+}
+
+func (c *Command) Arg(idx int) string {
+	args := c.Flag.Args()
+	if idx < len(args) {
+		return args[idx]
+	} else {
+		return ""
+	}
+}
+
 func (c *Command) Use(subCommand *Command) {
 	if c.subCommands == nil {
 		c.subCommands = make(map[string]*Command)
@@ -95,7 +114,8 @@ func (c *Command) Name() string {
 	if c.Key != "" {
 		return c.Key
 	}
-	return strings.Split(strings.TrimSpace(c.Usage), " ")[0]
+	usageLine := strings.Split(strings.TrimSpace(c.Usage), "\n")[0]
+	return strings.Split(usageLine, " ")[0]
 }
 
 func (c *Command) Runnable() bool {
