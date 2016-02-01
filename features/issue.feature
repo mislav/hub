@@ -4,24 +4,26 @@ Feature: hub issue
     And I am "cornwe19" on github.com with OAuth token "OTOKEN"
 
   Scenario: Fetch issues
-    Given the remote issues of "github/hub" are:
+    Given the GitHub API server:
     """
-    [
-      { :number => 102,
-        :title => "First issue",
-        :html_url => "https://github.com/github/hub/issues/102",
-        :assignee => {
-          :login => "octokit"
+    get('/repos/github/hub/issues') {
+      json([
+        { :number => 102,
+          :title => "First issue",
+          :html_url => "https://github.com/github/hub/issues/102",
+          :assignee => {
+            :login => "octokit"
+          }
+        },
+        { :number => 103,
+          :title => "Second issue",
+          :html_url => "https://github.com/github/hub/issues/103",
+          :assignee => {
+            :login => "cornwe19"
+          }
         }
-      },
-      { :number => 103,
-        :title => "Second issue",
-        :html_url => "https://github.com/github/hub/issues/103",
-        :assignee => {
-          :login => "cornwe19"
-        }
-      }
-    ]
+      ])
+    }
     """
     When I run `hub issue -a Cornwe19`
     Then the output should contain exactly:
