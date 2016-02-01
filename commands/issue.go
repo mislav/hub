@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -75,7 +76,8 @@ func issue(cmd *Command, args *Args) {
 					url = issue.HTMLURL
 				}
 
-				if flagIssueAssignee == "" || issue.Assignee.Login == flagIssueAssignee {
+				if flagIssueAssignee == "" ||
+					strings.EqualFold(issue.Assignee.Login, flagIssueAssignee) {
 					// "nobody" should have more than 1 million github issues
 					ui.Printf("% 7d] %s ( %s )\n", issue.Number, issue.Title, url)
 				}

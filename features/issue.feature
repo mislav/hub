@@ -23,7 +23,7 @@ Feature: hub issue
       }
     ]
     """
-    When I run `hub issue -a cornwe19`
+    When I run `hub issue -a Cornwe19`
     Then the output should contain exactly:
       """
           103] Second issue ( https://github.com/github/hub/issues/103 )\n
