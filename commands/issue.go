@@ -114,7 +114,26 @@ func listIssues(cmd *Command, args *Args) {
 				num = fmt.Sprintf("\033[%dm%s\033[0m", issueColor, num)
 			}
 
-			ui.Printf("%*s%s  %s\n", maxNumWidth+1-numWidth, "", num, issue.Title)
+			ui.Printf("%*s%s  %s", maxNumWidth+1-numWidth, "", num, issue.Title)
+
+			for i, label := range issue.Labels {
+				color, err := utils.NewColor(label.Color)
+				if err != nil {
+					utils.Check(err)
+				}
+
+				textColor := 16
+				if color.Brightness() < 0.65 {
+					textColor = 15
+				}
+
+				if i == 0 {
+					ui.Printf(" ")
+				}
+				ui.Printf(" \033[38;5;%d;48;2;%d;%d;%dm %s \033[m", textColor, color.Red, color.Green, color.Blue, label.Name)
+			}
+
+			ui.Printf("\n")
 		}
 	}
 
