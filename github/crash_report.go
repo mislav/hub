@@ -69,10 +69,16 @@ func report(reportedError error, stack string) {
 
 	gh := NewClient(project.Host)
 
-	issue, err := gh.CreateIssue(project, title, body, []string{"Crash Report"})
+	params := &IssueParams{
+		Title:  title,
+		Body:   body,
+		Labels: []string{"Crash Report"},
+	}
+
+	issue, err := gh.CreateIssue(project, params)
 	utils.Check(err)
 
-	ui.Println(issue.HTMLURL)
+	ui.Println(issue.HtmlUrl)
 }
 
 const crashReportTmpl = "Crash report - %v\n\n" +

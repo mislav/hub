@@ -420,50 +420,79 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 	return
 }
 
-func (client *Client) Issues(project *Project) (issues []octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+type IssueParams struct {
+	Title  string   `json:"title"`
+	Body   string   `json:"body"`
+	Labels []string `json:"labels"`
+}
+
+type Issue struct {
+	Number      int          `json:"number"`
+	State       string       `json:"state"`
+	Title       string       `json:"title"`
+	Body        string       `json:"body"`
+	User        *User        `json:"user"`
+	Assignee    *User        `json:"assignee"`
+	Labels      []IssueLabel `json:"labels"`
+	PullRequest *PullRequest `json:"pull_request"`
+	HtmlUrl     string       `json:"html_url"`
+}
+
+type IssueLabel struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
+type User struct {
+	Login string `json:"login"`
+}
+
+type PullRequest struct {
+	ApiUrl  string `json:"url"`
+	HtmlUrl string `json:"html_url"`
+}
+
+func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}) (issues []Issue, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting issues", err)
+	path := fmt.Sprintf("repos/%s/%s/issues", project.Owner, project.Name)
+	if filterParams != nil {
+		query := url.Values{}
+		for key, value := range filterParams {
+			switch v := value.(type) {
+			case string:
+				query.Add(key, v)
+			}
+		}
+		path += "?" + query.Encode()
+	}
+
+	res, err := api.Get(path)
+	if err = checkStatus(200, "fetching issues", res, err); err != nil {
 		return
 	}
 
-	issues, result := api.Issues(client.requestURL(url)).All()
-	if result.HasError() {
-		err = FormatError("getting issues", result.Err)
-		return
-	}
-
+	issues = []Issue{}
+	err = res.Unmarshal(&issues)
 	return
 }
 
-func (client *Client) CreateIssue(project *Project, title, body string, labels []string) (issue *octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) CreateIssue(project *Project, issueParams *IssueParams) (issue *Issue, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating issues", err)
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/issues", project.Owner, project.Name), issueParams)
+	if err = checkStatus(201, "creating issue", res, err); err != nil {
 		return
 	}
 
-	params := octokit.IssueParams{
-		Title:  title,
-		Body:   body,
-		Labels: labels,
-	}
-	issue, result := api.Issues(client.requestURL(url)).Create(params)
-	if result.HasError() {
-		err = FormatError("creating issue", result.Err)
-		return
-	}
-
+	issue = &Issue{}
+	err = res.Unmarshal(issue)
 	return
 }
 
