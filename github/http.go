@@ -3,6 +3,7 @@ package github
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -135,7 +136,33 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		Out:         ui.Stderr,
 		Colorized:   ui.IsTerminal(os.Stderr),
 	}
-	return &http.Client{Transport: tr}
+
+	// Implement CheckRedirect callback to fix issues with net/http.
+	fixupCheckRedirect := func(req *http.Request, via []*http.Request) error {
+		// net/http doesn't send a Host header on redirect requests.
+		// TODO: Find or file a Go bug.
+		if req.Host == "" {
+			req.Host = req.URL.Host
+		}
+
+		// Maintain headers after redirect.
+		// https://github.com/golang/go/issues/4800
+		for key, val := range via[0].Header {
+			if req.Host != via[0].Host && strings.EqualFold(key, "Authorization") {
+				continue
+			}
+			req.Header[key] = val
+		}
+
+		// remainder should match http/Client.defaultCheckRedirect()
+		if len(via) >= 10 {
+			return errors.New("stopped after 10 redirects")
+		}
+
+		return nil
+	}
+
+	return &http.Client{Transport: tr, CheckRedirect: fixupCheckRedirect}
 }
 
 func cloneRequest(req *http.Request) *http.Request {
@@ -217,6 +244,12 @@ func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simp
 
 func (c *simpleClient) Get(path string) (*simpleResponse, error) {
 	return c.performRequest("GET", path, nil, nil)
+}
+
+func (c *simpleClient) GetFile(path string, mimeType string) (*simpleResponse, error) {
+	return c.performRequest("GET", path, nil, func(req *http.Request) {
+		req.Header.Set("Accept", mimeType)
+	})
 }
 
 func (c *simpleClient) Delete(path string) (*simpleResponse, error) {

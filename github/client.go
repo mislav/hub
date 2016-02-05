@@ -371,6 +371,20 @@ func (client *Client) DeleteReleaseAsset(asset *ReleaseAsset) (err error) {
 	return
 }
 
+func (client *Client) DownloadReleaseAsset(url string) (asset io.ReadCloser, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	resp, err := api.GetFile(url, "application/octet-stream")
+	if err = checkStatus(200, "downloading asset", resp, err); err != nil {
+		return
+	}
+
+	return resp.Body, err
+}
+
 type CIStatusResponse struct {
 	State    string     `json:"state"`
 	Statuses []CIStatus `json:"statuses"`
