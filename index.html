@@ -128,10 +128,9 @@ $ <a href="http://brew.sh/">brew</a> install hub
 
 <span class="comment"># Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or</span>
 <span class="comment"># build your own from source. You'll need a <a href="http://golang.org/doc/install">Go development environment</a>.</span>
-$ git clone <strong>https://github.com/github/hub.git</strong>
-$ cd hub
-$ <strong>script/build</strong>
-$ mv ./hub ~/bin <span class="comment"><span class="hidden">#</span> ← move to somewhere in your PATH</span>
+$ git clone <strong>https://github.com/github/hub.git</strong> &amp;&amp; cd hub
+<span class="comment"># assuming that `~/bin` is in your PATH:</span>
+$ <strong>script/build -o ~/bin/hub</strong>
 
 <span class="comment"># alias it as git</span>
 $ alias <strong>git=hub</strong>
