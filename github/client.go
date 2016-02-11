@@ -91,6 +91,53 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 	return
 }
 
+func (client *Client) FindPullRequest(project *Project, base string, head string) (pr *octokit.PullRequest, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": ""})
+	if err != nil {
+		return
+	}
+	q := url.Query()
+	q.Set("head", head)
+	q.Set("base", base)
+	url.RawQuery = q.Encode()
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request", err)
+		return
+	}
+
+	prs, result := api.PullRequests(client.requestURL(url)).All()
+	if result.HasError() {
+		err = FormatError("finding pull request", result.Err)
+		return
+	}
+	if len(prs) != 1 {
+		err = fmt.Errorf("no such pull request")
+	} else {
+		pr = &prs[0]
+	}
+
+	return
+}
+
+func (client *Client) PullRequestComments(pr *octokit.PullRequest) (comments []octokit.IssueComment, err error) {
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request comments", err)
+		return
+	}
+
+	url := octokit.Hyperlink(pr.CommentsURL)
+
+	comments, result := api.IssueComments().All(&url, octokit.M{})
+	if result.HasError() {
+		err = FormatError("getting pull request comments", result.Err)
+	}
+
+	return
+}
+
 func (client *Client) CreatePullRequest(project *Project, base, head, title, body string) (pr *octokit.PullRequest, err error) {
 	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {

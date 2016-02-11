@@ -31,3 +31,21 @@ func TestPullRequest_ParsePullRequestProject(t *testing.T) {
 	assert.Equal(t, "mojombo", p.Owner)
 	assert.Equal(t, "jekyll", p.Name)
 }
+
+func TestPullRequest_TrimToOneLine(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"A short string.", "A short string."},
+		{"On two\nlines.", "On two…"},
+		{"With a double\r\nline break.", "With a double…"},
+		{"A veeeeeeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrrrrrrrrrrrrrryyyy looooooooooooong line that is too big to fit.", "A veeeeeeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrrrrrrrrrrrrrryyyy looooooooooooong line …"},
+	}
+
+	for _, test := range tests {
+		if got := trimToOneLine(test.input); got != test.expected {
+			t.Errorf("trimToOneLine(%q) = %q, want %q", test.input, got, test.expected)
+		}
+	}
+}
