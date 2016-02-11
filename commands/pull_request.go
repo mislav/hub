@@ -11,15 +11,16 @@ import (
 	"github.com/octokit/go-octokit/octokit"
 )
 
-var cmdPullRequest = &Command{
-	Run: pullRequest,
-	Usage: `
+var (
+	cmdPullRequest = &Command{
+		Run: pullRequest,
+		Usage: `
 pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE>
 pull-request -i <ISSUE>
 `,
-	Long: `Create a GitHub pull request.
+		Long: `Create a GitHub pull request.
 
 ## Options:
 	-f, --force
@@ -58,7 +59,19 @@ pull-request -i <ISSUE>
 
 hub(1), hub-merge(1), hub-checkout(1)
 `,
-}
+	}
+	cmdPullRequestInfo = &Command{
+		Key:   "info",
+		Run:   pullRequestInfo,
+		Usage: "pull-request info",
+		Long: `
+pull-request info
+
+## See-also:
+hub(1)
+`,
+	}
+)
 
 var (
 	flagPullRequestBase,
@@ -67,7 +80,9 @@ var (
 	flagPullRequestMessage,
 	flagPullRequestAssignee,
 	flagPullRequestLabels,
-	flagPullRequestFile string
+	flagPullRequestFile,
+	flagPullRequestInfoBase,
+	flagPullRequestInfoHead string
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
 	flagPullRequestMilestone uint64
@@ -84,6 +99,11 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
 	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestLabels, "labels", "l", "", "LABELS")
+
+	cmdPullRequestInfo.Flag.StringVarP(&flagPullRequestInfoBase, "base", "b", "", "BASE")
+	cmdPullRequestInfo.Flag.StringVarP(&flagPullRequestInfoHead, "head", "h", "", "HEAD")
+
+	cmdPullRequest.Use(cmdPullRequestInfo)
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -313,4 +333,71 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
+}
+
+// pullRequestInfo fetches info for a pull request.
+func pullRequestInfo(cmd *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	currentBranch, err := localRepo.CurrentBranch()
+	utils.Check(err)
+
+	baseProject, err := localRepo.MainProject()
+	utils.Check(err)
+
+	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
+	if err != nil {
+		utils.Check(github.FormatError("getting pull request info", err))
+	}
+
+	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
+
+	var (
+		base, head string
+	)
+
+	if flagPullRequestInfoBase != "" {
+		baseProject, base = parsePullRequestProject(baseProject, flagPullRequestInfoBase)
+	}
+
+	if flagPullRequestInfoHead != "" {
+		headProject, head = parsePullRequestProject(headProject, flagPullRequestInfoHead)
+	}
+
+	if base == "" {
+		masterBranch := localRepo.MasterBranch()
+		base = masterBranch.ShortName()
+	}
+
+	if head == "" && trackedBranch != nil {
+		if !trackedBranch.IsRemote() {
+			// the current branch tracking another branch
+			// pretend there's no upstream at all
+			trackedBranch = nil
+		} else {
+			if baseProject.SameAs(headProject) && base == trackedBranch.ShortName() {
+				e := fmt.Errorf(`Aborted: head branch is the same as base ("%s")`, base)
+				e = fmt.Errorf("%s\n(use `-h <branch>` to specify an explicit pull request head)", e)
+				utils.Check(e)
+			}
+		}
+	}
+
+	if head == "" {
+		if trackedBranch == nil {
+			head = currentBranch.ShortName()
+		} else {
+			head = trackedBranch.ShortName()
+		}
+	}
+
+	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
+	fmt.Printf("full Head: %s", fullHead)
+
+	client := github.NewClientWithHost(host)
+	pr, err := client.FindPullRequest(baseProject, base, fullHead)
+	utils.Check(err)
+
+	args.Replace("echo", "", fmt.Sprintf("Yipee working: %s", pr))
 }

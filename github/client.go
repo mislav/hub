@@ -91,6 +91,28 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 	return
 }
 
+func (client *Client) FindPullRequest(project *Project, base string, head string) (pr *octokit.PullRequest, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": ""})
+	if err != nil {
+		return
+	}
+  url.Query().Set("head", head)
+  url.Query().Set("base", base)
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request", err)
+		return
+	}
+
+	pr, result := api.PullRequests(client.requestURL(url)).One()
+	if result.HasError() {
+		err = FormatError("getting pull request", result.Err)
+		return
+	}
+
+	return
+}
 func (client *Client) CreatePullRequest(project *Project, base, head, title, body string) (pr *octokit.PullRequest, err error) {
 	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
