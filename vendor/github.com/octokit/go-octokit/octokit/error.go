@@ -9,6 +9,7 @@ import (
 	"github.com/jingweno/go-sawyer"
 )
 
+// ResponseErrorType represents an enumeration of possible response errors
 type ResponseErrorType int
 
 const (
@@ -32,6 +33,7 @@ const (
 	ErrorUnknownError            ResponseErrorType = iota
 )
 
+// ErrorObject represents the general structure of a possible error
 type ErrorObject struct {
 	Resource string `json:"resource,omitempty"`
 	Code     string `json:"code,omitempty"`
@@ -39,6 +41,7 @@ type ErrorObject struct {
 	Message  string `json:"message,omitempty"`
 }
 
+// Error produces a human readable string representation of a given ErrorObject
 func (e *ErrorObject) Error() string {
 	err := fmt.Sprintf("%v error", e.Code)
 	if e.Field != "" {
@@ -52,6 +55,7 @@ func (e *ErrorObject) Error() string {
 	return err
 }
 
+// ResponseError represents an error given as a response to a request
 type ResponseError struct {
 	Response         *http.Response    `json:"-"`
 	Type             ResponseErrorType `json:"-"`
@@ -61,6 +65,7 @@ type ResponseError struct {
 	DocumentationURL string            `json:"documentation_url,omitempty"`
 }
 
+// Error produces a human readable string representation of a given ResponseError
 func (e *ResponseError) Error() string {
 	return fmt.Sprintf("%v %v: %d - %s",
 		e.Response.Request.Method, e.Response.Request.URL,
@@ -95,6 +100,8 @@ func (e *ResponseError) errorMessage() string {
 	return strings.Join(messages, "\n")
 }
 
+// NewResponseError creates a ResponseError from a given sawyer response that had
+// been produced along with an error.
 func NewResponseError(resp *sawyer.Response) (err *ResponseError) {
 	err = &ResponseError{}
 

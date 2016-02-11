@@ -1,3 +1,7 @@
+/*
+Package octokit is a simple and official wrapper for the GitHub API in Go.
+It is a hypermedia API client using go-sawyer to allow for easy access between web resources.
+*/
 package octokit
 
 const (

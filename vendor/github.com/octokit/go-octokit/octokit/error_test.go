@@ -2,10 +2,9 @@ package octokit
 
 import (
 	"net/http"
-	"strings"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestResponseError_empty_body(t *testing.T) {
@@ -21,7 +20,7 @@ func TestResponseError_empty_body(t *testing.T) {
 
 	req, _ := client.NewRequest("error")
 	_, err := req.Get(nil)
-	assert.Tf(t, strings.Contains(err.Error(), "400 - Problems parsing error message: EOF"), "%s", err.Error())
+	assert.Contains(t, err.Error(), "400 - Problems parsing error message: EOF")
 
 	e := err.(*ResponseError)
 	assert.Equal(t, ErrorBadRequest, e.Type)
@@ -40,7 +39,7 @@ func TestResponseError_Error_400(t *testing.T) {
 
 	req, _ := client.NewRequest("error")
 	_, err := req.Get(nil)
-	assert.Tf(t, strings.Contains(err.Error(), "400 - Problems parsing JSON"), "%s", err.Error())
+	assert.Contains(t, err.Error(), "400 - Problems parsing JSON")
 
 	e := err.(*ResponseError)
 	assert.Equal(t, ErrorBadRequest, e.Type)
@@ -59,7 +58,7 @@ func TestResponseError_Error_401(t *testing.T) {
 
 	req, _ := client.NewRequest("error")
 	_, err := req.Get(nil)
-	assert.Tf(t, strings.Contains(err.Error(), "401 - Unauthorized"), "%s", err.Error())
+	assert.Contains(t, err.Error(), "401 - Unauthorized")
 
 	e := err.(*ResponseError)
 	assert.Equal(t, ErrorUnauthorized, e.Type)
@@ -74,7 +73,7 @@ func TestResponseError_Error_401(t *testing.T) {
 
 	req, _ = client.NewRequest("error_2fa")
 	_, err = req.Get(nil)
-	assert.Tf(t, strings.Contains(err.Error(), "401 - Unauthorized"), "%s", err.Error())
+	assert.Contains(t, err.Error(), "401 - Unauthorized")
 
 	e = err.(*ResponseError)
 	assert.Equal(t, ErrorOneTimePasswordRequired, e.Type)
@@ -93,7 +92,7 @@ func TestResponseError_Error_422_error(t *testing.T) {
 
 	req, _ := client.NewRequest("error")
 	_, err := req.Get(nil)
-	assert.Tf(t, strings.Contains(err.Error(), "Error: No repository found for hubtopic"), "%s", err.Error())
+	assert.Contains(t, err.Error(), "Error: No repository found for hubtopic")
 
 	e := err.(*ResponseError)
 	assert.Equal(t, ErrorUnprocessableEntity, e.Type)
@@ -112,8 +111,8 @@ func TestResponseError_Error_422_error_summary(t *testing.T) {
 
 	req, _ := client.NewRequest("error")
 	_, err := req.Get(nil)
-	assert.Tf(t, strings.Contains(err.Error(), "422 - Validation Failed"), "%s", err.Error())
-	assert.Tf(t, strings.Contains(err.Error(), "missing_field error caused by title field on Issue resource"), "%s", err.Error())
+	assert.Contains(t, err.Error(), "422 - Validation Failed")
+	assert.Contains(t, err.Error(), "missing_field error caused by title field on Issue resource")
 
 	e := err.(*ResponseError)
 	assert.Equal(t, ErrorUnprocessableEntity, e.Type)
@@ -132,9 +131,69 @@ func TestResponseError_Error_415(t *testing.T) {
 
 	req, _ := client.NewRequest("error")
 	_, err := req.Get(nil)
-	assert.Tf(t, strings.Contains(err.Error(), "415 - Unsupported Media Type"), "%s", err.Error())
-	assert.Tf(t, strings.Contains(err.Error(), "// See: http://developer.github.com/v3"), "%s", err.Error())
+	assert.Contains(t, err.Error(), "415 - Unsupported Media Type")
+	assert.Contains(t, err.Error(), "// See: http://developer.github.com/v3")
 
 	e := err.(*ResponseError)
 	assert.Equal(t, ErrorUnsupportedMediaType, e.Type)
+}
+
+func TestResponseError_403_BadCredentials(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		respondWith(w, `{"message":"Bad credentials", "documentation_url":"https://developer.github.com/v3/"}`)
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Contains(t, err.Error(), "403 - Bad credentials")
+	assert.Contains(t, err.Error(), "// See: https://developer.github.com/v3/")
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorForbidden, e.Type)
+}
+
+func TestResponseError_403_RateLimit(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		respondWith(w, `{"message":"API rate limit exceeded for 1.2.3.4", "documentation_url":"https://developer.github.com/v3/#rate-limiting"}`)
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Contains(t, err.Error(), "403 - API rate limit exceeded for 1.2.3.4")
+	assert.Contains(t, err.Error(), "// See: https://developer.github.com/v3/#rate-limiting")
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorTooManyRequests, e.Type)
+}
+
+func TestResponseError_403_LoginLimit(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	mux.HandleFunc("/error", func(w http.ResponseWriter, r *http.Request) {
+		head := w.Header()
+		head.Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		respondWith(w, `{"message":"login attempts exceeded", "documentation_url":"https://developer.github.com/v3/"}`)
+	})
+
+	req, _ := client.NewRequest("error")
+	_, err := req.Get(nil)
+	assert.Contains(t, err.Error(), "403 - login attempts exceeded")
+	assert.Contains(t, err.Error(), "// See: https://developer.github.com/v3/")
+
+	e := err.(*ResponseError)
+	assert.Equal(t, ErrorTooManyLoginAttempts, e.Type)
 }

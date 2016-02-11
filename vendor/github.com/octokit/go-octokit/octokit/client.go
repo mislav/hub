@@ -9,15 +9,24 @@ import (
 	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
+// NewClient creates a new Client using the given authorization method. Provides a
+// very simple client for connecting to the GitHub API using Octokit.
 func NewClient(authMethod AuthMethod) *Client {
 	return NewClientWith(gitHubAPIURL, userAgent, authMethod, nil)
 }
 
+// NewClientWith creates a new Client with a particular base URL which all requests will
+// be appended onto - often the GitHub URL - the user agent being represented, the
+// authentication method, and a pointer to a httpClient if a particular client is being
+// wrapped. If httpClient is nil a default httpClient will be used.
 func NewClientWith(baseURL string, userAgent string, authMethod AuthMethod, httpClient *http.Client) *Client {
 	client, _ := sawyer.NewFromString(baseURL, httpClient)
 	return &Client{Client: client, UserAgent: userAgent, AuthMethod: authMethod}
 }
 
+// Client wraps a sawyer Client, a higher level wrapper for HttpClient, with a particular
+// represented user agent and authentication method for GitHub. Can also store the particular
+// hypermedia relations accessible through the root address.
 type Client struct {
 	*sawyer.Client
 
@@ -26,6 +35,8 @@ type Client struct {
 	rootRels   hypermedia.Relations
 }
 
+// NewRequest produces a simple request for the given url and applies the proper headers
+// currently associated with the client to that request.
 func (c *Client) NewRequest(urlStr string) (req *Request, err error) {
 	req, err = newRequest(c, urlStr)
 	if err != nil {
@@ -69,15 +80,15 @@ func (c *Client) post(url *url.URL, input interface{}, output interface{}) (resu
 	})
 }
 
-func (c *Client) put(url *url.URL, input interface{}, output interface{}) *Result {
+func (c *Client) put(url *url.URL, input interface{}, output interface{}) (result *Result) {
 	return sendRequest(c, url, func(req *Request) (*Response, error) {
 		return req.Put(input, output)
 	})
 }
 
-func (c *Client) delete(url *url.URL, output interface{}) (result *Result) {
+func (c *Client) delete(url *url.URL, input interface{}, output interface{}) (result *Result) {
 	return sendRequest(c, url, func(req *Request) (*Response, error) {
-		return req.Delete(output)
+		return req.Delete(input, output)
 	})
 }
 
