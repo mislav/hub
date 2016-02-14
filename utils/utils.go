@@ -74,8 +74,11 @@ func CommandPath(cmd string) (string, error) {
 	return filepath.EvalSymlinks(path)
 }
 
-func DirName() (string, error) {
-	dir, err := os.Getwd()
+// CleanDirName returns the name of an existing dir relative to the current
+// working dir. It makes sure the blank spaces in the dir name are replaced
+// with hyphens.
+func CleanDirName(chdir string) (string, error) {
+	dir, err := filepath.Abs(chdir)
 	if err != nil {
 		return "", err
 	}

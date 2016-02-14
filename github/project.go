@@ -167,7 +167,7 @@ func newProject(owner, name, host, protocol string) *Project {
 	}
 
 	if name == "" {
-		name, _ = utils.DirName()
+		name, _ = git.RootDirName()
 	}
 
 	return &Project{
