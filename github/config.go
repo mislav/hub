@@ -48,6 +48,18 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 
 	h = c.Find(host)
 	if h != nil {
+		if h.User == "" {
+			// User is missing from the config: this is a broken config probably
+			// because it was created with an old (broken) version of hub. Let's fix
+			// it now. See issue #1007 for details.
+			user := c.PromptForUser(host)
+			if user == "" {
+				utils.Check(fmt.Errorf("missing user"))
+			}
+			h.User = user
+			err := newConfigService().Save(configsFile(), c)
+			utils.Check(err)
+		}
 		if tokenFromEnv {
 			h.AccessToken = token
 		} else {
