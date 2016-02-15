@@ -1,29 +1,27 @@
 package octokit
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPullRequestService_One(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octokit/go-octokit/pulls/1", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		respondWithJSON(w, loadFixture("pull_request.json"))
-	})
+	stubGet(t, "/repos/octokit/go-octokit/pulls/1", "pull_request", nil)
 
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	pr, result := client.PullRequests(url).One()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 1, pr.ChangedFiles)
 	assert.Equal(t, 1, pr.Deletions)
 	assert.Equal(t, 1, pr.Additions)
@@ -42,36 +40,41 @@ func TestPullRequestService_One(t *testing.T) {
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1", pr.IssueURL)
 	assert.Equal(t, 1, pr.Number)
 	assert.Equal(t, "closed", pr.State)
-	assert.T(t, nil == pr.Assignee)
+
+	assert.Equal(t, "octocat", pr.Assignee.Login)
+	assert.Equal(t, 1, pr.Assignee.ID)
+	assert.Equal(t, "https://github.com/images/error/octocat_happy.gif", pr.Assignee.AvatarURL)
+	assert.Equal(t, "somehexcode", pr.Assignee.GravatarID)
+	assert.Equal(t, "https://api.github.com/users/octocat", pr.Assignee.URL)
+
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/commits", pr.CommitsURL)
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/comments", pr.ReviewCommentsURL)
 	assert.Equal(t, "/repos/jingweno/octokat/pulls/comments/{number}", pr.ReviewCommentURL)
 	assert.Equal(t, "https://api.github.com/repos/jingweno/octokat/issues/1/comments", pr.CommentsURL)
+
+	assert.Nil(t, pr.Mergeable)
 }
 
 func TestPullRequestService_Post(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octokit/go-octokit/pulls", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
-		testBody(t, r,
-			"{\"base\":\"base\",\"head\":\"head\",\"title\":\"title\",\"body\":\"body\"}\n")
-		respondWithJSON(w, loadFixture("pull_request.json"))
-	})
-
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	params := PullRequestParams{
-		Base:  "base",
-		Head:  "head",
-		Title: "title",
-		Body:  "body",
+		Base:     "base",
+		Head:     "head",
+		Title:    "title",
+		Body:     "body",
+		Assignee: "assignee",
 	}
+	wantReqBody, _ := json.Marshal(params)
+	stubPost(t, "/repos/octokit/go-octokit/pulls", "pull_request", nil, string(wantReqBody)+"\n", nil)
+
 	pr, result := client.PullRequests(url).Create(params)
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, 1, pr.ChangedFiles)
 	assert.Equal(t, 1, pr.Deletions)
 	assert.Equal(t, 1, pr.Additions)
@@ -90,7 +93,13 @@ func TestPullRequestService_Post(t *testing.T) {
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1", pr.IssueURL)
 	assert.Equal(t, 1, pr.Number)
 	assert.Equal(t, "closed", pr.State)
-	assert.T(t, nil == pr.Assignee)
+
+	assert.Equal(t, "octocat", pr.Assignee.Login)
+	assert.Equal(t, 1, pr.Assignee.ID)
+	assert.Equal(t, "https://github.com/images/error/octocat_happy.gif", pr.Assignee.AvatarURL)
+	assert.Equal(t, "somehexcode", pr.Assignee.GravatarID)
+	assert.Equal(t, "https://api.github.com/users/octocat", pr.Assignee.URL)
+
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/commits", pr.CommitsURL)
 	assert.Equal(t, "https://github.com/jingweno/octokat/pull/1/comments", pr.ReviewCommentsURL)
 	assert.Equal(t, "/repos/jingweno/octokat/pulls/comments/{number}", pr.ReviewCommentURL)
@@ -101,20 +110,15 @@ func TestPullRequestService_All(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/rails/rails/pulls", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		header := w.Header()
-		link := fmt.Sprintf(`<%s>; rel="next", <%s>; rel="last"`, testURLOf("repositories/8514/pulls?page=2"), testURLOf("repositories/8514/pulls?page=14"))
-		header.Set("Link", link)
-		respondWithJSON(w, loadFixture("pull_requests.json"))
-	})
+	link := fmt.Sprintf(`<%s>; rel="next", <%s>; rel="last"`, testURLOf("repositories/8514/pulls?page=2"), testURLOf("repositories/8514/pulls?page=14"))
+	stubGet(t, "/repos/rails/rails/pulls", "pull_requests", map[string]string{"Link": link})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "rails", "repo": "rails"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	prs, result := client.PullRequests(url).All()
-	assert.T(t, !result.HasError())
-	assert.Equal(t, 30, len(prs))
+	assert.False(t, result.HasError())
+	assert.Len(t, prs, 30)
 	assert.Equal(t, testURLStringOf("repositories/8514/pulls?page=2"), string(*result.NextPage))
 	assert.Equal(t, testURLStringOf("repositories/8514/pulls?page=14"), string(*result.LastPage))
 }
@@ -130,13 +134,13 @@ func TestPullRequestService_Diff(t *testing.T) {
 	})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	diff, result := client.PullRequests(url).Diff()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	content, err := ioutil.ReadAll(diff)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "diff --git", string(content))
 }
 
@@ -151,12 +155,46 @@ func TestPullRequestService_Patch(t *testing.T) {
 	})
 
 	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	patch, result := client.PullRequests(url).Patch()
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	content, err := ioutil.ReadAll(patch)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "patches galore", string(content))
+}
+
+func TestPullRequestService_Unmergeable(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	stubGet(t, "/repos/octokit/go-octokit/pulls/1", "unmergeable_pull_request", nil)
+
+	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
+	assert.NoError(t, err)
+
+	pr, result := client.PullRequests(url).One()
+
+	assert.False(t, result.HasError())
+	assert.NotNil(t, pr.Mergeable)
+	assert.False(t, *pr.Mergeable)
+	assert.Equal(t, MergeStateUnknown, pr.MergeableState)
+}
+
+func TestPullRequestService_Mergeable(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	stubGet(t, "/repos/octokit/go-octokit/pulls/1", "mergeable_pull_request", nil)
+
+	url, err := PullRequestsURL.Expand(M{"owner": "octokit", "repo": "go-octokit", "number": 1})
+	assert.NoError(t, err)
+
+	pr, result := client.PullRequests(url).One()
+
+	assert.False(t, result.HasError())
+	assert.NotNil(t, pr.Mergeable)
+	assert.True(t, *pr.Mergeable)
+	assert.Equal(t, MergeStateClean, pr.MergeableState)
 }

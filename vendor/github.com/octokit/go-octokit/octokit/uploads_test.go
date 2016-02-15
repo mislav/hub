@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUploadsService_UploadAsset(t *testing.T) {
@@ -15,11 +15,11 @@ func TestUploadsService_UploadAsset(t *testing.T) {
 	defer tearDown()
 
 	file, err := ioutil.TempFile("", "octokit-test-upload-")
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	file.WriteString("this is a test")
 
 	fi, err := file.Stat()
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	file.Close()
 
 	mux.HandleFunc("/repos/octokit/Hello-World/releases/123/assets", func(w http.ResponseWriter, r *http.Request) {
@@ -31,12 +31,12 @@ func TestUploadsService_UploadAsset(t *testing.T) {
 
 	link := Hyperlink("/repos/octokit/Hello-World/releases/123/assets{?name}")
 	url, err := link.Expand(M{"name": fi.Name()})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	open, _ := os.Open(file.Name())
 	result := client.Uploads(url).UploadAsset(open, "text/plain", fi.Size())
 	fmt.Println(result)
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 
 	assert.Equal(t, 201, result.Response.StatusCode)
 }

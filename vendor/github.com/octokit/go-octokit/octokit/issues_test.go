@@ -1,28 +1,23 @@
 package octokit
 
 import (
-	"net/http"
+	"encoding/json"
 	"testing"
 	"time"
 
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIssuesService_All(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octocat/Hello-World/issues", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		respondWithJSON(w, loadFixture("issues.json"))
-	})
+	stubGet(t, "/repos/octocat/Hello-World/issues", "issues", nil)
 
-	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World"})
-	assert.Equal(t, nil, err)
-
-	issues, result := client.Issues(url).All()
-	assert.T(t, !result.HasError())
-	assert.Equal(t, 1, len(issues))
+	issues, result := client.Issues().All(nil, M{"owner": "octocat",
+		"repo": "Hello-World"})
+	assert.False(t, result.HasError())
+	assert.Len(t, issues, 1)
 
 	issue := issues[0]
 	validateIssue(t, issue)
@@ -32,17 +27,12 @@ func TestIssuesService_One(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octocat/Hello-World/issues/1347", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		respondWithJSON(w, loadFixture("issue.json"))
-	})
+	stubGet(t, "/repos/octocat/Hello-World/issues/1347", "issue", nil)
 
-	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World", "number": 1347})
-	assert.Equal(t, nil, err)
+	issue, result := client.Issues().One(nil, M{"owner": "octocat",
+		"repo": "Hello-World", "number": 1347})
 
-	issue, result := client.Issues(url).One()
-
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	validateIssue(t, *issue)
 }
 
@@ -50,22 +40,17 @@ func TestIssuesService_Create(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octocat/Hello-World/issues", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
-		testBody(t, r, "{\"title\":\"title\",\"body\":\"body\"}\n")
-		respondWithJSON(w, loadFixture("issue.json"))
-	})
-
-	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World"})
-	assert.Equal(t, nil, err)
-
 	params := IssueParams{
 		Title: "title",
 		Body:  "body",
 	}
-	issue, result := client.Issues(url).Create(params)
+	wantReqBody, _ := json.Marshal(params)
+	stubPost(t, "/repos/octocat/Hello-World/issues", "issue", nil, string(wantReqBody)+"\n", nil)
 
-	assert.T(t, !result.HasError())
+	issue, result := client.Issues().Create(nil, M{"owner": "octocat",
+		"repo": "Hello-World"}, params)
+
+	assert.False(t, result.HasError())
 	validateIssue(t, *issue)
 }
 
@@ -73,22 +58,17 @@ func TestIssuesService_Update(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octocat/Hello-World/issues/1347", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "PATCH")
-		testBody(t, r, "{\"title\":\"title\",\"body\":\"body\"}\n")
-		respondWithJSON(w, loadFixture("issue.json"))
-	})
-
-	url, err := RepoIssuesURL.Expand(M{"owner": "octocat", "repo": "Hello-World", "number": 1347})
-	assert.Equal(t, nil, err)
-
 	params := IssueParams{
 		Title: "title",
 		Body:  "body",
 	}
-	issue, result := client.Issues(url).Update(params)
+	wantReqBody, _ := json.Marshal(params)
+	stubPatch(t, "/repos/octocat/Hello-World/issues/1347", "issue", nil, string(wantReqBody)+"\n", nil)
 
-	assert.T(t, !result.HasError())
+	issue, result := client.Issues().Update(nil, M{"owner": "octocat",
+		"repo": "Hello-World", "number": 1347}, params)
+
+	assert.False(t, result.HasError())
 	validateIssue(t, *issue)
 }
 
@@ -107,7 +87,7 @@ func validateIssue(t *testing.T, issue Issue) {
 	assert.Equal(t, "somehexcode", issue.User.GravatarID)
 	assert.Equal(t, "https://api.github.com/users/octocat", issue.User.URL)
 
-	assert.Equal(t, 1, len(issue.Labels))
+	assert.Len(t, issue.Labels, 1)
 	assert.Equal(t, "https://api.github.com/repos/octocat/Hello-World/labels/bug", issue.Labels[0].URL)
 	assert.Equal(t, "bug", issue.Labels[0].Name)
 

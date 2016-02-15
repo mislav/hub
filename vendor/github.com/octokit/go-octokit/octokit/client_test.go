@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSuccessfulGet(t *testing.T) {
@@ -20,11 +20,11 @@ func TestSuccessfulGet(t *testing.T) {
 	})
 
 	req, err := client.NewRequest("foo")
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	var output map[string]interface{}
 	_, err = req.Get(&output)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "octokit", output["login"])
 }
 
@@ -51,11 +51,11 @@ func TestSuccessfulGet_BasicAuth(t *testing.T) {
 		},
 		nil)
 	req, err := client.NewRequest("foo")
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	var output map[string]interface{}
 	_, err = req.Get(&output)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "octokit", output["login"])
 }
 
@@ -71,11 +71,11 @@ func TestGetWithoutDecoder(t *testing.T) {
 	})
 
 	req, err := client.NewRequest("foo")
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	var output map[string]interface{}
 	_, err = req.Get(output)
-	assert.NotEqual(t, nil, err)
+	assert.Error(t, err)
 }
 
 func TestGetResponseError(t *testing.T) {
@@ -90,13 +90,13 @@ func TestGetResponseError(t *testing.T) {
 	})
 
 	req, err := client.NewRequest("foo")
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	var output map[string]interface{}
 	_, err = req.Get(output)
-	assert.NotEqual(t, nil, err)
+	assert.Error(t, err)
 	respErr, ok := err.(*ResponseError)
-	assert.Tf(t, ok, "should be able to convert to *ResponseError")
+	assert.True(t, ok, "should be able to convert to *ResponseError")
 	assert.Equal(t, "not found", respErr.Message)
 	assert.Equal(t, ErrorNotFound, respErr.Type)
 }
@@ -116,12 +116,12 @@ func TestSuccessfulPost(t *testing.T) {
 	})
 
 	req, err := client.NewRequest("foo")
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	input := map[string]interface{}{"input": "bar"}
 	var output map[string]interface{}
 	_, err = req.Post(input, &output)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 	assert.Equal(t, "octokit", output["login"])
 }
 
@@ -139,8 +139,8 @@ func TestAddHeader(t *testing.T) {
 	client.Header.Set("Host", "example.com")
 	client.Header.Set("Foo", "Bar")
 	req, err := client.NewRequest("foo")
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	_, err = req.Get(nil)
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 }

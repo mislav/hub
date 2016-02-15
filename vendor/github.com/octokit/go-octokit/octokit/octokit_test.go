@@ -7,10 +7,10 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"path"
+	"path/filepath"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -90,7 +90,7 @@ func testHeader(t *testing.T, r *http.Request, header string, want string) {
 
 func testBody(t *testing.T, r *http.Request, want string) {
 	body, _ := ioutil.ReadAll(r.Body)
-	assert.Equal(t, want, string(body))
+	assert.EqualValues(t, want, string(body))
 }
 
 func respondWithJSON(w http.ResponseWriter, s string) {
@@ -118,7 +118,94 @@ func testURLStringOf(path string) string {
 
 func loadFixture(f string) string {
 	pwd, _ := os.Getwd()
-	p := path.Join(pwd, "..", "fixtures", f)
+	p := filepath.Join(pwd, "..", "fixtures", f)
 	c, _ := ioutil.ReadFile(p)
 	return string(c)
+}
+
+func stubGet(t *testing.T, path string, fixture string,
+	respHeaderParams map[string]string) {
+	httpTestHelper(t, path, fixture, "GET", nil, "", respHeaderParams, 0)
+}
+
+func stubGetwCode(t *testing.T, path string, fixture string,
+	respHeaderParams map[string]string, respStatusCode int) {
+	httpTestHelper(t, path, fixture, "GET",
+		nil, "", respHeaderParams, respStatusCode)
+}
+
+func stubPost(t *testing.T, path string, fixture string,
+	wantReqHeader map[string]string, wantReqBody string,
+	respHeaderParams map[string]string) {
+	httpTestHelper(t, path, fixture, "POST",
+		wantReqHeader, wantReqBody, respHeaderParams, 0)
+}
+
+func stubPostwCode(t *testing.T, path string, fixture string,
+	wantReqHeader map[string]string, wantReqBody string,
+	respHeaderParams map[string]string, respStatusCode int) {
+	httpTestHelper(t, path, fixture, "POST",
+		wantReqHeader, wantReqBody, respHeaderParams, respStatusCode)
+}
+
+func stubPutwCode(t *testing.T, path string, fixture string,
+	wantReqHeader map[string]string, wantReqBody string,
+	respHeaderParams map[string]string, respStatusCode int) {
+	httpTestHelper(t, path, fixture, "PUT",
+		wantReqHeader, wantReqBody, respHeaderParams, respStatusCode)
+}
+
+func stubPatch(t *testing.T, path string, fixture string,
+	wantReqHeader map[string]string, wantReqBody string,
+	respHeaderParams map[string]string) {
+	httpTestHelper(t, path, fixture, "PATCH",
+		wantReqHeader, wantReqBody, respHeaderParams, 0)
+}
+
+func stubDeletewCode(t *testing.T, path string,
+	respHeaderParams map[string]string, respStatusCode int) {
+	httpTestHelper(t, path, "", "DELETE",
+		nil, "", respHeaderParams, respStatusCode)
+}
+
+func stubDeletewCodewBody(t *testing.T, path string, wantReqBody string,
+	respHeaderParams map[string]string, respStatusCode int) {
+	httpTestHelper(t, path, "", "DELETE",
+		nil, wantReqBody, respHeaderParams, respStatusCode)
+}
+
+func httpTestHelper(t *testing.T, path string, fixture string,
+	wantReqMethod string, wantReqHeader map[string]string, wantReqBody string,
+	respHeaderParams map[string]string, respStatusCode int) {
+
+	if mux == nil {
+		panic(fmt.Errorf("test HTTP server has not been set up"))
+	}
+	mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		// Testing the incoming request
+		testMethod(t, r, wantReqMethod)
+		if wantReqHeader != nil {
+			for k, v := range wantReqHeader {
+				testHeader(t, r, k, v)
+			}
+		}
+
+		if wantReqBody != "" {
+			testBody(t, r, wantReqBody)
+		}
+
+		// Construct the outgoing response
+		if respHeaderParams != nil {
+			header := w.Header()
+			for k, v := range respHeaderParams {
+				header.Set(k, v)
+			}
+		}
+		if respStatusCode > 0 {
+			w.WriteHeader(respStatusCode)
+		}
+		if fixture != "" {
+			respondWithJSON(w, loadFixture(fixture+".json"))
+		}
+	})
 }

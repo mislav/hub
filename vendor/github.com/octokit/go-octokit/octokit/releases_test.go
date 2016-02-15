@@ -1,35 +1,46 @@
 package octokit
 
 import (
-	"net/http"
+	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"testing"
-
-	"github.com/bmizerany/assert"
 )
+
+func TestReleasesService_Latest(t *testing.T) {
+	setup()
+	defer tearDown()
+
+	stubGet(t, "/repos/jingweno/gh/releases/latest", "latest_release", nil)
+
+	url, err := ReleasesLatestURL.Expand(M{"owner": "jingweno", "repo": "gh"})
+	assert.NoError(t, err)
+
+	release, result := client.Releases(url).Latest()
+	assert.False(t, result.HasError())
+	assert.Equal(t, 295009, release.ID)
+	assert.Equal(t, "v2.1.0", release.TagName)
+}
 
 func TestReleasesService_All(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/jingweno/gh/releases", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "GET")
-		respondWithJSON(w, loadFixture("releases.json"))
-	})
+	stubGet(t, "/repos/jingweno/gh/releases", "releases", nil)
 
 	url, err := ReleasesURL.Expand(M{"owner": "jingweno", "repo": "gh"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	releases, result := client.Releases(url).All()
-	assert.T(t, !result.HasError())
-	assert.Equal(t, 1, len(releases))
+	assert.False(t, result.HasError())
+	assert.Len(t, releases, 1)
 
 	firstRelease := releases[0]
 	assert.Equal(t, 50013, firstRelease.ID)
 	assert.Equal(t, "v0.23.0", firstRelease.TagName)
 	assert.Equal(t, "master", firstRelease.TargetCommitish)
 	assert.Equal(t, "v0.23.0", firstRelease.Name)
-	assert.T(t, !firstRelease.Draft)
-	assert.T(t, !firstRelease.Prerelease)
+	assert.False(t, firstRelease.Draft)
+	assert.False(t, firstRelease.Prerelease)
 	assert.Equal(t, "* Windows works!: https://github.com/jingweno/gh/commit/6cb80cb09fd9f624a64d85438157955751a9ac70", firstRelease.Body)
 	assert.Equal(t, "https://api.github.com/repos/jingweno/gh/releases/50013", firstRelease.URL)
 	assert.Equal(t, "https://api.github.com/repos/jingweno/gh/releases/50013/assets", firstRelease.AssetsURL)
@@ -39,7 +50,7 @@ func TestReleasesService_All(t *testing.T) {
 	assert.Equal(t, "2013-09-23 01:07:56 +0000 UTC", firstRelease.PublishedAt.String())
 
 	firstReleaseAssets := firstRelease.Assets
-	assert.Equal(t, 8, len(firstReleaseAssets))
+	assert.Len(t, firstReleaseAssets, 8)
 
 	firstAsset := firstReleaseAssets[0]
 	assert.Equal(t, 20428, firstAsset.ID)
@@ -58,22 +69,19 @@ func TestCreateRelease(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octokit/Hello-World/releases", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "POST")
-		testBody(t, r, "{\"tag_name\":\"v1.0.0\",\"target_commitish\":\"master\"}\n")
-		respondWithJSON(w, loadFixture("create_release.json"))
-	})
-
 	url, err := ReleasesURL.Expand(M{"owner": "octokit", "repo": "Hello-World"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	params := Release{
 		TagName:         "v1.0.0",
 		TargetCommitish: "master",
 	}
+	wantReqBody, _ := json.Marshal(params)
+	stubPost(t, "/repos/octokit/Hello-World/releases", "create_release", nil, string(wantReqBody)+"\n", nil)
+
 	release, result := client.Releases(url).Create(params)
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, "v1.0.0", release.TagName)
 }
 
@@ -81,21 +89,18 @@ func TestUpdateRelease(t *testing.T) {
 	setup()
 	defer tearDown()
 
-	mux.HandleFunc("/repos/octokit/Hello-World/releases/123", func(w http.ResponseWriter, r *http.Request) {
-		testMethod(t, r, "PATCH")
-		testBody(t, r, "{\"tag_name\":\"v1.0.0\",\"target_commitish\":\"master\"}\n")
-		respondWithJSON(w, loadFixture("create_release.json"))
-	})
-
 	url, err := ReleasesURL.Expand(M{"owner": "octokit", "repo": "Hello-World", "id": "123"})
-	assert.Equal(t, nil, err)
+	assert.NoError(t, err)
 
 	params := Release{
 		TagName:         "v1.0.0",
 		TargetCommitish: "master",
 	}
+	wantReqBody, _ := json.Marshal(params)
+	stubPatch(t, "/repos/octokit/Hello-World/releases/123", "create_release", nil, string(wantReqBody)+"\n", nil)
+
 	release, result := client.Releases(url).Update(params)
 
-	assert.T(t, !result.HasError())
+	assert.False(t, result.HasError())
 	assert.Equal(t, "v1.0.0", release.TagName)
 }

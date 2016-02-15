@@ -7,19 +7,30 @@ import (
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 	"github.com/octokit/go-octokit/octokit"
 )
 
-var cmdPullRequest = &Command{
-	Run: pullRequest,
-	Usage: `
+var (
+	cmdPullRequest = &Command{
+		Run: pullRequest,
+		IgnoreUnknownSubcommands: true,
+		Usage: `
 pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE>
 pull-request -i <ISSUE>
+pull-request info [-b <BASE>] [-h <HEAD>]
 `,
-	Long: `Create a GitHub pull request.
+		Long: `Manage GitHub pull requests.
+
+## Commands:
+
+With no subcommand, creates a GitHub pull request.
+
+	* _info_:
+		Show info for the GitHub pull request corresponding to a branch.
 
 ## Options:
 	-f, --force
@@ -58,7 +69,12 @@ pull-request -i <ISSUE>
 
 hub(1), hub-merge(1), hub-checkout(1)
 `,
-}
+	}
+	cmdPullRequestInfo = &Command{
+		Key:   "info",
+		Run:   pullRequestInfo,
+	}
+)
 
 var (
 	flagPullRequestBase,
@@ -67,7 +83,9 @@ var (
 	flagPullRequestMessage,
 	flagPullRequestAssignee,
 	flagPullRequestLabels,
-	flagPullRequestFile string
+	flagPullRequestFile,
+	flagPullRequestInfoBase,
+	flagPullRequestInfoHead string
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
 	flagPullRequestMilestone uint64
@@ -84,6 +102,11 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
 	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestLabels, "labels", "l", "", "LABELS")
+
+	cmdPullRequestInfo.Flag.StringVarP(&flagPullRequestInfoBase, "base", "b", "", "BASE")
+	cmdPullRequestInfo.Flag.StringVarP(&flagPullRequestInfoHead, "head", "h", "", "HEAD")
+
+	cmdPullRequest.Use(cmdPullRequestInfo)
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -313,4 +336,88 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
+}
+
+// pullRequestInfo fetches info for a pull request.
+func pullRequestInfo(cmd *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	currentBranch, err := localRepo.CurrentBranch()
+	utils.Check(err)
+
+	baseProject, err := localRepo.MainProject()
+	utils.Check(err)
+
+	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
+	if err != nil {
+		utils.Check(github.FormatError("getting pull request info", err))
+	}
+
+	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
+
+	var (
+		base, head string
+	)
+
+	if flagPullRequestInfoBase != "" {
+		baseProject, base = parsePullRequestProject(baseProject, flagPullRequestInfoBase)
+	}
+
+	if flagPullRequestInfoHead != "" {
+		headProject, head = parsePullRequestProject(headProject, flagPullRequestInfoHead)
+	}
+
+	if base == "" {
+		masterBranch := localRepo.MasterBranch()
+		base = masterBranch.ShortName()
+	}
+
+	if head == "" && trackedBranch != nil {
+		if !trackedBranch.IsRemote() {
+			// the current branch tracking another branch
+			// pretend there's no upstream at all
+			trackedBranch = nil
+		} else {
+			if baseProject.SameAs(headProject) && base == trackedBranch.ShortName() {
+				e := fmt.Errorf(`Aborted: head branch is the same as base ("%s")`, base)
+				e = fmt.Errorf("%s\n(use `-h <branch>` to specify an explicit pull request head)", e)
+				utils.Check(e)
+			}
+		}
+	}
+
+	if head == "" {
+		if trackedBranch == nil {
+			head = currentBranch.ShortName()
+		} else {
+			head = trackedBranch.ShortName()
+		}
+	}
+
+	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
+
+	client := github.NewClientWithHost(host)
+	pr, err := client.FindPullRequest(baseProject, base, fullHead)
+	utils.Check(err)
+
+	comments, err := client.PullRequestComments(pr)
+	utils.Check(err)
+
+	ui.Printf("Title: %q\n", trimToOneLine(pr.Title))
+	for _, comment := range comments {
+		ui.Printf("* %s - %s: %s\n", comment.UpdatedAt.Format("2006-01-02 15:04:05"), comment.User.Login, trimToOneLine(comment.Body))
+	}
+
+	args.Replace("echo", "", "URL:", pr.HTMLURL)
+}
+
+func trimToOneLine(s string) string {
+	if i := strings.IndexAny(s, "\r\n"); i != -1 {
+		s = s[:i] + "…"
+	}
+	if len(s) >= 80 {
+		s = s[:80] + "…"
+	}
+	return s
 }

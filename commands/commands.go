@@ -25,6 +25,11 @@ type Command struct {
 	Long         string
 	GitExtension bool
 
+	// IgnoreUnknownSubcommands defines whether this command accepts both
+	// subcommands and non-flag parameters. If that's the case unknown
+	// subcommands will be handled as the first parameter.
+	IgnoreUnknownSubcommands bool
+
 	subCommands map[string]*Command
 }
 
@@ -128,6 +133,8 @@ func (c *Command) lookupSubCommand(args *Args) (runCommand *Command, err error) 
 		if subCommand, ok := c.subCommands[subCommandName]; ok {
 			runCommand = subCommand
 			args.Params = args.Params[1:]
+		} else if c.IgnoreUnknownSubcommands {
+			runCommand = c
 		} else {
 			err = fmt.Errorf("error: Unknown subcommand: %s", subCommandName)
 		}

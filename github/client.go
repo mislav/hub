@@ -91,6 +91,53 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 	return
 }
 
+func (client *Client) FindPullRequest(project *Project, base string, head string) (pr *octokit.PullRequest, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": ""})
+	if err != nil {
+		return
+	}
+	q := url.Query()
+	q.Set("head", head)
+	q.Set("base", base)
+	url.RawQuery = q.Encode()
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request", err)
+		return
+	}
+
+	prs, result := api.PullRequests(client.requestURL(url)).All()
+	if result.HasError() {
+		err = FormatError("finding pull request", result.Err)
+		return
+	}
+	if len(prs) != 1 {
+		err = fmt.Errorf("no such pull request")
+	} else {
+		pr = &prs[0]
+	}
+
+	return
+}
+
+func (client *Client) PullRequestComments(pr *octokit.PullRequest) (comments []octokit.IssueComment, err error) {
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting pull request comments", err)
+		return
+	}
+
+	url := octokit.Hyperlink(pr.CommentsURL)
+
+	comments, result := api.IssueComments().All(&url, octokit.M{})
+	if result.HasError() {
+		err = FormatError("getting pull request comments", result.Err)
+	}
+
+	return
+}
+
 func (client *Client) CreatePullRequest(project *Project, base, head, title, body string) (pr *octokit.PullRequest, err error) {
 	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
 	if err != nil {
@@ -144,18 +191,13 @@ func (client *Client) CreatePullRequestForIssue(project *Project, base, head, is
 }
 
 func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCloser, err error) {
-	url, err := octokit.CommitsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "sha": sha})
-	if err != nil {
-		return
-	}
-
 	api, err := client.api()
 	if err != nil {
 		err = FormatError("getting pull request", err)
 		return
 	}
 
-	patch, result := api.Commits(client.requestURL(url)).Patch()
+	patch, result := api.Commits().Patch(nil, octokit.M{"owner": project.Owner, "repo": project.Name, "sha": sha})
 	if result.HasError() {
 		err = FormatError("getting pull request", result.Err)
 		return
@@ -165,18 +207,13 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 }
 
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
-	url, err := octokit.GistsURL.Expand(octokit.M{"gist_id": id})
-	if err != nil {
-		return
-	}
-
 	api, err := client.api()
 	if err != nil {
 		err = FormatError("getting pull request", err)
 		return
 	}
 
-	patch, result := api.Gists(client.requestURL(url)).Raw()
+	patch, result := api.Gists().Raw(&octokit.GistsURL, octokit.M{"gist_id": id})
 	if result.HasError() {
 		err = FormatError("getting pull request", result.Err)
 		return
@@ -186,18 +223,13 @@ func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
 }
 
 func (client *Client) Repository(project *Project) (repo *octokit.Repository, err error) {
-	url, err := octokit.RepositoryURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
-	}
-
 	api, err := client.api()
 	if err != nil {
 		err = FormatError("getting repository", err)
 		return
 	}
 
-	repo, result := api.Repositories(client.requestURL(url)).One()
+	repo, result := api.Repositories().One(nil, octokit.M{"owner": project.Owner, "repo": project.Name})
 	if result.HasError() {
 		err = FormatError("getting repository", result.Err)
 		return
@@ -213,16 +245,11 @@ func (client *Client) IsRepositoryExist(project *Project) bool {
 }
 
 func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
-	var repoURL octokit.Hyperlink
+	var repoURL *octokit.Hyperlink
 	if project.Owner != client.Host.User {
-		repoURL = octokit.OrgRepositoriesURL
+		repoURL = &octokit.OrgRepositoriesURL
 	} else {
-		repoURL = octokit.UserRepositoriesURL
-	}
-
-	url, err := repoURL.Expand(octokit.M{"org": project.Owner})
-	if err != nil {
-		return
+		repoURL = &octokit.UserRepositoriesURL
 	}
 
 	api, err := client.api()
@@ -237,7 +264,7 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 		Homepage:    homepage,
 		Private:     isPrivate,
 	}
-	repo, result := api.Repositories(client.requestURL(url)).Create(params)
+	repo, result := api.Repositories().Create(repoURL, octokit.M{"org": project.Owner}, params)
 	if result.HasError() {
 		err = FormatError("creating repository", result.Err)
 		return
@@ -400,18 +427,13 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 }
 
 func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository, err error) {
-	url, err := octokit.ForksURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
-	}
-
 	api, err := client.api()
 	if err != nil {
 		err = FormatError("creating fork", err)
 		return
 	}
 
-	repo, result := api.Repositories(client.requestURL(url)).Create(nil)
+	repo, result := api.Repositories().Create(&octokit.ForksURL, octokit.M{"owner": project.Owner, "repo": project.Name}, nil)
 	if result.HasError() {
 		err = FormatError("creating fork", result.Err)
 		return
@@ -421,18 +443,13 @@ func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository
 }
 
 func (client *Client) Issues(project *Project) (issues []octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
-	}
-
 	api, err := client.api()
 	if err != nil {
 		err = FormatError("getting issues", err)
 		return
 	}
 
-	issues, result := api.Issues(client.requestURL(url)).All()
+	issues, result := api.Issues().All(&octokit.RepoIssuesURL, octokit.M{"owner": project.Owner, "repo": project.Name})
 	if result.HasError() {
 		err = FormatError("getting issues", result.Err)
 		return
@@ -442,11 +459,6 @@ func (client *Client) Issues(project *Project) (issues []octokit.Issue, err erro
 }
 
 func (client *Client) CreateIssue(project *Project, title, body string, labels []string) (issue *octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
-	}
-
 	api, err := client.api()
 	if err != nil {
 		err = FormatError("creating issues", err)
@@ -458,7 +470,7 @@ func (client *Client) CreateIssue(project *Project, title, body string, labels [
 		Body:   body,
 		Labels: labels,
 	}
-	issue, result := api.Issues(client.requestURL(url)).Create(params)
+	issue, result := api.Issues().Create(&octokit.RepoIssuesURL, octokit.M{"owner": project.Owner, "repo": project.Name}, params)
 	if result.HasError() {
 		err = FormatError("creating issue", result.Err)
 		return
@@ -468,18 +480,13 @@ func (client *Client) CreateIssue(project *Project, title, body string, labels [
 }
 
 func (client *Client) UpdateIssue(project *Project, issueNumber int, params octokit.IssueParams) (err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": issueNumber})
-	if err != nil {
-		return
-	}
-
 	api, err := client.api()
 	if err != nil {
 		err = FormatError("update issues", err)
 		return
 	}
 
-	_, result := api.Issues(client.requestURL(url)).Update(params)
+	_, result := api.Issues().Update(&octokit.RepoIssuesURL, octokit.M{"owner": project.Owner, "repo": project.Name, "number": issueNumber}, params)
 	if result.HasError() {
 		err = FormatError("updating issue", result.Err)
 	}
@@ -640,6 +647,9 @@ func (client *Client) absolute(host string) *url.URL {
 	u, _ := url.Parse("https://" + host)
 	if client.Host != nil && client.Host.Protocol != "" {
 		u.Scheme = client.Host.Protocol
+	}
+	if client.Host != nil && client.Host.Host != GitHubHost {
+		u.Path = "/api/v3/"
 	}
 	return u
 }
