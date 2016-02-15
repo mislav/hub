@@ -487,15 +487,9 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params octo
 }
 
 func (client *Client) GhLatestTagName() (tagName string, err error) {
-	url, err := octokit.ReleasesURL.Expand(octokit.M{"owner": "jingweno", "repo": "gh"})
+	releases, err := client.FetchReleases(&Project{Owner: "jingweno", Name: "gh"})
 	if err != nil {
-		return
-	}
-
-	c := client.newOctokitClient(nil)
-	releases, result := c.Releases(client.requestURL(url)).All()
-	if result.HasError() {
-		err = fmt.Errorf("Error getting gh release: %s", result.Err)
+		err = FormatError("getting gh releases", err)
 		return
 	}
 
