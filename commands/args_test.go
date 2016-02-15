@@ -105,3 +105,17 @@ func TestArgs_GlobalFlags_Repeated(t *testing.T) {
 	assert.Equal(t, 0, len(args.Params))
 	assert.Equal(t, false, args.Noop)
 }
+
+func TestArgs_GlobalFlags_Propagate(t *testing.T) {
+	args := NewArgs([]string{"-c", "key=value", "status"})
+	cmd := args.ToCmd()
+	assert.Equal(t, []string{"-c", "key=value", "status"}, cmd.Args)
+}
+
+func TestArgs_GlobalFlags_Replaced(t *testing.T) {
+	args := NewArgs([]string{"-c", "key=value", "status"})
+	args.Replace("open", "", "-a", "http://example.com")
+	cmd := args.ToCmd()
+	assert.Equal(t, "open", cmd.Name)
+	assert.Equal(t, []string{"-a", "http://example.com"}, cmd.Args)
+}
