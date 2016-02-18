@@ -57,6 +57,84 @@ func TestExpand(t *testing.T) {
 			values: map[string]string{"a": ""},
 			expect: "word1",
 		},
+		{
+			name:   "padding",
+			format: "%<(10)%a",
+			values: map[string]string{"a": "012"},
+			expect: "012       ",
+		},
+		{
+			name:   "padding, wrong number",
+			format: "%<(1a)%a",
+			values: map[string]string{"a": "012"},
+			expect: "%<(1a)012",
+		},
+		{
+			name:   "padding left",
+			format: "%>(10)%a",
+			values: map[string]string{"a": "012"},
+			expect: "       012",
+		},
+		{
+			name:   "padding middle",
+			format: "%><(10)%a",
+			values: map[string]string{"a": "0123"},
+			expect: "   0123   ",
+		},
+		{
+			name:   "padding middle (odd # of blanks)",
+			format: "%><(10)%a",
+			values: map[string]string{"a": "012"},
+			expect: "   012    ",
+		},
+		{
+			name:   "padding uses extra blank on the left",
+			format: "%>>(5)|    %a",
+			values: map[string]string{"a": "0123456"},
+			expect: "|  0123456",
+		},
+		{
+			name:   "padding until column N",
+			format: "%>|(10)abcdef%a",
+			values: map[string]string{"a": "012"},
+			expect: "abcdef 012",
+		},
+		{
+			name:   "truncing",
+			format: "%>(5,trunc)%a",
+			values: map[string]string{"a": "0123456"},
+			expect: "012..",
+		},
+		{
+			name:   "truncing on the right",
+			format: "%>(5,rtrunc)%a",
+			values: map[string]string{"a": "0123456"},
+			expect: "..456",
+		},
+		{
+			name:   "truncing in the middle",
+			format: "%>(6,mtrunc)%a",
+			values: map[string]string{"a": "0123456"},
+			expect: "01..56",
+		},
+		{
+			name:   "truncing in the middle (odd # of chars)",
+			format: "%>(5,mtrunc)%a",
+			values: map[string]string{"a": "0123456"},
+			expect: "0..56",
+		},
+		{
+			name:   "truncing not enough space",
+			format: "%>(1,trunc)%a",
+			values: map[string]string{"a": "0123456"},
+			expect: "..",
+		},
+		{
+			name:   "truncing but use extra blanks on the left",
+			format: "%>>(3,trunc)|   %a",
+			values: map[string]string{"a": "0123456"},
+			expect: "|0123..",
+		},
 	}
 
 	for _, test := range tests {

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -19,9 +20,12 @@ type expander struct {
 	// values is the map of values that should be expanded.
 	values map[string]string
 
-	// skipNext is true if the next placeholder is not a place holder and can be
+	// skipNext is true if the next placeholder is not a placeholder and can be
 	// output directly as such.
 	skipNext bool
+
+	// padNext is an object that should be used to pad the next placeholder.
+	padNext *padder
 }
 
 func (f *expander) Expand(format string) string {
@@ -62,6 +66,13 @@ func (f *expander) expandOneVar(format string) (expand string, untouched string)
 		return "", "%"
 	}
 
+	if f.padNext != nil {
+		p := f.padNext
+		f.padNext = nil
+		e, u := f.expandOneVar(format)
+		return f.pad(e, p), u
+	}
+
 	if e, u, ok := f.expandSpecialChar(format[0], format[1:]); ok {
 		return e, u
 	}
@@ -88,7 +99,7 @@ func (f *expander) expandSpecialChar(firstChar byte, format string) (expand stri
 			}
 		}
 		// TODO: Add custom color as specified in color.branch.* options.
-    // TODO: Handle auto-coloring.
+		// TODO: Handle auto-coloring.
 	case 'x':
 		if len(format) >= 2 {
 			if v, err := strconv.ParseInt(format[:2], 16, 32); err == nil {
@@ -114,6 +125,129 @@ func (f *expander) expandSpecialChar(firstChar byte, format string) (expand stri
 			f.append(strings.TrimRight(f.crush(), "\n"))
 			return "", u, true
 		}
+	case '<', '>':
+		if m := paddingPattern.FindStringSubmatch(string(firstChar) + format); len(m) == 7 {
+			if p := padderFromConfig(m[1], m[2], m[3], m[4], m[5]); p != nil {
+				f.padNext = p
+				return "", m[6], true
+			}
+		}
 	}
 	return "", "", false
+}
+
+func (f *expander) pad(s string, p *padder) string {
+	size := int(p.size)
+	if p.sizeAsColumn {
+		previous := f.crush()
+		f.append(previous)
+		size -= len(previous) - strings.LastIndex(previous, "\n") - 1
+	}
+
+	numPadding := size - len(s)
+	if numPadding == 0 {
+		return s
+	}
+
+	if numPadding < 0 {
+		if p.usePreviousSpace {
+			previous := f.crush()
+			noBlanks := strings.TrimRight(previous, " ")
+			f.append(noBlanks)
+			numPadding += len(previous) - len(noBlanks)
+		}
+
+		if numPadding <= 0 {
+			return p.truncate(s, -numPadding)
+		}
+	}
+
+	switch p.orientation {
+	case padLeft:
+		return strings.Repeat(" ", numPadding) + s
+	case padMiddle:
+		return strings.Repeat(" ", numPadding/2) + s + strings.Repeat(" ", (numPadding+1)/2)
+	}
+
+	// Pad right by default.
+	return s + strings.Repeat(" ", numPadding)
+}
+
+type paddingOrientation int
+
+const (
+	padRight paddingOrientation = iota
+	padLeft
+	padMiddle
+)
+
+type truncingMethod int
+
+const (
+	noTrunc truncingMethod = iota
+	truncLeft
+	truncRight
+	truncMiddle
+)
+
+type padder struct {
+	orientation      paddingOrientation
+	size             int64
+	sizeAsColumn     bool
+	usePreviousSpace bool
+	truncing         truncingMethod
+}
+
+var paddingPattern = regexp.MustCompile(`^(>)?([><])(\|)?\((\d+)(,[rm]?trunc)?\)(.*)$`)
+
+func padderFromConfig(alsoLeft, orientation, asColumn, size, trunc string) *padder {
+	p := &padder{}
+
+	if orientation == ">" {
+		p.orientation = padLeft
+	} else if alsoLeft == "" {
+		p.orientation = padRight
+	} else {
+		p.orientation = padMiddle
+	}
+
+	p.sizeAsColumn = asColumn != ""
+
+	var err error
+	if p.size, err = strconv.ParseInt(size, 10, 64); err != nil {
+		return nil
+	}
+
+	p.usePreviousSpace = alsoLeft != "" && p.orientation == padLeft
+
+	switch trunc {
+	case ",trunc":
+		p.truncing = truncLeft
+	case ",rtrunc":
+		p.truncing = truncRight
+	case ",mtrunc":
+		p.truncing = truncMiddle
+	}
+
+	return p
+}
+
+func (p *padder) truncate(s string, numReduce int) string {
+	if numReduce == 0 {
+		return s
+	}
+	numLeft := len(s) - numReduce - 2
+	if numLeft < 0 {
+		numLeft = 0
+	}
+
+	switch p.truncing {
+	case truncRight:
+		return ".." + s[len(s)-numLeft:len(s)]
+	case truncMiddle:
+		return s[:numLeft/2] + ".." + s[len(s)-(numLeft+1)/2:len(s)]
+	}
+
+	// Trunc left by default.
+	return s[:numLeft] + ".."
 }
