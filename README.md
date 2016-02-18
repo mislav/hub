@@ -50,6 +50,13 @@ $ cd hub
 $ ./script/build -o ~/bin/hub
 ~~~
 
+Or, if you've done Go(1.6 or newer) development before and your $GOPATH/bin
+directory is already in your PATH:
+
+~~~ sh
+$ go get github.com/github/hub
+~~~
+
 Aliasing
 --------
 
