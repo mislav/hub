@@ -1173,7 +1173,10 @@ help
       }
 
       edit_cmd = Array(git_editor).dup
-      edit_cmd << '-c' << 'set ft=gitcommit tw=0 wrap lbr' if edit_cmd[0] =~ /^[mg]?vim$/
+      if edit_cmd[0] =~ /^[mg]?vim$/
+        edit_cmd.insert(1, '-c')
+        edit_cmd.insert(2, 'set ft=gitcommit tw=0 wrap lbr')
+      end
       edit_cmd << message_file
       system(*edit_cmd)
 
