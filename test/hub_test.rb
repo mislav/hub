@@ -116,11 +116,6 @@ class HubTest < Minitest::Test
     WebMock.reset!
   end
 
-  def test_pullrequest_alias
-    out = hub('e-note')
-    assert_equal hub('pull-request'), out
-  end
-
   def test_version
     out = hub('--version')
     assert_includes "git version 1.7.0.4", out
