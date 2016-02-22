@@ -240,6 +240,8 @@ module Hub
           initial_message ||= default_message || `git log --pretty=format:%s HEAD~..HEAD`
           msg.puts initial_message if initial_message
           msg.puts ""
+          msg.puts File.read(pullrequest_template_file) if pullrequest_template_file
+          msg.puts ""
           msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
           msg.puts "#{cc}"
           msg.puts "#{cc} Write a message for this pull request. The first block"
@@ -1208,6 +1210,11 @@ help
 
     def pullrequest_editmsg_file
       File.join(git_dir, 'PULLREQ_EDITMSG')
+    end
+
+    def pullrequest_template_file
+      return '.github/PULL_REQUEST_TEMPLATE.md' if File.exist? '.github/PULL_REQUEST_TEMPLATE.md'
+      return 'PULL_REQUEST_TEMPLATE.md' if File.exist? 'PULL_REQUEST_TEMPLATE.md'
     end
 
     def read_editmsg(file, commentchar)
