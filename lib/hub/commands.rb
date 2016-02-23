@@ -349,12 +349,6 @@ module Hub
       end
     end
 
-    # $ hub e-note
-    # $ hub e-note "My humble contribution"
-    # $ hub e-note -i 92
-    # $ hub e-note https://github.com/rtomayko/tilt/issues/92
-    alias_method :e_note, :pull_request
-
     # $ hub clone rtomayko/tilt
     # > git clone git://github.com/rtomayko/tilt.
     #
@@ -1181,7 +1175,10 @@ help
       }
 
       edit_cmd = Array(git_editor).dup
-      edit_cmd << '-c' << 'set ft=gitcommit tw=0 wrap lbr' if edit_cmd[0] =~ /^[mg]?vim$/
+      if edit_cmd[0] =~ /^[mg]?vim$/
+        edit_cmd.insert(1, '-c')
+        edit_cmd.insert(2, 'set ft=gitcommit tw=0 wrap lbr')
+      end
       edit_cmd << message_file
       system(*edit_cmd)
 
