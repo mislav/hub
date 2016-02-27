@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -46,6 +47,9 @@ With '--include-drafts', include draft releases in the listing.
 		pre-populated with current release title and body. To re-use existing title
 		and body unchanged, pass '-m ""'.
 
+	* _download_:
+	  Download the assets attached to release for the specified <TAG>.
+
 ## Options:
 	-d, --draft
 		Create a draft release.
@@ -64,7 +68,7 @@ With '--include-drafts', include draft releases in the listing.
 
 	-F, --file <FILE>
 		Read the release title and description from <FILE>.
-	
+
 	-c, --commitish <TARGET>
 		A SHA, tag, or branch name to attach the release to (default: current branch).
 
@@ -90,6 +94,11 @@ hub(1), git-tag(1)
 	cmdEditRelease = &Command{
 		Key: "edit",
 		Run: editRelease,
+	}
+
+	cmdDownloadRelease = &Command{
+		Key: "download",
+		Run: downloadRelease,
 	}
 
 	flagReleaseIncludeDrafts,
@@ -126,6 +135,7 @@ func init() {
 	cmdRelease.Use(cmdShowRelease)
 	cmdRelease.Use(cmdCreateRelease)
 	cmdRelease.Use(cmdEditRelease)
+	cmdRelease.Use(cmdDownloadRelease)
 	CmdRunner.Use(cmdRelease)
 }
 
@@ -193,6 +203,52 @@ func showRelease(cmd *Command, args *Args) {
 	}
 
 	os.Exit(0)
+}
+
+func downloadRelease(cmd *Command, args *Args) {
+	tagName := cmd.Arg(0)
+	if tagName == "" {
+		utils.Check(fmt.Errorf("Missing argument TAG"))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	release, err := gh.FetchRelease(project, tagName)
+	utils.Check(err)
+
+	for _, asset := range release.Assets {
+		ui.Printf("Downloading %s ...\n", asset.Name)
+		err := downloadReleaseAsset(asset, gh)
+		utils.Check(err)
+	}
+
+	os.Exit(0)
+}
+
+func downloadReleaseAsset(asset github.ReleaseAsset, gh *github.Client) (err error) {
+	assetReader, err := gh.DownloadReleaseAsset(asset.ApiUrl)
+	if err != nil {
+		return
+	}
+	defer assetReader.Close()
+
+	assetFile, err := os.OpenFile(asset.Name, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		return
+	}
+	defer assetFile.Close()
+
+	_, err = io.Copy(assetFile, assetReader)
+	if err != nil {
+		return
+	}
+	return
 }
 
 func createRelease(cmd *Command, args *Args) {
