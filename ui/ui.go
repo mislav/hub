@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/mattn/go-colorable"
-	"github.com/mattn/go-isatty"
+//	"github.com/mattn/go-isatty"
 )
 
 type UI interface {
@@ -39,7 +39,8 @@ func Errorln(a ...interface{}) (n int, err error) {
 }
 
 func IsTerminal(f *os.File) bool {
-	return isatty.IsTerminal(f.Fd())
+//	return isatty.IsTerminal(f.Fd())
+    return true
 }
 
 type Console struct {
