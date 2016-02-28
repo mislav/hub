@@ -69,7 +69,7 @@ func create(command *Command, args *Args) {
 
 	var newRepoName string
 	if args.IsParamsEmpty() {
-		newRepoName, err = utils.DirName()
+		newRepoName, err = git.RootDirName()
 		utils.Check(err)
 	} else {
 		reg := regexp.MustCompile("^[^-]")

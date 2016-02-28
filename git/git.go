@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/github/hub/cmd"
+	"github.com/github/hub/utils"
 )
 
 var GlobalFlags []string
@@ -19,6 +20,28 @@ func Version() (string, error) {
 	}
 
 	return output[0], nil
+}
+
+func rootDir() string {
+	var chdir string
+	for i, flag := range GlobalFlags {
+		if flag == "-C" {
+			dir := GlobalFlags[i+1]
+			if filepath.IsAbs(dir) {
+				chdir = dir
+			} else {
+				chdir = filepath.Join(chdir, dir)
+			}
+		}
+	}
+	return chdir
+}
+
+// RootDirName returns the name of the root Git dir. It replaces blank spaces
+// with hyphens. Callers can typically uses this as a repository name by
+// default.
+func RootDirName() (string, error) {
+	return utils.CleanDirName(rootDir())
 }
 
 var cachedDir string
@@ -33,22 +56,10 @@ func Dir() (string, error) {
 		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
 	}
 
-	var chdir string
-	for i, flag := range GlobalFlags {
-		if flag == "-C" {
-			dir := GlobalFlags[i+1]
-			if filepath.IsAbs(dir) {
-				chdir = dir
-			} else {
-				chdir = filepath.Join(chdir, dir)
-			}
-		}
-	}
-
 	gitDir := output[0]
 
 	if !filepath.IsAbs(gitDir) {
-		if chdir != "" {
+		if chdir := rootDir(); chdir != "" {
 			gitDir = filepath.Join(chdir, gitDir)
 		}
 
