@@ -64,6 +64,15 @@ func Dir() (string, error) {
 	return gitDir, nil
 }
 
+func WorkdirName() (string, error) {
+	output, err := gitOutput("rev-parse", "--show-toplevel")
+	if err == nil {
+		return output[0], nil
+	} else {
+		return "", err
+	}
+}
+
 func HasFile(segments ...string) bool {
 	// The blessed way to resolve paths within git dir since Git 2.5.0
 	output, err := gitOutput("rev-parse", "-q", "--git-path", filepath.Join(segments...))

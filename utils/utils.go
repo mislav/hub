@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -54,17 +53,6 @@ func searchBrowserLauncher(goos string) (browser string) {
 	}
 
 	return browser
-}
-
-func DirName() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	name := filepath.Base(dir)
-	name = strings.Replace(name, " ", "-", -1)
-	return name, nil
 }
 
 func IsOption(confirm, short, long string) bool {

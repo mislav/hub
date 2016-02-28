@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -172,4 +173,9 @@ func newProject(owner, name, host, protocol string) *Project {
 		Host:     host,
 		Protocol: protocol,
 	}
+}
+
+func SanitizeProjectName(name string) string {
+	name = filepath.Base(name)
+	return strings.Replace(name, " ", "-", -1)
 }
