@@ -88,11 +88,18 @@ func compare(command *Command, args *Args) {
 			usageHelp()
 		} else {
 			r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
+			project, err = localRepo.CurrentProject()
 			if args.IsParamsEmpty() {
-				project, err = localRepo.CurrentProject()
 				utils.Check(err)
 			} else {
-				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), "", "")
+				projectName := ""
+				if err == nil {
+					projectName = project.Name
+				}
+				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), projectName, "")
+				if project.Name == "" {
+					utils.Check(fmt.Errorf("error: missing project name (owner: %q)\n", project.Owner))
+				}
 			}
 		}
 	}
