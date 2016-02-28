@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -68,8 +69,9 @@ func transformRemoteArgs(args *Args) {
 			repoName = project.Name
 			host = project.Host
 		} else {
-			repoName, err = utils.DirName()
+			dirName, err := git.WorkdirName()
 			utils.Check(err)
+			repoName = github.SanitizeProjectName(dirName)
 		}
 
 		name = repoName

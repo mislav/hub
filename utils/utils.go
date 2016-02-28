@@ -74,17 +74,6 @@ func CommandPath(cmd string) (string, error) {
 	return filepath.EvalSymlinks(path)
 }
 
-func DirName() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	name := filepath.Base(dir)
-	name = strings.Replace(name, " ", "-", -1)
-	return name, nil
-}
-
 func IsOption(confirm, short, long string) bool {
 	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
 }
