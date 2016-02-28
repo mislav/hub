@@ -50,10 +50,15 @@ func (f *expander) crush() string {
 }
 
 var colorMap = map[string]string{
-	"red":   "31",
-	"green": "32",
-	"blue":  "34",
-	"reset": "",
+	"black":   "30",
+	"red":     "31",
+	"green":   "32",
+	"yellow":  "33",
+	"blue":    "34",
+	"magenta": "35",
+	"cyan":    "36",
+	"white":   "37",
+	"reset":   "",
 }
 
 func (f *expander) expandOneVar(format string) (expand string, untouched string) {
