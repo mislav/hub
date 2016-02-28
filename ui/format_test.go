@@ -4,13 +4,23 @@ import (
 	"testing"
 )
 
+type expanderTest struct {
+	name   string
+	format string
+	values map[string]string
+	expect string
+}
+
+func testExpander(t *testing.T, tests []expanderTest) {
+	for _, test := range tests {
+		if got := Expand(test.format, test.values); got != test.expect {
+			t.Errorf("%s: Expand(%q, ...) = %q, want %q", test.name, test.format, got, test.expect)
+		}
+	}
+}
+
 func TestExpand(t *testing.T) {
-	tests := []struct {
-		name   string
-		format string
-		values map[string]string
-		expect string
-	}{
+	testExpander(t, []expanderTest{
 		{
 			name:   "Simple example",
 			format: "The author of %h was %an, %ar%nThe title was >>%s<<%n",
@@ -39,6 +49,11 @@ func TestExpand(t *testing.T) {
 			format: "%x00 %x3712%x61 %x%x1%xga",
 			expect: "\x00 \x3712a %x%x1%xga",
 		},
+	})
+}
+
+func TestExpand_Modifiers(t *testing.T) {
+	testExpander(t, []expanderTest{
 		{
 			name:   "plus modifier, conditional line",
 			format: "line1%+a line2%+b line3",
@@ -57,6 +72,11 @@ func TestExpand(t *testing.T) {
 			values: map[string]string{"a": ""},
 			expect: "word1",
 		},
+	})
+}
+
+func TestExpand_Padding(t *testing.T) {
+	testExpander(t, []expanderTest{
 		{
 			name:   "padding",
 			format: "%<(10)%a",
@@ -99,6 +119,11 @@ func TestExpand(t *testing.T) {
 			values: map[string]string{"a": "012"},
 			expect: "abcdef 012",
 		},
+	})
+}
+
+func TestExpand_Truncing(t *testing.T) {
+	testExpander(t, []expanderTest{
 		{
 			name:   "truncing",
 			format: "%>(5,trunc)%a",
@@ -135,11 +160,5 @@ func TestExpand(t *testing.T) {
 			values: map[string]string{"a": "0123456"},
 			expect: "|0123..",
 		},
-	}
-
-	for _, test := range tests {
-		if got := Expand(test.format, test.values); got != test.expect {
-			t.Errorf("%s: Expand(%q, ...) = %q, want %q", test.name, test.format, got, test.expect)
-		}
-	}
+	})
 }
