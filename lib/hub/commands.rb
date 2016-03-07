@@ -305,7 +305,7 @@ module Hub
       remote = 'origin'
 
       # Check CI Status before landing
-      if SKIP_CI_CHECK_KEYWORDS.any { |kw| kw.in?(local_repo.git_command("log -1 --pretty=%B")) }
+      if SKIP_CI_CHECK_KEYWORDS.any? { |kw| (local_repo.git_command("log -1 --pretty=%B")).include?(kw) }
         puts 'CI check skipped due to no-ci commit pragma.'
       else
         begin
