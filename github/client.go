@@ -352,7 +352,12 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 
-	res, err := api.Get(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
+	request_url, err := url.Parse(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(client.requestURL(request_url).String())
 	if err = checkStatus(200, "fetching statuses", res, err); err != nil {
 		return
 	}
