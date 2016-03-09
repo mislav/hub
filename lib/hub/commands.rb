@@ -40,6 +40,8 @@ module Hub
     OWNER_RE = /[a-zA-Z0-9][a-zA-Z0-9-]*/
     NAME_WITH_OWNER_RE = /^(?:#{NAME_RE}|#{OWNER_RE}\/#{NAME_RE})$/
 
+    SKIP_CI_CHECK_KEYWORDS = ['[no-ci]', '[no ci]', '@wip']
+
     CUSTOM_COMMANDS = %w[alias create browse compare fork pull-request ci-status]
 
     def run(args)
@@ -303,20 +305,24 @@ module Hub
       remote = 'origin'
 
       # Check CI Status before landing
-      begin
-        ci_args = Args.new([ 'ci-status', branch ])
-        puts "CI status: "
-        ci_status(ci_args)
-      rescue SystemExit => e
-        case e.status
-        when 0
-          puts "Hurray!"
-        when 1
-          puts "Fix failures before landing."
-          exit 1
-        when 2
-          puts "Wait for CI success before landing."
-          exit 2
+      if SKIP_CI_CHECK_KEYWORDS.any? { |kw| (local_repo.git_command("log -1 --pretty=%B")).include?(kw) }
+        puts 'CI check skipped due to no-ci commit pragma.'
+      else
+        begin
+          ci_args = Args.new([ 'ci-status', branch ])
+          puts "CI status: "
+          ci_status(ci_args)
+        rescue SystemExit => e
+          case e.status
+          when 0
+            puts "Hurray!"
+          when 1
+            puts "Fix failures before landing."
+            exit 1
+          when 2
+            puts "Wait for CI success before landing."
+            exit 2
+          end
         end
       end
 
