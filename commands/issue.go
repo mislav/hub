@@ -108,13 +108,18 @@ func createIssue(cmd *Command, args *Args) {
 }
 
 func writeIssueTitleAndBody(project *github.Project) (string, string, error) {
-	message := `
+	message := `%s
 # Creating issue for %s.
 #
 # Write a message for this issue. The first block of
 # text is the title and the rest is the description.
 `
-	message = fmt.Sprintf(message, project.Name)
+
+	if template := github.GetIssueTempalte(); template == "" {
+		message = fmt.Sprintf(message, "", project.Name)
+	} else {
+		message = fmt.Sprintf(message, template, project.Name)
+	}
 
 	editor, err := github.NewEditor("ISSUE", "issue", message)
 	if err != nil {
