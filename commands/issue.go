@@ -115,7 +115,7 @@ func writeIssueTitleAndBody(project *github.Project) (string, string, error) {
 # text is the title and the rest is the description.
 `
 
-	if template := github.GetIssueTempalte(); template == "" {
+	if template := github.GetIssueTemplate(); template == "" {
 		message = fmt.Sprintf(message, "", project.Name)
 	} else {
 		message = fmt.Sprintf(message, template, project.Name)

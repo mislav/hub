@@ -15,11 +15,11 @@ const (
 	githubTemplateDir   = ".github"
 )
 
-func GetPullRequestTempalte() string {
+func GetPullRequestTemplate() string {
 	return getGithubTemplate(pullRequestTempalte)
 }
 
-func GetIssueTempalte() string {
+func GetIssueTemplate() string {
 	return getGithubTemplate(issueTempalte)
 }
 

@@ -278,7 +278,7 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		}
 	}
 
-	if tmplate := github.GetPullRequestTempalte(); tmplate != "" {
+	if tmplate := github.GetPullRequestTemplate(); tmplate != "" {
 		if defaultMsg != "" {
 			defaultMsg = defaultMsg + tmplate
 		} else {
