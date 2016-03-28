@@ -15,9 +15,11 @@ Feature: hub alias
     When I successfully run `hub alias`
     Then the output should contain exactly:
       """
-      # Wrap git automatically by adding the following to ~/.config/fish/config.fish:
+      # Wrap git automatically by adding the following to ~/.config/fish/features/git.fish:
 
-      eval (hub alias -s)\n
+function git --description 'Alias for Github wrapper for git called hub, that adds some Github sugar to git.'
+	hub $argv
+end#
       """
 
   Scenario: zsh instructions
