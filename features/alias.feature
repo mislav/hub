@@ -17,9 +17,9 @@ Feature: hub alias
       """
       # Wrap git automatically by adding the following to ~/.config/fish/features/git.fish:
 
-function git --description 'Alias for Github wrapper for git called hub, that adds some Github sugar to git.'
+function git --description 'Alias for hub, which wraps git to provide extra functionality with GitHub.'
 	hub $argv
-end#
+end\n
       """
 
   Scenario: zsh instructions
