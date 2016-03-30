@@ -103,7 +103,7 @@ func alias(command *Command, args *Args) {
 		case "fish":
 			eval = `function git --description 'Alias for hub, which wraps git to provide extra functionality with GitHub.'
 	hub $argv
-end\n`
+end`
 		case "csh", "tcsh":
 			eval = "eval \"`hub alias -s`\""
 		default:
