@@ -59,6 +59,31 @@ func (r *TestRepo) AddRemote(name, url, pushURL string) {
 	}
 }
 
+func (r *TestRepo) AddGithubTemplatesDir() {
+	github_dir := filepath.Join(r.dir, "test.git", ".github")
+	pr_template_path := filepath.Join(github_dir, "PULL_REQUEST_TEMPLATE.md")
+	issue_template_path := filepath.Join(github_dir, "ISSUE_TEMPLATE")
+
+	// Make `.github` dir in root of test repo
+	err := os.MkdirAll(filepath.Dir(issue_template_path), 0771)
+	if err != nil {
+		panic(err)
+	}
+
+	// Switch to the root of the project dir
+	err = os.Chdir(filepath.Join(r.dir, "test.git"))
+	if err != nil {
+		panic(err)
+	}
+
+	content := `Description
+-----------
+[Enter your pull request description here]
+`
+	ioutil.WriteFile(pr_template_path, []byte(content), os.ModePerm)
+	ioutil.WriteFile(issue_template_path, []byte(content), os.ModePerm)
+}
+
 func (r *TestRepo) clone(repo, dir string) error {
 	cmd := cmd.New("git").WithArgs("clone", repo, dir)
 	output, err := cmd.CombinedOutput()

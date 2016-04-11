@@ -20,7 +20,11 @@ func GetPullRequestTemplate() string {
 }
 
 func GetIssueTemplate() string {
-	return getGithubTemplate(issueTempalte)
+	return getGithubTemplate(issueTemplate)
+}
+
+func GeneratePRTemplate(defaultMsg string) string {
+	return "\n\n" + GetPullRequestTemplate()
 }
 
 func getGithubTemplate(pat string) (body string) {
