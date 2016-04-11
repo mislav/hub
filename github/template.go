@@ -24,7 +24,7 @@ func GetIssueTemplate() string {
 }
 
 func GeneratePRTemplate(defaultMsg string) string {
-	return "\n\n" + GetPullRequestTemplate()
+	return strings.Split(defaultMsg, "\n")[0] + "\n\n" + GetPullRequestTemplate()
 }
 
 func getGithubTemplate(pat string) (body string) {
