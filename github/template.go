@@ -11,7 +11,7 @@ import (
 
 const (
 	pullRequestTempalte = "PULL_REQUEST_TEMPLATE"
-	issueTempalte       = "ISSUE_TEMPLATE"
+	issueTemplate       = "ISSUE_TEMPLATE"
 	githubTemplateDir   = ".github"
 )
 
