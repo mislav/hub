@@ -11,7 +11,7 @@ import (
 
 const (
 	pullRequestTempalte = "PULL_REQUEST_TEMPLATE"
-	issueTempalte       = "ISSUE_TEMPLATE"
+	issueTemplate       = "ISSUE_TEMPLATE"
 	githubTemplateDir   = ".github"
 )
 
@@ -20,7 +20,11 @@ func GetPullRequestTemplate() string {
 }
 
 func GetIssueTemplate() string {
-	return getGithubTemplate(issueTempalte)
+	return getGithubTemplate(issueTemplate)
+}
+
+func GeneratePRTemplate(defaultMsg string) string {
+	return strings.Split(defaultMsg, "\n")[0] + "\n\n" + GetPullRequestTemplate()
 }
 
 func getGithubTemplate(pat string) (body string) {
