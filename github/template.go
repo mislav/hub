@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	pullRequestTempalte = "PULL_REQUEST_TEMPLATE"
+	pullRequestTemplate = "PULL_REQUEST_TEMPLATE"
 	issueTemplate       = "ISSUE_TEMPLATE"
 	githubTemplateDir   = ".github"
 )
 
 func GetPullRequestTemplate() string {
-	return getGithubTemplate(pullRequestTempalte)
+	return getGithubTemplate(pullRequestTemplate)
 }
 
 func GetIssueTemplate() string {

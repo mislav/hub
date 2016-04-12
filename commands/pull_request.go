@@ -278,7 +278,7 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		}
 	}
 
-	if tmplate := github.GetPullRequestTemplate(); tmplate != "" {
+	if template := github.GetPullRequestTemplate(); template != "" {
 		defaultMsg = github.GeneratePRTemplate(defaultMsg)
 	}
 
