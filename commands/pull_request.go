@@ -43,7 +43,7 @@ pull-request -i <ISSUE>
 		(usually "master").
 
 	-h, --head <HEAD>
-		The base branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
+		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
 
 	-a, --assign <USER>
 		Assign GitHub <USER> to this pull request.
