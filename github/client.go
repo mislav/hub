@@ -620,7 +620,7 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 	}
 
 	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
-	apiRoot := client.absolute(normalizeHost(client.Host.Host))
+	apiRoot := client.requestURL(client.absolute(normalizeHost(client.Host.Host)))
 
 	c = &simpleClient{
 		httpClient:  httpClient,
@@ -645,20 +645,25 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 }
 
 func (client *Client) absolute(host string) *url.URL {
-	u, _ := url.Parse("https://" + host)
+	u, _ := url.Parse("https://" + host + "/")
 	if client.Host != nil && client.Host.Protocol != "" {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
 }
 
-func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
-	uu = u
+func (client *Client) requestURL(base *url.URL) *url.URL {
 	if client.Host != nil && client.Host.Host != GitHubHost {
-		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
+		newUrl, _ := url.Parse(base.String())
+		basePath := base.Path
+		if !strings.HasPrefix(basePath, "/") {
+			basePath = "/" + basePath
+		}
+		newUrl.Path = "/api/v3" + basePath
+		return newUrl
+	} else {
+		return base
 	}
-
-	return
 }
 
 func normalizeHost(host string) string {
