@@ -274,12 +274,12 @@ func (client *Client) FetchReleases(project *Project) (response []Release, err e
 		return
 	}
 
-	request_url, err := url.Parse(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name))
+	requestUrl, err := url.Parse(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name))
 	if err != nil {
 		return
 	}
 
-	res, err := api.Get(client.requestURL(request_url).String())
+	res, err := api.Get(client.requestURL(requestUrl).String())
 	if err = checkStatus(200, "fetching releases", res, err); err != nil {
 		return
 	}
@@ -407,12 +407,12 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 
-	request_url, err := url.Parse(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
+	requestUrl, err := url.Parse(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
 	if err != nil {
 		return
 	}
 
-	res, err := api.Get(client.requestURL(request_url).String())
+	res, err := api.Get(client.requestURL(requestUrl).String())
 	if err = checkStatus(200, "fetching statuses", res, err); err != nil {
 		return
 	}
