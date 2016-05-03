@@ -337,3 +337,25 @@ MARKDOWN
           """
           ASSET_TARBALL
           """
+
+  Scenario: Enterprise list releases
+    Given the "origin" remote has url "git@git.my.org:mislav/will_paginate.git"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    Given the GitHub API server:
+      """
+      get('/api/v3/repos/mislav/will_paginate/releases', :host_name => 'git.my.org') {
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: false,
+            prerelease: false,
+          },
+        ]
+      }
+      """
+    When I successfully run `hub release`
+    Then the output should contain exactly:
+      """
+      v1.2.0\n
+      """
