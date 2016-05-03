@@ -84,3 +84,12 @@ Feature: hub ci-status
     When I run `hub ci-status`
     Then the stderr should contain "Aborted: the origin remote doesn't point to a GitHub repository.\n"
     And the exit status should be 1
+
+  Scenario: Enterprise CI statuses
+    Given the "origin" remote has url "git@git.my.org:michiels/pencilbox.git"
+    And I am "michiels" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    Given there is a commit named "the_sha"
+    Given the remote commit state of "git.my.org/michiels/pencilbox" "the_sha" is "success"
+    When I successfully run `hub ci-status the_sha`
+    Then the output should contain exactly "success\n"
