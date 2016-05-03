@@ -274,12 +274,7 @@ func (client *Client) FetchReleases(project *Project) (response []Release, err e
 		return
 	}
 
-	requestUrl, err := url.Parse(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name))
-	if err != nil {
-		return
-	}
-
-	res, err := api.Get(client.requestURL(requestUrl).String())
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name))
 	if err = checkStatus(200, "fetching releases", res, err); err != nil {
 		return
 	}
@@ -407,12 +402,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 
-	requestUrl, err := url.Parse(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
-	if err != nil {
-		return
-	}
-
-	res, err := api.Get(client.requestURL(requestUrl).String())
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
 	if err = checkStatus(200, "fetching statuses", res, err); err != nil {
 		return
 	}
@@ -630,7 +620,7 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 	}
 
 	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
-	apiRoot := client.absolute(normalizeHost(client.Host.Host))
+	apiRoot := client.requestURL(client.absolute(normalizeHost(client.Host.Host)))
 
 	c = &simpleClient{
 		httpClient:  httpClient,
@@ -655,20 +645,25 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 }
 
 func (client *Client) absolute(host string) *url.URL {
-	u, _ := url.Parse("https://" + host)
+	u, _ := url.Parse("https://" + host + "/")
 	if client.Host != nil && client.Host.Protocol != "" {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
 }
 
-func (client *Client) requestURL(u *url.URL) (uu *url.URL) {
-	uu = u
+func (client *Client) requestURL(base *url.URL) *url.URL {
 	if client.Host != nil && client.Host.Host != GitHubHost {
-		uu, _ = url.Parse(fmt.Sprintf("/api/v3/%s", u.Path))
+		newUrl, _ := url.Parse(base.String())
+		basePath := base.Path
+		if !strings.HasPrefix(basePath, "/") {
+			basePath = "/" + basePath
+		}
+		newUrl.Path = "/api/v3" + basePath
+		return newUrl
+	} else {
+		return base
 	}
-
-	return
 }
 
 func normalizeHost(host string) string {
