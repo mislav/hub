@@ -5,15 +5,16 @@ import (
 )
 
 type expanderTest struct {
-	name   string
-	format string
-	values map[string]string
-	expect string
+	name     string
+	format   string
+	values   map[string]string
+	colorize bool
+	expect   string
 }
 
 func testExpander(t *testing.T, tests []expanderTest) {
 	for _, test := range tests {
-		if got := Expand(test.format, test.values); got != test.expect {
+		if got := Expand(test.format, test.values, test.colorize); got != test.expect {
 			t.Errorf("%s: Expand(%q, ...) = %q, want %q", test.name, test.format, got, test.expect)
 		}
 	}
@@ -39,10 +40,18 @@ func TestExpand(t *testing.T) {
 			expect: "%a %b %",
 		},
 		{
-			name:   "Colors",
-			format: "%Cred%r %Cgreen%g %Cblue%b%Creset normal",
-			values: map[string]string{"r": "RED", "g": "GREEN", "b": "BLUE"},
-			expect: "\033[31mRED \033[32mGREEN \033[34mBLUE\033[m normal",
+			name:     "Colors",
+			format:   "%Cred%r %Cgreen%g %Cblue%b%Creset normal",
+			values:   map[string]string{"r": "RED", "g": "GREEN", "b": "BLUE"},
+			colorize: true,
+			expect:   "\033[31mRED \033[32mGREEN \033[34mBLUE\033[m normal",
+		},
+		{
+			name:     "Colors not colorized",
+			format:   "%Cred%r %Cgreen%g %Cblue%b%Creset normal",
+			values:   map[string]string{"r": "RED", "g": "GREEN", "b": "BLUE"},
+			colorize: false,
+			expect:   "RED GREEN BLUE normal",
 		},
 		{
 			name:   "Byte from hex code",

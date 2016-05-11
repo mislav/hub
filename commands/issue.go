@@ -16,7 +16,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>]
+issue [-a <ASSIGNEE>] [-s <STATE>] [-f <FORMAT>]
 issue create [-m <MESSAGE>|-F <FILE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
@@ -27,6 +27,30 @@ issue create [-m <MESSAGE>|-F <FILE>] [-l <LABELS>]
 
 	-s, --state <STATE>
 		Display issues with state <STATE> (default: "open").
+
+	-f, --format <FORMAT>
+		Pretty print the contents of the issues using format <FORMAT> (default:
+		"%sC%>(8)%ih%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
+		git-log manual for some additional details on how placeholders are used in
+		format. The available placeholders for issues are:
+
+			· %in: the number of the issue.
+
+			· %ih: the number of the issue prefixed with #.
+
+			· %st: the state of the issue as a text (i.e. "open", "closed").
+
+			· %sC: switch color to red if issue is closed or green if issue is open.
+
+			· %t: the title of the issue.
+
+			· %l: the colored labels of the issue.
+
+			· %b: the body of the issue.
+
+			· %u: the login of the user that opened the issue.
+
+			· %a: the login of the user that the issue is assigned to.
 
 	-m, --message <MESSAGE>
 		Use the first line of <MESSAGE> as issue title, and the rest as issue description.
@@ -48,6 +72,7 @@ issue create [-m <MESSAGE>|-F <FILE>] [-l <LABELS>]
 
 	flagIssueAssignee,
 	flagIssueState,
+	flagIssueFormat,
 	flagIssueMessage,
 	flagIssueFile string
 
@@ -61,6 +86,7 @@ func init() {
 
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "ASSIGNEE")
+	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%ih%Creset  %t%  l%n", "FORMAT")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -97,47 +123,65 @@ func listIssues(cmd *Command, args *Args) {
 		}
 
 		colorize := ui.IsTerminal(os.Stdout)
-
 		for _, issue := range issues {
 			if issue.PullRequest != nil {
 				continue
 			}
 
-			num := fmt.Sprintf("#%d", issue.Number)
-			numWidth := len(num)
-
-			if colorize {
-				issueColor := 32
-				if issue.State == "closed" {
-					issueColor = 31
-				}
-				num = fmt.Sprintf("\033[%dm%s\033[0m", issueColor, num)
-			}
-
-			ui.Printf("%*s%s  %s", maxNumWidth+1-numWidth, "", num, issue.Title)
-
-			for i, label := range issue.Labels {
-				color, err := utils.NewColor(label.Color)
-				if err != nil {
-					utils.Check(err)
-				}
-
-				textColor := 16
-				if color.Brightness() < 0.65 {
-					textColor = 15
-				}
-
-				if i == 0 {
-					ui.Printf(" ")
-				}
-				ui.Printf(" \033[38;5;%d;48;2;%d;%d;%dm %s \033[m", textColor, color.Red, color.Green, color.Blue, label.Name)
-			}
-
-			ui.Printf("\n")
+			ui.Printf(formatIssue(issue, flagIssueFormat, colorize))
 		}
 	}
 
 	os.Exit(0)
+}
+
+func formatIssue(issue github.Issue, format string, colorize bool) string {
+	var assigneeLogin string
+	if a := issue.Assignee; a != nil {
+		assigneeLogin = a.Login
+	}
+
+	var stateColorSwitch string
+	if colorize {
+		issueColor := 32
+		if issue.State == "closed" {
+			issueColor = 31
+		}
+		stateColorSwitch = fmt.Sprintf("\033[%dm", issueColor)
+	}
+
+	var labelStrings []string
+	for _, label := range issue.Labels {
+		if !colorize {
+			labelStrings = append(labelStrings, fmt.Sprintf(" %s ", label.Name))
+			continue
+		}
+		color, err := utils.NewColor(label.Color)
+		if err != nil {
+			utils.Check(err)
+		}
+
+		textColor := 16
+		if color.Brightness() < 0.65 {
+			textColor = 15
+		}
+
+		labelStrings = append(labelStrings, fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m", textColor, color.Red, color.Green, color.Blue, label.Name))
+	}
+
+	placeholders := map[string]string{
+		"in": fmt.Sprintf("%d", issue.Number),
+		"ih": fmt.Sprintf("#%d", issue.Number),
+		"st": issue.State,
+		"sC": stateColorSwitch,
+		"t":  issue.Title,
+		"l":  strings.Join(labelStrings, " "),
+		"b":  issue.Body,
+		"u":  issue.User.Login,
+		"a":  assigneeLogin,
+	}
+
+	return ui.Expand(format, placeholders, colorize)
 }
 
 func createIssue(cmd *Command, args *Args) {

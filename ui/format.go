@@ -7,18 +7,21 @@ import (
 )
 
 // Expand expands a format string using `git log` message syntax.
-func Expand(format string, values map[string]string) string {
-	f := &expander{values: values}
+func Expand(format string, values map[string]string, colorize bool) string {
+	f := &expander{values: values, colorize: colorize}
 	return f.Expand(format)
 }
 
 // An expander is a stateful helper to expand a format string.
 type expander struct {
-	// formatted holds the
+	// formatted holds the parts of the string that have already been formatted.
 	formatted []string
 
 	// values is the map of values that should be expanded.
 	values map[string]string
+
+	// colorize is a flag to indiciate whether to use colors.
+	colorize bool
 
 	// skipNext is true if the next placeholder is not a placeholder and can be
 	// output directly as such.
@@ -100,7 +103,10 @@ func (f *expander) expandSpecialChar(firstChar byte, format string) (expand stri
 	case 'C':
 		for k, v := range colorMap {
 			if strings.HasPrefix(format, k) {
-				return "\033[" + v + "m", format[len(k):], true
+				if f.colorize {
+					return "\033[" + v + "m", format[len(k):], true
+				}
+				return "", format[len(k):], true
 			}
 		}
 		// TODO: Add custom color as specified in color.branch.* options.
