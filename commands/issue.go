@@ -135,12 +135,14 @@ func listIssues(cmd *Command, args *Args) {
 	os.Exit(0)
 }
 
-func formatIssue(issue github.Issue, format string, colorize bool) string {
-	var assigneeLogin string
-	if a := issue.Assignee; a != nil {
-		assigneeLogin = a.Login
+func maybeUserLogin(u *github.User) string {
+	if u == nil {
+		return ""
 	}
+	return u.Login
+}
 
+func formatIssue(issue github.Issue, format string, colorize bool) string {
 	var stateColorSwitch string
 	if colorize {
 		issueColor := 32
@@ -177,8 +179,8 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		"t":  issue.Title,
 		"l":  strings.Join(labelStrings, " "),
 		"b":  issue.Body,
-		"u":  issue.User.Login,
-		"a":  assigneeLogin,
+		"u":  maybeUserLogin(issue.User),
+		"a":  maybeUserLogin(issue.Assignee),
 	}
 
 	return ui.Expand(format, placeholders, colorize)

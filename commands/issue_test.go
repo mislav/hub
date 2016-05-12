@@ -45,7 +45,6 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "Just an Issue",
 				State:  "closed",
-				User:   &github.User{Login: "pcorpet"},
 			},
 			format:   format,
 			colorize: true,
@@ -57,7 +56,6 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "An issue with labels",
 				State:  "open",
-				User:   &github.User{Login: "pcorpet"},
 				Labels: []github.IssueLabel{
 					{Name: "bug", Color: "800000"},
 					{Name: "reproduced", Color: "55ff55"},
@@ -73,7 +71,6 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "Just an Issue",
 				State:  "open",
-				User:   &github.User{Login: "pcorpet"},
 			},
 			format:   format,
 			colorize: false,
@@ -85,7 +82,6 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "An issue with labels",
 				State:  "open",
-				User:   &github.User{Login: "pcorpet"},
 				Labels: []github.IssueLabel{
 					{Name: "bug", Color: "880000"},
 					{Name: "reproduced", Color: "55ff55"},
