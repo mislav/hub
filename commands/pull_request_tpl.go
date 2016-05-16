@@ -9,8 +9,11 @@ import (
 )
 
 const pullRequestTmpl = `{{if .InitMsg}}{{.InitMsg}}
-{{end}}
-{{.CS}} Requesting a pull to {{.Base}} from {{.Head}}
+{{end}}{{if .PRTemplate}}
+
+{{.PRTemplate}}
+
+{{end}}{{.CS}} Requesting a pull to {{.Base}} from {{.Head}}
 {{.CS}}
 {{.CS}} Write a message for this pull request. The first block
 {{.CS}} of text is the title and the rest is the description.{{if .HasCommitLogs}}
@@ -25,6 +28,7 @@ type pullRequestMsg struct {
 	Base       string
 	Head       string
 	CommitLogs string
+	PRTemplate string
 }
 
 func (p *pullRequestMsg) HasCommitLogs() bool {
@@ -42,7 +46,7 @@ func (p *pullRequestMsg) FormattedCommitLogs() string {
 	return commitLogs
 }
 
-func renderPullRequestTpl(initMsg, cs, base, head string, commitLogs string) (string, error) {
+func renderPullRequestTpl(initMsg, cs, base, head string, commitLogs string, prTemplate string) (string, error) {
 	t, err := template.New("pullRequestTmpl").Parse(pullRequestTmpl)
 	if err != nil {
 		return "", err
@@ -54,6 +58,7 @@ func renderPullRequestTpl(initMsg, cs, base, head string, commitLogs string) (st
 		Base:       base,
 		Head:       head,
 		CommitLogs: commitLogs,
+		PRTemplate: prTemplate,
 	}
 
 	var b bytes.Buffer

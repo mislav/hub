@@ -1,7 +1,9 @@
 package commands
 
 import (
+	"io/ioutil"
 	"fmt"
+	"path"
 	"regexp"
 	"strings"
 
@@ -262,6 +264,7 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 	var (
 		defaultMsg string
 		commitLogs string
+		prTemplate []byte
 		err        error
 	)
 
@@ -278,9 +281,21 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 		}
 	}
 
-	cs := git.CommentChar()
+	dirName, err := git.WorkdirName()
+	utils.Check(err)
+	templatePath := path.Join(dirName, "PULL_REQUEST_TEMPLATE.md")
+	prTemplate, err = ioutil.ReadFile(templatePath)
 
-	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
+	if err != nil {
+		templatePath := path.Join(dirName, ".github", "PULL_REQUEST_TEMPLATE.md")
+		inner, err := ioutil.ReadFile(templatePath)
+		if err != nil {
+			prTemplate = inner
+		}
+	}
+
+	cs := git.CommentChar()
+	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs, string(prTemplate))
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {
