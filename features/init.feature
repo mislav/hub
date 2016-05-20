@@ -19,3 +19,11 @@ Feature: hub init
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub init -g`
     Then the url for "origin" should be "git@git.my.org:mislav/dotfiles.git"
+
+  Scenario: Enterprise host via git config
+    Given $GITHUB_HOST is ""
+    And default GitHub host is "git.my.org"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    When I successfully run `hub init -g`
+    Then the url for "origin" should be "git@git.my.org:mislav/dotfiles.git"

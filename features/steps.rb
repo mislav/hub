@@ -9,6 +9,10 @@ Given(/^there are no remotes$/) do
   expect(result).to be_empty
 end
 
+Given(/^default GitHub host is "([^"]*)"$/) do |host|
+  run_silent %(git config --global hub.defaultHost "#{host}")
+end
+
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
   run_silent %(git config --global --add hub.host "#{host}")
 end
