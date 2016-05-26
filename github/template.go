@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	pullRequestTemplate = "PULL_REQUEST_TEMPLATE"
-	issueTemplate       = "ISSUE_TEMPLATE"
+	pullRequestTemplate = "pull_request_template"
+	issueTemplate       = "issue_template"
 	githubTemplateDir   = ".github"
 )
 
@@ -61,7 +61,11 @@ func getFilePath(dir, pattern string) string {
 
 		if ext := filepath.Ext(fileName); ext == ".md" {
 			path = strings.TrimRight(fileName, ".md")
+		} else if ext == ".txt" {
+			path = strings.TrimRight(fileName, ".txt")
 		}
+
+		path = strings.ToLower(path)
 
 		if ok, _ := filepath.Match(pattern, path); ok {
 			return filepath.Join(dir, fileName)
