@@ -42,8 +42,8 @@ func TestGithubTemplate_WithMarkdown(t *testing.T) {
 
 	addGithubTemplates(repo,
 		map[string]string{
-			"prTempalte":    pullRequestTemplate + ".md",
-			"issueTempalte": issueTemplate + ".md",
+			"prTemplate":    pullRequestTemplate + ".md",
+			"issueTemplate": issueTemplate + ".md",
 		})
 
 	assert.Equal(t, prContent, GetPullRequestTemplate())
@@ -76,8 +76,8 @@ func TestGithubTemplate_WithTemplateInGithubDirAndMarkdown(t *testing.T) {
 
 	addGithubTemplates(repo,
 		map[string]string{
-			"prTempalte":    pullRequestTemplate + ".md",
-			"issueTempalte": issueTemplate + ".md",
+			"prTemplate":    pullRequestTemplate + ".md",
+			"issueTemplate": issueTemplate + ".md",
 			"dir":           githubTemplateDir,
 		})
 
@@ -157,12 +157,12 @@ func addGithubTemplates(r *fixtures.TestRepo, config map[string]string) {
 
 	prTemplatePath := filepath.Join(repoDir, pullRequestTemplate)
 	if prTmplPath := config["prTemplate"]; prTmplPath != "" {
-		prTemplatePath = prTmplPath
+		prTemplatePath = filepath.Join(repoDir, prTmplPath)
 	}
 
 	issueTemplatePath := filepath.Join(repoDir, issueTemplate)
 	if issueTmplPath := config["issueTemplate"]; issueTmplPath != "" {
-		issueTemplatePath = issueTmplPath
+		issueTemplatePath = filepath.Join(repoDir, issueTmplPath)
 	}
 
 	r.AddFile(prTemplatePath, prContent)
