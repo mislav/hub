@@ -160,7 +160,7 @@ func pullRequest(cmd *Command, args *Args) {
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
 	if web {
-		openPullRequestURL := fmt.Sprintf("https://github.com/%s/compare/%s...%s?expand=1", baseProject, base, fullHead)
+		openPullRequestURL := baseProject.WebURL("", "", fmt.Sprintf("compare/%s...%s?expand=1", base, fullHead))
 		launcher, err := utils.BrowserLauncher()
 		utils.Check(err)
 		args.Replace(launcher[0], "", launcher[1:]...)

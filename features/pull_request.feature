@@ -560,12 +560,21 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Open GH web interface to create the new pull request
-    Given the "origin" remote has url "git://github.com/github/coral.git"
-    And the "doge" remote has url "git://github.com/mislav/coral.git"
-    And I am on the "feature" branch pushed to "doge/feature"
+  Scenario: Open GH web interface to create a new pull request
+    Given the "origin" remote has url "git://github.com/github/hub.git"
+    And the "dasilvacontin" remote has url "git://github.com/dasilvacontin/hub.git"
+    And I am on the "feature" branch pushed to "dasilvacontin/feature"
     When I successfully run `hub pull-request --web`
-    Then "open https://github.com/github/coral/compare/master...mislav:feature?expand=1" should be run
+    Then "open https://github.com/github/hub/compare/master...dasilvacontin:feature?expand=1" should be run
+
+  Scenario: Open GH Enterprise web interface to create a new pull request
+    Given the "origin" remote has url "git@git.my.org:github/hub.git"
+    And the "dasilvacontin" remote has url "git@git.my.org:dasilvacontin/hub.git"
+    And I am "dasilvacontin" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    And I am on the "feature" branch pushed to "dasilvacontin/feature"
+    When I successfully run `hub pull-request --web`
+    Then "open https://git.my.org/github/hub/compare/master...dasilvacontin:feature?expand=1" should be run
 
   Scenario: Open pull request in web browser
     Given the GitHub API server:
