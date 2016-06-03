@@ -304,6 +304,23 @@ func (client *Client) FetchRelease(project *Project, tagName string) (foundRelea
 	return
 }
 
+func (client *Client) FetchLatestRelease(project *Project) (release *Release, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/releases/latest", project.Owner, project.Name))
+	if err = checkStatus(200, "fetching latest release", res, err); err != nil {
+		return
+	}
+
+	release = &Release{}
+	err = res.Unmarshal(release)
+
+	return
+}
+
 func (client *Client) CreateRelease(project *Project, releaseParams *Release) (release *Release, err error) {
 	api, err := client.simpleApi()
 	if err != nil {

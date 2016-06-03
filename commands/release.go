@@ -35,6 +35,11 @@ With '--include-drafts', include draft releases in the listing.
 
 		With '--show-downloads', include the "Downloads" section.
 
+	* _latest_:
+		Show GitHub release notes for the latest published full release.
+
+		With '--show-downloads', include the "Downloads" section.
+
 	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
 		doesn't exist, it will be created at <TARGET> (default: current branch).
@@ -86,6 +91,11 @@ hub(1), git-tag(1)
 		Run: showRelease,
 	}
 
+	cmdLatestRelease = &Command{
+		Key: "latest",
+		Run: latestRelease,
+	}
+
 	cmdCreateRelease = &Command{
 		Key: "create",
 		Run: createRelease,
@@ -117,6 +127,7 @@ func init() {
 	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDrafts, "include-drafts", "d", false, "DRAFTS")
 
 	cmdShowRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
+	cmdLatestRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
 
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
@@ -133,6 +144,7 @@ func init() {
 	cmdEditRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "c", "", "COMMITISH")
 
 	cmdRelease.Use(cmdShowRelease)
+	cmdRelease.Use(cmdLatestRelease)
 	cmdRelease.Use(cmdCreateRelease)
 	cmdRelease.Use(cmdEditRelease)
 	cmdRelease.Use(cmdDownloadRelease)
@@ -199,6 +211,44 @@ func showRelease(cmd *Command, args *Args) {
 				ui.Println(release.ZipballUrl)
 				ui.Println(release.TarballUrl)
 			}
+		}
+	}
+
+	os.Exit(0)
+}
+
+func latestRelease(cmd *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	release, err := gh.FetchLatestRelease(project)
+	utils.Check(err)
+	body := strings.TrimSpace(release.Body)
+
+	// Print the release name if it's not empty, otherwise print
+	// the tag name.
+	if release.Name != "" {
+		ui.Println(release.Name)
+	} else {
+		ui.Println(release.TagName)
+	}
+
+	if body != "" {
+		ui.Printf("\n%s\n", body)
+	}
+	if flagReleaseShowDownloads {
+		ui.Printf("\n## Downloads\n\n")
+		for _, asset := range release.Assets {
+			ui.Println(asset.DownloadUrl)
+		}
+		if release.ZipballUrl != "" {
+			ui.Println(release.ZipballUrl)
+			ui.Println(release.TarballUrl)
 		}
 	}
 
