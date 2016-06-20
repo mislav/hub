@@ -321,7 +321,7 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		if err != nil {
 			return "", err
 		}
-		defaultMsg = defaultMsg + "\n---\n" + diffstat
+		defaultMsg = defaultMsg + "\n\n---\n" + diffstat
 	}
 	cs := git.CommentChar()
 
