@@ -182,6 +182,14 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://git.my.org/mislav/dotfiles" should be run
 
+  Scenario: Multiple Enterprise repos
+    Given I am in "git://git.my.org/mislav/dotfiles.git" git repo
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    And "git.another.org" is a whitelisted Enterprise host
+    When I successfully run `hub browse`
+    Then "open https://git.my.org/mislav/dotfiles" should be run
+
   Scenario: Enterprise repo over HTTP
     Given I am in "git://git.my.org/mislav/dotfiles.git" git repo
     And I am "mislav" on http://git.my.org with OAuth token "FITOKEN"

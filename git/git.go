@@ -208,6 +208,14 @@ func Config(name string) (string, error) {
 	return gitGetConfig(name)
 }
 
+func ConfigAll(name string) ([]string, error) {
+	lines, err := gitOutput(gitConfigCommand([]string{"--get-all", name})...)
+	if err != nil {
+		err = fmt.Errorf("Unknown config %s", name)
+	}
+	return lines, err
+}
+
 func GlobalConfig(name string) (string, error) {
 	return gitGetConfig("--global", name)
 }
