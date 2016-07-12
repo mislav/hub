@@ -29,8 +29,8 @@ Dependencies:
 ~~~ sh
 $ brew install hub
 $ hub version
-git version 1.7.6
-hub version 2.2.0
+git version 2.9.0
+hub version 2.2.3
 ~~~
 
 #### Standalone
