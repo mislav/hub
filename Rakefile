@@ -38,7 +38,7 @@ end
 
 # generate man page with ronn
 def compile_ronn(destination, type, contents)
-  File.popen("ronn --pipe --#{type} --organization=GITHUB --manual='Hub Manual'", 'w+') { |io|
+  File.popen("bin/ronn --pipe --#{type} --organization=GITHUB --manual='Hub Manual'", 'w+') { |io|
     io.write contents
     io.close_write
     File.open(destination, 'w') { |f| f << io.read }
