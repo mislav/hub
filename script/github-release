@@ -1,66 +1,27 @@
-#!/usr/bin/env ruby
+#!/bin/bash
 # Usage: script/cross-compile | script/github-release <name> <version>
 #
 # Takes in a list of asset filenames + labels via stdin and uploads them to the
 # corresponding release on GitHub. The release is created as a draft first if
 # missing and its body is the git changelog since the previous tagged release.
-require "json"
-require "cgi"
+set -e
 
-def github_host() ENV.fetch("GITHUB_HOST", "https://api.github.com") end
-def oauth_token() ENV["GITHUB_OAUTH"] end
+export GITHUB_TOKEN="${GITHUB_OAUTH?}"
 
-def escape(str) CGI.escape(str.to_s) end
+project_name="${1?}"
+version="${2?}"
+[[ $version == *-* ]] && pre=1 || pre=
 
-def api(*args)
-  path = args.shift
-  cmd = ["curl", "-s", "--netrc"]
-  cmd << ( path.include?("://") ? path : File.join(github_host, path) )
-  cmd << "-H" << "Authorization: token #{oauth_token}" if oauth_token
+assets=()
+while read -r filename label; do
+  assets+=( -a "${filename}#${label}" )
+done
 
-  if args.last.is_a? Hash
-    payload = JSON.dump(args.pop)
-    cmd << "--data" << "@-"
-    cmd << "-H" << "Content-Type: application/json"
-  end
-
-  cmd.concat args
-
-  IO.popen(cmd, payload ? "r+" : "r") do |curl|
-    if payload
-      curl.write payload
-      curl.close_write
-    end
-    JSON.parse(curl.read)
-  end
-end
-
-repo = ENV["TRAVIS_REPO_SLUG"]
-project_name, version = ARGV
-
-release = api("/repos/#{repo}/releases").find { |rel|
-  rel.fetch("id") && rel.fetch("tag_name") == "v#{version}"
-}
-
-unless release
-  release = api "/repos/#{repo}/releases",
-                tag_name: "v#{version}",
-                name: "#{project_name} #{version}",
-                body: `script/changelog`,
-                draft: true,
-                prerelease: version.include?('-')
-end
-
-upload_url = release.fetch("upload_url")
-
-STDIN.each do |line|
-  filename, label = line.chomp.split("\t", 2)
-  name = File.basename filename
-
-  if asset = release["assets"].find { |a| a.fetch("name") == name }
-    api asset.fetch("url"), "-X", "DELETE"
-  end
-
-  upload = upload_url.sub(/\{\?.+?\}/, "?name=#{escape name}&label=#{escape label}")
-  api upload, "-H", "Content-Type: application/octet-stream", "--data-binary", "@#{filename}"
-end
+if hub release --include-drafts | grep -q "^v${version}\$"; then
+  hub release edit "v${version}" "${assets[@]}"
+else
+  { echo "${project_name} ${version}"
+    echo
+    script/changelog
+  } | hub release create --draft ${pre:+--prerelease} -F - "v${version}" "${assets[@]}"
+fi

@@ -219,8 +219,15 @@ Given(/^the remote commit states of "(.*?)" "(.*?)" are:$/) do |proj, ref, json_
   end
   rev = run_silent %(git rev-parse #{ref})
 
+  host, owner, repo = proj.split('/', 3)
+  if repo.nil?
+    repo = owner
+    owner = host
+    host = nil
+  end
+
   status_endpoint = <<-EOS
-    get('/repos/#{proj}/commits/#{rev}/status') {
+    get('#{'/api/v3' if host}/repos/#{owner}/#{repo}/commits/#{rev}/status'#{", :host_name => '#{host}'" if host}) {
       json(#{json_value})
     }
     EOS

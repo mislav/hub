@@ -50,13 +50,16 @@ func tranformFetchArgs(args *Args) error {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
+	currentProject, err := localRepo.CurrentProject()
+	utils.Check(err)
+
 	projects := make(map[*github.Project]bool)
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
 		if ownerRegexp.MatchString(name) && !isCloneable(name) {
 			_, err := localRepo.RemoteByName(name)
 			if err != nil {
-				project := github.NewProject(name, "", "")
+				project := github.NewProject(name, currentProject.Name, "")
 				gh := github.NewClient(project.Host)
 				repo, err := gh.Repository(project)
 				if err != nil {

@@ -57,7 +57,7 @@ test_hub() {
 
 case "$1" in
 "" )
-  build_hub hub${windows:+.exe}
+  build_hub bin/hub${windows:+.exe}
   ;;
 -o )
   shift

@@ -41,6 +41,7 @@ func (a *Args) Replace(executable, command string, params ...string) {
 	a.Executable = executable
 	a.Command = command
 	a.Params = params
+	a.GlobalFlags = []string{}
 }
 
 func (a *Args) Commands() []*cmd.Cmd {
@@ -53,19 +54,19 @@ func (a *Args) Commands() []*cmd.Cmd {
 
 func (a *Args) ToCmd() *cmd.Cmd {
 	c := cmd.New(a.Executable)
-	args := make([]string, 0)
+	c.WithArgs(a.GlobalFlags...)
 
 	if a.Command != "" {
-		args = append(args, a.Command)
+		c.WithArg(a.Command)
 	}
 
 	for _, arg := range a.Params {
 		if arg != "" {
-			args = append(args, arg)
+			c.WithArg(arg)
 		}
 	}
 
-	return c.WithArgs(args...)
+	return c
 }
 
 func (a *Args) GetParam(i int) string {

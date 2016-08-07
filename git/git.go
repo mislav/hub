@@ -64,6 +64,15 @@ func Dir() (string, error) {
 	return gitDir, nil
 }
 
+func WorkdirName() (string, error) {
+	output, err := gitOutput("rev-parse", "--show-toplevel")
+	if err == nil {
+		return output[0], nil
+	} else {
+		return "", err
+	}
+}
+
 func HasFile(segments ...string) bool {
 	// The blessed way to resolve paths within git dir since Git 2.5.0
 	output, err := gitOutput("rev-parse", "-q", "--git-path", filepath.Join(segments...))
@@ -199,6 +208,14 @@ func Config(name string) (string, error) {
 	return gitGetConfig(name)
 }
 
+func ConfigAll(name string) ([]string, error) {
+	lines, err := gitOutput(gitConfigCommand([]string{"--get-all", name})...)
+	if err != nil {
+		err = fmt.Errorf("Unknown config %s", name)
+	}
+	return lines, err
+}
+
 func GlobalConfig(name string) (string, error) {
 	return gitGetConfig("--global", name)
 }
@@ -252,7 +269,7 @@ func Run(command string, args ...string) error {
 
 func IsGitDir(dir string) bool {
 	cmd := cmd.New("git")
-	cmd.WithArgs("--git-dir=" + dir, "rev-parse", "--git-dir")
+	cmd.WithArgs("--git-dir="+dir, "rev-parse", "--git-dir")
 	return cmd.Success()
 }
 

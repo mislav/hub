@@ -63,8 +63,9 @@ func create(command *Command, args *Args) {
 
 	var newRepoName string
 	if args.IsParamsEmpty() {
-		newRepoName, err = utils.DirName()
+		dirName, err := git.WorkdirName()
 		utils.Check(err)
+		newRepoName = github.SanitizeProjectName(dirName)
 	} else {
 		reg := regexp.MustCompile("^[^-]")
 		if !reg.MatchString(args.FirstParam()) {
