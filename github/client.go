@@ -8,15 +8,17 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/github/hub/version"
 	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
 	GitHubHost    string = "github.com"
 	GitHubApiHost string = "api.github.com"
-	UserAgent     string = "Hub"
 	OAuthAppURL   string = "http://hub.github.com/"
 )
+
+var UserAgent = "Hub " + version.Version
 
 func NewClient(h string) *Client {
 	return NewClientWithHost(&Host{Host: h})
