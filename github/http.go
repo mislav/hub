@@ -212,7 +212,7 @@ func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simp
 	buf := bytes.NewBuffer(json)
 
 	return c.performRequest(method, path, buf, func(req *http.Request) {
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	})
 }
 
