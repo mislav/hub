@@ -439,7 +439,7 @@ Feature: hub pull-request
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
+        assert :issue => 92
         json :html_url => "https://github.com/mislav/coral/pull/92"
       }
       """
@@ -455,7 +455,7 @@ Feature: hub pull-request
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
+        assert :issue => 92
         json :html_url => "https://github.com/mislav/coral/pull/92"
       }
       """
