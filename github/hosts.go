@@ -11,9 +11,8 @@ import (
 
 var (
 	GitHubHostEnv = os.Getenv("GITHUB_HOST")
+	cachedHosts   []string
 )
-
-type GitHubHosts []string
 
 type GithubHostError struct {
 	url *url.URL
@@ -23,8 +22,8 @@ func (e *GithubHostError) Error() string {
 	return fmt.Sprintf("Invalid GitHub URL: %s", e.url)
 }
 
-func (h GitHubHosts) Include(host string) bool {
-	for _, hh := range h {
+func knownGitHubHostsInclude(host string) bool {
+	for _, hh := range knownGitHubHosts() {
 		if hh == host {
 			return true
 		}
@@ -33,7 +32,12 @@ func (h GitHubHosts) Include(host string) bool {
 	return false
 }
 
-func knownGitHubHosts() (hosts GitHubHosts) {
+func knownGitHubHosts() []string {
+	if cachedHosts != nil {
+		return cachedHosts
+	}
+
+	hosts := []string{}
 	defaultHost := DefaultGitHubHost()
 	hosts = append(hosts, defaultHost)
 	hosts = append(hosts, "ssh."+GitHubHost)
@@ -46,7 +50,8 @@ func knownGitHubHosts() (hosts GitHubHosts) {
 		}
 	}
 
-	return
+	cachedHosts = hosts
+	return hosts
 }
 
 func DefaultGitHubHost() string {
