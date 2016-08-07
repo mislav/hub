@@ -130,7 +130,7 @@ func Editor() (string, error) {
 		return "", fmt.Errorf("Can't load git var: GIT_EDITOR")
 	}
 
-	return output[0], nil
+	return os.ExpandEnv(output[0]), nil
 }
 
 func Head() (string, error) {
