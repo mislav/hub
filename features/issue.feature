@@ -24,8 +24,34 @@ Feature: hub issue
     When I run `hub issue -a Cornwe19`
     Then the output should contain exactly:
       """
-      #102  First issue
-       #13  Second issue\n
+          #102  First issue
+           #13  Second issue\n
+      """
+    And the exit status should be 0
+
+  Scenario: Custom format for issues list
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "lascap" },
+        },
+        { :number => 13,
+          :title => "Second issue",
+          :state => "closed",
+          :user => { :login => "mislav" },
+        },
+      ]
+    }
+    """
+    When I run `hub issue -f "%in,%u%n" -a Cornwe19`
+    Then the output should contain exactly:
+      """
+      102,lascap
+      13,mislav\n
       """
     And the exit status should be 0
 
