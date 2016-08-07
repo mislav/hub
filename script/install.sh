@@ -19,5 +19,6 @@ prefix="${prefix:-/usr/local}"
 for src in `find bin share -type f`; do
   dest="${prefix}/${src}"
   mkdir -p "${dest%/*}"
-  install "$src" "$dest"
+  [[ $src == share/* ]] && mode="644" || mode=755
+  install -m "$mode" "$src" "$dest"
 done
