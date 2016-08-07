@@ -105,7 +105,7 @@ end`
 
 		indent := regexp.MustCompile(`(?m)^\t+`)
 		eval = indent.ReplaceAllStringFunc(eval, func(match string) string {
-			return strings.Repeat(" ", len(match) * 4)
+			return strings.Repeat(" ", len(match)*4)
 		})
 
 		ui.Println(eval)
