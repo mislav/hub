@@ -218,6 +218,7 @@ func (c *simpleClient) performRequest(method, path string, body io.Reader, confi
 		return
 	}
 	req.Header.Set("Authorization", "token "+c.accessToken)
+	req.Header.Set("User-Agent", UserAgent)
 	if configure != nil {
 		configure(req)
 	}
