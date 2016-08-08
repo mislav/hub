@@ -232,12 +232,13 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronin', :owner => { :login => 'RTomayko' },
              :permissions => { :push => false },
              :has_wiki => true
       }
       """
     When I successfully run `hub clone rtomayko/ronn.wiki`
-    Then it should clone "git://github.com/rtomayko/ronn.wiki.git"
+    Then it should clone "git://github.com/RTomayko/ronin.wiki.git"
     And there should be no output
 
   Scenario: Clone a nonexisting wiki
@@ -245,6 +246,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronin', :owner => { :login => 'RTomayko' },
              :permissions => { :push => false },
              :has_wiki => false
       }
@@ -252,5 +254,22 @@ Feature: hub clone
     When I run `hub clone rtomayko/ronn.wiki`
     Then the exit status should be 1
     And the stdout should contain exactly ""
-    And the stderr should contain exactly "Error: rtomayko/ronn doesn't have a wiki\n"
+    And the stderr should contain exactly "Error: RTomayko/ronin doesn't have a wiki\n"
     And it should not clone anything
+
+  Scenario: Clone a redirected repo
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345', :host_name => 'api.github.com') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        json :private => false,
+             :name => 'ronin', :owner => { :login => 'RTomayko' },
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub clone rtomayko/ronn`
+    Then it should clone "git://github.com/RTomayko/ronin.git"
+    And there should be no output
