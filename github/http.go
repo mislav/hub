@@ -179,13 +179,17 @@ type simpleClient struct {
 	accessToken string
 }
 
-func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
+func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
 	url, err := url.Parse(path)
-	if err != nil {
-		return
+	if err == nil {
+		url = c.rootUrl.ResolveReference(url)
+		return c.performRequestUrl(method, url, body, configure, 2)
+	} else {
+		return nil, err
 	}
+}
 
-	url = c.rootUrl.ResolveReference(url)
+func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Reader, configure func(*http.Request), redirectsRemaining int) (res *simpleResponse, err error) {
 	req, err := http.NewRequest(method, url.String(), body)
 	if err != nil {
 		return
@@ -196,9 +200,24 @@ func (c *simpleClient) performRequest(method, path string, body io.Reader, confi
 		configure(req)
 	}
 
+	var bodyBackup io.ReadWriter
+	if req.Body != nil {
+		bodyBackup = &bytes.Buffer{}
+		req.Body = ioutil.NopCloser(io.TeeReader(req.Body, bodyBackup))
+	}
+
 	httpResponse, err := c.httpClient.Do(req)
-	if err == nil {
-		res = &simpleResponse{httpResponse}
+	if err != nil {
+		return
+	}
+
+	res = &simpleResponse{httpResponse}
+	if res.StatusCode == 307 && redirectsRemaining > 0 {
+		url, err = url.Parse(res.Header.Get("Location"))
+		if err != nil || url.Host != req.URL.Host || url.Scheme != req.URL.Scheme {
+			return
+		}
+		res, err = c.performRequestUrl(method, url, bodyBackup, configure, redirectsRemaining-1)
 	}
 
 	return
