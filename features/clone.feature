@@ -7,6 +7,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -19,6 +20,7 @@ Feature: hub clone
       """
       get('/repos/hookio/hook.js') {
         json :private => false,
+             :name => 'hook.js', :owner => { :login => 'hookio' },
              :permissions => { :push => false }
       }
       """
@@ -31,6 +33,7 @@ Feature: hub clone
       """
       get('/repos/zhuangya/.vim') {
         json :private => false,
+             :name => '.vim', :owner => { :login => 'zhuangya' },
              :permissions => { :push => false }
       }
       """
@@ -43,6 +46,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -57,6 +61,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -69,6 +74,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -123,6 +129,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -135,6 +142,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -147,6 +155,7 @@ Feature: hub clone
       """
       get('/repos/mislav/dotfiles') {
         json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
              :permissions => { :push => true }
       }
       """
@@ -170,6 +179,7 @@ Feature: hub clone
       """
       get('/repos/mislav/dotfiles') {
         json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
              :permissions => { :push => true }
       }
       """
@@ -182,6 +192,7 @@ Feature: hub clone
       """
       get('/repos/sstephenson/rbenv') {
         json :private => false,
+             :name => 'rbenv', :owner => { :login => 'sstephenson' },
              :permissions => { :push => true }
       }
       """
@@ -194,6 +205,7 @@ Feature: hub clone
       """
       get('/repos/sstephenson/rbenv') {
         json :private => false,
+             :name => 'rbenv', :owner => { :login => 'sstephenson' },
              :permissions => { :push => true }
       }
       """
@@ -208,6 +220,7 @@ Feature: hub clone
       """
       get('/api/v3/repos/myorg/myrepo') {
         json :private => true,
+             :name => 'myrepo', :owner => { :login => 'myorg' },
              :permissions => { :push => false }
       }
       """
