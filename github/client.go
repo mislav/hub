@@ -714,6 +714,11 @@ func FormatError(action string, err error) (ee error) {
 			}
 		}
 
+		redirectLocation := e.Response.Header.Get("Location")
+		if statusCode >= 300 && statusCode < 400 && redirectLocation != "" {
+			errorSentences = append(errorSentences, fmt.Sprintf("Refused to follow redirect to %s", redirectLocation))
+		}
+
 		var errorMessage string
 		if len(errorSentences) > 0 {
 			errorMessage = strings.Join(errorSentences, "\n")
