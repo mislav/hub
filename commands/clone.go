@@ -93,9 +93,11 @@ func transformCloneArgs(args *Args) {
 					utils.Check(err)
 				}
 
+				owner = repo.Owner.Login
+				name = repo.Name
 				if expectWiki {
 					if !repo.HasWiki {
-						utils.Check(fmt.Errorf("Error: %s/%s doesn't have a wiki", project.Owner, project.Name))
+						utils.Check(fmt.Errorf("Error: %s/%s doesn't have a wiki", owner, name))
 					} else {
 						name = name + ".wiki"
 					}
