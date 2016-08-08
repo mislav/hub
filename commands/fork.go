@@ -54,6 +54,8 @@ func fork(cmd *Command, args *Args) {
 	}
 
 	forkProject := github.NewProject(host.User, project.Name, project.Host)
+	newRemoteName := forkProject.Owner
+
 	client := github.NewClient(project.Host)
 	existingRepo, err := client.Repository(forkProject)
 	if err == nil {
@@ -68,8 +70,10 @@ func fork(cmd *Command, args *Args) {
 		}
 	} else {
 		if !args.Noop {
-			_, err := client.ForkRepository(project)
+			newRepo, err := client.ForkRepository(project)
 			utils.Check(err)
+			forkProject.Owner = newRepo.Owner.Login
+			forkProject.Name = newRepo.Name
 		}
 	}
 
@@ -78,8 +82,8 @@ func fork(cmd *Command, args *Args) {
 	} else {
 		originURL := originRemote.URL.String()
 		url := forkProject.GitURL("", "", true)
-		args.Replace("git", "remote", "add", "-f", forkProject.Owner, originURL)
-		args.After("git", "remote", "set-url", forkProject.Owner, url)
-		args.After("echo", fmt.Sprintf("new remote: %s", forkProject.Owner))
+		args.Replace("git", "remote", "add", "-f", newRemoteName, originURL)
+		args.After("git", "remote", "set-url", newRemoteName, url)
+		args.After("echo", fmt.Sprintf("new remote: %s", newRemoteName))
 	}
 }
