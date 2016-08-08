@@ -40,6 +40,7 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 		req = cloneRequest(req)
 		req.Header.Set("X-Original-Scheme", req.URL.Scheme)
 		req.Header.Set("X-Original-Port", port)
+		req.Host = req.URL.Host
 		req.URL.Scheme = t.OverrideURL.Scheme
 		req.URL.Host = t.OverrideURL.Host
 	}
@@ -54,7 +55,7 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 }
 
 func (t *verboseTransport) dumpRequest(req *http.Request) {
-	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.Host, req.URL.RequestURI())
+	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.URL.Host, req.URL.RequestURI())
 	t.verbosePrintln(info)
 	t.dumpHeaders(req.Header, ">")
 	body := t.dumpBody(req.Body)
@@ -135,7 +136,23 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		Out:         ui.Stderr,
 		Colorized:   ui.IsTerminal(os.Stderr),
 	}
-	return &http.Client{Transport: tr}
+	return &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) > 2 {
+				return fmt.Errorf("too many redirects")
+			} else {
+				if len(via) > 0 && via[0].Host == req.URL.Host {
+					for key, vals := range via[0].Header {
+						if !strings.HasPrefix(key, "X-Original-") {
+							req.Header[key] = vals
+						}
+					}
+				}
+				return nil
+			}
+		},
+	}
 }
 
 func cloneRequest(req *http.Request) *http.Request {
