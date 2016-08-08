@@ -388,23 +388,29 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	return
 }
 
-func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository, err error) {
-	url, err := octokit.ForksURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+type RepositoryOwner struct {
+	Login string `json:"login"`
+}
+type Repository struct {
+	Name   string           `json:"name"`
+	Parent *Repository      `json:"parent"`
+	Owner  *RepositoryOwner `json:"owner"`
+}
+
+func (client *Client) ForkRepository(project *Project) (repo *Repository, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating fork", err)
+	params := map[string]interface{}{}
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/forks", project.Owner, project.Name), params)
+	if err = checkStatus(202, "creating fork", res, err); err != nil {
 		return
 	}
 
-	repo, result := api.Repositories(client.requestURL(url)).Create(nil)
-	if result.HasError() {
-		err = FormatError("creating fork", result.Err)
-		return
-	}
+	repo = &Repository{}
+	err = res.Unmarshal(repo)
 
 	return
 }
