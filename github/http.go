@@ -41,6 +41,7 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 		req = cloneRequest(req)
 		req.Header.Set("X-Original-Scheme", req.URL.Scheme)
 		req.Header.Set("X-Original-Port", port)
+		req.Host = req.URL.Host
 		req.URL.Scheme = t.OverrideURL.Scheme
 		req.URL.Host = t.OverrideURL.Host
 	}
@@ -55,7 +56,7 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 }
 
 func (t *verboseTransport) dumpRequest(req *http.Request) {
-	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.Host, req.URL.RequestURI())
+	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.URL.Host, req.URL.RequestURI())
 	t.verbosePrintln(info)
 	t.dumpHeaders(req.Header, ">")
 	body := t.dumpBody(req.Body)
@@ -137,32 +138,23 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		Colorized:   ui.IsTerminal(os.Stderr),
 	}
 
-	// Implement CheckRedirect callback to fix issues with net/http.
-	fixupCheckRedirect := func(req *http.Request, via []*http.Request) error {
-		// net/http doesn't send a Host header on redirect requests.
-		// TODO: Find or file a Go bug.
-		if req.Host == "" {
-			req.Host = req.URL.Host
-		}
-
-		// Maintain headers after redirect.
-		// https://github.com/golang/go/issues/4800
-		for key, val := range via[0].Header {
-			if req.Host != via[0].Host && strings.EqualFold(key, "Authorization") {
-				continue
+	return &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) > 2 {
+				return fmt.Errorf("too many redirects")
+			} else {
+				if len(via) > 0 && via[0].Host == req.URL.Host {
+					for key, vals := range via[0].Header {
+						if !strings.HasPrefix(key, "X-Original-") {
+							req.Header[key] = vals
+						}
+					}
+				}
+				return nil
 			}
-			req.Header[key] = val
-		}
-
-		// remainder should match http/Client.defaultCheckRedirect()
-		if len(via) >= 10 {
-			return errors.New("stopped after 10 redirects")
-		}
-
-		return nil
+		},
 	}
-
-	return &http.Client{Transport: tr, CheckRedirect: fixupCheckRedirect}
 }
 
 func cloneRequest(req *http.Request) *http.Request {
