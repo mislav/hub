@@ -90,6 +90,7 @@ func pullRequest(cmd *Command, args *Args) {
 	if err != nil {
 		utils.Check(github.FormatError("creating pull request", err))
 	}
+	client := github.NewClientWithHost(host)
 
 	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
 	utils.Check(err)
@@ -144,6 +145,11 @@ func pullRequest(cmd *Command, args *Args) {
 	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
 	utils.Check(err)
 
+	if headRepo, err := client.Repository(headProject); err == nil {
+		headProject.Owner = headRepo.Owner.Login
+		headProject.Name = headRepo.Name
+	}
+
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
@@ -191,7 +197,6 @@ func pullRequest(cmd *Command, args *Args) {
 		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", fullBase, fullHead), "")
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
-		client := github.NewClientWithHost(host)
 		params := map[string]interface{}{
 			"base": base,
 			"head": fullHead,

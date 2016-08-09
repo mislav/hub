@@ -617,12 +617,18 @@ Feature: hub pull-request
     And I am on the "feature" branch pushed to "origin/feature"
     Given the GitHub API server:
       """
+      get('/repos/mislav/coral') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345') {
+        json :name => 'coralify', :owner => { :login => 'coral-org' }
+      }
       post('/repos/mislav/coral/pulls') {
         redirect 'https://api.github.com/repositories/12345', 307
       }
       post('/repositories/12345', :host_name => 'api.github.com') {
         assert :base  => 'master',
-               :head  => 'mislav:feature',
+               :head  => 'coral-org:feature',
                :title => 'hereyougo'
         json :html_url => "the://url"
       }
