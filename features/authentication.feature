@@ -288,7 +288,10 @@ Feature: OAuth authentication
       get('/api/v3/user', :host_name => 'git.my.org') {
         json :login => 'mislav'
       }
-      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     And "git.my.org" is a whitelisted Enterprise host
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"

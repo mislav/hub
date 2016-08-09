@@ -40,6 +40,7 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 		req = cloneRequest(req)
 		req.Header.Set("X-Original-Scheme", req.URL.Scheme)
 		req.Header.Set("X-Original-Port", port)
+		req.Host = req.URL.Host
 		req.URL.Scheme = t.OverrideURL.Scheme
 		req.URL.Host = t.OverrideURL.Host
 	}
@@ -54,7 +55,7 @@ func (t *verboseTransport) RoundTrip(req *http.Request) (resp *http.Response, er
 }
 
 func (t *verboseTransport) dumpRequest(req *http.Request) {
-	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.Host, req.URL.RequestURI())
+	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.URL.Host, req.URL.RequestURI())
 	t.verbosePrintln(info)
 	t.dumpHeaders(req.Header, ">")
 	body := t.dumpBody(req.Body)
@@ -135,7 +136,23 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 		Out:         ui.Stderr,
 		Colorized:   ui.IsTerminal(os.Stderr),
 	}
-	return &http.Client{Transport: tr}
+	return &http.Client{
+		Transport: tr,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) > 2 {
+				return fmt.Errorf("too many redirects")
+			} else {
+				if len(via) > 0 && via[0].Host == req.URL.Host {
+					for key, vals := range via[0].Header {
+						if !strings.HasPrefix(key, "X-Original-") {
+							req.Header[key] = vals
+						}
+					}
+				}
+				return nil
+			}
+		},
+	}
 }
 
 func cloneRequest(req *http.Request) *http.Request {
@@ -179,25 +196,45 @@ type simpleClient struct {
 	accessToken string
 }
 
-func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
+func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
 	url, err := url.Parse(path)
-	if err != nil {
-		return
+	if err == nil {
+		url = c.rootUrl.ResolveReference(url)
+		return c.performRequestUrl(method, url, body, configure, 2)
+	} else {
+		return nil, err
 	}
+}
 
-	url = c.rootUrl.ResolveReference(url)
+func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Reader, configure func(*http.Request), redirectsRemaining int) (res *simpleResponse, err error) {
 	req, err := http.NewRequest(method, url.String(), body)
 	if err != nil {
 		return
 	}
 	req.Header.Set("Authorization", "token "+c.accessToken)
+	req.Header.Set("User-Agent", UserAgent)
 	if configure != nil {
 		configure(req)
 	}
 
+	var bodyBackup io.ReadWriter
+	if req.Body != nil {
+		bodyBackup = &bytes.Buffer{}
+		req.Body = ioutil.NopCloser(io.TeeReader(req.Body, bodyBackup))
+	}
+
 	httpResponse, err := c.httpClient.Do(req)
-	if err == nil {
-		res = &simpleResponse{httpResponse}
+	if err != nil {
+		return
+	}
+
+	res = &simpleResponse{httpResponse}
+	if res.StatusCode == 307 && redirectsRemaining > 0 {
+		url, err = url.Parse(res.Header.Get("Location"))
+		if err != nil || url.Host != req.URL.Host || url.Scheme != req.URL.Scheme {
+			return
+		}
+		res, err = c.performRequestUrl(method, url, bodyBackup, configure, redirectsRemaining-1)
 	}
 
 	return
@@ -211,7 +248,7 @@ func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simp
 	buf := bytes.NewBuffer(json)
 
 	return c.performRequest(method, path, buf, func(req *http.Request) {
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	})
 }
 

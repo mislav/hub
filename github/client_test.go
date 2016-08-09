@@ -42,24 +42,6 @@ func TestClient_FormatError(t *testing.T) {
 	assert.Equal(t, "Error action: Unprocessable Entity (HTTP 422)\nerror message", fmt.Sprintf("%s", err))
 }
 
-func TestClient_warnExistenceOfRepo(t *testing.T) {
-	project := &Project{
-		Name:  "hub",
-		Owner: "github",
-		Host:  "github.com",
-	}
-	e := &octokit.ResponseError{
-		Response: &http.Response{
-			StatusCode: 404,
-			Status:     "404 Not Found",
-		},
-		Message: "error message",
-	}
-
-	err := warnExistenceOfRepo(project, e)
-	assert.Equal(t, "Are you sure that github.com/github/hub exists?", fmt.Sprintf("%s", err))
-}
-
 func TestAuthTokenNote(t *testing.T) {
 	note, err := authTokenNote(1)
 	assert.Equal(t, nil, err)

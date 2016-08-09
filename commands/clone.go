@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -77,13 +78,35 @@ func transformCloneArgs(args *Args) {
 					hostStr = host.Host
 				}
 
+				expectWiki := strings.HasSuffix(name, ".wiki")
+				if expectWiki {
+					name = strings.TrimSuffix(name, ".wiki")
+				}
+
 				project := github.NewProject(owner, name, hostStr)
+				gh := github.NewClient(project.Host)
+				repo, err := gh.Repository(project)
+				if err != nil {
+					if strings.Contains(err.Error(), "HTTP 404") {
+						err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
+					}
+					utils.Check(err)
+				}
+
+				owner = repo.Owner.Login
+				name = repo.Name
+				if expectWiki {
+					if !repo.HasWiki {
+						utils.Check(fmt.Errorf("Error: %s/%s doesn't have a wiki", owner, name))
+					} else {
+						name = name + ".wiki"
+					}
+				}
+
 				if !isSSH &&
 					args.Command != "submodule" &&
 					!github.IsHttpsProtocol() {
-					client := github.NewClient(project.Host)
-					repo, err := client.Repository(project)
-					isSSH = (err == nil) && (repo.Private || repo.Permissions.Push)
+					isSSH = repo.Private || repo.Permissions.Push
 				}
 
 				url := project.GitURL(name, owner, isSSH)
