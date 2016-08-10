@@ -218,6 +218,10 @@ func (client *Client) OrgRepositories(owner string) (repos []octokit.Repository,
 		return
 	}
 
+	// lets ensure we get up to 100 results
+	url.RawQuery = "per_page=100"
+
+	// TODO handle pagination!
 	repos, result := api.Repositories(client.requestURL(url)).All()
 	if result.HasError() {
 		err = FormatError("getting repository", result.Err)
