@@ -143,11 +143,10 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 			if len(via) > 2 {
 				return fmt.Errorf("too many redirects")
 			} else {
-				if len(via) > 0 && via[0].Host == req.URL.Host {
-					for key, vals := range via[0].Header {
-						if !strings.HasPrefix(key, "X-Original-") {
-							req.Header[key] = vals
-						}
+				for key, vals := range via[0].Header {
+					lkey := strings.ToLower(key)
+					if !strings.HasPrefix(lkey, "x-original-") && via[0].Host == req.URL.Host || lkey != "authorization" {
+						req.Header[key] = vals
 					}
 				}
 				return nil
