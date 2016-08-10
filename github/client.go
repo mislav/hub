@@ -94,6 +94,7 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 }
 
 type PullRequest struct {
+	Number  int    `json:"number"`
 	HTMLURL string `json:"html_url"`
 }
 
@@ -462,22 +463,18 @@ func (client *Client) CreateIssue(project *Project, title, body string, labels [
 	return
 }
 
-func (client *Client) UpdateIssue(project *Project, issueNumber int, params octokit.IssueParams) (err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": issueNumber})
+func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[string]interface{}) (err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("update issues", err)
+	res, err := api.PatchJSON(fmt.Sprintf("repos/%s/%s/issues/%d", project.Owner, project.Name, issueNumber), params)
+	if err = checkStatus(200, "updating issue", res, err); err != nil {
 		return
 	}
 
-	_, result := api.Issues(client.requestURL(url)).Update(params)
-	if result.HasError() {
-		err = FormatError("updating issue", result.Err)
-	}
+	res.Body.Close()
 	return
 }
 

@@ -243,10 +243,15 @@ func pullRequest(cmd *Command, args *Args) {
 				}
 			}
 
-			params := octokit.IssueParams{
-				Assignee:  flagPullRequestAssignee,
-				Milestone: flagPullRequestMilestone,
-				Labels:    labels,
+			params := map[string]interface{}{}
+			if flagPullRequestAssignee != "" {
+				params["assignee"] = flagPullRequestAssignee
+			}
+			if flagPullRequestMilestone > 0 {
+				params["milestone"] = flagPullRequestMilestone
+			}
+			if len(labels) > 0 {
+				params["labels"] = labels
 			}
 
 			err = client.UpdateIssue(baseProject, pr.Number, params)
