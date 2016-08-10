@@ -14,7 +14,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE>
 pull-request -i <ISSUE>
@@ -45,8 +45,8 @@ pull-request -i <ISSUE>
 	-h, --head <HEAD>
 		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
 
-	-a, --assign <USER>
-		Assign GitHub <USER> to this pull request.
+	-a, --assign <USERS>
+		A comma-separated list of GitHub handles to assign to this pull request.
 
 	-M, --milestone <ID>
 		Add this pull request to a GitHub milestone with id <ID>.
@@ -236,6 +236,13 @@ func pullRequest(cmd *Command, args *Args) {
 		if flagPullRequestAssignee != "" || flagPullRequestMilestone > 0 ||
 			flagPullRequestLabels != "" {
 
+			assignees := []string{}
+			for _, assignee := range strings.Split(flagPullRequestAssignee, ",") {
+				if assignee != "" {
+					assignees = append(assignees, assignee)
+				}
+			}
+
 			labels := []string{}
 			for _, label := range strings.Split(flagPullRequestLabels, ",") {
 				if label != "" {
@@ -244,8 +251,8 @@ func pullRequest(cmd *Command, args *Args) {
 			}
 
 			params := map[string]interface{}{}
-			if flagPullRequestAssignee != "" {
-				params["assignee"] = flagPullRequestAssignee
+			if len(assignees) > 0 {
+				params["assignees"] = assignees
 			}
 			if flagPullRequestMilestone > 0 {
 				params["milestone"] = flagPullRequestMilestone

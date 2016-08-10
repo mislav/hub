@@ -596,7 +596,7 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Pull request with assignee
+  Scenario: Pull request with assignees
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:
       """
@@ -605,11 +605,11 @@ Feature: hub pull-request
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :assignee => "mislav", :labels => nil
+        assert :assignees => ["mislav", "josh"], :labels => nil
         json :html_url => "the://url"
       }
       """
-    When I successfully run `hub pull-request -m hereyougo -a mislav`
+    When I successfully run `hub pull-request -m hereyougo -a mislav,josh`
     Then the output should contain exactly "the://url\n"
 
   Scenario: Pull request with milestone
