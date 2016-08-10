@@ -12,10 +12,9 @@ import (
 )
 
 var cmdListPullRequest = &Command{
-	Key:   "list",
 	Run: listPullRequest,
 	Usage: `
-pull-request list [-c] [-o <ORG>]
+pull-requests [-a] [-o <ORG>]
 `,
 	Long: `List GitHub pull requests.
 
@@ -25,6 +24,10 @@ pull-request list [-c] [-o <ORG>]
 
 	-o, --org <ORG>
 		To list pull requests for all repositories in the given github organisation
+
+## See also:
+
+hub(1), hub-pull-request(1), hub-merge(1), hub-checkout(1)
 `,
 }
 
@@ -37,7 +40,7 @@ func init() {
 	cmdListPullRequest.Flag.StringVarP(&flagPullRequestOrganisation, "org", "o", "", "ORG")
 	cmdListPullRequest.Flag.BoolVarP(&flagPullRequestAll, "all", "a", false, "ALL")
 
-	cmdPullRequest.Use(cmdListPullRequest)
+	CmdRunner.Use(cmdListPullRequest)
 }
 
 func listPullRequest(cmd *Command, args *Args) {
