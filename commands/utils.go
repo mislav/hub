@@ -124,3 +124,20 @@ func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Projec
 
 	os.Exit(0)
 }
+
+func runInMainOrCurrentProject(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	// there may not be a main project so default to current project if not
+	project, err := localRepo.MainProject()
+	if err != nil {
+		project, err = localRepo.CurrentProject()
+	}
+	utils.Check(err)
+
+	client := github.NewClient(project.Host)
+	fn(localRepo, project, client)
+
+	os.Exit(0)
+}
