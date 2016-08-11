@@ -3,7 +3,7 @@ Contributing to hub
 
 You will need:
 
-1. Go 1.5 or better
+1. Go 1.6 or better
 1. Ruby 1.9+
 2. git 1.8+
 3. tmux & zsh (optional) - for running shell completion tests
