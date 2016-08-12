@@ -25,6 +25,7 @@ Feature: hub pull-request
         assert :base  => 'master',
                :head  => 'Manganeez:master',
                :title => 'here we go'
+        status 201
         json :html_url => "https://github.com/Manganeez/repo/pull/12"
       }
       """
@@ -37,6 +38,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         halt 400 if request.content_charset != 'utf-8'
         assert :title => 'ăéñøü'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -59,6 +61,7 @@ Feature: hub pull-request
         halt 400 if request.content_charset != 'utf-8'
         assert :title => 'I <3 encodings',
                :body => 'ăéñøü'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -79,6 +82,7 @@ Feature: hub pull-request
         halt 400 if request.content_charset != 'utf-8'
         assert :title => 'This is somewhat of a longish title that does not get wrapped & references #1234',
                :body => nil
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -150,6 +154,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         halt 400 unless request.user_agent.include?('Hub')
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -168,6 +173,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :title => 'This title comes from vim!',
                :body  => 'This body as well.'
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -195,6 +201,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :title => 'This title is on the third line',
                :body  => "This body\n\n\nhas multiple\nlines."
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -217,6 +224,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :title => '# Dat title',
                :body  => 'Dem body.'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -234,6 +242,7 @@ Feature: hub pull-request
         halt 422 if params[:title].include?("fail")
         assert :body => "This title will fail",
                :title => "But this title will prevail"
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -264,6 +273,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :title => 'Title from file',
                :body  => "Body from file as well.\n\nMultiline, even!"
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -285,6 +295,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :title => 'Unix piping is great',
                :body  => 'Just look at this ăéñøü'
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -305,6 +316,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :title => 'I am just a pull',
                :body  => 'A little pull'
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -327,6 +339,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :head => 'mislav:feature'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -339,6 +352,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :head => 'mojombo:feature'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -351,6 +365,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :base => 'develop'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -365,6 +380,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :base => 'develop',
                :head => 'mislav:master'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -377,6 +393,7 @@ Feature: hub pull-request
       """
       post('/repos/mojombo/coral/pulls') {
         assert :base => 'develop'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -389,6 +406,7 @@ Feature: hub pull-request
       """
       post('/repos/mojombo/coralify/pulls') {
         assert :base => 'develop'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -411,6 +429,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :head => 'mislav:feature'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -440,6 +459,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :issue => 92
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/92"
       }
       """
@@ -456,6 +476,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :issue => 92
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/92"
       }
       """
@@ -475,6 +496,7 @@ Feature: hub pull-request
       post('/api/v3/repos/mislav/coral/pulls', :host_name => 'git.my.org') {
         assert :base => 'master',
                :head => 'mislav:master'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -491,6 +513,7 @@ Feature: hub pull-request
       post('/api/v3/repos/mislav/coral/pulls', :host_name => 'git.my.org') {
         assert :base => 'master',
                :head => 'mislav:feature'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -507,6 +530,7 @@ Feature: hub pull-request
         assert :base  => 'master',
                :head  => 'github:feature',
                :title => 'hereyougo'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -523,6 +547,7 @@ Feature: hub pull-request
         assert :base  => 'master',
                :head  => 'Mislav:feature',
                :title => 'hereyougo'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -539,6 +564,7 @@ Feature: hub pull-request
         assert :base  => 'master',
                :head  => 'mislav:feature',
                :title => 'hereyougo'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -554,6 +580,7 @@ Feature: hub pull-request
         assert :base  => 'master',
                :head  => 'mislav:master',
                :title => 'hereyougo'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -564,6 +591,7 @@ Feature: hub pull-request
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -578,6 +606,7 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         assert :base  => 'master',
                :head  => 'mislav:feature'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -590,6 +619,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :head  => "mislav:feat'ure"
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -602,6 +632,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :head  => "mislav:feature"
+        status 201
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
@@ -618,6 +649,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :head  => "mislav:feature"
+        status 201
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
@@ -634,6 +666,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :head  => "mislav:feature"
+        status 201
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
@@ -654,6 +687,7 @@ Feature: hub pull-request
         assert :base  => 'master',
                :head  => 'mislav:master',
                :title => 'hereyougo'
+        status 201
         json :html_url => "the://url"
       }
       """
@@ -678,6 +712,7 @@ Feature: hub pull-request
         assert :base  => 'master',
                :head  => 'coral-org:feature',
                :title => 'hereyougo'
+        status 201
         json :html_url => "the://url"
       }
       """
