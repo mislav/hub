@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -80,7 +81,8 @@ func parseRemoteNames(args *Args) (names []string) {
 		}
 	} else if len(words) > 0 {
 		remoteName := words[0]
-		remoteNameRegexp := regexp.MustCompile("^\\w+(,\\w+)$")
+		commaPattern := fmt.Sprintf("^%s(,%s)+$", OwnerRe, OwnerRe)
+		remoteNameRegexp := regexp.MustCompile(commaPattern)
 		if remoteNameRegexp.MatchString(remoteName) {
 			i := args.IndexOfParam(remoteName)
 			args.RemoveParam(i)

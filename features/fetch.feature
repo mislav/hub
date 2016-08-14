@@ -101,10 +101,11 @@ Feature: hub fetch
       """
       get('/repos/:owner/dotfiles') { json :private => false }
       """
-    When I successfully run `hub fetch mislav,rtomayko`
-    Then "git fetch --multiple mislav rtomayko" should be run
+    When I successfully run `hub fetch mislav,rtomayko,dustinleblanc`
+    Then "git fetch --multiple mislav rtomayko dustinleblanc" should be run
     And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
     And the url for "rtomayko" should be "git://github.com/rtomayko/dotfiles.git"
+    And the url for "dustinleblanc" should be "git://github.com/dustinleblanc/dotfiles.git"
 
   Scenario: Doesn't create a new remote if repo doesn't exist on GitHub
     Given the GitHub API server:
