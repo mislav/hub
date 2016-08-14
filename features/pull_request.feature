@@ -439,7 +439,7 @@ Feature: hub pull-request
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
+        assert :issue => 92
         json :html_url => "https://github.com/mislav/coral/pull/92"
       }
       """
@@ -455,7 +455,7 @@ Feature: hub pull-request
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        assert :issue => '92'
+        assert :issue => 92
         json :html_url => "https://github.com/mislav/coral/pull/92"
       }
       """
@@ -596,7 +596,7 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Pull request with assignee
+  Scenario: Pull request with assignees
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:
       """
@@ -605,11 +605,11 @@ Feature: hub pull-request
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :assignee => "mislav", :labels => nil
+        assert :assignees => ["mislav", "josh"], :labels => nil
         json :html_url => "the://url"
       }
       """
-    When I successfully run `hub pull-request -m hereyougo -a mislav`
+    When I successfully run `hub pull-request -m hereyougo -a mislav,josh`
     Then the output should contain exactly "the://url\n"
 
   Scenario: Pull request with milestone
@@ -659,3 +659,43 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request with redirect
+    Given the "origin" remote has url "https://github.com/mislav/coral.git"
+    And I am on the "feature" branch pushed to "origin/feature"
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/coral') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345') {
+        json :name => 'coralify', :owner => { :login => 'coral-org' }
+      }
+      post('/repos/mislav/coral/pulls') {
+        redirect 'https://api.github.com/repositories/12345', 307
+      }
+      post('/repositories/12345', :host_name => 'api.github.com') {
+        assert :base  => 'master',
+               :head  => 'coral-org:feature',
+               :title => 'hereyougo'
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Redirect to another host is not followed
+    Given the "origin" remote has url "https://github.com/mislav/coral.git"
+    And I am on the "feature" branch pushed to "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        redirect 'https://disney.com/mouse', 307
+      }
+      """
+    When I run `hub pull-request -m hereyougo`
+    Then the stderr should contain exactly:
+      """
+      Error creating pull request: Temporary Redirect (HTTP 307)
+      Refused to follow redirect to https://disney.com/mouse\n
+      """

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/github/hub/ui"
@@ -86,7 +87,7 @@ func alias(command *Command, args *Args) {
 		case "ksh":
 			profile = "~/.profile"
 		case "fish":
-			profile = "~/.config/fish/config.fish"
+			profile = "~/.config/fish/functions/git.fish"
 		case "csh":
 			profile = "~/.cshrc"
 		case "tcsh":
@@ -101,12 +102,20 @@ func alias(command *Command, args *Args) {
 		var eval string
 		switch shell {
 		case "fish":
-			eval = `eval (hub alias -s)`
+			eval = `function git --description 'Alias for hub, which wraps git to provide extra functionality with GitHub.'
+	hub $argv
+end`
 		case "csh", "tcsh":
 			eval = "eval \"`hub alias -s`\""
 		default:
 			eval = `eval "$(hub alias -s)"`
 		}
+
+		indent := regexp.MustCompile(`(?m)^\t+`)
+		eval = indent.ReplaceAllStringFunc(eval, func(match string) string {
+			return strings.Repeat(" ", len(match)*4)
+		})
+
 		ui.Println(eval)
 	}
 

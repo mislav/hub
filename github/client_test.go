@@ -13,11 +13,11 @@ import (
 func TestClient_newOctokitClient(t *testing.T) {
 	c := NewClient("github.com")
 	cc := c.newOctokitClient(nil)
-	assert.Equal(t, "https://api.github.com", cc.Endpoint.String())
+	assert.Equal(t, "https://api.github.com/", cc.Endpoint.String())
 
 	c = NewClient("github.corporate.com")
 	cc = c.newOctokitClient(nil)
-	assert.Equal(t, "https://github.corporate.com", cc.Endpoint.String())
+	assert.Equal(t, "https://github.corporate.com/", cc.Endpoint.String())
 }
 
 func TestClient_FormatError(t *testing.T) {
@@ -40,24 +40,6 @@ func TestClient_FormatError(t *testing.T) {
 	}
 	err = FormatError("action", e)
 	assert.Equal(t, "Error action: Unprocessable Entity (HTTP 422)\nerror message", fmt.Sprintf("%s", err))
-}
-
-func TestClient_warnExistenceOfRepo(t *testing.T) {
-	project := &Project{
-		Name:  "hub",
-		Owner: "github",
-		Host:  "github.com",
-	}
-	e := &octokit.ResponseError{
-		Response: &http.Response{
-			StatusCode: 404,
-			Status:     "404 Not Found",
-		},
-		Message: "error message",
-	}
-
-	err := warnExistenceOfRepo(project, e)
-	assert.Equal(t, "Are you sure that github.com/github/hub exists?", fmt.Sprintf("%s", err))
 }
 
 func TestAuthTokenNote(t *testing.T) {

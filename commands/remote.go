@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -61,31 +62,38 @@ func transformRemoteArgs(args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	var repoName, host string
-	if name == "" {
-		project, err := localRepo.MainProject()
-		if err == nil {
-			repoName = project.Name
-			host = project.Host
-		} else {
-			repoName, err = utils.DirName()
-			utils.Check(err)
-		}
-
-		name = repoName
+	var host string
+	mainProject, err := localRepo.MainProject()
+	if err == nil {
+		host = mainProject.Host
 	}
 
-	hostConfig, err := github.CurrentConfig().DefaultHost()
+	if name == "" {
+		if mainProject != nil {
+			name = mainProject.Name
+		} else {
+			dirName, err := git.WorkdirName()
+			utils.Check(err)
+			name = github.SanitizeProjectName(dirName)
+		}
+	}
+
+	var hostConfig *github.Host
+	if host == "" {
+		hostConfig, err = github.CurrentConfig().DefaultHost()
+	} else {
+		hostConfig, err = github.CurrentConfig().PromptForHost(host)
+	}
 	if err != nil {
 		utils.Check(github.FormatError("adding remote", err))
 	}
+	host = hostConfig.Host
 
 	words := args.Words()
 	isPrivate := parseRemotePrivateFlag(args)
 	if len(words) == 2 && words[1] == "origin" {
 		// Origin special case triggers default user/repo
 		owner = hostConfig.User
-		name = repoName
 	} else if len(words) == 2 {
 		// gh remote add jingweno foo/bar
 		if idx := args.IndexOfParam(words[1]); idx != -1 {

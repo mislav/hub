@@ -294,3 +294,68 @@ MARKDOWN
       """
       Attaching release asset `hello-1.2.0.tar.gz'...\n
       """
+
+    Scenario: Download a release asset.
+      Given the GitHub API server:
+        """
+        get('/repos/mislav/will_paginate/releases') {
+          json [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+              upload_url: 'https://api.github.com/uploads/assets{?name,label}',
+              tag_name: 'v1.2.0',
+              name: 'will_paginate 1.2.0',
+              draft: true,
+              prerelease: false,
+              assets: [
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-1.2.0.tar.gz',
+                },
+              ],
+            },
+          ]
+        }
+        get('/repos/mislav/will_paginate/assets/9876') {
+          halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+          halt 415 unless request.accept?('application/octet-stream')
+          status 302
+          headers['Location'] = 'https://github-cloud.s3.amazonaws.com/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz'
+          ""
+        }
+        get('/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz', :host_name => 'github-cloud.s3.amazonaws.com') {
+          halt 400 unless request.env['HTTP_AUTHORIZATION'].nil?
+          halt 415 unless request.accept?('application/octet-stream')
+          headers['Content-Type'] = 'application/octet-stream'
+          "ASSET_TARBALL"
+        }
+        """
+        When I successfully run `hub release download v1.2.0`
+        Then the output should contain exactly:
+          """
+          Downloading hello-1.2.0.tar.gz ...\n
+          """
+        And the file "hello-1.2.0.tar.gz" should contain exactly:
+          """
+          ASSET_TARBALL
+          """
+
+  Scenario: Enterprise list releases
+    Given the "origin" remote has url "git@git.my.org:mislav/will_paginate.git"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    Given the GitHub API server:
+      """
+      get('/api/v3/repos/mislav/will_paginate/releases', :host_name => 'git.my.org') {
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: false,
+            prerelease: false,
+          },
+        ]
+      }
+      """
+    When I successfully run `hub release`
+    Then the output should contain exactly:
+      """
+      v1.2.0\n
+      """

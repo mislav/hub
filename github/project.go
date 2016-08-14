@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -103,7 +104,7 @@ func preferredProtocol() string {
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	if !knownGitHubHosts().Include(url.Host) {
+	if !knownGitHubHostsInclude(url.Host) {
 		err = &GithubHostError{url}
 		return
 	}
@@ -166,14 +167,15 @@ func newProject(owner, name, host, protocol string) *Project {
 		}
 	}
 
-	if name == "" {
-		name, _ = utils.DirName()
-	}
-
 	return &Project{
 		Name:     name,
 		Owner:    owner,
 		Host:     host,
 		Protocol: protocol,
 	}
+}
+
+func SanitizeProjectName(name string) string {
+	name = filepath.Base(name)
+	return strings.Replace(name, " ", "-", -1)
 }

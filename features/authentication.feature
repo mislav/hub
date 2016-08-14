@@ -288,7 +288,10 @@ Feature: OAuth authentication
       get('/api/v3/user', :host_name => 'git.my.org') {
         json :login => 'mislav'
       }
-      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     And "git.my.org" is a whitelisted Enterprise host
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
@@ -301,3 +304,31 @@ Feature: OAuth authentication
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
     And the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+
+  Scenario: Broken config is missing user.
+    Given a file named "../home/.config/hub" with:
+      """
+      github.com:
+      - oauth_token: OTOKEN
+        protocol: https
+      """
+    And the "origin" remote has url "git://github.com/mislav/coral.git"
+    When I run `hub browse -u` interactively
+    And I type "pcorpet"
+    Then the output should contain "github.com username:"
+    And the file "../home/.config/hub" should contain "- user: pcorpet"
+    And the file "../home/.config/hub" should contain "  oauth_token: OTOKEN"
+
+  Scenario: Broken config is missing user and interactive input is empty.
+    Given a file named "../home/.config/hub" with:
+      """
+      github.com:
+      - oauth_token: OTOKEN
+        protocol: https
+      """
+    And the "origin" remote has url "git://github.com/mislav/coral.git"
+    When I run `hub browse -u` interactively
+    And I type ""
+    Then the output should contain "github.com username:"
+    And the output should contain "missing user"
+    And the file "../home/.config/hub" should not contain "user"
