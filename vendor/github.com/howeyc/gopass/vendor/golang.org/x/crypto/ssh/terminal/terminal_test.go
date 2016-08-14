@@ -6,6 +6,7 @@ package terminal
 
 import (
 	"io"
+	"os"
 	"testing"
 )
 
@@ -239,5 +240,52 @@ func TestPasswordNotSaved(t *testing.T) {
 	line, _ := ss.ReadLine()
 	if len(line) > 0 {
 		t.Fatalf("password was saved in history")
+	}
+}
+
+var setSizeTests = []struct {
+	width, height int
+}{
+	{40, 13},
+	{80, 24},
+	{132, 43},
+}
+
+func TestTerminalSetSize(t *testing.T) {
+	for _, setSize := range setSizeTests {
+		c := &MockTerminal{
+			toSend:       []byte("password\r\x1b[A\r"),
+			bytesPerRead: 1,
+		}
+		ss := NewTerminal(c, "> ")
+		ss.SetSize(setSize.width, setSize.height)
+		pw, _ := ss.ReadPassword("Password: ")
+		if pw != "password" {
+			t.Fatalf("failed to read password, got %s", pw)
+		}
+		if string(c.received) != "Password: \r\n" {
+			t.Errorf("failed to set the temporary prompt expected %q, got %q", "Password: ", c.received)
+		}
+	}
+}
+
+func TestMakeRawState(t *testing.T) {
+	fd := int(os.Stdout.Fd())
+	if !IsTerminal(fd) {
+		t.Skip("stdout is not a terminal; skipping test")
+	}
+
+	st, err := GetState(fd)
+	if err != nil {
+		t.Fatalf("failed to get terminal state from GetState: %s", err)
+	}
+	defer Restore(fd, st)
+	raw, err := MakeRaw(fd)
+	if err != nil {
+		t.Fatalf("failed to get terminal state from MakeRaw: %s", err)
+	}
+
+	if *st != *raw {
+		t.Errorf("states do not match; was %v, expected %v", raw, st)
 	}
 }

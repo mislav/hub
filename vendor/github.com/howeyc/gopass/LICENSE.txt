@@ -1,3 +1,5 @@
+ISC License
+
 Copyright (c) 2012 Chris Howey
 
 Permission to use, copy, modify, and distribute this software for any
