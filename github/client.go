@@ -94,8 +94,9 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 }
 
 type PullRequest struct {
+	ApiUrl  string `json:"url"`
 	Number  int    `json:"number"`
-	HTMLURL string `json:"html_url"`
+	HtmlUrl string `json:"html_url"`
 }
 
 func (client *Client) CreatePullRequest(project *Project, params map[string]interface{}) (pr *PullRequest, err error) {
@@ -441,11 +442,6 @@ type IssueLabel struct {
 
 type User struct {
 	Login string `json:"login"`
-}
-
-type PullRequest struct {
-	ApiUrl  string `json:"url"`
-	HtmlUrl string `json:"html_url"`
 }
 
 func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}) (issues []Issue, err error) {

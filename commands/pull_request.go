@@ -231,7 +231,7 @@ func pullRequest(cmd *Command, args *Args) {
 
 		utils.Check(err)
 
-		pullRequestURL = pr.HTMLURL
+		pullRequestURL = pr.HtmlUrl
 
 		if flagPullRequestAssignee != "" || flagPullRequestMilestone > 0 ||
 			flagPullRequestLabels != "" {
