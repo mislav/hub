@@ -9,6 +9,12 @@ Feature: hub fetch
     Then the git command should be unchanged
     And there should be no output
 
+  Scenario: Fetch existing remote from non-GitHub source
+    Given the "origin" remote has url "ssh://dev@codeserver.dev.xxx.drush.in/~/repository.git"
+    When I successfully run `hub fetch origin`
+    Then the git command should be unchanged
+    And there should be no output
+
   Scenario: Fetch from local bundle
     Given the GitHub API server:
       """
