@@ -85,7 +85,7 @@ func init() {
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
 
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
-	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "ASSIGNEE")
+	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
 	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%ih%Creset  %t%  l%n", "FORMAT")
 
 	cmdIssue.Use(cmdCreateIssue)
