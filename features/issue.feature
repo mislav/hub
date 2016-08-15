@@ -73,6 +73,18 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
+  Scenario: Create an issue and open in browser
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub issue create -o -m hello`
+    Then the output should contain exactly ""
+    Then "open the://url" should be run
+
   Scenario: Create an issue with labels
     Given the GitHub API server:
       """

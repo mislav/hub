@@ -17,7 +17,7 @@ var (
 		Run: listIssues,
 		Usage: `
 issue [-a <ASSIGNEE>] [-s <STATE>] [-f <FORMAT>]
-issue create [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -68,6 +68,9 @@ With no arguments, show a list of open issues.
 	-F, --file <FILE>
 		Read the issue title and description from <FILE>.
 
+	-o, --browse
+		Open the new issue in a web browser.
+
 	-M, --milestone <ID>
 		Add this pull request to a GitHub milestone with id <ID>.
 
@@ -79,7 +82,7 @@ With no arguments, show a list of open issues.
 	cmdCreateIssue = &Command{
 		Key:   "create",
 		Run:   createIssue,
-		Usage: "issue create [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]",
+		Usage: "issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]",
 		Long:  "Open an issue in the current project.",
 	}
 
@@ -88,6 +91,8 @@ With no arguments, show a list of open issues.
 	flagIssueFormat,
 	flagIssueMessage,
 	flagIssueFile string
+
+	flagIssueBrowse bool
 
 	flagIssueMilestone uint64
 
@@ -101,6 +106,7 @@ func init() {
 	cmdCreateIssue.Flag.Uint64VarP(&flagIssueMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
 	cmdCreateIssue.Flag.VarP(&flagIssueAssignees, "assign", "a", "ASSIGNEE")
+	cmdCreateIssue.Flag.BoolVarP(&flagIssueBrowse, "browse", "o", false, "BROWSE")
 
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
@@ -255,6 +261,7 @@ func createIssue(cmd *Command, args *Args) {
 
 	if args.Noop {
 		ui.Printf("Would create issue `%s' for %s\n", params["title"], project)
+		os.Exit(0)
 	} else {
 		issue, err := gh.CreateIssue(project, params)
 		utils.Check(err)
@@ -263,8 +270,14 @@ func createIssue(cmd *Command, args *Args) {
 			editor.DeleteFile()
 		}
 
-		ui.Println(issue.HtmlUrl)
+		if flagIssueBrowse {
+			launcher, err := utils.BrowserLauncher()
+			utils.Check(err)
+			args.Replace(launcher[0], "", launcher[1:]...)
+			args.AppendParams(issue.HtmlUrl)
+		} else {
+			ui.Println(issue.HtmlUrl)
+			os.Exit(0)
+		}
 	}
-
-	os.Exit(0)
 }
