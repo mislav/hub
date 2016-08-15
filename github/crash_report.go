@@ -69,10 +69,10 @@ func report(reportedError error, stack string) {
 
 	gh := NewClient(project.Host)
 
-	params := &IssueParams{
-		Title:  title,
-		Body:   body,
-		Labels: []string{"Crash Report"},
+	params := map[string]interface{}{
+		"title":  title,
+		"body":   body,
+		"labels": []string{"Crash Report"},
 	}
 
 	issue, err := gh.CreateIssue(project, params)

@@ -417,12 +417,6 @@ func (client *Client) ForkRepository(project *Project) (repo *Repository, err er
 	return
 }
 
-type IssueParams struct {
-	Title  string   `json:"title"`
-	Body   string   `json:"body"`
-	Labels []string `json:"labels"`
-}
-
 type Issue struct {
 	Number      int          `json:"number"`
 	State       string       `json:"state"`
@@ -472,13 +466,13 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 	return
 }
 
-func (client *Client) CreateIssue(project *Project, issueParams *IssueParams) (issue *Issue, err error) {
+func (client *Client) CreateIssue(project *Project, params interface{}) (issue *Issue, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/issues", project.Owner, project.Name), issueParams)
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/issues", project.Owner, project.Name), params)
 	if err = checkStatus(201, "creating issue", res, err); err != nil {
 		return
 	}

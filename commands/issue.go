@@ -224,14 +224,14 @@ func createIssue(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("Aborting creation due to empty issue title"))
 	}
 
-	params := &github.IssueParams{
-		Title:  title,
-		Body:   body,
-		Labels: flagIssueLabels,
+	params := map[string]interface{}{
+		"title":  title,
+		"body":   body,
+		"labels": flagIssueLabels,
 	}
 
 	if args.Noop {
-		ui.Printf("Would create issue `%s' for %s\n", params.Title, project)
+		ui.Printf("Would create issue `%s' for %s\n", params["title"], project)
 	} else {
 		issue, err := gh.CreateIssue(project, params)
 		utils.Check(err)
