@@ -65,12 +65,15 @@ var (
 	flagPullRequestHead,
 	flagPullRequestIssue,
 	flagPullRequestMessage,
-	flagPullRequestAssignee,
-	flagPullRequestLabels,
 	flagPullRequestFile string
+
 	flagPullRequestBrowse,
 	flagPullRequestForce bool
+
 	flagPullRequestMilestone uint64
+
+	flagPullRequestAssignees,
+	flagPullRequestLabels listFlag
 )
 
 func init() {
@@ -81,9 +84,9 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
+	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
 	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestLabels, "labels", "l", "", "LABELS")
+	cmdPullRequest.Flag.VarP(&flagPullRequestLabels, "labels", "l", "LABELS")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -233,32 +236,15 @@ func pullRequest(cmd *Command, args *Args) {
 
 		pullRequestURL = pr.HtmlUrl
 
-		if flagPullRequestAssignee != "" || flagPullRequestMilestone > 0 ||
-			flagPullRequestLabels != "" {
+		if len(flagPullRequestAssignees) > 0 || flagPullRequestMilestone > 0 ||
+			len(flagPullRequestLabels) > 0 {
 
-			assignees := []string{}
-			for _, assignee := range strings.Split(flagPullRequestAssignee, ",") {
-				if assignee != "" {
-					assignees = append(assignees, assignee)
-				}
-			}
-
-			labels := []string{}
-			for _, label := range strings.Split(flagPullRequestLabels, ",") {
-				if label != "" {
-					labels = append(labels, label)
-				}
-			}
-
-			params := map[string]interface{}{}
-			if len(assignees) > 0 {
-				params["assignees"] = assignees
+			params := map[string]interface{}{
+				"labels":    flagPullRequestLabels,
+				"assignees": flagPullRequestAssignees,
 			}
 			if flagPullRequestMilestone > 0 {
 				params["milestone"] = flagPullRequestMilestone
-			}
-			if len(labels) > 0 {
-				params["labels"] = labels
 			}
 
 			err = client.UpdateIssue(baseProject, pr.Number, params)
