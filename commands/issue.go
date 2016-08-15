@@ -17,13 +17,23 @@ var (
 		Run: listIssues,
 		Usage: `
 issue [-a <ASSIGNEE>] [-s <STATE>] [-f <FORMAT>]
-issue create [-m <MESSAGE>|-F <FILE>] [-l <LABELS>]
+issue create [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
+
+## Commands:
+
+With no arguments, show a list of open issues.
+
+	* _create_:
+		Open an issue in the current project.
 
 ## Options:
 	-a, --assignee <ASSIGNEE>
 		Display only issues assigned to <ASSIGNEE>.
+
+		When opening an issue, this can be a comma-separated list of people to
+		assign to the new issue.
 
 	-s, --state <STATE>
 		Display issues with state <STATE> (default: "open").
@@ -58,6 +68,9 @@ issue create [-m <MESSAGE>|-F <FILE>] [-l <LABELS>]
 	-F, --file <FILE>
 		Read the issue title and description from <FILE>.
 
+	-M, --milestone <ID>
+		Add this pull request to a GitHub milestone with id <ID>.
+
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this issue.
 `,
@@ -66,8 +79,8 @@ issue create [-m <MESSAGE>|-F <FILE>] [-l <LABELS>]
 	cmdCreateIssue = &Command{
 		Key:   "create",
 		Run:   createIssue,
-		Usage: "issue create [-m <MESSAGE>|-f <FILE>] [-l <LABELS>]",
-		Long:  "File an issue for the current GitHub project.",
+		Usage: "issue create [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]",
+		Long:  "Open an issue in the current project.",
 	}
 
 	flagIssueAssignee,
@@ -76,13 +89,18 @@ issue create [-m <MESSAGE>|-F <FILE>] [-l <LABELS>]
 	flagIssueMessage,
 	flagIssueFile string
 
+	flagIssueMilestone uint64
+
+	flagIssueAssignees,
 	flagIssueLabels listFlag
 )
 
 func init() {
 	cmdCreateIssue.Flag.StringVarP(&flagIssueMessage, "message", "m", "", "MESSAGE")
 	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "F", "", "FILE")
+	cmdCreateIssue.Flag.Uint64VarP(&flagIssueMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
+	cmdCreateIssue.Flag.VarP(&flagIssueAssignees, "assign", "a", "ASSIGNEE")
 
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
@@ -225,9 +243,14 @@ func createIssue(cmd *Command, args *Args) {
 	}
 
 	params := map[string]interface{}{
-		"title":  title,
-		"body":   body,
-		"labels": flagIssueLabels,
+		"title":     title,
+		"body":      body,
+		"labels":    flagIssueLabels,
+		"assignees": flagIssueAssignees,
+	}
+
+	if flagIssueMilestone > 0 {
+		params["milestone"] = flagIssueMilestone
 	}
 
 	if args.Noop {

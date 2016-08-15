@@ -79,13 +79,35 @@ Feature: hub issue
       post('/repos/github/hub/issues') {
         assert :title => "hello",
                :body => "",
-               :labels => ["wont fix", "docs"]
+               :milestone => nil,
+               :assignees => nil,
+               :labels => ["wont fix", "docs", "nope"]
 
         status 201
         json :html_url => "https://github.com/github/hub/issues/1337"
       }
       """
-    When I successfully run `hub issue create -m "hello" -l "wont fix,docs"`
+    When I successfully run `hub issue create -m "hello" -l "wont fix,docs" -lnope`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Create an issue with milestone and assignees
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        assert :title => "hello",
+               :body => "",
+               :milestone => 12,
+               :assignees => ["mislav", "josh", "pcorpet"],
+               :labels => nil
+
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create -m "hello" -M 12 -a mislav,josh -apcorpet`
     Then the output should contain exactly:
       """
       https://github.com/github/hub/issues/1337\n
