@@ -423,10 +423,12 @@ type Issue struct {
 	Title       string       `json:"title"`
 	Body        string       `json:"body"`
 	User        *User        `json:"user"`
-	Assignee    *User        `json:"assignee"`
+	Assignees   []User       `json:"assignee"`
 	Labels      []IssueLabel `json:"labels"`
 	PullRequest *PullRequest `json:"pull_request"`
 	HtmlUrl     string       `json:"html_url"`
+	Comments    int          `json:"comments"`
+	Milestone   *Milestone   `json:"milestone"`
 }
 
 type IssueLabel struct {
@@ -436,6 +438,11 @@ type IssueLabel struct {
 
 type User struct {
 	Login string `json:"login"`
+}
+
+type Milestone struct {
+	Number int    `json:"number"`
+	Title  string `json:"title"`
 }
 
 func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}) (issues []Issue, err error) {

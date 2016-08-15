@@ -23,17 +23,17 @@ func testFormatIssue(t *testing.T, tests []formatIssueTest) {
 }
 
 func TestFormatIssue(t *testing.T) {
-	format := "%sC%>(8)%ih%Creset  %t%  l%n"
+	format := "%sC%>(8)%i%Creset  %t%  l%n"
 	testFormatIssue(t, []formatIssueTest{
 		{
 			name: "standard usage",
 			issue: github.Issue{
-				Number:   42,
-				Title:    "Just an Issue",
-				State:    "open",
-				User:     &github.User{Login: "pcorpet"},
-				Body:     "Body of the\nissue",
-				Assignee: &github.User{Login: "mislav"},
+				Number:    42,
+				Title:     "Just an Issue",
+				State:     "open",
+				User:      &github.User{Login: "pcorpet"},
+				Body:      "Body of the\nissue",
+				Assignees: []github.User{{Login: "mislav"}},
 			},
 			format:   format,
 			colorize: true,
@@ -45,6 +45,7 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "Just an Issue",
 				State:  "closed",
+				User:   &github.User{Login: "octocat"},
 			},
 			format:   format,
 			colorize: true,
@@ -56,6 +57,7 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "An issue with labels",
 				State:  "open",
+				User:   &github.User{Login: "octocat"},
 				Labels: []github.IssueLabel{
 					{Name: "bug", Color: "800000"},
 					{Name: "reproduced", Color: "55ff55"},
@@ -71,6 +73,7 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "Just an Issue",
 				State:  "open",
+				User:   &github.User{Login: "octocat"},
 			},
 			format:   format,
 			colorize: false,
@@ -82,6 +85,7 @@ func TestFormatIssue(t *testing.T) {
 				Number: 42,
 				Title:  "An issue with labels",
 				State:  "open",
+				User:   &github.User{Login: "octocat"},
 				Labels: []github.IssueLabel{
 					{Name: "bug", Color: "880000"},
 					{Name: "reproduced", Color: "55ff55"},
@@ -96,14 +100,24 @@ func TestFormatIssue(t *testing.T) {
 
 func TestFormatIssue_customFormatString(t *testing.T) {
 	issue := github.Issue{
-		Number:   42,
-		Title:    "Just an Issue",
-		State:    "open",
-		User:     &github.User{Login: "pcorpet"},
-		Body:     "Body of the\nissue",
-		Assignee: &github.User{Login: "mislav"},
+		Number: 42,
+		Title:  "Just an Issue",
+		State:  "open",
+		User:   &github.User{Login: "pcorpet"},
+		Body:   "Body of the\nissue",
+		Assignees: []github.User{
+			{Login: "mislav"},
+			{Login: "josh"},
+		},
 		Labels: []github.IssueLabel{
 			{Name: "bug", Color: "880000"},
+			{Name: "feature", Color: "008800"},
+		},
+		HtmlUrl:  "the://url",
+		Comments: 12,
+		Milestone: &github.Milestone{
+			Number: 31,
+			Title:  "2.2-stable",
 		},
 	}
 
@@ -111,21 +125,21 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 		{
 			name:     "number",
 			issue:    issue,
-			format:   "%in",
+			format:   "%I",
 			colorize: true,
 			expect:   "42",
 		},
 		{
 			name:     "hashed number",
 			issue:    issue,
-			format:   "%ih",
+			format:   "%i",
 			colorize: true,
 			expect:   "#42",
 		},
 		{
 			name:     "state as text",
 			issue:    issue,
-			format:   "%st",
+			format:   "%S",
 			colorize: true,
 			expect:   "open",
 		},
@@ -155,14 +169,21 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 			issue:    issue,
 			format:   "%l",
 			colorize: true,
-			expect:   "\033[38;5;15;48;2;136;0;0m bug \033[m",
+			expect:   "\033[38;5;15;48;2;136;0;0m bug \033[m \033[38;5;15;48;2;0;136;0m feature \033[m",
 		},
 		{
 			name:     "label not colorized",
 			issue:    issue,
 			format:   "%l",
 			colorize: false,
-			expect:   " bug ",
+			expect:   " bug   feature ",
+		},
+		{
+			name:     "raw labels",
+			issue:    issue,
+			format:   "%L",
+			colorize: true,
+			expect:   "bug, feature",
 		},
 		{
 			name:     "body",
@@ -174,16 +195,16 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 		{
 			name:     "user login",
 			issue:    issue,
-			format:   "%u",
+			format:   "%au",
 			colorize: true,
 			expect:   "pcorpet",
 		},
 		{
 			name:     "assignee login",
 			issue:    issue,
-			format:   "%a",
+			format:   "%as",
 			colorize: true,
-			expect:   "mislav",
+			expect:   "mislav, josh",
 		},
 		{
 			name: "assignee login but not assigned",
@@ -191,9 +212,44 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 				State: "open",
 				User:  &github.User{Login: "pcorpet"},
 			},
-			format:   "%a",
+			format:   "%as",
 			colorize: true,
 			expect:   "",
+		},
+		{
+			name:     "milestone number",
+			issue:    issue,
+			format:   "%Mn",
+			colorize: true,
+			expect:   "31",
+		},
+		{
+			name:     "milestone title",
+			issue:    issue,
+			format:   "%Mt",
+			colorize: true,
+			expect:   "2.2-stable",
+		},
+		{
+			name:     "comments number",
+			issue:    issue,
+			format:   "%Nc",
+			colorize: true,
+			expect:   "(12)",
+		},
+		{
+			name:     "raw comments number",
+			issue:    issue,
+			format:   "%NC",
+			colorize: true,
+			expect:   "12",
+		},
+		{
+			name:     "issue URL",
+			issue:    issue,
+			format:   "%U",
+			colorize: true,
+			expect:   "the://url",
 		},
 	})
 }

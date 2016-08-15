@@ -13,10 +13,12 @@ Feature: hub issue
         { :number => 102,
           :title => "First issue",
           :state => "open",
+          :user => { :login => "octocat" },
         },
         { :number => 13,
           :title => "Second issue",
           :state => "open",
+          :user => { :login => "octocat" },
         },
       ]
     }
@@ -47,7 +49,7 @@ Feature: hub issue
       ]
     }
     """
-    When I run `hub issue -f "%in,%u%n" -a Cornwe19`
+    When I run `hub issue -f "%I,%au%n" -a Cornwe19`
     Then the output should contain exactly:
       """
       102,lascap

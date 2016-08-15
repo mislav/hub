@@ -40,27 +40,39 @@ With no arguments, show a list of open issues.
 
 	-f, --format <FORMAT>
 		Pretty print the contents of the issues using format <FORMAT> (default:
-		"%sC%>(8)%ih%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
+		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
 		git-log manual for some additional details on how placeholders are used in
 		format. The available placeholders for issues are:
 
-			· %in: the number of the issue.
+			· %I: issue number
 
-			· %ih: the number of the issue prefixed with #.
+			· %i: issue number prefixed with "#"
 
-			· %st: the state of the issue as a text (i.e. "open", "closed").
+			· %U: the URL of this issue
 
-			· %sC: switch color to red if issue is closed or green if issue is open.
+			· %S: state (i.e. "open", "closed")
 
-			· %t: the title of the issue.
+			· %sC: set color to red or green, depending on issue state.
 
-			· %l: the colored labels of the issue.
+			· %t: title
 
-			· %b: the body of the issue.
+			· %l: colored labels
 
-			· %u: the login of the user that opened the issue.
+			· %L: raw, comma-separated labels
 
-			· %a: the login of the user that the issue is assigned to.
+			· %b: body
+
+			· %au: login name of author
+
+			· %as: comma-separated list of assignees
+
+			· %Mn: milestone number
+
+			· %Mt: milestone title
+
+			· %NC: number of comments
+
+			· %Nc: number of comments wrapped in parentheses, or blank string if zero.
 
 	-m, --message <MESSAGE>
 		Use the first line of <MESSAGE> as issue title, and the rest as issue description.
@@ -110,7 +122,7 @@ func init() {
 
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
-	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%ih%Creset  %t%  l%n", "FORMAT")
+	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -159,13 +171,6 @@ func listIssues(cmd *Command, args *Args) {
 	os.Exit(0)
 }
 
-func maybeUserLogin(u *github.User) string {
-	if u == nil {
-		return ""
-	}
-	return u.Login
-}
-
 func formatIssue(issue github.Issue, format string, colorize bool) string {
 	var stateColorSwitch string
 	if colorize {
@@ -177,6 +182,7 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 	}
 
 	var labelStrings []string
+	var rawLabels []string
 	for _, label := range issue.Labels {
 		if !colorize {
 			labelStrings = append(labelStrings, fmt.Sprintf(" %s ", label.Name))
@@ -193,18 +199,42 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		}
 
 		labelStrings = append(labelStrings, fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m", textColor, color.Red, color.Green, color.Blue, label.Name))
+		rawLabels = append(rawLabels, label.Name)
+	}
+
+	var assignees []string
+	for _, assignee := range issue.Assignees {
+		assignees = append(assignees, assignee.Login)
+	}
+
+	var milestoneNumber, milestoneTitle string
+	if issue.Milestone != nil {
+		milestoneNumber = fmt.Sprintf("%d", issue.Milestone.Number)
+		milestoneTitle = issue.Milestone.Title
+	}
+
+	var numCommentsWrapped string
+	numComments := fmt.Sprintf("%d", issue.Comments)
+	if issue.Comments > 0 {
+		numCommentsWrapped = fmt.Sprintf("(%d)", issue.Comments)
 	}
 
 	placeholders := map[string]string{
-		"in": fmt.Sprintf("%d", issue.Number),
-		"ih": fmt.Sprintf("#%d", issue.Number),
-		"st": issue.State,
+		"I":  fmt.Sprintf("%d", issue.Number),
+		"i":  fmt.Sprintf("#%d", issue.Number),
+		"U":  issue.HtmlUrl,
+		"S":  issue.State,
 		"sC": stateColorSwitch,
 		"t":  issue.Title,
 		"l":  strings.Join(labelStrings, " "),
+		"L":  strings.Join(rawLabels, ", "),
 		"b":  issue.Body,
-		"u":  maybeUserLogin(issue.User),
-		"a":  maybeUserLogin(issue.Assignee),
+		"au": issue.User.Login,
+		"as": strings.Join(assignees, ", "),
+		"Mn": milestoneNumber,
+		"Mt": milestoneTitle,
+		"NC": numComments,
+		"Nc": numCommentsWrapped,
 	}
 
 	return ui.Expand(format, placeholders, colorize)
