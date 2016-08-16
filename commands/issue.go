@@ -236,17 +236,19 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		numCommentsWrapped = fmt.Sprintf("(%d)", issue.Comments)
 	}
 
-	var createdDate, createdAtISO8601, createdAtUnix,
-		updatedDate, updatedAtISO8601, updatedAtUnix string
+	var createdDate, createdAtISO8601, createdAtUnix, createdAtRelative,
+		updatedDate, updatedAtISO8601, updatedAtUnix, updatedAtRelative string
 	if !issue.CreatedAt.IsZero() {
 		createdDate = issue.CreatedAt.Format("02 Jan 2006")
 		createdAtISO8601 = issue.CreatedAt.Format(time.RFC3339)
 		createdAtUnix = fmt.Sprintf("%d", issue.CreatedAt.Unix())
+		createdAtRelative = utils.TimeAgo(issue.CreatedAt)
 	}
 	if !issue.UpdatedAt.IsZero() {
 		updatedDate = issue.UpdatedAt.Format("02 Jan 2006")
 		updatedAtISO8601 = issue.UpdatedAt.Format(time.RFC3339)
 		updatedAtUnix = fmt.Sprintf("%d", issue.UpdatedAt.Unix())
+		updatedAtRelative = utils.TimeAgo(issue.UpdatedAt)
 	}
 
 	placeholders := map[string]string{
@@ -268,9 +270,11 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		"cD": createdDate,
 		"cI": createdAtISO8601,
 		"ct": createdAtUnix,
+		"cr": createdAtRelative,
 		"uD": updatedDate,
 		"uI": updatedAtISO8601,
 		"ut": updatedAtUnix,
+		"ur": updatedAtRelative,
 	}
 
 	return ui.Expand(format, placeholders, colorize)

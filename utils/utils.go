@@ -2,12 +2,14 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/github/hub/ui"
 )
@@ -108,4 +110,41 @@ func NewColor(hex string) (*Color, error) {
 
 func (c *Color) Brightness() float32 {
 	return (0.299*float32(c.Red) + 0.587*float32(c.Green) + 0.114*float32(c.Blue)) / 255
+}
+
+func TimeAgo(t time.Time) string {
+	duration := time.Since(t)
+	minutes := duration.Minutes()
+	hours := duration.Hours()
+	days := hours / 24
+	months := days / 30
+	years := months / 12
+
+	var val int
+	var unit string
+
+	if minutes < 1 {
+		return "now"
+	} else if hours < 1 {
+		val = int(minutes)
+		unit = "minute"
+	} else if days < 1 {
+		val = int(hours)
+		unit = "hour"
+	} else if months < 1 {
+		val = int(days)
+		unit = "day"
+	} else if years < 1 {
+		val = int(months)
+		unit = "month"
+	} else {
+		val = int(years)
+		unit = "year"
+	}
+
+	var plural string
+	if val > 1 {
+		plural = "s"
+	}
+	return fmt.Sprintf("%d %s%s ago", val, unit, plural)
 }
