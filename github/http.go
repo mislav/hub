@@ -77,7 +77,7 @@ func (t *verboseTransport) dumpResponse(resp *http.Response) {
 }
 
 func (t *verboseTransport) dumpHeaders(header http.Header, indent string) {
-	dumpHeaders := []string{"Authorization", "X-GitHub-OTP", "Location"}
+	dumpHeaders := []string{"Authorization", "X-GitHub-OTP", "Location", "Link", "Accept"}
 	for _, h := range dumpHeaders {
 		v := header.Get(h)
 		if v != "" {
@@ -338,4 +338,15 @@ func (res *simpleResponse) ErrorInfo() (msg *errorInfo, err error) {
 	}
 
 	return
+}
+
+func (res *simpleResponse) Link(name string) string {
+	linkVal := res.Header.Get("Link")
+	re := regexp.MustCompile(`<([^>]+)>; rel="([^"]+)"`)
+	for _, match := range re.FindAllStringSubmatch(linkVal, -1) {
+		if match[2] == name {
+			return match[1]
+		}
+	}
+	return ""
 }

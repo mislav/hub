@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/github/hub/version"
 	"github.com/octokit/go-octokit/octokit"
@@ -94,8 +95,9 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 }
 
 type PullRequest struct {
+	ApiUrl  string `json:"url"`
 	Number  int    `json:"number"`
-	HTMLURL string `json:"html_url"`
+	HtmlUrl string `json:"html_url"`
 }
 
 func (client *Client) CreatePullRequest(project *Project, params map[string]interface{}) (pr *PullRequest, err error) {
@@ -416,50 +418,87 @@ func (client *Client) ForkRepository(project *Project) (repo *Repository, err er
 	return
 }
 
-func (client *Client) Issues(project *Project) (issues []octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+type Issue struct {
+	Number      int          `json:"number"`
+	State       string       `json:"state"`
+	Title       string       `json:"title"`
+	Body        string       `json:"body"`
+	User        *User        `json:"user"`
+	Assignees   []User       `json:"assignee"`
+	Labels      []IssueLabel `json:"labels"`
+	PullRequest *PullRequest `json:"pull_request"`
+	HtmlUrl     string       `json:"html_url"`
+	Comments    int          `json:"comments"`
+	Milestone   *Milestone   `json:"milestone"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+}
+
+type IssueLabel struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
+type User struct {
+	Login string `json:"login"`
+}
+
+type Milestone struct {
+	Number int    `json:"number"`
+	Title  string `json:"title"`
+}
+
+func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}) (issues []Issue, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting issues", err)
-		return
+	path := fmt.Sprintf("repos/%s/%s/issues?per_page=100", project.Owner, project.Name)
+	if filterParams != nil {
+		query := url.Values{}
+		for key, value := range filterParams {
+			switch v := value.(type) {
+			case string:
+				query.Add(key, v)
+			}
+		}
+		path += "&" + query.Encode()
 	}
 
-	issues, result := api.Issues(client.requestURL(url)).All()
-	if result.HasError() {
-		err = FormatError("getting issues", result.Err)
-		return
+	issues = []Issue{}
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching issues", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		issuesPage := []Issue{}
+		if err = res.Unmarshal(&issuesPage); err != nil {
+			return
+		}
+		issues = append(issues, issuesPage...)
 	}
 
 	return
 }
 
-func (client *Client) CreateIssue(project *Project, title, body string, labels []string) (issue *octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) CreateIssue(project *Project, params interface{}) (issue *Issue, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating issues", err)
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/issues", project.Owner, project.Name), params)
+	if err = checkStatus(201, "creating issue", res, err); err != nil {
 		return
 	}
 
-	params := octokit.IssueParams{
-		Title:  title,
-		Body:   body,
-		Labels: labels,
-	}
-	issue, result := api.Issues(client.requestURL(url)).Create(params)
-	if result.HasError() {
-		err = FormatError("creating issue", result.Err)
-		return
-	}
-
+	issue = &Issue{}
+	err = res.Unmarshal(issue)
 	return
 }
 

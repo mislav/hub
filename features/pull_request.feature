@@ -636,11 +636,11 @@ Feature: hub pull-request
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :assignees => ["mislav", "josh"], :labels => nil
+        assert :assignees => ["mislav", "josh", "pcorpet"], :labels => nil
         json :html_url => "the://url"
       }
       """
-    When I successfully run `hub pull-request -m hereyougo -a mislav,josh`
+    When I successfully run `hub pull-request -m hereyougo -a mislav,josh -apcorpet`
     Then the output should contain exactly "the://url\n"
 
   Scenario: Pull request with milestone
@@ -670,11 +670,11 @@ Feature: hub pull-request
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :labels => ["feature", "release"]
+        assert :labels => ["feature", "release", "docs"]
         json :html_url => "the://url"
       }
       """
-    When I successfully run `hub pull-request -m hereyougo -l feature,release`
+    When I successfully run `hub pull-request -m hereyougo -l feature,release -ldocs`
     Then the output should contain exactly "the://url\n"
 
   Scenario: Pull request to a fetch-only upstream
