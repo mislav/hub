@@ -156,6 +156,7 @@ Feature: hub create
       """
       > GET https://api.github.com/repos/mislav/dotfiles
       > Authorization: token [REDACTED]
+      > Accept: application/vnd.github.v3+json;charset=utf-8
       < HTTP 404
       """
     And the stderr should contain:
