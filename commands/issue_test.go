@@ -100,11 +100,11 @@ func TestFormatIssue(t *testing.T) {
 }
 
 func TestFormatIssue_customFormatString(t *testing.T) {
-	createdAt, err := time.Parse(time.RFC822, "16 Mar 15 12:34 UTC")
+	createdAt, err := time.Parse(time.RFC822Z, "16 Mar 15 12:34 +0000")
 	if err != nil {
 		t.Fatal(err)
 	}
-	updatedAt, err := time.Parse(time.RFC822, "17 Mar 15 12:34 CEST")
+	updatedAt, err := time.Parse(time.RFC822Z, "17 Mar 15 12:34 +0900")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -296,14 +296,14 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 			issue:    issue,
 			format:   "%uI",
 			colorize: true,
-			expect:   "2015-03-17T11:34:00+01:00",
+			expect:   "2015-03-17T12:34:00+09:00",
 		},
 		{
 			name:     "updated time Unix",
 			issue:    issue,
 			format:   "%ut",
 			colorize: true,
-			expect:   "1426588440",
+			expect:   "1426563240",
 		},
 	})
 }
