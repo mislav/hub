@@ -454,7 +454,7 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 		return
 	}
 
-	path := fmt.Sprintf("repos/%s/%s/issues", project.Owner, project.Name)
+	path := fmt.Sprintf("repos/%s/%s/issues?per_page=100", project.Owner, project.Name)
 	if filterParams != nil {
 		query := url.Values{}
 		for key, value := range filterParams {
@@ -463,16 +463,26 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 				query.Add(key, v)
 			}
 		}
-		path += "?" + query.Encode()
-	}
-
-	res, err := api.Get(path)
-	if err = checkStatus(200, "fetching issues", res, err); err != nil {
-		return
+		path += "&" + query.Encode()
 	}
 
 	issues = []Issue{}
-	err = res.Unmarshal(&issues)
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching issues", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		issuesPage := []Issue{}
+		if err = res.Unmarshal(&issuesPage); err != nil {
+			return
+		}
+		issues = append(issues, issuesPage...)
+	}
+
 	return
 }
 

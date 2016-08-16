@@ -31,6 +31,60 @@ Feature: hub issue
       """
     And the exit status should be 0
 
+  Scenario: Fetch issues across multiple pages
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      assert :per_page => "100", :page => nil
+      response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=2>; rel="next")
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+        },
+      ]
+    }
+
+    get('/repositories/12345') {
+      assert :per_page => "100"
+      if params[:page] == "2"
+        response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=3>; rel="next")
+        json [
+          { :number => 13,
+            :title => "Second issue",
+            :state => "open",
+            :user => { :login => "octocat" },
+          },
+          { :number => 103,
+            :title => "Issue from 2nd page",
+            :state => "open",
+            :user => { :login => "octocat" },
+          },
+        ]
+      elsif params[:page] == "3"
+        json [
+          { :number => 21,
+            :title => "Even more issuez",
+            :state => "open",
+            :user => { :login => "octocat" },
+          },
+        ]
+      else
+        status 400
+      end
+    }
+    """
+    When I run `hub issue`
+    Then the output should contain exactly:
+      """
+          #102  First issue
+           #13  Second issue
+          #103  Issue from 2nd page
+           #21  Even more issuez\n
+      """
+    And the exit status should be 0
+
   Scenario: Custom format for issues list
     Given the GitHub API server:
     """
