@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/github/hub/version"
 	"github.com/octokit/go-octokit/octokit"
@@ -429,6 +430,8 @@ type Issue struct {
 	HtmlUrl     string       `json:"html_url"`
 	Comments    int          `json:"comments"`
 	Milestone   *Milestone   `json:"milestone"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
 }
 
 type IssueLabel struct {

@@ -2,6 +2,7 @@ package commands
 
 import (
 	"testing"
+	"time"
 
 	"github.com/github/hub/github"
 )
@@ -99,6 +100,15 @@ func TestFormatIssue(t *testing.T) {
 }
 
 func TestFormatIssue_customFormatString(t *testing.T) {
+	createdAt, err := time.Parse(time.RFC822, "16 Mar 15 12:34 UTC")
+	if err != nil {
+		t.Fatal(err)
+	}
+	updatedAt, err := time.Parse(time.RFC822, "17 Mar 15 12:34 CEST")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	issue := github.Issue{
 		Number: 42,
 		Title:  "Just an Issue",
@@ -119,6 +129,8 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 			Number: 31,
 			Title:  "2.2-stable",
 		},
+		CreatedAt: createdAt,
+		UpdatedAt: updatedAt,
 	}
 
 	testFormatIssue(t, []formatIssueTest{
@@ -250,6 +262,48 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 			format:   "%U",
 			colorize: true,
 			expect:   "the://url",
+		},
+		{
+			name:     "created date",
+			issue:    issue,
+			format:   "%cD",
+			colorize: true,
+			expect:   "16 Mar 2015",
+		},
+		{
+			name:     "created time ISO 8601",
+			issue:    issue,
+			format:   "%cI",
+			colorize: true,
+			expect:   "2015-03-16T12:34:00Z",
+		},
+		{
+			name:     "created time Unix",
+			issue:    issue,
+			format:   "%ct",
+			colorize: true,
+			expect:   "1426509240",
+		},
+		{
+			name:     "updated date",
+			issue:    issue,
+			format:   "%uD",
+			colorize: true,
+			expect:   "17 Mar 2015",
+		},
+		{
+			name:     "updated time ISO 8601",
+			issue:    issue,
+			format:   "%uI",
+			colorize: true,
+			expect:   "2015-03-17T11:34:00+01:00",
+		},
+		{
+			name:     "updated time Unix",
+			issue:    issue,
+			format:   "%ut",
+			colorize: true,
+			expect:   "1426588440",
 		},
 	})
 }

@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
@@ -73,6 +74,22 @@ With no arguments, show a list of open issues.
 			· %NC: number of comments
 
 			· %Nc: number of comments wrapped in parentheses, or blank string if zero.
+
+			· %cD: created date-only (no time of day)
+
+			· %cr: created date, relative
+
+			· %ct: created date, UNIX timestamp
+
+			· %cI: created date, ISO 8601 format
+
+			· %uD: updated date-only (no time of day)
+
+			· %ur: updated date, relative
+
+			· %ut: updated date, UNIX timestamp
+
+			· %uI: updated date, ISO 8601 format
 
 	-m, --message <MESSAGE>
 		Use the first line of <MESSAGE> as issue title, and the rest as issue description.
@@ -219,6 +236,19 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		numCommentsWrapped = fmt.Sprintf("(%d)", issue.Comments)
 	}
 
+	var createdDate, createdAtISO8601, createdAtUnix,
+		updatedDate, updatedAtISO8601, updatedAtUnix string
+	if !issue.CreatedAt.IsZero() {
+		createdDate = issue.CreatedAt.Format("02 Jan 2006")
+		createdAtISO8601 = issue.CreatedAt.Format(time.RFC3339)
+		createdAtUnix = fmt.Sprintf("%d", issue.CreatedAt.Unix())
+	}
+	if !issue.UpdatedAt.IsZero() {
+		updatedDate = issue.UpdatedAt.Format("02 Jan 2006")
+		updatedAtISO8601 = issue.UpdatedAt.Format(time.RFC3339)
+		updatedAtUnix = fmt.Sprintf("%d", issue.UpdatedAt.Unix())
+	}
+
 	placeholders := map[string]string{
 		"I":  fmt.Sprintf("%d", issue.Number),
 		"i":  fmt.Sprintf("#%d", issue.Number),
@@ -235,6 +265,12 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		"Mt": milestoneTitle,
 		"NC": numComments,
 		"Nc": numCommentsWrapped,
+		"cD": createdDate,
+		"cI": createdAtISO8601,
+		"ct": createdAtUnix,
+		"uD": updatedDate,
+		"uI": updatedAtISO8601,
+		"ut": updatedAtUnix,
 	}
 
 	return ui.Expand(format, placeholders, colorize)
