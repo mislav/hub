@@ -119,6 +119,28 @@ Feature: hub issue
       """
     And the exit status should be 0
 
+  Scenario: Fetch issues updated after a certain time
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      assert :since => "2016-08-18T09:11:32Z"
+
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+        },
+      ]
+    }
+    """
+    When I run `hub issue -t 2016-08-18T09:11:32Z`
+    Then the output should contain exactly:
+      """
+          #102  First issue\n
+      """
+    And the exit status should be 0
+
   Scenario: Fetch issues across multiple pages
     Given the GitHub API server:
     """

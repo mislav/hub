@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>]
+issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-t <TIME>]
 issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
@@ -115,6 +115,10 @@ With no arguments, show a list of open issues.
 		Display only issues with certain labels.
 
 		When opening an issue, add a comma-separated list of labels to this issue.
+
+	-t, --since <TIME>
+		Display only issues updated at or after a certain time. The time is a
+		timestamp in ISO-8601 format: YYYY-MM-DDTHH:MM:SSZ.
 `,
 	}
 
@@ -133,6 +137,7 @@ With no arguments, show a list of open issues.
 	flagIssueCreator,
 	flagIssueMentioned,
 	flagIssueLabelsFilter,
+	flagIssueSince,
 	flagIssueFile string
 
 	flagIssueBrowse bool
@@ -158,6 +163,7 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueCreator, "creator", "c", "", "CREATOR")
 	cmdIssue.Flag.StringVarP(&flagIssueMentioned, "mentioned", "@", "", "USER")
 	cmdIssue.Flag.StringVarP(&flagIssueLabelsFilter, "label", "l", "", "LABELS")
+	cmdIssue.Flag.StringVarP(&flagIssueSince, "since", "t", "", "TIME")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -181,6 +187,7 @@ func listIssues(cmd *Command, args *Args) {
 			"milestone": flagIssueMilestoneFilter,
 			"creator":   flagIssueCreator,
 			"mentioned": flagIssueMentioned,
+			"since":     flagIssueSince,
 		}
 		filters := map[string]interface{}{}
 		for flag, filter := range flagFilters {
