@@ -75,6 +75,28 @@ Feature: hub issue
       """
     And the exit status should be 0
 
+  Scenario: Fetch issues mentioning a given user
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      assert :mentioned => "octocat"
+
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+        },
+      ]
+    }
+    """
+    When I run `hub issue -@ octocat`
+    Then the output should contain exactly:
+      """
+          #102  First issue\n
+      """
+    And the exit status should be 0
+
   Scenario: Fetch issues across multiple pages
     Given the GitHub API server:
     """

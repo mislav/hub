@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-s <STATE>] [-f <FORMAT>]
+issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>]
 issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
@@ -125,6 +125,7 @@ With no arguments, show a list of open issues.
 	flagIssueMessage,
 	flagIssueMilestoneFilter,
 	flagIssueCreator,
+	flagIssueMentioned,
 	flagIssueFile string
 
 	flagIssueBrowse bool
@@ -148,6 +149,7 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
 	cmdIssue.Flag.StringVarP(&flagIssueMilestoneFilter, "milestone", "M", "", "MILESTONE")
 	cmdIssue.Flag.StringVarP(&flagIssueCreator, "creator", "c", "", "CREATOR")
+	cmdIssue.Flag.StringVarP(&flagIssueMentioned, "mentioned", "@", "", "USER")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -165,18 +167,18 @@ func listIssues(cmd *Command, args *Args) {
 	if args.Noop {
 		ui.Printf("Would request list of issues for %s\n", project)
 	} else {
+		flagFilters := map[string]string{
+			"state":     flagIssueState,
+			"assignee":  flagIssueAssignee,
+			"milestone": flagIssueMilestoneFilter,
+			"creator":   flagIssueCreator,
+			"mentioned": flagIssueMentioned,
+		}
 		filters := map[string]interface{}{}
-		if cmd.FlagPassed("state") {
-			filters["state"] = flagIssueState
-		}
-		if cmd.FlagPassed("assignee") {
-			filters["assignee"] = flagIssueAssignee
-		}
-		if cmd.FlagPassed("milestone") {
-			filters["milestone"] = flagIssueMilestoneFilter
-		}
-		if cmd.FlagPassed("creator") {
-			filters["creator"] = flagIssueCreator
+		for flag, filter := range flagFilters {
+			if cmd.FlagPassed(flag) {
+				filters[flag] = filter
+			}
 		}
 
 		issues, err := gh.FetchIssues(project, filters)
