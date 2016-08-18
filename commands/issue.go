@@ -47,7 +47,7 @@ With no arguments, show a list of open issues.
 
 	-f, --format <FORMAT>
 		Pretty print the contents of the issues using format <FORMAT> (default:
-		"%sC%>(8)%i%Creset	%t%	l%n"). See the "PRETTY FORMATS" section of the
+		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
 		git-log manual for some additional details on how placeholders are used in
 		format. The available placeholders for issues are:
 
@@ -196,7 +196,7 @@ func listIssues(cmd *Command, args *Args) {
 			}
 		}
 		// Unfortunately hub does not use the same flag ("label") than the GitHub
-		// API ("labels")
+		// API ("labels").
 		if cmd.FlagPassed("label") {
 			filters["labels"] = flagIssueLabelsFilter
 		}
