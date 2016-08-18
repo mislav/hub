@@ -31,7 +31,7 @@ Feature: hub issue
       """
     And the exit status should be 0
 
-  Scenario: Fetch issues for a given milestone
+  Scenario: Fetch issues not assigned to any milestone
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
@@ -43,19 +43,35 @@ Feature: hub issue
           :state => "open",
           :user => { :login => "octocat" },
         },
-        { :number => 13,
-          :title => "Second issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
       ]
     }
     """
     When I run `hub issue -M none`
     Then the output should contain exactly:
       """
-          #102  First issue
-           #13  Second issue\n
+          #102  First issue\n
+      """
+    And the exit status should be 0
+
+  Scenario: Fetch issues created by a given user
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      assert :creator => "octocat"
+
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+        },
+      ]
+    }
+    """
+    When I run `hub issue -c octocat`
+    Then the output should contain exactly:
+      """
+          #102  First issue\n
       """
     And the exit status should be 0
 

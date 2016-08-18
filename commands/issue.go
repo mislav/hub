@@ -33,6 +33,9 @@ With no arguments, show a list of open issues.
 	-a, --assignee <ASSIGNEE>
 		Display only issues assigned to <ASSIGNEE>.
 
+	-c, --creator <CREATOR>
+		Display only issues created by <CREATOR>.
+
 		When opening an issue, this can be a comma-separated list of people to
 		assign to the new issue.
 
@@ -121,6 +124,7 @@ With no arguments, show a list of open issues.
 	flagIssueFormat,
 	flagIssueMessage,
 	flagIssueMilestoneFilter,
+	flagIssueCreator,
 	flagIssueFile string
 
 	flagIssueBrowse bool
@@ -143,6 +147,7 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
 	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
 	cmdIssue.Flag.StringVarP(&flagIssueMilestoneFilter, "milestone", "M", "", "MILESTONE")
+	cmdIssue.Flag.StringVarP(&flagIssueCreator, "creator", "c", "", "CREATOR")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -169,6 +174,9 @@ func listIssues(cmd *Command, args *Args) {
 		}
 		if cmd.FlagPassed("milestone") {
 			filters["milestone"] = flagIssueMilestoneFilter
+		}
+		if cmd.FlagPassed("creator") {
+			filters["creator"] = flagIssueCreator
 		}
 
 		issues, err := gh.FetchIssues(project, filters)
