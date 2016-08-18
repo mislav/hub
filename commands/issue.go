@@ -101,7 +101,8 @@ With no arguments, show a list of open issues.
 		Open the new issue in a web browser.
 
 	-M, --milestone <ID>
-		Add this pull request to a GitHub milestone with id <ID>.
+		When listing, lists only issues for a GitHub milestone with id <ID>. When
+		creating, add this issue to a GitHub milestone with id <ID>.
 
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this issue.
@@ -119,6 +120,7 @@ With no arguments, show a list of open issues.
 	flagIssueState,
 	flagIssueFormat,
 	flagIssueMessage,
+	flagIssueMilestoneFilter,
 	flagIssueFile string
 
 	flagIssueBrowse bool
@@ -140,6 +142,7 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
 	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
+	cmdIssue.Flag.StringVarP(&flagIssueMilestoneFilter, "milestone", "M", "", "MILESTONE")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -163,6 +166,9 @@ func listIssues(cmd *Command, args *Args) {
 		}
 		if cmd.FlagPassed("assignee") {
 			filters["assignee"] = flagIssueAssignee
+		}
+		if cmd.FlagPassed("milestone") {
+			filters["milestone"] = flagIssueMilestoneFilter
 		}
 
 		issues, err := gh.FetchIssues(project, filters)
