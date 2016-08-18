@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>]
+issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>]
 issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
@@ -33,18 +33,21 @@ With no arguments, show a list of open issues.
 	-a, --assignee <ASSIGNEE>
 		Display only issues assigned to <ASSIGNEE>.
 
+		When opening an issue, this can be a comma-separated list of people to
+		assign to the new issue.
+
 	-c, --creator <CREATOR>
 		Display only issues created by <CREATOR>.
 
-		When opening an issue, this can be a comma-separated list of people to
-		assign to the new issue.
+	-@, --mentioned <USER>
+		Display only issues mentioning <USER>.
 
 	-s, --state <STATE>
 		Display issues with state <STATE> (default: "open").
 
 	-f, --format <FORMAT>
 		Pretty print the contents of the issues using format <FORMAT> (default:
-		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
+		"%sC%>(8)%i%Creset	%t%	l%n"). See the "PRETTY FORMATS" section of the
 		git-log manual for some additional details on how placeholders are used in
 		format. The available placeholders for issues are:
 
@@ -104,11 +107,14 @@ With no arguments, show a list of open issues.
 		Open the new issue in a web browser.
 
 	-M, --milestone <ID>
-		When listing, lists only issues for a GitHub milestone with id <ID>. When
-		creating, add this issue to a GitHub milestone with id <ID>.
+		Display only issues for a GitHub milestone with id <ID>.
+
+		When opening an issue, add this issue to a GitHub milestone with id <ID>.
 
 	-l, --labels <LABELS>
-		Add a comma-separated list of labels to this issue.
+		Display only issues with certain labels.
+
+		When opening an issue, add a comma-separated list of labels to this issue.
 `,
 	}
 
@@ -126,6 +132,7 @@ With no arguments, show a list of open issues.
 	flagIssueMilestoneFilter,
 	flagIssueCreator,
 	flagIssueMentioned,
+	flagIssueLabelsFilter,
 	flagIssueFile string
 
 	flagIssueBrowse bool
@@ -150,6 +157,7 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueMilestoneFilter, "milestone", "M", "", "MILESTONE")
 	cmdIssue.Flag.StringVarP(&flagIssueCreator, "creator", "c", "", "CREATOR")
 	cmdIssue.Flag.StringVarP(&flagIssueMentioned, "mentioned", "@", "", "USER")
+	cmdIssue.Flag.StringVarP(&flagIssueLabelsFilter, "label", "l", "", "LABELS")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -179,6 +187,11 @@ func listIssues(cmd *Command, args *Args) {
 			if cmd.FlagPassed(flag) {
 				filters[flag] = filter
 			}
+		}
+		// Unfortunately hub does not use the same flag ("label") than the GitHub
+		// API ("labels")
+		if cmd.FlagPassed("label") {
+			filters["labels"] = flagIssueLabelsFilter
 		}
 
 		issues, err := gh.FetchIssues(project, filters)
