@@ -23,8 +23,8 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll.git" should be run
-    And "git checkout -f --track -B mislav-fixes mislav/fixes -q" should be run
+    Then "git fetch git://github.com/mojombo/jekyll.git pull/77/head:mislav-fixes" should be run
+    And "git checkout -f mislav-fixes -q" should be run
 
   Scenario: Pull request from a renamed fork
     Given the GitHub API server:
@@ -41,8 +41,8 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
-    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll-blog.git" should be run
-    And "git checkout --track -B mislav-fixes mislav/fixes" should be run
+    Then "git fetch git://github.com/mojombo/jekyll.git pull/77/head:mislav-fixes" should be run
+    And "git checkout mislav-fixes" should be run
 
   Scenario: Custom name for new branch
     Given the GitHub API server:
@@ -59,8 +59,8 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 fixes-from-mislav`
-    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll.git" should be run
-    And "git checkout --track -B fixes-from-mislav mislav/fixes" should be run
+    Then "git fetch git://github.com/mojombo/jekyll.git pull/77/head:fixes-from-mislav" should be run
+    And "git checkout fixes-from-mislav" should be run
 
   Scenario: Private pull request
     Given the GitHub API server:
@@ -77,26 +77,8 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git remote add -f --no-tags -t fixes mislav git@github.com:mislav/jekyll.git" should be run
-    And "git checkout -f --track -B mislav-fixes mislav/fixes -q" should be run
-
-  Scenario: Custom name for new branch
-    Given the GitHub API server:
-      """
-      get('/repos/mojombo/jekyll/pulls/77') {
-        json :head => {
-          :ref => "fixes",
-          :repo => {
-            :owner => { :login => "mislav" },
-            :name => "jekyll",
-            :private => false
-          }
-        }
-      }
-      """
-    When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 fixes-from-mislav`
-    Then "git remote add -f --no-tags -t fixes mislav git://github.com/mislav/jekyll.git" should be run
-    And "git checkout --track -B fixes-from-mislav mislav/fixes" should be run
+    Then "git fetch git://github.com/mojombo/jekyll.git pull/77/head:mislav-fixes" should be run
+    And "git checkout -f mislav-fixes -q" should be run
 
   Scenario: Remote for user already exists
     Given the GitHub API server:

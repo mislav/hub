@@ -94,16 +94,20 @@ func transformCheckoutArgs(args *Args) error {
 
 	_, err = repo.RemoteByName(user)
 	if err == nil {
+		// The remote for the head of the PR is already tracked by the current git workdir.
 		args.Before("git", "remote", "set-branches", "--add", user, branch)
 		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
 		args.Before("git", "fetch", user, remoteURL)
-	} else {
-		u := url.Project.GitURL(headRepo.Name, user, headRepo.Private)
-		args.Before("git", "remote", "add", "-f", "--no-tags", "-t", branch, user, u)
-	}
 
-	remoteName := fmt.Sprintf("%s/%s", user, branch)
-	replaceCheckoutParam(args, checkoutURL, newBranchName, remoteName)
+		remoteName := fmt.Sprintf("%s/%s", user, branch)
+		replaceCheckoutParam(args, checkoutURL, "--track", "-B", newBranchName, remoteName)
+	} else {
+		// Let's fetch the head directly without adding a remote nor tracking.
+		branchMapping := fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+		args.Before("git", "fetch", url.GitURL("", "", false), branchMapping)
+
+		replaceCheckoutParam(args, checkoutURL, newBranchName)
+	}
 
 	return nil
 }
@@ -120,8 +124,8 @@ func sanitizeCheckoutFlags(args *Args) error {
 	return nil
 }
 
-func replaceCheckoutParam(args *Args, checkoutURL, branchName, remoteName string) {
+func replaceCheckoutParam(args *Args, checkoutURL string, replacement ...string) {
 	idx := args.IndexOfParam(checkoutURL)
 	args.RemoveParam(idx)
-	args.InsertParam(idx, "--track", "-B", branchName, remoteName)
+	args.InsertParam(idx, replacement...)
 }

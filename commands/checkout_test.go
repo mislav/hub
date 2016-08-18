@@ -9,7 +9,7 @@ import (
 func TestReplaceCheckoutParam(t *testing.T) {
 	checkoutURL := "https://github.com/github/hub/pull/12"
 	args := NewArgs([]string{"checkout", checkoutURL})
-	replaceCheckoutParam(args, checkoutURL, "jingweno", "origin/master")
+	replaceCheckoutParam(args, checkoutURL, "--track", "-B", "jingweno", "origin/master")
 
 	cmd := args.ToCmd()
 	assert.Equal(t, "git checkout --track -B jingweno origin/master", cmd.String())
