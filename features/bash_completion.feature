@@ -9,7 +9,7 @@ Feature: bash tab-completion
     When I type "git pu" and press <Tab>
     Then the command should not expand
     When I press <Tab> again
-    Then the completion menu should offer "pull pull-request push"
+    Then the completion menu should offer "pull pull-request pull-requests push"
 
   Scenario: "ci-" expands to "ci-status"
     When I type "git ci-" and press <Tab>

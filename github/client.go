@@ -52,6 +52,27 @@ type Client struct {
 	Host *Host
 }
 
+func (client *Client) PullRequests(project *Project) (pullRequests []octokit.PullRequest, err error) {
+	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+	if err != nil {
+		return
+	}
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting issues", err)
+		return
+	}
+
+	pullRequests, result := api.PullRequests(client.requestURL(url)).All()
+	if result.HasError() {
+		err = FormatError("getting issues", result.Err)
+		return
+	}
+
+	return
+}
+
+
 func (client *Client) PullRequest(project *Project, id string) (pr *octokit.PullRequest, err error) {
 	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
 	if err != nil {
@@ -157,6 +178,31 @@ func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
 	patch, result := api.Gists(client.requestURL(url)).Raw()
 	if result.HasError() {
 		err = FormatError("getting pull request", result.Err)
+		return
+	}
+
+	return
+}
+
+func (client *Client) OrgRepositories(owner string) (repos []octokit.Repository, err error) {
+	url, err := octokit.OrgRepositoriesURL.Expand(octokit.M{"org": owner})
+	if err != nil {
+		return
+	}
+
+	api, err := client.api()
+	if err != nil {
+		err = FormatError("getting repository", err)
+		return
+	}
+
+	// lets ensure we get up to 100 results
+	url.RawQuery = "per_page=100"
+
+	// TODO handle pagination!
+	repos, result := api.Repositories(client.requestURL(url)).All()
+	if result.HasError() {
+		err = FormatError("getting repository", result.Err)
 		return
 	}
 
