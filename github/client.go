@@ -424,7 +424,7 @@ type Issue struct {
 	Title       string       `json:"title"`
 	Body        string       `json:"body"`
 	User        *User        `json:"user"`
-	Assignees   []User       `json:"assignee"`
+	Assignees   []User       `json:"assignees"`
 	Labels      []IssueLabel `json:"labels"`
 	PullRequest *PullRequest `json:"pull_request"`
 	HtmlUrl     string       `json:"html_url"`

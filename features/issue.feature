@@ -89,6 +89,7 @@ Feature: hub issue
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
+      assert :assignee => 'Cornwe19'
       json [
         { :number => 102,
           :title => "First issue",
@@ -103,13 +104,44 @@ Feature: hub issue
       ]
     }
     """
-    When I run `hub issue -f "%I,%au%n" -a Cornwe19`
+    When I successfully run `hub issue -f "%I,%au%n" -a Cornwe19`
     Then the output should contain exactly:
       """
       102,lascap
       13,mislav\n
       """
-    And the exit status should be 0
+
+  Scenario: List all assignees
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+          :assignees => [
+            { :login => "mislav" },
+            { :login => "lascap" },
+          ]
+        },
+        { :number => 13,
+          :title => "Second issue",
+          :state => "closed",
+          :user => { :login => "octocat" },
+          :assignees => [
+            { :login => "keenahn" },
+          ]
+        },
+      ]
+    }
+    """
+    When I successfully run `hub issue -f "%I:%as%n"`
+    Then the output should contain exactly:
+      """
+      102:mislav, lascap
+      13:keenahn\n
+      """
 
   Scenario: Create an issue
     Given the GitHub API server:
