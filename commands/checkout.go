@@ -92,22 +92,18 @@ func transformCheckoutArgs(args *Args) error {
 	repo, err := github.LocalRepo()
 	utils.Check(err)
 
+	var remoteRepo string
+
 	_, err = repo.RemoteByName(user)
 	if err == nil {
-		// The remote for the head of the PR is already tracked by the current git workdir.
-		args.Before("git", "remote", "set-branches", "--add", user, branch)
-		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
-		args.Before("git", "fetch", user, remoteURL)
-
-		remoteName := fmt.Sprintf("%s/%s", user, branch)
-		replaceCheckoutParam(args, checkoutURL, "--track", "-B", newBranchName, remoteName)
+		remoteRepo = user
 	} else {
-		// Let's fetch the head directly without adding a remote nor tracking.
-		branchMapping := fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
-		args.Before("git", "fetch", url.GitURL("", "", false), branchMapping)
-
-		replaceCheckoutParam(args, checkoutURL, newBranchName)
+		remoteRepo = url.GitURL("", "", false)
 	}
+
+	branchMapping := fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+	args.Before("git", "fetch", remoteRepo, branchMapping)
+	replaceCheckoutParam(args, checkoutURL, newBranchName)
 
 	return nil
 }

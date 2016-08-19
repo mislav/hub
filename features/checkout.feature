@@ -96,6 +96,5 @@ Feature: hub checkout <PULLREQ-URL>
       """
     And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
-    Then "git remote set-branches --add mislav fixes" should be run
-    And "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
-    And "git checkout --track -B mislav-fixes mislav/fixes" should be run
+    Then "git fetch mislav pull/77/head:mislav-fixes" should be run
+    And "git checkout mislav-fixes" should be run
