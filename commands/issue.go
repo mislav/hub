@@ -116,9 +116,10 @@ With no arguments, show a list of open issues.
 
 		When opening an issue, add a comma-separated list of labels to this issue.
 
-	-t, --since <TIME>
-		Display only issues updated at or after a certain time. The time is a
-		timestamp in ISO-8601 format: YYYY-MM-DDTHH:MM:SSZ.
+	-d, --since <DATE>
+		Display only issues updated at or after a certain date. The date is a
+		timestamp in ISO-8601 format: YYYY-MM-DDTHH:MM:SSZ however the second part
+		(after T is optional).
 `,
 	}
 
@@ -162,8 +163,8 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueMilestoneFilter, "milestone", "M", "", "MILESTONE")
 	cmdIssue.Flag.StringVarP(&flagIssueCreator, "creator", "c", "", "CREATOR")
 	cmdIssue.Flag.StringVarP(&flagIssueMentioned, "mentioned", "@", "", "USER")
-	cmdIssue.Flag.StringVarP(&flagIssueLabelsFilter, "label", "l", "", "LABELS")
-	cmdIssue.Flag.StringVarP(&flagIssueSince, "since", "t", "", "TIME")
+	cmdIssue.Flag.StringVarP(&flagIssueLabelsFilter, "labels", "l", "", "LABELS")
+	cmdIssue.Flag.StringVarP(&flagIssueSince, "since", "d", "", "DATE")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -187,6 +188,7 @@ func listIssues(cmd *Command, args *Args) {
 			"milestone": flagIssueMilestoneFilter,
 			"creator":   flagIssueCreator,
 			"mentioned": flagIssueMentioned,
+      "labels":    flagIssueLabelsFilter,
 			"since":     flagIssueSince,
 		}
 		filters := map[string]interface{}{}
@@ -194,11 +196,6 @@ func listIssues(cmd *Command, args *Args) {
 			if cmd.FlagPassed(flag) {
 				filters[flag] = filter
 			}
-		}
-		// Unfortunately hub does not use the same flag ("label") than the GitHub
-		// API ("labels").
-		if cmd.FlagPassed("label") {
-			filters["labels"] = flagIssueLabelsFilter
 		}
 
 		issues, err := gh.FetchIssues(project, filters)

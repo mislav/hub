@@ -37,21 +37,11 @@ Feature: hub issue
     get('/repos/github/hub/issues') {
       assert :milestone => "none"
 
-      json [
-        { :number => 102,
-          :title => "First issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
-      ]
+      json []
     }
     """
     When I run `hub issue -M none`
-    Then the output should contain exactly:
-      """
-          #102  First issue\n
-      """
-    And the exit status should be 0
+    Then the exit status should be 0
 
   Scenario: Fetch issues created by a given user
     Given the GitHub API server:
@@ -59,21 +49,11 @@ Feature: hub issue
     get('/repos/github/hub/issues') {
       assert :creator => "octocat"
 
-      json [
-        { :number => 102,
-          :title => "First issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
-      ]
+      json []
     }
     """
     When I run `hub issue -c octocat`
-    Then the output should contain exactly:
-      """
-          #102  First issue\n
-      """
-    And the exit status should be 0
+    Then the exit status should be 0
 
   Scenario: Fetch issues mentioning a given user
     Given the GitHub API server:
@@ -81,21 +61,11 @@ Feature: hub issue
     get('/repos/github/hub/issues') {
       assert :mentioned => "octocat"
 
-      json [
-        { :number => 102,
-          :title => "First issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
-      ]
+      json []
     }
     """
     When I run `hub issue -@ octocat`
-    Then the output should contain exactly:
-      """
-          #102  First issue\n
-      """
-    And the exit status should be 0
+    Then the exit status should be 0
 
   Scenario: Fetch issues with certain labels
     Given the GitHub API server:
@@ -103,43 +73,23 @@ Feature: hub issue
     get('/repos/github/hub/issues') {
       assert :labels => "foo,bar"
 
-      json [
-        { :number => 102,
-          :title => "First issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
-      ]
+      json []
     }
     """
     When I run `hub issue -l foo,bar`
-    Then the output should contain exactly:
-      """
-          #102  First issue\n
-      """
-    And the exit status should be 0
+    Then the exit status should be 0
 
-  Scenario: Fetch issues updated after a certain time
+  Scenario: Fetch issues updated after a certain date and time
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
       assert :since => "2016-08-18T09:11:32Z"
 
-      json [
-        { :number => 102,
-          :title => "First issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
-      ]
+      json []
     }
     """
-    When I run `hub issue -t 2016-08-18T09:11:32Z`
-    Then the output should contain exactly:
-      """
-          #102  First issue\n
-      """
-    And the exit status should be 0
+    When I run `hub issue -d 2016-08-18T09:11:32Z`
+    Then the exit status should be 0
 
   Scenario: Fetch issues across multiple pages
     Given the GitHub API server:
