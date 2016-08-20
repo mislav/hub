@@ -52,23 +52,19 @@ type Client struct {
 	Host *Host
 }
 
-func (client *Client) PullRequest(project *Project, id string) (pr *octokit.PullRequest, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
+func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/pulls/%s", project.Owner, project.Name, id))
+	if err = checkStatus(200, "getting pull request", res, err); err != nil {
 		return
 	}
 
-	pr, result := api.PullRequests(client.requestURL(url)).One()
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
-		return
-	}
+	pr = &PullRequest{}
+	err = res.Unmarshal(pr)
 
 	return
 }
@@ -95,9 +91,24 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 }
 
 type PullRequest struct {
-	ApiUrl  string `json:"url"`
-	Number  int    `json:"number"`
-	HtmlUrl string `json:"html_url"`
+	ApiUrl  string           `json:"url"`
+	Number  int              `json:"number"`
+	HtmlUrl string           `json:"html_url"`
+	Title   string           `json:"title"`
+	Head    *PullRequestSpec `json:"head"`
+	Base    *PullRequestSpec `json:"base"`
+}
+
+type PullRequestSpec struct {
+	Label string      `json:"label"`
+	Ref   string      `json:"ref"`
+	Sha   string      `json:"sha"`
+	Repo  *Repository `json:"repo"`
+}
+
+func (pr *PullRequest) IsSameRepo() bool {
+	return pr.Head.Repo.Name == pr.Base.Repo.Name &&
+		pr.Head.Repo.Owner.Login == pr.Base.Repo.Owner.Login
 }
 
 func (client *Client) CreatePullRequest(project *Project, params map[string]interface{}) (pr *PullRequest, err error) {
@@ -391,13 +402,19 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	return
 }
 
-type RepositoryOwner struct {
-	Login string `json:"login"`
-}
 type Repository struct {
-	Name   string           `json:"name"`
-	Parent *Repository      `json:"parent"`
-	Owner  *RepositoryOwner `json:"owner"`
+	Name        string                 `json:"name"`
+	Parent      *Repository            `json:"parent"`
+	Owner       *User                  `json:"owner"`
+	Private     bool                   `json:"private"`
+	Permissions *RepositoryPermissions `json:"permissions"`
+	HtmlUrl     string                 `json:"html_url"`
+}
+
+type RepositoryPermissions struct {
+	Admin bool `json:"admin"`
+	Push  bool `json:"push"`
+	Pull  bool `json:"pull"`
 }
 
 func (client *Client) ForkRepository(project *Project) (repo *Repository, err error) {
