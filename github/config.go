@@ -148,7 +148,8 @@ func (c *Config) PromptForPassword(host, user string) (pass string) {
 
 	ui.Printf("%s password for %s (never stored): ", host, user)
 	if ui.IsTerminal(os.Stdout) {
-		pass = string(gopass.GetPasswd())
+		passBytes, _ := gopass.GetPasswd()
+		pass = string(passBytes)
 	} else {
 		pass = c.scanLine()
 	}
