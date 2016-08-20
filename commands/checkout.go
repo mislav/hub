@@ -88,14 +88,26 @@ func transformCheckoutArgs(args *Args) error {
 		return err
 	}
 
-	if newBranchName == "" {
-		newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+	var refSpec string
+	var newArgs []string
+
+	if pullRequest.IsSameRepo() {
+		if newBranchName == "" {
+			newBranchName = pullRequest.Head.Ref
+		}
+		remoteBranch := fmt.Sprintf("%s/%s", remote.Name, pullRequest.Head.Ref)
+		refSpec = fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
+		newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+	} else {
+		if newBranchName == "" {
+			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+		}
+		refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+		newArgs = append(newArgs, newBranchName)
 	}
 
-	branchMapping := fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
-	args.Before("git", "fetch", remote.Name, branchMapping)
-	replaceCheckoutParam(args, checkoutURL, newBranchName)
-
+	args.Before("git", "fetch", remote.Name, refSpec)
+	replaceCheckoutParam(args, checkoutURL, newArgs...)
 	return nil
 }
 

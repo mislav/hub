@@ -106,6 +106,11 @@ type PullRequestSpec struct {
 	Repo  *Repository `json:"repo"`
 }
 
+func (pr *PullRequest) IsSameRepo() bool {
+	return pr.Head.Repo.Name == pr.Base.Repo.Name &&
+		pr.Head.Repo.Owner.Login == pr.Base.Repo.Owner.Login
+}
+
 func (client *Client) CreatePullRequest(project *Project, params map[string]interface{}) (pr *PullRequest, err error) {
 	api, err := client.simpleApi()
 	if err != nil {

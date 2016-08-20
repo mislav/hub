@@ -74,3 +74,49 @@ Feature: hub checkout <PULLREQ-URL>
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 fixes-from-mislav`
     Then "git fetch origin pull/77/head:fixes-from-mislav" should be run
     And "git checkout fixes-from-mislav" should be run
+
+  Scenario: Same-repo
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :name => "jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }, :base => {
+          :repo => {
+            :name => "jekyll",
+            :html_url => "https://github.com/mojombo/jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }
+      }
+      """
+    When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
+    Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
+    And "git checkout -f -b fixes --track origin/fixes -q" should be run
+
+  Scenario: Same-repo with custom branch name
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :name => "jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }, :base => {
+          :repo => {
+            :name => "jekyll",
+            :html_url => "https://github.com/mojombo/jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }
+      }
+      """
+    When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 mycustombranch`
+    Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
+    And "git checkout -b mycustombranch --track origin/fixes" should be run
