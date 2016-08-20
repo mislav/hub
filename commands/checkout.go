@@ -78,31 +78,22 @@ func transformCheckoutArgs(args *Args) error {
 		args.RemoveParam(idx)
 	}
 
-	branch := pullRequest.Head.Ref
-	headRepo := pullRequest.Head.Repo
-	if headRepo == nil {
-		return fmt.Errorf("Error: that fork is not available anymore")
+	repo, err := github.LocalRepo()
+	if err != nil {
+		return err
 	}
-	user := headRepo.Owner.Login
+
+	remote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
+	if err != nil {
+		return err
+	}
 
 	if newBranchName == "" {
-		newBranchName = fmt.Sprintf("%s-%s", user, branch)
-	}
-
-	repo, err := github.LocalRepo()
-	utils.Check(err)
-
-	var remoteRepo string
-
-	_, err = repo.RemoteByName(user)
-	if err == nil {
-		remoteRepo = user
-	} else {
-		remoteRepo = url.GitURL("", "", false)
+		newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
 	}
 
 	branchMapping := fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
-	args.Before("git", "fetch", remoteRepo, branchMapping)
+	args.Before("git", "fetch", remote.Name, branchMapping)
 	replaceCheckoutParam(args, checkoutURL, newBranchName)
 
 	return nil
