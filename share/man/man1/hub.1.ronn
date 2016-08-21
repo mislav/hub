@@ -73,6 +73,12 @@ git but that are extended through hub, and custom ones that hub provides.
   * hub-pull-request(1):
     Create a GitHub pull request.
 
+  * hub-issue(1):
+    List and create GitHub issues.
+
+  * hub-release(1):
+    List and create GitHub releases.
+
 ## CONFIGURATION
 
 ### GitHub OAuth authentication
