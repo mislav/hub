@@ -120,9 +120,7 @@ With no arguments, show a list of open issues.
 		When opening an issue, add a comma-separated list of labels to this issue.
 
 	-d, --since <DATE>
-		Display only issues updated at or after a certain date. The date is a
-		timestamp in ISO-8601 format: YYYY-MM-DDTHH:MM:SSZ however the second part
-		(after T is optional).
+		Display only issues updated on or after <DATE> in ISO 8601 format.
 `,
 	}
 
@@ -193,13 +191,20 @@ func listIssues(cmd *Command, args *Args) {
 			"milestone": flagIssueMilestoneFilter,
 			"creator":   flagIssueCreator,
 			"mentioned": flagIssueMentioned,
-      "labels":    flagIssueLabelsFilter,
-			"since":     flagIssueSince,
+			"labels":    flagIssueLabelsFilter,
 		}
 		filters := map[string]interface{}{}
 		for flag, filter := range flagFilters {
 			if cmd.FlagPassed(flag) {
 				filters[flag] = filter
+			}
+		}
+
+		if cmd.FlagPassed("since") {
+			if sinceTime, err := time.ParseInLocation("2006-01-02", flagIssueSince, time.Local); err == nil {
+				filters["since"] = sinceTime.Format(time.RFC3339)
+			} else {
+				filters["since"] = flagIssueSince
 			}
 		}
 
