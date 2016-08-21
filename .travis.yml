@@ -1,20 +1,14 @@
-os:
-  - linux
-  - osx
 sudo: false
 before_install:
   - export BUNDLE_GEMFILE=$PWD/Gemfile
   - export TRAVIS_RUBY_VERSION="$(ruby -e 'puts RUBY_VERSION')-travis"
-  - script/bootstrap
   - export PATH=~/bin:"$PATH"
 language: go
 go:
   - 1.6.3
 script: make test-all
-install: script/cached-bundle install --without development --deployment --jobs=3 --retry=3
+install: script/bootstrap
 after_success: script/publish-release
-notifications:
-  email: false
 env:
   global:
     - AMAZON_S3_BUCKET=ci-cache

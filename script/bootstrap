@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if [ -n "$TRAVIS" ]; then
+if [ -n "$TRAVIS" ] && [ ! -x ~/bin/tmux ]; then
   case "$TRAVIS_OS_NAME" in
     linux ) cache_name="tmux-zsh.ubuntu" ;;
     osx ) cache_name="tmux.osx" ;;
@@ -12,7 +12,6 @@ if [ -n "$TRAVIS" ]; then
   esac
 
   curl -fsSL "https://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${cache_name}.tgz" | tar -xz -C ~
-  exit 0
 fi
 
 STATUS=0
@@ -23,7 +22,11 @@ if ! go version; then
 fi
 
 { ruby --version
-  bundle install --path vendor/bundle
+  if [ -n "$TRAVIS" ]; then
+    script/cached-bundle install --deployment --jobs=3 --retry=3
+  else
+    bundle install --path vendor/bundle
+  fi
   bundle binstub cucumber ronn --path bin
 } || {
   echo "You need Ruby 1.9 or higher and Bundler to run hub tests" >&2
