@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-s <STATE>] [-f <FORMAT>]
+issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-t <TIME>]
 issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
@@ -35,6 +35,12 @@ With no arguments, show a list of open issues.
 
 		When opening an issue, this can be a comma-separated list of people to
 		assign to the new issue.
+
+	-c, --creator <CREATOR>
+		Display only issues created by <CREATOR>.
+
+	-@, --mentioned <USER>
+		Display only issues mentioning <USER>.
 
 	-s, --state <STATE>
 		Display issues with state <STATE> (default: "open").
@@ -104,10 +110,17 @@ With no arguments, show a list of open issues.
 		Open the new issue in a web browser.
 
 	-M, --milestone <ID>
-		Add this pull request to a GitHub milestone with id <ID>.
+		Display only issues for a GitHub milestone with id <ID>.
+
+		When opening an issue, add this issue to a GitHub milestone with id <ID>.
 
 	-l, --labels <LABELS>
-		Add a comma-separated list of labels to this issue.
+		Display only issues with certain labels.
+
+		When opening an issue, add a comma-separated list of labels to this issue.
+
+	-d, --since <DATE>
+		Display only issues updated on or after <DATE> in ISO 8601 format.
 `,
 	}
 
@@ -122,6 +135,11 @@ With no arguments, show a list of open issues.
 	flagIssueState,
 	flagIssueFormat,
 	flagIssueMessage,
+	flagIssueMilestoneFilter,
+	flagIssueCreator,
+	flagIssueMentioned,
+	flagIssueLabelsFilter,
+	flagIssueSince,
 	flagIssueFile string
 
 	flagIssueEdit,
@@ -145,6 +163,11 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
 	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
+	cmdIssue.Flag.StringVarP(&flagIssueMilestoneFilter, "milestone", "M", "", "MILESTONE")
+	cmdIssue.Flag.StringVarP(&flagIssueCreator, "creator", "c", "", "CREATOR")
+	cmdIssue.Flag.StringVarP(&flagIssueMentioned, "mentioned", "@", "", "USER")
+	cmdIssue.Flag.StringVarP(&flagIssueLabelsFilter, "labels", "l", "", "LABELS")
+	cmdIssue.Flag.StringVarP(&flagIssueSince, "since", "d", "", "DATE")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -162,12 +185,27 @@ func listIssues(cmd *Command, args *Args) {
 	if args.Noop {
 		ui.Printf("Would request list of issues for %s\n", project)
 	} else {
-		filters := map[string]interface{}{}
-		if cmd.FlagPassed("state") {
-			filters["state"] = flagIssueState
+		flagFilters := map[string]string{
+			"state":     flagIssueState,
+			"assignee":  flagIssueAssignee,
+			"milestone": flagIssueMilestoneFilter,
+			"creator":   flagIssueCreator,
+			"mentioned": flagIssueMentioned,
+			"labels":    flagIssueLabelsFilter,
 		}
-		if cmd.FlagPassed("assignee") {
-			filters["assignee"] = flagIssueAssignee
+		filters := map[string]interface{}{}
+		for flag, filter := range flagFilters {
+			if cmd.FlagPassed(flag) {
+				filters[flag] = filter
+			}
+		}
+
+		if cmd.FlagPassed("since") {
+			if sinceTime, err := time.ParseInLocation("2006-01-02", flagIssueSince, time.Local); err == nil {
+				filters["since"] = sinceTime.Format(time.RFC3339)
+			} else {
+				filters["since"] = flagIssueSince
+			}
 		}
 
 		issues, err := gh.FetchIssues(project, filters)
