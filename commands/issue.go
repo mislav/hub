@@ -51,51 +51,51 @@ With no arguments, show a list of open issues.
 		git-log manual for some additional details on how placeholders are used in
 		format. The available placeholders for issues are:
 
-			· %I: issue number
+		%I: issue number
 
-			· %i: issue number prefixed with "#"
+		%i: issue number prefixed with "#"
 
-			· %U: the URL of this issue
+		%U: the URL of this issue
 
-			· %S: state (i.e. "open", "closed")
+		%S: state (i.e. "open", "closed")
 
-			· %sC: set color to red or green, depending on issue state.
+		%sC: set color to red or green, depending on issue state.
 
-			· %t: title
+		%t: title
 
-			· %l: colored labels
+		%l: colored labels
 
-			· %L: raw, comma-separated labels
+		%L: raw, comma-separated labels
 
-			· %b: body
+		%b: body
 
-			· %au: login name of author
+		%au: login name of author
 
-			· %as: comma-separated list of assignees
+		%as: comma-separated list of assignees
 
-			· %Mn: milestone number
+		%Mn: milestone number
 
-			· %Mt: milestone title
+		%Mt: milestone title
 
-			· %NC: number of comments
+		%NC: number of comments
 
-			· %Nc: number of comments wrapped in parentheses, or blank string if zero.
+		%Nc: number of comments wrapped in parentheses, or blank string if zero.
 
-			· %cD: created date-only (no time of day)
+		%cD: created date-only (no time of day)
 
-			· %cr: created date, relative
+		%cr: created date, relative
 
-			· %ct: created date, UNIX timestamp
+		%ct: created date, UNIX timestamp
 
-			· %cI: created date, ISO 8601 format
+		%cI: created date, ISO 8601 format
 
-			· %uD: updated date-only (no time of day)
+		%uD: updated date-only (no time of day)
 
-			· %ur: updated date, relative
+		%ur: updated date, relative
 
-			· %ut: updated date, UNIX timestamp
+		%ut: updated date, UNIX timestamp
 
-			· %uI: updated date, ISO 8601 format
+		%uI: updated date, ISO 8601 format
 
 	-m, --message <MESSAGE>
 		Use the first line of <MESSAGE> as issue title, and the rest as issue description.
