@@ -16,7 +16,7 @@ var cmdPullRequest = &Command{
 	Usage: `
 pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
-pull-request -F <FILE>
+pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
 `,
 	Long: `Create a GitHub pull request.
@@ -31,6 +31,9 @@ pull-request -i <ISSUE>
 
 	-F, --file <FILE>
 		Read the pull request title and description from <FILE>.
+
+	-e, --edit
+		Further edit the contents of <FILE> in a text editor before submitting.
 
 	-i, --issue <ISSUE>, <ISSUE-URL>
 		(Deprecated) Convert <ISSUE> to a pull request.
@@ -68,6 +71,7 @@ var (
 	flagPullRequestFile string
 
 	flagPullRequestBrowse,
+	flagPullRequestEdit,
 	flagPullRequestForce bool
 
 	flagPullRequestMilestone uint64
@@ -82,6 +86,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
@@ -157,9 +162,6 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
-	utils.Check(err)
-
 	if headRepo, err := client.Repository(headProject); err == nil {
 		headProject.Owner = headRepo.Owner.Login
 		headProject.Name = headRepo.Name
@@ -178,7 +180,14 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	var editor *github.Editor
-	if title == "" && flagPullRequestIssue == "" {
+	var title, body string
+
+	if cmd.FlagPassed("message") {
+		title, body = readMsg(flagPullRequestMessage)
+	} else if cmd.FlagPassed("file") {
+		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ", "pull request")
+		utils.Check(err)
+	} else if flagPullRequestIssue == "" {
 		baseTracking := base
 		headTracking := head
 
@@ -193,7 +202,7 @@ func pullRequest(cmd *Command, args *Args) {
 			headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
 		}
 
-		message, err := pullRequestChangesMessage(baseTracking, headTracking, fullBase, fullHead)
+		message, err := createPullRequestMessage(baseTracking, headTracking, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
@@ -266,7 +275,7 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 }
 
-func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, error) {
+func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {
 	var (
 		defaultMsg string
 		commitLogs string
@@ -283,6 +292,18 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 		commitLogs, err = git.Log(base, head)
 		if err != nil {
 			return "", err
+		}
+	}
+
+	if template := github.GetPullRequestTemplate(); template != "" {
+		if defaultMsg == "" {
+			defaultMsg = "\n\n" + template
+		} else {
+			parts := strings.SplitN(defaultMsg, "\n\n", 2)
+			defaultMsg = parts[0] + "\n\n" + template
+			if len(parts) > 1 && parts[1] != "" {
+				defaultMsg = defaultMsg + "\n\n" + parts[1]
+			}
 		}
 	}
 

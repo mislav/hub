@@ -16,8 +16,8 @@ const pullRequestTmpl = `{{if .InitMsg}}{{.InitMsg}}
 {{.CS}} of text is the title and the rest is the description.{{if .HasCommitLogs}}
 {{.CS}}
 {{.CS}} Changes:
-{{.CS}}{{if .HasCommitLogs}}
-{{.FormattedCommitLogs}}{{end}}{{end}}`
+{{.CS}}
+{{.FormattedCommitLogs}}{{end}}`
 
 type pullRequestMsg struct {
 	InitMsg    string

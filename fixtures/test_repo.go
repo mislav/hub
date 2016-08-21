@@ -59,6 +59,16 @@ func (r *TestRepo) AddRemote(name, url, pushURL string) {
 	}
 }
 
+func (r *TestRepo) AddFile(filePath string, content string) {
+	path := filepath.Join(r.dir, filePath)
+	err := os.MkdirAll(filepath.Dir(path), 0771)
+	if err != nil {
+		panic(err)
+	}
+
+	ioutil.WriteFile(path, []byte(content), os.ModePerm)
+}
+
 func (r *TestRepo) clone(repo, dir string) error {
 	cmd := cmd.New("git").WithArgs("clone", repo, dir)
 	output, err := cmd.CombinedOutput()

@@ -18,6 +18,8 @@ import (
 	"github.com/github/hub/utils"
 )
 
+const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
+
 type verboseTransport struct {
 	Transport   *http.Transport
 	Verbose     bool
@@ -213,6 +215,8 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	}
 	req.Header.Set("Authorization", "token "+c.accessToken)
 	req.Header.Set("User-Agent", UserAgent)
+	req.Header.Set("Accept", apiPayloadVersion)
+
 	if configure != nil {
 		configure(req)
 	}

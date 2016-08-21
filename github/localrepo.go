@@ -2,6 +2,7 @@ package github
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -146,6 +147,27 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (
 	}
 
 	return
+}
+
+func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
+	r.loadRemotes()
+
+	repoUrl, err := url.Parse(repo.HtmlUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	project := NewProject(repo.Owner.Login, repo.Name, repoUrl.Host)
+
+	for _, remote := range r.remotes {
+		if rp, err := remote.Project(); err == nil {
+			if rp.SameAs(project) {
+				return &remote, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("could not find git remote for %s/%s", repo.Owner.Login, repo.Name)
 }
 
 func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {

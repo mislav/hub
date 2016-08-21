@@ -93,6 +93,42 @@ Feature: hub pull-request
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Single-commit with pull request template
+    Given the git commit editor is "true"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 if request.content_charset != 'utf-8'
+        assert :title => 'Commit title',
+               :body => <<BODY.chomp
+This is the pull request template
+
+Another line of template
+
+Commit body
+BODY
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    And I make a commit with message:
+      """
+      Commit title
+
+      Commit body
+      """
+    And the "topic" branch is pushed to "origin/topic"
+    Given a file named "pull_request_template.md" with:
+      """
+      This is the pull request template
+
+      Another line of template
+      """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Message template should include git log summary between base and head
     Given the text editor adds:
       """
@@ -288,6 +324,29 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -F pullreq-msg`
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Edit title and body from file
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Hello from editor',
+               :body  => "Title from file\n\nBody from file as well."
+        status 201
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    And a file named "pullreq-msg" with:
+      """
+      Title from file
+
+      Body from file as well.
+      """
+    And the text editor adds:
+      """
+      Hello from editor
+      """
+    When I successfully run `hub pull-request -F pullreq-msg --edit`
+    Then the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from stdin
     Given the GitHub API server:
