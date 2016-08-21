@@ -329,8 +329,9 @@ BODY
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        assert :title => 'Edit title from file',
-               :body  => "Edit body from file as well.\n\nMultiline, even!"
+        assert :title => 'Hello from editor',
+               :body  => "Title from file\n\nBody from file as well."
+        status 201
         json :html_url => "https://github.com/mislav/coral/pull/12"
       }
       """
@@ -339,20 +340,13 @@ BODY
       Title from file
 
       Body from file as well.
-
-      Multiline, even!
       """
-    When I run `hub pull-request -F pullreq-msg --edit` interactively
-    And I pass in:
+    And the text editor adds:
       """
-      Edit title from file
-
-      Edit body from file as well.
-
-      Multiline, even!
+      Hello from editor
       """
-    Then the exit status should be 0
-    And the file ".git/PULLREQ_EDITMSG" should not exist
+    When I successfully run `hub pull-request -F pullreq-msg --edit`
+    Then the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from stdin
     Given the GitHub API server:

@@ -97,6 +97,9 @@ With no arguments, show a list of open issues.
 	-F, --file <FILE>
 		Read the issue title and description from <FILE>.
 
+	-e, --edit
+		Further edit the contents of <FILE> in a text editor before submitting.
+
 	-o, --browse
 		Open the new issue in a web browser.
 
@@ -121,6 +124,7 @@ With no arguments, show a list of open issues.
 	flagIssueMessage,
 	flagIssueFile string
 
+	flagIssueEdit,
 	flagIssueBrowse bool
 
 	flagIssueMilestone uint64
@@ -136,6 +140,7 @@ func init() {
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
 	cmdCreateIssue.Flag.VarP(&flagIssueAssignees, "assign", "a", "ASSIGNEE")
 	cmdCreateIssue.Flag.BoolVarP(&flagIssueBrowse, "browse", "o", false, "BROWSE")
+	cmdCreateIssue.Flag.BoolVarP(&flagIssueEdit, "edit", "e", false, "EDIT")
 
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
 	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
@@ -296,7 +301,7 @@ func createIssue(cmd *Command, args *Args) {
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagIssueMessage)
 	} else if cmd.FlagPassed("file") {
-		title, body, err = readMsgFromFile(flagIssueFile)
+		title, body, editor, err = readMsgFromFile(flagIssueFile, flagIssueEdit, "ISSUE", "issue")
 		utils.Check(err)
 	} else {
 		cs := git.CommentChar()

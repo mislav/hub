@@ -76,30 +76,39 @@ func isEmptyDir(path string) bool {
 	return match == nil
 }
 
-func getTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string, err error) {
-	if messageFlag != "" {
-		title, body = readMsg(messageFlag)
-	} else if fileFlag != "" {
-		title, body, err = readMsgFromFile(fileFlag)
+func readMsgFromFile(filename string, edit bool, editorPrefix, editorTopic string) (title, body string, editor *github.Editor, err error) {
+	message, err := msgFromFile(filename)
+	if err != nil {
+		return
 	}
 
-	return
+	if edit {
+		editor, err = github.NewEditor(editorPrefix, editorTopic, message)
+		if err != nil {
+			return
+		}
+		title, body, err = editor.EditTitleAndBody()
+		return
+	} else {
+		title, body = readMsg(message)
+		return
+	}
 }
 
-func readMsgFromFile(filename string) (title, body string, err error) {
+func msgFromFile(filename string) (string, error) {
 	var content []byte
+	var err error
+
 	if filename == "-" {
 		content, err = ioutil.ReadAll(os.Stdin)
 	} else {
 		content, err = ioutil.ReadFile(filename)
 	}
 	if err != nil {
-		return
+		return "", err
 	}
 
-	text := strings.Replace(string(content), "\r\n", "\n", -1)
-	title, body = readMsg(text)
-	return
+	return strings.Replace(string(content), "\r\n", "\n", -1), nil
 }
 
 func readMsg(message string) (title, body string) {

@@ -16,7 +16,7 @@ var cmdPullRequest = &Command{
 	Usage: `
 pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
-pull-request -F <FILE>
+pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
 `,
 	Long: `Create a GitHub pull request.
@@ -31,6 +31,9 @@ pull-request -i <ISSUE>
 
 	-F, --file <FILE>
 		Read the pull request title and description from <FILE>.
+
+	-e, --edit
+		Further edit the contents of <FILE> in a text editor before submitting.
 
 	-i, --issue <ISSUE>, <ISSUE-URL>
 		(Deprecated) Convert <ISSUE> to a pull request.
@@ -159,9 +162,6 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
-	utils.Check(err)
-
 	if headRepo, err := client.Repository(headProject); err == nil {
 		headProject.Owner = headRepo.Owner.Login
 		headProject.Name = headRepo.Name
@@ -180,7 +180,14 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	var editor *github.Editor
-	if title == "" && flagPullRequestIssue == "" {
+	var title, body string
+
+	if cmd.FlagPassed("message") {
+		title, body = readMsg(flagPullRequestMessage)
+	} else if cmd.FlagPassed("file") {
+		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ", "pull request")
+		utils.Check(err)
+	} else if flagPullRequestIssue == "" {
 		baseTracking := base
 		headTracking := head
 
@@ -199,14 +206,6 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
-		utils.Check(err)
-
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
-	}
-
-	if flagPullRequestFile != "" && flagPullRequestEdit {
-		editor, err = github.NewEditor("PULLREQ", "pull request", title + "\n\n" + body)
 		utils.Check(err)
 
 		title, body, err = editor.EditTitleAndBody()
