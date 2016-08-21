@@ -8,16 +8,19 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/github/hub/version"
 	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
 	GitHubHost    string = "github.com"
 	GitHubApiHost string = "api.github.com"
-	UserAgent     string = "Hub"
 	OAuthAppURL   string = "http://hub.github.com/"
 )
+
+var UserAgent = "Hub " + version.Version
 
 func NewClient(h string) *Client {
 	return NewClientWithHost(&Host{Host: h})
@@ -49,23 +52,19 @@ type Client struct {
 	Host *Host
 }
 
-func (client *Client) PullRequest(project *Project, id string) (pr *octokit.PullRequest, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
+func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/pulls/%s", project.Owner, project.Name, id))
+	if err = checkStatus(200, "getting pull request", res, err); err != nil {
 		return
 	}
 
-	pr, result := api.PullRequests(client.requestURL(url)).One()
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
-		return
-	}
+	pr = &PullRequest{}
+	err = res.Unmarshal(pr)
 
 	return
 }
@@ -91,54 +90,44 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 	return
 }
 
-func (client *Client) CreatePullRequest(project *Project, base, head, title, body string) (pr *octokit.PullRequest, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
-	if err != nil {
-		return
-	}
-
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating pull request", err)
-		return
-	}
-
-	params := octokit.PullRequestParams{Base: base, Head: head, Title: title, Body: body}
-	pr, result := api.PullRequests(client.requestURL(url)).Create(params)
-	if result.HasError() {
-		err = FormatError("creating pull request", result.Err)
-		if e := warnExistenceOfRepo(project, result.Err); e != nil {
-			err = fmt.Errorf("%s\n%s", err, e)
-		}
-
-		return
-	}
-
-	return
+type PullRequest struct {
+	ApiUrl  string           `json:"url"`
+	Number  int              `json:"number"`
+	HtmlUrl string           `json:"html_url"`
+	Title   string           `json:"title"`
+	Head    *PullRequestSpec `json:"head"`
+	Base    *PullRequestSpec `json:"base"`
 }
 
-func (client *Client) CreatePullRequestForIssue(project *Project, base, head, issue string) (pr *octokit.PullRequest, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+type PullRequestSpec struct {
+	Label string      `json:"label"`
+	Ref   string      `json:"ref"`
+	Sha   string      `json:"sha"`
+	Repo  *Repository `json:"repo"`
+}
+
+func (pr *PullRequest) IsSameRepo() bool {
+	return pr.Head.Repo.Name == pr.Base.Repo.Name &&
+		pr.Head.Repo.Owner.Login == pr.Base.Repo.Owner.Login
+}
+
+func (client *Client) CreatePullRequest(project *Project, params map[string]interface{}) (pr *PullRequest, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating pull request", err)
-		return
-	}
-
-	params := octokit.PullRequestForIssueParams{Base: base, Head: head, Issue: issue}
-	pr, result := api.PullRequests(client.requestURL(url)).Create(params)
-	if result.HasError() {
-		err = FormatError("creating pull request", result.Err)
-		if e := warnExistenceOfRepo(project, result.Err); e != nil {
-			err = fmt.Errorf("%s\n%s", err, e)
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/pulls", project.Owner, project.Name), params)
+	if err = checkStatus(201, "creating pull request", res, err); err != nil {
+		if res.StatusCode == 404 {
+			projectUrl := strings.SplitN(project.WebURL("", "", ""), "://", 2)[1]
+			err = fmt.Errorf("%s\nAre you sure that %s exists?", err, projectUrl)
 		}
-
 		return
 	}
+
+	pr = &PullRequest{}
+	err = res.Unmarshal(pr)
 
 	return
 }
@@ -413,90 +402,135 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	return
 }
 
-func (client *Client) ForkRepository(project *Project) (repo *octokit.Repository, err error) {
-	url, err := octokit.ForksURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+type Repository struct {
+	Name        string                 `json:"name"`
+	Parent      *Repository            `json:"parent"`
+	Owner       *User                  `json:"owner"`
+	Private     bool                   `json:"private"`
+	Permissions *RepositoryPermissions `json:"permissions"`
+	HtmlUrl     string                 `json:"html_url"`
+}
+
+type RepositoryPermissions struct {
+	Admin bool `json:"admin"`
+	Push  bool `json:"push"`
+	Pull  bool `json:"pull"`
+}
+
+func (client *Client) ForkRepository(project *Project) (repo *Repository, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating fork", err)
+	params := map[string]interface{}{}
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/forks", project.Owner, project.Name), params)
+	if err = checkStatus(202, "creating fork", res, err); err != nil {
 		return
 	}
 
-	repo, result := api.Repositories(client.requestURL(url)).Create(nil)
-	if result.HasError() {
-		err = FormatError("creating fork", result.Err)
+	repo = &Repository{}
+	err = res.Unmarshal(repo)
+
+	return
+}
+
+type Issue struct {
+	Number      int          `json:"number"`
+	State       string       `json:"state"`
+	Title       string       `json:"title"`
+	Body        string       `json:"body"`
+	User        *User        `json:"user"`
+	Assignees   []User       `json:"assignees"`
+	Labels      []IssueLabel `json:"labels"`
+	PullRequest *PullRequest `json:"pull_request"`
+	HtmlUrl     string       `json:"html_url"`
+	Comments    int          `json:"comments"`
+	Milestone   *Milestone   `json:"milestone"`
+	CreatedAt   time.Time    `json:"created_at"`
+	UpdatedAt   time.Time    `json:"updated_at"`
+}
+
+type IssueLabel struct {
+	Name  string `json:"name"`
+	Color string `json:"color"`
+}
+
+type User struct {
+	Login string `json:"login"`
+}
+
+type Milestone struct {
+	Number int    `json:"number"`
+	Title  string `json:"title"`
+}
+
+func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}) (issues []Issue, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
 		return
+	}
+
+	path := fmt.Sprintf("repos/%s/%s/issues?per_page=100", project.Owner, project.Name)
+	if filterParams != nil {
+		query := url.Values{}
+		for key, value := range filterParams {
+			switch v := value.(type) {
+			case string:
+				query.Add(key, v)
+			}
+		}
+		path += "&" + query.Encode()
+	}
+
+	issues = []Issue{}
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching issues", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		issuesPage := []Issue{}
+		if err = res.Unmarshal(&issuesPage); err != nil {
+			return
+		}
+		issues = append(issues, issuesPage...)
 	}
 
 	return
 }
 
-func (client *Client) Issues(project *Project) (issues []octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) CreateIssue(project *Project, params interface{}) (issue *Issue, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting issues", err)
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/issues", project.Owner, project.Name), params)
+	if err = checkStatus(201, "creating issue", res, err); err != nil {
 		return
 	}
 
-	issues, result := api.Issues(client.requestURL(url)).All()
-	if result.HasError() {
-		err = FormatError("getting issues", result.Err)
-		return
-	}
-
+	issue = &Issue{}
+	err = res.Unmarshal(issue)
 	return
 }
 
-func (client *Client) CreateIssue(project *Project, title, body string, labels []string) (issue *octokit.Issue, err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[string]interface{}) (err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating issues", err)
+	res, err := api.PatchJSON(fmt.Sprintf("repos/%s/%s/issues/%d", project.Owner, project.Name, issueNumber), params)
+	if err = checkStatus(200, "updating issue", res, err); err != nil {
 		return
 	}
 
-	params := octokit.IssueParams{
-		Title:  title,
-		Body:   body,
-		Labels: labels,
-	}
-	issue, result := api.Issues(client.requestURL(url)).Create(params)
-	if result.HasError() {
-		err = FormatError("creating issue", result.Err)
-		return
-	}
-
-	return
-}
-
-func (client *Client) UpdateIssue(project *Project, issueNumber int, params octokit.IssueParams) (err error) {
-	url, err := octokit.RepoIssuesURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": issueNumber})
-	if err != nil {
-		return
-	}
-
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("update issues", err)
-		return
-	}
-
-	_, result := api.Issues(client.requestURL(url)).Update(params)
-	if result.HasError() {
-		err = FormatError("updating issue", result.Err)
-	}
+	res.Body.Close()
 	return
 }
 
@@ -739,6 +773,11 @@ func FormatError(action string, err error) (ee error) {
 			}
 		}
 
+		redirectLocation := e.Response.Header.Get("Location")
+		if statusCode >= 300 && statusCode < 400 && redirectLocation != "" {
+			errorSentences = append(errorSentences, fmt.Sprintf("Refused to follow redirect to %s", redirectLocation))
+		}
+
 		var errorMessage string
 		if len(errorSentences) > 0 {
 			errorMessage = strings.Join(errorSentences, "\n")
@@ -751,20 +790,6 @@ func FormatError(action string, err error) (ee error) {
 		}
 
 		ee = fmt.Errorf(errStr)
-	}
-
-	return
-}
-
-func warnExistenceOfRepo(project *Project, ee error) (err error) {
-	if e, ok := ee.(*octokit.ResponseError); ok && e.Response.StatusCode == 404 {
-		var url string
-		if s := strings.SplitN(project.WebURL("", "", ""), "://", 2); len(s) >= 2 {
-			url = s[1]
-		}
-		if url != "" {
-			err = fmt.Errorf("Are you sure that %s exists?", url)
-		}
 	}
 
 	return

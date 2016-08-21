@@ -78,33 +78,36 @@ func transformCheckoutArgs(args *Args) error {
 		args.RemoveParam(idx)
 	}
 
-	branch := pullRequest.Head.Ref
-	headRepo := pullRequest.Head.Repo
-	if headRepo == nil {
-		return fmt.Errorf("Error: that fork is not available anymore")
-	}
-	user := headRepo.Owner.Login
-
-	if newBranchName == "" {
-		newBranchName = fmt.Sprintf("%s-%s", user, branch)
-	}
-
 	repo, err := github.LocalRepo()
-	utils.Check(err)
-
-	_, err = repo.RemoteByName(user)
-	if err == nil {
-		args.Before("git", "remote", "set-branches", "--add", user, branch)
-		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
-		args.Before("git", "fetch", user, remoteURL)
-	} else {
-		u := url.Project.GitURL(pullRequest.Head.Repo.Name, user, pullRequest.Head.Repo.Private)
-		args.Before("git", "remote", "add", "-f", "--no-tags", "-t", branch, user, u)
+	if err != nil {
+		return err
 	}
 
-	remoteName := fmt.Sprintf("%s/%s", user, branch)
-	replaceCheckoutParam(args, checkoutURL, newBranchName, remoteName)
+	remote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
+	if err != nil {
+		return err
+	}
 
+	var refSpec string
+	var newArgs []string
+
+	if pullRequest.IsSameRepo() {
+		if newBranchName == "" {
+			newBranchName = pullRequest.Head.Ref
+		}
+		remoteBranch := fmt.Sprintf("%s/%s", remote.Name, pullRequest.Head.Ref)
+		refSpec = fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
+		newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+	} else {
+		if newBranchName == "" {
+			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+		}
+		refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+		newArgs = append(newArgs, newBranchName)
+	}
+
+	args.Before("git", "fetch", remote.Name, refSpec)
+	replaceCheckoutParam(args, checkoutURL, newArgs...)
 	return nil
 }
 
@@ -120,8 +123,8 @@ func sanitizeCheckoutFlags(args *Args) error {
 	return nil
 }
 
-func replaceCheckoutParam(args *Args, checkoutURL, branchName, remoteName string) {
+func replaceCheckoutParam(args *Args, checkoutURL string, replacement ...string) {
 	idx := args.IndexOfParam(checkoutURL)
 	args.RemoveParam(idx)
-	args.InsertParam(idx, "--track", "-B", branchName, remoteName)
+	args.InsertParam(idx, replacement...)
 }

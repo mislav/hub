@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -44,8 +45,7 @@ func tranformFetchArgs(args *Args) error {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	currentProject, err := localRepo.CurrentProject()
-	utils.Check(err)
+	currentProject, currentProjectErr := localRepo.CurrentProject()
 
 	projects := make(map[*github.Project]bool)
 	ownerRegexp := regexp.MustCompile(OwnerRe)
@@ -53,6 +53,7 @@ func tranformFetchArgs(args *Args) error {
 		if ownerRegexp.MatchString(name) && !isCloneable(name) {
 			_, err := localRepo.RemoteByName(name)
 			if err != nil {
+				utils.Check(currentProjectErr)
 				project := github.NewProject(name, currentProject.Name, "")
 				gh := github.NewClient(project.Host)
 				repo, err := gh.Repository(project)
@@ -80,7 +81,8 @@ func parseRemoteNames(args *Args) (names []string) {
 		}
 	} else if len(words) > 0 {
 		remoteName := words[0]
-		remoteNameRegexp := regexp.MustCompile("^\\w+(,\\w+)$")
+		commaPattern := fmt.Sprintf("^%s(,%s)+$", OwnerRe, OwnerRe)
+		remoteNameRegexp := regexp.MustCompile(commaPattern)
 		if remoteNameRegexp.MatchString(remoteName) {
 			i := args.IndexOfParam(remoteName)
 			args.RemoveParam(i)

@@ -10,6 +10,7 @@ Feature: hub submodule add
       """
       get('/repos/mojombo/grit') {
         json :private => false,
+             :name => 'grit', :owner => { :login => 'mojombo' },
              :permissions => { :push => false }
       }
       """
@@ -25,6 +26,7 @@ Feature: hub submodule add
       """
       get('/repos/mojombo/grit') {
         json :private => false,
+             :name => 'grit', :owner => { :login => 'mojombo' },
              :permissions => { :push => false }
       }
       """
@@ -36,6 +38,7 @@ Feature: hub submodule add
       """
       get('/repos/mislav/grit') {
         json :private => false,
+             :name => 'grit', :owner => { :login => 'mislav' },
              :permissions => { :push => true }
       }
       """
@@ -47,6 +50,7 @@ Feature: hub submodule add
       """
       get('/repos/mojombo/grit') {
         json :private => false,
+             :name => 'grit', :owner => { :login => 'mojombo' },
              :permissions => { :push => false }
       }
       """
@@ -58,6 +62,7 @@ Feature: hub submodule add
       """
       get('/repos/mojombo/grit') {
         json :private => false,
+             :name => 'grit', :owner => { :login => 'mojombo' },
              :permissions => { :push => false }
       }
       """

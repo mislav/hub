@@ -12,7 +12,10 @@ Feature: hub fork
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
       }
       get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
-      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
+      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
@@ -20,13 +23,38 @@ Feature: hub fork
     And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
+  Scenario: Fork the repository with redirect
+    Given the GitHub API server:
+      """
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+      }
+      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
+      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') {
+        redirect 'https://api.github.com/repositories/1234/forks', 307
+      }
+      post('/repositories/1234/forks', :host_name => 'api.github.com') {
+        status 202
+        json :name => 'my-dotfiles', :owner => { :login => 'MiSlAv' }
+      }
+      """
+    When I successfully run `hub fork`
+    Then the output should contain exactly "new remote: mislav\n"
+    And "git remote add -f mislav git://github.com/evilchelu/dotfiles.git" should be run
+    And "git remote set-url mislav git@github.com:MiSlAv/my-dotfiles.git" should be run
+    And the url for "mislav" should be "git@github.com:MiSlAv/my-dotfiles.git"
+
   Scenario: Fork the repository when origin URL is private
     Given the "origin" remote has url "git@github.com:evilchelu/dotfiles.git"
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
       get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
-      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') { '' }
+      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
@@ -37,7 +65,10 @@ Feature: hub fork
   Scenario: --no-remote
     Given the GitHub API server:
       """
-      post('/repos/evilchelu/dotfiles/forks') { '' }
+      post('/repos/evilchelu/dotfiles/forks') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     When I successfully run `hub fork --no-remote`
     Then there should be no output
@@ -99,7 +130,10 @@ Scenario: Related fork already exists
   Scenario: HTTPS is preferred
     Given the GitHub API server:
       """
-      post('/repos/evilchelu/dotfiles/forks') { '' }
+      post('/repos/evilchelu/dotfiles/forks') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     And HTTPS is preferred
     When I successfully run `hub fork`
@@ -139,7 +173,10 @@ Scenario: Related fork already exists
         halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
       }
-      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
@@ -155,7 +192,10 @@ Scenario: Related fork already exists
         halt 400 unless request.env['HTTP_X_ORIGINAL_PORT'] == '80'
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
       }
-      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') { '' }
+      post('/api/v3/repos/evilchelu/dotfiles/forks', :host_name => 'git.my.org') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
       """
     And the "origin" remote has url "git@git.my.org:evilchelu/dotfiles.git"
     And I am "mislav" on http://git.my.org with OAuth token "FITOKEN"

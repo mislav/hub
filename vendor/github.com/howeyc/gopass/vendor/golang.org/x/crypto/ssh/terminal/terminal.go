@@ -789,6 +789,10 @@ func (t *Terminal) SetSize(width, height int) error {
 		// If the width didn't change then nothing else needs to be
 		// done.
 		return nil
+	case len(t.line) == 0 && t.cursorX == 0 && t.cursorY == 0:
+		// If there is nothing on current line and no prompt printed,
+		// just do nothing
+		return nil
 	case width < oldWidth:
 		// Some terminals (e.g. xterm) will truncate lines that were
 		// too long when shinking. Others, (e.g. gnome-terminal) will

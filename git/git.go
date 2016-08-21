@@ -130,7 +130,7 @@ func Editor() (string, error) {
 		return "", fmt.Errorf("Can't load git var: GIT_EDITOR")
 	}
 
-	return output[0], nil
+	return os.ExpandEnv(output[0]), nil
 }
 
 func Head() (string, error) {
@@ -206,6 +206,14 @@ func Remotes() ([]string, error) {
 
 func Config(name string) (string, error) {
 	return gitGetConfig(name)
+}
+
+func ConfigAll(name string) ([]string, error) {
+	lines, err := gitOutput(gitConfigCommand([]string{"--get-all", name})...)
+	if err != nil {
+		err = fmt.Errorf("Unknown config %s", name)
+	}
+	return lines, err
 }
 
 func GlobalConfig(name string) (string, error) {
