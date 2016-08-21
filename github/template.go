@@ -23,10 +23,6 @@ func GetIssueTemplate() string {
 	return getGithubTemplate(issueTemplate)
 }
 
-func GeneratePRTemplate(defaultMsg string) string {
-	return strings.Split(defaultMsg, "\n")[0] + "\n\n" + GetPullRequestTemplate()
-}
-
 func getGithubTemplate(pat string) (body string) {
 	var path string
 
@@ -81,5 +77,6 @@ func readContentsFromFile(filename string) (contents string, err error) {
 	}
 
 	contents = strings.Replace(string(content), "\r\n", "\n", -1)
+	contents = strings.TrimSpace(contents)
 	return
 }

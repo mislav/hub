@@ -93,6 +93,42 @@ Feature: hub pull-request
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Single-commit with pull request template
+    Given the git commit editor is "true"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 if request.content_charset != 'utf-8'
+        assert :title => 'Commit title',
+               :body => <<BODY.chomp
+This is the pull request template
+
+Another line of template
+
+Commit body
+BODY
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    And I make a commit with message:
+      """
+      Commit title
+
+      Commit body
+      """
+    And the "topic" branch is pushed to "origin/topic"
+    Given a file named "pull_request_template.md" with:
+      """
+      This is the pull request template
+
+      Another line of template
+      """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Message template should include git log summary between base and head
     Given the text editor adds:
       """

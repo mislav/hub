@@ -300,12 +300,16 @@ func createIssue(cmd *Command, args *Args) {
 		utils.Check(err)
 	} else {
 		cs := git.CommentChar()
-		message := strings.Replace(fmt.Sprintf(`%s
+		message := strings.Replace(fmt.Sprintf(`
 # Creating an issue for %s
 #
 # Write a message for this issue. The first block of
 # text is the title and the rest is the description.
-`, github.GetIssueTemplate(), project), "#", cs, -1)
+`, project), "#", cs, -1)
+
+		if template := github.GetIssueTemplate(); template != "" {
+			message = template + "\n" + message
+		}
 
 		editor, err := github.NewEditor("ISSUE", "issue", message)
 		utils.Check(err)

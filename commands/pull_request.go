@@ -287,7 +287,15 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 	}
 
 	if template := github.GetPullRequestTemplate(); template != "" {
-		defaultMsg = github.GeneratePRTemplate(defaultMsg)
+		if defaultMsg == "" {
+			defaultMsg = "\n\n" + template
+		} else {
+			parts := strings.SplitN(defaultMsg, "\n\n", 2)
+			defaultMsg = parts[0] + "\n\n" + template
+			if len(parts) > 1 && parts[1] != "" {
+				defaultMsg = defaultMsg + "\n\n" + parts[1]
+			}
+		}
 	}
 
 	cs := git.CommentChar()
