@@ -228,6 +228,21 @@ Feature: hub clone
     Then it should clone "git@git.my.org:myorg/myrepo.git"
     And there should be no output
 
+  Scenario: Clone my Enterprise repo using git config
+    Given I am "mifi" on git.my.org with OAuth token "FITOKEN"
+    And $GITHUB_HOST is ""
+    And default GitHub host is "git.my.org"
+    Given the GitHub API server:
+      """
+      get('/api/v3/repos/myorg/myrepo') {
+        json :private => true,
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub clone myorg/myrepo`
+    Then it should clone "git@git.my.org:myorg/myrepo.git"
+    And there should be no output
+
   Scenario: Clone from existing directory is a local clone
     Given a directory named "dotfiles/.git"
     When I successfully run `hub clone dotfiles`

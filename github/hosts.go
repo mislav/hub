@@ -57,7 +57,10 @@ func knownGitHubHosts() []string {
 func DefaultGitHubHost() string {
 	defaultHost := GitHubHostEnv
 	if defaultHost == "" {
-		defaultHost = GitHubHost
+		defaultHost, _ = git.Config("hub.defaultHost")
+		if defaultHost == "" {
+			defaultHost = GitHubHost
+		}
 	}
 
 	return defaultHost

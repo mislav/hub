@@ -109,6 +109,10 @@ this can be affected with the `GITHUB_HOST` environment variable:
 
     $ GITHUB_HOST=my.git.org git clone myproject
 
+Alternatively, the GitHub Enterprise host can be specified in the git configuration:
+
+    $ git config --global hub.defaultHost my.git.org
+
 ## BUGS
 
 <https://github.com/github/hub/issues>
