@@ -23,73 +23,62 @@ Feature: hub issue
       ]
     }
     """
-    When I run `hub issue -a Cornwe19`
+    When I successfully run `hub issue -a Cornwe19`
     Then the output should contain exactly:
       """
           #102  First issue
            #13  Second issue\n
       """
-    And the exit status should be 0
 
   Scenario: Fetch issues not assigned to any milestone
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
       assert :milestone => "none"
-
       json []
     }
     """
-    When I run `hub issue -M none`
-    Then the exit status should be 0
+    When I successfully run `hub issue -M none`
 
   Scenario: Fetch issues created by a given user
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
       assert :creator => "octocat"
-
       json []
     }
     """
-    When I run `hub issue -c octocat`
-    Then the exit status should be 0
+    When I successfully run `hub issue -c octocat`
 
   Scenario: Fetch issues mentioning a given user
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
       assert :mentioned => "octocat"
-
       json []
     }
     """
-    When I run `hub issue -@ octocat`
-    Then the exit status should be 0
+    When I successfully run `hub issue -@ octocat`
 
   Scenario: Fetch issues with certain labels
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
       assert :labels => "foo,bar"
-
       json []
     }
     """
-    When I run `hub issue -l foo,bar`
-    Then the exit status should be 0
+    When I successfully run `hub issue -l foo,bar`
 
   Scenario: Fetch issues updated after a certain date and time
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
       assert :since => "2016-08-18T09:11:32Z"
-
       json []
     }
     """
-    When I run `hub issue -d 2016-08-18T09:11:32Z`
-    Then the exit status should be 0
+    When I successfully run `hub issue -d 2016-08-18T09:11:32Z`
 
   Scenario: Fetch issues across multiple pages
     Given the GitHub API server:
@@ -135,7 +124,7 @@ Feature: hub issue
       end
     }
     """
-    When I run `hub issue`
+    When I successfully run `hub issue`
     Then the output should contain exactly:
       """
           #102  First issue
@@ -143,7 +132,6 @@ Feature: hub issue
           #103  Issue from 2nd page
            #21  Even more issuez\n
       """
-    And the exit status should be 0
 
   Scenario: Custom format for issues list
     Given the GitHub API server:
