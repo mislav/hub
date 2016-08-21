@@ -2,6 +2,7 @@ package github
 
 import (
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -148,7 +149,32 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (
 	return
 }
 
+func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
+	r.loadRemotes()
+
+	repoUrl, err := url.Parse(repo.HtmlUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	project := NewProject(repo.Owner.Login, repo.Name, repoUrl.Host)
+
+	for _, remote := range r.remotes {
+		if rp, err := remote.Project(); err == nil {
+			if rp.SameAs(project) {
+				return &remote, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("could not find git remote for %s/%s", repo.Owner.Login, repo.Name)
+}
+
 func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
+	return r.RemoteByName("origin")
+}
+
+func (r *GitHubRepo) MainRemote() (remote *Remote, err error) {
 	r.loadRemotes()
 
 	if len(r.remotes) > 0 {
@@ -163,7 +189,7 @@ func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
 }
 
 func (r *GitHubRepo) MainProject() (project *Project, err error) {
-	origin, err := r.OriginRemote()
+	origin, err := r.MainRemote()
 	if err != nil {
 		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
 

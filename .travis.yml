@@ -1,3 +1,6 @@
+os:
+  - linux
+  - osx
 sudo: false
 before_install:
   - export BUNDLE_GEMFILE=$PWD/Gemfile
@@ -6,11 +9,15 @@ before_install:
   - export PATH=~/bin:"$PATH"
 language: go
 go:
-  - 1.4.2
-script: script/test
-install: bundle install --path "$HOME/build/$TRAVIS_REPO_SLUG/vendor/bundle" --without development --deployment --jobs=3 --retry=3
-cache:
-  directories:
-    - vendor/bundle
+  - 1.6.3
+script: make test-all
+install: script/cached-bundle install --without development --deployment --jobs=3 --retry=3
+after_success: script/publish-release
 notifications:
   email: false
+env:
+  global:
+    - AMAZON_S3_BUCKET=ci-cache
+    - AMAZON_ACCESS_KEY_ID=AKIAJQCVTDEWQHRPBPGQ
+    - secure: "XAZv5xyNjWt7F9hG0MZhDANVJ5h/ajEZvfJOEIZRQlE3X5x6oVgI8blLh/MmlRSF0kIyLckcn6t2ccjSOvwN2hca5bwZSjIqoKbJyNe2cmkxfi2432vEOu3Ve6PT5hZWX4R5RgT+xWyMjIJcdF3gUMP7ErXl64aEncBzeW6OoXM="
+    - secure: "eroPaeI0ohBaUjuc/y22VgyN+GDHeWXPIMAZTvSkNZfwL+Oxy861aeawi0zQeduEYon3fSfMBbOxJbrA+6IMU0W+DlR7TTBJ9dbGmeTFCu6ypJRJJtaE5/Kn9PwKjyG6XiPR/YR6818Jiv6yVCLQspjFbhCuKeFoHcu7RAmazKE="

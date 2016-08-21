@@ -9,6 +9,14 @@ Feature: hub remote add
     Then the url for "origin" should be "git@github.com:EvilChelu/dotfiles.git"
     And there should be no output
 
+  Scenario: Add origin remote for my own repo using -C
+    Given there are no remotes
+    And I cd to ".."
+    When I successfully run `hub -C dotfiles remote add origin`
+    And I cd to "dotfiles"
+    Then the url for "origin" should be "git@github.com:EvilChelu/dotfiles.git"
+    And there should be no output
+
   Scenario: Unchanged public remote add
     When I successfully run `hub remote add origin http://github.com/defunkt/resque.git`
     Then the url for "origin" should be "http://github.com/defunkt/resque.git"
@@ -36,6 +44,7 @@ Feature: hub remote add
 
   Scenario: Add new remote for Enterprise repo
     Given "git.my.org" is a whitelisted Enterprise host
+    And I am "ProLoser" on git.my.org with OAuth token "FITOKEN"
     And the "origin" remote has url "git@git.my.org:mislav/topsekrit.git"
     When I successfully run `hub remote add another`
     Then the url for "another" should be "git@git.my.org:another/topsekrit.git"

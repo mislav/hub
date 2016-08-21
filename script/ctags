@@ -1,0 +1,21 @@
+#!/bin/bash
+# Usage: script/ctags [<tags-file=.git/tags>]
+#
+# Generates tags for Go runtime files. Requires universal-ctags.
+
+set -e
+
+case "$1" in
+-h | --help )
+  sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
+  exit 0
+  ;;
+esac
+
+ctags -R --tag-relative -f "${1:-.git/tags}" \
+  --exclude=etc \
+  --exclude=script \
+  --exclude=tmp \
+  --exclude=vendor \
+  --exclude='*_test.go' \
+  .

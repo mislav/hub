@@ -11,9 +11,20 @@ import (
 var cmdFork = &Command{
 	Run:   fork,
 	Usage: "fork [--no-remote]",
-	Short: "Make a fork of a remote repository on GitHub and add as remote",
-	Long: `Forks the original project (referenced by "origin" remote) on GitHub and
-adds a new remote for it under your username.
+	Long: `Fork the current project on GitHub and add a git remote for it.
+
+## Options:
+	--no-remote
+		Skip adding a git remote for the fork.
+
+## Examples:
+		$ hub fork
+		[ repo forked on GitHub ]
+		> git remote add -f USER git@github.com:USER/REPO.git
+
+## See also:
+
+hub-clone(1), hub(1)
 `,
 }
 
@@ -25,14 +36,6 @@ func init() {
 	CmdRunner.Use(cmdFork)
 }
 
-/*
-  $ gh fork
-  [ repo forked on GitHub ]
-  > git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
-
-  $ gh fork --no-remote
-  [ repo forked on GitHub ]
-*/
 func fork(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -48,7 +51,14 @@ func fork(cmd *Command, args *Args) {
 		utils.Check(github.FormatError("forking repository", err))
 	}
 
+	originRemote, err := localRepo.OriginRemote()
+	if err != nil {
+		utils.Check(fmt.Errorf("Error creating fork: %s", err))
+	}
+
 	forkProject := github.NewProject(host.User, project.Name, project.Host)
+	newRemoteName := forkProject.Owner
+
 	client := github.NewClient(project.Host)
 	existingRepo, err := client.Repository(forkProject)
 	if err == nil {
@@ -63,19 +73,20 @@ func fork(cmd *Command, args *Args) {
 		}
 	} else {
 		if !args.Noop {
-			_, err := client.ForkRepository(project)
+			newRepo, err := client.ForkRepository(project)
 			utils.Check(err)
+			forkProject.Owner = newRepo.Owner.Login
+			forkProject.Name = newRepo.Name
 		}
 	}
 
 	if flagForkNoRemote {
 		os.Exit(0)
 	} else {
-		originRemote, _ := localRepo.OriginRemote()
 		originURL := originRemote.URL.String()
 		url := forkProject.GitURL("", "", true)
-		args.Replace("git", "remote", "add", "-f", forkProject.Owner, originURL)
-		args.After("git", "remote", "set-url", forkProject.Owner, url)
-		args.After("echo", fmt.Sprintf("new remote: %s", forkProject.Owner))
+		args.Replace("git", "remote", "add", "-f", newRemoteName, originURL)
+		args.After("git", "remote", "set-url", newRemoteName, url)
+		args.After("echo", fmt.Sprintf("new remote: %s", newRemoteName))
 	}
 }

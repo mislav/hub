@@ -6,8 +6,25 @@ Feature: hub fetch
 
   Scenario: Fetch existing remote
     When I successfully run `hub fetch origin`
-    Then "git fetch origin" should be run
+    Then the git command should be unchanged
     And there should be no output
+
+  Scenario: Fetch existing remote from non-GitHub source
+    Given the "origin" remote has url "ssh://dev@codeserver.dev.xxx.drush.in/~/repository.git"
+    When I successfully run `hub fetch origin`
+    Then the git command should be unchanged
+    And there should be no output
+
+  Scenario: Fetch from local bundle
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { json :private => false }
+      """
+    And a git bundle named "mislav"
+    When I successfully run `hub fetch mislav`
+    Then the git command should be unchanged
+    And there should be no output
+    And there should be no "mislav" remote
 
   Scenario: Creates new remote
     Given the GitHub API server:
@@ -84,10 +101,11 @@ Feature: hub fetch
       """
       get('/repos/:owner/dotfiles') { json :private => false }
       """
-    When I successfully run `hub fetch mislav,rtomayko`
-    Then "git fetch --multiple mislav rtomayko" should be run
+    When I successfully run `hub fetch mislav,rtomayko,dustinleblanc`
+    Then "git fetch --multiple mislav rtomayko dustinleblanc" should be run
     And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
     And the url for "rtomayko" should be "git://github.com/rtomayko/dotfiles.git"
+    And the url for "dustinleblanc" should be "git://github.com/dustinleblanc/dotfiles.git"
 
   Scenario: Doesn't create a new remote if repo doesn't exist on GitHub
     Given the GitHub API server:
@@ -95,5 +113,5 @@ Feature: hub fetch
       get('/repos/mislav/dotfiles') { status 404 }
       """
     When I successfully run `hub fetch mislav`
-    Then "git fetch mislav" should be run
+    Then the git command should be unchanged
     And there should be no "mislav" remote

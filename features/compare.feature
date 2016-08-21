@@ -23,7 +23,7 @@ Feature: hub compare
     Then the exit status should be 1
     And the stderr should contain:
       """
-      hub compare [USER] [<START>...]<END>
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
       """
 
   Scenario: Can't compare default branch to self
@@ -33,7 +33,7 @@ Feature: hub compare
     Then the exit status should be 1
     And the stderr should contain:
       """
-      hub compare [USER] [<START>...]<END>
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
       """
 
   Scenario: No args, has upstream branch
@@ -61,6 +61,41 @@ Feature: hub compare
     And the stdout should contain exactly:
       """
       https://github.com/mislav/dotfiles/compare/1.0...fix\n
+      """
+
+  Scenario: Compare base in branch that is not master
+    Given I am on the "feature" branch with upstream "origin/experimental"
+    And git "push.default" is set to "upstream"
+    When I successfully run `hub compare -b master`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/master...experimental" should be run
+
+  Scenario: Compare base in master branch
+    Given I am on the "master" branch with upstream "origin/master"
+    And git "push.default" is set to "upstream"
+    When I successfully run `hub compare -b experimental`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/experimental...master" should be run
+
+  Scenario: Compare base with same branch as the current branch
+    Given I am on the "feature" branch with upstream "origin/experimental"
+    And git "push.default" is set to "upstream"
+    When I run `hub compare -b experimental`
+    Then "open https://github.com/mislav/dotfiles/compare/experimental...experimental" should not be run
+    And the exit status should be 1
+    And the stderr should contain:
+      """
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
+      """
+
+  Scenario: Compare base with parameters
+    Given I am on the "master" branch with upstream "origin/master"
+    When I run `hub compare -b master experimental..master`
+    Then "open https://github.com/mislav/dotfiles/compare/experimental...master" should not be run
+    And the exit status should be 1
+    And the stderr should contain:
+      """
+      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
       """
 
   Scenario: Compare 2-dots range for tags
@@ -101,3 +136,14 @@ Feature: hub compare
     When I successfully run `hub compare refactor`
     Then there should be no output
     And "open http://git.my.org/mislav/dotfiles/compare/refactor" should be run
+
+  Scenario: Compare in non-GitHub repo
+    Given the "origin" remote has url "git@bitbucket.org:mislav/dotfiles.git"
+    And I am on the "feature" branch
+    When I run `hub compare`
+    Then the stdout should contain exactly ""
+    And the stderr should contain exactly:
+      """
+      Aborted: the origin remote doesn't point to a GitHub repository.\n
+      """
+    And the exit status should be 1

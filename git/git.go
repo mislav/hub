@@ -21,22 +21,68 @@ func Version() (string, error) {
 	return output[0], nil
 }
 
+var cachedDir string
+
 func Dir() (string, error) {
+	if cachedDir != "" {
+		return cachedDir, nil
+	}
+
 	output, err := gitOutput("rev-parse", "-q", "--git-dir")
 	if err != nil {
 		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
 	}
 
-	gitDir := output[0]
-	gitDir, err = filepath.Abs(gitDir)
-	if err != nil {
-		return "", err
+	var chdir string
+	for i, flag := range GlobalFlags {
+		if flag == "-C" {
+			dir := GlobalFlags[i+1]
+			if filepath.IsAbs(dir) {
+				chdir = dir
+			} else {
+				chdir = filepath.Join(chdir, dir)
+			}
+		}
 	}
 
+	gitDir := output[0]
+
+	if !filepath.IsAbs(gitDir) {
+		if chdir != "" {
+			gitDir = filepath.Join(chdir, gitDir)
+		}
+
+		gitDir, err = filepath.Abs(gitDir)
+		if err != nil {
+			return "", err
+		}
+
+		gitDir = filepath.Clean(gitDir)
+	}
+
+	cachedDir = gitDir
 	return gitDir, nil
 }
 
+func WorkdirName() (string, error) {
+	output, err := gitOutput("rev-parse", "--show-toplevel")
+	if err == nil {
+		return output[0], nil
+	} else {
+		return "", err
+	}
+}
+
 func HasFile(segments ...string) bool {
+	// The blessed way to resolve paths within git dir since Git 2.5.0
+	output, err := gitOutput("rev-parse", "-q", "--git-path", filepath.Join(segments...))
+	if err == nil && output[0] != "--git-path" {
+		if _, err := os.Stat(output[0]); err == nil {
+			return true
+		}
+	}
+
+	// Fallback for older git versions
 	dir, err := Dir()
 	if err != nil {
 		return false
@@ -84,7 +130,7 @@ func Editor() (string, error) {
 		return "", fmt.Errorf("Can't load git var: GIT_EDITOR")
 	}
 
-	return output[0], nil
+	return os.ExpandEnv(output[0]), nil
 }
 
 func Head() (string, error) {
@@ -162,6 +208,14 @@ func Config(name string) (string, error) {
 	return gitGetConfig(name)
 }
 
+func ConfigAll(name string) ([]string, error) {
+	lines, err := gitOutput(gitConfigCommand([]string{"--get-all", name})...)
+	if err != nil {
+		err = fmt.Errorf("Unknown config %s", name)
+	}
+	return lines, err
+}
+
 func GlobalConfig(name string) (string, error) {
 	return gitGetConfig("--global", name)
 }
@@ -213,6 +267,12 @@ func Run(command string, args ...string) error {
 	return cmd.Run()
 }
 
+func IsGitDir(dir string) bool {
+	cmd := cmd.New("git")
+	cmd.WithArgs("--git-dir="+dir, "rev-parse", "--git-dir")
+	return cmd.Success()
+}
+
 func gitOutput(input ...string) (outputs []string, err error) {
 	cmd := cmd.New("git")
 
@@ -233,4 +293,10 @@ func gitOutput(input ...string) (outputs []string, err error) {
 	}
 
 	return outputs, err
+}
+
+func ForwardGitHelp() error {
+	cmd := cmd.New("git")
+	cmd.WithArgs("help")
+	return cmd.Spawn()
 }

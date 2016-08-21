@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -22,7 +23,9 @@ func (p Project) String() string {
 }
 
 func (p *Project) SameAs(other *Project) bool {
-	return p.Owner == other.Owner && p.Name == other.Name && p.Host == other.Host
+	return strings.ToLower(p.Owner) == strings.ToLower(other.Owner) &&
+		strings.ToLower(p.Name) == strings.ToLower(other.Name) &&
+		strings.ToLower(p.Host) == strings.ToLower(other.Host)
 }
 
 func (p *Project) WebURL(name, owner, path string) string {
@@ -101,8 +104,8 @@ func preferredProtocol() string {
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	if !knownGitHubHosts().Include(url.Host) {
-		err = fmt.Errorf("Invalid GitHub URL: %s", url)
+	if !knownGitHubHostsInclude(url.Host) {
+		err = &GithubHostError{url}
 		return
 	}
 
@@ -164,14 +167,15 @@ func newProject(owner, name, host, protocol string) *Project {
 		}
 	}
 
-	if name == "" {
-		name, _ = utils.DirName()
-	}
-
 	return &Project{
 		Name:     name,
 		Owner:    owner,
 		Host:     host,
 		Protocol: protocol,
 	}
+}
+
+func SanitizeProjectName(name string) string {
+	name = filepath.Base(name)
+	return strings.Replace(name, " ", "-", -1)
 }

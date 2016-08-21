@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -24,7 +25,7 @@ func (l *listFlag) Set(value string) error {
 	return nil
 }
 
-func isDir(file string) bool {
+func isCloneable(file string) bool {
 	f, err := os.Open(file)
 	if err != nil {
 		return false
@@ -36,7 +37,23 @@ func isDir(file string) bool {
 		return false
 	}
 
-	return fi.IsDir()
+	if fi.IsDir() {
+		gitf, err := os.Open(filepath.Join(file, ".git"))
+		if err == nil {
+			gitf.Close()
+			return true
+		} else {
+			return git.IsGitDir(file)
+		}
+	} else {
+		reader := bufio.NewReader(f)
+		line, err := reader.ReadString('\n')
+		if err == nil {
+			return strings.Contains(line, "git bundle")
+		} else {
+			return false
+		}
+	}
 }
 
 func gitRemoteForProject(project *github.Project) (foundRemote *github.Remote) {
@@ -63,34 +80,35 @@ func getTitleAndBodyFromFlags(messageFlag, fileFlag string) (title, body string,
 	if messageFlag != "" {
 		title, body = readMsg(messageFlag)
 	} else if fileFlag != "" {
-		var (
-			content []byte
-			err     error
-		)
-
-		if fileFlag == "-" {
-			content, err = ioutil.ReadAll(os.Stdin)
-		} else {
-			content, err = ioutil.ReadFile(fileFlag)
-		}
-		utils.Check(err)
-
-		title, body = readMsg(string(content))
+		title, body, err = readMsgFromFile(fileFlag)
 	}
 
 	return
 }
 
-func readMsg(msg string) (title, body string) {
-	s := bufio.NewScanner(strings.NewReader(msg))
-	if s.Scan() {
-		title = s.Text()
-		body = strings.TrimLeft(msg, title)
-
-		title = strings.TrimSpace(title)
-		body = strings.TrimSpace(body)
+func readMsgFromFile(filename string) (title, body string, err error) {
+	var content []byte
+	if filename == "-" {
+		content, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		content, err = ioutil.ReadFile(filename)
+	}
+	if err != nil {
+		return
 	}
 
+	text := strings.Replace(string(content), "\r\n", "\n", -1)
+	title, body = readMsg(text)
+	return
+}
+
+func readMsg(message string) (title, body string) {
+	parts := strings.SplitN(message, "\n\n", 2)
+
+	title = strings.TrimSpace(strings.Replace(parts[0], "\n", " ", -1))
+	if len(parts) > 1 {
+		body = strings.TrimSpace(parts[1])
+	}
 	return
 }
 

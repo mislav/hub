@@ -5,29 +5,20 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strconv"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/howeyc/gopass"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/howeyc/gopass"
+	"github.com/mitchellh/go-homedir"
 )
 
 var defaultConfigsFile string
 
 func init() {
-	homeDir := os.Getenv("HOME")
-
-	if homeDir == "" {
-		if u, err := user.Current(); err == nil {
-			homeDir = u.HomeDir
-		}
-	}
-
-	if homeDir == "" {
-		utils.Check(fmt.Errorf("Can't get current user's home dir"))
-	}
+	homeDir, err := homedir.Dir()
+	utils.Check(err)
 
 	defaultConfigsFile = filepath.Join(homeDir, ".config", "hub")
 }
@@ -48,19 +39,67 @@ type Host struct {
 }
 
 type Config struct {
-	Hosts []Host `toml:"hosts"`
+	Hosts []*Host `toml:"hosts"`
 }
 
 func (c *Config) PromptForHost(host string) (h *Host, err error) {
+	token := c.DetectToken()
+	tokenFromEnv := token != ""
+
 	h = c.Find(host)
 	if h != nil {
-		return
+		if h.User == "" {
+			// User is missing from the config: this is a broken config probably
+			// because it was created with an old (broken) version of hub. Let's fix
+			// it now. See issue #1007 for details.
+			user := c.PromptForUser(host)
+			if user == "" {
+				utils.Check(fmt.Errorf("missing user"))
+			}
+			h.User = user
+			err := newConfigService().Save(configsFile(), c)
+			utils.Check(err)
+		}
+		if tokenFromEnv {
+			h.AccessToken = token
+		} else {
+			return
+		}
+	} else {
+		h = &Host{
+			Host:        host,
+			AccessToken: token,
+			Protocol:    "https",
+		}
+		c.Hosts = append(c.Hosts, h)
 	}
 
+	client := NewClientWithHost(h)
+
+	if !tokenFromEnv {
+		err = c.authorizeClient(client, host)
+		if err != nil {
+			return
+		}
+	}
+
+	currentUser, err := client.CurrentUser()
+	if err != nil {
+		return
+	}
+	h.User = currentUser.Login
+
+	if !tokenFromEnv {
+		err = newConfigService().Save(configsFile(), c)
+	}
+
+	return
+}
+
+func (c *Config) authorizeClient(client *Client, host string) (err error) {
 	user := c.PromptForUser(host)
 	pass := c.PromptForPassword(host, user)
 
-	client := NewClient(host)
 	var code, token string
 	for {
 		token, err = client.FindOrCreateToken(user, pass, code)
@@ -78,26 +117,15 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		}
 	}
 
-	if err != nil {
-		return
+	if err == nil {
+		client.Host.AccessToken = token
 	}
-
-	client.Host.AccessToken = token
-	currentUser, err := client.CurrentUser()
-	if err != nil {
-		return
-	}
-
-	h = &Host{
-		Host:        host,
-		User:        currentUser.Login,
-		AccessToken: token,
-		Protocol:    "https",
-	}
-	c.Hosts = append(c.Hosts, *h)
-	err = newConfigService().Save(configsFile(), c)
 
 	return
+}
+
+func (c *Config) DetectToken() string {
+	return os.Getenv("GITHUB_TOKEN")
 }
 
 func (c *Config) PromptForUser(host string) (user string) {
@@ -119,8 +147,9 @@ func (c *Config) PromptForPassword(host, user string) (pass string) {
 	}
 
 	ui.Printf("%s password for %s (never stored): ", host, user)
-	if isTerminal(os.Stdout.Fd()) {
-		pass = string(gopass.GetPasswd())
+	if ui.IsTerminal(os.Stdout) {
+		passBytes, _ := gopass.GetPasswd()
+		pass = string(passBytes)
 	} else {
 		pass = c.scanLine()
 	}
@@ -147,7 +176,7 @@ func (c *Config) scanLine() string {
 func (c *Config) Find(host string) *Host {
 	for _, h := range c.Hosts {
 		if h.Host == host {
-			return &h
+			return h
 		}
 	}
 
@@ -158,7 +187,7 @@ func (c *Config) selectHost() *Host {
 	options := len(c.Hosts)
 
 	if options == 1 {
-		return &c.Hosts[0]
+		return c.Hosts[0]
 	}
 
 	prompt := "Select host:\n"
@@ -174,7 +203,7 @@ func (c *Config) selectHost() *Host {
 		utils.Check(fmt.Errorf("Error: must enter a number [1-%d]", options))
 	}
 
-	return &c.Hosts[i-1]
+	return c.Hosts[i-1]
 }
 
 func configsFile() string {
@@ -186,11 +215,18 @@ func configsFile() string {
 	return configsFile
 }
 
-func CurrentConfig() *Config {
-	c := &Config{}
-	newConfigService().Load(configsFile(), c)
+var currentConfig *Config
+var configLoadedFrom = ""
 
-	return c
+func CurrentConfig() *Config {
+	filename := configsFile()
+	if configLoadedFrom != filename {
+		currentConfig = &Config{}
+		newConfigService().Load(filename, currentConfig)
+		configLoadedFrom = filename
+	}
+
+	return currentConfig
 }
 
 func (c *Config) DefaultHost() (host *Host, err error) {
@@ -198,6 +234,8 @@ func (c *Config) DefaultHost() (host *Host, err error) {
 		host, err = c.PromptForHost(GitHubHostEnv)
 	} else if len(c.Hosts) > 0 {
 		host = c.selectHost()
+		// HACK: forces host to inherit GITHUB_TOKEN if applicable
+		host, err = c.PromptForHost(host.Host)
 	} else {
 		host, err = c.PromptForHost(DefaultGitHubHost())
 	}
@@ -210,13 +248,13 @@ func CreateTestConfigs(user, token string) *Config {
 	f, _ := ioutil.TempFile("", "test-config")
 	defaultConfigsFile = f.Name()
 
-	host := Host{
+	host := &Host{
 		User:        "jingweno",
 		AccessToken: "123",
 		Host:        GitHubHost,
 	}
 
-	c := &Config{Hosts: []Host{host}}
+	c := &Config{Hosts: []*Host{host}}
 	err := newConfigService().Save(f.Name(), c)
 	if err != nil {
 		panic(err)

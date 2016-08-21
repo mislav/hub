@@ -1,0 +1,27 @@
+#!/bin/bash
+# Usage: script/cross-compile | script/github-release <name> <version>
+#
+# Takes in a list of asset filenames + labels via stdin and uploads them to the
+# corresponding release on GitHub. The release is created as a draft first if
+# missing and its body is the git changelog since the previous tagged release.
+set -e
+
+export GITHUB_TOKEN="${GITHUB_OAUTH?}"
+
+project_name="${1?}"
+version="${2?}"
+[[ $version == *-* ]] && pre=1 || pre=
+
+assets=()
+while read -r filename label; do
+  assets+=( -a "${filename}#${label}" )
+done
+
+if hub release --include-drafts | grep -q "^v${version}\$"; then
+  hub release edit "v${version}" "${assets[@]}"
+else
+  { echo "${project_name} ${version}"
+    echo
+    script/changelog
+  } | hub release create --draft ${pre:+--prerelease} -F - "v${version}" "${assets[@]}"
+fi

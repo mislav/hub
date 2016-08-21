@@ -1,10 +1,12 @@
 package git
 
 import (
+	"fmt"
+	"os"
 	"strings"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/bmizerany/assert"
 	"github.com/github/hub/fixtures"
 )
 
@@ -18,12 +20,26 @@ func TestGitDir(t *testing.T) {
 
 func TestGitEditor(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
-	defer repo.TearDown()
+	editor := os.Getenv("GIT_EDITOR")
+	if err := os.Unsetenv("GIT_EDITOR"); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		repo.TearDown()
+		if err := os.Setenv("GIT_EDITOR", editor); err != nil {
+			t.Fatal(err)
+		}
+		os.Unsetenv("FOO")
+		os.Unsetenv("BAR")
+	}()
 
-	SetGlobalConfig("core.editor", "foo")
+	os.Setenv("FOO", "hello")
+	os.Setenv("BAR", "happy world")
+
+	SetGlobalConfig("core.editor", `$FOO "${BAR}"`)
 	gitEditor, err := Editor()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, "foo", gitEditor)
+	assert.Equal(t, `hello "happy world"`, gitEditor)
 }
 
 func TestGitLog(t *testing.T) {
@@ -81,4 +97,60 @@ func TestGitConfig(t *testing.T) {
 	v, err = GlobalConfig("hub.test")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "", v)
+}
+
+func TestRemotes(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	type remote struct {
+		name    string
+		url     string
+		pushUrl string
+	}
+	testCases := map[string]remote{
+		"testremote1": {
+			"testremote1",
+			"https://example.com/test1/project1.git",
+			"no_push",
+		},
+		"testremote2": {
+			"testremote2",
+			"user@example.com:test2/project2.git",
+			"http://example.com/project.git",
+		},
+		"testremote3": {
+			"testremote3",
+			"https://example.com/test1/project2.git",
+			"",
+		},
+	}
+
+	for _, tc := range testCases {
+		repo.AddRemote(tc.name, tc.url, tc.pushUrl)
+	}
+
+	remotes, err := Remotes()
+	assert.Equal(t, nil, err)
+
+	// In addition to the remotes we added to the repo, repo will
+	// also have an additional remote "origin". So add it to the
+	// expected cases to test.
+	wantCases := map[string]struct{}{
+		fmt.Sprintf("origin	%s (fetch)", repo.Remote): {},
+		fmt.Sprintf("origin	%s (push)", repo.Remote): {},
+		"testremote1	https://example.com/test1/project1.git (fetch)": {},
+		"testremote1	no_push (push)": {},
+		"testremote2	user@example.com:test2/project2.git (fetch)": {},
+		"testremote2	http://example.com/project.git (push)": {},
+		"testremote3	https://example.com/test1/project2.git (fetch)": {},
+		"testremote3	https://example.com/test1/project2.git (push)": {},
+	}
+
+	assert.Equal(t, len(remotes), len(wantCases))
+	for _, got := range remotes {
+		if _, ok := wantCases[got]; !ok {
+			t.Errorf("Unexpected remote: %s", got)
+		}
+	}
 }

@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Usage: script/build [-o output] [test]
+# vi:ft=sh:
+# Usage: script/build [-o <EXE>]
+#        script/build test
 #
-# Sets up GOPATH and compiles hub. With `test`, runs tests instead.
+# Sets up GOPATH and compiles hub to <EXE> (default: `bin/hub`).
+#
+# With `test`, runs tests instead.
 
 set -e
 
@@ -31,37 +35,40 @@ find_source_files() {
   find . -maxdepth 2 -name '*.go' '!' -name '*_test.go' "$@"
 }
 
-count_changed_files() {
-  printf %d $(find_source_files -newer "$1" | wc -l)
-}
-
-up_to_date() {
-  [ -e "$1" ] && [ "$(count_changed_files "$1")" -eq 0 ]
+find_packages() {
+  find_source_files | cut -d/ -f2 | sort -u | grep -v '.go$' | sed 's!^!github.com/github/hub/!'
 }
 
 build_hub() {
   setup_gopath
-  [ -n "$1" ] && (up_to_date "$1" || go build -ldflags "-X github.com/github/hub/commands.Version `./script/version`" -o "$1")
+  mkdir -p "$(dirname "$1")"
+  go build -ldflags "-X github.com/github/hub/version.Version=`./script/version`" -o "$1"
 }
 
 test_hub() {
   setup_gopath
-  go test ./...
+  find_packages | xargs go test
 }
 
+[ $# -gt 0 ] || set -- -o "bin/hub${windows:+.exe}"
+
 case "$1" in
-"" )
-  build_hub hub${windows:+.exe}
-  ;;
 -o )
   shift
-  build_hub $1
+  if [ -z "$1" ]; then
+    echo "error: argument needed for \`-o'" >&2
+    exit 1
+  fi
+  build_hub "$1"
   ;;
 test )
   test_hub
   ;;
+files )
+  find_source_files
+  ;;
 -h | --help )
-  sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
+  sed -ne '/^#/!q;s/.\{1,2\}//;1,2d;p' < "$0"
   exit
   ;;
 * )

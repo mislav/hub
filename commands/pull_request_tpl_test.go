@@ -3,7 +3,7 @@ package commands
 import (
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/bmizerany/assert"
 )
 
 func TestRenderPullRequestTpl(t *testing.T) {
@@ -15,7 +15,7 @@ func TestRenderPullRequestTpl(t *testing.T) {
 # Requesting a pull to base from head
 #
 # Write a message for this pull request. The first block
-# of text is the title and the rest is description.
+# of text is the title and the rest is the description.
 #
 # Changes:
 #

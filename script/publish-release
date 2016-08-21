@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -e
+
+if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ] && [ -n "$GITHUB_OAUTH" ]; then
+  version="${TRAVIS_TAG#v}"
+  make man-pages
+  script/cross-compile "$version" | script/github-release hub "$version"
+fi

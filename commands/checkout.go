@@ -11,12 +11,17 @@ import (
 var cmdCheckout = &Command{
 	Run:          checkout,
 	GitExtension: true,
-	Usage:        "checkout PULLREQ-URL [BRANCH]",
-	Short:        "Switch the active branch to another branch",
-	Long: `Checks out the head of the pull request as a local branch, to allow for
-reviewing, rebasing and otherwise cleaning up the commits in the pull
-request before merging. The name of the local branch can explicitly be
-set with BRANCH.
+	Usage:        "checkout <PULLREQ-URL> [<BRANCH>]",
+	Long: `Check out the head of a pull request as a local branch.
+
+## Examples:
+		$ hub checkout https://github.com/jingweno/gh/pull/73
+		> git remote add -f --no-tags -t feature git://github:com/jingweno/gh.git
+		> git checkout --track -B jingweno-feature jingweno/feature
+
+## See also:
+
+hub-merge(1), hub-am(1), hub(1), git-checkout(1)
 `,
 }
 
@@ -24,13 +29,6 @@ func init() {
 	CmdRunner.Use(cmdCheckout)
 }
 
-/**
-  $ gh checkout https://github.com/jingweno/gh/pull/73
-  > git remote add -f --no-tags -t feature git://github:com/foo/gh.git
-  > git checkout --track -B foo-feature foo/feature
-
-  $ gh checkout https://github.com/jingweno/gh/pull/73 custom-branch-name
-**/
 func checkout(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		err := transformCheckoutArgs(args)
@@ -80,33 +78,36 @@ func transformCheckoutArgs(args *Args) error {
 		args.RemoveParam(idx)
 	}
 
-	branch := pullRequest.Head.Ref
-	headRepo := pullRequest.Head.Repo
-	if headRepo == nil {
-		return fmt.Errorf("Error: that fork is not available anymore")
-	}
-	user := headRepo.Owner.Login
-
-	if newBranchName == "" {
-		newBranchName = fmt.Sprintf("%s-%s", user, branch)
-	}
-
 	repo, err := github.LocalRepo()
-	utils.Check(err)
-
-	_, err = repo.RemoteByName(user)
-	if err == nil {
-		args.Before("git", "remote", "set-branches", "--add", user, branch)
-		remoteURL := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s/%s", branch, user, branch)
-		args.Before("git", "fetch", user, remoteURL)
-	} else {
-		u := url.Project.GitURL(pullRequest.Head.Repo.Name, user, pullRequest.Head.Repo.Private)
-		args.Before("git", "remote", "add", "-f", "--no-tags", "-t", branch, user, u)
+	if err != nil {
+		return err
 	}
 
-	remoteName := fmt.Sprintf("%s/%s", user, branch)
-	replaceCheckoutParam(args, checkoutURL, newBranchName, remoteName)
+	remote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
+	if err != nil {
+		return err
+	}
 
+	var refSpec string
+	var newArgs []string
+
+	if pullRequest.IsSameRepo() {
+		if newBranchName == "" {
+			newBranchName = pullRequest.Head.Ref
+		}
+		remoteBranch := fmt.Sprintf("%s/%s", remote.Name, pullRequest.Head.Ref)
+		refSpec = fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
+		newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+	} else {
+		if newBranchName == "" {
+			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+		}
+		refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+		newArgs = append(newArgs, newBranchName)
+	}
+
+	args.Before("git", "fetch", remote.Name, refSpec)
+	replaceCheckoutParam(args, checkoutURL, newArgs...)
 	return nil
 }
 
@@ -122,8 +123,8 @@ func sanitizeCheckoutFlags(args *Args) error {
 	return nil
 }
 
-func replaceCheckoutParam(args *Args, checkoutURL, branchName, remoteName string) {
+func replaceCheckoutParam(args *Args, checkoutURL string, replacement ...string) {
 	idx := args.IndexOfParam(checkoutURL)
 	args.RemoveParam(idx)
-	args.InsertParam(idx, "--track", "-B", branchName, remoteName)
+	args.InsertParam(idx, replacement...)
 }

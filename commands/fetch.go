@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -11,10 +12,19 @@ import (
 var cmdFetch = &Command{
 	Run:          fetch,
 	GitExtension: true,
-	Usage:        "fetch [USER...]",
-	Short:        "Download data, tags and branches from a remote repository",
-	Long: `Adds missing remote(s) with git remote add prior to fetching. New
-remotes are only added if they correspond to valid forks on GitHub.
+	Usage:        "fetch <USER>[,<USER2>...]",
+	Long: `Add missing remotes prior to performing git fetch.
+
+## Examples:
+		$ hub fetch --multiple jingweno mislav
+		> git remote add jingweno git://github.com/jingweno/REPO.git
+		> git remote add jingweno git://github.com/mislav/REPO.git
+		> git fetch jingweno
+		> git fetch mislav
+
+## See also:
+
+hub-remote(1), hub(1), git-fetch(1)
 `,
 }
 
@@ -22,21 +32,6 @@ func init() {
 	CmdRunner.Use(cmdFetch)
 }
 
-/*
-  $ gh fetch jingweno
-  > git remote add jingweno git://github.com/jingweno/REPO.git
-  > git fetch jingweno
-
-  $ git fetch jingweno,foo
-  > git remote add jingweno ...
-  > git remote add foo ...
-  > git fetch --multiple jingweno foo
-
-  $ git fetch --multiple jingweno foo
-  > git remote add jingweno ...
-  > git remote add foo ...
-  > git fetch --multiple jingweno foo
-*/
 func fetch(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		err := tranformFetchArgs(args)
@@ -50,13 +45,16 @@ func tranformFetchArgs(args *Args) error {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
+	currentProject, currentProjectErr := localRepo.CurrentProject()
+
 	projects := make(map[*github.Project]bool)
 	ownerRegexp := regexp.MustCompile(OwnerRe)
 	for _, name := range names {
-		if ownerRegexp.MatchString(name) {
+		if ownerRegexp.MatchString(name) && !isCloneable(name) {
 			_, err := localRepo.RemoteByName(name)
 			if err != nil {
-				project := github.NewProject(name, "", "")
+				utils.Check(currentProjectErr)
+				project := github.NewProject(name, currentProject.Name, "")
 				gh := github.NewClient(project.Host)
 				repo, err := gh.Repository(project)
 				if err != nil {
@@ -83,7 +81,8 @@ func parseRemoteNames(args *Args) (names []string) {
 		}
 	} else if len(words) > 0 {
 		remoteName := words[0]
-		remoteNameRegexp := regexp.MustCompile("^\\w+(,\\w+)$")
+		commaPattern := fmt.Sprintf("^%s(,%s)+$", OwnerRe, OwnerRe)
+		remoteNameRegexp := regexp.MustCompile(commaPattern)
 		if remoteNameRegexp.MatchString(remoteName) {
 			i := args.IndexOfParam(remoteName)
 			args.RemoveParam(i)

@@ -4,8 +4,8 @@ import (
 	"io"
 	"io/ioutil"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/BurntSushi/toml"
-	"github.com/github/hub/Godeps/_workspace/src/gopkg.in/yaml.v1"
+	"github.com/BurntSushi/toml"
+	"gopkg.in/yaml.v1"
 )
 
 type configDecoder interface {
@@ -38,7 +38,7 @@ func (y *yamlConfigDecoder) Decode(r io.Reader, c *Config) error {
 
 	for h, v := range yc {
 		vv := v[0]
-		host := Host{
+		host := &Host{
 			Host:        h,
 			User:        vv.User,
 			AccessToken: vv.OAuthToken,

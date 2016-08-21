@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Usage: script/cross-compile <version>
+#
+# Packages the project over a matrix of supported OS and architectures and
+# prints the asset filenames and labels suitable for upload.
+set -e
+
+version="${1?}"
+
+echo '
+  darwin   amd64    OS X
+  freebsd  386      FreeBSD 32-bit
+  freebsd  amd64    FreeBSD 64-bit
+  linux    386      Linux 32-bit
+  linux    amd64    Linux 64-bit
+  linux    arm      Linux ARM 32-bit
+  linux    arm64    Linux ARM 64-bit
+  windows  386      Windows 32-bit
+  windows  amd64    Windows 64-bit
+' | {
+  while read os arch label; do
+    [ -n "$os" ] || continue
+
+    label="hub ${version} for ${label}"
+    if ! file="$(script/package "$os" "$arch" "$version")"; then
+      echo "packaging $label failed" >&2
+      continue
+    fi
+
+    printf "%s\t%s\n" "$file" "$label"
+  done
+}

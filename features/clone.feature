@@ -7,6 +7,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -19,6 +20,7 @@ Feature: hub clone
       """
       get('/repos/hookio/hook.js') {
         json :private => false,
+             :name => 'hook.js', :owner => { :login => 'hookio' },
              :permissions => { :push => false }
       }
       """
@@ -31,6 +33,7 @@ Feature: hub clone
       """
       get('/repos/zhuangya/.vim') {
         json :private => false,
+             :name => '.vim', :owner => { :login => 'zhuangya' },
              :permissions => { :push => false }
       }
       """
@@ -38,8 +41,30 @@ Feature: hub clone
     Then it should clone "git://github.com/zhuangya/.vim.git"
     And there should be no output
 
+  Scenario: Clone a repo even if same-named directory exists
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
+             :permissions => { :push => false }
+      }
+      """
+    And a directory named "rtomayko/ronn"
+    When I successfully run `hub clone rtomayko/ronn`
+    Then it should clone "git://github.com/rtomayko/ronn.git"
+    And there should be no output
+
   Scenario: Clone a public repo with HTTPS
     Given HTTPS is preferred
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "https://github.com/rtomayko/ronn.git"
     And there should be no output
@@ -49,6 +74,7 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
              :permissions => { :push => false }
       }
       """
@@ -82,7 +108,14 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Unchanged local clone with destination
+    Given a directory named ".git"
     When I successfully run `hub clone -l . ../copy`
+    Then the git command should be unchanged
+    And there should be no output
+
+  Scenario: Unchanged local clone from bare repo
+    Given a bare git repo in "rtomayko/ronn"
+    When I successfully run `hub clone rtomayko/ronn`
     Then the git command should be unchanged
     And there should be no output
 
@@ -92,11 +125,27 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Preview cloning a private repo
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub --noop clone -p rtomayko/ronn`
     Then the output should contain exactly "git clone git@github.com:rtomayko/ronn.git\n"
     But it should not clone anything
 
   Scenario: Clone a private repo
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub clone -p rtomayko/ronn`
     Then it should clone "git@github.com:rtomayko/ronn.git"
     And there should be no output
@@ -106,6 +155,7 @@ Feature: hub clone
       """
       get('/repos/mislav/dotfiles') {
         json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
              :permissions => { :push => true }
       }
       """
@@ -113,11 +163,23 @@ Feature: hub clone
     Then it should clone "git@github.com:mislav/dotfiles.git"
     And there should be no output
 
+  Scenario: Clone my repo that doesn't exist
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { status 404 }
+      """
+    When I run `hub clone dotfiles`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly "Error: repository mislav/dotfiles doesn't exist\n"
+    And it should not clone anything
+
   Scenario: Clone my repo with arguments
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
         json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
              :permissions => { :push => true }
       }
       """
@@ -130,6 +192,7 @@ Feature: hub clone
       """
       get('/repos/sstephenson/rbenv') {
         json :private => false,
+             :name => 'rbenv', :owner => { :login => 'sstephenson' },
              :permissions => { :push => true }
       }
       """
@@ -142,6 +205,7 @@ Feature: hub clone
       """
       get('/repos/sstephenson/rbenv') {
         json :private => false,
+             :name => 'rbenv', :owner => { :login => 'sstephenson' },
              :permissions => { :push => true }
       }
       """
@@ -156,6 +220,7 @@ Feature: hub clone
       """
       get('/api/v3/repos/myorg/myrepo') {
         json :private => true,
+             :name => 'myrepo', :owner => { :login => 'myorg' },
              :permissions => { :push => false }
       }
       """
@@ -164,8 +229,14 @@ Feature: hub clone
     And there should be no output
 
   Scenario: Clone from existing directory is a local clone
-    Given a directory named "dotfiles"
+    Given a directory named "dotfiles/.git"
     When I successfully run `hub clone dotfiles`
+    Then the git command should be unchanged
+    And there should be no output
+
+  Scenario: Clone from git bundle is a local clone
+    Given a git bundle named "my-bundle"
+    When I successfully run `hub clone my-bundle`
     Then the git command should be unchanged
     And there should be no output
 
@@ -174,9 +245,44 @@ Feature: hub clone
       """
       get('/repos/rtomayko/ronn') {
         json :private => false,
-             :permissions => { :push => false }
+             :name => 'ronin', :owner => { :login => 'RTomayko' },
+             :permissions => { :push => false },
+             :has_wiki => true
       }
       """
     When I successfully run `hub clone rtomayko/ronn.wiki`
-    Then it should clone "git://github.com/rtomayko/ronn.wiki.git"
+    Then it should clone "git://github.com/RTomayko/ronin.wiki.git"
+    And there should be no output
+
+  Scenario: Clone a nonexisting wiki
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :name => 'ronin', :owner => { :login => 'RTomayko' },
+             :permissions => { :push => false },
+             :has_wiki => false
+      }
+      """
+    When I run `hub clone rtomayko/ronn.wiki`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly "Error: RTomayko/ronin doesn't have a wiki\n"
+    And it should not clone anything
+
+  Scenario: Clone a redirected repo
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345', :host_name => 'api.github.com') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        json :private => false,
+             :name => 'ronin', :owner => { :login => 'RTomayko' },
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub clone rtomayko/ronn`
+    Then it should clone "git://github.com/RTomayko/ronin.git"
     And there should be no output

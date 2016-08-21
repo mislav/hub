@@ -13,10 +13,24 @@ var cmdInit = &Command{
 	Run:          gitInit,
 	GitExtension: true,
 	Usage:        "init -g",
-	Short:        "Create an empty git repository or reinitialize an existing one",
-	Long: `Create a git repository as with git-init(1) and add remote origin at
-"git@github.com:USER/REPOSITORY.git"; USER is your GitHub username and
-REPOSITORY is the current working directory's basename.
+	Long: `Initialize a git repository and create it on GitHub.
+
+## Options:
+	-g
+		After initializing the repository locally, create a "<USER>/<REPO>"
+		repository on GitHub and add it as the "origin" remote.
+
+		<USER> is your GitHub username, while <REPO> is the name of the current
+		working directory.
+
+## Examples:
+		$ hub init -g
+		> git init
+		> git remote add origin git@github.com:USER/REPO.git
+
+## See also:
+
+hub-create(1), hub(1), git-init(1)
 `,
 }
 
@@ -24,11 +38,6 @@ func init() {
 	CmdRunner.Use(cmdInit)
 }
 
-/*
-  $ gh init -g
-  > git init
-  > git remote add origin git@github.com:USER/REPO.git
-*/
 func gitInit(command *Command, args *Args) {
 	err := transformInitArgs(args)
 	utils.Check(err)
@@ -60,10 +69,16 @@ func transformInitArgs(args *Args) error {
 		return err
 	}
 
+	config := github.CurrentConfig()
+	host, err := config.DefaultHost()
+	if err != nil {
+		utils.Check(github.FormatError("initializing repository", err))
+	}
+
 	// Assume that the name of the working directory is going to be the name of
 	// the project on GitHub.
 	projectName := strings.Replace(filepath.Base(dirToInit), " ", "-", -1)
-	project := github.NewProject("", projectName, "")
+	project := github.NewProject(host.User, projectName, "")
 	url := project.GitURL("", "", true)
 
 	addRemote := []string{

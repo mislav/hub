@@ -10,12 +10,22 @@ import (
 var cmdCherryPick = &Command{
 	Run:          cherryPick,
 	GitExtension: true,
-	Usage:        "cherry-pick GITHUB-REF",
-	Short:        "Apply the changes introduced by some existing commits",
-	Long: `Cherry-pick a commit from a fork using either full URL to the commit
-or GitHub-flavored Markdown notation, which is user@sha. If the remote
-doesn't yet exist, it will be added. A git-fetch(1) user is issued
-prior to the cherry-pick attempt.
+	Usage: `
+cherry-pick <COMMIT-URL>
+cherry-pick <USER>@<SHA>
+`,
+	Long: `Cherry-pick a commit from a fork on GitHub.
+
+## Examples:
+		$ hub cherry-pick https://github.com/jingweno/gh/commit/a319d88#comments
+		> git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
+		> git cherry-pick a319d88
+
+		$ hub cherry-pick jingweno@a319d88
+
+## See also:
+
+hub-am(1), hub(1), git-cherry-pick(1)
 `,
 }
 
@@ -23,19 +33,6 @@ func init() {
 	CmdRunner.Use(cmdCherryPick)
 }
 
-/*
-  $ gh cherry-pick https://github.com/jingweno/gh/commit/a319d88#comments
-  > git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
-  > git cherry-pick a319d88
-
-  $ gh cherry-pick jingweno@a319d88
-  > git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
-  > git cherry-pick a319d88
-
-  $ gh cherry-pick jingweno@SHA
-  > git fetch jingweno
-  > git cherry-pick SHA
-*/
 func cherryPick(command *Command, args *Args) {
 	if args.IndexOfParam("-m") == -1 && args.IndexOfParam("--mainline") == -1 {
 		transformCherryPickArgs(args)

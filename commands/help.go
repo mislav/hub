@@ -3,38 +3,144 @@ package commands
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strings"
+
+	"github.com/github/hub/cmd"
+	"github.com/github/hub/git"
+	"github.com/github/hub/ui"
+	"github.com/github/hub/utils"
 )
 
 var cmdHelp = &Command{
-	Usage:        "help [command]",
-	Short:        "Show help",
-	Long:         `Shows usage for a command.`,
+	Run:          runHelp,
 	GitExtension: true,
+	Usage: `
+help hub
+help <COMMAND>
+help hub-<COMMAND> [--plain-text]
+`,
+	Long: `Show the help page for a command.
+
+## Options:
+	hub-<COMMAND>
+		Use this format to view help for hub extensions to an existing git command.
+
+	--plain-text
+		Skip man page lookup mechanism and display plain help text.
+
+## Man lookup mechanism:
+
+On systems that have 'man', help pages are looked up in these directories
+relative to 'hub' install prefix:
+
+* 'man/<command>.1'
+* 'share/man/man1/<command>.1'
+
+On systems without 'man', same help pages are looked up with a '.txt' suffix.
+
+## See also:
+
+hub(1), git-help(1)
+`,
 }
 
 func init() {
-	cmdHelp.Run = runHelp
-
-	CmdRunner.Use(cmdHelp)
+	CmdRunner.Use(cmdHelp, "--help")
 }
 
-func runHelp(cmd *Command, args *Args) {
+func runHelp(helpCmd *Command, args *Args) {
 	if args.IsParamsEmpty() {
 		printUsage()
 		os.Exit(0)
 	}
 
+	if args.HasFlags("-a", "--all") {
+		args.After("echo", "\nhub custom commands\n")
+		args.After("echo", " ", strings.Join(customCommands(), "  "))
+		return
+	}
+
 	command := args.FirstParam()
-	c := CmdRunner.Lookup(command)
-	if c != nil && !c.GitExtension {
-		c.PrintUsage()
+
+	if command == "hub" {
+		err := displayManPage("hub.1", args)
+		if err != nil {
+			utils.Check(err)
+		}
+	}
+
+	if c := lookupCmd(command); c != nil {
+		if !args.HasFlags("--plain-text") {
+			manPage := fmt.Sprintf("hub-%s.1", c.Name())
+			err := displayManPage(manPage, args)
+			if err == nil {
+				return
+			}
+		}
+
+		ui.Println(c.HelpText())
 		os.Exit(0)
-	} else if c == nil {
-		if args.HasFlags("-a", "--all") {
-			args.After("echo", "\nhub custom commands\n")
-			args.After("echo", " ", strings.Join(customCommands(), "  "))
+	}
+}
+
+func displayManPage(manPage string, args *Args) error {
+	manProgram, _ := utils.CommandPath("man")
+	if manProgram == "" {
+		manPage += ".txt"
+		manProgram = os.Getenv("PAGER")
+		if manProgram == "" {
+			manProgram = "less -R"
+		}
+	}
+
+	programPath, err := utils.CommandPath(args.ProgramPath)
+	if err != nil {
+		return err
+	}
+
+	installPrefix := filepath.Join(filepath.Dir(programPath), "..")
+	manFile, err := localManPage(manPage, installPrefix)
+	if err != nil {
+		return err
+	}
+
+	man := cmd.New(manProgram)
+	man.WithArg(manFile)
+	if err = man.Run(); err == nil {
+		os.Exit(0)
+	} else {
+		os.Exit(1)
+	}
+	return nil
+}
+
+func localManPage(name, installPrefix string) (string, error) {
+	manPath := filepath.Join(installPrefix, "man", name)
+	_, err := os.Stat(manPath)
+	if err == nil {
+		return manPath, nil
+	}
+
+	manPath = filepath.Join(installPrefix, "share", "man", "man1", name)
+	_, err = os.Stat(manPath)
+	if err == nil {
+		return manPath, nil
+	} else {
+		return "", err
+	}
+}
+
+func lookupCmd(name string) *Command {
+	if strings.HasPrefix(name, "hub-") {
+		return CmdRunner.Lookup(strings.TrimPrefix(name, "hub-"))
+	} else {
+		cmd := CmdRunner.Lookup(name)
+		if cmd != nil && !cmd.GitExtension {
+			return cmd
+		} else {
+			return nil
 		}
 	}
 }
@@ -42,7 +148,7 @@ func runHelp(cmd *Command, args *Args) {
 func customCommands() []string {
 	cmds := []string{}
 	for n, c := range CmdRunner.All() {
-		if !c.GitExtension {
+		if !c.GitExtension && !strings.HasPrefix(n, "--") {
 			cmds = append(cmds, n)
 		}
 	}
@@ -52,57 +158,21 @@ func customCommands() []string {
 	return cmds
 }
 
-var helpText = `usage: git [--version] [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
-           [-p|--paginate|--no-pager] [--no-replace-objects] [--bare]
-           [--git-dir=<path>] [--work-tree=<path>] [--namespace=<name>]
-           [-c name=value] [--help]
-           <command> [<args>]
+var helpText = `
+These GitHub commands are provided by hub:
 
-Basic Commands:
-   init       Create an empty git repository or reinitialize an existing one
-   add        Add new or modified files to the staging area
-   rm         Remove files from the working directory and staging area
-   mv         Move or rename a file, a directory, or a symlink
-   status     Show the status of the working directory and staging area
-   commit     Record changes to the repository
-
-History Commands:
-   log        Show the commit history log
-   diff       Show changes between commits, commit and working tree, etc
-   show       Show information about commits, tags or files
-
-Branching Commands:
-   branch     List, create, or delete branches
-   checkout   Switch the active branch to another branch
-   merge      Join two or more development histories (branches) together
-   tag        Create, list, delete, sign or verify a tag object
-
-Remote Commands:
-   clone      Clone a remote repository into a new directory
-   fetch      Download data, tags and branches from a remote repository
-   pull       Fetch from and merge with another repository or a local branch
-   push       Upload data, tags and branches to a remote repository
-   remote     View and manage a set of remote repositories
-
-Advanced Commands:
-   reset      Reset your staging area or working directory to another point
-   rebase     Re-apply a series of patches in one branch onto another
-   bisect     Find by binary search the change that introduced a bug
-   grep       Print files with lines matching a pattern in your codebase
-
-GitHub Commands:
    pull-request   Open a pull request on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
    compare        Open a compare page on GitHub
-   release        List or create releases (beta)
-   issue          List or create issues (beta)
+   release        List or create releases
+   issue          List or create issues
    ci-status      Show the CI status of a commit
-
-See 'git help <command>' for more information on a specific command.
 `
 
 func printUsage() {
+	err := git.ForwardGitHelp()
+	utils.Check(err)
 	fmt.Print(helpText)
 }

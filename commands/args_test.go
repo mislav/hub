@@ -1,10 +1,9 @@
 package commands
 
 import (
-	"strings"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/bmizerany/assert"
 )
 
 func TestNewArgs(t *testing.T) {
@@ -20,34 +19,22 @@ func TestNewArgs(t *testing.T) {
 	assert.Equal(t, "command", args.Command)
 	assert.Equal(t, 1, args.ParamsSize())
 
-	args = NewArgs([]string{"--noop", "command", "args"})
-	assert.Equal(t, "command", args.Command)
-	assert.Equal(t, 1, args.ParamsSize())
-	assert.T(t, args.Noop)
-
 	args = NewArgs([]string{"--version"})
-	assert.Equal(t, "version", args.Command)
+	assert.Equal(t, "--version", args.Command)
 	assert.Equal(t, 0, args.ParamsSize())
 
 	args = NewArgs([]string{"--help"})
-	assert.Equal(t, "help", args.Command)
+	assert.Equal(t, "--help", args.Command)
 	assert.Equal(t, 0, args.ParamsSize())
-
-	args = NewArgs([]string{"--noop", "--version"})
-	assert.T(t, args.Noop)
-	assert.Equal(t, "version", args.Command)
-
-	args = NewArgs([]string{"-c", "foo=bar", "--git-dir=path", "--bare"})
-	assert.Equal(t, 5, len(args.GlobalFlags))
-	assert.Equal(t, "-c foo=bar --bare --git-dir path", strings.Join(args.GlobalFlags, " "))
 }
 
 func TestArgs_Words(t *testing.T) {
-	args := NewArgs([]string{"--no-ff", "master"})
+	args := NewArgs([]string{"merge", "--no-ff", "master", "-m", "message"})
 	a := args.Words()
 
-	assert.Equal(t, 1, len(a))
+	assert.Equal(t, 2, len(a))
 	assert.Equal(t, "master", a[0])
+	assert.Equal(t, "message", a[1])
 }
 
 func TestArgs_Insert(t *testing.T) {
@@ -85,4 +72,50 @@ func TestArgs_Remove(t *testing.T) {
 	assert.Equal(t, 2, args.ParamsSize())
 	assert.Equal(t, "2", args.FirstParam())
 	assert.Equal(t, "4", args.GetParam(1))
+}
+
+func TestArgs_GlobalFlags(t *testing.T) {
+	args := NewArgs([]string{"-c", "key=value", "status", "-s", "-b"})
+	assert.Equal(t, "status", args.Command)
+	assert.Equal(t, []string{"-c", "key=value"}, args.GlobalFlags)
+	assert.Equal(t, []string{"-s", "-b"}, args.Params)
+	assert.Equal(t, false, args.Noop)
+}
+
+func TestArgs_GlobalFlags_Noop(t *testing.T) {
+	args := NewArgs([]string{"-c", "key=value", "--noop", "--literal-pathspecs", "status", "-s", "-b"})
+	assert.Equal(t, "status", args.Command)
+	assert.Equal(t, []string{"-c", "key=value", "--literal-pathspecs"}, args.GlobalFlags)
+	assert.Equal(t, []string{"-s", "-b"}, args.Params)
+	assert.Equal(t, true, args.Noop)
+}
+
+func TestArgs_GlobalFlags_NoopTwice(t *testing.T) {
+	args := NewArgs([]string{"--noop", "--bare", "--noop", "status"})
+	assert.Equal(t, "status", args.Command)
+	assert.Equal(t, []string{"--bare"}, args.GlobalFlags)
+	assert.Equal(t, 0, len(args.Params))
+	assert.Equal(t, true, args.Noop)
+}
+
+func TestArgs_GlobalFlags_Repeated(t *testing.T) {
+	args := NewArgs([]string{"-C", "mydir", "-c", "a=b", "--bare", "-c", "c=d", "-c", "e=f", "status"})
+	assert.Equal(t, "status", args.Command)
+	assert.Equal(t, []string{"-C", "mydir", "-c", "a=b", "--bare", "-c", "c=d", "-c", "e=f"}, args.GlobalFlags)
+	assert.Equal(t, 0, len(args.Params))
+	assert.Equal(t, false, args.Noop)
+}
+
+func TestArgs_GlobalFlags_Propagate(t *testing.T) {
+	args := NewArgs([]string{"-c", "key=value", "status"})
+	cmd := args.ToCmd()
+	assert.Equal(t, []string{"-c", "key=value", "status"}, cmd.Args)
+}
+
+func TestArgs_GlobalFlags_Replaced(t *testing.T) {
+	args := NewArgs([]string{"-c", "key=value", "status"})
+	args.Replace("open", "", "-a", "http://example.com")
+	cmd := args.ToCmd()
+	assert.Equal(t, "open", cmd.Name)
+	assert.Equal(t, []string{"-a", "http://example.com"}, cmd.Args)
 }

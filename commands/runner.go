@@ -7,12 +7,12 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/kballard/go-shellquote"
-	flag "github.com/github/hub/Godeps/_workspace/src/github.com/ogier/pflag"
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/kballard/go-shellquote"
+	flag "github.com/ogier/pflag"
 )
 
 type ExecError struct {
@@ -54,8 +54,11 @@ func (r *Runner) All() map[string]*Command {
 	return r.commands
 }
 
-func (r *Runner) Use(command *Command) {
+func (r *Runner) Use(command *Command, aliases ...string) {
 	r.commands[command.Name()] = command
+	if len(aliases) > 0 {
+		r.commands[aliases[0]] = command
+	}
 }
 
 func (r *Runner) Lookup(name string) *Command {
@@ -64,10 +67,11 @@ func (r *Runner) Lookup(name string) *Command {
 
 func (r *Runner) Execute() ExecError {
 	args := NewArgs(os.Args[1:])
+	args.ProgramPath = os.Args[0]
 
 	if args.Command == "" {
 		printUsage()
-		return newExecError(nil)
+		return newExecError(fmt.Errorf(""))
 	}
 
 	updater := NewUpdater()

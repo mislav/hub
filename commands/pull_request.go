@@ -3,35 +3,60 @@ package commands
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/octokit/go-octokit/octokit"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
 
 var cmdPullRequest = &Command{
-	Run:   pullRequest,
-	Usage: "pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-o] [-b <BASE>] [-h <HEAD>] [-a <USER>]",
-	Short: "Open a pull request on GitHub",
-	Long: `Opens a pull request on GitHub for the project that the "origin" remote
-points to. The default head of the pull request is the current branch.
-Both base and head of the pull request can be explicitly given in one of
-the following formats: "branch", "owner:branch", "owner/repo:branch".
-This command will abort operation if it detects that the current topic
-branch has local commits that are not yet pushed to its upstream branch
-on the remote. To skip this check, use "-f".
+	Run: pullRequest,
+	Usage: `
+pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request -m <MESSAGE>
+pull-request -F <FILE>
+pull-request -i <ISSUE>
+`,
+	Long: `Create a GitHub pull request.
 
-Without <MESSAGE> or <FILE>, a text editor will open in which title and body
-of the pull request can be entered in the same manner as git commit message.
-Pull request message can also be passed via stdin with "-F -".
+## Options:
+	-f, --force
+		Skip the check for unpushed commits.
 
-If instead of normal <TITLE> an issue number is given with "-i", the pull
-request will be attached to an existing GitHub issue. Alternatively, instead
-of title you can paste a full URL to an issue on GitHub.
+	-m, --message <MESSAGE>
+		Use the first line of <MESSAGE> as pull request title, and the rest as pull
+		request description.
 
-You can assign the new pull request to a user with "-a <USER>".
+	-F, --file <FILE>
+		Read the pull request title and description from <FILE>.
+
+	-i, --issue <ISSUE>, <ISSUE-URL>
+		(Deprecated) Convert <ISSUE> to a pull request.
+
+	-o, --browse
+		Open the new pull request in a web browser.
+
+	-b, --base <BASE>
+		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
+		(usually "master").
+
+	-h, --head <HEAD>
+		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
+
+	-a, --assign <USERS>
+		A comma-separated list of GitHub handles to assign to this pull request.
+
+	-M, --milestone <ID>
+		Add this pull request to a GitHub milestone with id <ID>.
+
+	-l, --labels <LABELS>
+		Add a comma-separated list of labels to this pull request.
+
+## See also:
+
+hub(1), hub-merge(1), hub-checkout(1)
 `,
 }
 
@@ -40,11 +65,16 @@ var (
 	flagPullRequestHead,
 	flagPullRequestIssue,
 	flagPullRequestMessage,
-	flagPullRequestAssignee,
 	flagPullRequestFile string
+
 	flagPullRequestBrowse,
-	flagPullRequestForce,
-	flagPullRequestEdit bool
+	flagPullRequestEdit,
+	flagPullRequestForce bool
+
+	flagPullRequestMilestone uint64
+
+	flagPullRequestAssignees,
+	flagPullRequestLabels listFlag
 )
 
 func init() {
@@ -53,35 +83,16 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestAssignee, "assign", "a", "", "USER")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
+	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
+	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
+	cmdPullRequest.Flag.VarP(&flagPullRequestLabels, "labels", "l", "LABELS")
 
 	CmdRunner.Use(cmdPullRequest)
 }
 
-/*
-  # while on a topic branch called "feature":
-  $ gh pull-request
-  [ opens text editor to edit title & body for the request ]
-  [ opened pull request on GitHub for "YOUR_USER:feature" ]
-
-  # explicit pull base & head:
-  $ gh pull-request -b jingweno:master -h jingweno:feature
-
-  $ gh pull-request -m "title\n\nbody"
-  [ create pull request with title & body  ]
-
-  $ gh pull-request -i 123
-  [ attached pull request to issue #123 ]
-
-  $ gh pull-request https://github.com/jingweno/gh/pull/123
-  [ attached pull request to issue #123 ]
-
-  $ gh pull-request -F FILE
-  [ create pull request with title & body from FILE ]
-*/
 func pullRequest(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -96,6 +107,7 @@ func pullRequest(cmd *Command, args *Args) {
 	if err != nil {
 		utils.Check(github.FormatError("creating pull request", err))
 	}
+	client := github.NewClientWithHost(host)
 
 	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
 	utils.Check(err)
@@ -150,6 +162,11 @@ func pullRequest(cmd *Command, args *Args) {
 	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
 	utils.Check(err)
 
+	if headRepo, err := client.Repository(headProject); err == nil {
+		headProject.Owner = headRepo.Owner.Login
+		headProject.Name = headRepo.Name
+	}
+
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
@@ -178,7 +195,7 @@ func pullRequest(cmd *Command, args *Args) {
 			headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
 		}
 
-		message, err := pullRequestChangesMessage(baseTracking, headTracking, fullBase, fullHead)
+		message, err := createPullRequestMessage(baseTracking, headTracking, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
@@ -205,17 +222,21 @@ func pullRequest(cmd *Command, args *Args) {
 		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", fullBase, fullHead), "")
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
-		var (
-			pr  *octokit.PullRequest
-			err error
-		)
-
-		client := github.NewClientWithHost(host)
-		if title != "" {
-			pr, err = client.CreatePullRequest(baseProject, base, fullHead, title, body)
-		} else if flagPullRequestIssue != "" {
-			pr, err = client.CreatePullRequestForIssue(baseProject, base, fullHead, flagPullRequestIssue)
+		params := map[string]interface{}{
+			"base": base,
+			"head": fullHead,
 		}
+
+		if title != "" {
+			params["title"] = title
+			if body != "" {
+				params["body"] = body
+			}
+		} else {
+			issueNum, _ := strconv.Atoi(flagPullRequestIssue)
+			params["issue"] = issueNum
+		}
+		pr, err := client.CreatePullRequest(baseProject, params)
 
 		if err == nil && editor != nil {
 			defer editor.DeleteFile()
@@ -223,10 +244,20 @@ func pullRequest(cmd *Command, args *Args) {
 
 		utils.Check(err)
 
-		pullRequestURL = pr.HTMLURL
+		pullRequestURL = pr.HtmlUrl
 
-		if flagPullRequestAssignee != "" {
-			err = client.UpdateIssueAssignee(baseProject, pr.Number, flagPullRequestAssignee)
+		if len(flagPullRequestAssignees) > 0 || flagPullRequestMilestone > 0 ||
+			len(flagPullRequestLabels) > 0 {
+
+			params := map[string]interface{}{
+				"labels":    flagPullRequestLabels,
+				"assignees": flagPullRequestAssignees,
+			}
+			if flagPullRequestMilestone > 0 {
+				params["milestone"] = flagPullRequestMilestone
+			}
+
+			err = client.UpdateIssue(baseProject, pr.Number, params)
 			utils.Check(err)
 		}
 	}
@@ -245,7 +276,7 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 }
 
-func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, error) {
+func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {
 	var (
 		defaultMsg string
 		commitLogs string
@@ -262,6 +293,18 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 		commitLogs, err = git.Log(base, head)
 		if err != nil {
 			return "", err
+		}
+	}
+
+	if template := github.GetPullRequestTemplate(); template != "" {
+		if defaultMsg == "" {
+			defaultMsg = "\n\n" + template
+		} else {
+			parts := strings.SplitN(defaultMsg, "\n\n", 2)
+			defaultMsg = parts[0] + "\n\n" + template
+			if len(parts) > 1 && parts[1] != "" {
+				defaultMsg = defaultMsg + "\n\n" + parts[1]
+			}
 		}
 	}
 

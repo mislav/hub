@@ -5,7 +5,7 @@ Feature: hub browse
   Scenario: No repo
     When I run `hub browse`
     Then the exit status should be 1
-    Then the output should contain exactly "git browse [-u] [[<USER>/]<REPOSITORY>|--] [SUBPAGE]\n"
+    Then the output should contain exactly "Usage: hub browse [-u] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]\n"
 
   Scenario: Project with owner
     When I successfully run `hub browse mislav/dotfiles`
@@ -61,6 +61,22 @@ Feature: hub browse
     And I am on the "feature" branch with upstream "origin/experimental"
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles/tree/experimental" should be run
+
+  Scenario: Current branch pushed to fork
+    Given I am in "git://github.com/blueyed/dotfiles.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/dotfiles.git"
+    And I am on the "feature" branch with upstream "mislav/experimental"
+    And git "push.default" is set to "upstream"
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles/tree/experimental" should be run
+
+  Scenario: Current branch pushed to fork with simple tracking
+    Given I am in "git://github.com/blueyed/dotfiles.git" git repo
+    And the "mislav" remote has url "git@github.com:mislav/dotfiles.git"
+    And I am on the "feature" branch with upstream "mislav/feature"
+    And git "push.default" is set to "simple"
+    When I successfully run `hub browse`
+    Then "open https://github.com/mislav/dotfiles/tree/feature" should be run
 
   Scenario: Default branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
@@ -163,6 +179,14 @@ Feature: hub browse
     Given I am in "git://git.my.org/mislav/dotfiles.git" git repo
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
+    When I successfully run `hub browse`
+    Then "open https://git.my.org/mislav/dotfiles" should be run
+
+  Scenario: Multiple Enterprise repos
+    Given I am in "git://git.my.org/mislav/dotfiles.git" git repo
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    And "git.another.org" is a whitelisted Enterprise host
     When I successfully run `hub browse`
     Then "open https://git.my.org/mislav/dotfiles" should be run
 

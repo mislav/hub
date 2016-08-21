@@ -15,9 +15,11 @@ Feature: hub alias
     When I successfully run `hub alias`
     Then the output should contain exactly:
       """
-      # Wrap git automatically by adding the following to ~/.config/fish/config.fish:
+      # Wrap git automatically by adding the following to ~/.config/fish/functions/git.fish:
 
-      eval (hub alias -s)\n
+      function git --description 'Alias for hub, which wraps git to provide extra functionality with GitHub.'
+          hub $argv
+      end\n
       """
 
   Scenario: zsh instructions
@@ -97,5 +99,23 @@ Feature: hub alias
       """
       hub alias: unsupported shell
       supported shells: bash zsh sh ksh csh tcsh fish\n
+      """
+    And the exit status should be 1
+
+  Scenario: unknown shell
+    Given $SHELL is ""
+    When I run `hub alias`
+    Then the output should contain exactly:
+      """
+      Error: couldn't detect shell type. Please specify your shell with `hub alias <shell>`\n
+      """
+    And the exit status should be 1
+
+  Scenario: unknown shell output
+    Given $SHELL is ""
+    When I run `hub alias -s`
+    Then the output should contain exactly:
+      """
+      Error: couldn't detect shell type. Please specify your shell with `hub alias -s <shell>`\n
       """
     And the exit status should be 1

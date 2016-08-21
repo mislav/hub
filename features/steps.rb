@@ -17,12 +17,15 @@ Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
   run_silent %(git config #{key} "#{value}")
 end
 
-Given(/^the "([^"]*)" remote has url "([^"]*)"$/) do |remote_name, url|
+Given(/^the "([^"]*)" remote has(?: (push))? url "([^"]*)"$/) do |remote_name, push, url|
   remotes = run_silent('git remote').split("\n")
+  if push
+    push = "--push"
+  end
   unless remotes.include? remote_name
     run_silent %(git remote add #{remote_name} "#{url}")
   else
-    run_silent %(git remote set-url #{remote_name} "#{url}")
+    run_silent %(git remote set-url #{push} #{remote_name} "#{url}")
   end
 end
 
@@ -50,11 +53,26 @@ Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
   step %(the "origin" remote has url "#{origin_url}") if origin_url
 end
 
-Given(/^a git repo in "([^"]*)"$/) do |dir_name|
+Given(/^a (bare )?git repo in "([^"]*)"$/) do |bare, dir_name|
   step %(a directory named "#{dir_name}")
   dirs << dir_name
-  step %(I successfully run `git init --quiet`)
+  step %(I successfully run `git init --quiet #{"--bare" if bare}`)
   dirs.pop
+end
+
+Given(/^a git bundle named "([^"]*)"$/) do |file|
+  in_current_dir do
+    FileUtils.mkdir_p File.dirname(file)
+    dest = File.expand_path(file)
+
+    Dir.mktmpdir do |tmpdir|
+      dirs << tmpdir
+      run_silent %(git init --quiet)
+      empty_commit
+      run_silent %(git bundle create "#{dest}" master)
+      dirs.pop
+    end
+  end
 end
 
 Given(/^there is a commit named "([^"]+)"$/) do |name|
@@ -67,6 +85,10 @@ end
 When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num = num == 'a' ? 1 : num.to_i
   num.times { empty_commit(msg) }
+end
+
+When(/^I make a commit with message:$/) do |msg|
+  empty_commit(msg)
 end
 
 Then(/^the latest commit message should be "([^"]+)"$/) do |subject|
@@ -201,9 +223,16 @@ Given(/^the remote commit states of "(.*?)" "(.*?)" are:$/) do |proj, ref, json_
   end
   rev = run_silent %(git rev-parse #{ref})
 
+  host, owner, repo = proj.split('/', 3)
+  if repo.nil?
+    repo = owner
+    owner = host
+    host = nil
+  end
+
   status_endpoint = <<-EOS
-    get('/repos/#{proj}/statuses/#{rev}') {
-      json #{json_value}
+    get('#{'/api/v3' if host}/repos/#{owner}/#{repo}/commits/#{rev}/status'#{", :host_name => '#{host}'" if host}) {
+      json(#{json_value})
     }
     EOS
   step %{the GitHub API server:}, status_endpoint
@@ -211,13 +240,19 @@ end
 
 Given(/^the remote commit state of "(.*?)" "(.*?)" is "(.*?)"$/) do |proj, ref, status|
   step %{the remote commit states of "#{proj}" "#{ref}" are:}, <<-EOS
-    [ { :state => \"#{status}\",
-        :target_url => 'https://travis-ci.org/#{proj}/builds/1234567' } ]
-    EOS
+    { :state => "#{status}",
+      :statuses => [
+        { :state => "#{status}",
+          :context => "continuous-integration/travis-ci/push",
+          :target_url => 'https://travis-ci.org/#{proj}/builds/1234567' }
+      ]
+    }
+  EOS
 end
 
 Given(/^the remote commit state of "(.*?)" "(.*?)" is nil$/) do |proj, ref|
-  step %{the remote commit states of "#{proj}" "#{ref}" are:}, "[ ]"
+  step %{the remote commit states of "#{proj}" "#{ref}" are:},
+    %({ :state => "pending", :statuses => [] })
 end
 
 Given(/^the text editor exits with error status$/) do

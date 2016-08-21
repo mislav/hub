@@ -12,13 +12,21 @@ import (
 
 var cmdCiStatus = &Command{
 	Run:   ciStatus,
-	Usage: "ci-status [-v] [COMMIT]",
-	Short: "Show CI status of a commit",
-	Long: `Looks up the SHA for <COMMIT> in GitHub Status API and displays the latest
-status. Exits with one of:
-success (0), error (1), failure (1), pending (2), no status (3)
+	Usage: "ci-status [-v] [<COMMIT>]",
+	Long: `Display GitHub Status information for a commit.
 
-If "-v" is given, additionally print the URL to CI build results.
+## Options:
+	-v
+		Print detailed report of all status checks and their URLs.
+
+	<COMMIT>
+		A commit SHA or branch name (default: "HEAD").
+
+Exits with one of: success (0), error (1), failure (1), pending (2), no status (3).
+
+## See also:
+
+hub-pull-request(1), hub(1)
 `,
 }
 
@@ -30,23 +38,6 @@ func init() {
 	CmdRunner.Use(cmdCiStatus)
 }
 
-/*
-  $ gh ci-status
-  > (prints CI state of HEAD and exits with appropriate code)
-  > One of: success (0), error (1), failure (1), pending (2), no status (3)
-
-  $ gh ci-status -v
-  > (prints CI state of HEAD, the URL to the CI build results and exits with appropriate code)
-  > One of: success (0), error (1), failure (1), pending (2), no status (3)
-
-  $ gh ci-status BRANCH
-  > (prints CI state of BRANCH and exits with appropriate code)
-  > One of: success (0), error (1), failure (1), pending (2), no status (3)
-
-  $ gh ci-status SHA
-  > (prints CI state of SHA and exits with appropriate code)
-  > One of: success (0), error (1), failure (1), pending (2), no status (3)
-*/
 func ciStatus(cmd *Command, args *Args) {
 	ref := "HEAD"
 	if !args.IsParamsEmpty() {
@@ -68,42 +59,74 @@ func ciStatus(cmd *Command, args *Args) {
 	if args.Noop {
 		ui.Printf("Would request CI status for %s\n", sha)
 	} else {
-		state, targetURL, exitCode, err := fetchCiStatus(project, sha)
+		gh := github.NewClient(project.Host)
+		response, err := gh.FetchCIStatus(project, sha)
 		utils.Check(err)
-		if flagCiStatusVerbose && targetURL != "" {
-			ui.Printf("%s: %s\n", state, targetURL)
+
+		state := response.State
+		if len(response.Statuses) == 0 {
+			state = ""
+		}
+
+		var exitCode int
+		switch state {
+		case "success":
+			exitCode = 0
+		case "failure", "error":
+			exitCode = 1
+		case "pending":
+			exitCode = 2
+		default:
+			exitCode = 3
+		}
+
+		if flagCiStatusVerbose && len(response.Statuses) > 0 {
+			verboseFormat(response.Statuses)
 		} else {
-			ui.Println(state)
+			if state != "" {
+				ui.Println(state)
+			} else {
+				ui.Println("no status")
+			}
 		}
 
 		os.Exit(exitCode)
 	}
 }
 
-func fetchCiStatus(p *github.Project, sha string) (state, targetURL string, exitCode int, err error) {
-	gh := github.NewClient(p.Host)
-	status, err := gh.CIStatus(p, sha)
-	if err != nil {
-		return
+func verboseFormat(statuses []github.CIStatus) {
+	colorize := ui.IsTerminal(os.Stdout)
+
+	contextWidth := 0
+	for _, status := range statuses {
+		if len(status.Context) > contextWidth {
+			contextWidth = len(status.Context)
+		}
 	}
 
-	if status == nil {
-		state = "no status"
-	} else {
-		state = status.State
-		targetURL = status.TargetURL
-	}
+	for _, status := range statuses {
+		var color int
+		var stateMarker string
+		switch status.State {
+		case "success":
+			stateMarker = "✔︎"
+			color = 32
+		case "failure", "error":
+			stateMarker = "✖︎"
+			color = 31
+		case "pending":
+			stateMarker = "●"
+			color = 33
+		}
 
-	switch state {
-	case "success":
-		exitCode = 0
-	case "failure", "error":
-		exitCode = 1
-	case "pending":
-		exitCode = 2
-	default:
-		exitCode = 3
-	}
+		if colorize {
+			stateMarker = fmt.Sprintf("\033[%dm%s\033[0m", color, stateMarker)
+		}
 
-	return
+		if status.TargetUrl == "" {
+			ui.Printf("%s\t%s\n", stateMarker, status.Context)
+		} else {
+			ui.Printf("%s\t%-*s\t%s\n", stateMarker, contextWidth, status.Context, status.TargetUrl)
+		}
+	}
 }

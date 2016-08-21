@@ -1,0 +1,62 @@
+#!/bin/bash
+# Usage: script/format-ronn <COMMAND> [<FILE>]
+#
+# Transform inline text of hub commands to ronn-format(7).
+set -e
+
+AWK="$(type -p gawk awk | head -1)"
+
+para() {
+  "$AWK" -v wants=$2 "
+    BEGIN { para=1 }
+    /^\$/ { para++ }
+    { if (para $1 wants) print \$0 }
+  "
+}
+
+trim() {
+  sed 's/^ \{1,\}//; s/ \{1,\}$//'
+}
+
+format_shortdesc() {
+  tr $'\n' " " | trim
+}
+
+format_synopsis() {
+  local cmd subcmd rest
+  sed 's/^Usage://' | while read -r cmd subcmd rest; do
+    printf '`%s %s` %s  \n' "$cmd" "$subcmd" "$rest"
+  done
+}
+
+format_rest() {
+  "$AWK" '
+    /^#/ {
+      title=toupper(substr($0, length($1) + 2, length($0)))
+      sub(/:$/, "", title)
+      options=title == "OPTIONS"
+      print $1, title
+      next
+    }
+    options && /^  [^ ]/ {
+      printf "  * %s:\n", substr($0, 3, length($0))
+      next
+    }
+    { print $0 }
+  '
+}
+
+cmd="${1?}"
+file="$2"
+text="$(cat - | sed $'s/\t/  /g')"
+[ -n "$text" ] || exit 1
+[ -z "$file" ] || exec 1<> "$file"
+
+echo "${cmd}(1) -- $(para == 2 <<<"$text" | format_shortdesc)"
+echo "==="
+echo
+echo "## SYNOPSIS"
+echo
+para == 1 <<<"$text" | format_synopsis
+echo
+para '>=' 3 <<<"$text" | format_rest

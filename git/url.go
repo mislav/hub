@@ -8,7 +8,7 @@ import (
 
 var (
 	cachedSSHConfig SSHConfig
-	protocolRe      = regexp.MustCompile("^[a-zA-Z_-]+://")
+	protocolRe      = regexp.MustCompile("^[a-zA-Z_+-]+://")
 )
 
 type URLParser struct {
@@ -28,8 +28,20 @@ func (p *URLParser) Parse(rawURL string) (u *url.URL, err error) {
 		return
 	}
 
+	if u.Scheme == "git+ssh" {
+		u.Scheme = "ssh"
+	}
+
 	if u.Scheme != "ssh" {
 		return
+	}
+
+	if strings.HasPrefix(u.Path, "//") {
+		u.Path = strings.TrimPrefix(u.Path, "/")
+	}
+
+	if idx := strings.Index(u.Host, ":"); idx >= 0 {
+		u.Host = u.Host[0:idx]
 	}
 
 	sshHost := p.SSHConfig[u.Host]

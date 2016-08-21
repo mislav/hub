@@ -1,166 +1,63 @@
-#!/usr/bin/env ruby
-# Usage: script/package
+#!/usr/bin/env bash
+# Usage: script/package <os> <arch> <version>
 #
-# Packages `hub` for release for current platform
+# Packages the project as a release asset and prints the archive's filename.
+set -e
 
-require "fileutils"
-include FileUtils
+os="${1?}"
+arch="${2?}"
+version="${3?}"
 
-module OS
-  class << self
-    def type
-      if darwin?
-        "darwin"
-      elsif linux?
-        "linux"
-      elsif windows?
-        "windows"
-      else
-        raise "Unknown OS type #{RUBY_PLATFORM}"
-      end
-    end
+release="hub-${os}-${arch}-${version}"
 
-    def friendly_name
-      if darwin?
-        "mac"
-      elsif linux?
-        "linux"
-      elsif windows?
-        "windows"
-      else
-        raise "Unknown OS type #{RUBY_PLATFORM}"
-      end
-    end
+case "$os" in
+  darwin | freebsd | linux | netbsd | openbsd | solaris | windows ) ;;
+  * ) echo "unsupported OS: $os" >&2; exit 1 ;;
+esac
 
-    def windows?
-      (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
-    end
+case "$arch" in
+  386 | amd64 | arm | arm64 ) ;;
+  * ) echo "unsupported arch: $arch" >&2; exit 1 ;;
+esac
 
-    def windows_64?
-      windows? && /x64/ =~ RUBY_PLATFORM
-    end
+export GOOS="$os"
+export GOARCH="$arch"
 
-    def darwin?
-      (/darwin/ =~ RUBY_PLATFORM) != nil
-    end
+tmpdir="tmp/${release}"
+rm -rf "$tmpdir"
 
-    def linux?
-      (/linux/ =~ RUBY_PLATFORM) != nil
-    end
-  end
-end
+exename="${tmpdir}/bin/hub"
+[ "$os" != "windows" ] || exename="${exename}.exe"
+mkdir -p "${exename%/*}"
+script/build -o "$exename"
 
-class Packer
-  class << self
-    def pack!
-      self.new.pack!
-    end
-  end
+crlf() {
+  sed $'s/$/\r/' "$1" > "$2"
+}
 
-  attr_reader :version
+if [ "$os" = "windows" ]; then
+  crlf README.md "${tmpdir}/README.txt"
+  crlf LICENSE "${tmpdir}/LICENSE.txt"
+  crlf man/hub.1.html "${tmpdir}/hub.html"
+  crlf script/install.bat "${tmpdir}/install.bat"
+else
+  cp -R README.md LICENSE etc "$tmpdir"
+  mkdir -p "${tmpdir}/share/man/man1"
+  cp man/*.1 man/*.1.txt "${tmpdir}/share/man/man1"
+  cp script/install.sh "${tmpdir}/install"
+  chmod +x "${tmpdir}/install"
+fi
 
-  def initialize
-    @version = parse_version!
-  end
+if [ "$os" = "windows" ]; then
+  file="${PWD}/${tmpdir}.zip"
+  rm -f "$file"
+  pushd "$tmpdir" >/dev/null
+  zip -r "$file" * >/dev/null
+else
+  file="${PWD}/${tmpdir}.tgz"
+  rm -f "$file"
+  pushd "${tmpdir%/*}" >/dev/null
+  tar -czf "$file" "$release"
+fi
 
-  def pack!
-    unless ENV["SKIP_TOOLCHAIN"]
-      install_gox!
-      build_toolchain!
-    end
-    run_tests! unless OS.windows? || ENV["SKIP_TEST"] # cukes don't run on Windows
-    build_hub!
-    cp_assets
-    tar_gzip
-  end
-
-  private
-
-  def exec!(cmd)
-    io = IO.popen(cmd)
-    begin
-      while line = io.gets
-        puts line.chomp
-      end
-    ensure
-      io.close
-    end
-
-    raise "Fail to execute #{cmd}" unless $?.to_i == 0
-  end
-
-  # Returns the root path to paths
-  def root_path(*paths)
-    current = File.expand_path(File.dirname(__FILE__)) # current is the target folder
-    File.expand_path File.join(current, "..", paths)
-  end
-
-  def glob_dir(path)
-    Dir[path].select { |d| File.directory?(d) }
-  end
-
-  def parse_version!
-    content = File.read root_path("commands", "version.go")
-    match = /var Version = "(.+)"/.match content
-    raise "Fail to parse Hub version" unless match
-
-    match[1]
-  end
-
-  def install_gox!
-    puts "Installing github.com/mitchellh/gox"
-    result = system "go get github.com/mitchellh/gox"
-    raise "Fail to install gox" unless result
-  end
-
-  def build_toolchain!
-    puts "Building Go toolchain"
-    result = system "gox -build-toolchain -os=#{OS.type}"
-    raise "Fail to build Go toolchain" unless result
-  end
-
-  def run_tests!
-    puts "Running Hub tests"
-
-    bootstrap_script = root_path("script", "bootstrap")
-    exec!(bootstrap_script)
-
-    test_script = root_path("script", "test")
-    exec!(test_script)
-  end
-
-  def build_hub!
-    puts "Building for #{OS.friendly_name}"
-    release_version = `script/version`.strip
-    output = root_path("target", "{{.Dir}}-#{OS.friendly_name}-{{.Arch}}-#{version}", "{{.Dir}}")
-    # gox doesn't build for 64 bit and 32 bit on 64 bit Windows
-    # specifying osarch for Windows
-    # see https://github.com/mitchellh/gox/issues/19#issuecomment-68117016
-    osarch = OS.windows? ? "windows/#{OS.windows_64? ? "amd64" : "386"}" : ""
-    cmd = "gox -os=#{OS.type} -output=#{output} -ldflags \"-X github.com/github/hub/commands.Version #{release_version}\""
-    cmd += " -osarch=#{osarch}" unless osarch.empty?
-    exec!(cmd)
-  end
-
-  def cp_assets
-    path = root_path("target", "*#{OS.friendly_name}*")
-    glob_dir(path).each do |dir|
-      puts "Copying assets to #{dir}"
-      ["README.md", "LICENSE", "etc/", "man/"].each do |f|
-        cp_r f, File.join(dir, f)
-      end
-    end
-  end
-
-  def tar_gzip
-    path = root_path("target", "*#{OS.friendly_name}*")
-    glob_dir(path).each do |dir|
-      puts "Archiving #{dir}"
-      Dir.chdir(root_path("target")) do
-        exec!("tar -zcf #{File.basename(dir)}.tar.gz #{File.basename(dir)}")
-      end
-    end
-  end
-end
-
-Packer.pack!
+echo "$file"

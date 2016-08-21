@@ -39,13 +39,17 @@ Before do
   # used in fakebin/git
   set_env 'HUB_SYSTEM_GIT', system_git
   # ensure that api.github.com is actually never hit in tests
-  set_env 'HUB_TEST_HOST', '127.0.0.1:0'
+  set_env 'HUB_TEST_HOST', 'http://127.0.0.1:0'
   # ensure we use fakebin `open` to test browsing
   set_env 'BROWSER', 'open'
   # sabotage opening a commit message editor interactively
   set_env 'GIT_EDITOR', 'false'
   # reset current localization settings
   set_env 'LANG', nil
+  set_env 'LANGUAGE', nil
+  set_env 'LC_ALL', 'en_US.UTF-8'
+  # ignore current user's token
+  set_env 'GITHUB_TOKEN', nil
 
   author_name  = "Hub"
   author_email = "hub@test.local"

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -11,12 +12,26 @@ import (
 var cmdClone = &Command{
 	Run:          clone,
 	GitExtension: true,
-	Usage:        "clone [-p] OPTIONS [USER/]REPOSITORY DIRECTORY",
-	Short:        "Clone a remote repository into a new directory",
-	Long: `Clone repository "git://github.com/USER/REPOSITORY.git" into
-DIRECTORY as with git-clone(1). When USER/ is omitted, assumes
-your GitHub login. With -p, clone private repositories over SSH.
-For repositories under your GitHub login, -p is implicit.
+	Usage:        "clone [-p] [<OPTIONS>] [<USER>/]<REPOSITORY> [<DESTINATION>]",
+	Long: `Clone a repository from GitHub.
+
+## Options:
+	-p
+		(Deprecated) Clone private repositories over SSH.
+
+	[<USER>/]<REPOSITORY>
+		<USER> defaults to your own GitHub username.
+
+	<DESTINATION>
+		Directory name to clone into (default: <REPOSITORY>).
+
+## Examples:
+		$ hub clone rtomayko/ronn
+		> git clone git://github.com/rtomayko/ronn.git
+
+## See also:
+
+hub-fork(1), hub(1), git-clone(1)
 `,
 }
 
@@ -24,19 +39,6 @@ func init() {
 	CmdRunner.Use(cmdClone)
 }
 
-/**
-  $ gh clone jingweno/gh
-  > git clone git://github.com/jingweno/gh.git
-
-  $ gh clone -p jingweno/gh
-  > git clone git@github.com:jingweno/gh.git
-
-  $ gh clone jekyll_and_hyde
-  > git clone git://github.com/YOUR_LOGIN/jekyll_and_hyde.git
-
-  $ gh clone -p jekyll_and_hyde
-  > git clone git@github.com:YOUR_LOGIN/jekyll_and_hyde.git
-*/
 func clone(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
 		transformCloneArgs(args)
@@ -55,7 +57,7 @@ func transformCloneArgs(args *Args) {
 				i++
 			}
 		} else {
-			if nameWithOwnerRegexp.MatchString(a) && !isDir(a) {
+			if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
 				name, owner := parseCloneNameAndOwner(a)
 				var host *github.Host
 				if owner == "" {
@@ -74,13 +76,35 @@ func transformCloneArgs(args *Args) {
 					hostStr = host.Host
 				}
 
+				expectWiki := strings.HasSuffix(name, ".wiki")
+				if expectWiki {
+					name = strings.TrimSuffix(name, ".wiki")
+				}
+
 				project := github.NewProject(owner, name, hostStr)
+				gh := github.NewClient(project.Host)
+				repo, err := gh.Repository(project)
+				if err != nil {
+					if strings.Contains(err.Error(), "HTTP 404") {
+						err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
+					}
+					utils.Check(err)
+				}
+
+				owner = repo.Owner.Login
+				name = repo.Name
+				if expectWiki {
+					if !repo.HasWiki {
+						utils.Check(fmt.Errorf("Error: %s/%s doesn't have a wiki", owner, name))
+					} else {
+						name = name + ".wiki"
+					}
+				}
+
 				if !isSSH &&
 					args.Command != "submodule" &&
 					!github.IsHttpsProtocol() {
-					client := github.NewClient(project.Host)
-					repo, err := client.Repository(project)
-					isSSH = (err == nil) && (repo.Private || repo.Permissions.Push)
+					isSSH = repo.Private || repo.Permissions.Push
 				}
 
 				url := project.GitURL(name, owner, isSSH)

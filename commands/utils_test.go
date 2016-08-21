@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/bmizerany/assert"
 )
 
 func TestReadMsg(t *testing.T) {
@@ -21,9 +21,9 @@ func TestReadMsg(t *testing.T) {
 	assert.Equal(t, "my pull title", title)
 	assert.Equal(t, "my description\n\nanother line", body)
 
-	title, body = readMsg("my pull title\r\n\r\nmy description\r\n\r\nanother line")
+	title, body = readMsg("my pull\ntitle\n\nmy description\n\nanother line")
 	assert.Equal(t, "my pull title", title)
-	assert.Equal(t, "my description\r\n\r\nanother line", body)
+	assert.Equal(t, "my description\n\nanother line", body)
 }
 
 func TestDirIsNotEmpty(t *testing.T) {

@@ -14,8 +14,9 @@ var (
 )
 
 type Remote struct {
-	Name string
-	URL  *url.URL
+	Name    string
+	URL     *url.URL
+	PushURL *url.URL
 }
 
 func (remote *Remote) String() string {
@@ -23,7 +24,11 @@ func (remote *Remote) String() string {
 }
 
 func (remote *Remote) Project() (*Project, error) {
-	return NewProjectFromURL(remote.URL)
+	p, err := NewProjectFromURL(remote.URL)
+	if _, ok := err.(*GithubHostError); ok {
+		return NewProjectFromURL(remote.PushURL)
+	}
+	return p, err
 }
 
 func Remotes() (remotes []Remote, err error) {
@@ -36,13 +41,19 @@ func Remotes() (remotes []Remote, err error) {
 	}
 
 	// build the remotes map
-	remotesMap := make(map[string]string)
+	remotesMap := make(map[string]map[string]string)
 	for _, r := range rs {
 		if re.MatchString(r) {
 			match := re.FindStringSubmatch(r)
 			name := strings.TrimSpace(match[1])
 			url := strings.TrimSpace(match[2])
-			remotesMap[name] = url
+			urlType := strings.TrimSpace(match[3])
+			utm, ok := remotesMap[name]
+			if !ok {
+				utm = make(map[string]string)
+				remotesMap[name] = utm
+			}
+			utm[urlType] = url
 		}
 	}
 
@@ -50,9 +61,9 @@ func Remotes() (remotes []Remote, err error) {
 	names := OriginNamesInLookupOrder
 	for _, name := range names {
 		if u, ok := remotesMap[name]; ok {
-			url, e := git.ParseURL(u)
-			if e == nil {
-				remotes = append(remotes, Remote{Name: name, URL: url})
+			r, err := newRemote(name, u)
+			if err == nil {
+				remotes = append(remotes, r)
 				delete(remotesMap, name)
 			}
 		}
@@ -60,11 +71,31 @@ func Remotes() (remotes []Remote, err error) {
 
 	// the rest of the remotes
 	for n, u := range remotesMap {
-		url, e := git.ParseURL(u)
-		if e == nil {
-			remotes = append(remotes, Remote{Name: n, URL: url})
+		r, err := newRemote(n, u)
+		if err == nil {
+			remotes = append(remotes, r)
 		}
 	}
 
 	return
+}
+
+func newRemote(name string, urlMap map[string]string) (Remote, error) {
+	r := Remote{}
+
+	fetchURL, ferr := git.ParseURL(urlMap["fetch"])
+	pushURL, perr := git.ParseURL(urlMap["push"])
+	if ferr != nil && perr != nil {
+		return r, fmt.Errorf("No valid remote URLs")
+	}
+
+	r.Name = name
+	if ferr == nil {
+		r.URL = fetchURL
+	}
+	if perr == nil {
+		r.PushURL = pushURL
+	}
+
+	return r, nil
 }

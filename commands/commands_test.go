@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/github/hub/Godeps/_workspace/src/github.com/bmizerany/assert"
+	"github.com/bmizerany/assert"
 	"github.com/github/hub/ui"
 )
 
@@ -87,41 +87,6 @@ func TestFlagsAfterArguments(t *testing.T) {
 	assert.Equal(t, "bar", args.LastParam())
 }
 
-func TestCommandUsageSubCommands(t *testing.T) {
-	f1 := func(c *Command, args *Args) {}
-	f2 := func(c *Command, args *Args) {}
-
-	c := &Command{Usage: "foo", Run: f1}
-	s := &Command{Key: "bar", Usage: "foo bar", Run: f2}
-	c.Use(s)
-
-	usage := c.subCommandsUsage()
-
-	expected := `usage: git foo
-   or: git foo bar
-`
-	assert.Equal(t, expected, usage)
-}
-
-func TestCommandUsageSubCommandsPrintOnlyRunnables(t *testing.T) {
-	f1 := func(c *Command, args *Args) {}
-
-	c := &Command{Usage: "foo"}
-	s := &Command{Key: "bar", Usage: "foo bar", Run: f1}
-	c.Use(s)
-
-	usage := c.subCommandsUsage()
-
-	expected := `usage: git foo bar
-`
-	assert.Equal(t, expected, usage)
-}
-
-func TestCommandNameTakeUsage(t *testing.T) {
-	c := &Command{Usage: "foo -t -v --foo"}
-	assert.Equal(t, "foo", c.Name())
-}
-
 func TestCommandNameTakeKey(t *testing.T) {
 	c := &Command{Key: "bar", Usage: "foo -t -v --foo"}
 	assert.Equal(t, "bar", c.Name())
@@ -161,23 +126,4 @@ func TestSubCommandCall(t *testing.T) {
 
 	c.Call(args)
 	assert.Equal(t, "baz", result)
-}
-
-func TestSubCommandsUsage(t *testing.T) {
-	// with subcommand
-	f1 := func(c *Command, args *Args) {}
-	f2 := func(c *Command, args *Args) {}
-
-	c := &Command{Usage: "foo", Run: f1}
-	s := &Command{Key: "bar", Usage: "foo bar", Run: f2}
-	c.Use(s)
-
-	usage := c.subCommandsUsage()
-	assert.Equal(t, "usage: git foo\n   or: git foo bar\n", usage)
-
-	// no subcommand
-	cc := &Command{Usage: "foo", Run: f1}
-
-	usage = cc.subCommandsUsage()
-	assert.Equal(t, "usage: git foo\n", usage)
 }
