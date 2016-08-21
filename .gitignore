@@ -3,10 +3,8 @@
 /bin
 .bundle
 vendor/bundle/
-man/hub.1
-man/hub.1.html
-man/hub.1.txt
-man/hub-*
+share/man/*
+!share/man/man1/hub.1.ronn
 tmp/
 *.test
 target
