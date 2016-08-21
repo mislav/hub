@@ -16,7 +16,7 @@ var cmdPullRequest = &Command{
 	Usage: `
 pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
-pull-request -F <FILE>
+pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
 `,
 	Long: `Create a GitHub pull request.
@@ -31,6 +31,9 @@ pull-request -i <ISSUE>
 
 	-F, --file <FILE>
 		Read the pull request title and description from <FILE>.
+
+	-e, --edit
+		Further edit the contents of <FILE> in a text editor before submitting.
 
 	-i, --issue <ISSUE>, <ISSUE-URL>
 		(Deprecated) Convert <ISSUE> to a pull request.
@@ -68,6 +71,7 @@ var (
 	flagPullRequestFile string
 
 	flagPullRequestBrowse,
+	flagPullRequestEdit,
 	flagPullRequestForce bool
 
 	flagPullRequestMilestone uint64
@@ -82,6 +86,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
@@ -157,9 +162,6 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	title, body, err := getTitleAndBodyFromFlags(flagPullRequestMessage, flagPullRequestFile)
-	utils.Check(err)
-
 	if headRepo, err := client.Repository(headProject); err == nil {
 		headProject.Owner = headRepo.Owner.Login
 		headProject.Name = headRepo.Name
@@ -178,7 +180,14 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	var editor *github.Editor
-	if title == "" && flagPullRequestIssue == "" {
+	var title, body string
+
+	if cmd.FlagPassed("message") {
+		title, body = readMsg(flagPullRequestMessage)
+	} else if cmd.FlagPassed("file") {
+		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ", "pull request")
+		utils.Check(err)
+	} else if flagPullRequestIssue == "" {
 		baseTracking := base
 		headTracking := head
 

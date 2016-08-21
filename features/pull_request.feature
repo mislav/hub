@@ -325,6 +325,29 @@ BODY
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+  Scenario: Edit title and body from file
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Hello from editor',
+               :body  => "Title from file\n\nBody from file as well."
+        status 201
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    And a file named "pullreq-msg" with:
+      """
+      Title from file
+
+      Body from file as well.
+      """
+    And the text editor adds:
+      """
+      Hello from editor
+      """
+    When I successfully run `hub pull-request -F pullreq-msg --edit`
+    Then the file ".git/PULLREQ_EDITMSG" should not exist
+
   Scenario: Title and body from stdin
     Given the GitHub API server:
       """
