@@ -307,6 +307,10 @@ func createIssue(cmd *Command, args *Args) {
 # text is the title and the rest is the description.
 `, project), "#", cs, -1)
 
+		if template := github.GetIssueTemplate(); template != "" {
+			message = template + "\n" + message
+		}
+
 		editor, err := github.NewEditor("ISSUE", "issue", message)
 		utils.Check(err)
 

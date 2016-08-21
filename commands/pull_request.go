@@ -193,7 +193,7 @@ func pullRequest(cmd *Command, args *Args) {
 			headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
 		}
 
-		message, err := pullRequestChangesMessage(baseTracking, headTracking, fullBase, fullHead)
+		message, err := createPullRequestMessage(baseTracking, headTracking, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
@@ -266,7 +266,7 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 }
 
-func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, error) {
+func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {
 	var (
 		defaultMsg string
 		commitLogs string
@@ -283,6 +283,18 @@ func pullRequestChangesMessage(base, head, fullBase, fullHead string) (string, e
 		commitLogs, err = git.Log(base, head)
 		if err != nil {
 			return "", err
+		}
+	}
+
+	if template := github.GetPullRequestTemplate(); template != "" {
+		if defaultMsg == "" {
+			defaultMsg = "\n\n" + template
+		} else {
+			parts := strings.SplitN(defaultMsg, "\n\n", 2)
+			defaultMsg = parts[0] + "\n\n" + template
+			if len(parts) > 1 && parts[1] != "" {
+				defaultMsg = defaultMsg + "\n\n" + parts[1]
+			}
 		}
 	}
 
