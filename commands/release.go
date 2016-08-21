@@ -73,7 +73,8 @@ With '--include-drafts', include draft releases in the listing.
 		Further edit the contents of <FILE> in a text editor before submitting.
 
 	-c, --commitish <TARGET>
-		A SHA, tag, or branch name to attach the release to (default: current branch).
+		A commit SHA or branch name to attach the release to, only used if <TAG>
+		doesn't already exist (default: main branch).
 
 	<TAG>
 		The git tag name for this release.
@@ -272,13 +273,6 @@ func createRelease(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
-	commitish := flagReleaseCommitish
-	if commitish == "" {
-		currentBranch, err := localRepo.CurrentBranch()
-		utils.Check(err)
-		commitish = currentBranch.ShortName()
-	}
-
 	var title string
 	var body string
 	var editor *github.Editor
@@ -290,7 +284,7 @@ func createRelease(cmd *Command, args *Args) {
 		utils.Check(err)
 	} else {
 		cs := git.CommentChar()
-		message, err := renderReleaseTpl("Creating", cs, tagName, project.String(), commitish)
+		message, err := renderReleaseTpl("Creating", cs, tagName, project.String(), flagReleaseCommitish)
 		utils.Check(err)
 
 		editor, err := github.NewEditor("RELEASE", "release", message)
@@ -306,7 +300,7 @@ func createRelease(cmd *Command, args *Args) {
 
 	params := &github.Release{
 		TagName:         tagName,
-		TargetCommitish: commitish,
+		TargetCommitish: flagReleaseCommitish,
 		Name:            title,
 		Body:            body,
 		Draft:           flagReleaseDraft,

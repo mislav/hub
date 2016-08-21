@@ -6,7 +6,7 @@ import (
 )
 
 const releaseTmpl = `
-{{.CS}} {{.Operation}} release {{.TagName}} for {{.ProjectName}} from {{.BranchName}}
+{{.CS}} {{.Operation}} release {{.TagName}} for {{.ProjectName}}{{if .BranchName}} from {{.BranchName}}{{end}}
 {{.CS}}
 {{.CS}} Write a message for this release. The first block of
 {{.CS}} text is the title and the rest is the description.`

@@ -181,7 +181,7 @@ MARKDOWN
       post('/repos/mislav/will_paginate/releases') {
         assert :draft => true,
                :tag_name => "v1.2.0",
-               :target_commitish => "master",
+               :target_commitish => "",
                :name => "will_paginate 1.2.0: Instant Gratification Monkey",
                :body => ""
 
@@ -190,6 +190,23 @@ MARKDOWN
       }
       """
     When I successfully run `hub release create -dm "will_paginate 1.2.0: Instant Gratification Monkey" v1.2.0`
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/will_paginate/releases/v1.2.0\n
+      """
+
+  Scenario: Create a release with target commitish
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/will_paginate/releases') {
+        assert :tag_name => "v1.2.0",
+               :target_commitish => "my-branch"
+
+        status 201
+        json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0"
+      }
+      """
+    When I successfully run `hub release create -m hello v1.2.0 -c my-branch`
     Then the output should contain exactly:
       """
       https://github.com/mislav/will_paginate/releases/v1.2.0\n
