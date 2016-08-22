@@ -646,6 +646,42 @@ BODY
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Create pull request to non-standard remote
+    Given there are no "origin" remote
+    And the "github" remote has url "git://github.com/github/coral.git"
+    And the "mislav" remote has url "git://github.com/mislav/coral.git"
+    And I am on the "cool-feature" branch
+    Given I make a commit with message "Test commit"
+    And the "cool-feature" branch is pushed and tracks "mislav"
+    And the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:cool-feature',
+               :title => 'Cool feature'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m "Cool feature"`
+    Given the SHAs and timestamps are normalized in ".git/PULLREQ_EDITMSG"
+    Then the file ".git/PULLREQ_EDITMSG" should contain exactly:
+      """
+      Cool feature
+
+
+# Requesting a pull to github:master from mislav:cool-feature
+#
+# Write a message for this pull request. The first block
+# of text is the title and the rest is the description.
+#
+# Changes:
+#
+# SHA1SHA (Hub, 0 seconds ago)
+#    Test commit
+
+      """
+
   Scenario: Open pull request in web browser
     Given the GitHub API server:
       """
