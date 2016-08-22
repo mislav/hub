@@ -107,7 +107,9 @@ Given(/^the "([^"]+)" branch is pushed (to|and tracks) "([^"]+)"$/) do |name, mo
     FileUtils.cp ".git/refs/heads/#{name}", full_upstream
   end
   if mode == "and tracks"
+    # This is what git push -u does to the remote
     step %(git "branch.#{name}.remote" is set to "#{upstream}")
+    step %(git "branch.#{name}.merge" is set to "#{full_upstream}")
   end
 end
 
