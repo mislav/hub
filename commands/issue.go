@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-t <TIME>]
+issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]]
 issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
@@ -121,6 +121,12 @@ With no arguments, show a list of open issues.
 
 	-d, --since <DATE>
 		Display only issues updated on or after <DATE> in ISO 8601 format.
+
+	-o, --sort <SORT_KEY>
+		Sort displayed issues by "created" (default), "updated" or "comments".
+
+	-^ --sort-ascending
+		Sort by ascending dates instead of descending.
 `,
 	}
 
@@ -140,10 +146,12 @@ With no arguments, show a list of open issues.
 	flagIssueMentioned,
 	flagIssueLabelsFilter,
 	flagIssueSince,
+	flagIssueSort,
 	flagIssueFile string
 
 	flagIssueEdit,
-	flagIssueBrowse bool
+	flagIssueBrowse,
+	flagIssueSortAscending bool
 
 	flagIssueMilestone uint64
 
@@ -168,6 +176,8 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueMentioned, "mentioned", "@", "", "USER")
 	cmdIssue.Flag.StringVarP(&flagIssueLabelsFilter, "labels", "l", "", "LABELS")
 	cmdIssue.Flag.StringVarP(&flagIssueSince, "since", "d", "", "DATE")
+	cmdIssue.Flag.StringVarP(&flagIssueSort, "sort", "o", "created", "SORT_KEY")
+	cmdIssue.Flag.BoolVarP(&flagIssueSortAscending, "sort-ascending", "^", false, "SORT_KEY")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -192,12 +202,17 @@ func listIssues(cmd *Command, args *Args) {
 			"creator":   flagIssueCreator,
 			"mentioned": flagIssueMentioned,
 			"labels":    flagIssueLabelsFilter,
+			"sort":      flagIssueSort,
 		}
 		filters := map[string]interface{}{}
 		for flag, filter := range flagFilters {
 			if cmd.FlagPassed(flag) {
 				filters[flag] = filter
 			}
+		}
+
+		if flagIssueSortAscending {
+			filters["direction"] = "asc"
 		}
 
 		if cmd.FlagPassed("since") {
