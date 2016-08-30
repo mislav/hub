@@ -11,8 +11,12 @@ import (
 var cmdCheckout = &Command{
 	Run:          checkout,
 	GitExtension: true,
-	Usage:        "checkout <PULLREQ-URL> [<BRANCH>]",
+	Usage:        "checkout [--no-branch] <PULLREQ-URL> [<BRANCH>]",
 	Long: `Check out the head of a pull request as a local branch.
+
+## Options:
+	--no-branch
+		Use FETCH_HEAD instead of creating a local branch.
 
 ## Examples:
 		$ hub checkout https://github.com/jingweno/gh/pull/73
@@ -25,7 +29,11 @@ hub-merge(1), hub-am(1), hub(1), git-checkout(1)
 `,
 }
 
+var flagCheckoutNoBranch bool
+
 func init() {
+	cmdCheckout.Flag.BoolVar(&flagCheckoutNoBranch, "no-branch", false, "")
+
 	CmdRunner.Use(cmdCheckout)
 }
 
@@ -74,6 +82,11 @@ func transformCheckoutArgs(args *Args) error {
 		return err
 	}
 
+	if idx := args.IndexOfParam("--no-branch"); idx >= 0 {
+		args.RemoveParam(idx)
+		flagCheckoutNoBranch = true
+	}
+
 	if idx := args.IndexOfParam(newBranchName); idx >= 0 {
 		args.RemoveParam(idx)
 	}
@@ -102,8 +115,13 @@ func transformCheckoutArgs(args *Args) error {
 		if newBranchName == "" {
 			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
 		}
-		refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
-		newArgs = append(newArgs, newBranchName)
+		if flagCheckoutNoBranch {
+			refSpec = fmt.Sprintf("pull/%s/head", id)
+			newArgs = append(newArgs, "FETCH_HEAD")
+		} else {
+			refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+			newArgs = append(newArgs, newBranchName)
+		}
 	}
 
 	args.Before("git", "fetch", remote.Name, refSpec)
