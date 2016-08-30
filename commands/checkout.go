@@ -114,6 +114,8 @@ func transformCheckoutArgs(args *Args) error {
 	} else {
 		if newBranchName == "" {
 			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+		} else if flagCheckoutNoBranch {
+			return fmt.Errorf("Cannot specify a branch name and --no-branch flag")
 		}
 		if flagCheckoutNoBranch {
 			refSpec = fmt.Sprintf("pull/%s/head", id)
