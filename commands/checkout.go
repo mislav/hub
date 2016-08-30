@@ -107,10 +107,17 @@ func transformCheckoutArgs(args *Args) error {
 	if pullRequest.IsSameRepo() {
 		if newBranchName == "" {
 			newBranchName = pullRequest.Head.Ref
+		} else if flagCheckoutNoBranch {
+			return fmt.Errorf("Cannot specify a branch name and --no-branch flag")
 		}
 		remoteBranch := fmt.Sprintf("%s/%s", remote.Name, pullRequest.Head.Ref)
-		refSpec = fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
-		newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+		if flagCheckoutNoBranch {
+			refSpec = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
+			newArgs = append(newArgs, "FETCH_HEAD")
+		} else {
+			refSpec = fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
+			newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+		}
 	} else {
 		if newBranchName == "" {
 			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)

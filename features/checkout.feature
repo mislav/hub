@@ -173,3 +173,51 @@ Feature: hub checkout <PULLREQ-URL>
       """
       Cannot specify a branch name and --no-branch flag\n
       """
+
+  Scenario: Same-repo with --no-branch
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :name => "jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }, :base => {
+          :repo => {
+            :name => "jekyll",
+            :html_url => "https://github.com/mojombo/jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }
+      }
+      """
+    When I run `hub checkout --no-branch https://github.com/mojombo/jekyll/pull/77`
+    Then "git fetch origin refs/heads/fixes" should be run
+    And "git checkout FETCH_HEAD" should be run
+
+  Scenario: Same-repo with --no-branch and a branch name
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :name => "jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }, :base => {
+          :repo => {
+            :name => "jekyll",
+            :html_url => "https://github.com/mojombo/jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }
+      }
+      """
+    When I run `hub checkout --no-branch https://github.com/mojombo/jekyll/pull/77 mycustombranch`
+    And the stderr should contain exactly:
+      """
+      Cannot specify a branch name and --no-branch flag\n
+      """
