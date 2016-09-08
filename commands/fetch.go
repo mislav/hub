@@ -48,7 +48,7 @@ func tranformFetchArgs(args *Args) error {
 	currentProject, currentProjectErr := localRepo.CurrentProject()
 
 	projects := make(map[*github.Project]bool)
-	ownerRegexp := regexp.MustCompile(OwnerRe)
+	ownerRegexp := regexp.MustCompile(fmt.Sprintf("^%s$", OwnerRe))
 	for _, name := range names {
 		if ownerRegexp.MatchString(name) && !isCloneable(name) {
 			_, err := localRepo.RemoteByName(name)

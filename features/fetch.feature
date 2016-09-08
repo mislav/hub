@@ -15,6 +15,12 @@ Feature: hub fetch
     Then the git command should be unchanged
     And there should be no output
 
+  Scenario: Fetch from non-GitHub source via refspec
+    Given the "origin" remote has url "ssh://dev@codeserver.dev.xxx.drush.in/~/repository.git"
+    When I successfully run `hub fetch ssh://myusername@a.specific.server:1234/existing-project/gerrit-project-name refs/changes/16/6116/1`
+    Then the git command should be unchanged
+    And there should be no output
+
   Scenario: Fetch from local bundle
     Given the GitHub API server:
       """
