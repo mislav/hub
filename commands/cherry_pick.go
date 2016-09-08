@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"regexp"
 
 	"github.com/github/hub/github"
@@ -59,28 +60,32 @@ func transformCherryPickArgs(args *Args) {
 }
 
 func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha string) {
+	shaRe := "[a-f0-9]{7,40}"
+
+	var mainProject *github.Project
+	localRepo, mainProjectErr := github.LocalRepo()
+	if mainProjectErr == nil {
+		mainProject, mainProjectErr = localRepo.MainProject()
+	}
+
 	url, err := github.ParseURL(ref)
 	if err == nil {
-		commitRegex := regexp.MustCompile("^commit\\/([a-f0-9]{7,40})")
 		projectPath := url.ProjectPath()
-		if commitRegex.MatchString(projectPath) {
-			sha = commitRegex.FindStringSubmatch(projectPath)[1]
-			project = url.Project
 
+		commitRegex := regexp.MustCompile(fmt.Sprintf("^commit/(%s)", shaRe))
+		if matches := commitRegex.FindStringSubmatch(projectPath); len(matches) > 0 {
+			sha = matches[1]
+			project = url.Project
 			return
 		}
 	}
 
-	ownerWithShaRegexp := regexp.MustCompile("^([a-zA-Z0-9][a-zA-Z0-9-]*)@([a-f0-9]{7,40})$")
-	if ownerWithShaRegexp.MatchString(ref) {
-		matches := ownerWithShaRegexp.FindStringSubmatch(ref)
-		sha = matches[2]
-		localRepo, err := github.LocalRepo()
-		utils.Check(err)
-
-		project, err = localRepo.CurrentProject()
-		utils.Check(err)
+	ownerWithShaRegexp := regexp.MustCompile(fmt.Sprintf("^(%s)@(%s)$", OwnerRe, shaRe))
+	if matches := ownerWithShaRegexp.FindStringSubmatch(ref); len(matches) > 0 {
+		utils.Check(mainProjectErr)
+		project = mainProject
 		project.Owner = matches[1]
+		sha = matches[2]
 	}
 
 	return
