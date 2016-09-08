@@ -186,7 +186,7 @@ func Show(sha string) (string, error) {
 
 func Log(sha1, sha2 string) (string, error) {
 	execCmd := cmd.New("git")
-	execCmd.WithArg("log").WithArg("--no-color")
+	execCmd.WithArg("-c").WithArg("log.showSignature=false").WithArg("log").WithArg("--no-color")
 	execCmd.WithArg("--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b")
 	execCmd.WithArg("--cherry")
 	shaRange := fmt.Sprintf("%s...%s", sha1, sha2)
