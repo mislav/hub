@@ -12,6 +12,24 @@ Feature: hub cherry-pick
     Then "git fetch origin" should be run
     And "git cherry-pick a319d88" should be run
 
+  Scenario: From GitHub pull request URL
+    Given the GitHub API server:
+      """
+      get('/repos/blueyed/ronn/pulls/560') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "ronin",
+            :private => true
+          }
+        }
+      }
+      """
+    When I run `hub cherry-pick https://github.com/blueyed/ronn/pull/560/commits/a319d88`
+    Then "git remote add -f --no-tags mislav git@github.com:mislav/ronin.git" should be run
+    And "git cherry-pick a319d88" should be run
+
   Scenario: From fork that has existing remote
     Given the "mislav" remote has url "git@github.com:mislav/ronn.git"
     When I run `hub cherry-pick https://github.com/mislav/ronn/commit/a319d88`

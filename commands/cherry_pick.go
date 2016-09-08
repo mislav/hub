@@ -46,20 +46,19 @@ func transformCherryPickArgs(args *Args) {
 	}
 
 	ref := args.LastParam()
-	project, sha := parseCherryPickProjectAndSha(ref)
+	project, sha, isPrivate := parseCherryPickProjectAndSha(ref)
 	if project != nil {
 		args.ReplaceParam(args.IndexOfParam(ref), sha)
 
-		remote := gitRemoteForProject(project)
-		if remote != nil {
+		if remote := gitRemoteForProject(project); remote != nil {
 			args.Before("git", "fetch", remote.Name)
 		} else {
-			args.Before("git", "remote", "add", "-f", "--no-tags", project.Owner, project.GitURL("", "", false))
+			args.Before("git", "remote", "add", "-f", "--no-tags", project.Owner, project.GitURL("", "", isPrivate))
 		}
 	}
 }
 
-func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha string) {
+func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha string, isPrivate bool) {
 	shaRe := "[a-f0-9]{7,40}"
 
 	var mainProject *github.Project
@@ -76,6 +75,20 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 		if matches := commitRegex.FindStringSubmatch(projectPath); len(matches) > 0 {
 			sha = matches[1]
 			project = url.Project
+			return
+		}
+
+		pullRegex := regexp.MustCompile(fmt.Sprintf(`^pull/(\d+)/commits/(%s)`, shaRe))
+		if matches := pullRegex.FindStringSubmatch(projectPath); len(matches) > 0 {
+			pullId := matches[1]
+			sha = matches[2]
+			utils.Check(mainProjectErr)
+			api := github.NewClient(mainProject.Host)
+			pullRequest, err := api.PullRequest(url.Project, pullId)
+			utils.Check(err)
+			headRepo := pullRequest.Head.Repo
+			project = github.NewProject(headRepo.Owner.Login, headRepo.Name, mainProject.Host)
+			isPrivate = headRepo.Private
 			return
 		}
 	}
