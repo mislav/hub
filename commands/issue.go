@@ -366,10 +366,16 @@ func createIssue(cmd *Command, args *Args) {
 	}
 
 	params := map[string]interface{}{
-		"title":     title,
-		"body":      body,
-		"labels":    flagIssueLabels,
-		"assignees": flagIssueAssignees,
+		"title": title,
+		"body":  body,
+	}
+
+	if len(flagIssueLabels) > 0 {
+		params["labels"] = flagIssueLabels
+	}
+
+	if len(flagIssueAssignees) > 0 {
+		params["assignees"] = flagIssueAssignees
 	}
 
 	if flagIssueMilestone > 0 {

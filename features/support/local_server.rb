@@ -69,7 +69,14 @@ module Hub
 
         def assert(expected)
           expected.each do |key, value|
-            if params[key] != value
+            if :no == value
+              halt 422, json(
+                :message => "expected %s not to be passed; got %s" % [
+                  key.inspect,
+                  params[key].inspect
+                ]
+              ) if params.key?(key.to_s)
+            elsif params[key] != value
               halt 422, json(
                 :message => "expected %s to be %s; got %s" % [
                   key.inspect,

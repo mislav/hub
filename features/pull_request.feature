@@ -695,7 +695,7 @@ BODY
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :assignees => ["mislav", "josh", "pcorpet"], :labels => nil
+        assert :assignees => ["mislav", "josh", "pcorpet"], :labels => :no
         json :html_url => "the://url"
       }
       """
@@ -729,7 +729,7 @@ BODY
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :labels => ["feature", "release", "docs"]
+        assert :labels => ["feature", "release", "docs"], :assignees => :no
         json :html_url => "the://url"
       }
       """

@@ -245,17 +245,18 @@ func pullRequest(cmd *Command, args *Args) {
 
 		pullRequestURL = pr.HtmlUrl
 
-		if len(flagPullRequestAssignees) > 0 || flagPullRequestMilestone > 0 ||
-			len(flagPullRequestLabels) > 0 {
+		params = map[string]interface{}{}
+		if len(flagPullRequestLabels) > 0 {
+			params["labels"] = flagPullRequestLabels
+		}
+		if len(flagPullRequestAssignees) > 0 {
+			params["assignees"] = flagPullRequestAssignees
+		}
+		if flagPullRequestMilestone > 0 {
+			params["milestone"] = flagPullRequestMilestone
+		}
 
-			params := map[string]interface{}{
-				"labels":    flagPullRequestLabels,
-				"assignees": flagPullRequestAssignees,
-			}
-			if flagPullRequestMilestone > 0 {
-				params["milestone"] = flagPullRequestMilestone
-			}
-
+		if len(params) > 0 {
 			err = client.UpdateIssue(baseProject, pr.Number, params)
 			utils.Check(err)
 		}
