@@ -571,6 +571,24 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Create pull request from branch on the personal fork, capitalized
+    Given the "origin" remote has url "git://github.com/LightAlf/FirstRepo.git"
+    And the "Kristinita" remote has url "git@github.com:Kristinita/FirstRepo.git"
+    And I am on the "add-py3kwarn" branch pushed to "Kristinita/add-py3kwarn"
+    And I am "Kristinita" on github.com with OAuth token "OTOKEN"
+    Given the GitHub API server:
+      """
+      post('/repos/LightAlf/FirstRepo/pulls') {
+        assert :base  => 'master',
+               :head  => 'Kristinita:add-py3kwarn',
+               :title => 'hereyougo'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Create pull request to "upstream" remote
     Given the "upstream" remote has url "git://github.com/github/coral.git"
     And I am on the "master" branch pushed to "origin/master"
