@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/github/hub/utils"
@@ -37,7 +38,14 @@ func getGithubTemplate(pat string) (body string) {
 			path = p
 		}
 	}
+	if path == "" {
+		if _, err := os.Stat(filepath.Join(userHomeDir(), githubTemplateDir)); err == nil {
+			if p := getFilePath(filepath.Join(userHomeDir(), githubTemplateDir), pat); p != "" {
+				path = p
+			}
+		}
 
+	}
 	if path == "" {
 		return
 	}
@@ -79,4 +87,15 @@ func readContentsFromFile(filename string) (contents string, err error) {
 	contents = strings.Replace(string(content), "\r\n", "\n", -1)
 	contents = strings.TrimSpace(contents)
 	return
+}
+
+func userHomeDir() string {
+	if runtime.GOOS == "windows" {
+		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
+		if home == "" {
+			home = os.Getenv("USERPROFILE")
+		}
+		return home
+	}
+	return os.Getenv("HOME")
 }
