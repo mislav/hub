@@ -1,14 +1,12 @@
 package commands
 
 import (
-	"fmt"
 	"os"
 	"sort"
 	"strings"
 
 	"github.com/github/hub/cmd"
-	"github.com/github/hub/git"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/ui"
 )
 
 var cmdHelp = &Command{
@@ -26,8 +24,11 @@ func init() {
 
 func runHelp(helpCmd *Command, args *Args) {
 	if args.IsParamsEmpty() {
-		printUsage()
-		os.Exit(0)
+		args.AfterFn(func() error {
+			ui.Println(helpText)
+			return nil
+		})
+		return
 	}
 
 	command := args.FirstParam()
@@ -46,11 +47,13 @@ func runHelp(helpCmd *Command, args *Args) {
 	c := CmdRunner.Lookup(command)
 	if c != nil && !c.GitExtension {
 		c.PrintUsage()
-		os.Exit(0)
+		args.NoForward()
 	} else if c == nil {
 		if args.HasFlags("-a", "--all") {
-			args.After("echo", "\nhub custom commands\n")
-			args.After("echo", " ", strings.Join(customCommands(), "  "))
+			args.AfterFn(func() error {
+				ui.Printf("\nhub custom commands\n\n  %s\n", strings.Join(customCommands(), "  "))
+				return nil
+			})
 		}
 	}
 }
@@ -80,9 +83,3 @@ These GitHub commands are provided by hub:
    issue          List or create issues (beta)
    ci-status      Show the CI status of a commit
 `
-
-func printUsage() {
-	err := git.ForwardGitHelp()
-	utils.Check(err)
-	fmt.Print(helpText)
-}

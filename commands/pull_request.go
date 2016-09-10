@@ -8,6 +8,7 @@ import (
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -221,17 +222,18 @@ func pullRequest(cmd *Command, args *Args) {
 		pullRequestURL = pr.HTMLURL
 	}
 
+	if flagPullRequestIssue != "" {
+		ui.Errorln("Warning: Issue to pull request conversion is deprecated and might not work in the future.")
+	}
+
 	if flagPullRequestBrowse {
 		launcher, err := utils.BrowserLauncher()
 		utils.Check(err)
 		args.Replace(launcher[0], "", launcher[1:]...)
 		args.AppendParams(pullRequestURL)
 	} else {
-		args.Replace("echo", "", pullRequestURL)
-	}
-
-	if flagPullRequestIssue != "" {
-		args.After("echo", "Warning: Issue to pull request conversion is deprecated and might not work in the future.")
+		ui.Println(pullRequestURL)
+		args.NoForward()
 	}
 }
 

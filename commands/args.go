@@ -16,6 +16,8 @@ type Args struct {
 	afterChain  []*cmd.Cmd
 	Noop        bool
 	Terminator  bool
+	noForward   bool
+	Callbacks   []func() error
 }
 
 func (a *Args) Words() []string {
@@ -37,6 +39,14 @@ func (a *Args) After(command ...string) {
 	a.afterChain = append(a.afterChain, cmd.NewWithArray(command))
 }
 
+func (a *Args) AfterFn(fn func() error) {
+	a.Callbacks = append(a.Callbacks, fn)
+}
+
+func (a *Args) NoForward() {
+	a.noForward = true
+}
+
 func (a *Args) Replace(executable, command string, params ...string) {
 	a.Executable = executable
 	a.Command = command
@@ -45,9 +55,13 @@ func (a *Args) Replace(executable, command string, params ...string) {
 }
 
 func (a *Args) Commands() []*cmd.Cmd {
-	result := a.beforeChain
-	result = append(result, a.ToCmd())
-	result = append(result, a.afterChain...)
+	result := []*cmd.Cmd{}
+
+	if !a.noForward {
+		result = append(result, a.beforeChain...)
+		result = append(result, a.ToCmd())
+		result = append(result, a.afterChain...)
+	}
 
 	return result
 }

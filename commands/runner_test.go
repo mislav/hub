@@ -22,7 +22,7 @@ func TestRunner_splitAliasCmd(t *testing.T) {
 func TestRunnerUseCommands(t *testing.T) {
 	r := &Runner{
 		commands: make(map[string]*Command),
-		execute:  func(cmds []*cmd.Cmd) error { return nil },
+		execute:  func([]*cmd.Cmd, bool) error { return nil },
 	}
 	c := &Command{Usage: "foo"}
 	r.Use(c)
@@ -39,7 +39,7 @@ func TestRunnerCallCommands(t *testing.T) {
 
 	r := &Runner{
 		commands: make(map[string]*Command),
-		execute:  func(cmds []*cmd.Cmd) error { return nil },
+		execute:  func([]*cmd.Cmd, bool) error { return nil },
 	}
 	c := &Command{Usage: "foo", Run: f}
 	r.Use(c)

@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"os"
-
 	"github.com/github/hub/ui"
 	"github.com/github/hub/version"
 )
@@ -20,5 +18,5 @@ func init() {
 
 func runVersion(cmd *Command, args *Args) {
 	ui.Println(version.FullVersion())
-	os.Exit(0)
+	args.NoForward()
 }

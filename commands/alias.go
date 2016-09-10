@@ -111,5 +111,5 @@ end`
 		ui.Println(eval)
 	}
 
-	os.Exit(0)
+	args.NoForward()
 }

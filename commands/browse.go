@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -122,7 +123,8 @@ func browse(command *Command, args *Args) {
 	utils.Check(err)
 
 	if flagBrowseURLOnly {
-		args.Replace("echo", pageUrl)
+		ui.Println(pageUrl)
+		args.NoForward()
 	} else {
 		args.Replace(launcher[0], "", launcher[1:]...)
 		args.AppendParams(pageUrl)
