@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/github/hub/cmd"
-	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
@@ -52,13 +51,18 @@ func init() {
 
 func runHelp(helpCmd *Command, args *Args) {
 	if args.IsParamsEmpty() {
-		printUsage()
-		os.Exit(0)
+		args.AfterFn(func() error {
+			ui.Println(helpText)
+			return nil
+		})
+		return
 	}
 
 	if args.HasFlags("-a", "--all") {
-		args.After("echo", "\nhub custom commands\n")
-		args.After("echo", " ", strings.Join(customCommands(), "  "))
+		args.AfterFn(func() error {
+			ui.Printf("\nhub custom commands\n\n  %s\n", strings.Join(customCommands(), "  "))
+			return nil
+		})
 		return
 	}
 
@@ -81,7 +85,7 @@ func runHelp(helpCmd *Command, args *Args) {
 		}
 
 		ui.Println(c.HelpText())
-		os.Exit(0)
+		args.NoForward()
 	}
 }
 
@@ -170,9 +174,3 @@ These GitHub commands are provided by hub:
    issue          List or create issues
    ci-status      Show the CI status of a commit
 `
-
-func printUsage() {
-	err := git.ForwardGitHelp()
-	utils.Check(err)
-	fmt.Print(helpText)
-}

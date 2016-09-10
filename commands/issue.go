@@ -228,7 +228,7 @@ func listIssues(cmd *Command, args *Args) {
 		}
 	}
 
-	os.Exit(0)
+	args.NoForward()
 }
 
 func formatIssue(issue github.Issue, format string, colorize bool) string {
@@ -384,7 +384,7 @@ func createIssue(cmd *Command, args *Args) {
 
 	if args.Noop {
 		ui.Printf("Would create issue `%s' for %s\n", params["title"], project)
-		os.Exit(0)
+		args.NoForward()
 	} else {
 		issue, err := gh.CreateIssue(project, params)
 		utils.Check(err)
@@ -400,7 +400,7 @@ func createIssue(cmd *Command, args *Args) {
 			args.AppendParams(issue.HtmlUrl)
 		} else {
 			ui.Println(issue.HtmlUrl)
-			os.Exit(0)
+			args.NoForward()
 		}
 	}
 }
