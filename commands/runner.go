@@ -17,6 +17,7 @@ import (
 
 type ExecError struct {
 	Err      error
+	Ran      bool
 	ExitCode int
 }
 
@@ -26,16 +27,25 @@ func (execError *ExecError) Error() string {
 
 func newExecError(err error) ExecError {
 	exitCode := 0
+	ran := true
+
 	if err != nil {
 		exitCode = 1
-		if exitError, ok := err.(*exec.ExitError); ok {
-			if status, ok := exitError.Sys().(syscall.WaitStatus); ok {
+		switch e := err.(type) {
+		case *exec.ExitError:
+			if status, ok := e.Sys().(syscall.WaitStatus); ok {
 				exitCode = status.ExitStatus()
 			}
+		case *exec.Error:
+			ran = false
 		}
 	}
 
-	return ExecError{Err: err, ExitCode: exitCode}
+	return ExecError{
+		Err:      err,
+		Ran:      ran,
+		ExitCode: exitCode,
+	}
 }
 
 type Runner struct {
