@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -115,7 +116,8 @@ func compare(command *Command, args *Args) {
 	utils.Check(err)
 
 	if flagCompareURLOnly {
-		args.Replace("echo", url)
+		ui.Println(url)
+		args.NoForward()
 	} else {
 		args.Replace(launcher[0], "", launcher[1:]...)
 		args.AppendParams(url)

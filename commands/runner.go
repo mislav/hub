@@ -50,7 +50,7 @@ func newExecError(err error) ExecError {
 
 type Runner struct {
 	commands map[string]*Command
-	execute  func(cmds []*cmd.Cmd) error
+	execute  func([]*cmd.Cmd, bool) error
 }
 
 func NewRunner() *Runner {
@@ -78,10 +78,11 @@ func (r *Runner) Lookup(name string) *Command {
 func (r *Runner) Execute() ExecError {
 	args := NewArgs(os.Args[1:])
 	args.ProgramPath = os.Args[0]
+	forceFail := false
 
 	if args.Command == "" {
-		printUsage()
-		return newExecError(fmt.Errorf(""))
+		args.Command = "help"
+		forceFail = true
 	}
 
 	updater := NewUpdater()
@@ -93,7 +94,11 @@ func (r *Runner) Execute() ExecError {
 
 	cmd := r.Lookup(args.Command)
 	if cmd != nil && cmd.Runnable() {
-		return r.Call(cmd, args)
+		execErr := r.Call(cmd, args)
+		if execErr.ExitCode == 0 && forceFail {
+			execErr = newExecError(fmt.Errorf(""))
+		}
+		return execErr
 	}
 
 	err = git.Run(args.Command, args.Params...)
@@ -113,7 +118,16 @@ func (r *Runner) Call(cmd *Command, args *Args) ExecError {
 	if args.Noop {
 		printCommands(cmds)
 	} else {
-		err = r.execute(cmds)
+		err = r.execute(cmds, len(args.Callbacks) == 0)
+	}
+
+	if err == nil {
+		for _, fn := range args.Callbacks {
+			err = fn()
+			if err != nil {
+				break
+			}
+		}
 	}
 
 	return newExecError(err)
@@ -125,11 +139,11 @@ func printCommands(cmds []*cmd.Cmd) {
 	}
 }
 
-func executeCommands(cmds []*cmd.Cmd) error {
+func executeCommands(cmds []*cmd.Cmd, execFinal bool) error {
 	for i, c := range cmds {
 		var err error
 		// Run with `Exec` for the last command in chain
-		if i == len(cmds)-1 {
+		if execFinal && i == len(cmds)-1 {
 			err = c.Run()
 		} else {
 			err = c.Spawn()

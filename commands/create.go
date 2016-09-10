@@ -121,5 +121,8 @@ func create(command *Command, args *Args) {
 		args.Replace("git", "remote", "-v")
 	}
 
-	args.After("echo", fmt.Sprintf("%s:", action), project.String())
+	args.AfterFn(func() error {
+		ui.Printf("%s: %s\n", action, project.String())
+		return nil
+	})
 }

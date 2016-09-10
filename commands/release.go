@@ -168,7 +168,7 @@ func listReleases(cmd *Command, args *Args) {
 		}
 	}
 
-	os.Exit(0)
+	args.NoForward()
 }
 
 func showRelease(cmd *Command, args *Args) {
@@ -209,7 +209,7 @@ func showRelease(cmd *Command, args *Args) {
 		}
 	}
 
-	os.Exit(0)
+	args.NoForward()
 }
 
 func downloadRelease(cmd *Command, args *Args) {
@@ -235,7 +235,7 @@ func downloadRelease(cmd *Command, args *Args) {
 		utils.Check(err)
 	}
 
-	os.Exit(0)
+	args.NoForward()
 }
 
 func downloadReleaseAsset(asset github.ReleaseAsset, gh *github.Client) (err error) {
@@ -314,16 +314,15 @@ func createRelease(cmd *Command, args *Args) {
 	} else {
 		release, err = gh.CreateRelease(project, params)
 		utils.Check(err)
-
 		ui.Println(release.HtmlUrl)
 	}
-
-	uploadAssets(gh, release, flagReleaseAssets, args)
 
 	if editor != nil {
 		editor.DeleteFile()
 	}
-	os.Exit(0)
+
+	uploadAssets(gh, release, flagReleaseAssets, args)
+	args.NoForward()
 }
 
 func editRelease(cmd *Command, args *Args) {
@@ -403,15 +402,15 @@ func editRelease(cmd *Command, args *Args) {
 		} else {
 			release, err = gh.EditRelease(release, params)
 			utils.Check(err)
+		}
 
-			if editor != nil {
-				editor.DeleteFile()
-			}
+		if editor != nil {
+			editor.DeleteFile()
 		}
 	}
 
 	uploadAssets(gh, release, flagReleaseAssets, args)
-	os.Exit(0)
+	args.NoForward()
 }
 
 func uploadAssets(gh *github.Client, release *github.Release, assets []string, args *Args) {
