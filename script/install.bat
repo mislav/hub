@@ -48,7 +48,7 @@ set HUB_BIN_PATH="%LOCALAPPDATA%\GitHubCLI\bin"
 IF EXIST %HUB_BIN_PATH% GOTO DIRECTORY_EXISTS
 mkdir %HUB_BIN_PATH%
 set "path=%PATH%;%HUB_BIN_PATH:"=%"
-call :appendToUserPath %HUB_BIN_PATH:"=%
+call :appendToUserPath "%HUB_BIN_PATH:"=%"
 :DIRECTORY_EXISTS
 
 :: Delete any existing programs
