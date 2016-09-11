@@ -52,3 +52,6 @@ DEPENDENCIES
   cucumber (~> 1.3.9)
   ronn
   sinatra
+
+BUNDLED WITH
+   1.11.2
