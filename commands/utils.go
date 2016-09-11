@@ -7,8 +7,10 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -132,4 +134,26 @@ func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Projec
 	fn(localRepo, project, client)
 
 	os.Exit(0)
+}
+
+func printBrowseOrCopy(args *Args, msg string, openBrowser bool, performCopy bool) {
+	if performCopy {
+		if err := clipboard.WriteAll(msg); err != nil {
+			ui.Errorf("Error copying %s to clipboard:\n%s\n", msg, err.Error())
+		}
+	}
+
+	if openBrowser {
+		launcher, err := utils.BrowserLauncher()
+		utils.Check(err)
+		args.Replace(launcher[0], "", launcher[1:]...)
+		args.AppendParams(msg)
+	}
+
+	if !openBrowser && !performCopy {
+		args.AfterFn(func() error {
+			ui.Println(msg)
+			return nil
+		})
+	}
 }

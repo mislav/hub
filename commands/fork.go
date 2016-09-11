@@ -80,13 +80,12 @@ func fork(cmd *Command, args *Args) {
 		}
 	}
 
-	if flagForkNoRemote {
-		args.NoForward()
-	} else {
+	args.NoForward()
+	if !flagForkNoRemote {
 		originURL := originRemote.URL.String()
 		url := forkProject.GitURL("", "", true)
-		args.Replace("git", "remote", "add", "-f", newRemoteName, originURL)
-		args.After("git", "remote", "set-url", newRemoteName, url)
+		args.Before("git", "remote", "add", "-f", newRemoteName, originURL)
+		args.Before("git", "remote", "set-url", newRemoteName, url)
 
 		args.AfterFn(func() error {
 			ui.Printf("new remote: %s\n", newRemoteName)

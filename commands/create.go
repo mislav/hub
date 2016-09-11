@@ -13,7 +13,7 @@ import (
 
 var cmdCreate = &Command{
 	Run:   create,
-	Usage: "create [-p] [-d <DESCRIPTION>] [-h <HOMEPAGE>] [[<ORGANIZATION>/]<NAME>]",
+	Usage: "create [-poc] [-d <DESCRIPTION>] [-h <HOMEPAGE>] [[<ORGANIZATION>/]<NAME>]",
 	Long: `Create a new repository on GitHub and add a git remote for it.
 
 ## Options:
@@ -25,6 +25,12 @@ var cmdCreate = &Command{
 
 	-h <HOMEPAGE>
 		Use this text as the URL of the GitHub repository.
+
+	-o, --browse
+		Open the new repository in a web browser.
+
+	-c, --copy
+		Put the URL of the new repository to clipboard instead of printing it.
 
 	[<ORGANIZATION>/]<NAME>
 		The name for the repository on GitHub (default: name of the current working
@@ -48,12 +54,18 @@ hub-init(1), hub(1)
 }
 
 var (
-	flagCreatePrivate                         bool
-	flagCreateDescription, flagCreateHomepage string
+	flagCreatePrivate,
+	flagCreateBrowse,
+	flagCreateCopy bool
+
+	flagCreateDescription,
+	flagCreateHomepage string
 )
 
 func init() {
 	cmdCreate.Flag.BoolVarP(&flagCreatePrivate, "private", "p", false, "PRIVATE")
+	cmdCreate.Flag.BoolVarP(&flagCreateBrowse, "browse", "o", false, "BROWSE")
+	cmdCreate.Flag.BoolVarP(&flagCreateCopy, "copy", "c", false, "COPY")
 	cmdCreate.Flag.StringVarP(&flagCreateDescription, "description", "d", "", "DESCRIPTION")
 	cmdCreate.Flag.StringVarP(&flagCreateHomepage, "homepage", "h", "", "HOMEPAGE")
 
@@ -97,12 +109,9 @@ func create(command *Command, args *Args) {
 	project := github.NewProject(owner, newRepoName, host.Host)
 	gh := github.NewClient(project.Host)
 
-	var action string
 	if gh.IsRepositoryExist(project) {
-		ui.Printf("%s already exists on %s\n", project, project.Host)
-		action = "set remote origin"
+		ui.Errorln("Existing repository detected. Updating git remote")
 	} else {
-		action = "created repository"
 		if !args.Noop {
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
 			utils.Check(err)
@@ -116,13 +125,10 @@ func create(command *Command, args *Args) {
 	remote, _ := localRepo.OriginRemote()
 	if remote == nil || remote.Name != "origin" {
 		url := project.GitURL("", "", true)
-		args.Replace("git", "remote", "add", "-f", "origin", url)
-	} else {
-		args.Replace("git", "remote", "-v")
+		args.Before("git", "remote", "add", "-f", "origin", url)
 	}
 
-	args.AfterFn(func() error {
-		ui.Printf("%s: %s\n", action, project.String())
-		return nil
-	})
+	webUrl := project.WebURL("", "", "")
+	args.NoForward()
+	printBrowseOrCopy(args, webUrl, flagCreateBrowse, flagCreateCopy)
 }
