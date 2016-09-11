@@ -177,7 +177,8 @@ func (c *Config) scanLine() string {
 }
 
 func getPassword() (string, error) {
-	initialTermState, err := terminal.GetState(syscall.Stdin)
+	stdin := int(syscall.Stdin)
+	initialTermState, err := terminal.GetState(stdin)
 	if err != nil {
 		return "", err
 	}
@@ -186,7 +187,7 @@ func getPassword() (string, error) {
 	signal.Notify(c, os.Interrupt, os.Kill)
 	go func() {
 		s := <-c
-		terminal.Restore(syscall.Stdin, initialTermState)
+		terminal.Restore(stdin, initialTermState)
 		switch sig := s.(type) {
 		case syscall.Signal:
 			if int(sig) == 2 {
@@ -196,7 +197,7 @@ func getPassword() (string, error) {
 		os.Exit(1)
 	}()
 
-	passBytes, err := terminal.ReadPassword(syscall.Stdin)
+	passBytes, err := terminal.ReadPassword(stdin)
 	if err != nil {
 		return "", err
 	}
