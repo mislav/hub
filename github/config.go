@@ -5,13 +5,15 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strconv"
+	"syscall"
 
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
-	"github.com/howeyc/gopass"
 	"github.com/mitchellh/go-homedir"
+	"golang.org/x/crypto/ssh/terminal"
 )
 
 var defaultConfigsFile string
@@ -147,8 +149,10 @@ func (c *Config) PromptForPassword(host, user string) (pass string) {
 	}
 
 	ui.Printf("%s password for %s (never stored): ", host, user)
-	if ui.IsTerminal(os.Stdout) {
-		pass = string(gopass.GetPasswd())
+	if ui.IsTerminal(os.Stdin) {
+		if password, err := getPassword(); err == nil {
+			pass = password
+		}
 	} else {
 		pass = c.scanLine()
 	}
@@ -170,6 +174,36 @@ func (c *Config) scanLine() string {
 	utils.Check(scanner.Err())
 
 	return line
+}
+
+func getPassword() (string, error) {
+	initialTermState, err := terminal.GetState(syscall.Stdin)
+	if err != nil {
+		return "", err
+	}
+
+	c := make(chan os.Signal)
+	signal.Notify(c, os.Interrupt, os.Kill)
+	go func() {
+		s := <-c
+		terminal.Restore(syscall.Stdin, initialTermState)
+		switch sig := s.(type) {
+		case syscall.Signal:
+			if int(sig) == 2 {
+				fmt.Println("^C")
+			}
+		}
+		os.Exit(1)
+	}()
+
+	passBytes, err := terminal.ReadPassword(syscall.Stdin)
+	if err != nil {
+		return "", err
+	}
+
+	signal.Stop(c)
+	fmt.Print("\n")
+	return string(passBytes), nil
 }
 
 func (c *Config) Find(host string) *Host {
