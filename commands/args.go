@@ -52,17 +52,17 @@ func (a *Args) Replace(executable, command string, params ...string) {
 	a.Command = command
 	a.Params = params
 	a.GlobalFlags = []string{}
+	a.noForward = false
 }
 
 func (a *Args) Commands() []*cmd.Cmd {
-	result := []*cmd.Cmd{}
+	result := a.beforeChain
 
 	if !a.noForward {
-		result = append(result, a.beforeChain...)
 		result = append(result, a.ToCmd())
-		result = append(result, a.afterChain...)
 	}
 
+	result = append(result, a.afterChain...)
 	return result
 }
 
