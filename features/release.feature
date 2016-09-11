@@ -206,7 +206,7 @@ MARKDOWN
         json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0"
       }
       """
-    When I successfully run `hub release create -m hello v1.2.0 -c my-branch`
+    When I successfully run `hub release create -m hello v1.2.0 -t my-branch`
     Then the output should contain exactly:
       """
       https://github.com/mislav/will_paginate/releases/v1.2.0\n
