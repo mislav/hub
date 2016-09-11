@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/atotto/clipboard"
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -137,7 +138,9 @@ func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Projec
 
 func printBrowseOrCopy(args *Args, msg string, openBrowser bool, performCopy bool) {
 	if performCopy {
-		// TODO
+		if err := clipboard.WriteAll(msg); err != nil {
+			ui.Errorf("Error copying %s to clipboard:\n%s\n", msg, err.Error())
+		}
 	}
 
 	if openBrowser {

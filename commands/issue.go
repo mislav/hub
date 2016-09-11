@@ -18,7 +18,7 @@ var (
 		Run: listIssues,
 		Usage: `
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-t <TIME>]
-issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue create [-oc] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -109,6 +109,9 @@ With no arguments, show a list of open issues.
 	-o, --browse
 		Open the new issue in a web browser.
 
+	-c, --copy
+		Put the URL of the new issue to clipboard instead of printing it.
+
 	-M, --milestone <ID>
 		Display only issues for a GitHub milestone with id <ID>.
 
@@ -143,6 +146,7 @@ With no arguments, show a list of open issues.
 	flagIssueFile string
 
 	flagIssueEdit,
+	flagIssueCopy,
 	flagIssueBrowse bool
 
 	flagIssueMilestone uint64
@@ -158,6 +162,7 @@ func init() {
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
 	cmdCreateIssue.Flag.VarP(&flagIssueAssignees, "assign", "a", "ASSIGNEE")
 	cmdCreateIssue.Flag.BoolVarP(&flagIssueBrowse, "browse", "o", false, "BROWSE")
+	cmdCreateIssue.Flag.BoolVarP(&flagIssueCopy, "copy", "c", false, "COPY")
 	cmdCreateIssue.Flag.BoolVarP(&flagIssueEdit, "edit", "e", false, "EDIT")
 
 	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
@@ -393,6 +398,6 @@ func createIssue(cmd *Command, args *Args) {
 		issue, err := gh.CreateIssue(project, params)
 		utils.Check(err)
 
-		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, false)
+		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, flagIssueCopy)
 	}
 }

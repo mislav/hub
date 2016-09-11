@@ -237,6 +237,18 @@ MARKDOWN
       Attaching release asset `./hello-1.2.0.tar.gz'...\n
       """
 
+  Scenario: Open new release in web browser
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/will_paginate/releases') {
+        status 201
+        json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0"
+      }
+      """
+    When I successfully run `hub release create -o -m hello v1.2.0`
+    Then the output should contain exactly ""
+    And "open https://github.com/mislav/will_paginate/releases/v1.2.0" should be run
+
   Scenario: Edit existing release
     Given the GitHub API server:
       """

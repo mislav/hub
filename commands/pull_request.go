@@ -15,7 +15,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-fo] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-foc] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
@@ -41,6 +41,9 @@ pull-request -i <ISSUE>
 
 	-o, --browse
 		Open the new pull request in a web browser.
+
+	-c, --copy
+		Put the URL of the new pull request to clipboard instead of printing it.
 
 	-b, --base <BASE>
 		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
@@ -72,6 +75,7 @@ var (
 	flagPullRequestFile string
 
 	flagPullRequestBrowse,
+	flagPullRequestCopy,
 	flagPullRequestEdit,
 	flagPullRequestForce bool
 
@@ -86,6 +90,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestCopy, "copy", "c", false, "COPY")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
@@ -268,7 +273,7 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	args.NoForward()
-	printBrowseOrCopy(args, pullRequestURL, flagPullRequestBrowse, false)
+	printBrowseOrCopy(args, pullRequestURL, flagPullRequestBrowse, flagPullRequestCopy)
 }
 
 func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {

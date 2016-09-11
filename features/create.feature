@@ -129,6 +129,17 @@ Feature: hub create
     Then the url for "origin" should be "git@github.com:Mooslav/myconfig.git"
     And the output should contain exactly "https://github.com/Mooslav/myconfig\n"
 
+  Scenario: Open new repository in web browser
+    Given the GitHub API server:
+      """
+      post('/user/repos') {
+        json :full_name => 'Mooslav/myconfig'
+      }
+      """
+    When I successfully run `hub create -o`
+    Then the output should contain exactly ""
+    And "open https://github.com/Mooslav/myconfig" should be run
+
   Scenario: Current directory contains spaces
     Given I am in "my dot files" git repo
     Given the GitHub API server:

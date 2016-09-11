@@ -19,7 +19,7 @@ var (
 		Usage: `
 release [--include-drafts]
 release show <TAG>
-release create [-dp] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
+release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
 `,
 		Long: `Manage GitHub releases.
@@ -72,6 +72,12 @@ With '--include-drafts', include draft releases in the listing.
 	-e, --edit
 		Further edit the contents of <FILE> in a text editor before submitting.
 
+	-o, --browse
+		Open the new release in a web browser.
+
+	-c, --copy
+		Put the URL of the new release to clipboard instead of printing it.
+
 	-t, --commitish <TARGET>
 		A commit SHA or branch name to attach the release to, only used if <TAG>
 		doesn't already exist (default: main branch).
@@ -109,6 +115,8 @@ hub(1), git-tag(1)
 	flagReleaseShowDownloads,
 	flagReleaseDraft,
 	flagReleaseEdit,
+	flagReleaseBrowse,
+	flagReleaseCopy,
 	flagReleasePrerelease bool
 
 	flagReleaseMessage,
@@ -126,6 +134,8 @@ func init() {
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseEdit, "edit", "e", false, "EDIT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
+	cmdCreateRelease.Flag.BoolVarP(&flagReleaseBrowse, "browse", "o", false, "BROWSE")
+	cmdCreateRelease.Flag.BoolVarP(&flagReleaseCopy, "copy", "c", false, "COPY")
 	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
@@ -316,7 +326,7 @@ func createRelease(cmd *Command, args *Args) {
 		release, err = gh.CreateRelease(project, params)
 		utils.Check(err)
 
-		printBrowseOrCopy(args, release.HtmlUrl, false, false)
+		printBrowseOrCopy(args, release.HtmlUrl, flagReleaseBrowse, flagReleaseCopy)
 	}
 
 	if editor != nil {
