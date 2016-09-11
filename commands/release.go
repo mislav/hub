@@ -309,12 +309,14 @@ func createRelease(cmd *Command, args *Args) {
 
 	var release *github.Release
 
+	args.NoForward()
 	if args.Noop {
 		ui.Printf("Would create release `%s' for %s with tag name `%s'\n", title, project, tagName)
 	} else {
 		release, err = gh.CreateRelease(project, params)
 		utils.Check(err)
-		ui.Println(release.HtmlUrl)
+
+		printBrowseOrCopy(args, release.HtmlUrl, false, false)
 	}
 
 	if editor != nil {
@@ -322,7 +324,6 @@ func createRelease(cmd *Command, args *Args) {
 	}
 
 	uploadAssets(gh, release, flagReleaseAssets, args)
-	args.NoForward()
 }
 
 func editRelease(cmd *Command, args *Args) {

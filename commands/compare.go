@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -112,16 +111,9 @@ func compare(command *Command, args *Args) {
 
 	subpage := utils.ConcatPaths("compare", rangeQueryEscape(r))
 	url := project.WebURL("", "", subpage)
-	launcher, err := utils.BrowserLauncher()
-	utils.Check(err)
 
-	if flagCompareURLOnly {
-		ui.Println(url)
-		args.NoForward()
-	} else {
-		args.Replace(launcher[0], "", launcher[1:]...)
-		args.AppendParams(url)
-	}
+	args.NoForward()
+	printBrowseOrCopy(args, url, !flagCompareURLOnly, false)
 }
 
 func parseCompareRange(r string) string {

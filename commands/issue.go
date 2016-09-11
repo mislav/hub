@@ -361,6 +361,10 @@ func createIssue(cmd *Command, args *Args) {
 		utils.Check(err)
 	}
 
+	if editor != nil {
+		defer editor.DeleteFile()
+	}
+
 	if title == "" {
 		utils.Check(fmt.Errorf("Aborting creation due to empty issue title"))
 	}
@@ -382,25 +386,13 @@ func createIssue(cmd *Command, args *Args) {
 		params["milestone"] = flagIssueMilestone
 	}
 
+	args.NoForward()
 	if args.Noop {
 		ui.Printf("Would create issue `%s' for %s\n", params["title"], project)
-		args.NoForward()
 	} else {
 		issue, err := gh.CreateIssue(project, params)
 		utils.Check(err)
 
-		if editor != nil {
-			editor.DeleteFile()
-		}
-
-		if flagIssueBrowse {
-			launcher, err := utils.BrowserLauncher()
-			utils.Check(err)
-			args.Replace(launcher[0], "", launcher[1:]...)
-			args.AppendParams(issue.HtmlUrl)
-		} else {
-			ui.Println(issue.HtmlUrl)
-			args.NoForward()
-		}
+		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, false)
 	}
 }

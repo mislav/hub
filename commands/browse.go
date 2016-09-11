@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -124,16 +123,9 @@ func browse(command *Command, args *Args) {
 	}
 
 	pageUrl := project.WebURL("", "", path)
-	launcher, err := utils.BrowserLauncher()
-	utils.Check(err)
 
-	if flagBrowseURLOnly {
-		ui.Println(pageUrl)
-		args.NoForward()
-	} else {
-		args.Replace(launcher[0], "", launcher[1:]...)
-		args.AppendParams(pageUrl)
-	}
+	args.NoForward()
+	printBrowseOrCopy(args, pageUrl, !flagBrowseURLOnly, false)
 }
 
 func branchInURL(branch *github.Branch) string {

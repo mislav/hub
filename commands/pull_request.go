@@ -267,15 +267,8 @@ func pullRequest(cmd *Command, args *Args) {
 		ui.Errorln("Warning: Issue to pull request conversion is deprecated and might not work in the future.")
 	}
 
-	if flagPullRequestBrowse {
-		launcher, err := utils.BrowserLauncher()
-		utils.Check(err)
-		args.Replace(launcher[0], "", launcher[1:]...)
-		args.AppendParams(pullRequestURL)
-	} else {
-		ui.Println(pullRequestURL)
-		args.NoForward()
-	}
+	args.NoForward()
+	printBrowseOrCopy(args, pullRequestURL, flagPullRequestBrowse, false)
 }
 
 func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {
