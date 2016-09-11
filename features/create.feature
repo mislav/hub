@@ -13,7 +13,7 @@ Feature: hub create
       """
     When I successfully run `hub create`
     Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
-    And the output should contain exactly "created repository: mislav/dotfiles\n"
+    And the output should contain exactly "https://github.com/mislav/dotfiles\n"
 
   Scenario: Create private repo
     Given the GitHub API server:
@@ -46,7 +46,7 @@ Feature: hub create
       """
     When I successfully run `hub create acme/dotfiles`
     Then the url for "origin" should be "git@github.com:acme/dotfiles.git"
-    And the output should contain exactly "created repository: acme/dotfiles\n"
+    And the output should contain exactly "https://github.com/acme/dotfiles\n"
 
   Scenario: Creating repo failed
     Given the GitHub API server:
@@ -115,7 +115,7 @@ Feature: hub create
       get('/repos/mislav/dotfiles') { status 200 }
       """
     When I successfully run `hub create`
-    Then the output should contain "mislav/dotfiles already exists on github.com\n"
+    Then the output should contain "Existing repository detected. Updating git remote\n"
     And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: API response changes the clone URL
@@ -127,7 +127,7 @@ Feature: hub create
       """
     When I successfully run `hub create`
     Then the url for "origin" should be "git@github.com:Mooslav/myconfig.git"
-    And the output should contain exactly "created repository: Mooslav/myconfig\n"
+    And the output should contain exactly "https://github.com/Mooslav/myconfig\n"
 
   Scenario: Current directory contains spaces
     Given I am in "my dot files" git repo

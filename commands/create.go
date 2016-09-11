@@ -97,12 +97,9 @@ func create(command *Command, args *Args) {
 	project := github.NewProject(owner, newRepoName, host.Host)
 	gh := github.NewClient(project.Host)
 
-	var action string
 	if gh.IsRepositoryExist(project) {
-		ui.Printf("%s already exists on %s\n", project, project.Host)
-		action = "set remote origin"
+		ui.Errorln("Existing repository detected. Updating git remote")
 	} else {
-		action = "created repository"
 		if !args.Noop {
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
 			utils.Check(err)
@@ -116,13 +113,10 @@ func create(command *Command, args *Args) {
 	remote, _ := localRepo.OriginRemote()
 	if remote == nil || remote.Name != "origin" {
 		url := project.GitURL("", "", true)
-		args.Replace("git", "remote", "add", "-f", "origin", url)
-	} else {
-		args.Replace("git", "remote", "-v")
+		args.Before("git", "remote", "add", "-f", "origin", url)
 	}
 
-	args.AfterFn(func() error {
-		ui.Printf("%s: %s\n", action, project.String())
-		return nil
-	})
+	webUrl := project.WebURL("", "", "")
+	args.NoForward()
+	printBrowseOrCopy(args, webUrl, false, false)
 }
