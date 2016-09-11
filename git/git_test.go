@@ -51,6 +51,18 @@ func TestGitLog(t *testing.T) {
 	assert.NotEqual(t, "", log)
 }
 
+func TestGitDiffStat(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	sha1 := "08f4b7b6513dffc6245857e497cfd6101dc47818"
+	sha2 := "9b5a719a3d76ac9dc2fa635d9b1f34fd73994c06"
+	diffstat, err := DiffStat(sha1, sha2)
+	assert.Equal(t, nil, err)
+	output := " test_file | 1 +\n 1 file changed, 1 insertion(+)\n"
+	assert.Equal(t, output, diffstat)
+}
+
 func TestGitRef(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()

@@ -184,6 +184,22 @@ func Show(sha string) (string, error) {
 	return output, err
 }
 
+func DiffStat(sha1, sha2 string) (string, error) {
+	execCmd := cmd.New("git")
+	execCmd.WithArg("diff").WithArg("--no-color")
+	execCmd.WithArg("-M").WithArg("--stat").WithArg("--summary")
+	// `diff a..b` is synonymous to `diff a b`.
+	// But the following line will returns a error without info on stderr:
+	//     &exec.ExitError{ProcessState:(*os.ProcessState)(0x...),
+	//         Stderr:[]uint8(nil)}
+	// execCmd.WithArg("sha1").WithArg("sha2")
+	commits := fmt.Sprintf("%s..%s", sha1, sha2)
+	execCmd.WithArg(commits)
+
+	output, err := execCmd.CombinedOutput()
+	return output, err
+}
+
 func Log(sha1, sha2 string) (string, error) {
 	execCmd := cmd.New("git")
 	execCmd.WithArg("-c").WithArg("log.showSignature=false").WithArg("log").WithArg("--no-color")
