@@ -16,8 +16,8 @@ var cmdCheckout = &Command{
 
 ## Examples:
 		$ hub checkout https://github.com/jingweno/gh/pull/73
-		> git remote add -f --no-tags -t feature git://github:com/jingweno/gh.git
-		> git checkout --track -B jingweno-feature jingweno/feature
+		> git fetch origin pull/73/head:jingweno-feature
+		> git checkout jingweno-feature
 
 ## See also:
 
