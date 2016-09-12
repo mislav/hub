@@ -1,29 +1,54 @@
 #!/usr/bin/env bash
-# Usage: script/test
+# Usage: script/test [--coverage [<MIN>]]
 #
 # Run Go and Cucumber test suites for hub.
 
 set -e
 
-case "$1" in
-"" )
-  ;;
--h | --help )
-  sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
-  exit
-  ;;
-* )
-  "$0" --help >&2
-  exit 1
-esac
+while [ $# -gt 0 ]; do
+  case "$1" in
+  --coverage )
+    export HUB_COVERAGE="$PWD/tmp/cover.out"
+    if [ "$2" -gt 0 ] 2>/dev/null; then
+      min_coverage="$2"
+      shift 2
+    else
+      min_coverage=1
+      shift 1
+    fi
+    ;;
+  -h | --help )
+    sed -ne '/^#/!q;s/.\{1,2\}//;1d;p' < "$0"
+    exit
+    ;;
+  * )
+    "$0" --help >&2
+    exit 1
+  esac
+done
 
 STATUS=0
 
 trap "exit 1" INT
 
+[ -z "$HUB_COVERAGE" ] || script/coverage prepare
 script/build
 script/build test || STATUS="$?"
 script/ruby-test || STATUS="$?"
+
+if [ -n "$HUB_COVERAGE" ]; then
+  total_coverage="$(script/coverage generate)"
+  echo "Code coverage: $total_coverage"
+  if [ "${total_coverage%.*}" -lt "$min_coverage" ]; then
+    echo "Error: coverage dropped below the minimum treshold of ${min_coverage}%!"
+    if [ -n "$CI" ]; then
+      html_result="${HUB_COVERAGE%.out}.html"
+      html_result="${html_result#$PWD/}"
+      printf 'Please run `script/test --coverage` locally and open `%s` to analyze the results.\n' "$html_result"
+    fi
+    STATUS=1
+  fi
+fi
 
 if [ -n "$CI" ]; then
   make fmt >/dev/null
