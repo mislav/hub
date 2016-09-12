@@ -95,7 +95,7 @@ Feature: hub browse
     Given I am in "git://github.com/jashkenas/coffee-script.git" git repo
     And the "mislav" remote has url "git@github.com:mislav/coffee-script.git"
     And the default branch for "origin" is "master"
-    And I am on the "master" branch pushed to "mislav/master"
+    And the "master" branch is pushed to "mislav/master"
     When I successfully run `hub browse`
     Then "open https://github.com/jashkenas/coffee-script" should be run
 

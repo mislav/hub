@@ -374,7 +374,7 @@ Feature: hub pull-request
 
   Scenario: Implicit base by detecting main branch
     Given the default branch for "origin" is "develop"
-    And I am on the "master" branch
+    And I make a commit
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -618,6 +618,7 @@ Feature: hub pull-request
 
   Scenario: Current branch is tracking local branch
     Given git "push.default" is set to "upstream"
+    And I make a commit
     And I am on the "feature" branch with upstream "refs/heads/master"
     Given the GitHub API server:
       """
