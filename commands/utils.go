@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bufio"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -13,6 +14,17 @@ import (
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
+
+type stringSliceValue []string
+
+func (s *stringSliceValue) Set(val string) error {
+	*s = append(*s, val)
+	return nil
+}
+
+func (s *stringSliceValue) String() string {
+	return fmt.Sprintf("%s", *s)
+}
 
 type listFlag []string
 
@@ -121,19 +133,6 @@ func readMsg(message string) (title, body string) {
 		body = strings.TrimSpace(parts[1])
 	}
 	return
-}
-
-func runInLocalRepo(fn func(localRepo *github.GitHubRepo, project *github.Project, client *github.Client)) {
-	localRepo, err := github.LocalRepo()
-	utils.Check(err)
-
-	project, err := localRepo.CurrentProject()
-	utils.Check(err)
-
-	client := github.NewClient(project.Host)
-	fn(localRepo, project, client)
-
-	os.Exit(0)
 }
 
 func printBrowseOrCopy(args *Args, msg string, openBrowser bool, performCopy bool) {
