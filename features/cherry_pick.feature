@@ -27,7 +27,9 @@ Feature: hub cherry-pick
       }
       """
     When I run `hub cherry-pick https://github.com/blueyed/ronn/pull/560/commits/a319d88`
-    Then "git remote add -f --no-tags mislav git@github.com:mislav/ronin.git" should be run
+    Then "git remote add _hub-cherry-pick git@github.com:mislav/ronin.git" should be run
+    And "git fetch -q --no-tags _hub-cherry-pick" should be run
+    And "git remote rm _hub-cherry-pick" should be run
     And "git cherry-pick a319d88" should be run
 
   Scenario: From fork that has existing remote
@@ -58,10 +60,14 @@ Feature: hub cherry-pick
 
   Scenario: Using GitHub owner@SHA notation with remote add
     When I run `hub cherry-pick mislav@a319d88`
-    Then "git remote add -f --no-tags mislav git://github.com/mislav/ronn.git" should be run
+    Then "git remote add _hub-cherry-pick git://github.com/mislav/ronn.git" should be run
+    And "git fetch -q --no-tags _hub-cherry-pick" should be run
+    And "git remote rm _hub-cherry-pick" should be run
     And "git cherry-pick a319d88" should be run
 
   Scenario: From fork that doesn't have a remote
     When I run `hub cherry-pick https://github.com/jingweno/ronn/commit/a319d88`
-    Then "git remote add -f --no-tags jingweno git://github.com/jingweno/ronn.git" should be run
+    Then "git remote add _hub-cherry-pick git://github.com/jingweno/ronn.git" should be run
+    And "git fetch -q --no-tags _hub-cherry-pick" should be run
+    And "git remote rm _hub-cherry-pick" should be run
     And "git cherry-pick a319d88" should be run

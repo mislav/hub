@@ -17,13 +17,6 @@ cherry-pick <USER>@<SHA>
 `,
 	Long: `Cherry-pick a commit from a fork on GitHub.
 
-## Examples:
-		$ hub cherry-pick https://github.com/jingweno/gh/commit/a319d88#comments
-		> git remote add -f --no-tags jingweno git://github.com/jingweno/gh.git
-		> git cherry-pick a319d88
-
-		$ hub cherry-pick jingweno@a319d88
-
 ## See also:
 
 hub-am(1), hub(1), git-cherry-pick(1)
@@ -53,7 +46,10 @@ func transformCherryPickArgs(args *Args) {
 		if remote := gitRemoteForProject(project); remote != nil {
 			args.Before("git", "fetch", remote.Name)
 		} else {
-			args.Before("git", "remote", "add", "-f", "--no-tags", project.Owner, project.GitURL("", "", isPrivate))
+			tmpName := "_hub-cherry-pick"
+			args.Before("git", "remote", "add", tmpName, project.GitURL("", "", isPrivate))
+			args.Before("git", "fetch", "-q", "--no-tags", tmpName)
+			args.Before("git", "remote", "rm", tmpName)
 		}
 	}
 }
