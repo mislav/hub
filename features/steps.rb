@@ -105,20 +105,19 @@ Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
 end
 
 Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/) do |name, type, upstream|
+  run_silent %(git checkout --quiet -b #{shell_escape name})
   empty_commit
+
   if upstream
-    if upstream =~ /^refs\//
-      full_upstream = ".git/#{upstream}"
-    else
-      full_upstream = ".git/refs/remotes/#{upstream}"
+    unless upstream == 'refs/heads/master'
+      full_upstream = upstream.start_with?('refs/') ? upstream : "refs/remotes/#{upstream}"
+      run_silent %(git update-ref #{shell_escape full_upstream} HEAD)
     end
-    in_current_dir do
-      FileUtils.mkdir_p File.dirname(full_upstream)
-      FileUtils.cp '.git/refs/heads/master', full_upstream
-    end unless upstream == 'refs/heads/master'
+
+    if type == 'with upstream'
+      run_silent %(git branch --set-upstream-to #{shell_escape upstream})
+    end
   end
-  track = type == 'pushed to' ? '--no-track' : '--track'
-  run_silent %(git checkout --quiet -B #{shell_escape name} #{track} #{shell_escape upstream})
 end
 
 Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|

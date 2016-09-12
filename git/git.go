@@ -165,6 +165,29 @@ func RefList(a, b string) ([]string, error) {
 	return output, nil
 }
 
+func NewRange(a, b string) (*Range, error) {
+	output, err := gitOutput("rev-parse", "-q", a, b)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Range{output[0], output[1]}, nil
+}
+
+type Range struct {
+	A string
+	B string
+}
+
+func (r *Range) IsIdentical() bool {
+	return strings.EqualFold(r.A, r.B)
+}
+
+func (r *Range) IsAncestor() bool {
+	cmd := gitCmd("merge-base", "--is-ancestor", r.A, r.B)
+	return cmd.Success()
+}
+
 func CommentChar() string {
 	char, err := Config("core.commentchar")
 	if err != nil {
@@ -209,7 +232,12 @@ func Config(name string) (string, error) {
 }
 
 func ConfigAll(name string) ([]string, error) {
-	lines, err := gitOutput(gitConfigCommand([]string{"--get-all", name})...)
+	mode := "--get-all"
+	if strings.Contains(name, "*") {
+		mode = "--get-regexp"
+	}
+
+	lines, err := gitOutput(gitConfigCommand([]string{mode, name})...)
 	if err != nil {
 		err = fmt.Errorf("Unknown config %s", name)
 	}
@@ -251,20 +279,19 @@ func Alias(name string) (string, error) {
 	return Config(fmt.Sprintf("alias.%s", name))
 }
 
-func Run(command string, args ...string) error {
-	cmd := cmd.New("git")
-
-	for _, v := range GlobalFlags {
-		cmd.WithArg(v)
-	}
-
-	cmd.WithArg(command)
-
-	for _, a := range args {
-		cmd.WithArg(a)
-	}
-
+func Run(args ...string) error {
+	cmd := gitCmd(args...)
 	return cmd.Run()
+}
+
+func Spawn(args ...string) error {
+	cmd := gitCmd(args...)
+	return cmd.Spawn()
+}
+
+func Quiet(args ...string) bool {
+	cmd := gitCmd(args...)
+	return cmd.Success()
 }
 
 func IsGitDir(dir string) bool {
@@ -273,16 +300,18 @@ func IsGitDir(dir string) bool {
 	return cmd.Success()
 }
 
+func LocalBranches() ([]string, error) {
+	lines, err := gitOutput("branch", "--list")
+	if err == nil {
+		for i, line := range lines {
+			lines[i] = strings.TrimPrefix(line, "* ")
+		}
+	}
+	return lines, err
+}
+
 func gitOutput(input ...string) (outputs []string, err error) {
-	cmd := cmd.New("git")
-
-	for _, v := range GlobalFlags {
-		cmd.WithArg(v)
-	}
-
-	for _, i := range input {
-		cmd.WithArg(i)
-	}
+	cmd := gitCmd(input...)
 
 	out, err := cmd.CombinedOutput()
 	for _, line := range strings.Split(out, "\n") {
@@ -293,4 +322,18 @@ func gitOutput(input ...string) (outputs []string, err error) {
 	}
 
 	return outputs, err
+}
+
+func gitCmd(args ...string) *cmd.Cmd {
+	cmd := cmd.New("git")
+
+	for _, v := range GlobalFlags {
+		cmd.WithArg(v)
+	}
+
+	for _, a := range args {
+		cmd.WithArg(a)
+	}
+
+	return cmd
 }
