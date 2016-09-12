@@ -101,7 +101,10 @@ func (r *Runner) Execute() ExecError {
 		return execErr
 	}
 
-	err = git.Run(args.Command, args.Params...)
+	gitArgs := []string{args.Command}
+	gitArgs = append(gitArgs, args.Params...)
+
+	err = git.Run(gitArgs...)
 	return newExecError(err)
 }
 

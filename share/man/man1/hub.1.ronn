@@ -79,6 +79,9 @@ git but that are extended through hub, and custom ones that hub provides.
   * hub-release(1):
     List and create GitHub releases.
 
+  * hub-sync(1):
+    Fetch from upstream and update local branches.
+
 ## CONFIGURATION
 
 ### GitHub OAuth authentication

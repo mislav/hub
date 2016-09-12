@@ -11,6 +11,7 @@ HELP_CMD = \
 	share/man/man1/hub-pull-request.1 \
 	share/man/man1/hub-release.1 \
 	share/man/man1/hub-issue.1 \
+	share/man/man1/hub-sync.1 \
 
 HELP_EXT = \
 	share/man/man1/hub-am.1 \
