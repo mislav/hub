@@ -169,7 +169,10 @@ World Module.new {
   end
 
   def empty_commit(message = nil)
-    message ||= 'empty'
+    unless message
+      @empty_commit_count = defined?(@empty_commit_count) ? @empty_commit_count + 1 : 1
+      message = "empty #{@empty_commit_count}"
+    end
     run_silent "git commit --quiet -m '#{message}' --allow-empty"
   end
 
