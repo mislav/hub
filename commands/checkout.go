@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -83,30 +84,41 @@ func transformCheckoutArgs(args *Args) error {
 		return err
 	}
 
-	remote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
+	baseRemote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
 	if err != nil {
 		return err
 	}
 
-	var refSpec string
+	var headRemote *github.Remote
+	if pullRequest.IsSameRepo() {
+		headRemote = baseRemote
+	} else {
+		headRemote, _ = repo.RemoteForRepo(pullRequest.Head.Repo)
+	}
+
 	var newArgs []string
 
-	if pullRequest.IsSameRepo() {
+	if headRemote != nil {
 		if newBranchName == "" {
 			newBranchName = pullRequest.Head.Ref
 		}
-		remoteBranch := fmt.Sprintf("%s/%s", remote.Name, pullRequest.Head.Ref)
-		refSpec = fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
-		newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+		remoteBranch := fmt.Sprintf("%s/%s", headRemote.Name, pullRequest.Head.Ref)
+		refSpec := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
+		if git.HasFile("refs", "heads", newBranchName) {
+			newArgs = append(newArgs, newBranchName)
+			args.After("git", "merge", "--ff-only", fmt.Sprintf("refs/remotes/%s", remoteBranch))
+		} else {
+			newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+		}
+		args.Before("git", "fetch", headRemote.Name, refSpec)
 	} else {
 		if newBranchName == "" {
 			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
 		}
-		refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+		refSpec := fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
 		newArgs = append(newArgs, newBranchName)
+		args.Before("git", "fetch", baseRemote.Name, refSpec)
 	}
-
-	args.Before("git", "fetch", remote.Name, refSpec)
 	replaceCheckoutParam(args, checkoutURL, newArgs...)
 	return nil
 }
