@@ -1,0 +1,4 @@
+./tags
+site/*
+tmp/*
+vendor/*
