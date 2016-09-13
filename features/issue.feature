@@ -7,7 +7,9 @@ Feature: hub issue
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
-      assert :assignee => "Cornwe19"
+      assert :assignee => "Cornwe19",
+             :sort => nil,
+             :direction => nil
 
       json [
         { :number => 102,
@@ -80,33 +82,17 @@ Feature: hub issue
     """
     When I successfully run `hub issue -d 2016-08-18T09:11:32Z`
 
-  Scenario: Fetch issues
+  Scenario: Fetch issues sorted by number of comments ascending
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
       assert :sort => "comments"
       assert :direction => "asc"
 
-      json [
-        { :number => 13,
-          :title => "Second issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
-        { :number => 102,
-          :title => "First issue",
-          :state => "open",
-          :user => { :login => "octocat" },
-        },
-      ]
+      json []
     }
     """
     When I successfully run `hub issue -o comments -^`
-    Then the output should contain exactly:
-      """
-           #13  Second issue
-          #102  First issue\n
-      """
 
   Scenario: Fetch issues across multiple pages
     Given the GitHub API server:
