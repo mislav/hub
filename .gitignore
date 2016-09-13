@@ -9,3 +9,5 @@ tmp/
 *.test
 target
 .vagrant
+tags
+/site
