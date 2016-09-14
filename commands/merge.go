@@ -61,23 +61,30 @@ func transformMergeArgs(args *Args) error {
 		return err
 	}
 
+	repo, err := github.LocalRepo()
+	if err != nil {
+		return err
+	}
+
+	remote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
+	if err != nil {
+		return err
+	}
+
 	branch := pullRequest.Head.Ref
 	headRepo := pullRequest.Head.Repo
 	if headRepo == nil {
 		return fmt.Errorf("Error: that fork is not available anymore")
 	}
 
-	u := url.GitURL(headRepo.Name, headRepo.Owner.Login, headRepo.Private)
-	mergeHead := fmt.Sprintf("%s/%s", headRepo.Owner.Login, branch)
-	ref := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", branch, mergeHead)
-	args.Before("git", "fetch", u, ref)
+	args.Before("git", "fetch", remote.Name, fmt.Sprintf("refs/pull/%s/head", id))
 
 	// Remove pull request URL
 	idx := args.IndexOfParam(mergeURL)
 	args.RemoveParam(idx)
 
-	mergeMsg := fmt.Sprintf("Merge pull request #%v from %s\n\n%s", id, mergeHead, pullRequest.Title)
-	args.AppendParams(mergeHead, "-m", mergeMsg)
+	mergeMsg := fmt.Sprintf("Merge pull request #%s from %s/%s\n\n%s", id, headRepo.Owner.Login, branch, pullRequest.Title)
+	args.AppendParams("FETCH_HEAD", "-m", mergeMsg)
 
 	if args.IndexOfParam("--ff-only") == -1 && args.IndexOfParam("--squash") == -1 && args.IndexOfParam("--ff") == -1 {
 		i := args.IndexOfParam("-m")

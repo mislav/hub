@@ -82,6 +82,17 @@ Given(/^there is a commit named "([^"]+)"$/) do |name|
   run_silent %(git reset --quiet --hard HEAD^)
 end
 
+Given(/^there is a git FETCH_HEAD$/) do
+  empty_commit
+  empty_commit
+  in_current_dir do
+    File.open(".git/FETCH_HEAD", "w") do |fetch_head|
+      fetch_head.puts "%s\t\t'refs/heads/made-up' of git://github.com/made/up.git" % `git rev-parse HEAD`.chomp
+    end
+  end
+  run_silent %(git reset --quiet --hard HEAD^)
+end
+
 When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
   num = num == 'a' ? 1 : num.to_i
   num.times { empty_commit(msg) }
