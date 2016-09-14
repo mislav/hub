@@ -16,8 +16,8 @@ var cmdMerge = &Command{
 
 ## Examples:
 		$ hub merge https://github.com/jingweno/gh/pull/73
-		> git fetch git://github.com/jingweno/gh.git +refs/heads/feature:refs/remotes/jingweno/feature
-		> git merge jingweno/feature --no-ff -m "Merge pull request #73 from jingweno/feature..."
+		> git fetch origin refs/pull/73/head
+		> git merge FETCH_HEAD --no-ff -m "Merge pull request #73 from jingweno/feature..."
 
 ## See also:
 
