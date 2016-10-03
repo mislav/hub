@@ -107,7 +107,8 @@ type PullRequestSpec struct {
 }
 
 func (pr *PullRequest) IsSameRepo() bool {
-	return pr.Head.Repo.Name == pr.Base.Repo.Name &&
+	return pr.Head.Repo != nil &&
+		pr.Head.Repo.Name == pr.Base.Repo.Name &&
 		pr.Head.Repo.Owner.Login == pr.Base.Repo.Owner.Login
 }
 

@@ -120,3 +120,23 @@ Feature: hub checkout <PULLREQ-URL>
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 mycustombranch`
     Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
     And "git checkout -b mycustombranch --track origin/fixes" should be run
+
+  Scenario: Unavailable fork
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => nil
+        }, :base => {
+          :repo => {
+            :name => "jekyll",
+            :html_url => "https://github.com/mojombo/jekyll",
+            :owner => { :login => "mojombo" },
+          }
+        }
+      }
+      """
+    When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
+    Then "git fetch origin pull/77/head:pr-77" should be run
+    And "git checkout pr-77" should be run

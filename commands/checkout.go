@@ -100,7 +100,11 @@ func transformCheckoutArgs(args *Args) error {
 		newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
 	} else {
 		if newBranchName == "" {
-			newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+			if pullRequest.Head.Repo == nil {
+				newBranchName = fmt.Sprintf("pr-%s", id)
+			} else {
+				newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+			}
 		}
 		refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
 		newArgs = append(newArgs, newBranchName)
