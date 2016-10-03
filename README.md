@@ -4,12 +4,12 @@ git + hub = github
 hub is a command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
 
-~~~ sh
+``` sh
 $ hub clone rtomayko/tilt
 
 # expands to:
 $ git clone git://github.com/rtomayko/tilt.git
-~~~
+```
 
 hub is best aliased as `git`, so you can type `$ git <command>` in the shell and
 get all the usual `hub` features. See "Aliasing" below.
@@ -26,12 +26,12 @@ Dependencies:
 
 `hub` can be installed through Homebrew:
 
-~~~ sh
+``` sh
 $ brew install hub
 $ hub version
 git version 1.7.6
 hub version 2.2.0
-~~~
+```
 
 #### Standalone
 
@@ -83,9 +83,9 @@ outputs a script suitable for `eval`.
 
 You should place this command in your `.bash_profile` or other startup script:
 
-~~~ sh
+``` sh
 eval "$(hub alias -s)"
-~~~
+```
 
 ### Shell tab-completion
 
