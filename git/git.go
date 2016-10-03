@@ -223,6 +223,10 @@ func Log(sha1, sha2 string) (string, error) {
 	return outputs, nil
 }
 
+func Push(remote, source, dest string) error {
+	return Spawn("push", remote, fmt.Sprintf("%s:%s", source, dest))
+}
+
 func Remotes() ([]string, error) {
 	return gitOutput("remote", "-v")
 }

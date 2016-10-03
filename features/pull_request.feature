@@ -812,3 +812,36 @@ BODY
       Error creating pull request: Temporary Redirect (HTTP 307)
       Refused to follow redirect to https://disney.com/mouse\n
       """
+
+  Scenario: Default message with --push
+    Given the text editor adds:
+      """
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 if request.content_charset != 'utf-8'
+        assert :title => 'This is somewhat of a longish title that does not get wrapped & references #1234',
+               :body => nil
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped & references #1234"
+    When I successfully run `hub pull-request -p`
+    Then the output should contain exactly "the://url\n"
+    And "git push origin HEAD:topic" should be run
+
+  Scenario: Text editor fails with --push
+    Given the text editor exits with error status
+    And I am on the "master" branch pushed to "origin/master"
+    And an empty file named ".git/PULLREQ_EDITMSG"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message "Title"
+    When I run `hub pull-request -p`
+    Then the stderr should contain "error using text editor for pull request message"
+    And the exit status should be 1
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+    And "git push origin HEAD:topic" should not be run

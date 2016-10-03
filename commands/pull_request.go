@@ -45,6 +45,9 @@ pull-request -i <ISSUE>
 	-c, --copy
 		Put the URL of the new pull request to clipboard instead of printing it.
 
+	-p, --push
+		Push the local HEAD to --head before creating the pull request.
+
 	-b, --base <BASE>
 		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
 		(usually "master").
@@ -77,6 +80,7 @@ var (
 	flagPullRequestBrowse,
 	flagPullRequestCopy,
 	flagPullRequestEdit,
+	flagPullRequestPush,
 	flagPullRequestForce bool
 
 	flagPullRequestMilestone uint64
@@ -93,6 +97,7 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestCopy, "copy", "c", false, "COPY")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
@@ -188,27 +193,32 @@ func pullRequest(cmd *Command, args *Args) {
 	var editor *github.Editor
 	var title, body string
 
+	baseTracking := base
+	headTracking := head
+
+	remote := gitRemoteForProject(baseProject)
+	if remote != nil {
+		baseTracking = fmt.Sprintf("%s/%s", remote.Name, base)
+	}
+	if remote == nil || !baseProject.SameAs(headProject) {
+		remote = gitRemoteForProject(headProject)
+	}
+	if remote != nil {
+		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
+	}
+
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagPullRequestMessage)
 	} else if cmd.FlagPassed("file") {
 		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ", "pull request")
 		utils.Check(err)
 	} else if flagPullRequestIssue == "" {
-		baseTracking := base
-		headTracking := head
-
-		remote := gitRemoteForProject(baseProject)
-		if remote != nil {
-			baseTracking = fmt.Sprintf("%s/%s", remote.Name, base)
-		}
-		if remote == nil || !baseProject.SameAs(headProject) {
-			remote = gitRemoteForProject(headProject)
-		}
-		if remote != nil {
-			headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
+		headForMessage := headTracking
+		if flagPullRequestPush {
+			headForMessage = head
 		}
 
-		message, err := createPullRequestMessage(baseTracking, headTracking, fullBase, fullHead)
+		message, err := createPullRequestMessage(baseTracking, headForMessage, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
@@ -220,6 +230,18 @@ func pullRequest(cmd *Command, args *Args) {
 
 	if title == "" && flagPullRequestIssue == "" {
 		utils.Check(fmt.Errorf("Aborting due to empty pull request title"))
+	}
+
+	if flagPullRequestPush {
+		if remote == nil {
+			utils.Check(fmt.Errorf("Can't find remote for %s", head))
+		}
+
+		if args.Noop {
+			args.Before(fmt.Sprintf("Would push to %s/%s", remote.Name, head), "")
+		} else {
+			git.Push(remote.Name, "HEAD", head)
+		}
 	}
 
 	var pullRequestURL string
