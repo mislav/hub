@@ -140,3 +140,55 @@ Feature: hub checkout <PULLREQ-URL>
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
     Then "git fetch origin refs/pull/77/head:pr-77" should be run
     And "git checkout pr-77" should be run
+
+  Scenario: Reuse existing remote for head branch
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => false
+          }
+        }, :base => {
+          :repo => {
+            :name => 'jekyll',
+            :html_url => 'https://github.com/mojombo/jekyll',
+            :owner => { :login => "mojombo" },
+          }
+        }
+      }
+      """
+    And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
+    When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
+    Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
+    And "git checkout -f -b fixes --track mislav/fixes -q" should be run
+
+  Scenario: Reuse existing remote and branch
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => false
+          }
+        }, :base => {
+          :repo => {
+            :name => 'jekyll',
+            :html_url => 'https://github.com/mojombo/jekyll',
+            :owner => { :login => "mojombo" },
+          }
+        }
+      }
+      """
+    And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
+    And I am on the "fixes" branch
+    When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
+    Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
+    And "git checkout -f fixes -q" should be run
+    And "git merge --ff-only refs/remotes/mislav/fixes" should be run
