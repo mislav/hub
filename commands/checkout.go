@@ -106,7 +106,7 @@ func transformCheckoutArgs(args *Args) error {
 				newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
 			}
 		}
-		refSpec = fmt.Sprintf("pull/%s/head:%s", id, newBranchName)
+		refSpec = fmt.Sprintf("refs/pull/%s/head:%s", id, newBranchName)
 		newArgs = append(newArgs, newBranchName)
 	}
 

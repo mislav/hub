@@ -29,7 +29,7 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git fetch origin pull/77/head:mislav-fixes" should be run
+    Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
     And "git checkout -f mislav-fixes -q" should be run
 
   Scenario: No matching remotes for pull request base
@@ -72,7 +72,7 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 fixes-from-mislav`
-    Then "git fetch origin pull/77/head:fixes-from-mislav" should be run
+    Then "git fetch origin refs/pull/77/head:fixes-from-mislav" should be run
     And "git checkout fixes-from-mislav" should be run
 
   Scenario: Same-repo
@@ -138,5 +138,5 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
-    Then "git fetch origin pull/77/head:pr-77" should be run
+    Then "git fetch origin refs/pull/77/head:pr-77" should be run
     And "git checkout pr-77" should be run
