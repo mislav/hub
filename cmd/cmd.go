@@ -73,6 +73,8 @@ func (cmd *Cmd) Spawn() error {
 // Exec runs command with exec(3)
 // Note that Windows doesn't support exec(3): http://golang.org/src/pkg/syscall/exec_windows.go#L339
 func (cmd *Cmd) Exec() error {
+	verboseLog(cmd)
+
 	binary, err := exec.LookPath(cmd.Name)
 	if err != nil {
 		return fmt.Errorf("command not found: %s", cmd.Name)
@@ -81,7 +83,6 @@ func (cmd *Cmd) Exec() error {
 	args := []string{binary}
 	args = append(args, cmd.Args...)
 
-	verboseLog(cmd)
 	return syscall.Exec(binary, args, os.Environ())
 }
 
