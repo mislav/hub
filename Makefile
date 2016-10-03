@@ -31,7 +31,7 @@ HELP_ALL = share/man/man1/hub.1 $(HELP_CMD) $(HELP_EXT)
 
 TEXT_WIDTH = 87
 
-.PHONY: clean test test-all man-pages fmt
+.PHONY: clean test test-all man-pages fmt install
 
 all: bin/hub
 
@@ -64,6 +64,9 @@ man-pages: $(HELP_ALL:=.ronn) $(HELP_ALL) $(HELP_ALL:=.txt)
 
 share/man/man1/hub.1.ronn:
 	true
+
+install: bin/hub man-pages
+	bash < script/install.sh
 
 clean:
 	rm -rf bin/hub
