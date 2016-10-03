@@ -92,7 +92,7 @@ func transformCheckoutArgs(args *Args) error {
 	var headRemote *github.Remote
 	if pullRequest.IsSameRepo() {
 		headRemote = baseRemote
-	} else {
+	} else if pullRequest.Head.Repo != nil {
 		headRemote, _ = repo.RemoteForRepo(pullRequest.Head.Repo)
 	}
 
