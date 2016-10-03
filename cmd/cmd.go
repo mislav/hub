@@ -77,7 +77,10 @@ func (cmd *Cmd) Exec() error {
 
 	binary, err := exec.LookPath(cmd.Name)
 	if err != nil {
-		return fmt.Errorf("command not found: %s", cmd.Name)
+		return &exec.Error{
+			Name: cmd.Name,
+			Err:  fmt.Errorf("command not found"),
+		}
 	}
 
 	args := []string{binary}
