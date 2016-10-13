@@ -2,7 +2,7 @@ package flow
 
 import "github.com/github/hub/git"
 
-func flowFeatureStart(featureName string) (err error) {
+func FlowFeatureStart(featureName string) (err error) {
 	branchName := "feature/" + featureName
 
 	cmdGit := [][]string{}
@@ -17,7 +17,7 @@ func flowFeatureStart(featureName string) (err error) {
 	return
 }
 
-func flowFeatureFinish(featureName string) (err error) {
+func FlowFeatureFinish(featureName string) (err error) {
 	branchName := "feature/" + featureName
 
 	cmdGit := [][]string{}
