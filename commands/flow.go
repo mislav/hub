@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 
-	"github.com/github/hub/git"
 	"github.com/github/hub/utils"
 )
 
@@ -39,12 +38,12 @@ func flowFeature(command *Command, args *Args) {
 
 	switch instruction {
 	case "start":
-		err := flowFeatureStart(featureName)
+		err := flow.FlowFeatureStart(featureName)
 		if err != nil {
 			errorMessage = err.Error()
 		}
 	case "finish":
-		err := flowFeatureFinish(featureName)
+		err := flow.FlowFeatureFinish(featureName)
 		if err != nil {
 			errorMessage = err.Error()
 		}
@@ -57,49 +56,6 @@ func flowFeature(command *Command, args *Args) {
 	}
 }
 
-func flowFeatureStart(featureName string) (err error) {
-	branchName := "feature/" + featureName
-
-	cmdGit := [][]string{}
-
-	cmdGit1 := []string{"checkout", "develop"}
-	cmdGit2 := []string{"checkout", "-b", branchName}
-
-	cmdGit = append(cmdGit, cmdGit1, cmdGit2)
-
-	err = launchCmdGit(cmdGit)
-
-	return
-}
-
-func flowFeatureFinish(featureName string) (err error) {
-	branchName := "feature/" + featureName
-
-	cmdGit := [][]string{}
-
-	cmdGit1 := []string{"checkout", "develop"}
-	cmdGit2 := []string{"merge", branchName}
-	cmdGit3 := []string{"branch", "-d", branchName}
-
-	cmdGit = append(cmdGit, cmdGit1, cmdGit2, cmdGit3)
-
-	err = launchCmdGit(cmdGit)
-
-	return
-}
-
 func flow(command *Command, args *Args) {
 	args.NoForward()
-}
-
-func launchCmdGit(cmdGit [][]string) (err error) {
-	for i := range cmdGit {
-		err = git.Spawn(cmdGit[i]...)
-
-		if err != nil {
-			break
-		}
-	}
-
-	return
 }
