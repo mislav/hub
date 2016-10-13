@@ -10,18 +10,8 @@ import (
 var (
 	cmdFlow = &Command{
 		Run:   flow,
-		Usage: "flow ??? ???",
-		Long: `Check out the head of a pull request as a local branch.
-
-## Examples:
-		$ hub checkout https://github.com/jingweno/gh/pull/73
-		> git fetch origin pull/73/head:jingweno-feature
-		> git checkout jingweno-feature
-
-## See also:
-
-hub-merge(1), hub-am(1), hub(1), git-checkout(1)
-`,
+		Usage: `flow`,
+		Long:  `TODO`,
 	}
 
 	cmdFlowFeature = &Command{
@@ -36,38 +26,79 @@ func init() {
 }
 
 func flowFeature(command *Command, args *Args) {
+	args.NoForward()
 	words := args.Words()
+
 	if len(words) != 2 {
 		utils.Check(fmt.Errorf("%s", cmdFlow.HelpText()))
 	}
 
+	errorMessage := ""
 	instruction := words[0]
 	featureName := words[1]
 
 	switch instruction {
 	case "start":
-		flowFeatureStart(featureName)
-
+		err := flowFeatureStart(featureName)
+		if err != nil {
+			errorMessage = err.Error()
+		}
 	case "finish":
-		fmt.Println("finish")
+		err := flowFeatureFinish(featureName)
+		if err != nil {
+			errorMessage = err.Error()
+		}
 	default:
-		fmt.Printf("%s", cmdFlow.HelpText())
+		errorMessage = cmdFlow.HelpText()
 	}
-	args.NoForward()
+
+	if errorMessage != "" {
+		utils.Check(fmt.Errorf("%s", errorMessage))
+	}
 }
 
 func flowFeatureStart(featureName string) (err error) {
 	branchName := "feature/" + featureName
+
+	cmdGit := [][]string{}
+
+	cmdGit1 := []string{"checkout", "develop"}
+	cmdGit2 := []string{"checkout", "-b", branchName}
+
+	cmdGit = append(cmdGit, cmdGit1, cmdGit2)
+
+	err = launchCmdGit(cmdGit)
+
+	return
+}
+
+func flowFeatureFinish(featureName string) (err error) {
+	branchName := "feature/" + featureName
 	err = git.Spawn("checkout", "develop")
 
 	if err == nil {
-		git.Run("checkout", "-b", branchName)
+		err = git.Spawn("merge", branchName)
+	}
+
+	if err == nil {
+		err = git.Spawn("branch", "-d", branchName)
 	}
 
 	return
 }
 
 func flow(command *Command, args *Args) {
-	git.Run("status")
 	args.NoForward()
+}
+
+func launchCmdGit(cmdGit [][]string) (err error) {
+	for i := range cmdGit {
+		err = git.Spawn(cmdGit[i]...)
+
+		if err != nil {
+			break
+		}
+	}
+
+	return
 }
