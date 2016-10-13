@@ -74,15 +74,16 @@ func flowFeatureStart(featureName string) (err error) {
 
 func flowFeatureFinish(featureName string) (err error) {
 	branchName := "feature/" + featureName
-	err = git.Spawn("checkout", "develop")
 
-	if err == nil {
-		err = git.Spawn("merge", branchName)
-	}
+	cmdGit := [][]string{}
 
-	if err == nil {
-		err = git.Spawn("branch", "-d", branchName)
-	}
+	cmdGit1 := []string{"checkout", "develop"}
+	cmdGit2 := []string{"merge", branchName}
+	cmdGit3 := []string{"branch", "-d", branchName}
+
+	cmdGit = append(cmdGit, cmdGit1, cmdGit2, cmdGit3)
+
+	err = launchCmdGit(cmdGit)
 
 	return
 }
