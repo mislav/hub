@@ -8,13 +8,13 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/boris-rea/hub/commands",
-			"Comment": "v.2.3.0-pre10",
-			"Rev": "ec6dec6c64bd8fc04540e94aa2bd7a977a8ef76b"
+			"Comment": "v.2.3.0-pre11",
+			"Rev": "600fa16853bddd6dc4eb2f7dba86669067ea688b"
 		},
 		{
 			"ImportPath": "github.com/boris-rea/hub/flow",
-			"Comment": "v.2.3.0-pre10",
-			"Rev": "ec6dec6c64bd8fc04540e94aa2bd7a977a8ef76b"
+			"Comment": "v.2.3.0-pre11",
+			"Rev": "600fa16853bddd6dc4eb2f7dba86669067ea688b"
 		},
 		{
 			"ImportPath": "github.com/github/hub/cmd",
