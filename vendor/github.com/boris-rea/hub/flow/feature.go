@@ -1,5 +1,7 @@
 package flow
 
+import "github.com/github/hub/git"
+
 func FlowFeatureStart(featureName string) (err error) {
 	branchName := "feature/" + featureName
 
@@ -21,12 +23,24 @@ func FlowFeatureFinish(featureName string) (err error) {
 	cmdGit := [][]string{}
 
 	cmdGit1 := []string{"checkout", "develop"}
-	cmdGit2 := []string{"merge", "--no-ff", branchName}
+	cmdGit2 := []string{"merge", branchName}
 	cmdGit3 := []string{"branch", "-d", branchName}
 
 	cmdGit = append(cmdGit, cmdGit1, cmdGit2, cmdGit3)
 
 	err = launchCmdGit(cmdGit)
+
+	return
+}
+
+func launchCmdGit(cmdGit [][]string) (err error) {
+	for i := range cmdGit {
+		err = git.Spawn(cmdGit[i]...)
+
+		if err != nil {
+			break
+		}
+	}
 
 	return
 }
