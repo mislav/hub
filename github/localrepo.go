@@ -191,14 +191,14 @@ func (r *GitHubRepo) MainRemote() (remote *Remote, err error) {
 func (r *GitHubRepo) MainProject() (project *Project, err error) {
 	origin, err := r.MainRemote()
 	if err != nil {
-		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
+		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository: %v.", err)
 
 		return
 	}
 
 	project, err = origin.Project()
 	if err != nil {
-		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
+		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository: %v.", err)
 	}
 
 	return
