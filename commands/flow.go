@@ -38,15 +38,17 @@ func flowFeature(command *Command, args *Args) {
 
 	switch instruction {
 	case "start":
-		err := flow.FlowFeatureStart(featureName)
+		/*err := flow.FlowFeatureStart(featureName)
 		if err != nil {
 			errorMessage = err.Error()
-		}
+		}*/
+		errorMessage = featureName
 	case "finish":
-		err := flow.FlowFeatureFinish(featureName)
+		/*err := flow.FlowFeatureFinish(featureName)
 		if err != nil {
 			errorMessage = err.Error()
-		}
+		}*/
+		errorMessage = featureName
 	default:
 		errorMessage = cmdFlow.HelpText()
 	}
