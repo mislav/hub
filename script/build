@@ -15,7 +15,7 @@ windows=
 setup_gopath() {
   TMPDIR="${LOCALAPPDATA:-$TMPDIR}"
   TMP_GOPATH="${TMPDIR:-/tmp}/go"
-  TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
+  TMP_SELF="${TMP_GOPATH}/src/github.com/boris-rea/hub"
 
   if [ -n "$windows" ]; then
     export GOPATH="${TMP_GOPATH//\//\\}"
@@ -36,13 +36,13 @@ find_source_files() {
 }
 
 find_packages() {
-  find_source_files | cut -d/ -f2 | sort -u | grep -v '.go$' | sed 's!^!github.com/github/hub/!'
+  find_source_files | cut -d/ -f2 | sort -u | grep -v '.go$' | sed 's!^!github.com/boris-rea/hub/!'
 }
 
 build_hub() {
   setup_gopath
   mkdir -p "$(dirname "$1")"
-  go build -ldflags "-X github.com/github/hub/version.Version=`./script/version`" -o "$1"
+  go build -ldflags "-X github.com/boris-rea/hub/version.Version=`./script/version`" -o "$1"
 }
 
 test_hub() {

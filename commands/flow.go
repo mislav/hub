@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 
+	gitFlow "github.com/boris-rea/hub/flow"
 	"github.com/github/hub/utils"
 )
 
@@ -38,17 +39,15 @@ func flowFeature(command *Command, args *Args) {
 
 	switch instruction {
 	case "start":
-		/*err := flow.FlowFeatureStart(featureName)
+		err := gitFlow.FlowFeatureStart(featureName)
 		if err != nil {
 			errorMessage = err.Error()
-		}*/
-		errorMessage = featureName
+		}
 	case "finish":
-		/*err := flow.FlowFeatureFinish(featureName)
+		err := gitFlow.FlowFeatureFinish(featureName)
 		if err != nil {
 			errorMessage = err.Error()
-		}*/
-		errorMessage = featureName
+		}
 	default:
 		errorMessage = cmdFlow.HelpText()
 	}
