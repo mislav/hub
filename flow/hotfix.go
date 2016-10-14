@@ -21,10 +21,10 @@ func FlowHotfixFinish(hotfixName string) (err error) {
 	cmdGit := [][]string{}
 
 	cmdGit1 := []string{"checkout", "master"}
-	cmdGit2 := []string{"merge", "--no-ff", branchName}
+	cmdGit2 := []string{"merge", branchName, "--no-ff"}
 	cmdGit3 := []string{"tag", "-a", hotfixName}
 	cmdGit4 := []string{"checkout", "develop"}
-	cmdGit5 := []string{"merge", "--no-ff", branchName}
+	cmdGit5 := []string{"merge", branchName, "--no-ff"}
 	cmdGit6 := []string{"checkout", "master"}
 
 	cmdGit = append(cmdGit, cmdGit1, cmdGit2, cmdGit3, cmdGit4, cmdGit5, cmdGit6)
