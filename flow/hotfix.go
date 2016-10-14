@@ -1,7 +1,7 @@
 package flow
 
-func FlowReleaseStart(releaseName string) (err error) {
-	branchName := "release/" + releaseName
+func FlowHotfixStart(hotfixName string) (err error) {
+	branchName := "release/" + hotfixName
 
 	cmdGit := [][]string{}
 
@@ -15,14 +15,14 @@ func FlowReleaseStart(releaseName string) (err error) {
 	return
 }
 
-func FlowReleaseFinish(releaseName string) (err error) {
-	branchName := "release/" + releaseName
+func FlowHotfixFinish(hotfixName string) (err error) {
+	branchName := "release/" + hotfixName
 
 	cmdGit := [][]string{}
 
 	cmdGit1 := []string{"checkout", "master"}
 	cmdGit2 := []string{"merge", "--no-ff", branchName}
-	cmdGit3 := []string{"tag", "-a", releaseName}
+	cmdGit3 := []string{"tag", "-a", hotfixName}
 	cmdGit4 := []string{"checkout", "develop"}
 	cmdGit5 := []string{"merge", "--no-ff", branchName}
 	cmdGit6 := []string{"checkout", "master"}
