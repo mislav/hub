@@ -13,7 +13,7 @@ Feature: hub pull-request
   Scenario: Non-GitHub repo
     Given the "origin" remote has url "mygh:Manganeez/repo.git"
     When I run `hub pull-request`
-    Then the stderr should contain "Aborted: the origin remote doesn't point to a GitHub repository: Invalid GitHub URL: ssh://mygh/Manganeez/repo.git.\n"
+    Then the stderr should contain "Aborted: the origin remote doesn't point to a GitHub repository:\n Invalid GitHub URL: ssh://mygh/Manganeez/repo.git.\n"
     And the exit status should be 1
 
   Scenario: Create pull request respecting "insteadOf" configuration
