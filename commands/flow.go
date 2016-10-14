@@ -14,23 +14,23 @@ var (
 		Long: `Permit to use basic operations like in gitFlow
 
 	## Examples:
-			$ hub flow feature start myFeature
-			[ Start a feature from develop and call it feature/myFeature ]
+		$ hub flow feature start myFeature
+		[ Start a feature from develop and call it feature/myFeature ]
 
-			$ hub flow feature finish myFeature
-			[ Merge feature/myFeature in develop and delete the local feature branch ]
+		$ hub flow feature finish myFeature
+		[ Merge feature/myFeature in develop and delete the local feature branch ]
 
-			$ hub flow release start myFeature
-			[ Start a release from develop and call it release/myFeature ]
+		$ hub flow release start myFeature
+		[ Start a release from develop and call it release/myFeature ]
 
-			$ hub flow release finish myFeature
-			[ Merge release/myFeature in develop and master, tag the master branch and delete the local release branch ]
+		$ hub flow release finish myFeature
+		[ Merge release/myFeature in develop and master, tag the master branch and delete the local release branch ]
 
-			$ hub flow hotfix start myFeature
-			[ Start a hotfix from master and call it hotfix/myFeature ]
+		$ hub flow hotfix start myFeature
+		[ Start a hotfix from master and call it hotfix/myFeature ]
 
-			$ hub flow hotfix finish myFeature
-			[ Merge hotfix/myFeature in develop and master, tag the master branch and delete the local release branch ]
+		$ hub flow hotfix finish myFeature
+		[ Merge hotfix/myFeature in develop and master, tag the master branch and delete the local release branch ]
 `,
 	}
 
