@@ -1,0 +1,54 @@
+{
+	"ImportPath": ".",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v74",
+	"Packages": [
+		"./"
+	],
+	"Deps": [
+		{
+			"ImportPath": "github.com/boris-rea/hub/commands",
+			"Comment": "v.2.3.0-pre10",
+			"Rev": "ec6dec6c64bd8fc04540e94aa2bd7a977a8ef76b"
+		},
+		{
+			"ImportPath": "github.com/boris-rea/hub/flow",
+			"Comment": "v.2.3.0-pre10",
+			"Rev": "ec6dec6c64bd8fc04540e94aa2bd7a977a8ef76b"
+		},
+		{
+			"ImportPath": "github.com/github/hub/cmd",
+			"Comment": "v2.3.0-pre8",
+			"Rev": "c30065a606ce4d5f7acc3a198ee070b17bb6d93d"
+		},
+		{
+			"ImportPath": "github.com/github/hub/git",
+			"Comment": "v2.3.0-pre8",
+			"Rev": "c30065a606ce4d5f7acc3a198ee070b17bb6d93d"
+		},
+		{
+			"ImportPath": "github.com/github/hub/github",
+			"Comment": "v2.3.0-pre8",
+			"Rev": "c30065a606ce4d5f7acc3a198ee070b17bb6d93d"
+		},
+		{
+			"ImportPath": "github.com/github/hub/ui",
+			"Comment": "v2.3.0-pre8",
+			"Rev": "c30065a606ce4d5f7acc3a198ee070b17bb6d93d"
+		},
+		{
+			"ImportPath": "github.com/github/hub/utils",
+			"Comment": "v2.3.0-pre8",
+			"Rev": "c30065a606ce4d5f7acc3a198ee070b17bb6d93d"
+		},
+		{
+			"ImportPath": "github.com/github/hub/version",
+			"Comment": "v2.3.0-pre8",
+			"Rev": "c30065a606ce4d5f7acc3a198ee070b17bb6d93d"
+		},
+		{
+			"ImportPath": "golang.org/x/sys/unix",
+			"Rev": "9bb9f0998d48b31547d975974935ae9b48c7a03c"
+		}
+	]
+}
