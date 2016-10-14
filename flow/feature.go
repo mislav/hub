@@ -21,7 +21,7 @@ func FlowFeatureFinish(featureName string) (err error) {
 	cmdGit := [][]string{}
 
 	cmdGit1 := []string{"checkout", "develop"}
-	cmdGit2 := []string{"merge", "--no-ff", branchName}
+	cmdGit2 := []string{"merge", branchName, "--no-ff"}
 	cmdGit3 := []string{"branch", "-d", branchName}
 
 	cmdGit = append(cmdGit, cmdGit1, cmdGit2, cmdGit3)
