@@ -5,7 +5,7 @@ func FlowReleaseStart(releaseName string) (err error) {
 
 	cmdGit := [][]string{}
 
-	cmdGit1 := []string{"checkout", "master"}
+	cmdGit1 := []string{"checkout", "develop"}
 	cmdGit2 := []string{"checkout", "-b", branchName}
 
 	cmdGit = append(cmdGit, cmdGit1, cmdGit2)
