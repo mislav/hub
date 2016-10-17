@@ -50,7 +50,13 @@ var (
 	}
 )
 
+var (
+	flagCreatePullRequest bool
+)
+
 func init() {
+	cmdFlowFeature.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUEST")
+
 	cmdFlow.Use(cmdFlowFeature)
 	cmdFlow.Use(cmdFlowRelease)
 	cmdFlow.Use(cmdFlowHotfix)
@@ -76,7 +82,13 @@ func flowFeature(command *Command, args *Args) {
 			errorMessage = err.Error()
 		}
 	case "finish":
-		err := gitFlow.FlowFeatureFinish(featureName)
+		var err error
+		if flagCreatePullRequest {
+			err = gitFlow.FlowFeaturePullRequest(featureName)
+		} else {
+			err = gitFlow.FlowFeatureFinish(featureName)
+		}
+
 		if err != nil {
 			errorMessage = err.Error()
 		}

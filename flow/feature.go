@@ -30,3 +30,15 @@ func FlowFeatureFinish(featureName string) (err error) {
 
 	return
 }
+
+func FlowFeaturePullRequest(featureName string) (err error) {
+	branchName := "feature/" + featureName
+	messagePullRequest := "Pull request from " + branchName + " to develop"
+
+	//hub pull-request -m 'test pull-request from cli' -b master -o boris
+	cmdHub := []string{"pull-request", "-m", messagePullRequest, "-b", "develop", "-o", "boris"}
+
+	err = HubCmd(cmdHub...)
+
+	return
+}

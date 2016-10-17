@@ -1,6 +1,9 @@
 package flow
 
-import "github.com/github/hub/git"
+import (
+	"github.com/github/hub/cmd"
+	"github.com/github/hub/git"
+)
 
 func launchCmdGit(cmdGit [][]string) (err error) {
 	for i := range cmdGit {
@@ -12,4 +15,14 @@ func launchCmdGit(cmdGit [][]string) (err error) {
 	}
 
 	return
+}
+
+func HubCmd(args ...string) (err error) {
+	cmd := cmd.New("hub")
+
+	for _, a := range args {
+		cmd.WithArg(a)
+	}
+
+	return cmd.Spawn()
 }
