@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	gitFlow "github.com/boris-rea/hub/flow"
 	"github.com/github/hub/utils"
@@ -50,7 +51,15 @@ var (
 	}
 )
 
+var (
+	flagPullRequestAssigneesFlow listFlag
+	flagCreatePullRequest        bool
+)
+
 func init() {
+	cmdFlowFeature.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUEST")
+	cmdFlowFeature.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
+
 	cmdFlow.Use(cmdFlowFeature)
 	cmdFlow.Use(cmdFlowRelease)
 	cmdFlow.Use(cmdFlowHotfix)
@@ -76,7 +85,18 @@ func flowFeature(command *Command, args *Args) {
 			errorMessage = err.Error()
 		}
 	case "finish":
-		err := gitFlow.FlowFeatureFinish(featureName)
+		var err error
+		if flagCreatePullRequest {
+			params := map[string][]string{}
+			if len(flagPullRequestAssignees) > 0 {
+				assignees := flagPullRequestAssignees.String()
+				params["assignees"] = strings.Split(assignees, ",")
+			}
+			err = gitFlow.FlowFeaturePullRequest(featureName, params)
+		} else {
+			err = gitFlow.FlowFeatureFinish(featureName)
+		}
+
 		if err != nil {
 			errorMessage = err.Error()
 		}
