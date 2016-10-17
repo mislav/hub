@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	gitFlow "github.com/boris-rea/hub/flow"
 	"github.com/github/hub/utils"
@@ -87,10 +86,9 @@ func flowFeature(command *Command, args *Args) {
 	case "finish":
 		var err error
 		if flagCreatePullRequest {
-			params := map[string][]string{}
+			params := map[string]string{}
 			if len(flagPullRequestAssignees) > 0 {
-				assignees := flagPullRequestAssignees.String()
-				params["assignees"] = strings.Split(assignees, ",")
+				params["assignees"] = flagPullRequestAssignees.String()
 			}
 			err = gitFlow.FlowFeaturePullRequest(featureName, params)
 		} else {
