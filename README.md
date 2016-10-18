@@ -49,7 +49,7 @@ $ cd hub
 $ make install prefix=/usr/local
 ```
 
-Prerequisites for compliation are:
+Prerequisites for compilation are:
 
 * `make`
 * [Go 1.6+](http://golang.org/doc/install)
