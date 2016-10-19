@@ -1,11 +1,49 @@
 package flow
 
+func getPrefixFeature() (prefix string, err error) {
+	gitConfig, err := NewConfig()
+
+	if err != nil {
+		return
+	}
+
+	prefix, err = gitConfig.GetPrefix("feature")
+
+	return
+}
+
+func getMergingBranchFeature() (branch string, err error) {
+	gitConfig, err := NewConfig()
+
+	if err != nil {
+		return
+	}
+
+	branch, err = gitConfig.GetBranch("develop")
+
+	return
+}
+
 func FlowFeatureStart(featureName string) (err error) {
-	branchName := "feature/" + featureName
+	var prefixFeature string
+	prefixFeature, err = getPrefixFeature()
+
+	if err != nil {
+		return
+	}
+
+	branchName := prefixFeature + featureName
+
+	var mergingBranch string
+	mergingBranch, err = getMergingBranchFeature()
+
+	if err != nil {
+		return
+	}
 
 	cmdGit := [][]string{}
 
-	cmdGit1 := []string{"checkout", "develop"}
+	cmdGit1 := []string{"checkout", mergingBranch}
 	cmdGit2 := []string{"checkout", "-b", branchName}
 
 	cmdGit = append(cmdGit, cmdGit1, cmdGit2)
@@ -16,11 +54,25 @@ func FlowFeatureStart(featureName string) (err error) {
 }
 
 func FlowFeatureFinish(featureName string) (err error) {
-	branchName := "feature/" + featureName
+	var prefixFeature string
+	prefixFeature, err = getPrefixFeature()
+
+	if err != nil {
+		return
+	}
+
+	branchName := prefixFeature + featureName
+
+	var mergingBranch string
+	mergingBranch, err = getMergingBranchFeature()
+
+	if err != nil {
+		return
+	}
 
 	cmdGit := [][]string{}
 
-	cmdGit1 := []string{"checkout", "develop"}
+	cmdGit1 := []string{"checkout", mergingBranch}
 	cmdGit2 := []string{"merge", branchName, "--no-ff"}
 	cmdGit3 := []string{"branch", "-d", branchName}
 
@@ -32,7 +84,14 @@ func FlowFeatureFinish(featureName string) (err error) {
 }
 
 func FlowFeaturePullRequest(featureName string, params map[string]string) (err error) {
-	branchName := "feature/" + featureName
+	var prefixFeature string
+	prefixFeature, err = getPrefixFeature()
+
+	if err != nil {
+		return
+	}
+
+	branchName := prefixFeature + featureName
 
 	cmdGit := [][]string{}
 	cmdGit1 := []string{"push", "origin", branchName}
@@ -46,7 +105,14 @@ func FlowFeaturePullRequest(featureName string, params map[string]string) (err e
 
 	messagePullRequest := "Pull request from " + branchName + " to develop"
 
-	cmdHub := []string{"pull-request", "-m", messagePullRequest, "-b", "develop"}
+	var mergingBranch string
+	mergingBranch, err = getMergingBranchFeature()
+
+	if err != nil {
+		return
+	}
+
+	cmdHub := []string{"pull-request", "-m", messagePullRequest, "-b", mergingBranch}
 
 	if len(params["assignees"]) > 0 {
 		cmdHub = append(cmdHub, "-a", params["assignees"])
