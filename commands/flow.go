@@ -66,10 +66,6 @@ var (
 func init() {
 	cmdFlowFeature.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUESTFEATURE")
 	cmdFlowFeature.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "")
-	cmdFlowRelease.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUESTRELEASE")
-	cmdFlowRelease.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
-	cmdFlowHotfix.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUESTHOTFIX")
-	cmdFlowHotfix.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
 
 	cmdFlow.Use(cmdFlowFeature)
 	cmdFlow.Use(cmdFlowRelease)
@@ -141,17 +137,7 @@ func flowRelease(command *Command, args *Args) {
 			errorMessage = err.Error()
 		}
 	case "finish":
-		var err error
-		if flagCreatePullRequest {
-			params := map[string]string{}
-			if len(flagPullRequestAssignees) > 0 {
-				params["assignees"] = flagPullRequestAssignees.String()
-			}
-			err = gitFlow.FlowReleasePullRequest(releaseName, params)
-		} else {
-			err = gitFlow.FlowReleaseFinish(releaseName)
-		}
-
+		err := gitFlow.FlowReleaseFinish(releaseName)
 		if err != nil {
 			errorMessage = err.Error()
 		}
@@ -184,17 +170,7 @@ func flowHotfix(command *Command, args *Args) {
 			errorMessage = err.Error()
 		}
 	case "finish":
-		var err error
-		if flagCreatePullRequest {
-			params := map[string]string{}
-			if len(flagPullRequestAssignees) > 0 {
-				params["assignees"] = flagPullRequestAssignees.String()
-			}
-			err = gitFlow.FlowHotfixPullRequest(hotfixName, params)
-		} else {
-			err = gitFlow.FlowHotfixFinish(hotfixName)
-		}
-
+		err := gitFlow.FlowHotfixFinish(hotfixName)
 		if err != nil {
 			errorMessage = err.Error()
 		}
