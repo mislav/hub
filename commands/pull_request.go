@@ -46,7 +46,7 @@ pull-request -i <ISSUE>
 		Put the URL of the new pull request to clipboard instead of printing it.
 
 	-p, --push
-		Push the local HEAD to --head before creating the pull request.
+		Push the current branch to <HEAD> before creating the pull request.
 
 	-b, --base <BASE>
 		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
@@ -207,6 +207,11 @@ func pullRequest(cmd *Command, args *Args) {
 		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
 	}
 
+
+	if flagPullRequestPush && remote == nil {
+		utils.Check(fmt.Errorf("Can't find remote for %s", head))
+	}
+
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagPullRequestMessage)
 	} else if cmd.FlagPassed("file") {
@@ -233,14 +238,11 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	if flagPullRequestPush {
-		if remote == nil {
-			utils.Check(fmt.Errorf("Can't find remote for %s", head))
-		}
-
 		if args.Noop {
 			args.Before(fmt.Sprintf("Would push to %s/%s", remote.Name, head), "")
 		} else {
-			git.Push(remote.Name, "HEAD", head)
+			err = git.Spawn("push", remote.Name, fmt.Sprintf("HEAD:%s", head))
+			utils.Check(err)
 		}
 	}
 

@@ -814,9 +814,7 @@ BODY
       """
 
   Scenario: Default message with --push
-    Given the text editor adds:
-      """
-      """
+    Given the git commit editor is "true"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -839,7 +837,7 @@ BODY
     And I am on the "master" branch pushed to "origin/master"
     And an empty file named ".git/PULLREQ_EDITMSG"
     When I successfully run `git checkout --quiet -b topic`
-    Given I make a commit with message "Title"
+    Given I make a commit
     When I run `hub pull-request -p`
     Then the stderr should contain "error using text editor for pull request message"
     And the exit status should be 1
