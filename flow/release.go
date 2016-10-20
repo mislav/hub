@@ -103,3 +103,55 @@ func FlowReleaseFinish(releaseName string) (err error) {
 
 	return
 }
+
+func FlowReleasePullRequest(releaseName string, params map[string]string) (err error) {
+	var prefixRelease string
+	prefixRelease, err = getPrefixRelease()
+
+	if err != nil {
+		return
+	}
+
+	branchName := prefixRelease + releaseName
+
+	cmdGit := [][]string{}
+	cmdGit1 := []string{"push", "origin", branchName}
+	cmdGit = append(cmdGit, cmdGit1)
+
+	err = launchCmdGit(cmdGit)
+
+	if err != nil {
+		return
+	}
+
+	var (
+		masterBranch,
+		developBranch string
+	)
+
+	masterBranch, developBranch, err = getFinishBranchRelease()
+
+	if err != nil {
+		return
+	}
+
+	messagePullRequestMaster := "Pull request from " + branchName + " to " + masterBranch
+	messagePullRequestDevelop := "Pull request from " + branchName + " to " + developBranch
+
+	cmdHub := [][]string{}
+
+	cmdHub1 := []string{"pull-request", "-m", messagePullRequestMaster, "-b", masterBranch}
+	cmdHub2 := []string{"pull-request", "-m", messagePullRequestDevelop, "-b", developBranch}
+
+	cmdHub = append(cmdHub, cmdHub1, cmdHub2)
+
+	if len(params["assignees"]) > 0 {
+		for _, cmd := range cmdHub {
+			cmd = append(cmd, "-a", params["assignees"])
+		}
+	}
+
+	err = launchCmdHub(cmdHub)
+
+	return
+}

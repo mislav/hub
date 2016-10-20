@@ -103,14 +103,14 @@ func FlowFeaturePullRequest(featureName string, params map[string]string) (err e
 		return
 	}
 
-	messagePullRequest := "Pull request from " + branchName + " to develop"
-
 	var mergingBranch string
 	mergingBranch, err = getMergingBranchFeature()
 
 	if err != nil {
 		return
 	}
+
+	messagePullRequest := "Pull request from " + branchName + " to " + mergingBranch
 
 	cmdHub := []string{"pull-request", "-m", messagePullRequest, "-b", mergingBranch}
 
