@@ -64,8 +64,12 @@ var (
 )
 
 func init() {
-	cmdFlowFeature.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUEST")
-	cmdFlowFeature.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
+	cmdFlowFeature.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUESTFEATURE")
+	cmdFlowFeature.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "")
+	cmdFlowRelease.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUESTRELEASE")
+	cmdFlowRelease.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
+	cmdFlowHotfix.Flag.BoolVarP(&flagCreatePullRequest, "pull-request", "", false, "PULLREQUESTHOTFIX")
+	cmdFlowHotfix.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
 
 	cmdFlow.Use(cmdFlowFeature)
 	cmdFlow.Use(cmdFlowRelease)
@@ -128,16 +132,26 @@ func flowRelease(command *Command, args *Args) {
 
 	errorMessage := ""
 	instruction := words[0]
-	featureName := words[1]
+	releaseName := words[1]
 
 	switch instruction {
 	case "start":
-		err := gitFlow.FlowReleaseStart(featureName)
+		err := gitFlow.FlowReleaseStart(releaseName)
 		if err != nil {
 			errorMessage = err.Error()
 		}
 	case "finish":
-		err := gitFlow.FlowReleaseFinish(featureName)
+		var err error
+		if flagCreatePullRequest {
+			params := map[string]string{}
+			if len(flagPullRequestAssignees) > 0 {
+				params["assignees"] = flagPullRequestAssignees.String()
+			}
+			err = gitFlow.FlowReleasePullRequest(releaseName, params)
+		} else {
+			err = gitFlow.FlowReleaseFinish(releaseName)
+		}
+
 		if err != nil {
 			errorMessage = err.Error()
 		}
@@ -161,16 +175,26 @@ func flowHotfix(command *Command, args *Args) {
 
 	errorMessage := ""
 	instruction := words[0]
-	featureName := words[1]
+	hotfixName := words[1]
 
 	switch instruction {
 	case "start":
-		err := gitFlow.FlowHotfixStart(featureName)
+		err := gitFlow.FlowHotfixStart(hotfixName)
 		if err != nil {
 			errorMessage = err.Error()
 		}
 	case "finish":
-		err := gitFlow.FlowHotfixFinish(featureName)
+		var err error
+		if flagCreatePullRequest {
+			params := map[string]string{}
+			if len(flagPullRequestAssignees) > 0 {
+				params["assignees"] = flagPullRequestAssignees.String()
+			}
+			err = gitFlow.FlowHotfixPullRequest(hotfixName, params)
+		} else {
+			err = gitFlow.FlowHotfixFinish(hotfixName)
+		}
+
 		if err != nil {
 			errorMessage = err.Error()
 		}

@@ -18,6 +18,18 @@ func launchCmdGit(cmdGit [][]string) (err error) {
 	return
 }
 
+func launchCmdHub(cmdHub [][]string) (err error) {
+	for i := range cmdHub {
+		err = HubCmd(cmdHub[i]...)
+
+		if err != nil {
+			break
+		}
+	}
+
+	return
+}
+
 func HubCmd(args ...string) (err error) {
 	cmd := cmd.New("hub")
 
