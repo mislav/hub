@@ -207,7 +207,6 @@ func pullRequest(cmd *Command, args *Args) {
 		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
 	}
 
-
 	if flagPullRequestPush && remote == nil {
 		utils.Check(fmt.Errorf("Can't find remote for %s", head))
 	}

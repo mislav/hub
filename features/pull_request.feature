@@ -818,8 +818,7 @@ BODY
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        halt 400 if request.content_charset != 'utf-8'
-        assert :title => 'This is somewhat of a longish title that does not get wrapped & references #1234',
+        assert :title => 'The commit I never pushed',
                :body => nil
         status 201
         json :html_url => "the://url"
@@ -827,7 +826,7 @@ BODY
       """
     Given I am on the "master" branch pushed to "origin/master"
     When I successfully run `git checkout --quiet -b topic`
-    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped & references #1234"
+    Given I make a commit with message "The commit I never pushed"
     When I successfully run `hub pull-request -p`
     Then the output should contain exactly "the://url\n"
     And "git push origin HEAD:topic" should be run
