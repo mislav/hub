@@ -891,11 +891,12 @@ BODY
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Eventually give up on retries for --push
-    Given The default aruba timeout is 12 seconds
+    Given The default aruba timeout is 7 seconds
     And the text editor adds:
       """
       hello!
       """
+    And $HUB_RETRY_TIMEOUT is "5"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -915,5 +916,5 @@ BODY
       Error creating pull request: Unprocessable Entity (HTTP 422)
       Invalid value for "head"\n
       """
-    And the output should match /Given up after retrying for 9\.\d seconds\./
+    And the output should match /Given up after retrying for 5\.\d seconds\./
     And a file named ".git/PULLREQ_EDITMSG" should exist

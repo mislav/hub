@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -64,6 +65,11 @@ pull-request -i <ISSUE>
 
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request.
+
+## Configuration:
+
+	HUB_RETRY_TIMEOUT=<SECONDS>
+		The maximum time to keep retrying after HTTP 422 on '--push' (default: 9).
 
 ## See also:
 
@@ -271,7 +277,12 @@ func pullRequest(cmd *Command, args *Args) {
 		retryDelay := 2
 		retryAllowance := 0
 		if flagPullRequestPush {
-			retryAllowance = 9
+			if allowanceFromEnv := os.Getenv("HUB_RETRY_TIMEOUT"); allowanceFromEnv != "" {
+				retryAllowance, err = strconv.Atoi(allowanceFromEnv)
+				utils.Check(err)
+			} else {
+				retryAllowance = 9
+			}
 		}
 
 		var pr *github.PullRequest
