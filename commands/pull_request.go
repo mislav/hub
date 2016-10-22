@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
@@ -264,7 +265,35 @@ func pullRequest(cmd *Command, args *Args) {
 			issueNum, _ := strconv.Atoi(flagPullRequestIssue)
 			params["issue"] = issueNum
 		}
-		pr, err := client.CreatePullRequest(baseProject, params)
+
+		startedAt := time.Now()
+		numRetries := 0
+		retryDelay := 2
+		retryAllowance := 0
+		if flagPullRequestPush {
+			retryAllowance = 9
+		}
+
+		var pr *github.PullRequest
+		for {
+			pr, err = client.CreatePullRequest(baseProject, params)
+			if err != nil && strings.Contains(err.Error(), `Invalid value for "head"`) {
+				if retryAllowance > 0 {
+					retryAllowance -= retryDelay
+					time.Sleep(time.Duration(retryDelay) * time.Second)
+					retryDelay += 1
+					numRetries += 1
+				} else {
+					if numRetries > 0 {
+						duration := time.Now().Sub(startedAt)
+						err = fmt.Errorf("%s\nGiven up after retrying for %.1f seconds.", err, duration.Seconds())
+					}
+					break
+				}
+			} else {
+				break
+			}
+		}
 
 		if err == nil && editor != nil {
 			defer editor.DeleteFile()
