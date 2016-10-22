@@ -500,17 +500,29 @@ BODY
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:
       """
+      tries = 0
       post('/repos/mislav/coral/pulls') {
-        status 422
-        json(:message => "I haz fail!")
+        tries += 1
+        if tries == 1
+          status 422
+          json :message => 'Validation Failed',
+               :errors => [{
+                 :resource => 'PullRequest',
+                 :code => 'invalid',
+                 :field => 'head'
+               }]
+        else
+          status 400
+        end
       }
       """
     When I run `hub pull-request -m message`
     Then the stderr should contain exactly:
       """
       Error creating pull request: Unprocessable Entity (HTTP 422)
-      I haz fail!\n
+      Invalid value for "head"\n
       """
+    And the exit status should be 1
 
   Scenario: Convert issue to pull request
     Given I am on the "feature" branch with upstream "origin/feature"
@@ -812,3 +824,97 @@ BODY
       Error creating pull request: Temporary Redirect (HTTP 307)
       Refused to follow redirect to https://disney.com/mouse\n
       """
+
+  Scenario: Default message with --push
+    Given the git commit editor is "true"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'The commit I never pushed',
+               :body => nil
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message "The commit I never pushed"
+    When I successfully run `hub pull-request -p`
+    Then the output should contain exactly "the://url\n"
+    And "git push origin HEAD:topic" should be run
+
+  Scenario: Text editor fails with --push
+    Given the text editor exits with error status
+    And I am on the "master" branch pushed to "origin/master"
+    And an empty file named ".git/PULLREQ_EDITMSG"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit
+    When I run `hub pull-request -p`
+    Then the stderr should contain "error using text editor for pull request message"
+    And the exit status should be 1
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+    And "git push origin HEAD:topic" should not be run
+
+  Scenario: Automatically retry when --push resulted in 422
+    Given The default aruba timeout is 7 seconds
+    And the text editor adds:
+      """
+      hello!
+      """
+    Given the GitHub API server:
+      """
+      first_try_at = nil
+      tries = 0
+
+      post('/repos/mislav/coral/pulls') {
+        tries += 1
+        assert :title => 'hello!', :head => 'mislav:topic'
+
+        if !first_try_at || (Time.now - first_try_at) < 5
+          first_try_at ||= Time.now
+          status 422
+          json :message => 'Validation Failed',
+               :errors => [{
+                 :resource => 'PullRequest',
+                 :code => 'invalid',
+                 :field => 'head'
+               }]
+        else
+          status 201
+          json :html_url => "the://url?tries=#{tries}"
+        end
+      }
+      """
+    Given I am on the "topic" branch
+    When I successfully run `hub pull-request -p`
+    Then the output should contain exactly "the://url?tries=3\n"
+    And the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Eventually give up on retries for --push
+    Given The default aruba timeout is 7 seconds
+    And the text editor adds:
+      """
+      hello!
+      """
+    And $HUB_RETRY_TIMEOUT is "5"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        status 422
+        json :message => 'Validation Failed',
+             :errors => [{
+               :resource => 'PullRequest',
+               :code => 'invalid',
+               :field => 'head'
+             }]
+      }
+      """
+    Given I am on the "topic" branch
+    When I run `hub pull-request -p`
+    Then the stderr should contain:
+      """
+      Error creating pull request: Unprocessable Entity (HTTP 422)
+      Invalid value for "head"\n
+      """
+    And the output should match /Given up after retrying for 5\.\d seconds\./
+    And a file named ".git/PULLREQ_EDITMSG" should exist

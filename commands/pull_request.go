@@ -2,9 +2,11 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
@@ -45,6 +47,9 @@ pull-request -i <ISSUE>
 	-c, --copy
 		Put the URL of the new pull request to clipboard instead of printing it.
 
+	-p, --push
+		Push the current branch to <HEAD> before creating the pull request.
+
 	-b, --base <BASE>
 		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
 		(usually "master").
@@ -60,6 +65,11 @@ pull-request -i <ISSUE>
 
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request.
+
+## Configuration:
+
+	HUB_RETRY_TIMEOUT=<SECONDS>
+		The maximum time to keep retrying after HTTP 422 on '--push' (default: 9).
 
 ## See also:
 
@@ -77,6 +87,7 @@ var (
 	flagPullRequestBrowse,
 	flagPullRequestCopy,
 	flagPullRequestEdit,
+	flagPullRequestPush,
 	flagPullRequestForce bool
 
 	flagPullRequestMilestone uint64
@@ -93,6 +104,7 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestCopy, "copy", "c", false, "COPY")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
@@ -188,27 +200,36 @@ func pullRequest(cmd *Command, args *Args) {
 	var editor *github.Editor
 	var title, body string
 
+	baseTracking := base
+	headTracking := head
+
+	remote := gitRemoteForProject(baseProject)
+	if remote != nil {
+		baseTracking = fmt.Sprintf("%s/%s", remote.Name, base)
+	}
+	if remote == nil || !baseProject.SameAs(headProject) {
+		remote = gitRemoteForProject(headProject)
+	}
+	if remote != nil {
+		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
+	}
+
+	if flagPullRequestPush && remote == nil {
+		utils.Check(fmt.Errorf("Can't find remote for %s", head))
+	}
+
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagPullRequestMessage)
 	} else if cmd.FlagPassed("file") {
 		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ", "pull request")
 		utils.Check(err)
 	} else if flagPullRequestIssue == "" {
-		baseTracking := base
-		headTracking := head
-
-		remote := gitRemoteForProject(baseProject)
-		if remote != nil {
-			baseTracking = fmt.Sprintf("%s/%s", remote.Name, base)
-		}
-		if remote == nil || !baseProject.SameAs(headProject) {
-			remote = gitRemoteForProject(headProject)
-		}
-		if remote != nil {
-			headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
+		headForMessage := headTracking
+		if flagPullRequestPush {
+			headForMessage = head
 		}
 
-		message, err := createPullRequestMessage(baseTracking, headTracking, fullBase, fullHead)
+		message, err := createPullRequestMessage(baseTracking, headForMessage, fullBase, fullHead)
 		utils.Check(err)
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
@@ -220,6 +241,15 @@ func pullRequest(cmd *Command, args *Args) {
 
 	if title == "" && flagPullRequestIssue == "" {
 		utils.Check(fmt.Errorf("Aborting due to empty pull request title"))
+	}
+
+	if flagPullRequestPush {
+		if args.Noop {
+			args.Before(fmt.Sprintf("Would push to %s/%s", remote.Name, head), "")
+		} else {
+			err = git.Spawn("push", remote.Name, fmt.Sprintf("HEAD:%s", head))
+			utils.Check(err)
+		}
 	}
 
 	var pullRequestURL string
@@ -241,7 +271,40 @@ func pullRequest(cmd *Command, args *Args) {
 			issueNum, _ := strconv.Atoi(flagPullRequestIssue)
 			params["issue"] = issueNum
 		}
-		pr, err := client.CreatePullRequest(baseProject, params)
+
+		startedAt := time.Now()
+		numRetries := 0
+		retryDelay := 2
+		retryAllowance := 0
+		if flagPullRequestPush {
+			if allowanceFromEnv := os.Getenv("HUB_RETRY_TIMEOUT"); allowanceFromEnv != "" {
+				retryAllowance, err = strconv.Atoi(allowanceFromEnv)
+				utils.Check(err)
+			} else {
+				retryAllowance = 9
+			}
+		}
+
+		var pr *github.PullRequest
+		for {
+			pr, err = client.CreatePullRequest(baseProject, params)
+			if err != nil && strings.Contains(err.Error(), `Invalid value for "head"`) {
+				if retryAllowance > 0 {
+					retryAllowance -= retryDelay
+					time.Sleep(time.Duration(retryDelay) * time.Second)
+					retryDelay += 1
+					numRetries += 1
+				} else {
+					if numRetries > 0 {
+						duration := time.Now().Sub(startedAt)
+						err = fmt.Errorf("%s\nGiven up after retrying for %.1f seconds.", err, duration.Seconds())
+					}
+					break
+				}
+			} else {
+				break
+			}
+		}
 
 		if err == nil && editor != nil {
 			defer editor.DeleteFile()
