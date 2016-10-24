@@ -10,7 +10,7 @@ import (
 var (
 	cmdFlow = &Command{
 		Run:   flow,
-		Usage: `flow <type> [<command> <name>]`,
+		Usage: `flow <type> [<command> <name>] [--pull-request] [-a <assignee>[,<assignee>]]`,
 		Long: `Permit to use basic operations like in gitFlow
 
 ## Examples:
@@ -38,8 +38,23 @@ var (
 	}
 
 	cmdFlowFeature = &Command{
-		Key: "feature",
-		Run: flowFeature,
+		Key:   "feature",
+		Run:   flowFeature,
+		Usage: `flow feature <command> <name>`,
+		Long: `Manage feature branch
+
+## Options:
+	--pull-request      Open a pull request to develop branch in GitHub
+
+	-a                  Add assignees to the pull request
+
+## Examples:
+	$ hub flow feature start myFeature
+	[ Start a feature from develop and call it feature/myFeature  ]
+
+	$ hub flow feature finish myFeature
+	[ finish feature myFeature and merge it to develop ]
+`,
 	}
 
 	cmdFlowRelease = &Command{
@@ -80,7 +95,7 @@ func flowFeature(command *Command, args *Args) {
 	words := args.Words()
 
 	if len(words) != 2 {
-		utils.Check(fmt.Errorf("%s", cmdFlow.HelpText()))
+		utils.Check(fmt.Errorf("%s", command.HelpText()))
 	}
 
 	errorMessage := ""
@@ -109,7 +124,7 @@ func flowFeature(command *Command, args *Args) {
 			errorMessage = err.Error()
 		}
 	default:
-		errorMessage = cmdFlow.HelpText()
+		errorMessage = command.HelpText()
 	}
 
 	if errorMessage != "" {
