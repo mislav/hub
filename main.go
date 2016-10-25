@@ -3,9 +3,9 @@ package main
 import (
 	"os"
 
-	"github.com/boris-rea/hub/commands"
-	"github.com/boris-rea/hub/github"
-	"github.com/boris-rea/hub/ui"
+	"github.com/github/hub/commands"
+	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 )
 
 func main() {

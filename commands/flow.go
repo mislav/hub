@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	gitFlow "github.com/boris-rea/hub/flow"
+	gitFlow "github.com/github/hub/flow"
 	"github.com/github/hub/utils"
 )
 

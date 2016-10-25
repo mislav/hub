@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"github.com/boris-rea/hub/version"
 	"github.com/github/hub/ui"
+	"github.com/github/hub/version"
 )
 
 var cmdVersion = &Command{
