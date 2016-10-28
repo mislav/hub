@@ -50,6 +50,9 @@ Before do
   set_env 'LC_ALL', 'en_US.UTF-8'
   # ignore current user's token
   set_env 'GITHUB_TOKEN', nil
+  set_env 'GITHUB_USER', nil
+  set_env 'GITHUB_PASSWORD', nil
+  set_env 'GITHUB_HOST', nil
 
   author_name  = "Hub"
   author_email = "hub@test.local"
@@ -60,6 +63,7 @@ Before do
 
   set_env 'HUB_VERSION', 'dev'
   set_env 'HUB_REPORT_CRASH', 'never'
+  set_env 'HUB_PROTOCOL', nil
 
   FileUtils.mkdir_p ENV['HOME']
 

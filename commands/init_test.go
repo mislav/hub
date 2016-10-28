@@ -12,6 +12,7 @@ import (
 
 func setupInitContext() {
 	os.Setenv("HUB_PROTOCOL", "git")
+	os.Setenv("HUB_CONFIG", "")
 	github.CreateTestConfigs("jingweno", "123")
 }
 
