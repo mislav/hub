@@ -72,12 +72,12 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 
 	host := rawHost(p.Host)
 
-	if preferredProtocol() == "https" {
-		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
+	if preferredProtocol() == "git" {
+		url = fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
 	} else if isSSH || preferredProtocol() == "ssh" {
 		url = fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
 	} else {
-		url = fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
+		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
 	}
 
 	return url
