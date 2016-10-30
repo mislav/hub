@@ -51,6 +51,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	h = c.Find(host)
 	if h != nil {
 		if h.User == "" {
+			utils.Check(newConfigService().CheckWriteable(configsFile()))
 			// User is missing from the config: this is a broken config probably
 			// because it was created with an old (broken) version of hub. Let's fix
 			// it now. See issue #1007 for details.
@@ -79,6 +80,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	client := NewClientWithHost(h)
 
 	if !tokenFromEnv {
+		utils.Check(newConfigService().CheckWriteable(configsFile()))
 		err = c.authorizeClient(client, host)
 		if err != nil {
 			return
