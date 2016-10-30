@@ -332,3 +332,15 @@ Feature: OAuth authentication
     Then the output should contain "github.com username:"
     And the output should contain "missing user"
     And the file "../home/.config/hub" should not contain "user"
+    
+  Scenario: Config file is not writeable, should exit before asking for credentails
+      Given I set the environment variables to:
+      | variable           | value      |
+      | HUB_CONFIG | /InvalidConfigFile |
+      When I run `hub create` interactively
+      Then the output should contain exactly:
+        """
+        open /InvalidConfigFile: permission denied\n
+        """
+      And the exit status should be 1
+    
