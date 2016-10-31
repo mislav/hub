@@ -332,3 +332,24 @@ Feature: OAuth authentication
     Then the output should contain "github.com username:"
     And the output should contain "missing user"
     And the file "../home/.config/hub" should not contain "user"
+    
+  Scenario: Config file is not writeable, should exit before asking for credentials
+      Given $HUB_CONFIG is "/InvalidConfigFile"
+      When I run `hub create` interactively
+      Then the output should contain exactly:
+        """
+        open /InvalidConfigFile: permission denied\n
+        """
+      And the exit status should be 1
+      And the file "../home/.config/hub" should not exist
+      
+  Scenario: Config file is not writeable on default location, should exit before asking for credentials
+      Given a directory named "../home/.config" with mode "600"
+      When I run `hub create` interactively
+      Then the output should contain:
+        """
+        /home/.config/hub: permission denied\n
+        """
+      And the exit status should be 1
+      And the file "../home/.config/hub" should not exist
+    

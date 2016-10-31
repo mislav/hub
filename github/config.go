@@ -51,6 +51,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	h = c.Find(host)
 	if h != nil {
 		if h.User == "" {
+			utils.Check(CheckWriteable(configsFile()))
 			// User is missing from the config: this is a broken config probably
 			// because it was created with an old (broken) version of hub. Let's fix
 			// it now. See issue #1007 for details.
@@ -79,6 +80,7 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	client := NewClientWithHost(h)
 
 	if !tokenFromEnv {
+		utils.Check(CheckWriteable(configsFile()))
 		err = c.authorizeClient(client, host)
 		if err != nil {
 			return
@@ -275,6 +277,38 @@ func (c *Config) DefaultHost() (host *Host, err error) {
 	}
 
 	return
+}
+
+// CheckWriteable checks if config file is writeable. This should
+// be called before asking for credentials and only if current
+// operation needs to update the file. See issue #1314 for details.
+func CheckWriteable(filename string) error {
+	// Check if file exists already. if it doesn't, we will delete it after
+	// checking for writeabilty
+	fileExistsAlready := false
+
+	if _, err := os.Stat(filename); err == nil {
+		fileExistsAlready = true
+	}
+
+	err := os.MkdirAll(filepath.Dir(filename), 0771)
+	if err != nil {
+		return err
+	}
+
+	w, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0600)
+	if err != nil {
+		return err
+	}
+	w.Close()
+
+	if !fileExistsAlready {
+		err := os.Remove(filename)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Public for testing purpose
