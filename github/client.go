@@ -326,6 +326,20 @@ func (client *Client) EditRelease(release *Release, releaseParams map[string]int
 	return
 }
 
+func (client *Client) DeleteRelease(release *Release) (err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Delete(release.ApiUrl)
+	if err = checkStatus(204, "deleting release", res, err); err != nil {
+		return
+	}
+
+	return
+}
+
 func (client *Client) UploadReleaseAsset(release *Release, filename, label string) (asset *ReleaseAsset, err error) {
 	api, err := client.simpleApi()
 	if err != nil {

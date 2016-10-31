@@ -21,6 +21,7 @@ release [--include-drafts]
 release show <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
+release delete <TAG>
 `,
 		Long: `Manage GitHub releases.
 
@@ -49,6 +50,9 @@ With '--include-drafts', include draft releases in the listing.
 
 	* _download_:
 	  Download the assets attached to release for the specified <TAG>.
+
+	* _delete_:
+	  Delete the release and associated assets for the specified <TAG>.
 
 ## Options:
 	-d, --draft
@@ -111,6 +115,11 @@ hub(1), git-tag(1)
 		Run: downloadRelease,
 	}
 
+	cmdDeleteRelase = &Command{
+		Key: "delete",
+		Run: deleteRelease,
+	}
+
 	flagReleaseIncludeDrafts,
 	flagReleaseShowDownloads,
 	flagReleaseDraft,
@@ -153,6 +162,7 @@ func init() {
 	cmdRelease.Use(cmdCreateRelease)
 	cmdRelease.Use(cmdEditRelease)
 	cmdRelease.Use(cmdDownloadRelease)
+	cmdRelease.Use(cmdDeleteRelase)
 	CmdRunner.Use(cmdRelease)
 }
 
@@ -421,6 +431,35 @@ func editRelease(cmd *Command, args *Args) {
 	}
 
 	uploadAssets(gh, release, flagReleaseAssets, args)
+	args.NoForward()
+}
+
+func deleteRelease(cmd *Command, args *Args) {
+	tagName := cmd.Arg(0)
+	if tagName == "" {
+		utils.Check(fmt.Errorf("Missing argument TAG"))
+		return
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.CurrentProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	release, err := gh.FetchRelease(project, tagName)
+	utils.Check(err)
+
+	if args.Noop {
+		message := fmt.Sprintf("Deleting release related to %s...", tagName)
+		ui.Println(message)
+	} else {
+		err = gh.DeleteRelease(release)
+		utils.Check(err)
+	}
+
 	args.NoForward()
 }
 
