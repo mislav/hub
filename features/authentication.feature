@@ -95,7 +95,7 @@ Feature: OAuth authentication
       Duplicate value for "description"
       """
     And the exit status should be 1
-    And the file "../home/.config/hub" should contain ""
+    And the file "../home/.config/hub" should not exist
 
   Scenario: Credentials from GITHUB_USER & GITHUB_PASSWORD
     Given the GitHub API server:
@@ -172,7 +172,7 @@ Feature: OAuth authentication
 
       """
     And the exit status should be 1
-    And the file "../home/.config/hub" should contain ""
+    And the file "../home/.config/hub" should not exist
 
   Scenario: Personal access token used instead of password
     Given the GitHub API server:
@@ -192,7 +192,7 @@ Feature: OAuth authentication
 
       """
     And the exit status should be 1
-    And the file "../home/.config/hub" should contain ""
+    And the file "../home/.config/hub" should not exist
 
   Scenario: Two-factor authentication, create authorization
     Given the GitHub API server:
@@ -333,14 +333,23 @@ Feature: OAuth authentication
     And the output should contain "missing user"
     And the file "../home/.config/hub" should not contain "user"
     
-  Scenario: Config file is not writeable, should exit before asking for credentails
-      Given I set the environment variables to:
-      | variable           | value      |
-      | HUB_CONFIG | /InvalidConfigFile |
+  Scenario: Config file is not writeable, should exit before asking for credentials
+      Given $HUB_CONFIG is "/InvalidConfigFile"
       When I run `hub create` interactively
       Then the output should contain exactly:
         """
         open /InvalidConfigFile: permission denied\n
         """
       And the exit status should be 1
+      And the file "../home/.config/hub" should not exist
+      
+  Scenario: Config file is not writeable on default location, should exit before asking for credentials
+      Given a directory named "../home/.config" with mode "600"
+      When I run `hub create` interactively
+      Then the output should contain:
+        """
+        /home/.config/hub: permission denied\n
+        """
+      And the exit status should be 1
+      And the file "../home/.config/hub" should not exist
     
