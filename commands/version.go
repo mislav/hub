@@ -6,9 +6,10 @@ import (
 )
 
 var cmdVersion = &Command{
-	Run:   runVersion,
-	Usage: "version",
-	Long:  "Shows git version and hub client version.",
+	Run:          runVersion,
+	Usage:        "version",
+	Long:         "Shows git version and hub client version.",
+	GitExtension: true,
 }
 
 func init() {
