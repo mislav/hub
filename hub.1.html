@@ -97,7 +97,7 @@
 <h3 id="Custom-git-commands-">Custom git commands:</h3>
 
 <p><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]<br />
-<code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>|-- [SUBPAGE]]<br />
+<code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
 <code>git compare</code> [<code>-u</code>] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]<br />
 <code>git fork</code> [<code>--no-remote</code>]<br />
 <code>git pull-request</code> [<code>-o</code>|<code>--browse</code>] [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]<br />
@@ -169,12 +169,15 @@ To explicitly name the new repository, pass in <var>NAME</var>, optionally in
 <var>ORGANIZATION</var>/<var>NAME</var> form to create under an organization you're a
 member of. With <code>-p</code>, create a private repository, and with <code>-d</code> and <code>-h</code>
 set the repository's description and homepage URL, respectively.</p></dd>
-<dt><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>|-- [SUBPAGE]]</dt><dd><p>Open repository's GitHub page in the system's default web browser using
+<dt><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser using
 <code>open(1)</code> or the <code>BROWSER</code> env variable. If the repository isn't
 specified, <code>browse</code> opens the page of the repository found in the current
-directory. If SUBPAGE is specified, the browser will open on the specified
+directory.
+If SUBPAGE is specified, the browser will open on the specified
 subpage: one of "wiki", "commits", "issues" or other (the default is
-"tree"). With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
+"tree"). A specific commit in the default repository can be opened with
+<code>git browse -- commit/&lt;COMMIT></code>.
+With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
 <dt><code>git compare</code> [<code>-u</code>] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]</dt><dd><p>Open a GitHub compare view page in the system's default web browser.
 <var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
 the range of history to compare. If a range with two dots (<code>a..b</code>) is given,
@@ -205,11 +208,13 @@ of both hub and GitHub API.</p></dd>
 status. Exits with one of:<br />
 success (0), error (1), failure (1), pending (2), no status (3)</p>
 
-<p>If <code>-v</code> is given, additionally print the URL to CI build results.</p></dd>
+<p>If <code>-v</code> is given, additionally print detailed report of all checks and their URLs.</p></dd>
 </dl>
 
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
+
+<h3 id="GitHub-OAuth-authentication">GitHub OAuth authentication</h3>
 
 <p>Hub will prompt for GitHub username &amp; password the first time it needs to access
 the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</p>
@@ -217,12 +222,27 @@ the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</
 <p>To avoid being prompted, use <var>GITHUB_USER</var> and <var>GITHUB_PASSWORD</var> environment
 variables.</p>
 
+<p>Alternatively, you may provide <var>GITHUB_TOKEN</var>, an access token with
+<var>repo</var> permissions. This will not be written to <code>~/.config/hub</code>.</p>
+
+<h3 id="HTTPS-instead-of-git-protocol">HTTPS instead of git protocol</h3>
+
 <p>If you prefer the HTTPS protocol for GitHub repositories, you can set
 "hub.protocol" to "https". This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code>
 and other operations that expand references to GitHub repositories as full
 URLs that otherwise use git and ssh protocols.</p>
 
-<pre><code>$ git config --global hub.protocol https
+<p>"hub.protocol" only applies when the "OWNER/REPO" shorthand is used instead of
+a full git URL.</p>
+
+<pre><code># default behavior
+$ git clone defunkt/repl
+&lt; git clone >
+
+# opt into HTTPS:
+$ git config --global hub.protocol https
+$ git clone defunkt/repl
+&lt; https clone >
 </code></pre>
 
 <h3 id="GitHub-Enterprise">GitHub Enterprise</h3>
@@ -235,7 +255,7 @@ configure hub to treat such remotes same as github.com:</p>
 </code></pre>
 
 <p>The default host for commands like <code>init</code> and <code>clone</code> is still
-github.com, but this can be affected with the <var>GITHUB_HOST</var> environment
+github.com, but this can be affected with the <code>GITHUB_HOST</code> environment
 variable:</p>
 
 <pre><code>$ GITHUB_HOST=my.git.org git clone myproject
@@ -252,7 +272,7 @@ $ git clone -p schacon/ticgit
 &gt; git clone git@github.com:schacon/ticgit.git
 
 $ git clone resque
-&gt; git clone git@github.com/YOUR_USER/resque.git
+&gt; git clone git@github.com:YOUR_USER/resque.git
 </code></pre>
 
 <h3 id="git-remote-add">git remote add</h3>
@@ -282,11 +302,11 @@ $ git fetch mislav,xoebus
 <h3 id="git-cherry-pick">git cherry-pick</h3>
 
 <pre><code>$ git cherry-pick http://github.com/mislav/REPO/commit/SHA
-&gt; git remote add -f mislav git://github.com/mislav/REPO.git
+&gt; git remote add -f --no-tags mislav git://github.com/mislav/REPO.git
 &gt; git cherry-pick SHA
 
 $ git cherry-pick mislav@SHA
-&gt; git remote add -f mislav git://github.com/mislav/CURRENT_REPO.git
+&gt; git remote add -f --no-tags mislav git://github.com/mislav/CURRENT_REPO.git
 &gt; git cherry-pick SHA
 
 $ git cherry-pick mislav@SHA
@@ -330,7 +350,7 @@ $ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:featur
 <h3 id="git-checkout">git checkout</h3>
 
 <pre><code>$ git checkout https://github.com/defunkt/hub/pull/73
-&gt; git remote add -f -t feature mislav git://github.com/mislav/hub.git
+&gt; git remote add -f --no-tags -t feature mislav git://github.com/mislav/hub.git
 &gt; git checkout --track -B mislav-feature mislav/feature
 
 $ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
@@ -386,6 +406,9 @@ $ git browse -- commit/SHA
 
 $ git browse -- issues
 &gt; open https://github.com/YOUR_USER/CURRENT_REPO/issues
+
+$ git browse -- issues/10
+&gt; open https://github.com/YOUR_USER/CURRENT_REPO/issues/10
 
 $ git browse schacon/ticgit
 &gt; open https://github.com/schacon/ticgit
@@ -459,7 +482,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>December 2014</li>
+    <li class='tc'>November 2016</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
