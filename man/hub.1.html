@@ -222,6 +222,9 @@ the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</
 <p>To avoid being prompted, use <var>GITHUB_USER</var> and <var>GITHUB_PASSWORD</var> environment
 variables.</p>
 
+<p>Alternatively, you may provide <var>GITHUB_TOKEN</var>, an access token with
+<var>repo</var> permissions. This will not be written to <code>~/.config/hub</code>.</p>
+
 <h3 id="HTTPS-instead-of-git-protocol">HTTPS instead of git protocol</h3>
 
 <p>If you prefer the HTTPS protocol for GitHub repositories, you can set
@@ -479,7 +482,7 @@ $ git help hub
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>January 2015</li>
+    <li class='tc'>November 2016</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
