@@ -305,6 +305,7 @@ func LocalBranches() ([]string, error) {
 	if err == nil {
 		for i, line := range lines {
 			lines[i] = strings.TrimPrefix(line, "* ")
+			lines[i] = strings.TrimPrefix(lines[i], "  ")
 		}
 	}
 	return lines, err
@@ -315,8 +316,7 @@ func gitOutput(input ...string) (outputs []string, err error) {
 
 	out, err := cmd.CombinedOutput()
 	for _, line := range strings.Split(out, "\n") {
-		line = strings.TrimSpace(line)
-		if line != "" {
+		if strings.TrimSpace(line) != "" {
 			outputs = append(outputs, string(line))
 		}
 	}
@@ -336,4 +336,21 @@ func gitCmd(args ...string) *cmd.Cmd {
 	}
 
 	return cmd
+}
+
+func IsBuiltInGitCommand(command string) bool {
+	helpCommandOutput, err := gitOutput("help", "-a")
+	if err != nil {
+		return false
+	}
+	for _, helpCommandOutputLine := range helpCommandOutput {
+		if strings.HasPrefix(helpCommandOutputLine, "  ") {
+			for _, gitCommand := range strings.Split(helpCommandOutputLine, " ") {
+				if gitCommand == command {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

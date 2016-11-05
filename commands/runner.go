@@ -90,7 +90,9 @@ func (r *Runner) Execute() ExecError {
 	utils.Check(err)
 
 	git.GlobalFlags = args.GlobalFlags // preserve git global flags
-	expandAlias(args)
+	if !isBuiltInHubCommand(args.Command) {
+		expandAlias(args)
+	}
 
 	cmd := r.Lookup(args.Command)
 	if cmd != nil && cmd.Runnable() {
@@ -163,13 +165,23 @@ func executeCommands(cmds []*cmd.Cmd, execFinal bool) error {
 func expandAlias(args *Args) {
 	cmd := args.Command
 	expandedCmd, err := git.Alias(cmd)
-	if err == nil && expandedCmd != "" {
+
+	if err == nil && expandedCmd != "" && !git.IsBuiltInGitCommand(cmd) {
 		words, e := splitAliasCmd(expandedCmd)
 		if e == nil {
 			args.Command = words[0]
 			args.PrependParams(words[1:]...)
 		}
 	}
+}
+
+func isBuiltInHubCommand(command string) bool {
+	for hubCommand, _ := range CmdRunner.All() {
+		if hubCommand == command {
+			return true
+		}
+	}
+	return false
 }
 
 func splitAliasCmd(cmd string) ([]string, error) {
