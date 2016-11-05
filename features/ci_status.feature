@@ -96,3 +96,11 @@ Feature: hub ci-status
     Given the remote commit state of "git.my.org/michiels/pencilbox" "the_sha" is "success"
     When I successfully run `hub ci-status the_sha`
     Then the output should contain exactly "success\n"
+
+  Scenario: If alias named ci-status exists, it should not be expanded.
+    Given there is a commit named "the_sha"
+    Given the remote commit state of "michiels/pencilbox" "the_sha" is "success"
+    When I successfully run `git config --global alias.ci-status "ci-status -v"`
+    When I run `hub ci-status the_sha`
+    Then the output should contain exactly "success\n"
+    And the exit status should be 0

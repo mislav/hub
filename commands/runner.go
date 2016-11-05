@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
+	"regexp"
 
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
@@ -90,7 +91,11 @@ func (r *Runner) Execute() ExecError {
 	utils.Check(err)
 
 	git.GlobalFlags = args.GlobalFlags // preserve git global flags
-	expandAlias(args)
+
+	// Don't expand built in commands : Issue #1305
+	if !isBuiltInCommand(args.Command) {
+		expandAlias(args)
+	}
 
 	cmd := r.Lookup(args.Command)
 	if cmd != nil && cmd.Runnable() {
@@ -160,6 +165,11 @@ func executeCommands(cmds []*cmd.Cmd, execFinal bool) error {
 	return nil
 }
 
+func isBuiltInCommand(command string) bool {
+	builtInCommands := getListOfBuiltInCommands()
+	return builtInCommands[command]
+}
+
 func expandAlias(args *Args) {
 	cmd := args.Command
 	expandedCmd, err := git.Alias(cmd)
@@ -187,4 +197,27 @@ func splitAliasCmd(cmd string) ([]string, error) {
 	}
 
 	return words, nil
+}
+
+func getListOfBuiltInCommands() map[string]bool {
+	gitHelpOutput, _ := cmd.New("git help -a").CombinedOutput()
+	builtInCommands := parseGitHelpOutput(gitHelpOutput)
+	for hubCommand, _ := range CmdRunner.All() {
+		builtInCommands[hubCommand] = true
+	}
+	return builtInCommands
+}
+
+func parseGitHelpOutput(gitHelpOutput string) map[string]bool {
+	builtInCommands := make(map[string]bool)
+	re := regexp.MustCompile(`(?m)^  ([a-z- 0-9]+)`)
+	for _, commands := range re.FindAllString(gitHelpOutput, -1) {
+		for _, command := range strings.Split(commands, " ") {
+			trimmedCommand := strings.Trim(command, " ")
+			if trimmedCommand != "" {
+				builtInCommands[trimmedCommand] = true
+			}
+		}
+	}
+	return builtInCommands
 }
