@@ -90,9 +90,8 @@ func (r *Runner) Execute() ExecError {
 	utils.Check(err)
 
 	git.GlobalFlags = args.GlobalFlags // preserve git global flags
-
 	expandAlias(args)
-	
+
 	cmd := r.Lookup(args.Command)
 	if cmd != nil && cmd.Runnable() {
 		execErr := r.Call(cmd, args)
