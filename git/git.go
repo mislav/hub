@@ -304,7 +304,8 @@ func LocalBranches() ([]string, error) {
 	lines, err := gitOutput("branch", "--list")
 	if err == nil {
 		for i, line := range lines {
-			lines[i] = strings.TrimPrefix(line, "* ")
+			lines[i] = strings.TrimLeft(line, "* ")
+			lines[i] = strings.TrimLeft(lines[i], " ")
 		}
 	}
 	return lines, err
@@ -315,7 +316,22 @@ func gitOutput(input ...string) (outputs []string, err error) {
 
 	out, err := cmd.CombinedOutput()
 	for _, line := range strings.Split(out, "\n") {
-		line = strings.TrimSpace(line)
+		//line = strings.TrimSpace(line)
+		//fmt.Println("FFF %s", line, strings.TrimSpace(line) != "")
+		if strings.TrimSpace(line) != "" {
+			//fmt.Println("Line %s", line, strings.TrimSpace(line))
+			outputs = append(outputs, string(line))
+		}
+	}
+
+	return outputs, err
+}
+
+func gitOutputWithNoTrim(input ...string) (outputs []string, err error) {
+	cmd := gitCmd(input...)
+
+	out, err := cmd.CombinedOutput()
+	for _, line := range strings.Split(out, "\n") {
 		if line != "" {
 			outputs = append(outputs, string(line))
 		}
@@ -336,4 +352,21 @@ func gitCmd(args ...string) *cmd.Cmd {
 	}
 
 	return cmd
+}
+
+func IsBuiltInGitCommand(command string) bool {
+	helpCommandOutput, err := gitOutput("help", "-a")
+	if err != nil {
+		fmt.Errorf("Unable to run git %s", err)
+	}
+	for _, helpCommandOutputLine := range helpCommandOutput {
+		if strings.HasPrefix(helpCommandOutputLine, "  ") {
+			for _, gitCommand := range strings.Split(helpCommandOutputLine, " ") {
+				if gitCommand == command {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }

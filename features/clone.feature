@@ -286,17 +286,3 @@ Feature: hub clone
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/RTomayko/ronin.git"
     And there should be no output
-
-  Scenario: If alias named clone exists, it should not be expanded.
-      Given the GitHub API server:
-        """
-        get('/repos/rtomayko/ronn') {
-          json :private => false,
-               :name => 'ronn', :owner => { :login => 'rtomayko' },
-               :permissions => { :push => false }
-        }
-        """
-      When I successfully run `git config --global alias.clone "clone -v"`
-      When I successfully run `hub clone rtomayko/ronn`
-      Then it should clone "git://github.com/rtomayko/ronn.git"
-      And there should be no output
