@@ -341,7 +341,7 @@ func gitCmd(args ...string) *cmd.Cmd {
 func IsBuiltInGitCommand(command string) bool {
 	helpCommandOutput, err := gitOutput("help", "-a")
 	if err != nil {
-		fmt.Errorf("Unable to get git commands")
+		return false
 	}
 	for _, helpCommandOutputLine := range helpCommandOutput {
 		if strings.HasPrefix(helpCommandOutputLine, "  ") {
