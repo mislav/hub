@@ -12,12 +12,15 @@ import (
 
 var cmdCiStatus = &Command{
 	Run:   ciStatus,
-	Usage: "ci-status [-v] [<COMMIT>]",
+	Usage: "ci-status [-v] [-R <REMOTE>] [<COMMIT>]",
 	Long: `Display GitHub Status information for a commit.
 
 ## Options:
 	-v
 		Print detailed report of all status checks and their URLs.
+
+	-R <REMOTE>
+		Specify the remote on which to run the command
 
 	<COMMIT>
 		A commit SHA or branch name (default: "HEAD").
@@ -31,9 +34,11 @@ hub-pull-request(1), hub(1)
 }
 
 var flagCiStatusVerbose bool
+var flagCiStatusRemote string
 
 func init() {
 	cmdCiStatus.Flag.BoolVarP(&flagCiStatusVerbose, "verbose", "v", false, "VERBOSE")
+	cmdCiStatus.Flag.StringVarP(&flagCiStatusRemote, "remote", "R", "", "REMOTE")
 
 	CmdRunner.Use(cmdCiStatus)
 }
@@ -47,7 +52,13 @@ func ciStatus(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.MainProject()
+	// If the user specifies a remote, load that project
+	var project *github.Project
+	if flagCiStatusRemote != "" {
+		project, err = localRepo.RemoteProject(flagCiStatusRemote)
+	} else { // Otherwise, load the default
+		project, err = localRepo.MainProject()
+	}
 	utils.Check(err)
 
 	sha, err := git.Ref(ref)
