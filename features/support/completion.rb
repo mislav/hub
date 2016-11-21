@@ -82,7 +82,9 @@ $tmux = nil
 Before('@completion') do
   unless $tmux
     $tmux = %w[tmux -L hub-test]
-    system(*($tmux + %w[new-session -ds hub]))
+    unless system(*($tmux + %w[new-session -ds hub]))
+      raise "creating tmux session failed"
+    end
     at_exit do
       system(*($tmux + %w[kill-server]))
     end
@@ -112,12 +114,17 @@ World Module.new {
   end
 
   def tmux_pane_contents
-    system(*($tmux + ['capture-pane', '-t', tmux_pane]))
-    `#{$tmux.join(' ')} show-buffer`.rstrip
+    if system(*($tmux + ['capture-pane', '-t', tmux_pane]))
+      `#{$tmux.join(' ')} show-buffer`.rstrip
+    else
+      raise "capturing tmux pane contents failed"
+    end
   end
 
   def tmux_send_keys(*keys)
-    system(*($tmux + ['send-keys', '-t', tmux_pane, *keys]))
+    unless system(*($tmux + ['send-keys', '-t', tmux_pane, *keys]))
+      raise "sending keys to tmux pane failed"
+    end
   end
 
   def tmux_send_tab
