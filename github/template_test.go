@@ -1,6 +1,7 @@
 package github
 
 import (
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -20,8 +21,14 @@ func TestGithubTemplate_withoutTemplate(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	assert.Equal(t, "", GetPullRequestTemplate())
-	assert.Equal(t, "", GetIssueTemplate())
+	pwd, _ := os.Getwd()
+	tpl, err := ReadTemplate(PullRequestTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "", tpl)
+
+	tpl, err = ReadTemplate(IssueTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "", tpl)
 }
 
 func TestGithubTemplate_withInvalidTemplate(t *testing.T) {
@@ -30,8 +37,14 @@ func TestGithubTemplate_withInvalidTemplate(t *testing.T) {
 
 	addGithubTemplates(repo, map[string]string{"dir": "invalidPath"})
 
-	assert.Equal(t, "", GetPullRequestTemplate())
-	assert.Equal(t, "", GetIssueTemplate())
+	pwd, _ := os.Getwd()
+	tpl, err := ReadTemplate(PullRequestTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "", tpl)
+
+	tpl, err = ReadTemplate(IssueTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "", tpl)
 }
 
 func TestGithubTemplate_WithMarkdown(t *testing.T) {
@@ -40,12 +53,18 @@ func TestGithubTemplate_WithMarkdown(t *testing.T) {
 
 	addGithubTemplates(repo,
 		map[string]string{
-			"prTemplate":    pullRequestTemplate + ".md",
-			"issueTemplate": issueTemplate + ".md",
+			"prTemplate":    PullRequestTemplate + ".md",
+			"issueTemplate": IssueTemplate + ".md",
 		})
 
-	assert.Equal(t, prContent, GetPullRequestTemplate())
-	assert.Equal(t, issueContent, GetIssueTemplate())
+	pwd, _ := os.Getwd()
+	tpl, err := ReadTemplate(PullRequestTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, prContent, tpl)
+
+	tpl, err = ReadTemplate(IssueTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, issueContent, tpl)
 }
 
 func TestGithubTemplate_WithTemplateInHome(t *testing.T) {
@@ -54,8 +73,14 @@ func TestGithubTemplate_WithTemplateInHome(t *testing.T) {
 
 	addGithubTemplates(repo, map[string]string{})
 
-	assert.Equal(t, prContent, GetPullRequestTemplate())
-	assert.Equal(t, issueContent, GetIssueTemplate())
+	pwd, _ := os.Getwd()
+	tpl, err := ReadTemplate(PullRequestTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, prContent, tpl)
+
+	tpl, err = ReadTemplate(IssueTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, issueContent, tpl)
 }
 
 func TestGithubTemplate_WithTemplateInGithubDir(t *testing.T) {
@@ -64,8 +89,14 @@ func TestGithubTemplate_WithTemplateInGithubDir(t *testing.T) {
 
 	addGithubTemplates(repo, map[string]string{"dir": githubTemplateDir})
 
-	assert.Equal(t, prContent, GetPullRequestTemplate())
-	assert.Equal(t, issueContent, GetIssueTemplate())
+	pwd, _ := os.Getwd()
+	tpl, err := ReadTemplate(PullRequestTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, prContent, tpl)
+
+	tpl, err = ReadTemplate(IssueTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, issueContent, tpl)
 }
 
 func TestGithubTemplate_WithTemplateInGithubDirAndMarkdown(t *testing.T) {
@@ -74,13 +105,19 @@ func TestGithubTemplate_WithTemplateInGithubDirAndMarkdown(t *testing.T) {
 
 	addGithubTemplates(repo,
 		map[string]string{
-			"prTemplate":    pullRequestTemplate + ".md",
-			"issueTemplate": issueTemplate + ".md",
+			"prTemplate":    PullRequestTemplate + ".md",
+			"issueTemplate": IssueTemplate + ".md",
 			"dir":           githubTemplateDir,
 		})
 
-	assert.Equal(t, prContent, GetPullRequestTemplate())
-	assert.Equal(t, issueContent, GetIssueTemplate())
+	pwd, _ := os.Getwd()
+	tpl, err := ReadTemplate(PullRequestTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, prContent, tpl)
+
+	tpl, err = ReadTemplate(IssueTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, issueContent, tpl)
 }
 
 func addGithubTemplates(r *fixtures.TestRepo, config map[string]string) {
@@ -89,12 +126,12 @@ func addGithubTemplates(r *fixtures.TestRepo, config map[string]string) {
 		repoDir = filepath.Join(repoDir, dir)
 	}
 
-	prTemplatePath := filepath.Join(repoDir, pullRequestTemplate)
+	prTemplatePath := filepath.Join(repoDir, PullRequestTemplate)
 	if prTmplPath := config["prTemplate"]; prTmplPath != "" {
 		prTemplatePath = filepath.Join(repoDir, prTmplPath)
 	}
 
-	issueTemplatePath := filepath.Join(repoDir, issueTemplate)
+	issueTemplatePath := filepath.Join(repoDir, IssueTemplate)
 	if issueTmplPath := config["issueTemplate"]; issueTmplPath != "" {
 		issueTemplatePath = filepath.Join(repoDir, issueTmplPath)
 	}

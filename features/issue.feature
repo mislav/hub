@@ -274,3 +274,83 @@ Feature: hub issue
       """
       https://github.com/github/hub/issues/1337\n
       """
+
+  Scenario: Issue template
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      hello
+      """
+    And a file named "issue_template.md" with:
+      """
+      my nice issue template
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        assert :title => "hello",
+               :body => "my nice issue template"
+
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Issue template from a subdirectory
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      hello
+      """
+    And a file named ".github/issue_template.md" with:
+      """
+      my nice issue template
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        assert :title => "hello",
+               :body => "my nice issue template"
+
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    Given a directory named "subdir"
+    When I cd to "subdir"
+    And I successfully run `hub issue create`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: A file named ".github"
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      hello
+      """
+    And a file named ".github" with:
+      """
+      this is ignored
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        assert :title => "hello",
+               :body => ""
+
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """

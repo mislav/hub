@@ -370,7 +370,11 @@ func createIssue(cmd *Command, args *Args) {
 # text is the title and the rest is the description.
 `, project), "#", cs, -1)
 
-		if template := github.GetIssueTemplate(); template != "" {
+		workdir, err := git.WorkdirName()
+		utils.Check(err)
+		template, err := github.ReadTemplate(github.IssueTemplate, workdir)
+		utils.Check(err)
+		if template != "" {
 			message = template + "\n" + message
 		}
 

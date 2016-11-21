@@ -359,7 +359,14 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		}
 	}
 
-	if template := github.GetPullRequestTemplate(); template != "" {
+	workdir, err := git.WorkdirName()
+	if err != nil {
+		return "", err
+	}
+	template, err := github.ReadTemplate(github.PullRequestTemplate, workdir)
+	if err != nil {
+		return "", err
+	} else if template != "" {
 		if defaultMsg == "" {
 			defaultMsg = "\n\n" + template
 		} else {

@@ -2,54 +2,35 @@ package github
 
 import (
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/github/hub/utils"
 )
 
 const (
-	pullRequestTemplate = "pull_request_template"
-	issueTemplate       = "issue_template"
+	PullRequestTemplate = "pull_request_template"
+	IssueTemplate       = "issue_template"
 	githubTemplateDir   = ".github"
 )
 
-func GetPullRequestTemplate() string {
-	return getGithubTemplate(pullRequestTemplate)
-}
+func ReadTemplate(kind, workdir string) (body string, err error) {
+	templateDir := filepath.Join(workdir, githubTemplateDir)
 
-func GetIssueTemplate() string {
-	return getGithubTemplate(issueTemplate)
-}
-
-func getGithubTemplate(pat string) (body string) {
-	var path string
-
-	if _, err := os.Stat(githubTemplateDir); err == nil {
-		if p := getFilePath(githubTemplateDir, pat); p != "" {
-			path = p
-		}
+	path, err := getFilePath(templateDir, kind)
+	if err != nil || path == "" {
+		path, err = getFilePath(workdir, kind)
 	}
 
-	if path == "" {
-		if p := getFilePath(".", pat); p != "" {
-			path = p
-		}
+	if path != "" {
+		body, err = readContentsFromFile(path)
 	}
-
-	if path == "" {
-		return
-	}
-
-	body, err := readContentsFromFile(path)
-	utils.Check(err)
 	return
 }
 
-func getFilePath(dir, pattern string) string {
+func getFilePath(dir, pattern string) (found string, err error) {
 	files, err := ioutil.ReadDir(dir)
-	utils.Check(err)
+	if err != nil {
+		return
+	}
 
 	for _, file := range files {
 		fileName := file.Name()
@@ -64,10 +45,11 @@ func getFilePath(dir, pattern string) string {
 		path = strings.ToLower(path)
 
 		if ok, _ := filepath.Match(pattern, path); ok {
-			return filepath.Join(dir, fileName)
+			found = filepath.Join(dir, fileName)
+			return
 		}
 	}
-	return ""
+	return
 }
 
 func readContentsFromFile(filename string) (contents string, err error) {
