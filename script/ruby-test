@@ -36,4 +36,6 @@ fi
 run cucumber -p "$profile"
 check_warnings
 
+ls -t | grep ^tmux-server | head -1 | xargs cat
+
 exit $STATUS

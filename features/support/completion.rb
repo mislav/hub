@@ -82,7 +82,7 @@ $tmux = nil
 Before('@completion') do
   unless $tmux
     $tmux = %w[tmux -L hub-test]
-    unless system(*($tmux + %w[new-session -ds hub]))
+    unless system(*($tmux + %w[-v new-session -ds hub]))
       raise "creating tmux session failed"
     end
     at_exit do
