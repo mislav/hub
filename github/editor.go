@@ -114,7 +114,12 @@ func openTextEditor(program, file string) error {
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(program) {
 		editCmd.WithArg("-c")
-		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
+		editCmd.WithArg("set ft=markdown tw=0 wrap lbr | " +
+			"syn match gitcommitComment \"^#.*\" | " +
+			"syn match gitcommitFirstLine \"\\%^[^#].*\"  nextgroup=gitcommitBlank skipnl | " +
+			"syn match gitcommitSummary \"^.\\{0,50\\}\" contained containedin=gitcommitFirstLine nextgroup=gitcommitOverflow contains=@Spell | " +
+			"syn match gitcommitOverflow \".*\" contained contains=@Spell | " +
+			"syn match gitcommitBlank \"^[^#].*\" contained contains=@Spell")
 	}
 	editCmd.WithArg(file)
 
