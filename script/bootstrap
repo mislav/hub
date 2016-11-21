@@ -1,19 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-if [ -n "$TRAVIS" ] && [ ! -x ~/bin/tmux ]; then
-  case "$TRAVIS_OS_NAME" in
-    linux ) cache_name="tmux-zsh.ubuntu" ;;
-    osx ) cache_name="tmux.osx" ;;
-    * )
-      echo "unknown OS: $TRAVIS_OS_NAME" >&2
-      exit 1
-      ;;
-  esac
-
-  curl -fsSL "https://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${cache_name}.tgz" | tar -xz -C ~
-fi
-
 STATUS=0
 
 if ! go version; then
