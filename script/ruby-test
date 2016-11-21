@@ -25,9 +25,10 @@ if tmux -V; then
     git --version
     bash --version | head -1
     zsh --version
+    echo "tty: $(tty), TERM: ${TERM:-none}"
     echo
   fi
-  profile="all"
+  profile="completion"
 else
   echo "warning: skipping shell completion tests (install tmux to enable)" >&2
   profile="default"
