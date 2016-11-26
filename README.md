@@ -97,6 +97,11 @@ complement existing completion scripts that ship with git.
 * [hub bash completion](https://github.com/github/hub/blob/master/etc/hub.bash_completion.sh)
 * [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
 
+### GitHub tokens
+
+hub uses a GitHub token. It places one in `~/.config/hub`. If you have a GITHUB_TOKEN variable
+declared elsewhere in your environment, you may run into unexpected issues.
+
 Meta
 ----
 
