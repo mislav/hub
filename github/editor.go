@@ -113,7 +113,7 @@ func openTextEditor(program, file string) error {
 	editCmd := cmd.New(program)
 	r := regexp.MustCompile("[mg]?vi[m]$")
 	if r.MatchString(program) {
-		editCmd.WithArg("-c")
+		editCmd.WithArg("--cmd")
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}
 	editCmd.WithArg(file)
