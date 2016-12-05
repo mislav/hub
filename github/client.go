@@ -535,23 +535,6 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
-func (client *Client) GhLatestTagName() (tagName string, err error) {
-	releases, err := client.FetchReleases(&Project{Owner: "jingweno", Name: "gh"})
-	if err != nil {
-		err = FormatError("getting gh releases", err)
-		return
-	}
-
-	if len(releases) == 0 {
-		err = fmt.Errorf("No gh release is available")
-		return
-	}
-
-	tagName = releases[0].TagName
-
-	return
-}
-
 func (client *Client) CurrentUser() (user *octokit.User, err error) {
 	url, err := octokit.CurrentUserURL.Expand(nil)
 	if err != nil {

@@ -10,7 +10,6 @@ import (
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
 	"github.com/kballard/go-shellquote"
 	flag "github.com/ogier/pflag"
 )
@@ -85,10 +84,6 @@ func (r *Runner) Execute() ExecError {
 		forceFail = true
 	}
 
-	updater := NewUpdater()
-	err := updater.PromptForUpdate()
-	utils.Check(err)
-
 	git.GlobalFlags = args.GlobalFlags // preserve git global flags
 	if !isBuiltInHubCommand(args.Command) {
 		expandAlias(args)
@@ -106,7 +101,7 @@ func (r *Runner) Execute() ExecError {
 	gitArgs := []string{args.Command}
 	gitArgs = append(gitArgs, args.Params...)
 
-	err = git.Run(gitArgs...)
+	err := git.Run(gitArgs...)
 	return newExecError(err)
 }
 
