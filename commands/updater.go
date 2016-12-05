@@ -130,11 +130,16 @@ func (updater *Updater) updateTo(releaseName, version string) (err error) {
 		return
 	}
 
-	err, _ = goupdate.New().FromFile(exec)
+	var f io.Reader
+	f, err = os.Open(exec)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	err = goupdate.Apply(f, goupdate.Options{})
 	if err == nil {
 		ui.Println("Done!")
 	}
-
 	return
 }
 
