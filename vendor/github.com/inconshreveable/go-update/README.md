@@ -1,22 +1,35 @@
-# go-update: Automatically update Go programs from the internet
+# go-update: Build self-updating Go programs [![godoc reference](https://godoc.org/github.com/inconshreveable/go-update?status.png)](https://godoc.org/github.com/inconshreveable/go-update)
 
-go-update allows a program to update itself by replacing its executable file
-with a new version. It provides the flexibility to implement different updating user experiences
+Package update provides functionality to implement secure, self-updating Go programs (or other single-file targets)
+A program can update itself by replacing its executable file with a new version.
+
+It provides the flexibility to implement different updating user experiences
 like auto-updating, or manual user-initiated updates. It also boasts
 advanced features like binary patching and code signing verification.
 
-Updating your program to a new version is as easy as:
+Example of updating from a URL:
 
-	err, errRecover := update.New().FromUrl("http://release.example.com/2.0/myprogram")
-	if err != nil {
-		fmt.Printf("Update failed: %v\n", err)
-	}
+```go
+import (
+    "fmt"
+    "net/http"
 
-## Documentation and API Reference
+    "github.com/inconshreveable/go-update"
+)
 
-Comprehensive API documentation and code examples are available in the code documentation available on godoc.org:
-
-[![GoDoc](https://godoc.org/github.com/inconshreveable/go-update?status.svg)](https://godoc.org/github.com/inconshreveable/go-update)
+func doUpdate(url string) error {
+    resp, err := http.Get(url)
+    if err != nil {
+        return err
+    }
+    defer resp.Body.Close()
+    err := update.Apply(resp.Body, update.Options{})
+    if err != nil {
+        // error handling
+    }
+    return err
+}
+```
 
 ## Features
 
@@ -27,11 +40,26 @@ Comprehensive API documentation and code examples are available in the code docu
 - Support for updating arbitrary files
 
 ## [equinox.io](https://equinox.io)
-go-update provides the primitives for building self-updating applications, but there a number of other challenges
-involved in a complete updating solution such as hosting, code signing, update channels, gradual rollout,
-dynamically computing binary patches, tracking update metrics like versions and failures, plus more.
+[equinox.io](https://equinox.io) is a complete ready-to-go updating solution built on top of go-update that provides:
 
-I provide this service, a complete solution, free for open source projects, at [equinox.io](https://equinox.io).
+- Hosted updates
+- Update channels (stable, beta, nightly, ...)
+- Dynamically computed binary diffs
+- Automatic key generation and code
+- Release tooling with proper code signing
+- Update/download metrics
+
+## API Compatibility Promises
+The master branch of `go-update` is *not* guaranteed to have a stable API over time. For any production application, you should vendor
+your dependency on `go-update` with a tool like git submodules, [gb](http://getgb.io/) or [govendor](https://github.com/kardianos/govendor).
+
+The `go-update` package makes the following promises about API compatibility:
+1. A list of all API-breaking changes will be documented in this README.
+1. `go-update` will strive for as few API-breaking changes as possible.
+
+## API Breaking Changes
+- **Sept 3, 2015**: The `Options` struct passed to `Apply` was changed to be passed by value instead of passed by pointer. Old API at `28de026`.
+- **Aug 9, 2015**: 2.0 API. Old API at `221d034` or `gopkg.in/inconshreveable/go-update.v0`.
 
 ## License
 Apache
