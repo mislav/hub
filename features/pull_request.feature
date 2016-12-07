@@ -841,7 +841,7 @@ BODY
     Given I make a commit with message "The commit I never pushed"
     When I successfully run `hub pull-request -p`
     Then the output should contain exactly "the://url\n"
-    And "git push origin HEAD:topic" should be run
+    And "git push --set-upstream origin HEAD:topic" should be run
 
   Scenario: Text editor fails with --push
     Given the text editor exits with error status
@@ -853,7 +853,7 @@ BODY
     Then the stderr should contain "error using text editor for pull request message"
     And the exit status should be 1
     And the file ".git/PULLREQ_EDITMSG" should not exist
-    And "git push origin HEAD:topic" should not be run
+    And "git push --set-upstream origin HEAD:topic" should not be run
 
   Scenario: Automatically retry when --push resulted in 422
     Given The default aruba timeout is 7 seconds
