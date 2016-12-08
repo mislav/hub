@@ -20,7 +20,7 @@ check_warnings() {
   fi
 }
 
-if tmux -V; then
+if [ -z "$TRAVIS" ] && tmux -V; then
   if [ -n "$CI" ]; then
     git --version
     bash --version | head -1
