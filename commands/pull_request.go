@@ -247,7 +247,7 @@ func pullRequest(cmd *Command, args *Args) {
 		if args.Noop {
 			args.Before(fmt.Sprintf("Would push to %s/%s", remote.Name, head), "")
 		} else {
-			err = git.Spawn("push", remote.Name, fmt.Sprintf("HEAD:%s", head))
+			err = git.Spawn("push", "--set-upstream", remote.Name, fmt.Sprintf("HEAD:%s", head))
 			utils.Check(err)
 		}
 	}
