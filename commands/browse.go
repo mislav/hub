@@ -11,12 +11,15 @@ import (
 
 var cmdBrowse = &Command{
 	Run:   browse,
-	Usage: "browse [-u] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]",
+	Usage: "browse [-uc] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]",
 	Long: `Open a GitHub repository in a web browser.
 
 ## Options:
 	-u
 		Print the URL instead of opening it.
+
+	-c
+		Put the URL in clipboard instead of opening it.
 	
 	[<USER>/]<REPOSITORY>
 		Defaults to repository in the current working directory.
@@ -44,11 +47,13 @@ hub-compare(1), hub(1)
 }
 
 var (
-	flagBrowseURLOnly bool
+	flagBrowseURLPrint,
+	flagBrowseURLCopy bool
 )
 
 func init() {
-	cmdBrowse.Flag.BoolVarP(&flagBrowseURLOnly, "url-only", "u", false, "URL")
+	cmdBrowse.Flag.BoolVarP(&flagBrowseURLPrint, "url-only", "u", false, "URL")
+	cmdBrowse.Flag.BoolVarP(&flagBrowseURLCopy, "copy-only", "c", false, "COPY")
 
 	CmdRunner.Use(cmdBrowse)
 }
@@ -125,7 +130,7 @@ func browse(command *Command, args *Args) {
 	pageUrl := project.WebURL("", "", path)
 
 	args.NoForward()
-	printBrowseOrCopy(args, pageUrl, !flagBrowseURLOnly, false)
+	printBrowseOrCopy(args, pageUrl, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
 }
 
 func branchInURL(branch *github.Branch) string {
