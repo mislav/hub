@@ -5,7 +5,7 @@ Feature: hub browse
   Scenario: No repo
     When I run `hub browse`
     Then the exit status should be 1
-    Then the output should contain exactly "Usage: hub browse [-u] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]\n"
+    Then the output should contain exactly "Usage: hub browse [-u] [-b|--branch] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]\n"
 
   Scenario: Project with owner
     When I successfully run `hub browse mislav/dotfiles`
@@ -77,6 +77,20 @@ Feature: hub browse
     And git "push.default" is set to "simple"
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles/tree/feature" should be run
+
+  Scenario: Explicit project overrides current branch.
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And git "push.default" is set to "upstream"
+    And I am on the "feature" branch with upstream "origin/experimental"
+    When I successfully run `hub browse pcorpet/dotfiles`
+    Then "open https://github.com/pcorpet/dotfiles" should be run
+
+  Scenario: Current branch with --branch=false
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And git "push.default" is set to "upstream"
+    And I am on the "feature" branch with upstream "origin/experimental"
+    When I successfully run `hub browse --branch=false`
+    Then "open https://github.com/mislav/dotfiles" should be run
 
   Scenario: Default branch
     Given I am in "git://github.com/mislav/dotfiles.git" git repo

@@ -11,10 +11,14 @@ import (
 
 var cmdBrowse = &Command{
 	Run:   browse,
-	Usage: "browse [-u] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]",
+	Usage: "browse [-u] [-b|--branch] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]",
 	Long: `Open a GitHub repository in a web browser.
 
 ## Options:
+	-b|--branch
+		Opens the current branch instead of the main repository. This flag is
+		ignored when using an explicit repository. (default: true).
+
 	-u
 		Print the URL instead of opening it.
 	
@@ -45,10 +49,12 @@ hub-compare(1), hub(1)
 
 var (
 	flagBrowseURLOnly bool
+	flagOpenBranch    bool
 )
 
 func init() {
 	cmdBrowse.Flag.BoolVarP(&flagBrowseURLOnly, "url-only", "u", false, "URL")
+	cmdBrowse.Flag.BoolVarP(&flagOpenBranch, "branch", "b", true, "Opens the current branch instead of the default branch.")
 
 	CmdRunner.Use(cmdBrowse)
 }
@@ -102,7 +108,7 @@ func browse(command *Command, args *Args) {
 		}
 
 		branch, project, _ = localRepo.RemoteBranchAndProject(owner, currentBranch.IsMaster())
-		if branch == nil {
+		if branch == nil || !flagOpenBranch {
 			branch = localRepo.MasterBranch()
 		}
 	}
