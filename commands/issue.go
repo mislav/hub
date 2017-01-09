@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]]
+issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]]
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
