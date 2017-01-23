@@ -96,6 +96,7 @@ complement existing completion scripts that ship with git.
 
 * [hub bash completion](https://github.com/github/hub/blob/master/etc/hub.bash_completion.sh)
 * [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
+* [hub fish completion](https://github.com/github/hub/blob/master/etc/hub.fish_completion)
 
 Meta
 ----
