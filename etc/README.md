@@ -25,7 +25,7 @@ mkdir -p ~/.zsh/completions
 Copy the file `/etc/hub.zsh_completion` from the location where you downloaded `hub` to the folder `~/.zsh/completions/` and rename it to `_hub`:
 
 ```sh
-cp /path/to/etc/hub.zsh_completion ~/.zsh/completions/ \
+cp /path/to/etc/hub.zsh_completion ~/.zsh/completions/ && \
     mv ~/.zsh/completions/hub.zsh_completion ~/.zsh/completions/_hub
 ```
 
