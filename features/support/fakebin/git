@@ -4,7 +4,7 @@
 # asserted that they ran.
 
 command="$1"
-[ "$command" = "config" ] || echo git "$@" >> "$HOME"/.history
+[ "$command" = "config" -a "${#@}" -le 2 ] || echo git "$@" >> "$HOME"/.history
 
 case "$command" in
   "clone" | "fetch" | "pull" | "push" )

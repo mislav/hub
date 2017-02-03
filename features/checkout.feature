@@ -25,11 +25,13 @@ Feature: hub checkout <PULLREQ-URL>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }
+        }, :maintainer_can_modify => false
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
+    And "git config branch.mislav-fixes.remote origin" should be run
+    And "git config branch.mislav-fixes.merge refs/pull/77/head" should be run
     And "git checkout -f mislav-fixes -q" should be run
 
   Scenario: No matching remotes for pull request base
@@ -68,11 +70,13 @@ Feature: hub checkout <PULLREQ-URL>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }
+        }, :maintainer_can_modify => false
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 fixes-from-mislav`
     Then "git fetch origin refs/pull/77/head:fixes-from-mislav" should be run
+    And "git config branch.fixes-from-mislav.remote origin" should be run
+    And "git config branch.fixes-from-mislav.merge refs/pull/77/head" should be run
     And "git checkout fixes-from-mislav" should be run
 
   Scenario: Same-repo
@@ -139,6 +143,8 @@ Feature: hub checkout <PULLREQ-URL>
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
     Then "git fetch origin refs/pull/77/head:pr-77" should be run
+    And "git config branch.pr-77.remote origin" should be run
+    And "git config branch.pr-77.merge refs/pull/77/head" should be run
     And "git checkout pr-77" should be run
 
   Scenario: Reuse existing remote for head branch
@@ -192,3 +198,31 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
     And "git checkout -f fixes -q" should be run
     And "git merge --ff-only refs/remotes/mislav/fixes" should be run
+
+  Scenario: Modifiable fork
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
+        json :head => {
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :ssh_url => "git@github.com:mislav/jekyll.git",
+            :private => false
+          },
+        }, :base => {
+          :repo => {
+            :name => 'jekyll',
+            :html_url => 'https://github.com/mojombo/jekyll',
+            :owner => { :login => "mojombo" },
+          }
+        }, :maintainer_can_modify => true
+      }
+      """
+    When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
+    Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
+    And "git config branch.mislav-fixes.remote git@github.com:mislav/jekyll.git" should be run
+    And "git config branch.mislav-fixes.merge refs/heads/fixes" should be run
+    And "git checkout -f mislav-fixes -q" should be run

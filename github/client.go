@@ -91,12 +91,13 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 }
 
 type PullRequest struct {
-	ApiUrl  string           `json:"url"`
-	Number  int              `json:"number"`
-	HtmlUrl string           `json:"html_url"`
-	Title   string           `json:"title"`
-	Head    *PullRequestSpec `json:"head"`
-	Base    *PullRequestSpec `json:"base"`
+	ApiUrl    	    string           `json:"url"`
+	Number    	    int              `json:"number"`
+	HtmlUrl   	    string           `json:"html_url"`
+	Title     	    string           `json:"title"`
+	MaintainerCanModify bool             `json:"maintainer_can_modify"`
+	Head      	    *PullRequestSpec `json:"head"`
+	Base      	    *PullRequestSpec `json:"base"`
 }
 
 type PullRequestSpec struct {
@@ -410,6 +411,7 @@ type Repository struct {
 	Private     bool                   `json:"private"`
 	Permissions *RepositoryPermissions `json:"permissions"`
 	HtmlUrl     string                 `json:"html_url"`
+	SshUrl      string                 `json:"ssh_url"`
 }
 
 type RepositoryPermissions struct {
