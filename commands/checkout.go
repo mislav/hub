@@ -127,7 +127,12 @@ func transformCheckoutArgs(args *Args) error {
 		remote := baseRemote.Name
 		mergeRef := ref
 		if pullRequest.MaintainerCanModify && pullRequest.Head.Repo != nil {
-			remote = pullRequest.Head.Repo.SshUrl
+			project, err := github.NewProjectFromRepo(pullRequest.Head.Repo)
+			if err != nil {
+				return err
+			}
+
+			remote = project.GitURL("", "", true)
 			mergeRef = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
 		}
 		args.Before("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)

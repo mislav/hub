@@ -411,7 +411,6 @@ type Repository struct {
 	Private     bool                   `json:"private"`
 	Permissions *RepositoryPermissions `json:"permissions"`
 	HtmlUrl     string                 `json:"html_url"`
-	SshUrl      string                 `json:"ssh_url"`
 }
 
 type RepositoryPermissions struct {
