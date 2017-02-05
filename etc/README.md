@@ -38,9 +38,10 @@ autoload -U compinit && compinit
 
 ## fish
 
-Copy the file `/etc/hub.fish_completion` from the location where you downloaded `hub` to the folder `~/.config/fish/completions/` and rename it to `hub.fish`:
+Copy the file `/etc/hub.fish_completion` from the location where you downloaded
+`hub` to the folder `~/.config/fish/completions/` and rename it to `hub.fish`:
 
 ```sh
-cp /path/to/etc/hub.fish_completion ~/.config/fish/completions/
-mv ~/.config/fish/completions/hub.fish_completion ~/.config/fish/completions/hub.fish
+mkdir -p ~/.config/fish/completions
+cp /path/to/etc/hub.fish_completion ~/.config/fish/completions/hub.fish
 ```
