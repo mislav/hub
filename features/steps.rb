@@ -208,6 +208,14 @@ Then(/^the "([^"]*)" submodule url should be "([^"]*)"$/) do |name, url|
   expect(found).to eql(url)
 end
 
+Then(/^"([^"]*)" should merge "([^"]*)" from remote "([^"]*)"$/) do |name, merge, remote|
+  actual_remote = run_silent %(git config --get-all branch.#{name}.remote)
+  expect(remote).to eql(actual_remote)
+
+  actual_merge = run_silent %(git config --get-all branch.#{name}.merge)
+  expect(merge).to eql(actual_merge)
+end
+
 Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
   remotes = run_silent('git remote').split("\n")
   expect(remotes).to_not include(remote_name)

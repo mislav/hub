@@ -119,9 +119,24 @@ func transformCheckoutArgs(args *Args) error {
 				newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
 			}
 		}
-		refSpec := fmt.Sprintf("refs/pull/%s/head:%s", id, newBranchName)
 		newArgs = append(newArgs, newBranchName)
-		args.Before("git", "fetch", baseRemote.Name, refSpec)
+
+		ref := fmt.Sprintf("refs/pull/%s/head", id)
+		args.Before("git", "fetch", baseRemote.Name, fmt.Sprintf("%s:%s", ref, newBranchName))
+
+		remote := baseRemote.Name
+		mergeRef := ref
+		if pullRequest.MaintainerCanModify && pullRequest.Head.Repo != nil {
+			project, err := github.NewProjectFromRepo(pullRequest.Head.Repo)
+			if err != nil {
+				return err
+			}
+
+			remote = project.GitURL("", "", true)
+			mergeRef = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
+		}
+		args.Before("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
+		args.Before("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
 	}
 	replaceCheckoutParam(args, checkoutURL, newArgs...)
 	return nil
