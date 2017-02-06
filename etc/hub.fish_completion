@@ -33,10 +33,9 @@ complete -f -c hub -n ' __fish_hub_using_command pull-request' -s F -d "Read the
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s o -d "Open the new pull request in a web browser"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -l browse -d "Open the new pull request in a web browser"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s p -d "Push the current branch to <HEAD> before creating the pull request"
-complete -f -c hub -n ' __fish_hub_using_command pull-request' -s b -d 'The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch (usually "master")'
-complete -f -c hub -n ' __fish_hub_using_command pull-request' -s h -d 'The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch'
-complete -f -c hub -n ' __fish_hub_using_command pull-request' -s a -d 'The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch'
-complete -f -c hub -n ' __fish_hub_using_command pull-request' -s i -d 'A comma-separated list of GitHub handles to assign to this pull request'
+complete -f -c hub -n ' __fish_hub_using_command pull-request' -s b -d 'The base branch in "[OWNER:]BRANCH" format'
+complete -f -c hub -n ' __fish_hub_using_command pull-request' -s h -d 'The head branch in "[OWNER:]BRANCH" format'
+complete -f -c hub -n ' __fish_hub_using_command pull-request' -s a -d 'A comma-separated list of GitHub handles to assign to this pull request'
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s M -d "Add this pull request to a GitHub milestone with id <ID>"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s l -d "Add a comma-separated list of labels to this pull request"
 # fork
@@ -44,10 +43,11 @@ complete -f -c hub -n ' __fish_hub_using_command fork' -l no-remote -d "Skip add
 # browse
 complete -f -c hub -n ' __fish_hub_using_command browse' -s u -d "Print the URL instead of opening it"
 complete -f -c hub -n ' __fish_hub_using_command browse' -s c -d "Put the URL in clipboard instead of opening it"
-complete -f -c hub -n ' __fish_hub_using_command browse' -a '-- wiki' -d 'wiki'
 complete -f -c hub -n ' __fish_hub_using_command browse' -a '-- commits' -d 'commits'
 complete -f -c hub -n ' __fish_hub_using_command browse' -a '-- contributors' -d 'contributors'
-complete -f -c hub -n ' __fish_hub_using_command compare' -s u -d 'Print the URL instead of opening it'
+complete -f -c hub -n ' __fish_hub_using_command browse' -a '-- issues' -d 'issues'
+complete -f -c hub -n ' __fish_hub_using_command browse' -a '-- pulls' -d 'pull requests'
+complete -f -c hub -n ' __fish_hub_using_command browse' -a '-- wiki' -d 'wiki'
 # compare
 complete -f -c hub -n ' __fish_hub_using_command compare' -s u -d 'Print the URL instead of opening it'
 # create
