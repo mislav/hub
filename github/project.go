@@ -103,6 +103,16 @@ func preferredProtocol() string {
 	return userProtocol
 }
 
+func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
+	url, err := url.Parse(repo.HtmlUrl)
+	if err != nil {
+		return
+	}
+
+	p, err = NewProjectFromURL(url)
+	return
+}
+
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	if !knownGitHubHostsInclude(url.Host) {
 		err = &GithubHostError{url}
