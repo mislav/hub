@@ -1,0 +1,61 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "h6/xjRf6jVyC+3bPGsk8RFHHlbA=",
+			"path": "github.com/github/hub",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "3S+B+Bi6ZNGo1OS6pzFDhBidDSw=",
+			"path": "github.com/github/hub/cmd",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "qjrSgYoFf2tif/FszMKXczq23P8=",
+			"path": "github.com/github/hub/commands",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "CplSOLxnjRvfIz+aCDsVFd0tTvs=",
+			"path": "github.com/github/hub/git",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "C3Yjp11mh4bB7tvkGlRU7MFxvGw=",
+			"path": "github.com/github/hub/github",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "/6lCIIoreBTZ3UhMmxfRK9ZqLR8=",
+			"path": "github.com/github/hub/ui",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "PbtSd6Gvu9N1a1xWlTcVQtkNaDo=",
+			"path": "github.com/github/hub/utils",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "8ej42umJ+w2tmyQRAglwAWsR+ss=",
+			"path": "github.com/github/hub/version",
+			"revision": "1150e672330f7be684c20924c89ded7bda3c6031",
+			"revisionTime": "2016-10-18T08:27:34Z"
+		},
+		{
+			"checksumSHA1": "YRD335tkMvgHzkfbfveMUpsE3Bw=",
+			"path": "gopkg.in/ini.v1",
+			"revision": "6e4869b434bd001f6983749881c7ead3545887d8",
+			"revisionTime": "2016-08-27T06:11:18Z"
+		}
+	],
+	"rootPath": "github.com/github/hub"
+}

@@ -2,7 +2,6 @@
 *~
 /bin
 .bundle
-vendor/bundle/
 share/man/*
 !share/man/man1/hub.1.ronn
 tmp/

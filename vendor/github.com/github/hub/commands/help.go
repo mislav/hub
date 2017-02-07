@@ -173,10 +173,4 @@ These GitHub commands are provided by hub:
    release        List or create releases
    issue          List or create issues
    ci-status      Show the CI status of a commit
-` + flowHelpText
-
-var flowHelpText = `
-This Flow command is provided by hub:
-
-   flow          Manage branching for GitFlow or GitHub Flow
 `
