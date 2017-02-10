@@ -8,6 +8,7 @@ HELP_CMD = \
 	share/man/man1/hub-compare.1 \
 	share/man/man1/hub-create.1 \
 	share/man/man1/hub-fork.1 \
+	share/man/man1/hub-review.1 \
 	share/man/man1/hub-pull-request.1 \
 	share/man/man1/hub-release.1 \
 	share/man/man1/hub-issue.1 \
