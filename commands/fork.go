@@ -10,17 +10,24 @@ import (
 
 var cmdFork = &Command{
 	Run:   fork,
-	Usage: "fork [--no-remote]",
+	Usage: "fork [--no-remote] [--org=<ORGANIZATION>]",
 	Long: `Fork the current project on GitHub and add a git remote for it.
 
 ## Options:
 	--no-remote
 		Skip adding a git remote for the fork.
 
+	--org=<ORGANIZATION>
+		Fork the repository within this organization.
+
 ## Examples:
 		$ hub fork
 		[ repo forked on GitHub ]
 		> git remote add -f USER git@github.com:USER/REPO.git
+
+		$ hub fork --org=ORGANIZATION
+		[ repo forked on Github into the ORGANIZATION organization]
+		> git remote add -f ORGANIZATION git@github.com:ORGANIZATION/REPO.git
 
 ## See also:
 
@@ -28,10 +35,15 @@ hub-clone(1), hub(1)
 `,
 }
 
-var flagForkNoRemote bool
+var (
+	flagForkNoRemote bool
+
+	flagForkOrganization string
+)
 
 func init() {
 	cmdFork.Flag.BoolVar(&flagForkNoRemote, "no-remote", false, "")
+	cmdFork.Flag.StringVarP(&flagForkOrganization, "org", "", "", "ORGANIZATION")
 
 	CmdRunner.Use(cmdFork)
 }
@@ -56,7 +68,14 @@ func fork(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("Error creating fork: %s", err))
 	}
 
-	forkProject := github.NewProject(host.User, project.Name, project.Host)
+	params := map[string]interface{}{}
+	forkOwner := host.User
+	if flagForkOrganization != "" {
+		forkOwner = flagForkOrganization
+		params["organization"] = forkOwner
+	}
+
+	forkProject := github.NewProject(forkOwner, project.Name, project.Host)
 	newRemoteName := forkProject.Owner
 
 	client := github.NewClient(project.Host)
@@ -73,7 +92,7 @@ func fork(cmd *Command, args *Args) {
 		}
 	} else {
 		if !args.Noop {
-			newRepo, err := client.ForkRepository(project)
+			newRepo, err := client.ForkRepository(project, params)
 			utils.Check(err)
 			forkProject.Owner = newRepo.Owner.Login
 			forkProject.Name = newRepo.Name
