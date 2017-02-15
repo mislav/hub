@@ -104,11 +104,3 @@ Meta
 * Home: <https://github.com/github/hub>
 * Bugs: <https://github.com/github/hub/issues>
 * Authors: <https://github.com/github/hub/contributors>
-
-### Prior art
-
-These projects also aim to either improve git or make interacting with
-GitHub simpler:
-
-* [eg](http://www.gnome.org/~newren/eg/)
-* [github-gem](https://github.com/defunkt/github-gem)
