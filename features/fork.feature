@@ -13,6 +13,7 @@ Feature: hub fork
       }
       get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
       post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') {
+        assert :organization => nil
         status 202
         json :name => 'dotfiles', :owner => { :login => 'mislav' }
       }
@@ -202,3 +203,17 @@ Scenario: Related fork already exists
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
     Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+
+  Scenario: Fork a repo to a specific organization
+    Given the GitHub API server:
+      """
+      get('/repos/acme/dotfiles') { 404 }
+      post('/repos/evilchelu/dotfiles/forks') {
+        assert :organization => "acme"
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'acme' }
+      }
+      """
+    When I successfully run `hub fork --org=acme`
+    Then the output should contain exactly "new remote: acme\n"
+    Then the url for "acme" should be "git@github.com:acme/dotfiles.git"

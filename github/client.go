@@ -419,13 +419,12 @@ type RepositoryPermissions struct {
 	Pull  bool `json:"pull"`
 }
 
-func (client *Client) ForkRepository(project *Project) (repo *Repository, err error) {
+func (client *Client) ForkRepository(project *Project, params map[string]interface{}) (repo *Repository, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	params := map[string]interface{}{}
 	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/forks", project.Owner, project.Name), params)
 	if err = checkStatus(202, "creating fork", res, err); err != nil {
 		return
