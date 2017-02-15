@@ -382,6 +382,16 @@ $ git <strong>pull-request -F prepared-message.md | pbcopy</strong>
 <span class="comment"># push to multiple remotes</span>
 $ git <strong>push production,staging</strong>
 </pre>
+
+<p><b>Note:</b> if GitHub Enterprise instance is accesible on HTTP (instead of HTTPS),
+  it needs to be configured in '~/.config/hub' :<p>
+  <pre>
+example.com:
+- user: user
+  protocol: http
+  oauth_token: ...
+  </pre>
+  </p>
 </section>
 
 <p class=footer>
