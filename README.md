@@ -105,10 +105,11 @@ Meta
 * Bugs: <https://github.com/github/hub/issues>
 * Authors: <https://github.com/github/hub/contributors>
 
-### Prior art
+### Alternatives and Prior art
 
 These projects also aim to either improve git or make interacting with
 GitHub simpler:
 
 * [eg](http://www.gnome.org/~newren/eg/)
 * [github-gem](https://github.com/defunkt/github-gem)
+* [git-repo](https://github.com/guyzmo/git-repo)
