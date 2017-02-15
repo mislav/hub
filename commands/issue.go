@@ -131,8 +131,8 @@ With no arguments, show a list of open issues.
 	-^ --sort-ascending
 		Sort by ascending dates instead of descending.
 
-	--show-pulls
-		Show pull requests as well.
+	--include-pulls
+		Include pull requests as well as issues.
 `,
 	}
 
@@ -159,7 +159,7 @@ With no arguments, show a list of open issues.
 	flagIssueCopy,
 	flagIssueBrowse,
 	flagIssueSortAscending bool
-	flagIssueShowPulls bool
+	flagIssueIncludePulls bool
 
 	flagIssueMilestone uint64
 
@@ -187,7 +187,7 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueSince, "since", "d", "", "DATE")
 	cmdIssue.Flag.StringVarP(&flagIssueSort, "sort", "o", "created", "SORT_KEY")
 	cmdIssue.Flag.BoolVarP(&flagIssueSortAscending, "sort-ascending", "^", false, "SORT_KEY")
-	cmdIssue.Flag.BoolVarP(&flagIssueShowPulls, "show-pulls", "", false, "SHOW_PULLS")
+	cmdIssue.Flag.BoolVarP(&flagIssueIncludePulls, "include-pulls", "", false, "INCLUDE_PULLS")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -245,7 +245,7 @@ func listIssues(cmd *Command, args *Args) {
 
 		colorize := ui.IsTerminal(os.Stdout)
 		for _, issue := range issues {
-			if !flagIssueShowPulls && issue.PullRequest != nil {
+			if !flagIssueIncludePulls && issue.PullRequest != nil {
 				continue
 			}
 
