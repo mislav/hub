@@ -91,13 +91,13 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 }
 
 type PullRequest struct {
-	ApiUrl    	    string           `json:"url"`
-	Number    	    int              `json:"number"`
-	HtmlUrl   	    string           `json:"html_url"`
-	Title     	    string           `json:"title"`
+	ApiUrl              string           `json:"url"`
+	Number              int              `json:"number"`
+	HtmlUrl             string           `json:"html_url"`
+	Title               string           `json:"title"`
 	MaintainerCanModify bool             `json:"maintainer_can_modify"`
-	Head      	    *PullRequestSpec `json:"head"`
-	Base      	    *PullRequestSpec `json:"base"`
+	Head                *PullRequestSpec `json:"head"`
+	Base                *PullRequestSpec `json:"base"`
 }
 
 type PullRequestSpec struct {
@@ -131,6 +131,21 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	pr = &PullRequest{}
 	err = res.Unmarshal(pr)
 
+	return
+}
+
+func (client *Client) RequestReview(project *Project, prNumber int, params map[string]interface{}) (err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/pulls/%d/requested_reviewers", project.Owner, project.Name, prNumber), params)
+	if err = checkStatus(201, "requesting reviewer", res, err); err != nil {
+		return
+	}
+
+	res.Body.Close()
 	return
 }
 

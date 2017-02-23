@@ -18,7 +18,7 @@ import (
 	"github.com/github/hub/utils"
 )
 
-const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
+const apiPayloadVersion = "application/vnd.github.black-cat-preview+json"
 
 type verboseTransport struct {
 	Transport   *http.Transport
