@@ -8,13 +8,14 @@ import (
 	"github.com/github/hub/utils"
 )
 
-var cmdPr = &Command{
-	Run:   pr,
-	Usage: "pr <PULLREQ-NUMBER> [<BRANCH>]",
-	Long: `Check out the head of a pull request as a local branch.
+var (
+	cmdPr = &Command{
+		Run:   pr,
+		Usage: "pr checkout <PULLREQ-NUMBER> [<BRANCH>]",
+		Long: `Check out the head of a pull request as a local branch.
 
 ## Examples:
-		$ hub pr 73
+		$ hub pr checkout 73
 		> git fetch origin pull/73/head:jingweno-feature
 		> git checkout jingweno-feature
 
@@ -22,10 +23,17 @@ var cmdPr = &Command{
 
 hub-merge(1), hub(1), hub-checkout(1)
 `,
-}
+	}
+
+	cmdCheckoutPr = &Command{
+		Key: "checkout",
+		Run: pr,
+	}
+)
 
 func init() {
 	CmdRunner.Use(cmdPr)
+	cmdPr.Use(cmdCheckout)
 }
 
 func pr(command *Command, args *Args) {
