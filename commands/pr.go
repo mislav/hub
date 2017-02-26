@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/github/hub/github"
@@ -9,21 +10,22 @@ import (
 )
 
 var (
-	cmdPr = &Command{
-		Run:          checkoutPr,
-		GitExtension: false,
-		Usage:        "pr checkout <PULLREQ-NUMBER> [<BRANCH>]",
-		Long: `Check out the head of a pull request as a local branch.
+	longHelp = `Check out the head of a pull request as a local branch.
 
 ## Examples:
-		$ hub pr checkout 73
-		> git fetch origin pull/73/head:jingweno-feature
-		> git checkout jingweno-feature
+	$ hub pr checkout 73
+	> git fetch origin pull/73/head:jingweno-feature
+	> git checkout jingweno-feature
 
 ## See also:
 
 hub-merge(1), hub(1), hub-checkout(1)
-`,
+`
+
+	cmdPr = &Command{
+		Run:   printHelp,
+		Usage: "pr checkout <PULLREQ-NUMBER> [<BRANCH>]",
+		Long:  longHelp,
 	}
 
 	cmdCheckoutPr = &Command{
@@ -35,6 +37,11 @@ hub-merge(1), hub(1), hub-checkout(1)
 func init() {
 	cmdPr.Use(cmdCheckoutPr)
 	CmdRunner.Use(cmdPr)
+}
+
+func printHelp(command *Command, args *Args) {
+	fmt.Print(command.HelpText())
+	os.Exit(0)
 }
 
 func checkoutPr(command *Command, args *Args) {
