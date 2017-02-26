@@ -10,7 +10,10 @@ import (
 )
 
 var (
-	longHelp = `Check out the head of a pull request as a local branch.
+	cmdPr = &Command{
+		Run:   printHelp,
+		Usage: "pr checkout <PULLREQ-NUMBER> [<BRANCH>]",
+		Long: `Check out the head of a pull request as a local branch.
 
 ## Examples:
 	$ hub pr checkout 73
@@ -20,12 +23,7 @@ var (
 ## See also:
 
 hub-merge(1), hub(1), hub-checkout(1)
-`
-
-	cmdPr = &Command{
-		Run:   printHelp,
-		Usage: "pr checkout <PULLREQ-NUMBER> [<BRANCH>]",
-		Long:  longHelp,
+	`,
 	}
 
 	cmdCheckoutPr = &Command{
