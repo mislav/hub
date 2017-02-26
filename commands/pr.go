@@ -10,8 +10,9 @@ import (
 
 var (
 	cmdPr = &Command{
-		Run:   pr,
-		Usage: "pr checkout <PULLREQ-NUMBER> [<BRANCH>]",
+		Run:          checkoutPr,
+		GitExtension: false,
+		Usage:        "pr checkout <PULLREQ-NUMBER> [<BRANCH>]",
 		Long: `Check out the head of a pull request as a local branch.
 
 ## Examples:
@@ -27,16 +28,16 @@ hub-merge(1), hub(1), hub-checkout(1)
 
 	cmdCheckoutPr = &Command{
 		Key: "checkout",
-		Run: pr,
+		Run: checkoutPr,
 	}
 )
 
 func init() {
+	cmdPr.Use(cmdCheckoutPr)
 	CmdRunner.Use(cmdPr)
-	cmdPr.Use(cmdCheckout)
 }
 
-func pr(command *Command, args *Args) {
+func checkoutPr(command *Command, args *Args) {
 	if args.ParamsSize() < 1 || args.ParamsSize() > 2 {
 		utils.Check(fmt.Errorf("Error: Expected one or two arguments, got %d", args.ParamsSize()))
 	}
