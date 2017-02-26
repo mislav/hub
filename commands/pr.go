@@ -8,27 +8,27 @@ import (
 	"github.com/github/hub/utils"
 )
 
-var cmdReview = &Command{
-	Run:   review,
-	Usage: "review <PULLREQ-NUMBER> [<BRANCH>]",
+var cmdPr = &Command{
+	Run:   pr,
+	Usage: "pr <PULLREQ-NUMBER> [<BRANCH>]",
 	Long: `Check out the head of a pull request as a local branch.
 
 ## Examples:
-		$ hub review 73
+		$ hub pr 73
 		> git fetch origin pull/73/head:jingweno-feature
 		> git checkout jingweno-feature
 
 ## See also:
 
-hub-merge(1), hub-am(1), hub(1), git-checkout(1)
+hub-merge(1), hub(1), hub-checkout(1)
 `,
 }
 
 func init() {
-	CmdRunner.Use(cmdReview)
+	CmdRunner.Use(cmdPr)
 }
 
-func review(command *Command, args *Args) {
+func pr(command *Command, args *Args) {
 	if args.ParamsSize() < 1 || args.ParamsSize() > 2 {
 		utils.Check(fmt.Errorf("Error: Expected one or two arguments, got %d", args.ParamsSize()))
 	}

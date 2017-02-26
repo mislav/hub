@@ -166,7 +166,7 @@ var helpText = `
 These GitHub commands are provided by hub:
 
    pull-request   Open a pull request on GitHub
-   review         Get the source code for a pull request
+   pr             Work with pull requests
    fork           Make a fork of a remote repository on GitHub and add as remote
    create         Create this repository on GitHub and add GitHub as origin
    browse         Open a GitHub page in the default browser
