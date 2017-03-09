@@ -24,6 +24,27 @@ Feature: hub fork
     And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
+  Scenario: Fork the repository with new remote name specified
+    Given the GitHub API server:
+      """
+      before {
+        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+      }
+      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
+      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') {
+        assert :organization => nil
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
+      """
+    And I run `git remote rename origin upstream`
+    When I successfully run `hub fork --remote-name=origin`
+    Then the output should contain exactly "new remote: origin\n"
+    And "git remote add -f origin git://github.com/evilchelu/dotfiles.git" should be run
+    And "git remote set-url origin git@github.com:mislav/dotfiles.git" should be run
+    And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+
   Scenario: Fork the repository with redirect
     Given the GitHub API server:
       """
