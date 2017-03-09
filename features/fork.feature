@@ -175,7 +175,7 @@ Scenario: Related fork already exists
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error creating fork: No git remote with name origin or upstream\n
+      Error creating fork: No origin git remote found\n
       """
     And there should be no "origin" remote
 

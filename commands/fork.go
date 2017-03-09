@@ -70,7 +70,7 @@ func fork(cmd *Command, args *Args) {
 	if err != nil {
 		originRemote, err = localRepo.RemoteByName("upstream")
 		if err != nil {
-			utils.Check(errors.New("Error creating fork: No git remote with name origin or upstream"))
+			utils.Check(errors.New("Error creating fork: No origin git remote found"))
 		}
 	}
 
