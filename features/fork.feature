@@ -27,18 +27,14 @@ Feature: hub fork
   Scenario: Fork the repository with new remote name specified
     Given the GitHub API server:
       """
-      before {
-        halt 400 unless request.env['HTTP_X_ORIGINAL_SCHEME'] == 'https'
-        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
-      }
-      get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
-      post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') {
+      get('/repos/mislav/dotfiles') { 404 }
+      post('/repos/evilchelu/dotfiles/forks') {
         assert :organization => nil
         status 202
         json :name => 'dotfiles', :owner => { :login => 'mislav' }
       }
       """
-    And I run `git remote rename origin upstream`
+    And I successfully run `git remote rename origin upstream`
     When I successfully run `hub fork --remote-name=origin`
     Then the output should contain exactly "new remote: origin\n"
     And "git remote add -f origin git://github.com/evilchelu/dotfiles.git" should be run
