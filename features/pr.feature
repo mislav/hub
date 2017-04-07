@@ -21,7 +21,9 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }, :maintainer_can_modify => false
+        },
+        :maintainer_can_modify => false,
+        :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
     When I run `hub pr checkout 77`
