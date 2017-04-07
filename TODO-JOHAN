@@ -1,0 +1,7 @@
+Next step:
+
+Run this until it works:
+$ bundle exec cucumber features/pr.feature
+
+Try printing to stderr to get messages out while testing, or in the worst case
+write to files.
