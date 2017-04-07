@@ -1,6 +1,7 @@
 Feature: hub pr checkout <PULLREQ-NUMBER>
   Background:
     Given I am in "git://github.com/mojombo/jekyll.git" git repo
+    And I am "mojombo" on github.com with OAuth token "OTOKEN"
 
   Scenario: Checkout a pull request
     Given the GitHub API server:
