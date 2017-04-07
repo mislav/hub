@@ -89,7 +89,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
       """
     When I run `hub pr checkout 77`
     Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
-    And "git checkout -f -b fixes --track origin/fixes -q" should be run
+    And "git checkout -b fixes --track origin/fixes" should be run
 
   Scenario: Same-repo with custom branch name
     Given the GitHub API server:
@@ -161,7 +161,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
     And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
     When I run `hub pr checkout 77`
     Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
-    And "git checkout -f -b fixes --track mislav/fixes -q" should be run
+    And "git checkout -b fixes --track mislav/fixes" should be run
 
   Scenario: Reuse existing remote and branch
     Given the GitHub API server:
@@ -188,7 +188,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
     And I am on the "fixes" branch
     When I run `hub pr checkout 77`
     Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
-    And "git checkout -f fixes -q" should be run
+    And "git checkout fixes" should be run
     And "git merge --ff-only refs/remotes/mislav/fixes" should be run
 
   Scenario: Modifiable fork
@@ -217,7 +217,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
       """
     When I run `hub pr checkout 77`
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
-    And "git checkout -f mislav-fixes -q" should be run
+    And "git checkout mislav-fixes" should be run
     And "mislav-fixes" should merge "refs/heads/fixes" from remote "git@github.com:mislav/jekyll.git"
 
   Scenario: Modifiable fork with HTTPS
@@ -247,5 +247,5 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
     And HTTPS is preferred
     When I run `hub pr checkout 77`
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
-    And "git checkout -f mislav-fixes -q" should be run
+    And "git checkout mislav-fixes" should be run
     And "mislav-fixes" should merge "refs/heads/fixes" from remote "https://github.com/mislav/jekyll.git"
