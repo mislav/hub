@@ -42,7 +42,28 @@ func printHelp(command *Command, args *Args) {
 	os.Exit(0)
 }
 
+/**
+ * Add a log messsage to /tmp/hub.log
+ *
+ * FIXME: Should be removed before PRing this.
+ */
+func johan(message string) {
+	f, err := os.OpenFile("/tmp/hub.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	if _, err = f.WriteString(message + "\n"); err != nil {
+		panic(err)
+	}
+}
+
 func checkoutPr(command *Command, args *Args) {
+	johan("")
+	johan("adam")
+
 	if args.ParamsSize() < 1 || args.ParamsSize() > 2 {
 		utils.Check(fmt.Errorf("Error: Expected one or two arguments, got %d", args.ParamsSize()))
 	}
@@ -67,6 +88,8 @@ func checkoutPr(command *Command, args *Args) {
 	} else {
 		args.Replace(args.Executable, "checkout", pr.HtmlUrl, args.GetParam(1))
 	}
+
+	johan("eva")
 
 	// Call into the checkout code which already provides the functionality we're
 	// after
