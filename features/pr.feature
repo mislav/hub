@@ -41,7 +41,8 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => 'https://github.com/mislav/jekyll',
             :owner => { :login => "mislav" },
           }
-        }
+        },
+        :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
     When I run `hub pr checkout 77`
@@ -67,7 +68,9 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }, :maintainer_can_modify => false
+        },
+        :maintainer_can_modify => false,
+        :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
     When I run `hub pr checkout 77 fixes-from-mislav`
@@ -91,7 +94,8 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => "https://github.com/mojombo/jekyll",
             :owner => { :login => "mojombo" },
           }
-        }
+        },
+        :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
     When I run `hub pr checkout 77`
@@ -114,7 +118,8 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => "https://github.com/mojombo/jekyll",
             :owner => { :login => "mojombo" },
           }
-        }
+        },
+        :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
     When I run `hub pr checkout 77 mycustombranch`
@@ -134,7 +139,8 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => "https://github.com/mojombo/jekyll",
             :owner => { :login => "mojombo" },
           }
-        }
+        },
+        :html_url => "https://github.com/mojombo/jekyll/pull/77"
       }
       """
     When I run `hub pr checkout 77`
@@ -159,7 +165,8 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }
+        },
+        :html_url => "https://github.com/mojombo/jekyll/pull/77"
       }
       """
     And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
@@ -184,7 +191,8 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }
+        },
+        :html_url => "https://github.com/mojombo/jekyll/pull/77"
       }
       """
     And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
@@ -213,7 +221,9 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }, :maintainer_can_modify => true
+        },
+        :maintainer_can_modify => true,
+        :html_url => "https://github.com/mojombo/jekyll/pull/77"
       }
       """
     When I run `hub pr checkout 77`
@@ -240,7 +250,9 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
             :html_url => 'https://github.com/mojombo/jekyll',
             :owner => { :login => "mojombo" },
           }
-        }, :maintainer_can_modify => true
+        },
+        :maintainer_can_modify => true,
+        :html_url => "https://github.com/mojombo/jekyll/pull/77"
       }
       """
     And HTTPS is preferred
