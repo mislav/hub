@@ -31,26 +31,15 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
     And "git checkout mislav-fixes" should be run
     And "mislav-fixes" should merge "refs/pull/77/head" from remote "origin"
 
-  Scenario: No matching remotes for pull request base
-    Given the GitHub API server:
-      """
-      get('/repos/mislav/jekyll/pulls/77') {
-        json :base => {
-          :repo => {
-            :name => 'jekyll',
-            :html_url => 'https://github.com/mislav/jekyll',
-            :owner => { :login => "mislav" },
-          }
-        },
-        :html_url => 'https://github.com/mojombo/jekyll/pull/77'
-      }
-      """
-    When I run `hub pr checkout 77`
-    Then the exit status should be 1
-    And the stderr should contain exactly:
-      """
-      could not find git remote for mislav/jekyll\n
-      """
+  # Scenario: No matching remotes for pull request base
+  #
+  # This scenario was removed.
+  #
+  # With "hub checkout" you had to write the complete PR URL, which made it
+  # possible to type the wrong owner/repo there. This check covered that case.
+  #
+  # With "hub pr checkout" you only enter the PR number and you can't mess up
+  # that way any more. Thus, this test lost its meaning and was removed.
 
   Scenario: Custom name for new branch
     Given the GitHub API server:
