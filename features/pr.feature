@@ -1,4 +1,7 @@
 Feature: hub pr checkout <PULLREQ-NUMBER>
+  Background:
+    Given I am in "git://github.com/mojombo/jekyll.git" git repo
+
   Scenario: Checkout a pull request
     Given the GitHub API server:
       """

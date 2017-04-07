@@ -62,7 +62,6 @@ func johan(message string) {
 
 func checkoutPr(command *Command, args *Args) {
 	johan("")
-	johan("adam")
 
 	if args.ParamsSize() < 1 || args.ParamsSize() > 2 {
 		utils.Check(fmt.Errorf("Error: Expected one or two arguments, got %d", args.ParamsSize()))
@@ -72,9 +71,13 @@ func checkoutPr(command *Command, args *Args) {
 	_, err := strconv.Atoi(prNumberString)
 	utils.Check(err)
 
+	johan("ormen")
+
 	// Figure out the PR URL
 	localRepo, err := github.LocalRepo()
+	johan("eva")
 	utils.Check(err)
+	johan("adam")
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
 	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
@@ -88,8 +91,6 @@ func checkoutPr(command *Command, args *Args) {
 	} else {
 		args.Replace(args.Executable, "checkout", pr.HtmlUrl, args.GetParam(1))
 	}
-
-	johan("eva")
 
 	// Call into the checkout code which already provides the functionality we're
 	// after
