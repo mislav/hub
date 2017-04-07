@@ -38,7 +38,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
         }
       }
       """
-    When I run `hub pr checkout -f 77 -q`
+    When I run `hub pr checkout 77`
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
@@ -210,7 +210,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
         }, :maintainer_can_modify => true
       }
       """
-    When I run `hub pr checkout -f 77 -q`
+    When I run `hub pr checkout 77`
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
     And "git checkout -f mislav-fixes -q" should be run
     And "mislav-fixes" should merge "refs/heads/fixes" from remote "git@github.com:mislav/jekyll.git"
@@ -238,7 +238,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
       }
       """
     And HTTPS is preferred
-    When I run `hub pr checkout -f 77 -q`
+    When I run `hub pr checkout 77`
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
     And "git checkout -f mislav-fixes -q" should be run
     And "mislav-fixes" should merge "refs/heads/fixes" from remote "https://github.com/mislav/jekyll.git"
