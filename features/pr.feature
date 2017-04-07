@@ -28,7 +28,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
       """
     When I run `hub pr checkout 77`
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
-    And "git checkout -f mislav-fixes -q" should be run
+    And "git checkout mislav-fixes" should be run
     And "mislav-fixes" should merge "refs/pull/77/head" from remote "origin"
 
   Scenario: No matching remotes for pull request base
