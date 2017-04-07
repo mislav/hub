@@ -20,7 +20,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
         }, :maintainer_can_modify => false
       }
       """
-    When I run `hub pr checkout -f 77 -q`
+    When I run `hub pr checkout 77`
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
     And "git checkout -f mislav-fixes -q" should be run
     And "mislav-fixes" should merge "refs/pull/77/head" from remote "origin"
@@ -88,7 +88,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
         }
       }
       """
-    When I run `hub pr checkout -f 77 -q`
+    When I run `hub pr checkout 77`
     Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
     And "git checkout -f -b fixes --track origin/fixes -q" should be run
 
@@ -157,7 +157,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
       }
       """
     And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
-    When I run `hub pr checkout -f 77 -q`
+    When I run `hub pr checkout 77`
     Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
     And "git checkout -f -b fixes --track mislav/fixes -q" should be run
 
@@ -183,7 +183,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
       """
     And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
     And I am on the "fixes" branch
-    When I run `hub pr checkout -f 77 -q`
+    When I run `hub pr checkout 77`
     Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
     And "git checkout -f fixes -q" should be run
     And "git merge --ff-only refs/remotes/mislav/fixes" should be run
