@@ -24,6 +24,23 @@ Feature: hub fork
     And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
+  Scenario: Fork the repository with new remote name specified
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { 404 }
+      post('/repos/evilchelu/dotfiles/forks') {
+        assert :organization => nil
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
+      """
+    And I successfully run `git remote rename origin upstream`
+    When I successfully run `hub fork --remote-name=origin`
+    Then the output should contain exactly "new remote: origin\n"
+    And "git remote add -f origin git://github.com/evilchelu/dotfiles.git" should be run
+    And "git remote set-url origin git@github.com:mislav/dotfiles.git" should be run
+    And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+
   Scenario: Fork the repository with redirect
     Given the GitHub API server:
       """
@@ -149,12 +166,11 @@ Scenario: Related fork already exists
 
   Scenario: Origin remote doesn't exist
     Given I run `git remote rm origin`
-    And the "mislav" remote has url "https://github.com/mislav/dotfiles.git"
     When I run `hub fork`
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error creating fork: No git remote with name origin\n
+      Aborted: the origin remote doesn't point to a GitHub repository.\n
       """
     And there should be no "origin" remote
 
@@ -164,7 +180,7 @@ Scenario: Related fork already exists
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error: repository under 'origin' remote is not a GitHub project\n
+      Aborted: the origin remote doesn't point to a GitHub repository.\n
       """
 
   Scenario: Enterprise fork
