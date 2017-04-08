@@ -93,13 +93,13 @@ func checkoutPr(command *Command, args *Args) {
 
 	// Call into the checkout code which already provides the functionality we're
 	// after
-	err = transformPrArgs(args)
+	err = transformPrArgs(args, pr)
 	johan("adam")
 	utils.Check(err)
 	johan("frukten")
 }
 
-func transformPrArgs(args *Args) error {
+func transformPrArgs(args *Args, pullRequest *github.PullRequest) error {
 	// This function initially copied from checkout.go:transformCheckoutArgs()
 	words := args.Words()
 
@@ -132,11 +132,6 @@ func transformPrArgs(args *Args) error {
 	}
 
 	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
-	gh := github.NewClient(url.Project.Host)
-	pullRequest, err := gh.PullRequest(url.Project, id)
-	if err != nil {
-		return err
-	}
 
 	if idx := args.IndexOfParam(newBranchName); idx >= 0 {
 		args.RemoveParam(idx)
