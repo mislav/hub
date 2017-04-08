@@ -44,27 +44,7 @@ func printHelp(command *Command, args *Args) {
 	os.Exit(0)
 }
 
-/**
- * Add a log messsage to /tmp/hub.log
- *
- * FIXME: Should be removed before PRing this.
- */
-func johan(message string) {
-	f, err := os.OpenFile("/tmp/hub.log", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
-
-	defer f.Close()
-
-	if _, err = f.WriteString(message + "\n"); err != nil {
-		panic(err)
-	}
-}
-
 func checkoutPr(command *Command, args *Args) {
-	johan("")
-
 	if args.ParamsSize() < 1 || args.ParamsSize() > 2 {
 		utils.Check(fmt.Errorf("Error: Expected one or two arguments, got %d", args.ParamsSize()))
 	}
@@ -94,9 +74,7 @@ func checkoutPr(command *Command, args *Args) {
 	// Call into the checkout code which already provides the functionality we're
 	// after
 	err = transformPrArgs(args, pr)
-	johan("adam")
 	utils.Check(err)
-	johan("frukten")
 }
 
 func transformPrArgs(args *Args, pullRequest *github.PullRequest) error {
@@ -197,7 +175,5 @@ func transformPrArgs(args *Args, pullRequest *github.PullRequest) error {
 		args.Before("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
 	}
 	replaceCheckoutParam(args, checkoutURL, newArgs...)
-
-	johan("adam: " + args.ToCmd().String())
 	return nil
 }

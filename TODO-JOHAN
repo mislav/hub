@@ -1,7 +1,0 @@
-Next step:
-
-Run this until it works:
-$ rm -f /tmp/hub.log ; bundle exec cucumber features/pr.feature ; cat /tmp/hub.log
-
-Try printing to stderr to get messages out while testing, or in the worst case
-write to files.
