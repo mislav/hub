@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/github/hub/github"
@@ -56,23 +55,14 @@ func fork(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	project, err := localRepo.MainProject()
-	if err != nil {
-		utils.Check(fmt.Errorf("Error: repository under 'origin' remote is not a GitHub project"))
-	}
+	utils.Check(err)
 
 	config := github.CurrentConfig()
 	host, err := config.PromptForHost(project.Host)
-	if err != nil {
-		utils.Check(github.FormatError("forking repository", err))
-	}
+	utils.Check(github.FormatError("forking repository", err))
 
-	originRemote, err := localRepo.OriginRemote()
-	if err != nil {
-		originRemote, err = localRepo.RemoteByName("upstream")
-		if err != nil {
-			utils.Check(errors.New("Error creating fork: No origin git remote found"))
-		}
-	}
+	originRemote, err := localRepo.MainRemote()
+	utils.Check(err)
 
 	params := map[string]interface{}{}
 	forkOwner := host.User

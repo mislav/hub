@@ -166,12 +166,11 @@ Scenario: Related fork already exists
 
   Scenario: Origin remote doesn't exist
     Given I run `git remote rm origin`
-    And the "mislav" remote has url "https://github.com/mislav/dotfiles.git"
     When I run `hub fork`
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error creating fork: No origin git remote found\n
+      Aborted: the origin remote doesn't point to a GitHub repository.\n
       """
     And there should be no "origin" remote
 
@@ -181,7 +180,7 @@ Scenario: Related fork already exists
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Error: repository under 'origin' remote is not a GitHub project\n
+      Aborted: the origin remote doesn't point to a GitHub repository.\n
       """
 
   Scenario: Enterprise fork
