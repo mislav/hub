@@ -12,7 +12,7 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :owner => { :login => "mislav" },
@@ -37,7 +37,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mislav/jekyll/pulls/77') {
-        json :base => {
+        json :number => 77, :base => {
           :repo => {
             :name => 'jekyll',
             :html_url => 'https://github.com/mislav/jekyll',
@@ -57,7 +57,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -81,7 +81,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -104,7 +104,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -127,7 +127,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => nil
         }, :base => {
@@ -148,7 +148,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :owner => { :login => "mislav" },
@@ -173,7 +173,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :owner => { :login => "mislav" },
@@ -201,7 +201,7 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :owner => { :login => "mislav" },
@@ -228,7 +228,7 @@ Feature: hub checkout <PULLREQ-URL>
       """
       get('/repos/mojombo/jekyll/pulls/77') {
         halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
-        json :head => {
+        json :number => 77, :head => {
           :ref => "fixes",
           :repo => {
             :owner => { :login => "mislav" },

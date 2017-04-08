@@ -3,10 +3,8 @@ package commands
 import (
 	"fmt"
 	"os"
-	"regexp"
 	"strconv"
 
-	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -45,11 +43,16 @@ func printHelp(command *Command, args *Args) {
 }
 
 func checkoutPr(command *Command, args *Args) {
-	if args.ParamsSize() < 1 || args.ParamsSize() > 2 {
-		utils.Check(fmt.Errorf("Error: Expected one or two arguments, got %d", args.ParamsSize()))
+	words := args.Words()
+	var newBranchName string
+
+	if len(words) == 0 {
+		utils.Check(fmt.Errorf("Error: No pull request number given"))
+	} else if len(words) > 1 {
+		newBranchName = words[1]
 	}
 
-	prNumberString := args.GetParam(0)
+	prNumberString := words[0]
 	_, err := strconv.Atoi(prNumberString)
 	utils.Check(err)
 
@@ -64,116 +67,8 @@ func checkoutPr(command *Command, args *Args) {
 	pr, err := client.PullRequest(baseProject, prNumberString)
 	utils.Check(err)
 
-	// Args here are: "git pr 77" or "git pr 77 new-branch-name"
-	if args.ParamsSize() == 1 {
-		args.Replace(args.Executable, "checkout", pr.HtmlUrl)
-	} else {
-		args.Replace(args.Executable, "checkout", pr.HtmlUrl, args.GetParam(1))
-	}
-
-	// Call into the checkout code which already provides the functionality we're
-	// after
-	err = transformPrArgs(args, pr)
+	newArgs, err := transformCheckoutArgs(args, pr, newBranchName)
 	utils.Check(err)
-}
 
-func transformPrArgs(args *Args, pullRequest *github.PullRequest) error {
-	// This function initially copied from checkout.go:transformCheckoutArgs()
-	words := args.Words()
-
-	if len(words) == 0 {
-		return nil
-	}
-
-	checkoutURL := words[0]
-	var newBranchName string
-	if len(words) > 1 {
-		newBranchName = words[1]
-	}
-
-	url, err := github.ParseURL(checkoutURL)
-	if err != nil {
-		// not a valid GitHub URL
-		return nil
-	}
-
-	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
-	projectPath := url.ProjectPath()
-	if !pullURLRegex.MatchString(projectPath) {
-		// not a valid PR URL
-		return nil
-	}
-
-	err = sanitizeCheckoutFlags(args)
-	if err != nil {
-		return err
-	}
-
-	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
-
-	if idx := args.IndexOfParam(newBranchName); idx >= 0 {
-		args.RemoveParam(idx)
-	}
-
-	repo, err := github.LocalRepo()
-	if err != nil {
-		return err
-	}
-
-	baseRemote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
-	if err != nil {
-		return err
-	}
-
-	var headRemote *github.Remote
-	if pullRequest.IsSameRepo() {
-		headRemote = baseRemote
-	} else if pullRequest.Head.Repo != nil {
-		headRemote, _ = repo.RemoteForRepo(pullRequest.Head.Repo)
-	}
-
-	var newArgs []string
-
-	if headRemote != nil {
-		if newBranchName == "" {
-			newBranchName = pullRequest.Head.Ref
-		}
-		remoteBranch := fmt.Sprintf("%s/%s", headRemote.Name, pullRequest.Head.Ref)
-		refSpec := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
-		if git.HasFile("refs", "heads", newBranchName) {
-			newArgs = append(newArgs, newBranchName)
-			args.After("git", "merge", "--ff-only", fmt.Sprintf("refs/remotes/%s", remoteBranch))
-		} else {
-			newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
-		}
-		args.Before("git", "fetch", headRemote.Name, refSpec)
-	} else {
-		if newBranchName == "" {
-			if pullRequest.Head.Repo == nil {
-				newBranchName = fmt.Sprintf("pr-%s", id)
-			} else {
-				newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
-			}
-		}
-		newArgs = append(newArgs, newBranchName)
-
-		ref := fmt.Sprintf("refs/pull/%s/head", id)
-		args.Before("git", "fetch", baseRemote.Name, fmt.Sprintf("%s:%s", ref, newBranchName))
-
-		remote := baseRemote.Name
-		mergeRef := ref
-		if pullRequest.MaintainerCanModify && pullRequest.Head.Repo != nil {
-			project, projectErr := github.NewProjectFromRepo(pullRequest.Head.Repo)
-			if projectErr != nil {
-				return projectErr
-			}
-
-			remote = project.GitURL("", "", true)
-			mergeRef = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
-		}
-		args.Before("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
-		args.Before("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
-	}
-	replaceCheckoutParam(args, checkoutURL, newArgs...)
-	return nil
+	args.Replace(args.Executable, "checkout", newArgs...)
 }
