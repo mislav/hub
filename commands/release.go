@@ -17,7 +17,7 @@ var (
 	cmdRelease = &Command{
 		Run: listReleases,
 		Usage: `
-release [--include-drafts]
+release [--include-drafts] [--exclude-prereleases]
 release show <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
@@ -29,6 +29,7 @@ release edit [<options>] <TAG>
 With no arguments, shows a list of existing releases.
 
 With '--include-drafts', include draft releases in the listing.
+With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	* _show_:
 		Show GitHub release notes for <TAG>.
@@ -112,6 +113,7 @@ hub(1), git-tag(1)
 	}
 
 	flagReleaseIncludeDrafts,
+	flagReleaseExcludePrereleases,
 	flagReleaseShowDownloads,
 	flagReleaseDraft,
 	flagReleaseEdit,
@@ -128,6 +130,7 @@ hub(1), git-tag(1)
 
 func init() {
 	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDrafts, "include-drafts", "d", false, "DRAFTS")
+	cmdRelease.Flag.BoolVarP(&flagReleaseExcludePrereleases, "exclude-prereleases", "p", false, "PRERELEASE")
 
 	cmdShowRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
 
@@ -172,7 +175,8 @@ func listReleases(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		for _, release := range releases {
-			if !release.Draft || flagReleaseIncludeDrafts {
+			if (!release.Draft || flagReleaseIncludeDrafts) &&
+				(!release.Prerelease || !flagReleaseExcludePrereleases) {
 				ui.Println(release.TagName)
 			}
 		}
