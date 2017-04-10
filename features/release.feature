@@ -57,7 +57,7 @@ Feature: hub release
         ]
       }
       """
-    When I successfully run `hub release --exclude-prerelease`
+    When I successfully run `hub release --exclude-prereleases`
     Then the output should contain exactly:
       """
       v1.0.2\n
