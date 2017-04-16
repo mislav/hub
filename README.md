@@ -50,6 +50,12 @@ hub version 2.2.3
 [compiled binaries](https://github.com/github/hub/releases) and put it anywhere
 in your executable path.
 
+*or*,synlink the hub executible using 
+```ln -s /path/to/hub/executable /usr/bin/hub
+    cp /path/to/hub/etc/hub.bash-completion.sh  /etc/bash_completion.d/
+    cp /path/to/hub/etc/hub.zsh-completion.sh   any/of/$fapth
+```
+
 #### Source
 
 To install hub from source:
