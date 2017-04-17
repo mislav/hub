@@ -733,6 +733,23 @@ BODY
     When I successfully run `hub pull-request -m hereyougo -a mislav,josh -apcorpet`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Pull request with reviewers
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        status 201
+        json :html_url => "the://url", :number => 1234
+      }
+      post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
+        assert :reviewers => ["mislav", "josh", "pcorpet"]
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -r mislav,josh -rpcorpet`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Pull request with milestone
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:
