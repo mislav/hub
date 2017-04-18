@@ -31,17 +31,10 @@ func init() {
 }
 
 func checkout(command *Command, args *Args) {
-	if !args.IsParamsEmpty() {
-		err := transformCheckoutArgs(args)
-		utils.Check(err)
-	}
-}
-
-func transformCheckoutArgs(args *Args) error {
 	words := args.Words()
 
 	if len(words) == 0 {
-		return nil
+		return
 	}
 
 	checkoutURL := words[0]
@@ -53,40 +46,42 @@ func transformCheckoutArgs(args *Args) error {
 	url, err := github.ParseURL(checkoutURL)
 	if err != nil {
 		// not a valid GitHub URL
-		return nil
+		return
 	}
 
 	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
 	projectPath := url.ProjectPath()
 	if !pullURLRegex.MatchString(projectPath) {
 		// not a valid PR URL
-		return nil
+		return
 	}
 
 	err = sanitizeCheckoutFlags(args)
-	if err != nil {
-		return err
-	}
+	utils.Check(err)
 
 	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
 	gh := github.NewClient(url.Project.Host)
 	pullRequest, err := gh.PullRequest(url.Project, id)
-	if err != nil {
-		return err
-	}
+	utils.Check(err)
+
+	newArgs, err := transformCheckoutArgs(args, pullRequest, newBranchName)
+	utils.Check(err)
 
 	if idx := args.IndexOfParam(newBranchName); idx >= 0 {
 		args.RemoveParam(idx)
 	}
+	replaceCheckoutParam(args, checkoutURL, newArgs...)
+}
 
+func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranchName string) (newArgs []string, err error) {
 	repo, err := github.LocalRepo()
 	if err != nil {
-		return err
+		return
 	}
 
 	baseRemote, err := repo.RemoteForRepo(pullRequest.Base.Repo)
 	if err != nil {
-		return err
+		return
 	}
 
 	var headRemote *github.Remote
@@ -95,8 +90,6 @@ func transformCheckoutArgs(args *Args) error {
 	} else if pullRequest.Head.Repo != nil {
 		headRemote, _ = repo.RemoteForRepo(pullRequest.Head.Repo)
 	}
-
-	var newArgs []string
 
 	if headRemote != nil {
 		if newBranchName == "" {
@@ -114,22 +107,23 @@ func transformCheckoutArgs(args *Args) error {
 	} else {
 		if newBranchName == "" {
 			if pullRequest.Head.Repo == nil {
-				newBranchName = fmt.Sprintf("pr-%s", id)
+				newBranchName = fmt.Sprintf("pr-%d", pullRequest.Number)
 			} else {
 				newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
 			}
 		}
 		newArgs = append(newArgs, newBranchName)
 
-		ref := fmt.Sprintf("refs/pull/%s/head", id)
+		ref := fmt.Sprintf("refs/pull/%d/head", pullRequest.Number)
 		args.Before("git", "fetch", baseRemote.Name, fmt.Sprintf("%s:%s", ref, newBranchName))
 
 		remote := baseRemote.Name
 		mergeRef := ref
 		if pullRequest.MaintainerCanModify && pullRequest.Head.Repo != nil {
-			project, err := github.NewProjectFromRepo(pullRequest.Head.Repo)
+			var project *github.Project
+			project, err = github.NewProjectFromRepo(pullRequest.Head.Repo)
 			if err != nil {
-				return err
+				return
 			}
 
 			remote = project.GitURL("", "", true)
@@ -138,8 +132,7 @@ func transformCheckoutArgs(args *Args) error {
 		args.Before("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
 		args.Before("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
 	}
-	replaceCheckoutParam(args, checkoutURL, newArgs...)
-	return nil
+	return
 }
 
 func sanitizeCheckoutFlags(args *Args) error {
