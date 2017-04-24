@@ -159,6 +159,7 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 			if len(via) > 2 {
 				return fmt.Errorf("too many redirects")
 			} else {
+				// replicate rudimentary functionality of copyHeaders from Go 1.8
 				for key, vals := range via[0].Header {
 					lkey := strings.ToLower(key)
 					if !strings.HasPrefix(lkey, "x-original-") && via[0].Host == req.URL.Host || lkey != "authorization" {
@@ -248,6 +249,7 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	}
 
 	res = &simpleResponse{httpResponse}
+	// TODO: remove after upgrade to Go 1.8
 	if res.StatusCode == 307 && redirectsRemaining > 0 {
 		url, err = url.Parse(res.Header.Get("Location"))
 		if err != nil || url.Host != req.URL.Host || url.Scheme != req.URL.Scheme {
