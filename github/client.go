@@ -135,7 +135,7 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 }
 
 func (client *Client) RequestReview(project *Project, prNumber int, params map[string]interface{}) (err error) {
-	api, err := client.previewSimpleApi()
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}

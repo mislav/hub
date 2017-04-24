@@ -743,6 +743,7 @@ BODY
         json :html_url => "the://url", :number => 1234
       }
       post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
+        halt 415 unless request.accept?('application/vnd.github.black-cat-preview+json')
         assert :reviewers => ["mislav", "josh", "pcorpet"]
         json :html_url => "the://url"
       }

@@ -19,6 +19,7 @@ import (
 )
 
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
+const reviewsApiVersion = "application/vnd.github.black-cat-preview+json"
 
 type verboseTransport struct {
 	Transport   *http.Transport
@@ -216,6 +217,7 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	req.Header.Set("Authorization", "token "+c.accessToken)
 	req.Header.Set("User-Agent", UserAgent)
 	req.Header.Set("Accept", apiPayloadVersion)
+	req.Header.Add("Accept", reviewsApiVersion)
 
 	if configure != nil {
 		configure(req)
