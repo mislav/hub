@@ -11,7 +11,7 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
+        halt 415 unless request.accept?('application/vnd.github.v3+json')
         json :head => {
           :ref => "fixes",
           :repo => {
@@ -200,7 +200,6 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :head => {
           :ref => "fixes",
           :repo => {
@@ -227,7 +226,6 @@ Feature: hub checkout <PULLREQ-URL>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :head => {
           :ref => "fixes",
           :repo => {
