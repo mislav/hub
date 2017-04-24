@@ -22,9 +22,6 @@ const (
 
 var UserAgent = "Hub " + version.Version
 
-const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
-const previewApiPayloadVersion = "application/vnd.github.black-cat-preview+json;charset=utf-8"
-
 func NewClient(h string) *Client {
 	return NewClientWithHost(&Host{Host: h})
 }
@@ -659,28 +656,9 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 	apiRoot := client.requestURL(client.absolute(normalizeHost(client.Host.Host)))
 
 	c = &simpleClient{
-		httpClient:        httpClient,
-		rootUrl:           apiRoot,
-		accessToken:       client.Host.AccessToken,
-		apiPayloadVersion: apiPayloadVersion,
-	}
-	return
-}
-
-func (client *Client) previewSimpleApi() (c *simpleClient, err error) {
-	err = client.ensureAccessToken()
-	if err != nil {
-		return
-	}
-
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
-	apiRoot := client.requestURL(client.absolute(normalizeHost(client.Host.Host)))
-
-	c = &simpleClient{
-		httpClient:        httpClient,
-		rootUrl:           apiRoot,
-		accessToken:       client.Host.AccessToken,
-		apiPayloadVersion: previewApiPayloadVersion,
+		httpClient:  httpClient,
+		rootUrl:     apiRoot,
+		accessToken: client.Host.AccessToken,
 	}
 	return
 }

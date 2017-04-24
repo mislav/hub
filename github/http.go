@@ -18,6 +18,8 @@ import (
 	"github.com/github/hub/utils"
 )
 
+const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
+
 type verboseTransport struct {
 	Transport   *http.Transport
 	Verbose     bool
@@ -191,10 +193,9 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 }
 
 type simpleClient struct {
-	httpClient        *http.Client
-	rootUrl           *url.URL
-	accessToken       string
-	apiPayloadVersion string
+	httpClient  *http.Client
+	rootUrl     *url.URL
+	accessToken string
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
@@ -214,7 +215,7 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	}
 	req.Header.Set("Authorization", "token "+c.accessToken)
 	req.Header.Set("User-Agent", UserAgent)
-	req.Header.Set("Accept", c.apiPayloadVersion)
+	req.Header.Set("Accept", apiPayloadVersion)
 
 	if configure != nil {
 		configure(req)
