@@ -21,6 +21,14 @@ import (
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
 const reviewsApiVersion = "application/vnd.github.black-cat-preview+json"
 
+var inspectHeaders = []string{
+	"Authorization",
+	"X-GitHub-OTP",
+	"Location",
+	"Link",
+	"Accept",
+}
+
 type verboseTransport struct {
 	Transport   *http.Transport
 	Verbose     bool
@@ -80,17 +88,22 @@ func (t *verboseTransport) dumpResponse(resp *http.Response) {
 }
 
 func (t *verboseTransport) dumpHeaders(header http.Header, indent string) {
-	dumpHeaders := []string{"Authorization", "X-GitHub-OTP", "Location", "Link", "Accept"}
-	for _, h := range dumpHeaders {
-		v := header.Get(h)
-		if v != "" {
-			r := regexp.MustCompile("(?i)^(basic|token) (.+)")
-			if r.MatchString(v) {
-				v = r.ReplaceAllString(v, "$1 [REDACTED]")
+	for _, listed := range inspectHeaders {
+		for name, vv := range header {
+			if !strings.EqualFold(name, listed) {
+				continue
 			}
+			for _, v := range vv {
+				if v != "" {
+					r := regexp.MustCompile("(?i)^(basic|token) (.+)")
+					if r.MatchString(v) {
+						v = r.ReplaceAllString(v, "$1 [REDACTED]")
+					}
 
-			info := fmt.Sprintf("%s %s: %s", indent, h, v)
-			t.verbosePrintln(info)
+					info := fmt.Sprintf("%s %s: %s", indent, name, v)
+					t.verbosePrintln(info)
+				}
+			}
 		}
 	}
 }
