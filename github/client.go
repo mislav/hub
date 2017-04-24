@@ -134,6 +134,21 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	return
 }
 
+func (client *Client) RequestReview(project *Project, prNumber int, params map[string]interface{}) (err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/pulls/%d/requested_reviewers", project.Owner, project.Name, prNumber), params)
+	if err = checkStatus(201, "requesting reviewer", res, err); err != nil {
+		return
+	}
+
+	res.Body.Close()
+	return
+}
+
 func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCloser, err error) {
 	url, err := octokit.CommitsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "sha": sha})
 	if err != nil {
