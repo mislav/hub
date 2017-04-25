@@ -19,7 +19,6 @@ import (
 )
 
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
-const reviewsApiVersion = "application/vnd.github.black-cat-preview+json"
 
 var inspectHeaders = []string{
 	"Authorization",
@@ -231,7 +230,6 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	req.Header.Set("Authorization", "token "+c.accessToken)
 	req.Header.Set("User-Agent", UserAgent)
 	req.Header.Set("Accept", apiPayloadVersion)
-	req.Header.Add("Accept", reviewsApiVersion)
 
 	if configure != nil {
 		configure(req)
@@ -261,7 +259,7 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	return
 }
 
-func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simpleResponse, error) {
+func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {
 	json, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -270,6 +268,9 @@ func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simp
 
 	return c.performRequest(method, path, buf, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		if configure != nil {
+			configure(req)
+		}
 	})
 }
 
@@ -288,11 +289,17 @@ func (c *simpleClient) Delete(path string) (*simpleResponse, error) {
 }
 
 func (c *simpleClient) PostJSON(path string, payload interface{}) (*simpleResponse, error) {
-	return c.jsonRequest("POST", path, payload)
+	return c.jsonRequest("POST", path, payload, nil)
 }
 
 func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleResponse, error) {
-	return c.jsonRequest("PATCH", path, payload)
+	return c.jsonRequest("PATCH", path, payload, nil)
+}
+
+func (c *simpleClient) PostReview(path string, payload interface{}) (*simpleResponse, error) {
+	return c.jsonRequest("POST", path, payload, func(req *http.Request) {
+		req.Header.Set("Accept", "application/vnd.github.black-cat-preview+json;charset=utf-8")
+	})
 }
 
 func (c *simpleClient) PostFile(path, filename string) (*simpleResponse, error) {
