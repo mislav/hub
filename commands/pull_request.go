@@ -17,7 +17,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-foc] [-b <BASE>] [-h <HEAD>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-foc] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
@@ -57,6 +57,9 @@ pull-request -i <ISSUE>
 	-h, --head <HEAD>
 		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
 
+	-r, --reviewer <USERS>
+		A comma-separated list of GitHub handles to request a review from.
+
 	-a, --assign <USERS>
 		A comma-separated list of GitHub handles to assign to this pull request.
 
@@ -93,6 +96,7 @@ var (
 	flagPullRequestMilestone uint64
 
 	flagPullRequestAssignees,
+	flagPullRequestReviewers,
 	flagPullRequestLabels listFlag
 )
 
@@ -108,6 +112,7 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
+	cmdPullRequest.Flag.VarP(&flagPullRequestReviewers, "reviewer", "r", "USERS")
 	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestLabels, "labels", "l", "LABELS")
 
@@ -327,6 +332,11 @@ func pullRequest(cmd *Command, args *Args) {
 
 		if len(params) > 0 {
 			err = client.UpdateIssue(baseProject, pr.Number, params)
+			utils.Check(err)
+		}
+
+		if len(flagPullRequestReviewers) > 0 {
+			err = client.RequestReview(baseProject, pr.Number, map[string]interface{}{"reviewers": flagPullRequestReviewers})
 			utils.Check(err)
 		}
 	}

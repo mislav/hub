@@ -20,6 +20,14 @@ import (
 
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
 
+var inspectHeaders = []string{
+	"Authorization",
+	"X-GitHub-OTP",
+	"Location",
+	"Link",
+	"Accept",
+}
+
 type verboseTransport struct {
 	Transport   *http.Transport
 	Verbose     bool
@@ -79,17 +87,22 @@ func (t *verboseTransport) dumpResponse(resp *http.Response) {
 }
 
 func (t *verboseTransport) dumpHeaders(header http.Header, indent string) {
-	dumpHeaders := []string{"Authorization", "X-GitHub-OTP", "Location", "Link", "Accept"}
-	for _, h := range dumpHeaders {
-		v := header.Get(h)
-		if v != "" {
-			r := regexp.MustCompile("(?i)^(basic|token) (.+)")
-			if r.MatchString(v) {
-				v = r.ReplaceAllString(v, "$1 [REDACTED]")
+	for _, listed := range inspectHeaders {
+		for name, vv := range header {
+			if !strings.EqualFold(name, listed) {
+				continue
 			}
+			for _, v := range vv {
+				if v != "" {
+					r := regexp.MustCompile("(?i)^(basic|token) (.+)")
+					if r.MatchString(v) {
+						v = r.ReplaceAllString(v, "$1 [REDACTED]")
+					}
 
-			info := fmt.Sprintf("%s %s: %s", indent, h, v)
-			t.verbosePrintln(info)
+					info := fmt.Sprintf("%s %s: %s", indent, name, v)
+					t.verbosePrintln(info)
+				}
+			}
 		}
 	}
 }
@@ -246,7 +259,7 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	return
 }
 
-func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simpleResponse, error) {
+func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {
 	json, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
@@ -255,6 +268,9 @@ func (c *simpleClient) jsonRequest(method, path string, body interface{}) (*simp
 
 	return c.performRequest(method, path, buf, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		if configure != nil {
+			configure(req)
+		}
 	})
 }
 
@@ -273,11 +289,17 @@ func (c *simpleClient) Delete(path string) (*simpleResponse, error) {
 }
 
 func (c *simpleClient) PostJSON(path string, payload interface{}) (*simpleResponse, error) {
-	return c.jsonRequest("POST", path, payload)
+	return c.jsonRequest("POST", path, payload, nil)
 }
 
 func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleResponse, error) {
-	return c.jsonRequest("PATCH", path, payload)
+	return c.jsonRequest("PATCH", path, payload, nil)
+}
+
+func (c *simpleClient) PostReview(path string, payload interface{}) (*simpleResponse, error) {
+	return c.jsonRequest("POST", path, payload, func(req *http.Request) {
+		req.Header.Set("Accept", "application/vnd.github.black-cat-preview+json;charset=utf-8")
+	})
 }
 
 func (c *simpleClient) PostFile(path, filename string) (*simpleResponse, error) {
