@@ -550,6 +550,109 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
+type Comment struct {
+  Id          int          `json:"id"`
+  Body        string       `json:"body"`
+  User        *User        `json:"user"`
+  HtmlUrl     string       `json:"html_url"`
+  CreatedAt   time.Time    `json:"created_at"`
+  UpdatedAt   time.Time    `json:"updated_at"`
+}
+
+func (client *Client) FetchIssueComments(project *Project, issueNumber int, filterParams map[string]interface{}) (comments []Comment, err error) {
+  path := fmt.Sprintf("repos/%s/%s/issues/%d/comments?per_page=100", project.Owner, project.Name, issueNumber)
+  return client.fetchComments(project, path, filterParams)
+}
+
+func (client *Client) FetchRepositoryComments(project *Project, filterParams map[string]interface{}) (comments []Comment, err error) {
+  path := fmt.Sprintf("repos/%s/%s/issues/comments?per_page=100", project.Owner, project.Name)
+  return client.fetchComments(project, path, filterParams)
+}
+
+func (client *Client) fetchComments(project *Project, path string, filterParams map[string]interface{}) (comments []Comment, err error) {
+  api, err := client.simpleApi()
+  if err != nil {
+    return
+  }
+
+  if filterParams != nil {
+    query := url.Values{}
+    for key, value := range filterParams {
+      switch v := value.(type) {
+      case string:
+        query.Add(key, v)
+      }
+    }
+    path += "&" + query.Encode()
+  }
+
+  comments = []Comment{}
+  var res *simpleResponse
+
+  for path != "" {
+    res, err = api.Get(path)
+    if err = checkStatus(200, "fetching comments", res, err); err != nil {
+      return
+    }
+    path = res.Link("next")
+
+    commentsPage := []Comment{}
+    if err = res.Unmarshal(&commentsPage); err != nil {
+      return
+    }
+    comments = append(comments, commentsPage...)
+  }
+
+  return
+}
+
+func (client *Client) CreateIssueComment(project *Project, issueNumber int, params interface{}) (comment *Comment, err error) {
+  api, err := client.simpleApi()
+  if err != nil {
+    return
+  }
+
+  res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/issues/%d/comments", project.Owner, project.Name, issueNumber), params)
+  if err = checkStatus(201, "creating comment", res, err); err != nil {
+    return
+  }
+
+  comment = &Comment{}
+  err = res.Unmarshal(comment)
+  return
+}
+
+func (client *Client) CreateCommitComment(project *Project, sha string, params interface{}) (comment *Comment, err error) {
+  api, err := client.simpleApi()
+  if err != nil {
+    return
+  }
+
+  res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/commits/%s/comments", project.Owner, project.Name, sha), params)
+  if err = checkStatus(201, "creating comment", res, err); err != nil {
+    return
+  }
+
+  comment = &Comment{}
+  err = res.Unmarshal(comment)
+  return
+}
+
+func (client *Client) UpdateComment(project *Project, commentNumber int, params map[string]interface{}) (err error) {
+  api, err := client.simpleApi()
+  if err != nil {
+    return
+  }
+
+  res, err := api.PatchJSON(fmt.Sprintf("repos/%s/%s/issues/%d", project.Owner, project.Name, commentNumber), params)
+  if err = checkStatus(200, "updating issue", res, err); err != nil {
+    return
+  }
+
+  res.Body.Close()
+  return
+}
+
 func (client *Client) CurrentUser() (user *octokit.User, err error) {
 	url, err := octokit.CurrentUserURL.Expand(nil)
 	if err != nil {
