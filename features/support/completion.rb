@@ -241,7 +241,7 @@ Given(/^I'm using ((?:zsh|git)-distributed) base git completions$/) do |type|
       end
     end
     if 'bash' == shell
-      unless git_bash_completion = git_distributed_bash_completion.call
+      unless git_distributed_bash_completion.call
         raise "git-distributed bash completion wasn't found. Completion won't work."
       end
     end
