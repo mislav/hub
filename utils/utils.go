@@ -27,25 +27,27 @@ func ConcatPaths(paths ...string) string {
 
 func BrowserLauncher() ([]string, error) {
 	browser := os.Getenv("BROWSER")
+	args := ""
 	if browser == "" {
-		browser = searchBrowserLauncher(runtime.GOOS)
+		browser, args = searchBrowserLauncher(runtime.GOOS)
 	}
 
 	if browser == "" {
 		return nil, errors.New("Please set $BROWSER to a web launcher")
 	}
 
-	return strings.Split(browser, " "), nil
+	return strings.Split(browser+" "+args, " "), nil
 }
 
-func searchBrowserLauncher(goos string) (browser string) {
+func searchBrowserLauncher(goos string) (browser string, args string) {
+	args = ""
 	switch goos {
 	case "darwin":
 		browser = "open"
 	case "windows":
 		browser = "cmd /c start"
 	default:
-		candidates := []string{"xdg-open", "cygstart", "x-www-browser", "firefox",
+		candidates := []string{"gio", "xdg-open", "cygstart", "x-www-browser", "firefox",
 			"opera", "mozilla", "netscape"}
 		for _, b := range candidates {
 			path, err := exec.LookPath(b)
@@ -56,7 +58,11 @@ func searchBrowserLauncher(goos string) (browser string) {
 		}
 	}
 
-	return browser
+	if strings.Contains(browser, "gio") {
+		args = "open"
+	}
+
+	return browser, args
 }
 
 func CommandPath(cmd string) (string, error) {
