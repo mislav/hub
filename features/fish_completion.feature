@@ -8,7 +8,7 @@ Feature: fish tab-completion
     When I type "git pu" and press <Tab>
     Then the command should not expand
     When I press <Tab> again
-    Then the completion menu should offer "pull push pull-request"
+    Then the completion menu should offer "pull push pull-request" unsorted
 
   Scenario: "ci-" expands to "ci-status"
     When I type "git ci-" and press <Tab>
