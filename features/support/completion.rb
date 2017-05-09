@@ -29,13 +29,15 @@ git_prefix = lambda {
 }
 
 git_distributed_zsh_completion = lambda {
-  [ git_prefix.call + 'share/git-core/contrib/completion/git-completion.zsh',
+  [ git_prefix.call + 'contrib/completion/git-completion.zsh',
+    git_prefix.call + 'share/git-core/contrib/completion/git-completion.zsh',
     git_prefix.call + 'share/zsh/site-functions/_git',
   ].detect {|p| p.exist? }
 }
 
 git_distributed_bash_completion = lambda {
-  [ git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash',
+  [ git_prefix.call + 'contrib/completion/git-completion.bash',
+    git_prefix.call + 'share/git-core/contrib/completion/git-completion.bash',
     git_prefix.call + 'share/git-core/git-completion.bash',
     git_prefix.call + 'etc/bash_completion.d/git-completion.bash',
     Pathname.new('/etc/bash_completion.d/git'),
@@ -236,6 +238,11 @@ Given(/^I'm using ((?:zsh|git)-distributed) base git completions$/) do |type|
         link_completion.call(git_distributed_bash_completion.call, 'git-completion.bash')
       else
         warn "warning: git-distributed zsh completion wasn't found; using zsh-distributed instead"
+      end
+    end
+    if 'bash' == shell
+      unless git_bash_completion = git_distributed_bash_completion.call
+        raise "git-distributed bash completion wasn't found. Completion won't work."
       end
     end
   else
