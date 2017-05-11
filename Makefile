@@ -71,4 +71,6 @@ install: bin/hub man-pages
 
 clean:
 	rm -rf bin/hub
+	rm -rf bin/ronn
+	rm -rf bin/cucumber
 	git clean -fdx share/man
