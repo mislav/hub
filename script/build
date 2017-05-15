@@ -14,9 +14,8 @@ windows=
 
 setup_gopath() {
   TMPDIR="${LOCALAPPDATA:-$TMPDIR}"
-  MY_TMPDIR=${TMPDIR:-/tmp}
-  # TMPDIR may or may not have had a trailing slash.
-  TMP_GOPATH="${MY_TMPDIR%/}/go"
+  TMPDIR=${TMPDIR:-/tmp}
+  TMP_GOPATH="${TMPDIR%/}/go"
   TMP_SELF="${TMP_GOPATH}/src/github.com/github/hub"
 
   if [ -n "$windows" ]; then

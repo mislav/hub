@@ -2,9 +2,8 @@
 set -e
 
 STATUS=0
-warnings_dir="${TMPDIR:-/tmp}"
-# TMPDIR may or may not have had a trailing slash.
-warnings="${warnings_dir%/}/gh-warnings.$$"
+TMPDIR="${TMPDIR:-/tmp}"
+warnings="${TMPDIR%/}/gh-warnings.$$"
 
 run() {
   # Save warnings on stderr to a separate file
