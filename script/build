@@ -8,9 +8,6 @@
 # With `test`, runs tests instead.
 
 set -e
-source script/check_go_version
-
-check_go_version
 
 windows=
 [[ $OS == Windows* ]] && windows=1

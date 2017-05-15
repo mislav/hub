@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 set -e
-source script/check_go_version
 
 STATUS=0
 
@@ -17,7 +16,11 @@ if [ -n "$TRAVIS" ] && [ ! -x ~/bin/tmux ]; then
   curl -fsSL "https://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${cache_name}.tgz" | tar -xz -C ~
 fi
 
-check_go_version
+go_ver="$(go version | grep -o '1.[[:digit:]]\+' | head -1)"
+if [ "${go_ver#*.}" -lt 8 ]; then
+  echo "You need to install Go 1.8 or higher to build hub" >&2
+  STATUS=1
+fi
 
 { ruby --version
   if [ -n "$TRAVIS" ]; then
