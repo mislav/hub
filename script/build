@@ -39,7 +39,18 @@ find_packages() {
   find_source_files | cut -d/ -f2 | sort -u | grep -v '.go$' | sed 's!^!github.com/github/hub/!'
 }
 
+check_go_version() {
+  local version="$(go version)"
+  local minor="$(grep -o 'go1.[[:digit:]]\+' <<<"$version" | head -1)"
+  [ -z "$version" ] || echo "$version"
+  if [[ -z "$version" || -n "$minor" && "${minor##*.}" -lt 8 ]]; then
+    echo "You need to install Go 1.8 or higher to build hub" >&2
+    return 1
+  fi
+}
+
 build_hub() {
+  check_go_version >/dev/null
   setup_gopath
   mkdir -p "$(dirname "$1")"
   go build -ldflags "-X github.com/github/hub/version.Version=`./script/version`" -o "$1"
@@ -66,6 +77,9 @@ test )
   ;;
 files )
   find_source_files
+  ;;
+check )
+  check_go_version
   ;;
 -h | --help )
   sed -ne '/^#/!q;s/.\{1,2\}//;1,2d;p' < "$0"
