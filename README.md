@@ -63,7 +63,7 @@ $ make install prefix=/usr/local
 Prerequisites for compilation are:
 
 * `make`
-* [Go 1.6+](http://golang.org/doc/install)
+* [Go 1.8+](http://golang.org/doc/install)
 * Ruby 1.9+ with Bundler - for generating man pages
 
 If you don't have `make`, Ruby, or want to skip man pages (for example, if you
@@ -100,8 +100,8 @@ eval "$(hub alias -s)"
 
 #### PowerShell
 
-If you're using PowerShell, you can set an alias for `hub` by placing the 
-following in your PowerShell profile (usually 
+If you're using PowerShell, you can set an alias for `hub` by placing the
+following in your PowerShell profile (usually
 `~/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1`):
 
 ``` sh

@@ -827,22 +827,6 @@ BODY
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Redirect to another host is not followed
-    Given the "origin" remote has url "https://github.com/mislav/coral.git"
-    And I am on the "feature" branch pushed to "origin/feature"
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        redirect 'https://disney.com/mouse', 307
-      }
-      """
-    When I run `hub pull-request -m hereyougo`
-    Then the stderr should contain exactly:
-      """
-      Error creating pull request: Temporary Redirect (HTTP 307)
-      Refused to follow redirect to https://disney.com/mouse\n
-      """
-
   Scenario: Default message with --push
     Given the git commit editor is "true"
     Given the GitHub API server:

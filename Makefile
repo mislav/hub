@@ -70,5 +70,4 @@ install: bin/hub man-pages
 	bash < script/install.sh
 
 clean:
-	rm -rf bin/hub
-	git clean -fdx share/man
+	git clean -fdx bin share/man

@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+STATUS=0
+
 if [ -n "$TRAVIS" ] && [ ! -x ~/bin/tmux ]; then
   case "$TRAVIS_OS_NAME" in
     linux ) cache_name="tmux-zsh.ubuntu" ;;
@@ -14,12 +16,7 @@ if [ -n "$TRAVIS" ] && [ ! -x ~/bin/tmux ]; then
   curl -fsSL "https://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${cache_name}.tgz" | tar -xz -C ~
 fi
 
-STATUS=0
-
-if ! go version; then
-  echo "You need to install Go 1.6 or higher to build hub" >&2
-  STATUS=1
-fi
+script/build check || STATUS=1
 
 { ruby --version
   if [ -n "$TRAVIS" ]; then

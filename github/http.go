@@ -154,20 +154,6 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 
 	return &http.Client{
 		Transport: tr,
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			if len(via) > 2 {
-				return fmt.Errorf("too many redirects")
-			} else {
-				// replicate rudimentary functionality of copyHeaders from Go 1.8
-				for key, vals := range via[0].Header {
-					lkey := strings.ToLower(key)
-					if !strings.HasPrefix(lkey, "x-original-") && via[0].Host == req.URL.Host || lkey != "authorization" {
-						req.Header[key] = vals
-					}
-				}
-				return nil
-			}
-		},
 	}
 }
 
@@ -216,13 +202,13 @@ func (c *simpleClient) performRequest(method, path string, body io.Reader, confi
 	url, err := url.Parse(path)
 	if err == nil {
 		url = c.rootUrl.ResolveReference(url)
-		return c.performRequestUrl(method, url, body, configure, 2)
+		return c.performRequestUrl(method, url, body, configure)
 	} else {
 		return nil, err
 	}
 }
 
-func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Reader, configure func(*http.Request), redirectsRemaining int) (res *simpleResponse, err error) {
+func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
 	req, err := http.NewRequest(method, url.String(), body)
 	if err != nil {
 		return
@@ -247,14 +233,6 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	}
 
 	res = &simpleResponse{httpResponse}
-	// TODO: remove after upgrade to Go 1.8
-	if res.StatusCode == 307 && redirectsRemaining > 0 {
-		url, err = url.Parse(res.Header.Get("Location"))
-		if err != nil || url.Host != req.URL.Host || url.Scheme != req.URL.Scheme {
-			return
-		}
-		res, err = c.performRequestUrl(method, url, bodyBackup, configure, redirectsRemaining-1)
-	}
 
 	return
 }
