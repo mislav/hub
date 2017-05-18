@@ -6,11 +6,13 @@ import (
 )
 
 func TestSearchBrowserLauncher(t *testing.T) {
-	browser := searchBrowserLauncher("darwin")
+	browser, args := searchBrowserLauncher("darwin")
 	assert.Equal(t, "open", browser)
+	assert.Equal(t, "", args)
 
-	browser = searchBrowserLauncher("windows")
+	browser, args = searchBrowserLauncher("windows")
 	assert.Equal(t, "cmd /c start", browser)
+	assert.Equal(t, "", args)
 }
 
 func TestConcatPaths(t *testing.T) {
