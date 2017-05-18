@@ -141,7 +141,7 @@ func (client *Client) RequestReview(project *Project, prNumber int, params map[s
 	}
 
 	res, err := api.PostReview(fmt.Sprintf("repos/%s/%s/pulls/%d/requested_reviewers", project.Owner, project.Name, prNumber), params)
-	if err = checkStatus(200, "requesting reviewer", res, err); err != nil {
+	if err = checkStatus(201, "requesting reviewer", res, err); err != nil {
 		return
 	}
 

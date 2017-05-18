@@ -745,6 +745,7 @@ BODY
       post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
         halt 415 unless request.accept?('application/vnd.github.black-cat-preview+json')
         assert :reviewers => ["mislav", "josh", "pcorpet"]
+        status 201
         json :html_url => "the://url"
       }
       """
