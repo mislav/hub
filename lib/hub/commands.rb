@@ -243,11 +243,16 @@ module Hub
           msg.puts initial_message if initial_message
           msg.puts ""
           msg.puts File.read(pullrequest_template_file) if pullrequest_template_file
-          msg.puts ""
-          msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
-          msg.puts "#{cc}"
-          msg.puts "#{cc} Write a message for this pull request. The first block"
-          msg.puts "#{cc} of text is the title and the rest is description."
+
+          if contributing_md_file
+            msg.puts File.readlines(contributing_md_file).map {|line| line.prepend('# ')}.join
+          else
+            msg.puts ""
+            msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+            msg.puts "#{cc}"
+            msg.puts "#{cc} Write a message for this pull request. The first block"
+            msg.puts "#{cc} of text is the title and the rest is description."
+          end
         }
       end
 
@@ -1218,6 +1223,10 @@ help
     def pullrequest_template_file
       return '.github/PULL_REQUEST_TEMPLATE.md' if File.exist? '.github/PULL_REQUEST_TEMPLATE.md'
       return 'PULL_REQUEST_TEMPLATE.md' if File.exist? 'PULL_REQUEST_TEMPLATE.md'
+    end
+
+    def contributing_md_file
+      return '.github/CONTRIBUTING.md' if File.exist? '.github/CONTRIBUTING.md'
     end
 
     def read_editmsg(file, commentchar)
