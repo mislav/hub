@@ -243,13 +243,13 @@ module Hub
           msg.puts initial_message if initial_message
           msg.puts ""
           msg.puts File.read(pullrequest_template_file) if pullrequest_template_file
+          msg.puts ""
+          msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
+          msg.puts "#{cc}"
 
           if contributing_md_file
-            msg.puts File.readlines(contributing_md_file).map {|line| line.prepend('# ')}.join
+            msg.puts File.readlines(contributing_md_file).map {|line| line.prepend('## ')}.join
           else
-            msg.puts ""
-            msg.puts "#{cc} Requesting a pull to #{base_project.owner}:#{options[:base]} from #{options[:head]}"
-            msg.puts "#{cc}"
             msg.puts "#{cc} Write a message for this pull request. The first block"
             msg.puts "#{cc} of text is the title and the rest is description."
           end
