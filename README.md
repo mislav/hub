@@ -133,6 +133,13 @@ complement existing completion scripts that ship with git.
 * [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
 * [hub fish completion](https://github.com/github/hub/blob/master/etc/hub.fish_completion)
 
+Authentication
+--------------
+
+Many hub commands must authenticate against GitHub to operate. Often, hub will prompt you for your credentials when they are needed.
+
+The best way to authenticate hub without prompting is to set the environment variable GITHUB_TOKEN to the value of a [personal access token](https://help.github.com/articles/creating-an-access-token-for-command-line-use/) that you create for this purpose.
+
 Meta
 ----
 
