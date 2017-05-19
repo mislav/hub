@@ -133,6 +133,11 @@ complement existing completion scripts that ship with git.
 * [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
 * [hub fish completion](https://github.com/github/hub/blob/master/etc/hub.fish_completion)
 
+### GitHub tokens
+
+hub uses a GitHub token. It places one in `~/.config/hub`. If you have a GITHUB_TOKEN variable
+declared elsewhere in your environment, you may run into unexpected issues.
+
 Meta
 ----
 
