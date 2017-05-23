@@ -12,7 +12,7 @@ $ git clone git://github.com/rtomayko/tilt.git
 ```
 
 hub is best aliased as `git`, so you can type `$ git <command>` in the shell and
-get all the usual `hub` features. See "Aliasing" below.
+get all the usual `hub` features. See «Aliasing» below.
 
 
 Installation
@@ -127,7 +127,7 @@ New-Item -Type file -Force $PROFILE
 hub repository contains tab-completion scripts for bash and zsh. These scripts
 complement existing completion scripts that ship with git.
 
-[Installation instructions](etc)
+[Installation instructions](etc):
 
 * [hub bash completion](https://github.com/github/hub/blob/master/etc/hub.bash_completion.sh)
 * [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
