@@ -1,4 +1,4 @@
-git + hub = github
+git + hub = githubtest
 ==================
 
 hub is a command line tool that wraps `git` in order to extend it with extra
