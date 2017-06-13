@@ -91,6 +91,7 @@ var (
 	flagPullRequestCopy,
 	flagPullRequestEdit,
 	flagPullRequestPush,
+	flagPullRequestShow,
 	flagPullRequestForce bool
 
 	flagPullRequestMilestone uint64
@@ -109,6 +110,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestShow, "show", "s", false, "SHOW")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
@@ -183,6 +185,18 @@ func pullRequest(cmd *Command, args *Args) {
 		} else {
 			head = trackedBranch.ShortName()
 		}
+	}
+
+	if flagPullRequestShow {
+		pullRequests, err := client.GetPullRequestUrlsForHead(headProject, head)
+		utils.Check(err)
+
+		for _, pr := range pullRequests {
+			ui.Println(pr.HtmlUrl)
+		}
+
+		args.NoForward()
+		return
 	}
 
 	if headRepo, err := client.Repository(headProject); err == nil {

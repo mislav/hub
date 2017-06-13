@@ -134,6 +134,23 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	return
 }
 
+func (client *Client) GetPullRequestUrlsForHead(headProject *Project, branch string) (pr []PullRequest, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/pulls?head=%s:%s", headProject.Owner, headProject.Name, headProject.Owner, branch))
+	if err = checkStatus(200, "getting pull request", res, err); err != nil {
+		return
+	}
+
+	pr = []PullRequest{}
+	err = res.Unmarshal(&pr)
+
+	return
+}
+
 func (client *Client) RequestReview(project *Project, prNumber int, params map[string]interface{}) (err error) {
 	api, err := client.simpleApi()
 	if err != nil {
