@@ -1,12 +1,14 @@
 package github
 
 import (
+	"crypto/tls"
 	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
 
 	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
 	"github.com/octokit/go-octokit/octokit"
 )
 
@@ -18,6 +20,20 @@ func TestClient_newOctokitClient(t *testing.T) {
 	c = NewClient("github.corporate.com")
 	cc = c.newOctokitClient(nil)
 	assert.Equal(t, "https://github.corporate.com/", cc.Endpoint.String())
+}
+
+func TestClient_newTLSConfig(t *testing.T) {
+	c := NewClient("github.corporate.com")
+	tlsConfig, err := c.newTLSConfig()
+	assert.Equal(t, nil, err)
+
+	// We don't have a client certificate configured, so config should come
+	// back as nil.
+	assert.Equal(t, (*tls.Config)(nil), tlsConfig)
+
+	c.Host.ClientCertificate = fixtures.Path("cert", "client.p12")
+	tlsConfig, err = c.newTLSConfig()
+	assert.Equal(t, nil, err)
 }
 
 func TestClient_FormatError(t *testing.T) {

@@ -1,8 +1,11 @@
 package github
 
 import (
+	"crypto/tls"
+	"encoding/pem"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
@@ -12,6 +15,7 @@ import (
 
 	"github.com/github/hub/version"
 	"github.com/octokit/go-octokit/octokit"
+	"golang.org/x/crypto/pkcs12"
 )
 
 const (
@@ -666,7 +670,12 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 		return
 	}
 
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
+	tlsConfig, err := client.newTLSConfig()
+	if err != nil {
+		return
+	}
+
+	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", tlsConfig)
 	apiRoot := client.requestURL(client.absolute(normalizeHost(client.Host.Host)))
 
 	c = &simpleClient{
@@ -685,10 +694,51 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 	host = normalizeHost(host)
 	apiHostURL := client.absolute(host)
 
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
+	tlsConfig, err := client.newTLSConfig()
+	if err != nil {
+		panic(err)
+	}
+
+	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", tlsConfig)
 	c := octokit.NewClientWith(apiHostURL.String(), UserAgent, auth, httpClient)
 
 	return c
+}
+
+func (client *Client) newTLSConfig() (*tls.Config, error) {
+	if client.Host.ClientCertificate == "" {
+		return nil, nil
+	}
+
+	pkcsData, err := ioutil.ReadFile(client.Host.ClientCertificate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Note that for now only PKCS files that ar not protected by a password
+	// are supported (see the second empty string argument). This isn't a
+	// necessity, and we should support a password (and possibly other types of
+	// cert files) if the need arises. We'd probably want to add a new prompt
+	// method in config.go should we go in that direction.
+	blocks, err := pkcs12.ToPEM(pkcsData, "")
+	if err != nil {
+		return nil, err
+	}
+
+	var pemData []byte
+	for _, b := range blocks {
+		pemData = append(pemData, pem.EncodeToMemory(b)...)
+	}
+
+	cert, err := tls.X509KeyPair(pemData, pemData)
+	if err != nil {
+		return nil, err
+	}
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+	}
+	return tlsConfig, nil
 }
 
 func (client *Client) absolute(host string) *url.URL {

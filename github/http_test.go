@@ -42,7 +42,7 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 		assert.Equal(t, "example.com", r.Host)
 	})
 
-	c := newHttpClient(s.URL.String(), false)
+	c := newHttpClient(s.URL.String(), false, nil)
 	c.Get("https://example.com/override")
 
 	s.HandleFunc("/not-override", func(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,7 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 		assert.Equal(t, s.URL.Host, r.Host)
 	})
 
-	c = newHttpClient("", false)
+	c = newHttpClient("", false, nil)
 	c.Get(fmt.Sprintf("%s/not-override", s.URL.String()))
 }
 

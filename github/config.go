@@ -29,6 +29,13 @@ type yamlHost struct {
 	User       string `yaml:"user"`
 	OAuthToken string `yaml:"oauth_token"`
 	Protocol   string `yaml:"protocol"`
+
+	// ClientCertificate is the path to a PKCS12-encoded client certificate
+	// that will be sent to the GitHub server along with HTTP requests. A
+	// passphrase on the file isn't supported for the time being, so it should
+	// be encrypted with an empty passphrase. This is probably only useful if
+	// you have a very specific GitHub enterprise configuration.
+	ClientCertificate string `yaml:"client_certificate"`
 }
 
 type yamlConfig map[string][]yamlHost
@@ -38,6 +45,13 @@ type Host struct {
 	User        string `toml:"user"`
 	AccessToken string `toml:"access_token"`
 	Protocol    string `toml:"protocol"`
+
+	// ClientCertificate is the path to a PKCS12-encoded client certificate
+	// that will be sent to the GitHub server along with HTTP requests. A
+	// passphrase on the file isn't supported for the time being, so it should
+	// be encrypted with an empty passphrase. This is probably only useful if
+	// you have a very specific GitHub enterprise configuration.
+	ClientCertificate string `toml:"client_certificate"`
 }
 
 type Config struct {

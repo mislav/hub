@@ -39,10 +39,11 @@ func (y *yamlConfigDecoder) Decode(r io.Reader, c *Config) error {
 	for h, v := range yc {
 		vv := v[0]
 		host := &Host{
-			Host:        h,
-			User:        vv.User,
-			AccessToken: vv.OAuthToken,
-			Protocol:    vv.Protocol,
+			Host:              h,
+			User:              vv.User,
+			AccessToken:       vv.OAuthToken,
+			Protocol:          vv.Protocol,
+			ClientCertificate: vv.ClientCertificate,
 		}
 		c.Hosts = append(c.Hosts, host)
 	}

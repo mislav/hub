@@ -74,7 +74,8 @@ func TestConfigService_TomlSave(t *testing.T) {
   host = "github.com"
   user = "jingweno"
   access_token = "123"
-  protocol = "https"`
+  protocol = "https"
+  client_certificate = ""`
 	assert.Equal(t, content, strings.TrimSpace(string(b)))
 }
 
@@ -101,6 +102,7 @@ func TestConfigService_YamlSave(t *testing.T) {
 	content := `github.com:
 - user: jingweno
   oauth_token: "123"
-  protocol: https`
+  protocol: https
+  client_certificate: ""`
 	assert.Equal(t, content, strings.TrimSpace(string(b)))
 }

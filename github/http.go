@@ -2,6 +2,7 @@ package github
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -132,7 +133,7 @@ func (t *verboseTransport) verbosePrintln(msg string) {
 	fmt.Fprintln(t.Out, msg)
 }
 
-func newHttpClient(testHost string, verbose bool) *http.Client {
+func newHttpClient(testHost string, verbose bool, tlsConfig *tls.Config) *http.Client {
 	var testURL *url.URL
 	if testHost != "" {
 		testURL, _ = url.Parse(testHost)
@@ -144,6 +145,7 @@ func newHttpClient(testHost string, verbose bool) *http.Client {
 				Timeout:   30 * time.Second,
 				KeepAlive: 30 * time.Second,
 			}).Dial,
+			TLSClientConfig:     tlsConfig,
 			TLSHandshakeTimeout: 10 * time.Second,
 		},
 		Verbose:     verbose,
