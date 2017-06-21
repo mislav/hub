@@ -2,5 +2,5 @@
 package commands
 
 // This does nothing on windows
-func resetConsole() {
+func setConsole(cmd *cmd.Cmd) {
 }

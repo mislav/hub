@@ -14,8 +14,11 @@ import (
 )
 
 type Cmd struct {
-	Name string
-	Args []string
+	Name   string
+	Args   []string
+	Stdin  *os.File
+	Stdout *os.File
+	Stderr *os.File
 }
 
 func (cmd Cmd) String() string {
@@ -63,9 +66,9 @@ func (cmd *Cmd) Run() error {
 func (cmd *Cmd) Spawn() error {
 	verboseLog(cmd)
 	c := exec.Command(cmd.Name, cmd.Args...)
-	c.Stdin = os.Stdin
-	c.Stdout = os.Stdout
-	c.Stderr = os.Stderr
+	c.Stdin = cmd.Stdin
+	c.Stdout = cmd.Stdout
+	c.Stderr = cmd.Stderr
 
 	return c.Run()
 }
@@ -98,7 +101,7 @@ func New(cmd string) *Cmd {
 	for _, arg := range cmds[1:] {
 		args = append(args, arg)
 	}
-	return &Cmd{Name: name, Args: args}
+	return &Cmd{Name: name, Args: args, Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
 }
 
 func NewWithArray(cmd []string) *Cmd {

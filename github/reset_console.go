@@ -2,12 +2,15 @@
 package github
 
 import (
-	"syscall"
+	"os"
+
+	"github.com/github/hub/cmd"
 )
 
-func resetConsole() {
-	fd, err := syscall.Open("/dev/tty", syscall.O_RDONLY, 0660)
+func setConsole(cmd *cmd.Cmd) {
+
+	stdin, err := os.OpenFile("/dev/tty", os.O_RDONLY, 0660)
 	if err == nil {
-		syscall.Dup2(fd, syscall.Stdin)
+		cmd.Stdin = stdin
 	}
 }

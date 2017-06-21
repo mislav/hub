@@ -118,7 +118,7 @@ func openTextEditor(program, file string) error {
 	}
 	editCmd.WithArg(file)
 	// Reattach stdin to the console before opening the editor
-	resetConsole()
+	setConsole(editCmd)
 
 	return editCmd.Spawn()
 }
