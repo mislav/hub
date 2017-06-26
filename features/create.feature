@@ -87,6 +87,13 @@ Feature: hub create
     Then the stderr should contain "'create' must be run from inside a git repository"
     And the exit status should be 1
 
+  Scenario: Cannot create from bare repo
+    Given the current dir is not a repo
+    And I run `git init --bare`
+    When I run `hub create`
+    Then the stderr should contain exactly "unable to determine git working directory\n"
+    And the exit status should be 1
+
   Scenario: Origin remote already exists
     Given the GitHub API server:
       """

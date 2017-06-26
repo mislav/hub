@@ -67,7 +67,11 @@ func Dir() (string, error) {
 func WorkdirName() (string, error) {
 	output, err := gitOutput("rev-parse", "--show-toplevel")
 	if err == nil {
-		return output[0], nil
+		if len(output) > 0 {
+			return output[0], nil
+		} else {
+			return "", fmt.Errorf("unable to determine git working directory")
+		}
 	} else {
 		return "", err
 	}

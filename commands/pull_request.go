@@ -369,21 +369,20 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		}
 	}
 
-	workdir, err := git.WorkdirName()
-	if err != nil {
-		return "", err
-	}
-	template, err := github.ReadTemplate(github.PullRequestTemplate, workdir)
-	if err != nil {
-		return "", err
-	} else if template != "" {
-		if defaultMsg == "" {
-			defaultMsg = "\n\n" + template
-		} else {
-			parts := strings.SplitN(defaultMsg, "\n\n", 2)
-			defaultMsg = parts[0] + "\n\n" + template
-			if len(parts) > 1 && parts[1] != "" {
-				defaultMsg = defaultMsg + "\n\n" + parts[1]
+	workdir, _ := git.WorkdirName()
+	if workdir != "" {
+		template, err := github.ReadTemplate(github.PullRequestTemplate, workdir)
+		if err != nil {
+			return "", err
+		} else if template != "" {
+			if defaultMsg == "" {
+				defaultMsg = "\n\n" + template
+			} else {
+				parts := strings.SplitN(defaultMsg, "\n\n", 2)
+				defaultMsg = parts[0] + "\n\n" + template
+				if len(parts) > 1 && parts[1] != "" {
+					defaultMsg = defaultMsg + "\n\n" + parts[1]
+				}
 			}
 		}
 	}
