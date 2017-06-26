@@ -2,7 +2,8 @@
 set -e
 
 STATUS=0
-warnings="${TMPDIR:-/tmp}/gh-warnings.$$"
+TMPDIR="${TMPDIR:-/tmp}"
+warnings="${TMPDIR%/}/gh-warnings.$$"
 
 run() {
   # Save warnings on stderr to a separate file
