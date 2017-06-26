@@ -16,3 +16,7 @@ Feature: hub help
   Scenario: Shows help for a subcommand
     When I successfully run `hub help hub-help`
     Then the output should contain "Usage: hub help"
+
+  Scenario: Doesn't sabotage --exec-path
+    When I successfully run `hub --exec-path`
+    Then the output should not contain "These GitHub commands"

@@ -79,7 +79,7 @@ func (r *Runner) Execute() ExecError {
 	args.ProgramPath = os.Args[0]
 	forceFail := false
 
-	if args.Command == "" {
+	if args.Command == "" && len(args.GlobalFlags) == 0 {
 		args.Command = "help"
 		forceFail = true
 	}
