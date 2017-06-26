@@ -117,6 +117,8 @@ func openTextEditor(program, file string) error {
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}
 	editCmd.WithArg(file)
+	// Reattach stdin to the console before opening the editor
+	setConsole(editCmd)
 
 	return editCmd.Spawn()
 }
