@@ -396,6 +396,24 @@ MARKDOWN
           ASSET_TARBALL
           """
 
+  Scenario: Delete a release
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+          json [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+              tag_name: 'v1.2.0',
+            },
+          ]
+      }
+
+      delete('/repos/mislav/will_paginate/releases/123') {
+        status 204
+      }
+      """
+    When I successfully run `hub release delete v1.2.0`
+    Then there should be no output
+
   Scenario: Enterprise list releases
     Given the "origin" remote has url "git@git.my.org:mislav/will_paginate.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
