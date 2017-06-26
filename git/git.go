@@ -14,11 +14,11 @@ var GlobalFlags []string
 
 func Version() (string, error) {
 	output, err := gitOutput("version")
-	if err != nil {
-		return "", fmt.Errorf("Can't load git version")
+	if err == nil {
+		return output[0], nil
+	} else {
+		return "", fmt.Errorf("error running git version: %s", err)
 	}
-
-	return output[0], nil
 }
 
 var cachedDir string

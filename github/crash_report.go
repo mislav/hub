@@ -97,6 +97,7 @@ const crashReportTmpl = "Crash report - %v\n\n" +
 
 func reportTitleAndBody(reportedError error, stack string) (title, body string, err error) {
 	errType := reflect.TypeOf(reportedError).String()
+	fullVersion, _ := version.FullVersion()
 	message := fmt.Sprintf(
 		crashReportTmpl,
 		reportedError,
@@ -104,7 +105,7 @@ func reportTitleAndBody(reportedError error, stack string) (title, body string, 
 		reportedError,
 		stack,
 		runtimeInfo(),
-		version.FullVersion(),
+		fullVersion,
 	)
 
 	editor, err := NewEditor("CRASH_REPORT", "crash report", message)
