@@ -5,7 +5,7 @@ Feature: hub help
       """
       These GitHub commands are provided by hub:
 
-         pull-request   Open a pull request on GitHub
+         browse         Open a GitHub page in the default browser
       """
     And the output should contain "usage: git "
 
