@@ -44,6 +44,17 @@ git version 2.7.1.windows.2
 hub version 2.2.3
 ```
 
+#### Fedora Linux
+
+On Fedora you can install `hub` through DNF:
+
+``` sh
+$ sudo dnf install hub
+$ hub version
+git version 2.9.3
+hub version 2.2.9
+```
+
 #### Standalone
 
 `hub` can be easily installed as an executable. Download the latest
