@@ -21,6 +21,16 @@ Feature: hub alias
           hub $argv
       end\n
       """
+  
+  Scenario: rc instructions
+    Given $SHELL is "/usr/local/bin/rc"
+    When I successfully run `hub alias`
+    Then the output should contain exactly:
+      """
+      # Wrap git automatically by adding the following to $home/lib/profile:
+
+      eval `{hub alias -s}\n
+      """
 
   Scenario: zsh instructions
     Given $SHELL is "/bin/zsh"
@@ -67,6 +77,14 @@ Feature: hub alias
       """
       alias git=hub\n
       """
+  
+  Scenario: rc code
+    Given $SHELL is "/usr/local/bin/rc"
+    When I successfully run `hub alias -s`
+    Then the output should contain exactly:
+      """
+      fn git { builtin hub $* }\n
+      """  
 
   Scenario: zsh code
     Given $SHELL is "/bin/zsh"
@@ -98,7 +116,7 @@ Feature: hub alias
     Then the output should contain exactly:
       """
       hub alias: unsupported shell
-      supported shells: bash zsh sh ksh csh tcsh fish\n
+      supported shells: bash zsh sh ksh csh tcsh fish rc\n
       """
     And the exit status should be 1
 

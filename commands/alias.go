@@ -52,7 +52,7 @@ func alias(command *Command, args *Args) {
 		utils.Check(fmt.Errorf("Error: couldn't detect shell type. Please specify your shell with `%s`", cmd))
 	}
 
-	shells := []string{"bash", "zsh", "sh", "ksh", "csh", "tcsh", "fish"}
+	shells := []string{"bash", "zsh", "sh", "ksh", "csh", "tcsh", "fish", "rc"}
 	shell = filepath.Base(shell)
 	var validShell bool
 	for _, s := range shells {
@@ -72,6 +72,8 @@ func alias(command *Command, args *Args) {
 		switch shell {
 		case "csh", "tcsh":
 			alias = "alias git hub"
+		case "rc":
+			alias = "fn git { builtin hub $* }"
 		default:
 			alias = "alias git=hub"
 		}
@@ -92,6 +94,8 @@ func alias(command *Command, args *Args) {
 			profile = "~/.cshrc"
 		case "tcsh":
 			profile = "~/.tcshrc"
+		case "rc":
+			profile = "$home/lib/profile"
 		default:
 			profile = "your profile"
 		}
@@ -105,6 +109,8 @@ func alias(command *Command, args *Args) {
 			eval = `function git --wraps hub --description 'Alias for hub, which wraps git to provide extra functionality with GitHub.'
 	hub $argv
 end`
+		case "rc":
+			eval = "eval `{hub alias -s}"
 		case "csh", "tcsh":
 			eval = "eval \"`hub alias -s`\""
 		default:
