@@ -33,6 +33,16 @@ git version 1.7.6
 hub version 2.2.3
 ```
 
+#### Debian / Ubuntu / Windows Subsystem for Linux
+``` sh
+sudo add-apt-repository ppa:cpick/hub
+sudo apt-get update
+sudo apt-get install hub
+$ hub version
+git version 1.9.1
+hub version 2.2.1
+```
+
 #### Chocolatey
 
 `hub` can be installed through [Chocolatey](https://chocolatey.org/) on Windows.
