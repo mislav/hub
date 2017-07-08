@@ -1,4 +1,5 @@
-// +build  !windows
+// +build !windows
+
 package github
 
 import (
