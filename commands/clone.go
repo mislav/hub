@@ -5,8 +5,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/hub/cmd"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
+	"github.com/octokit/go-octokit/octokit"
 )
 
 var cmdClone = &Command{
@@ -41,8 +43,39 @@ func init() {
 
 func clone(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
+		name, owner := parseCloneNameAndOwner(args.Params[0])
+		if name == "*" {
+			cloneAllRepos(args, owner)
+			return
+		}
 		transformCloneArgs(args)
 	}
+}
+
+func cloneAllRepos(args *Args, owner string) {
+		client := octokit.NewClient(nil)
+		url, err := octokit.UserURL.Expand(octokit.M{"user": owner})
+		if err != nil  {
+			err = fmt.Errorf("Encountered an error retrieving user: %s", owner)
+		}
+		user, result := client.Users(url).One()
+		if result.HasError() {
+			err = fmt.Errorf("Encountered an error retrieving user: %s", owner)
+		}
+		reposURL, err := url.Parse(string(user.ReposURL))
+		if err != nil {
+			err = fmt.Errorf("Encountered an error retrieving repositories")
+		}
+		repos, result := client.Repositories(reposURL).All()
+		if result.HasError() {
+			err = fmt.Errorf("Encountered an error retrieving repositories")
+		}
+		commands := make([]*cmd.Cmd, len(repos))
+		for i := 0; i < len(repos); i++ {
+			args.Params[0] = repos[i].CloneURL
+			commands[i] = args.Commands()[0]
+		}
+		executeCommands(commands, true)
 }
 
 func transformCloneArgs(args *Args) {
