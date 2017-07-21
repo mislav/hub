@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+bash $(dirname "${BASH_SOURCE[0]}")/windows_test 
+# above is a test for windows line endings
+# must be in the top line of the program
+# and the space at the end of the line must be there
+
+
 # vi:ft=sh:
 # Usage: script/build [-o <EXE>]
 #        script/build test

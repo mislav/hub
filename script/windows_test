@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+[ "$(head -c 1 $(dirname "${BASH_SOURCE[0]}")/file-with-newline)" == $'\r' ] && printf "\n\nError: ** Cannot run with windows line endings - please check your git settings **\n\n"
