@@ -2,7 +2,6 @@
 [ "$(head -c 1 $(dirname "${BASH_SOURCE[0]}")/file-with-newline)" == $'\r' ] && printf "\n\nError: ** Can not run with windows line endings - please check your git settings **\n\n"
 # above is a test for windows line endings
 # must be in the top line of the program
-# and the space at the end of the line must be there
 
 
 # vi:ft=sh:
