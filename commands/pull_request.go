@@ -387,7 +387,24 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		}
 	}
 
+
 	cs := git.CommentChar()
+	if cs == "auto" {
+		chars := "#;@!$%^&|:"
+		for _, element := range chars {
+			for _, line := range strings.Split(defaultMsg, "\n"){
+
+				if line != "" && line[0] != byte(element){
+					cs = string(element)
+					break
+				}
+
+				// If comment char not found, just leave char as "auto".
+			}
+
+		}
+		git.SetCommentCharForEditor(cs)
+	}
 
 	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
 }
