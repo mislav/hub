@@ -12,6 +12,12 @@ import (
 
 var GlobalFlags []string
 
+var commentCharForEditor string
+
+func SetCommentCharForEditor(char string){
+	commentCharForEditor = char
+}
+
 func Version() (string, error) {
 	output, err := gitOutput("version")
 	if err == nil {
@@ -169,6 +175,7 @@ func RefList(a, b string) ([]string, error) {
 	return output, nil
 }
 
+
 func NewRange(a, b string) (*Range, error) {
 	output, err := gitOutput("rev-parse", "-q", a, b)
 	if err != nil {
@@ -193,6 +200,10 @@ func (r *Range) IsAncestor() bool {
 }
 
 func CommentChar() string {
+	if (commentCharForEditor != ""){
+		return commentCharForEditor;
+	}
+
 	char, err := Config("core.commentchar")
 	if err != nil {
 		char = "#"
