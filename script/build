@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-[ "$(head -c 1 $(dirname "${BASH_SOURCE[0]}")/file-with-newline)" == $'\r' ] && printf "\n\nError: ** Can not run with windows line endings - please check your git settings **\n\n"
-# above is a test for windows line endings
-# must be in the top line of the program
-
-
 # vi:ft=sh:
 # Usage: script/build [-o <EXE>]
 #        script/build test
@@ -11,6 +6,7 @@
 # Sets up GOPATH and compiles hub to <EXE> (default: `bin/hub`).
 #
 # With `test`, runs tests instead.
+grep -q $'\r' "${BASH_SOURCE[0]}" && printf "\nError: ** Can not run with windows line endings - please check your git settings **\n\n"; exit 1;
 
 set -e
 
