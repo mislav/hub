@@ -291,7 +291,7 @@ BODY
          # Body starts with #.
          """
         And the "topic" branch is pushed to "origin/topic"
-        When I successfully run `hub pull-request`
+        When I successfully run `hub pull-request`  
         Then the output should contain exactly "the://url\n"
 
 

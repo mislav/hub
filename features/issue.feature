@@ -265,6 +265,30 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
+   Scenario: Create an issue with commentchar=auto
+      Given the git commit editor is "vim"
+      Given git "core.commentchar" is set to "auto"
+       Given the text editor adds:
+       """
+       auto this should work
+       """
+       Given the GitHub API server:
+         """
+         post('/repos/github/hub/issues') {
+           assert :title => "auto this should work",
+                  :body => "",
+                  :labels => :no
+
+           status 201
+           json :html_url => "https://github.com/github/hub/issues/1337"
+         }
+         """
+       When I successfully run `hub issue create`
+       Then the output should contain exactly:
+         """
+         https://github.com/github/hub/issues/1337\n
+         """
+
   Scenario: Create an issue and open in browser
     Given the GitHub API server:
       """

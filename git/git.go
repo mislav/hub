@@ -14,9 +14,6 @@ var GlobalFlags []string
 
 var commentCharForEditor string
 
-func SetCommentCharForEditor(char string){
-	commentCharForEditor = char
-}
 
 func Version() (string, error) {
 	output, err := gitOutput("version")
@@ -200,17 +197,42 @@ func (r *Range) IsAncestor() bool {
 }
 
 func CommentChar() string {
-	if (commentCharForEditor != ""){
-		return commentCharForEditor;
-	}
 
 	char, err := Config("core.commentchar")
 	if err != nil {
 		char = "#"
 	}
 
+
 	return char
 }
+
+func CommentCharNoAuto() string {
+	cs := CommentChar()
+	if cs == "auto" {
+		return "#"
+	}
+	return cs;
+}
+
+func CommentCharForEditor() string {
+
+	cs := CommentChar()
+
+	if(cs == "auto") {
+		if (commentCharForEditor != "") {
+			return commentCharForEditor;
+		} else {
+			return "#";
+		}
+	}
+	return cs;
+}
+
+func SetCommentCharForEditor(char string){
+	commentCharForEditor = char
+}
+
 
 func Show(sha string) (string, error) {
 	cmd := cmd.New("git")
