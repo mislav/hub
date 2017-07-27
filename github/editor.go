@@ -26,7 +26,7 @@ func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
 		return
 	}
 
-	cs := git.CommentChar()
+	cs := git.CommentCharForEditor()
 
 	editor = &Editor{
 		Program:    program,
