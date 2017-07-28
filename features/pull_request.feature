@@ -267,6 +267,34 @@ BODY
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 
+     
+     Scenario: Text editor with commentchar=auto
+        Given git "core.commentchar" is set to "auto" 
+        Given the text editor adds:
+          """
+          """
+        Given the GitHub API server:
+          """
+          post('/repos/mislav/coral/pulls') {
+            assert :title => 'auto Title start with auto.',
+                  :body => '# Body starts with #.'
+            status 201
+            json :html_url => "the://url"
+          }
+          """
+        Given I am on the "master" branch pushed to "origin/master"
+        When I successfully run `git checkout --quiet -b topic`
+        Given I make a commit with message:
+         """
+         auto Title start with auto.
+
+         # Body starts with #.
+         """
+        And the "topic" branch is pushed to "origin/topic"
+        When I successfully run `hub pull-request`  
+        Then the output should contain exactly "the://url\n"
+
+
   Scenario: Failed pull request preserves previous message
     Given the text editor adds:
       """
