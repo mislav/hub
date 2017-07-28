@@ -367,7 +367,7 @@ func createIssue(cmd *Command, args *Args) {
 		title, body, editor, err = readMsgFromFile(flagIssueFile, flagIssueEdit, "ISSUE", "issue")
 		utils.Check(err)
 	} else {
-		cs := git.CommentChar()
+		cs := git.CommentCharNoAuto()
 		message := strings.Replace(fmt.Sprintf(`
 # Creating an issue for %s
 #
