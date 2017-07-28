@@ -307,7 +307,7 @@ func createRelease(cmd *Command, args *Args) {
 		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE", "release")
 		utils.Check(err)
 	} else {
-		cs := git.CommentChar()
+		cs := git.CommentCharNoAuto()
 		message, err := renderReleaseTpl("Creating", cs, tagName, project.String(), flagReleaseCommitish)
 		utils.Check(err)
 
@@ -398,7 +398,7 @@ func editRelease(cmd *Command, args *Args) {
 			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
 		}
 	} else {
-		cs := git.CommentChar()
+		cs := git.CommentCharNoAuto()
 		message, err := renderReleaseTpl("Editing", cs, tagName, project.String(), commitish)
 		utils.Check(err)
 
