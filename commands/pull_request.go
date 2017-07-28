@@ -387,26 +387,28 @@ func createPullRequestMessage(base, head, fullBase, fullHead string) (string, er
 		}
 	}
 
-
-	cs := git.CommentChar()
-	if cs == "auto" {
-		chars := "#;@!$%^&|:"
-		for _, element := range chars {
-			for _, line := range strings.Split(defaultMsg, "\n"){
-
-				if line != "" && line[0] != byte(element){
-					cs = string(element)
-					break
-				}
-
-				// If comment char not found, just leave char as "auto".
-			}
-
-		}
-		git.SetCommentCharForEditor(cs)
-	}
+	cs := chooseCommentChar(defaultMsg)
+	git.SetCommentCharForEditor(cs)
 
 	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
+}
+
+func chooseCommentChar(defaultMsg string) string {
+	cs := git.CommentChar()
+	if(cs != "auto"){
+		return cs
+	}
+	chars := "#;@!$%^&|:"
+	charLoop: for _, element := range chars {
+		for _, line := range strings.Split(defaultMsg, "\n") {
+			if line != "" && line[0] == byte(element){
+				continue charLoop
+			}
+		}
+		return string(element)
+	}
+	// If comment char not found, just leave char as "auto". TODO: Instead, we could fail hard?
+	return "auto"
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {
