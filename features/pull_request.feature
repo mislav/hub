@@ -94,7 +94,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Single-commit with pull request template
-    Given the git commit editor is "true"
+    Given the git commit editor is "touch"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -838,7 +838,7 @@ BODY
     Then the output should contain exactly "the://url\n"
 
   Scenario: Default message with --push
-    Given the git commit editor is "true"
+    Given the git commit editor is "touch"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {

@@ -13,6 +13,7 @@ import (
 
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
+	"time"
 )
 
 func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
@@ -54,6 +55,7 @@ func (e *Editor) DeleteFile() error {
 }
 
 func (e *Editor) EditTitleAndBody() (title, body string, err error) {
+
 	content, err := e.openAndEdit()
 	if err != nil {
 		return
@@ -76,10 +78,28 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 		return
 	}
 
+	beforeTime := time.Now().Add(-2 * time.Minute)
+	err = os.Chtimes(e.File, beforeTime, beforeTime)
+	if err != nil {
+		return
+	}
+
 	err = e.openEditor(e.Program, e.File)
+
 	if err != nil {
 		err = fmt.Errorf("error using text editor for %s message", e.Topic)
 		defer e.DeleteFile()
+		return
+	}
+
+	// If the modified time after is not greater than modified time before, they quit with something like :q!, so error-out.
+	info, err := os.Stat(e.File)
+	if err != nil{
+		return
+	}
+
+	if !(info.ModTime().After(beforeTime)){
+		err = fmt.Errorf("Aborting; you did not edit the message")
 		return
 	}
 

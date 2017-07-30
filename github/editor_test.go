@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/bmizerany/assert"
+	"time"
 )
 
 func TestEditor_openAndEdit_deleteFileWhenOpeningEditorFails(t *testing.T) {
@@ -49,7 +50,7 @@ func TestEditor_openAndEdit_readFileIfExist(t *testing.T) {
 		openEditor: func(program string, file string) error {
 			assert.Equal(t, "memory", program)
 			assert.Equal(t, tempFile.Name(), file)
-
+			os.Chtimes(file, time.Now(), time.Now())
 			return nil
 		},
 	}
