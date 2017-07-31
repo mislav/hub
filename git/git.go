@@ -195,10 +195,23 @@ func (r *Range) IsAncestor() bool {
 func CommentChar(text string) (string, error) {
 	char, err := Config("core.commentchar")
 	if err != nil {
-		char = "#"
+		return "#", nil
+	} else if char == "auto" {
+		lines := strings.Split(text, "\n")
+		commentCharCandidates := strings.Split("#;@!$%^&|:", "")
+	candidateLoop:
+		for _, candidate := range commentCharCandidates {
+			for _, line := range lines {
+				if strings.HasPrefix(line, candidate) {
+					continue candidateLoop
+				}
+			}
+			return candidate, nil
+		}
+		return "", fmt.Errorf("unable to select a comment character that is not used in the current message")
+	} else {
+		return char, nil
 	}
-
-	return char, nil
 }
 
 func Show(sha string) (string, error) {
