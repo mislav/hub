@@ -234,11 +234,45 @@ func pullRequest(cmd *Command, args *Args) {
 			headForMessage = head
 		}
 
-		message, err := createPullRequestMessage(baseTracking, headForMessage, fullBase, fullHead)
-		utils.Check(err)
+		message := ""
+		commitLogs := ""
+
+		commits, _ := git.RefList(baseTracking, headForMessage)
+		if len(commits) == 1 {
+			message, err = git.Show(commits[0])
+			utils.Check(err)
+		} else if len(commits) > 1 {
+			commitLogs, err = git.Log(baseTracking, headForMessage)
+			utils.Check(err)
+		}
+
+		workdir, _ := git.WorkdirName()
+		if workdir != "" {
+			template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
+			if template != "" {
+				if message == "" {
+					message = "\n\n" + template
+				} else {
+					parts := strings.SplitN(message, "\n\n", 2)
+					message = parts[0] + "\n\n" + template
+					if len(parts) > 1 && parts[1] != "" {
+						message = message + "\n\n" + parts[1]
+					}
+				}
+			}
+		}
+
+		helpMessage := fmt.Sprintf(`Requesting a pull to %s from %s
+
+Write a message for this pull request. The first block
+of text is the title and the rest is the description.`, fullBase, fullHead)
+		if commitLogs != "" {
+			helpMessage = helpMessage + "\n\nChanges:\n\n" + strings.TrimSpace(commitLogs)
+		}
 
 		editor, err = github.NewEditor("PULLREQ", "pull request", message)
 		utils.Check(err)
+		editor.AddCommentedSection(helpMessage)
 
 		title, body, err = editor.EditTitleAndBody()
 		utils.Check(err)
@@ -347,49 +381,6 @@ func pullRequest(cmd *Command, args *Args) {
 
 	args.NoForward()
 	printBrowseOrCopy(args, pullRequestURL, flagPullRequestBrowse, flagPullRequestCopy)
-}
-
-func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {
-	var (
-		defaultMsg string
-		commitLogs string
-		err        error
-	)
-
-	commits, _ := git.RefList(base, head)
-	if len(commits) == 1 {
-		defaultMsg, err = git.Show(commits[0])
-		if err != nil {
-			return "", err
-		}
-	} else if len(commits) > 1 {
-		commitLogs, err = git.Log(base, head)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	workdir, _ := git.WorkdirName()
-	if workdir != "" {
-		template, err := github.ReadTemplate(github.PullRequestTemplate, workdir)
-		if err != nil {
-			return "", err
-		} else if template != "" {
-			if defaultMsg == "" {
-				defaultMsg = "\n\n" + template
-			} else {
-				parts := strings.SplitN(defaultMsg, "\n\n", 2)
-				defaultMsg = parts[0] + "\n\n" + template
-				if len(parts) > 1 && parts[1] != "" {
-					defaultMsg = defaultMsg + "\n\n" + parts[1]
-				}
-			}
-		}
-	}
-
-	cs := git.CommentChar()
-
-	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {

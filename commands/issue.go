@@ -367,25 +367,24 @@ func createIssue(cmd *Command, args *Args) {
 		title, body, editor, err = readMsgFromFile(flagIssueFile, flagIssueEdit, "ISSUE", "issue")
 		utils.Check(err)
 	} else {
-		cs := git.CommentChar()
-		message := strings.Replace(fmt.Sprintf(`
-# Creating an issue for %s
-#
-# Write a message for this issue. The first block of
-# text is the title and the rest is the description.
-`, project), "#", cs, -1)
+		message := ""
+		helpMessage := fmt.Sprintf(`Creating an issue for %s
+
+Write a message for this issue. The first block of
+text is the title and the rest is the description.`, project)
 
 		workdir, _ := git.WorkdirName()
 		if workdir != "" {
 			template, err := github.ReadTemplate(github.IssueTemplate, workdir)
 			utils.Check(err)
 			if template != "" {
-				message = template + "\n" + message
+				message = template
 			}
 		}
 
 		editor, err := github.NewEditor("ISSUE", "issue", message)
 		utils.Check(err)
+		editor.AddCommentedSection(helpMessage)
 
 		title, body, err = editor.EditTitleAndBody()
 		utils.Check(err)

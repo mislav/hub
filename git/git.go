@@ -192,13 +192,13 @@ func (r *Range) IsAncestor() bool {
 	return cmd.Success()
 }
 
-func CommentChar() string {
+func CommentChar(text string) (string, error) {
 	char, err := Config("core.commentchar")
 	if err != nil {
 		char = "#"
 	}
 
-	return char
+	return char, nil
 }
 
 func Show(sha string) (string, error) {

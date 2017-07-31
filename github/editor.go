@@ -26,7 +26,10 @@ func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
 		return
 	}
 
-	cs := git.CommentChar()
+	cs, err := git.CommentChar(message)
+	if err != nil {
+		return
+	}
 
 	editor = &Editor{
 		Program:    program,
@@ -47,6 +50,14 @@ type Editor struct {
 	Message    string
 	CS         string
 	openEditor func(program, file string) error
+}
+
+func (e *Editor) AddCommentedSection(text string) {
+	startRegexp := regexp.MustCompilePOSIX("^")
+	endRegexp := regexp.MustCompilePOSIX(" +$")
+	commentedText := startRegexp.ReplaceAllString(text, e.CS+" ")
+	commentedText = endRegexp.ReplaceAllString(commentedText, "")
+	e.Message = e.Message + "\n" + commentedText
 }
 
 func (e *Editor) DeleteFile() error {

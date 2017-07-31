@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
@@ -307,12 +306,15 @@ func createRelease(cmd *Command, args *Args) {
 		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE", "release")
 		utils.Check(err)
 	} else {
-		cs := git.CommentChar()
-		message, err := renderReleaseTpl("Creating", cs, tagName, project.String(), flagReleaseCommitish)
-		utils.Check(err)
+		message := ""
+		helpMessage := fmt.Sprintf(`Creating release %s for %s
+
+Write a message for this release. The first block of
+text is the title and the rest is the description.`, tagName, project.String())
 
 		editor, err := github.NewEditor("RELEASE", "release", message)
 		utils.Check(err)
+		editor.AddCommentedSection(helpMessage)
 
 		title, body, err = editor.EditTitleAndBody()
 		utils.Check(err)
@@ -369,11 +371,9 @@ func editRelease(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	params := map[string]interface{}{}
-	commitish := release.TargetCommitish
 
 	if cmd.FlagPassed("commitish") {
 		params["target_commitish"] = flagReleaseCommitish
-		commitish = flagReleaseCommitish
 	}
 
 	if cmd.FlagPassed("draft") {
@@ -398,13 +398,15 @@ func editRelease(cmd *Command, args *Args) {
 			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
 		}
 	} else {
-		cs := git.CommentChar()
-		message, err := renderReleaseTpl("Editing", cs, tagName, project.String(), commitish)
-		utils.Check(err)
+		message := fmt.Sprintf("%s\n\n%s", release.Name, release.Body)
+		helpMessage := fmt.Sprintf(`Editing release %s for %s
 
-		message = fmt.Sprintf("%s\n\n%s\n%s", release.Name, release.Body, message)
+Write a message for this release. The first block of
+text is the title and the rest is the description.`, tagName, project.String())
+
 		editor, err := github.NewEditor("RELEASE", "release", message)
 		utils.Check(err)
+		editor.AddCommentedSection(helpMessage)
 
 		title, body, err = editor.EditTitleAndBody()
 		utils.Check(err)
