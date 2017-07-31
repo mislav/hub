@@ -226,7 +226,7 @@ func pullRequest(cmd *Command, args *Args) {
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagPullRequestMessage)
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ", "pull request")
+		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ_EDITMSG", "pull request")
 		utils.Check(err)
 	} else if flagPullRequestIssue == "" {
 		headForMessage := headTracking
@@ -270,7 +270,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead)
 			helpMessage = helpMessage + "\n\nChanges:\n\n" + strings.TrimSpace(commitLogs)
 		}
 
-		editor, err = github.NewEditor("PULLREQ", "pull request", message)
+		editor, err = github.NewEditor("PULLREQ_EDITMSG", "pull request", message)
 		utils.Check(err)
 		editor.AddCommentedSection(helpMessage)
 

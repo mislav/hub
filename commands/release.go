@@ -303,7 +303,7 @@ func createRelease(cmd *Command, args *Args) {
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagReleaseMessage)
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE", "release")
+		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE_EDITMSG", "release")
 		utils.Check(err)
 	} else {
 		message := ""
@@ -312,7 +312,7 @@ func createRelease(cmd *Command, args *Args) {
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project.String())
 
-		editor, err := github.NewEditor("RELEASE", "release", message)
+		editor, err := github.NewEditor("RELEASE_EDITMSG", "release", message)
 		utils.Check(err)
 		editor.AddCommentedSection(helpMessage)
 
@@ -391,7 +391,7 @@ func editRelease(cmd *Command, args *Args) {
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagReleaseMessage)
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE", "release")
+		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE_EDITMSG", "release")
 		utils.Check(err)
 
 		if title == "" {
@@ -404,7 +404,7 @@ func editRelease(cmd *Command, args *Args) {
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project.String())
 
-		editor, err := github.NewEditor("RELEASE", "release", message)
+		editor, err := github.NewEditor("RELEASE_EDITMSG", "release", message)
 		utils.Check(err)
 		editor.AddCommentedSection(helpMessage)
 

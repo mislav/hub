@@ -15,11 +15,12 @@ import (
 	"github.com/github/hub/git"
 )
 
-func NewEditor(filePrefix, topic, message string) (editor *Editor, err error) {
-	messageFile, err := getMessageFile(filePrefix)
+func NewEditor(filename, topic, message string) (editor *Editor, err error) {
+	gitDir, err := git.Dir()
 	if err != nil {
 		return
 	}
+	messageFile := filepath.Join(gitDir, filename)
 
 	program, err := git.Editor()
 	if err != nil {
@@ -163,13 +164,4 @@ func readTitleAndBody(reader io.Reader, cs string) (title, body string, err erro
 	body = strings.TrimSpace(body)
 
 	return
-}
-
-func getMessageFile(about string) (string, error) {
-	gitDir, err := git.Dir()
-	if err != nil {
-		return "", err
-	}
-
-	return filepath.Join(gitDir, fmt.Sprintf("%s_EDITMSG", about)), nil
 }

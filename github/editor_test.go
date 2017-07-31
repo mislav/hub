@@ -160,8 +160,3 @@ Dem body.
 	assert.Equal(t, "# Dat title", title)
 	assert.Equal(t, "Dem body.", body)
 }
-
-func TestGetMessageFile(t *testing.T) {
-	gitPullReqMsgFile, _ := getMessageFile("PULLREQ")
-	assert.T(t, strings.Contains(gitPullReqMsgFile, "PULLREQ_EDITMSG"))
-}

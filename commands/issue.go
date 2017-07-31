@@ -364,7 +364,7 @@ func createIssue(cmd *Command, args *Args) {
 	if cmd.FlagPassed("message") {
 		title, body = readMsg(flagIssueMessage)
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagIssueFile, flagIssueEdit, "ISSUE", "issue")
+		title, body, editor, err = readMsgFromFile(flagIssueFile, flagIssueEdit, "ISSUE_EDITMSG", "issue")
 		utils.Check(err)
 	} else {
 		message := ""
@@ -382,7 +382,7 @@ text is the title and the rest is the description.`, project)
 			}
 		}
 
-		editor, err := github.NewEditor("ISSUE", "issue", message)
+		editor, err := github.NewEditor("ISSUE_EDITMSG", "issue", message)
 		utils.Check(err)
 		editor.AddCommentedSection(helpMessage)
 
