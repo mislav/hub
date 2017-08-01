@@ -134,23 +134,6 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	return
 }
 
-func (client *Client) GetPullRequestUrlsForHead(headProject *Project, branch string) (pr []PullRequest, err error) {
-	api, err := client.simpleApi()
-	if err != nil {
-		return
-	}
-
-	res, err := api.Get(fmt.Sprintf("repos/%s/%s/pulls?head=%s:%s", headProject.Owner, headProject.Name, headProject.Owner, branch))
-	if err = checkStatus(200, "getting pull request", res, err); err != nil {
-		return
-	}
-
-	pr = []PullRequest{}
-	err = res.Unmarshal(&pr)
-
-	return
-}
-
 func (client *Client) RequestReview(project *Project, prNumber int, params map[string]interface{}) (err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -519,16 +502,7 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 	}
 
 	path := fmt.Sprintf("repos/%s/%s/issues?per_page=100", project.Owner, project.Name)
-	if filterParams != nil {
-		query := url.Values{}
-		for key, value := range filterParams {
-			switch v := value.(type) {
-			case string:
-				query.Add(key, v)
-			}
-		}
-		path += "&" + query.Encode()
-	}
+	path += "&" + buildQueryString(filterParams)
 
 	issues = []Issue{}
 	var res *simpleResponse
@@ -547,6 +521,33 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 		issues = append(issues, issuesPage...)
 	}
 
+	return
+}
+
+func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{})(pr []PullRequest, err error) {
+	res, err := client.FetchRepos(project, "pulls", filterParams)
+	if err = checkStatus(200, "getting pull request", res, err); err != nil {
+		return
+	}
+
+	pr = []PullRequest{}
+	err = res.Unmarshal(&pr)
+
+	return
+}
+
+func (client *Client) FetchRepos(project *Project, path string, filterParams map[string]interface{})(res *simpleResponse, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	if path != "" {
+		path := fmt.Sprintf("repos/%s/%s/%s", project.Owner, project.Name, path)
+		path += "?" + buildQueryString(filterParams)
+		return api.Get(path)
+	}
+	
 	return
 }
 
@@ -846,4 +847,18 @@ func authTokenNote(num int) (string, error) {
 	}
 
 	return fmt.Sprintf("hub for %s@%s", n, h), nil
+}
+
+func buildQueryString(filterParams map[string]interface{}) string {
+	if filterParams != nil {
+		query := url.Values{}
+		for key, value := range filterParams {
+			switch v := value.(type) {
+			case string:
+				query.Add(key, v)
+			}
+		}
+		return query.Encode()
+	}
+	return ""
 }

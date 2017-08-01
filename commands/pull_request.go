@@ -179,6 +179,7 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
+	filterParams := map[string]interface{}{}
 	if head == "" {
 		if trackedBranch == nil {
 			head = currentBranch.ShortName()
@@ -188,7 +189,8 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	if flagPullRequestShow {
-		pullRequests, err := client.GetPullRequestUrlsForHead(headProject, head)
+		filterParams["head"] = fmt.Sprintf("%s:%s", headProject.Owner, head)
+		pullRequests, err := client.FetchPullRequests(headProject, filterParams)
 		utils.Check(err)
 
 		for _, pr := range pullRequests {
