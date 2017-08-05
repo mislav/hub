@@ -152,6 +152,19 @@ Scenario: Related fork already exists
       """
     And the url for "mislav" should be "git@github.com:mislav/unrelated.git"
 
+ Scenario: Related fork and origin already exist
+     Given the "mislav" remote has url "git@github.com:mislav/dotfiles.git"
+     Given the GitHub API server:
+     """
+       get('/repos/mislav/dotfiles') {
+             json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
+           }
+     """
+     When I run `hub fork`
+     Then the exit status should be 0
+     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+
+
   Scenario: Invalid OAuth token
     Given the GitHub API server:
       """
