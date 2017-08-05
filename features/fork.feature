@@ -132,6 +132,26 @@ Scenario: Related fork already exists
     Then the exit status should be 0
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
+
+ Scenario: Unrelated remote already exists
+    Given the "mislav" remote has url "git@github.com:mislav/unrelated.git"
+    Given the GitHub API server:
+      """
+        get('/repos/mislav/dotfiles', :host_name => 'api.github.com') { 404 }
+        post('/repos/evilchelu/dotfiles/forks', :host_name => 'api.github.com') {
+          assert :organization => nil
+          status 202
+          json :name => 'dotfiles', :owner => { :login => 'mislav' }
+        }
+      """
+    When I run `hub fork`
+    Then the exit status should be 128
+    And the stderr should contain exactly:
+      """
+      fatal: remote mislav already exists.\n
+      """
+    And the url for "mislav" should be "git@github.com:mislav/unrelated.git"
+
   Scenario: Invalid OAuth token
     Given the GitHub API server:
       """
