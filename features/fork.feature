@@ -152,7 +152,7 @@ Scenario: Related fork already exists
       """
     And the url for "mislav" should be "git@github.com:mislav/unrelated.git"
 
- Scenario: Related fork and origin already exist
+ Scenario: Related fork and related remote already exist
      Given the "mislav" remote has url "git@github.com:mislav/dotfiles.git"
      Given the GitHub API server:
      """
