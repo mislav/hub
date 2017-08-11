@@ -164,22 +164,20 @@ Scenario: Related fork already exists
      Then the exit status should be 0
      And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
-   Scenario: Related fork and related remote, but with differing protocol, already exist
-       Given the "mislav" remote has url "https://github.com/mislav/dotfiles.git"
-       Given the GitHub API server:
-       """
-         get('/repos/mislav/dotfiles') {
-               json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
-             }
-       """
-       When I run `hub fork`
-       Then the exit status should be 128
-	   And the stderr should contain exactly:
-		 """
-		 fatal: remote mislav already exists.\n
-		 """
-
-
+  Scenario: Related fork and related remote, but with differing protocol, already exist
+      Given the "mislav" remote has url "https://github.com/mislav/dotfiles.git"
+      Given the GitHub API server:
+      """
+        get('/repos/mislav/dotfiles') {
+              json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
+            }
+      """
+      When I run `hub fork`
+      Then the exit status should be 128
+      And the stderr should contain exactly:
+      """
+      fatal: remote mislav already exists.\n
+      """
 
   Scenario: Invalid OAuth token
     Given the GitHub API server:

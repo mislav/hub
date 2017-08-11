@@ -7,7 +7,6 @@ import (
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 	"github.com/github/hub/git"
-
 )
 
 var cmdFork = &Command{
@@ -51,7 +50,6 @@ func init() {
 
 	CmdRunner.Use(cmdFork)
 }
-
 
 func fork(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
