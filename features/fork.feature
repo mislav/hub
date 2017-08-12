@@ -162,6 +162,10 @@ Scenario: Related fork already exists
      """
      When I run `hub fork`
      Then the exit status should be 0
+     And the stdout should contain exactly:
+     """
+     existing remote: mislav\n
+     """
      And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: Related fork and related remote, but with differing protocol, already exist
@@ -173,11 +177,7 @@ Scenario: Related fork already exists
             }
       """
       When I run `hub fork`
-      Then the exit status should be 128
-      And the stderr should contain exactly:
-      """
-      fatal: remote mislav already exists.\n
-      """
+      Then the exit status should be 0
 
   Scenario: Invalid OAuth token
     Given the GitHub API server:

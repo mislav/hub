@@ -6,7 +6,6 @@ import (
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
-	"github.com/github/hub/git"
 )
 
 var cmdFork = &Command{
@@ -109,11 +108,13 @@ func fork(cmd *Command, args *Args) {
 
 		// Check to see if the remote already exists and points to the fork.
 		currentRemote, err := localRepo.RemoteByName(newRemoteName)
-		if (err == nil) {
-
-			parsedURL, err := git.ParseURL(url)
-			if err == nil && parsedURL.String() == currentRemote.URL.String(){
-				return // Already forked, nothing to do.
+		if err == nil {
+			currentProject, err := currentRemote.Project()
+			if err == nil {
+				if currentProject.SameAs(forkProject){
+					ui.Printf("existing remote: %s\n", newRemoteName)
+					return
+				}
 			}
 		}
 
