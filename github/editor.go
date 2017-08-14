@@ -81,6 +81,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 	beforeTime := time.Now().Add(-2 * time.Minute)
 	err = os.Chtimes(e.File, beforeTime, beforeTime)
 	if err != nil {
+		defer e.DeleteFile()
 		return
 	}
 
@@ -100,6 +101,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 
 	if !(info.ModTime().After(beforeTime)){
 		err = fmt.Errorf("Aborting; you did not edit the message")
+		defer e.DeleteFile()
 		return
 	}
 
