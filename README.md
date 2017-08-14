@@ -33,6 +33,12 @@ git version 1.7.6
 hub version 2.2.3
 ```
 
+if you want to use the latest unstable version, use:
+
+``` sh
+$ brew install --devel hub
+```
+
 #### Chocolatey
 
 `hub` can be installed through [Chocolatey](https://chocolatey.org/) on Windows.
