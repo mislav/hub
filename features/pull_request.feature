@@ -392,6 +392,15 @@ BODY
       (use `-h <branch>` to specify an explicit pull request head)\n
       """
 
+  Scenario: Error when editor exits without editing the message
+    Given I am on the "master" branch
+    Given the git commit editor is "true"
+    When I run `hub pull-request`
+    Then the stderr should contain exactly:
+      """
+      Aborting; you did not edit the message\n
+      """
+
   Scenario: Explicit head
     Given I am on the "master" branch
     Given the GitHub API server:
