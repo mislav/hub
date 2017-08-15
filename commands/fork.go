@@ -102,8 +102,22 @@ func fork(cmd *Command, args *Args) {
 
 	args.NoForward()
 	if !flagForkNoRemote {
+
 		originURL := originRemote.URL.String()
 		url := forkProject.GitURL("", "", true)
+
+		// Check to see if the remote already exists and points to the fork.
+		currentRemote, err := localRepo.RemoteByName(newRemoteName)
+		if err == nil {
+			currentProject, err := currentRemote.Project()
+			if err == nil {
+				if currentProject.SameAs(forkProject){
+					ui.Printf("existing remote: %s\n", newRemoteName)
+					return
+				}
+			}
+		}
+
 		args.Before("git", "remote", "add", "-f", newRemoteName, originURL)
 		args.Before("git", "remote", "set-url", newRemoteName, url)
 
