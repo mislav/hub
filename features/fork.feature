@@ -130,6 +130,10 @@ Feature: hub fork
       """
     When I run `hub fork`
     Then the exit status should be 0
+    Then the stdout should contain exactly:
+      """
+      new remote: mislav\n
+      """
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
 
@@ -172,12 +176,17 @@ Feature: hub fork
     Given the "mislav" remote has url "https://github.com/mislav/dotfiles.git"
     Given the GitHub API server:
       """
-	  get('/repos/mislav/dotfiles') {
-	    json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
-	  }
+      get('/repos/mislav/dotfiles') {
+        json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
+      }
       """
     When I run `hub fork`
     Then the exit status should be 0
+    And the stdout should contain exactly:
+      """
+      existing remote: mislav\n
+      """
+    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: Invalid OAuth token
     Given the GitHub API server:
