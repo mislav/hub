@@ -51,6 +51,7 @@ func TestEditor_openAndEdit_readFileIfExist(t *testing.T) {
 			assert.Equal(t, "memory", program)
 			assert.Equal(t, tempFile.Name(), file)
 			os.Chtimes(file, time.Now(), time.Now())
+
 			return nil
 		},
 	}

@@ -55,7 +55,6 @@ func (e *Editor) DeleteFile() error {
 }
 
 func (e *Editor) EditTitleAndBody() (title, body string, err error) {
-
 	content, err := e.openAndEdit()
 	if err != nil {
 		return
@@ -78,7 +77,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 		return
 	}
 
-	beforeTime := time.Now().Add(-2 * time.Minute)
+	beforeTime := time.Now().Add(-5 * time.Second)
 	err = os.Chtimes(e.File, beforeTime, beforeTime)
 	if err != nil {
 		defer e.DeleteFile()
@@ -86,7 +85,6 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 	}
 
 	err = e.openEditor(e.Program, e.File)
-
 	if err != nil {
 		err = fmt.Errorf("error using text editor for %s message", e.Topic)
 		defer e.DeleteFile()
@@ -95,11 +93,11 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 
 	// If the modified time after is not greater than modified time before, they quit with something like :q!, so error-out.
 	info, err := os.Stat(e.File)
-	if err != nil{
+	if err != nil {
 		return
 	}
 
-	if !(info.ModTime().After(beforeTime)){
+	if ! info.ModTime().After(beforeTime) {
 		err = fmt.Errorf("Aborting; you did not edit the message")
 		defer e.DeleteFile()
 		return
