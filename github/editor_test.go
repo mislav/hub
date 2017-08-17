@@ -50,7 +50,7 @@ func TestEditor_openAndEdit_readFileIfExist(t *testing.T) {
 		openEditor: func(program string, file string) error {
 			assert.Equal(t, "memory", program)
 			assert.Equal(t, tempFile.Name(), file)
-			os.Chtimes(file, time.Now(), time.Now())
+			os.Chtimes(file, time.Now(), time.Now()) // file modtime must be changed by editor.
 
 			return nil
 		},

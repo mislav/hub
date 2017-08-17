@@ -91,7 +91,6 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 		return
 	}
 
-	// If the modified time after is not greater than modified time before, they quit with something like :q!, so error-out.
 	info, err := os.Stat(e.File)
 	if err != nil {
 		return
