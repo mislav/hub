@@ -392,14 +392,28 @@ BODY
       (use `-h <branch>` to specify an explicit pull request head)\n
       """
 
-  Scenario: Error when editor exits without editing the message
-    Given I am on the "master" branch
-    Given the git commit editor is "true"
-    When I run `hub pull-request`
+  Scenario: Editor does not touch message file, with default message
+    Given I am on the "master" branch pushed to "origin/master"
+    And the git commit editor is "true"
+    When I successfully run `git checkout --quiet -b topic`
+	Given I make a commit
+	And the "topic" branch is pushed to "origin/topic"
+	When I run `hub pull-request`
     Then the stderr should contain exactly:
       """
       Aborting; you did not edit the message\n
       """
+    And the exit status should be 1
+
+  Scenario: Editor does not touch message file, without default message
+  	Given I am on the "master" branch
+  	And the git commit editor is "true"
+  	When I run `hub pull-request`
+  	Then the stderr should contain exactly:
+  	  """
+  	  Aborting due to empty pull request title\n
+  	  """
+  	And the exit status should be 1
 
   Scenario: Explicit head
     Given I am on the "master" branch
