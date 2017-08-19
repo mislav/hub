@@ -82,7 +82,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 		template = bytes.TrimSpace(template)
 		reader := bytes.NewReader(template)
 		title, body, err := readTitleAndBody(reader, e.CS)
-		if err == nil && len(title) != 0 || len(body) != 0 {
+		if err == nil && (len(title) != 0 || len(body) != 0) {
 			usesDefaultMessage = true
 		}
 	}
