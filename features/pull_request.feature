@@ -401,7 +401,7 @@ BODY
 	When I run `hub pull-request`
     Then the stderr should contain exactly:
       """
-      Aborting; you did not edit the message\n
+      Aborting: you did not edit the message\n
       """
     And the exit status should be 1
 

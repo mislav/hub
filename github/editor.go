@@ -109,7 +109,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 			return content, err
 		}
 		if ! info.ModTime().After(beforeTime) {
-			err = fmt.Errorf("Aborting; you did not edit the message") // TODO  use colon
+			err = fmt.Errorf("Aborting: you did not edit the message")
 			defer e.DeleteFile()
 			return content, err
 		}
