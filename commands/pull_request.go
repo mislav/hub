@@ -17,7 +17,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-foc] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-focR] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
@@ -69,6 +69,9 @@ pull-request -i <ISSUE>
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request.
 
+	-R, --restrict-maintainer-modify
+    Do not allow permissions modfying this pull request from maintainer.
+
 ## Configuration:
 
 	HUB_RETRY_TIMEOUT=<SECONDS>
@@ -90,6 +93,7 @@ var (
 	flagPullRequestBrowse,
 	flagPullRequestCopy,
 	flagPullRequestEdit,
+	flagPullRequestRestrictMaintainerModify,
 	flagPullRequestPush,
 	flagPullRequestForce bool
 
@@ -115,6 +119,7 @@ func init() {
 	cmdPullRequest.Flag.VarP(&flagPullRequestReviewers, "reviewer", "r", "USERS")
 	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestLabels, "labels", "l", "LABELS")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestRestrictMaintainerModify, "restrict-maintainer-modify", "R", false, "RESTRICT-MAINTAINER-MODIFY")
 
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -263,8 +268,9 @@ func pullRequest(cmd *Command, args *Args) {
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		params := map[string]interface{}{
-			"base": base,
-			"head": fullHead,
+			"base":                  base,
+			"head":                  fullHead,
+			"maintainer_can_modify": !flagPullRequestRestrictMaintainerModify,
 		}
 
 		if title != "" {
