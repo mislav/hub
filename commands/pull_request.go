@@ -144,8 +144,9 @@ func pullRequest(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	var (
-		base, head string
-		force      bool
+		base, head       string
+		force            bool
+		maintainerModify bool
 	)
 
 	force = flagPullRequestForce
@@ -205,6 +206,17 @@ func pullRequest(cmd *Command, args *Args) {
 			err = fmt.Errorf("%s\n(use `-f` to force submit a pull request anyway)", err)
 			utils.Check(err)
 		}
+	}
+
+	mm, _ := git.Config("hub.maintainerModify")
+	switch mm {
+	case "", "true":
+		// flagPullRequestRestrictMaintainerModify overwrites hub.maintainerModify
+		maintainerModify = !flagPullRequestRestrictMaintainerModify
+	case "false":
+		maintainerModify = false
+	default:
+		utils.Check(fmt.Errorf("Invalid value for hub.maintainerModify. `true` or `flase` is valid."))
 	}
 
 	var editor *github.Editor
@@ -270,7 +282,7 @@ func pullRequest(cmd *Command, args *Args) {
 		params := map[string]interface{}{
 			"base":                  base,
 			"head":                  fullHead,
-			"maintainer_can_modify": !flagPullRequestRestrictMaintainerModify,
+			"maintainer_can_modify": maintainerModify,
 		}
 
 		if title != "" {
