@@ -921,3 +921,15 @@ BODY
       """
     And the output should match /Given up after retrying for 5\.\d seconds\./
     And a file named ".git/PULLREQ_EDITMSG" should exist
+
+  Scenario: Explicit restrict-maintainer-modify
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :maintainer_can_modify => false
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -R -m message`
+    Then the output should contain exactly "the://url\n"
