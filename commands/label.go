@@ -9,22 +9,12 @@ import (
 
 var (
 	cmdLabel = &Command{
+        Key: "label",
 		Run: listLabels,
-		Usage: `
-label
-`,
-		Long: `Manage GitHub labels for the current repository.
-
-## Commands:
-
-With no arguments, show a list of open issues.
-`,
+		Usage: "issue label",
+		Long: "List the labels available in this repository.",
 	}
 )
-
-func init() {
-	CmdRunner.Use(cmdLabel)
-}
 
 func listLabels(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()

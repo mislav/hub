@@ -17,7 +17,7 @@ Feature: hub label
       ]
     }
     """
-    When I successfully run `hub label`
+    When I successfully run `hub issue label`
     Then the output should contain exactly:
       """
       bug
