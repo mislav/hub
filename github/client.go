@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/github/hub/utils"
 	"github.com/github/hub/version"
 	"github.com/octokit/go-octokit/octokit"
 	"golang.org/x/crypto/pkcs12"
@@ -696,7 +697,7 @@ func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client 
 
 	tlsConfig, err := client.newTLSConfig()
 	if err != nil {
-		panic(err)
+		utils.Check(err)
 	}
 
 	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", tlsConfig)
