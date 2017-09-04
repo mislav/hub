@@ -1,0 +1,5 @@
+
+# enforce correct line endings for shell and batch files.
+*.sh text eol=lf
+script/* text eol=lf
+script/*.bat text eol=crlf
