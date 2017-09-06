@@ -118,6 +118,20 @@ this can be affected with the `GITHUB_HOST` environment variable:
 
     $ GITHUB_HOST=my.git.org git clone myproject
 
+### Environment variables
+
+  * `HUB_VERBOSE`:
+    Enable verbose output from hub commands.
+
+  * `HUB_CONFIG`:
+    Set the location of a custom config file (default: `~/.config/hub`).
+
+  * `HUB_PROTOCOL`:
+    Use one of "https|ssh|git" as preferred protocol for git clone/push.
+
+  * `GITHUB_TOKEN`:
+    OAuth token to use for GitHub API requests.
+
 ## BUGS
 
 <https://github.com/github/hub/issues>
