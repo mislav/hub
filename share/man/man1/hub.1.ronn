@@ -117,6 +117,15 @@ The default host for commands like `init` and `clone` is still `github.com`, but
 this can be affected with the `GITHUB_HOST` environment variable:
 
     $ GITHUB_HOST=my.git.org git clone myproject
+    
+### Verbose Output
+
+While command logging level is normally conservatively quiet, one can increase
+the verbosity by the `HUB_VERBOSE` environment variable:
+
+    $ HUB_VERBOSE=1 hub <COMMAND>
+    
+This is useful when debugging a command that fails for an un-clear reason.
 
 ## BUGS
 
