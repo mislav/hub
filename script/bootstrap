@@ -1,12 +1,12 @@
 #!/bin/sh
 
 set -e
+export CC=gcc
 
-if [ -f "Gemfile" ]; then
-  echo "==> Installing gem dependencies…"
-  bundle check --path vendor/gems >/dev/null 2>&1  || {
-    bundle install --path vendor/gems --quiet --without production
-  }
-fi
+echo "==> Installing gem dependencies…"
+bundle check --path vendor/gems 2>&1 > /dev/null || {
+  time bundle install --binstubs bin --path vendor/gems
+}
 
+echo "==> Installing node dependencies…"
 npm install
