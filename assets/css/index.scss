@@ -34,11 +34,15 @@ h1 {
     font-family: $body-font;
 }
 
+h3 {
+    font-size: 1.2em;
+    margin-top: $spacer-4;
+}
+
 pre {
-    font-size: 14px;
-    border-top: 1px solid $gray-300;
-    padding-top: $spacer-6;
-    margin-top: $spacer-6;
+    font-size: 13px;
+    background-color: $gray-100;
+    padding: $spacer-3;
 
     strong {
         font-weight: normal;

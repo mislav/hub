@@ -29,6 +29,7 @@ $ <a href="http://brew.sh/">brew</a> install hub
 <span class="comment">Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or build your own from source.</span>
 <span class="comment">You will need <a href="http://golang.org/doc/install">Go development environment</a>.</span>
 $ git clone <strong>https://github.com/github/hub.git</strong> &amp;&amp; cd hub
+
 <span class="comment">Assuming that `~/bin` is in your PATH:</span>
 $ <strong>script/build -o ~/bin/hub</strong>
 
@@ -37,8 +38,7 @@ $ alias <strong>git=hub</strong>
 
 $ git version
 git version 2.1.4
-hub version 2.2.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
-        </pre>
+hub version 2.2.0 <span class="comment"><span class="hidden">#</span> ← it works!</span></pre>
       </section>
   
       <section id="contributor" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
@@ -50,44 +50,46 @@ hub version 2.2.0 <span class="comment"><span class="hidden">#</span> ← it wor
           command-line.
         </p>
   
+        <h3>Clone your own project</h3>
         <pre>
-<span class="comment">Clone your own project</span>
-$ git <strong>clone dotfiles</strong>
-<span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
+$ git <strong>clone dotfiles</strong></pre>
 
-<span class="comment">Clone another project</span>
+        <h3>Clone another project</h3>
+        <pre>
 $ git <strong>clone github/hub</strong>
-<span class="result">→ git clone git://github.com/github/hub.git</span>
+<span class="result">→ git clone git://github.com/github/hub.git</span></pre>
 
-<span class="comment">Open the current project's issues page</span>
-$ git <strong>browse -- issues</strong>
-<span class="result">→ open https://github.com/github/hub/issues</span>
-
-<span class="comment">Open another project's wiki</span>
-$ git <strong>browse mojombo/jekyll wiki</strong>
-<span class="result">→ open https://github.com/mojombo/jekyll/wiki</span>
-        </pre>
-  
+        <h3>Open the current project's issues page</h3>
         <pre>
-<span class="comment">Example workflow for contributing to a project:</span>
-$ git clone github/hub
-$ cd hub
-<span class="comment">Create a topic branch</span>
-$ git checkout -b feature
-  ( making changes ... )
-$ git commit -m "done with feature"
+$ git <strong>browse -- issues</strong>
+<span class="result">→ open https://github.com/github/hub/issues</span></pre>
 
-<span class="comment">It's time to fork the repo!</span>
+        <h3>Open another project's wiki</h3>
+        <pre>
+$ git <strong>browse mojombo/jekyll wiki</strong>
+<span class="result">→ open https://github.com/mojombo/jekyll/wiki</span></pre>
+  
+        <h3>Example workflow for contributing to a project:</h3>
+        <pre>
+$ git clone github/hub
+$ cd hub</pre>
+        <h3>Create a topic branch</h3>
+        <pre>
+$ git checkout -b feature
+( making changes ... )
+$ git commit -m "done with feature"</pre>
+        <h3>It's time to fork the repo!</h3>
+        <pre>
 $ git <strong>fork</strong>
 <span class="result">→ (forking repo on GitHub...)</span>
-<span class="result">→ git remote add YOUR_USER git://github.com/YOUR_USER/hub.git</span>
-
-<span class="comment">Push the changes to your new remote</span>
-$ git push YOUR_USER feature
-<span class="comment">Open a pull request for the topic branch you've just pushed</span>
+<span class="result">→ git remote add YOUR_USER git://github.com/YOUR_USER/hub.git</span></pre>
+        <h3>Push the changes to your new remote</h3>
+        <pre>
+$ git push YOUR_USER feature</pre>
+        <h3>Open a pull request for the topic branch you've just pushed</h3>
+        <pre>
 $ git <strong>pull-request</strong>
-<span class="result">→ (opens a text editor for your pull request message)</span>
-        </pre>
+<span class="result">→ (opens a text editor for your pull request message)</span></pre>
       </section>
   
       <section id="maintainer" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
@@ -98,42 +100,48 @@ $ git <strong>pull-request</strong>
           <em>create a new repo</em> for your next thing.
         </p>
   
+        <h3>Fetch from multiple trusted forks, even if they don't yet exist as remotes</h3>
         <pre>
-<span class="comment">Fetch from multiple trusted forks, even if they don't yet exist as remotes</span>
 $ git <strong>fetch mislav,cehoffman</strong>
 <span class="result">→ git remote add mislav git://github.com/mislav/hub.git</span>
 <span class="result">→ git remote add cehoffman git://github.com/cehoffman/hub.git</span>
-<span class="result">→ git fetch --multiple mislav cehoffman</span>
+<span class="result">→ git fetch --multiple mislav cehoffman</span></pre>
 
-<span class="comment">Check out a pull request for review</span>
+        <h3>Check out a pull request for review</h3>
+        <pre>
 $ git <strong>checkout https://github.com/github/hub/pull/134</strong>
-<span class="result">→ (creates a new branch with the contents of the pull request)</span>
+<span class="result">→ (creates a new branch with the contents of the pull request)</span></pre>
 
-<span class="comment">Directly apply all commits from a pull request to the current branch</span>
-$ git <strong>am -3</strong> https://github.com/github/hub/pull/134
+<h3>Directly apply all commits from a pull request to the current branch</h3>
+<pre>
+$ git <strong>am -3</strong> https://github.com/github/hub/pull/134</pre>
 
-<span class="comment">Cherry-pick a GitHub URL</span>
+        <h3>Cherry-pick a GitHub URL</h3>
+        <pre>
 $ git <strong>cherry-pick https://github.com/xoebus/hub/commit/177eeb8</strong>
 <span class="result">→ git remote add xoebus git://github.com/xoebus/hub.git</span>
 <span class="result">→ git fetch xoebus</span>
-<span class="result">→ git cherry-pick 177eeb8</span>
+<span class="result">→ git cherry-pick 177eeb8</span></pre>
 
-<span class="comment">`am` can be better than cherry-pick since it doesn't create a remote</span>
-$ git <strong>am</strong> https://github.com/xoebus/hub/commit/177eeb8
+        <h3>`am` can be better than cherry-pick since it doesn't create a remote</h3>
+        <pre>
+$ git <strong>am</strong> https://github.com/xoebus/hub/commit/177eeb8</pre>
 
-<span class="comment">Open the GitHub compare view between two releases</span>
-$ git <strong>compare v0.9..v1.0</strong>
+        <h3>Open the GitHub compare view between two releases</h3>
+        <pre>
+$ git <strong>compare v0.9..v1.0</strong></pre>
 
-<span class="comment">Put compare URL for a topic branch to clipboard</span>
-$ git <strong>compare -u feature | pbcopy</strong>
+        <h3>Put compare URL for a topic branch to clipboard</h3>
+        <pre>
+$ git <strong>compare -u feature | pbcopy</strong></pre>
 
-<span class="comment">Create a repo for a new project</span>
+        <h3>Create a repo for a new project</h3>
+        <pre>
 $ git init
 $ git add . &amp;&amp; git commit -m "It begins."
 $ git <strong>create -d "My new thing"</strong>
 <span class="result">→ (creates a new project on GitHub with the name of current directory)</span>
-$ git push origin master
-        </pre>
+$ git push origin master</pre>
       </section>
   
       <section id="work" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
@@ -144,18 +152,19 @@ $ git push origin master
           is supported.
         </p>
   
+        <h3>Whitelist your GitHub Enterprise hostname</h3>
         <pre>
-<span class="comment">Whitelist your GitHub Enterprise hostname</span>
-$ git config --global --add hub.host <strong>my.example.org</strong>
+$ git config --global --add hub.host <strong>my.example.org</strong></pre>
 
+<pre>
 <span class="comment">Open a pull request using a message generated from script, then put its URL to the clipboard</span>
 $ git push origin feature
 $ git <strong>pull-request -F prepared-message.md | pbcopy</strong>
-<span class="result">→ (URL ready for pasting in a chat room)</span>
+<span class="result">→ (URL ready for pasting in a chat room)</span></pre>
 
-<span class="comment">Push to multiple remotes</span>
-$ git <strong>push production,staging</strong>
-        </pre>
+        <h3>Push to multiple remotes</h3>
+        <pre>
+$ git <strong>push production,staging</strong></pre>
       </section>
   
       <p class="text-center mt-2 mb-4">
