@@ -20,3 +20,5 @@ sass:
   sass_dir: assets/css/
   load_paths:
     - node_modules
+
+url: "https://hub.github.com"
