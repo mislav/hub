@@ -4,19 +4,20 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>hub · the command-line wrapper for git</title>
-    <meta charset="utf-8">
-    <meta name=viewport content="initial-scale=1.0">
     <link href="{{ '/assets/css/index.css' | relative_url }}" rel="stylesheet">
   </head>
   <body class="bg-gray-300">
     <div class="container-md">
-      <div class="d-flex flex-justify-between flex-items-end">
+      <header class="header">
         <h1><a href="https://github.com/github/hub#readme" class="no-underline">hub</a> makes git better with GitHub</h1>
         <p class="text-mono">Documentation: <a href="hub.1.html">man hub</a></p>
-      </div>
+      </header>
   
-      <section id="install" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+      <section id="install" class="border border-gray-dark p-2 p-sm-4 bg-white mb-3 rounded-2">
         <p class="f4">
         <strong>hub</strong> is a command-line wrapper for git that makes you
         <em>better at GitHub</em>.
@@ -41,7 +42,7 @@ git version 2.1.4
 hub version 2.2.0 <span class="comment"><span class="hidden">#</span> ← it works!</span></pre>
       </section>
   
-      <section id="contributor" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+      <section id="contributor" class="border border-gray-dark p-2 p-sm-4 bg-white mb-3 rounded-2">
         <h2>As a contributor to open-source</h2>
         <p class="f4">
           Whether you are beginner or an experienced contributor to open-source, hub
@@ -92,7 +93,7 @@ $ git <strong>pull-request</strong>
 <span class="result">→ (opens a text editor for your pull request message)</span></pre>
       </section>
   
-      <section id="maintainer" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+      <section id="maintainer" class="border border-gray-dark p-2 p-sm-4 bg-white mb-3 rounded-2">
         <h2>As an open-source maintainer</h2>
         <p class="f4">
           Maintaining a project is easier when you can <em>easily fetch from other forks</em>,
@@ -144,7 +145,7 @@ $ git <strong>create -d "My new thing"</strong>
 $ git push origin master</pre>
       </section>
   
-      <section id="work" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+      <section id="work" class="border border-gray-dark p-2 p-sm-4 bg-white mb-3 rounded-2">
         <h2>Using GitHub for work</h2>
         <p class="f4">
           Save time at work by opening <em>pull requests for code reviews</em> and
@@ -171,20 +172,20 @@ $ git <strong>push production,staging</strong></pre>
         Found a bug, have an idea? Contribute to
         <a href="https://github.com/github/hub">this project on GitHub</a>.
       </p>
-  
-      <script>
-        var _gauges = _gauges || [];
-        if (/github\.com/.test(location.hostname)) (function() {
-          var t   = document.createElement('script');
-          t.type  = 'text/javascript';
-          t.async = true;
-          t.id    = 'gauges-tracker';
-          t.setAttribute('data-site-id', '51dd714ef5a1f517070000ce');
-          t.src = '//secure.gaug.es/track.js';
-          var s = document.getElementsByTagName('script')[0];
-          s.parentNode.insertBefore(t, s);
-        })();
-      </script>
     </div>
+
+    <script>
+      var _gauges = _gauges || [];
+      if (/github\.com/.test(location.hostname)) (function() {
+        var t   = document.createElement('script');
+        t.type  = 'text/javascript';
+        t.async = true;
+        t.id    = 'gauges-tracker';
+        t.setAttribute('data-site-id', '51dd714ef5a1f517070000ce');
+        t.src = '//secure.gaug.es/track.js';
+        var s = document.getElementsByTagName('script')[0];
+        s.parentNode.insertBefore(t, s);
+      })();
+    </script>
   </body>
 </html>

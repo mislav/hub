@@ -8,10 +8,25 @@
     background-color: $gray-300;
 }
 
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+
+    @include breakpoint(sm) {
+        align-items: baseline;
+        justify-content: space-between;
+        flex-direction: row;
+    }
+}
+
 h1 {
     font-size: 1.3em;
 
     a {
+        display: block;
+        text-align: center;
         font-size: 4.5em;
         transition: color 200ms ease-in-out;
         text-shadow:
@@ -23,6 +38,10 @@ h1 {
 
         &:hover {
             color: $blue-700;
+        }
+
+        @include breakpoint(sm) {
+            display: inline;
         }
     }
 }
@@ -43,6 +62,7 @@ pre {
     font-size: 13px;
     background-color: $gray-100;
     padding: $spacer-3;
+    white-space: pre-wrap;
 
     strong {
         font-weight: normal;
