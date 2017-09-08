@@ -1,0 +1,209 @@
+h1 {
+  font: 400 1.3em "Futura", "Lucida Grande", Helvetica, Arial, sans-serif;
+  text-transform: uppercase;
+  color: white;
+  text-shadow: rgba(0,0,0,.7) 1px 1px 2px;
+  margin: .2em 0;
+  line-height: 1.2;
+  float: left;
+  width: 75%;
+}
+
+h1 a {
+  text-decoration: none;
+  font-size: 4.5em;
+  letter-spacing: -.1em;
+  margin-right: .1em;
+  position: relative;
+  top: .1em;
+  text-transform: none;
+  -webkit-text-stroke: white 1px;
+  text-shadow:
+    #eee -1px -1px 0,
+    #eee -2px -2px 0,
+    #eee -3px -3px 0,
+    #eee -4px -4px 0,
+    rgba(65, 131, 196, .3) -5px -5px 0;
+}
+
+h1 a:hover {
+  text-decoration: none;
+}
+
+
+.man {
+  text-align: right;
+  float: right;
+  width: 25%;
+  padding-top: 5em;
+  color: gray;
+  text-transform: lowercase;
+  font-size: .9em;
+}
+
+
+h2,
+.man,
+.footer {
+  text-shadow: rgba(255,255,255,.8) 0 1px 0;
+}
+
+h2 {
+  margin: 1em 0 0em 0;
+  color: #444;
+}
+
+
+p code,
+.man a,
+pre {
+  font: 15px Monaco, Courier, monospace;
+  font-weight: 600;
+}
+
+
+section {
+  clear: both;
+  background: white;
+  color: #444;
+  padding: 1em;
+  margin: 12px 0 0 0;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  -webkit-box-shadow: rgba(0,0,0,.4) 1px 1px 4px;
+  -moz-box-shadow: rgba(0,0,0,.4) 1px 1px 4px;
+  line-height: 1.5;
+}
+
+section > *:first-child {
+  margin-top: 0;
+}
+
+section p {
+  font-size: 1.1em;
+}
+
+section p em {
+  font-style: normal;
+  background: #fcf4c1;
+  padding: 1px 4px;
+  -webkit-border-radius: 3px;
+  -moz-border-radius: 3px;
+}
+
+
+pre {
+  margin: .5em 0 0 0;
+  border-top: 1px dotted silver;
+  padding-top: 1em;
+  line-height: 1.5;
+}
+
+pre .comment {
+  color: #969896;
+  font: italic 1.2em "Hoefler Text", "Times New Roman", "Georgia", serif;
+  line-height: 1.4;
+}
+
+pre .comment .hidden {
+  color: white;
+}
+
+pre .result {
+  color: #777;
+  font-style: italic;
+  margin-left: 1em;
+}
+
+pre strong {
+  color: #894400;
+  font-weight: 600;
+}
+
+
+.footer {
+  text-align: center;
+  margin-top: 15px;
+  color: gray;
+}
+
+
+
+@media only screen and (max-width: 768px) {
+  body {
+    width: auto;
+    margin: 0;
+    padding: 16px;
+    padding-top: 0;
+  }
+
+  section {
+    margin-top: 16px;
+  }
+}
+
+
+@media only screen and (max-width: 480px) {
+  body {
+    padding: 6px;
+    font-size: 14px;
+  }
+
+  h1 {
+    margin-top: 0;
+  }
+
+  h1,
+  .man {
+    width: auto;
+    text-align: center;
+    float: none;
+  }
+
+  .man {
+    padding-top: 0;
+    padding-right: 10px;
+  }
+
+  h1 a {
+    display: block;
+    margin: 0 auto;
+  }
+
+  section {
+    margin-top: 6px;
+    padding: .5em 8px;
+    line-height: 1.3;
+    overflow: hidden;
+  }
+
+  section h2 {
+    font-size: 16px;
+    margin-bottom: 0;
+  }
+
+  section p {
+    font-size: 1em;
+    line-height: 1.5;
+  }
+
+  section p em {
+    padding: 0;
+    -webkit-border-radius: 0;
+  }
+
+  pre {
+    font-size: 13px;
+    line-height: 1.2;
+    white-space: pre-wrap;
+  }
+
+  pre .comment {
+    font-size: 1em;
+  }
+
+  pre .result {
+    font-size: .9em;
+    margin-left: 0;
+  }
+}
