@@ -1,0 +1,30 @@
+// Optional offset options to work with grid.scss
+
+// Offset Columns
+.offset-1 { margin-left: (1 / 12 * 100%); }
+.offset-2 { margin-left: (2 / 12 * 100%); }
+.offset-3 { margin-left: (3 / 12 * 100%); }
+.offset-4 { margin-left: (4 / 12 * 100%); }
+.offset-5 { margin-left: (5 / 12 * 100%); }
+.offset-6 { margin-left: (6 / 12 * 100%); }
+.offset-7 { margin-left: (7 / 12 * 100%); }
+.offset-8 { margin-left: (8 / 12 * 100%); }
+.offset-9 { margin-left: (9 / 12 * 100%); }
+.offset-10 { margin-left: (10 / 12 * 100%); }
+.offset-11 { margin-left: (11 / 12 * 100%); }
+
+@each $breakpoint in map-keys($breakpoints) {
+  @include breakpoint($breakpoint) {
+    .offset-#{$breakpoint}-1 { margin-left: (1 / 12 * 100%); }
+    .offset-#{$breakpoint}-2 { margin-left: (2 / 12 * 100%); }
+    .offset-#{$breakpoint}-3 { margin-left: (3 / 12 * 100%); }
+    .offset-#{$breakpoint}-4 { margin-left: (4 / 12 * 100%); }
+    .offset-#{$breakpoint}-5 { margin-left: (5 / 12 * 100%); }
+    .offset-#{$breakpoint}-6 { margin-left: (6 / 12 * 100%); }
+    .offset-#{$breakpoint}-7 { margin-left: (7 / 12 * 100%); }
+    .offset-#{$breakpoint}-8 { margin-left: (8 / 12 * 100%); }
+    .offset-#{$breakpoint}-9 { margin-left: (9 / 12 * 100%); }
+    .offset-#{$breakpoint}-10 { margin-left: (10 / 12 * 100%); }
+    .offset-#{$breakpoint}-11 { margin-left: (11 / 12 * 100%); }
+  }
+}

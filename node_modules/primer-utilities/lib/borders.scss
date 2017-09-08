@@ -1,0 +1,63 @@
+// Border utilities
+// stylelint-disable block-opening-brace-space-before, primer/selector-no-utility, comment-empty-line-before
+
+/* Add a gray border */
+.border        { border: $border !important; }
+/* Add a gray border to the top */
+.border-top    { border-top: $border !important; }
+/* Add a gray border to the right */
+.border-right  { border-right: $border !important; }
+/* Add a gray border to the bottom */
+.border-bottom { border-bottom: $border !important; }
+/* Add a gray border to the left */
+.border-left   { border-left: $border !important; }
+/* Add a gray border to the left and right */
+.border-y {
+  border-top: $border !important;
+  border-bottom: $border !important;
+}
+
+.border-dashed { border-style: dashed !important; }
+
+/* Use with .border to turn the border blue */
+.border-blue       { border-color: $border-blue !important; }
+/* Use with .border to turn the border blue-light */
+.border-blue-light  { border-color: $border-blue-light !important; }
+/* Use with .border to turn the border green */
+.border-green        { border-color: $border-green !important; }
+/* Use with .border to turn the border green light */
+.border-green-light { border-color: $border-green-light !important; }
+/* Use with .border to turn the border red */
+.border-red        { border-color: $border-red !important; }
+/* Use with .border to turn the border red-light */
+.border-red-light   { border-color: $border-red-light !important; }
+/* Use with .border to turn the border purple */
+.border-purple  { border-color: $border-purple !important; }
+/* Use with .border to turn the border yellow */
+.border-yellow  { border-color: $border-yellow !important; }
+/* Use with .border to turn the border gray-light */
+.border-gray-light { border-color: $border-gray-light !important; }
+/* Use with .border to turn the border gray-dark */
+.border-gray-dark  { border-color: $border-gray-dark !important; }
+/* Use with .border to turn the border rgba black 0.15 */
+.border-black-fade { border-color: $border-black-fade !important; }
+
+// Without borders
+/* Remove all borders */
+.border-0        { border: 0 !important; }
+/* Remove the top border */
+.border-top-0    { border-top: 0 !important; }
+/* Remove the right border */
+.border-right-0  { border-right: 0 !important; }
+/* Remove the bottom border */
+.border-bottom-0 { border-bottom: 0 !important; }
+/* Remove the left border */
+.border-left-0   { border-left: 0 !important; }
+
+// Rounded corners
+/* Remove the border-radius */
+.rounded-0 { border-radius: 0 !important; }
+/* Add a border-radius to all corners */
+.rounded-1 { border-radius: $border-radius !important; }
+/* Add a 2x border-radius to all corners */
+.rounded-2 { border-radius: $border-radius * 2 !important; }

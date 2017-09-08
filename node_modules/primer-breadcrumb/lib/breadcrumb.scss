@@ -1,0 +1,19 @@
+.breadcrumb-item {
+  display: inline-block;
+  margin-left: -$spacer-1;
+  white-space: nowrap;
+  list-style: none;
+
+  &::after {
+    padding-right: 0.5em;
+    padding-left: 0.5em;
+    color: $border-gray;
+    content: "/";
+  }
+}
+
+.breadcrumb-item-selected {
+  &::after {
+    content: none;
+  }
+}

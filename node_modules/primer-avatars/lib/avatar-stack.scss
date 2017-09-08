@@ -1,0 +1,45 @@
+// Stacked avatars can be used to show who is participating in thread when
+// there is limited space available.
+//
+// No styleguide references
+.avatar-stack {
+  display: inline-block;
+  white-space: nowrap;
+
+  .avatar {
+    position: relative;
+    z-index: 2;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    box-sizing: content-box;
+    margin-right: -15px;
+    background-color: $bg-white;
+    border-right: 1px solid $white;
+    border-radius: 2px;
+    transition: margin 0.1s ease-in-out;
+
+    &:only-child {
+      background-color: transparent;
+    }
+
+    &:first-child {
+      z-index: 3;
+    }
+
+    &:last-child {
+      z-index: 1;
+      margin-right: 0;
+      border-right: 0;
+    }
+  }
+
+  // When more than one avatar, margin-left will animate from -15 to 2, and reveal the stack
+  &:hover .avatar {
+    margin-right: 3px;
+
+    &:last-child {
+      margin-right: 0;
+    }
+  }
+}

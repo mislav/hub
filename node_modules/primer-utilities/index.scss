@@ -1,0 +1,13 @@
+@import "primer-support/index.scss";
+// utilities
+@import "./lib/animations.scss";
+@import "./lib/borders.scss";
+@import "./lib/box-shadow.scss";
+@import "./lib/colors.scss";
+@import "./lib/flexbox.scss";
+@import "./lib/layout.scss";
+@import "./lib/margin.scss";
+@import "./lib/padding.scss";
+@import "./lib/typography.scss";
+// Visibility and display should always come last in the imports so that they override other utilities with !important
+@import "./lib/visibility-display.scss";

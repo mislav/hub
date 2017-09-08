@@ -1,0 +1,39 @@
+// stylelint-disable selector-max-type, selector-max-compound-selectors
+
+.data-table {
+  width: 100%;
+  margin-top: $spacer-3;
+  border-collapse: collapse;
+  border: $border;
+  box-shadow: 0 1px 1px rgba($black, 0.05);
+
+  th {
+    font-weight: $font-weight-normal;
+    text-align: left;
+  }
+
+  td,
+  th {
+    padding: $spacer-3;
+    border-right: $border;
+    border-bottom: $border;
+  }
+
+  tbody {
+    th {
+      width: 25%;
+    }
+
+    th,
+    td {
+      border-bottom-color: $border-gray;
+    }
+
+    tr:last-child {
+      th,
+      td {
+        border-bottom: $border;
+      }
+    }
+  }
+}

@@ -1,0 +1,16 @@
+/*!
+ * Primer
+ * http://primercss.io
+ *
+ * Released under MIT license. Copyright 2015 GitHub, Inc.
+ */
+
+// Primer master file
+//
+// Imports all Primer files in their intended order for easy mass-inclusion.
+// Should you need specific files, you can easily use separate `@import`s.
+
+// Global requirements
+@import "primer-core/index.scss";
+@import "primer-product/index.scss";
+@import "primer-marketing/index.scss";

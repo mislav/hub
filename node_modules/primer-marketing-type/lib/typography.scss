@@ -1,0 +1,124 @@
+// Marketing font utility class
+
+.alt-mono-font {
+  font-family: $alt-mono-font;
+}
+
+//
+// Headings
+
+.alt-h0,
+.alt-h1,
+.alt-h2,
+.alt-h3,
+.alt-h4,
+.alt-h5,
+.alt-h6,
+.alt-lead {
+  -webkit-font-smoothing: antialiased;
+  font-family: $alt-body-font;
+}
+
+@mixin alt-h0 {
+  font-size: $h00-size;
+  font-weight: $font-weight-light;
+  @include breakpoint(md) { font-size: 54px; }
+  @include breakpoint(lg) { font-size: 72px; }
+}
+
+.alt-h0 {
+  @include alt-h0;
+}
+
+@mixin alt-h1 {
+  font-size: 36px;
+  font-weight: $font-weight-light;
+  @include breakpoint(md) { font-size: $h00-size; }
+  @include breakpoint(lg) { font-size: 54px; }
+}
+
+.alt-h1 {
+  @include alt-h1;
+}
+
+@mixin alt-h2 {
+  font-size: 28px;
+  font-weight: $font-weight-light;
+  @include breakpoint(md) { font-size: 34px; }
+  @include breakpoint(lg) { font-size: 38px; }
+}
+
+.alt-h2 {
+  @include alt-h2;
+}
+
+@mixin alt-h3 {
+  font-size: 18px;
+  font-weight: $font-weight-normal;
+  @include breakpoint(md) { font-size: $h3-size; }
+  @include breakpoint(lg) { font-size: 22px; }
+}
+
+.alt-h3 {
+  @include alt-h3;
+}
+
+.alt-h4 {
+  font-size: $h4-size;
+  font-weight: $font-weight-semibold;
+}
+
+.alt-h5 {
+  font-size: $h5-size;
+  font-weight: $font-weight-semibold;
+}
+
+.alt-h6 {
+  font-size: $h6-size;
+  font-weight: $font-weight-semibold;
+}
+
+// Big opening paragraphs
+@mixin alt-lead {
+  -webkit-font-smoothing: antialiased;
+  font-size: 21px;
+  font-weight: $font-weight-light;
+  @include breakpoint(md) { font-size: $h2-size; }
+  @include breakpoint(lg) { font-size: 26px; }
+}
+
+.alt-lead {
+  @include alt-lead;
+}
+
+// For small text
+
+.alt-text-small {
+  font-size: 14px !important;
+}
+
+// Pullquote
+
+@mixin pullquote {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-left: $spacer;
+  margin-bottom: $spacer-4;
+  font-family: $alt-mono-font;
+  font-size: $h4-size;
+  line-height: 1.4;
+  color: $text-gray;
+  border-left: 3px solid $border-color;
+
+  @include breakpoint(md) {
+    padding-left: $spacer * 1.5;
+    margin-bottom: $spacer-5;
+    margin-left: (-$spacer * 1.5) - 3px;
+    font-size: 18px;
+    line-height: $lh-default;
+  }
+}
+
+.pullquote {
+  @include pullquote;
+}

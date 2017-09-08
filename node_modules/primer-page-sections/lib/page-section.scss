@@ -1,0 +1,18 @@
+// Styles for page sections
+.page-section {
+  padding: $spacer-5 0;
+  margin-top: 0;
+
+  @include breakpoint(md) {
+    padding: $spacer-6 + $spacer-3 0;
+  }
+}
+
+// Adds a little extra headroom for sections linked to via in-page anchor links
+.page-section-jumplink:target {
+  padding-top: ($spacer-6 * 2) + $spacer-5;
+
+  @include breakpoint(md) {
+    padding-top: $spacer-6 * 2;
+  }
+}

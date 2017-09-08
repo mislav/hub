@@ -1,0 +1,24 @@
+/*!
+ * Primer-marketing
+ * http://primercss.io
+ *
+ * Released under MIT license. Copyright 2015 GitHub, Inc.
+ */
+
+// Primer master file
+//
+// Imports all Primer files in their intended order for easy mass-inclusion.
+// Should you need specific files, you can easily use separate `@import`s.
+
+// Global requirements
+@import "primer-support/index.scss";
+@import "primer-marketing-support/index.scss";
+
+// marketing specific css modules
+@import "primer-marketing-type/index.scss";
+@import "primer-breadcrumb/index.scss";
+@import "primer-cards/index.scss";
+@import "primer-page-headers/index.scss";
+@import "primer-page-sections/index.scss";
+@import "primer-tables/index.scss";
+@import "primer-marketing-utilities/index.scss";

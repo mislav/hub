@@ -1,0 +1,28 @@
+/*!
+ * Primer-core
+ * http://primercss.io
+ *
+ * Released under MIT license. Copyright 2015 GitHub, Inc.
+ */
+
+// Primer master file
+//
+// Imports all Primer files in their intended order for easy mass-inclusion.
+// Should you need specific files, you can easily use separate `@import`s.
+
+// Global requirements
+@import "primer-support/index.scss";
+
+// Core modules
+@import "primer-base/index.scss";
+@import "primer-box/index.scss";
+@import "primer-buttons/index.scss";
+@import "primer-table-object/index.scss";
+@import "primer-forms/index.scss";
+@import "primer-layout/index.scss";
+@import "primer-navigation/index.scss";
+@import "primer-tooltips/index.scss";
+@import "primer-truncate/index.scss";
+
+// Utilities always go last so that they can override components
+@import "primer-utilities/index.scss";

@@ -1,0 +1,96 @@
+// Layout
+// stylelint-disable block-opening-brace-space-after, block-opening-brace-space-before, primer/selector-no-utility
+// stylelint-disable comment-empty-line-before
+
+/* Set position to static */
+.position-static   { position: static !important; }
+/* Set position to relative */
+.position-relative { position: relative !important; }
+/* Set position to absolute */
+.position-absolute { position: absolute !important; }
+/* Set position to fixed */
+.position-fixed    { position: fixed !important; }
+
+/* Set top 0 */
+.top-0    { top: 0 !important; }
+/* Set right 0 */
+.right-0  { right: 0 !important; }
+/* Set bottom 0 */
+.bottom-0 { bottom: 0 !important; }
+/* Set left 0 */
+.left-0   { left: 0 !important; }
+
+/* Vertical align middle */
+.v-align-middle      { vertical-align: middle !important; }
+/* Vertical align top */
+.v-align-top         { vertical-align: top !important; }
+/* Vertical align bottom */
+.v-align-bottom      { vertical-align: bottom !important; }
+/* Vertical align to the top of the text */
+.v-align-text-top    { vertical-align: text-top !important; }
+/* Vertical align to the bottom of the text */
+.v-align-text-bottom { vertical-align: text-bottom !important; }
+
+// Overflow utilities
+// overflow-hidden can also be used to create a new
+// block formatting context or clear floats.
+/* Set the overflow hidden */
+.overflow-hidden { overflow: hidden !important; }
+/* Set the overflow scroll */
+.overflow-scroll { overflow: scroll !important; }
+/* Set the overflow auto */
+.overflow-auto   { overflow: auto !important; }
+
+// Clear floats
+/* Clear floats around the element */
+.clearfix {
+  @include clearfix;
+}
+
+// Floats
+/* Float to the right */
+.float-right { float: right !important; }
+/* Float to the left */
+.float-left { float: left !important; }
+/* Don't float left or right */
+.float-none { float: none !important; }
+
+// Responsive float utlities
+// .float-md-left, .float-lg-right, ...
+@each $breakpoint in map-keys($breakpoints) {
+  @include breakpoint($breakpoint) {
+    /* Float to the left at the #{$breakpoint} breakpoint */
+    .float-#{$breakpoint}-left  { float: left !important; }
+    /* Float to the right at the #{$breakpoint} breakpoint */
+    .float-#{$breakpoint}-right  { float: right !important; }
+    /* No float at the #{$breakpoint} breakpoint */
+    .float-#{$breakpoint}-none { float: none !important; }
+  }
+}
+
+// Width and height utilities, helpful in combination
+// with display-table utilities and images
+/* Max width 100% */
+.width-fit   { max-width: 100% !important; }
+/* Set the width to 100% */
+.width-full  { width: 100% !important; }
+/* Set the height to 100% */
+.height-full { height: 100% !important; }
+
+/* Remove min-width from element */
+.min-width-0 { min-width: 0 !important; }
+
+// Direction utilities
+
+.direction-rtl { direction: rtl !important; }
+
+.direction-ltr { direction: ltr !important; }
+
+@each $breakpoint in map-keys($breakpoints) {
+  @include breakpoint($breakpoint) {
+    /* Set the direction to ltr at the #{$breakpoint} breakpoint */
+    .direction-#{$breakpoint}-rtl { direction: rtl !important; }
+    /* Set the direction to ltr at the #{$breakpoint} breakpoint */
+    .direction-#{$breakpoint}-ltr { direction: ltr !important; }
+  }
+}

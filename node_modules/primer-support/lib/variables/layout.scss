@@ -1,0 +1,58 @@
+// Layout variables
+// stylelint-disable declaration-bang-space-before
+
+// These are our margin and padding utility spacers. The default step size we
+// use is 8px. This gives us a key of:
+//    0 => 0px
+//    1 => 4px
+//    2 => 8px
+//    3 => 16px
+//    4 => 24px
+//    5 => 32px
+//    6 => 40px
+$spacer: 8px !default;
+$spacers: (
+  0,
+  round($spacer / 2),
+  $spacer,
+  $spacer * 2,
+  $spacer * 3,
+  $spacer * 4,
+  $spacer * 5
+) !default;
+
+// Aliases for easy use
+$spacer-1: nth($spacers, 2) !default; // 4px
+$spacer-2: nth($spacers, 3) !default; // 8px
+$spacer-3: nth($spacers, 4) !default; // 16px
+$spacer-4: nth($spacers, 5) !default; // 24px
+$spacer-5: nth($spacers, 6) !default; // 32px
+$spacer-6: nth($spacers, 7) !default; // 40px
+
+// Fixed-width container variables
+$container-width: 980px !default;
+$grid-gutter:     10px !default;
+
+// Breakpoint widths
+$width-xs: 0;
+$width-sm: 544px;
+$width-md: 768px;
+$width-lg: 1012px;
+$width-xl: 1280px;
+
+// Responsive container widths
+$container-md: $width-md !default;
+$container-lg: $width-lg !default;
+$container-xl: $width-xl !default;
+
+// Breakpoints
+$breakpoints: (
+  // Small screen / phone
+  sm: $width-sm,
+  // Medium screen / tablet
+  md: $width-md,
+  // Large screen / desktop (980 + (12 * 2)) <= container + gutters
+  lg: $width-lg,
+  // Extra large screen / wide desktop
+  xl: $width-xl
+) !default;

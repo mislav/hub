@@ -1,0 +1,76 @@
+// stylelint-disable selector-max-type
+.markdown-body {
+  // Inline code snippets
+  code,
+  tt {
+    padding: 0;
+    padding-top: 0.2em;
+    padding-bottom: 0.2em;
+    margin: 0;
+    font-size: 85%;
+    background-color: rgba($black, 0.05);
+    border-radius: 3px; // don't add padding, gives scrollbars
+
+    &::before,
+    &::after {
+      letter-spacing: -0.2em; // this creates padding
+      content: "\00a0";
+    }
+
+    br { display: none; }
+  }
+
+  del code { text-decoration: inherit; }
+
+  pre {
+    word-wrap: normal;
+
+    // Code tags within code blocks (<pre>s)
+    > code {
+      padding: 0;
+      margin: 0;
+      font-size: 100%;
+      word-break: normal;
+      white-space: pre;
+      background: transparent;
+      border: 0;
+    }
+  }
+
+  .highlight {
+    margin-bottom: $spacer-3;
+
+    pre {
+      margin-bottom: 0;
+      word-break: normal;
+    }
+  }
+
+  .highlight pre,
+  pre {
+    padding: $spacer-3;
+    overflow: auto;
+    font-size: 85%;
+    line-height: 1.45;
+    background-color: $gray-100;
+    border-radius: 3px;
+  }
+
+  pre code,
+  pre tt {
+    display: inline;
+    max-width: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    line-height: inherit;
+    word-wrap: normal;
+    background-color: transparent;
+    border: 0;
+
+    &::before,
+    &::after {
+      content: normal;
+    }
+  }
+}

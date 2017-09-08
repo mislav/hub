@@ -1,0 +1,111 @@
+// Visibility and display utilities
+// stylelint-disable block-opening-brace-space-after, block-opening-brace-space-before, primer/selector-no-utility
+// stylelint-disable comment-empty-line-before
+
+// Visibility utilities
+/* Visibility hidden */
+.v-hidden { visibility: hidden !important; }
+/* Visibility visible */
+.v-visible { visibility: visible !important; }
+
+// Display utilites
+/* Set the display to table */
+.d-table      { display: table !important; }
+/* Set the display to table-cell */
+.d-table-cell { display: table-cell !important; }
+/* Set the table-layout to fixed */
+.table-fixed { table-layout: fixed !important; }
+
+/* Set the display to block */
+.d-block        { display: block !important; }
+/* Set the display to inline */
+.d-inline       { display: inline !important; }
+/* Set the display to inline-block */
+.d-inline-block { display: inline-block !important; }
+/* Set the display to flex */
+.d-flex { display: flex !important; }
+/* Set the display to inline-flex */
+.d-inline-flex { display: inline-flex !important; }
+/* Set the display to none */
+.d-none         { display: none !important; }
+
+// Responsive display utlities
+// .d-sm-none, .d-lg-inline, ...
+@each $breakpoint in map-keys($breakpoints) {
+  @include breakpoint($breakpoint) {
+    /* Set the display to table at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-table      { display: table !important; }
+    /* Set the display to table cell at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-table-cell { display: table-cell !important; }
+    /* Set the display to block at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-block  { display: block !important; }
+    /* Set the display to inline at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-inline  { display: inline !important; }
+    /* Set the display to inline block at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-inline-block  { display: inline-block !important; }
+    /* Set the display to flex at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-flex  { display: flex !important; }
+    /* Set the display to flex at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-inline-flex  { display: inline-flex !important; }
+    /* Set the display to none at the #{$breakpoint} breakpoint */
+    .d-#{$breakpoint}-none  { display: none !important; }
+  }
+}
+
+// Hide utilities for each breakpoint
+// Each hide utility only applies to one breakpoint range.
+@media (max-width: $width-sm) {
+  .hide-sm {
+    display: none !important;
+  }
+}
+
+@media (min-width: $width-sm) and (max-width: $width-md) {
+  .hide-md {
+    display: none !important;
+  }
+}
+
+@media (min-width: $width-md) and (max-width: $width-lg) {
+  .hide-lg {
+    display: none !important;
+  }
+}
+
+@media (min-width: $width-lg) {
+  .hide-xl {
+    display: none !important;
+  }
+}
+
+// Only display content to screen readers
+//
+// See: http://a11yproject.com/posts/how-to-hide-content/
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  // Workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=1241631
+  word-wrap: normal;
+  border: 0;
+}
+
+// Only display content on focus
+.show-on-focus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+
+  &:focus {
+    z-index: 20;
+    width: auto;
+    height: auto;
+    clip: auto;
+  }
+}

@@ -1,0 +1,17 @@
+// Border utilities
+// stylelint-disable block-opening-brace-space-before, primer/selector-no-utility, comment-empty-line-before
+
+// Responsive border utilities
+
+@each $breakpoint in map-keys($breakpoints) {
+  @include breakpoint($breakpoint) {
+    .border-#{$breakpoint}-top      { border-top: $border !important; }
+    .border-#{$breakpoint}-right    { border-right: $border !important; }
+    .border-#{$breakpoint}-bottom   { border-bottom: $border !important; }
+    .border-#{$breakpoint}-left     { border-left: $border !important; }
+    .border-#{$breakpoint}-top-0    { border-top: 0 !important; }
+    .border-#{$breakpoint}-right-0  { border-right: 0 !important; }
+    .border-#{$breakpoint}-bottom-0 { border-bottom: 0 !important; }
+    .border-#{$breakpoint}-left-0   { border-left: 0 !important; }
+  }
+}

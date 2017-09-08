@@ -1,0 +1,80 @@
+// Flex utility classes
+
+// stylelint-disable block-opening-brace-space-after, block-opening-brace-space-before
+// stylelint-disable comment-empty-line-before
+
+// - - - - - - - - - - - - - - - - - - - - - - -
+// This is a template for generating the flex utility classes.
+// A version of each class will be generated without a breakpoint,
+// along with a variant for each breakpoint.
+// - - - - - - - - - - - - - - - - - - - - - - -
+
+@mixin flexUtility($breakpoint: 0) {
+
+  // This is the breakpoint that will be inserted into class names
+  $breakstring: -#{$breakpoint}; // example: `.d-sm-flex`
+
+  // If there's no breakpoint, the $breakstring value will be blank.
+  @if $breakpoint == 0 {
+    $breakstring: ""; // example: `.d-flex`
+  }
+
+  // Flexbox classes
+  // Container
+
+  .flex#{$breakstring}-row         { flex-direction: row !important; }
+  .flex#{$breakstring}-row-reverse { flex-direction: row-reverse !important; }
+  .flex#{$breakstring}-column      { flex-direction: column !important; }
+
+  .flex#{$breakstring}-wrap     { flex-wrap: wrap !important; }
+  .flex#{$breakstring}-nowrap   { flex-wrap: nowrap !important; }
+
+  .flex#{$breakstring}-justify-start    { justify-content: flex-start !important; }
+  .flex#{$breakstring}-justify-end      { justify-content: flex-end !important; }
+  .flex#{$breakstring}-justify-center   { justify-content: center !important; }
+  .flex#{$breakstring}-justify-between  { justify-content: space-between !important; }
+  .flex#{$breakstring}-justify-around   { justify-content: space-around !important; }
+
+  .flex#{$breakstring}-items-start      { align-items: flex-start !important; }
+  .flex#{$breakstring}-items-end        { align-items: flex-end !important; }
+  .flex#{$breakstring}-items-center     { align-items: center !important; }
+  .flex#{$breakstring}-items-baseline   { align-items: baseline !important; }
+  .flex#{$breakstring}-items-stretch    { align-items: stretch !important; }
+
+  .flex#{$breakstring}-content-start    { align-content: flex-start !important; }
+  .flex#{$breakstring}-content-end      { align-content: flex-end !important; }
+  .flex#{$breakstring}-content-center   { align-content: center !important; }
+  .flex#{$breakstring}-content-between  { align-content: space-between !important; }
+  .flex#{$breakstring}-content-around   { align-content: space-around !important; }
+  .flex#{$breakstring}-content-stretch  { align-content: stretch !important; }
+
+  // Item
+  .flex#{$breakstring}-auto { flex: 1 1 auto !important; }
+  .flex#{$breakstring}-shrink-0 { flex-shrink: 0 !important; }
+
+  .flex#{$breakstring}-self-auto        { align-self: auto !important; }
+  .flex#{$breakstring}-self-start       { align-self: flex-start !important; }
+  .flex#{$breakstring}-self-end         { align-self: flex-end !important; }
+  .flex#{$breakstring}-self-center      { align-self: center !important; }
+  .flex#{$breakstring}-self-baseline    { align-self: baseline !important; }
+  .flex#{$breakstring}-self-stretch     { align-self: stretch !important; }
+
+  // Shorthand for equal width and height cols
+  .flex#{$breakstring}-item-equal {
+    flex-grow: 1;
+    flex-basis: 0;
+  }
+}
+
+// Generate basic flexbox classes
+@include flexUtility();
+
+// Loop through the breakpoint values to create responsive classes
+@each $breakpoint in map-keys($breakpoints) {
+
+  // Loop through the spacer values
+  @include breakpoint($breakpoint) {
+    @include flexUtility($breakpoint);
+  }
+
+}

@@ -1,0 +1,19 @@
+{
+  "name": "hub",
+  "version": "1.0.0",
+  "description": "A command-line wrapper for git that makes you better at GitHub.",
+  "dependencies": {
+    "primer-css": "^9.3.0"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/github/hub.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/github/hub/issues"
+  },
+  "homepage": "https://github.com/github/hub#readme"
+}

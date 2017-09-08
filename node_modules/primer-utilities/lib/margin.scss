@@ -1,0 +1,86 @@
+// Margin spacer utilities
+// stylelint-disable block-opening-brace-space-before, declaration-colon-space-before, primer/selector-no-utility, comment-empty-line-before
+@for $i from 1 through length($spacers) {
+  $size: #{nth($spacers, $i)};
+  $scale: #{$i - 1};
+
+  /* Set a #{$size} margin to all sides */
+  .m-#{$scale}  { margin       : #{$size} !important; }
+  /* Set a #{$size} margin on the top */
+  .mt-#{$scale} { margin-top   : #{$size} !important; }
+  /* Set a #{$size} margin on the right */
+  .mr-#{$scale} { margin-right : #{$size} !important; }
+  /* Set a #{$size} margin on the bottom */
+  .mb-#{$scale} { margin-bottom: #{$size} !important; }
+  /* Set a #{$size} margin on the left */
+  .ml-#{$scale} { margin-left  : #{$size} !important; }
+  /* Set a negative #{$size} margin on top */
+  .mt-n#{$scale} { margin-top   : -#{$size} !important; }
+  /* Set a negative #{$size} margin on the right */
+  .mr-n#{$scale} { margin-right : -#{$size} !important; }
+  /* Set a negative #{$size} margin on the bottom */
+  .mb-n#{$scale} { margin-bottom: -#{$size} !important; }
+  /* Set a negative #{$size} margin on the left */
+  .ml-n#{$scale} { margin-left  : -#{$size} !important; }
+
+  /* Set a #{$size} margin on the left & right */
+  .mx-#{$scale} {
+    margin-right: #{$size} !important;
+    margin-left : #{$size} !important;
+  }
+
+  /* Set a #{$size} margin on the top & bottom */
+  .my-#{$scale} {
+    margin-top   : #{$size} !important;
+    margin-bottom: #{$size} !important;
+  }
+}
+
+/* Set an auto margin on left & right */
+.mx-auto {
+  margin-right: auto !important;
+  margin-left: auto !important;
+}
+
+// Loop through the breakpoint values
+@each $breakpoint in map-keys($breakpoints) {
+
+  // Loop through the spacer values
+  @for $i from 1 through length($spacers) {
+    @include breakpoint($breakpoint) {
+      $size: #{nth($spacers, $i)}; // sm, md, lg, xl
+      $scale: #{$i - 1};  // 0, 1, 2, 3, 4, 5, 6
+
+      /* Set a #{$size} margin to all sides at the breakpoint #{$breakpoint} */
+      .m-#{$breakpoint}-#{$scale}  { margin: #{$size} !important; }
+      /* Set a #{$size} margin on the top at the breakpoint #{$breakpoint} */
+      .mt-#{$breakpoint}-#{$scale} { margin-top: #{$size} !important; }
+      /* Set a #{$size} margin on the right at the breakpoint #{$breakpoint} */
+      .mr-#{$breakpoint}-#{$scale} { margin-right: #{$size} !important; }
+      /* Set a #{$size} margin on the bottom at the breakpoint #{$breakpoint} */
+      .mb-#{$breakpoint}-#{$scale} { margin-bottom: #{$size} !important; }
+      /* Set a #{$size} margin on the left at the breakpoint #{$breakpoint} */
+      .ml-#{$breakpoint}-#{$scale} { margin-left: #{$size} !important; }
+      /* Set a negative #{$size} margin on top at the breakpoint #{$breakpoint} */
+      .mt-#{$breakpoint}-n#{$scale} { margin-top   : -#{$size} !important; }
+      /* Set a negative #{$size} margin on the right at the breakpoint #{$breakpoint} */
+      .mr-#{$breakpoint}-n#{$scale} { margin-right : -#{$size} !important; }
+      /* Set a negative #{$size} margin on the bottom at the breakpoint #{$breakpoint} */
+      .mb-#{$breakpoint}-n#{$scale} { margin-bottom: -#{$size} !important; }
+      /* Set a negative #{$size} margin on the left at the breakpoint #{$breakpoint} */
+      .ml-#{$breakpoint}-n#{$scale} { margin-left  : -#{$size} !important; }
+
+      /* Set a #{$size} margin on the left & right at the breakpoint #{$breakpoint} */
+      .mx-#{$breakpoint}-#{$scale} {
+        margin-right: #{$size} !important;
+        margin-left: #{$size} !important;
+      }
+
+      /* Set a #{$size} margin on the top & bottom at the breakpoint #{$breakpoint} */
+      .my-#{$breakpoint}-#{$scale} {
+        margin-top: #{$size} !important;
+        margin-bottom: #{$size} !important;
+      }
+    }
+  }
+}
