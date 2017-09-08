@@ -1,174 +1,181 @@
 ---
 ---
 
-<!doctype html>
-<head>
-  <title>hub · the command-line wrapper for git</title>
-  <meta charset="utf-8">
-  <meta name=viewport content="initial-scale=1.0">
-  <link href="{{ '/assets/css/index.css' | relative_url }}" rel="stylesheet">
-</head>
-<body>
-<h1><a href="https://github.com/github/hub#readme">hub</a> makes git better with GitHub</h1>
-
-<p class="man">Documentation: <a href="hub.1.html">man hub</a></p>
-
-<section id=install>
-<p>
-<strong>hub</strong> is a command-line wrapper for git that makes you
-<em>better at GitHub</em>.
-</p>
-
-<pre><span class="comment"># OS X: install the latest release</span>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>hub · the command-line wrapper for git</title>
+    <meta charset="utf-8">
+    <meta name=viewport content="initial-scale=1.0">
+    <link href="{{ '/assets/css/index.css' | relative_url }}" rel="stylesheet">
+  </head>
+  <body class="bg-gray-300">
+    <div class="container-md">
+      <div class="d-flex flex-justify-between flex-items-end">
+        <h1><a href="https://github.com/github/hub#readme" class="no-underline">hub</a> makes git better with GitHub</h1>
+        <p class="text-mono">Documentation: <a href="hub.1.html">man hub</a></p>
+      </div>
+  
+      <section id="install" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+        <p class="f4">
+        <strong>hub</strong> is a command-line wrapper for git that makes you
+        <em>better at GitHub</em>.
+        </p>
+  
+        <pre>
+<span class="comment">OS X: install the latest release</span>
 $ <a href="http://brew.sh/">brew</a> install hub
 
-<span class="comment"># Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or build your own from source.</span>
-<span class="comment"># You will need <a href="http://golang.org/doc/install">Go development environment</a>.</span>
+<span class="comment">Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or build your own from source.</span>
+<span class="comment">You will need <a href="http://golang.org/doc/install">Go development environment</a>.</span>
 $ git clone <strong>https://github.com/github/hub.git</strong> &amp;&amp; cd hub
-<span class="comment"># assuming that `~/bin` is in your PATH:</span>
+<span class="comment">Assuming that `~/bin` is in your PATH:</span>
 $ <strong>script/build -o ~/bin/hub</strong>
 
-<span class="comment"># alias it as git</span>
+<span class="comment">Alias it as git</span>
 $ alias <strong>git=hub</strong>
 
 $ git version
 git version 2.1.4
 hub version 2.2.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
-</pre>
-</section>
-
-<section id=contributor>
-<h2>As a contributor to open-source</h2>
-<p>
-Whether you are beginner or an experienced contributor to open-source, hub
-makes it easier to <em>fetch repositories</em>, <em>navigate project pages</em>,
-<em>fork repos</em> and even <em>submit pull&nbsp;requests</em>, all from the
-command-line.
-</p>
-
-<pre>
-<span class="comment"># clone your own project</span>
+        </pre>
+      </section>
+  
+      <section id="contributor" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+        <h2>As a contributor to open-source</h2>
+        <p class="f4">
+          Whether you are beginner or an experienced contributor to open-source, hub
+          makes it easier to <em>fetch repositories</em>, <em>navigate project pages</em>,
+          <em>fork repos</em> and even <em>submit pull&nbsp;requests</em>, all from the
+          command-line.
+        </p>
+  
+        <pre>
+<span class="comment">Clone your own project</span>
 $ git <strong>clone dotfiles</strong>
 <span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
 
-<span class="comment"># clone another project</span>
+<span class="comment">Clone another project</span>
 $ git <strong>clone github/hub</strong>
 <span class="result">→ git clone git://github.com/github/hub.git</span>
 
-<span class="comment"># open the current project's issues page</span>
+<span class="comment">Open the current project's issues page</span>
 $ git <strong>browse -- issues</strong>
 <span class="result">→ open https://github.com/github/hub/issues</span>
 
-<span class="comment"># open another project's wiki</span>
+<span class="comment">Open another project's wiki</span>
 $ git <strong>browse mojombo/jekyll wiki</strong>
 <span class="result">→ open https://github.com/mojombo/jekyll/wiki</span>
-</pre>
-
-<pre>
-<span class="comment"># Example workflow for contributing to a project:</span>
+        </pre>
+  
+        <pre>
+<span class="comment">Example workflow for contributing to a project:</span>
 $ git clone github/hub
 $ cd hub
-<span class="comment"># create a topic branch</span>
+<span class="comment">Create a topic branch</span>
 $ git checkout -b feature
   ( making changes ... )
 $ git commit -m "done with feature"
 
-<span class="comment"># It's time to fork the repo!</span>
+<span class="comment">It's time to fork the repo!</span>
 $ git <strong>fork</strong>
 <span class="result">→ (forking repo on GitHub...)</span>
 <span class="result">→ git remote add YOUR_USER git://github.com/YOUR_USER/hub.git</span>
 
-<span class="comment"># push the changes to your new remote</span>
+<span class="comment">Push the changes to your new remote</span>
 $ git push YOUR_USER feature
-<span class="comment"># open a pull request for the topic branch you've just pushed</span>
+<span class="comment">Open a pull request for the topic branch you've just pushed</span>
 $ git <strong>pull-request</strong>
 <span class="result">→ (opens a text editor for your pull request message)</span>
-</pre>
-</section>
-
-<section id=maintainer>
-<h2>As an open-source maintainer</h2>
-<p>
-Maintaining a project is easier when you can <em>easily fetch from other forks</em>,
-<em>review pull requests</em> and <em>cherry-pick URLs</em>. You can even
-<em>create a new repo</em> for your next thing.
-</p>
-
-<pre>
-<span class="comment"># fetch from multiple trusted forks, even if they don't yet exist as remotes</span>
+        </pre>
+      </section>
+  
+      <section id="maintainer" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+        <h2>As an open-source maintainer</h2>
+        <p class="f4">
+          Maintaining a project is easier when you can <em>easily fetch from other forks</em>,
+          <em>review pull requests</em> and <em>cherry-pick URLs</em>. You can even
+          <em>create a new repo</em> for your next thing.
+        </p>
+  
+        <pre>
+<span class="comment">Fetch from multiple trusted forks, even if they don't yet exist as remotes</span>
 $ git <strong>fetch mislav,cehoffman</strong>
 <span class="result">→ git remote add mislav git://github.com/mislav/hub.git</span>
 <span class="result">→ git remote add cehoffman git://github.com/cehoffman/hub.git</span>
 <span class="result">→ git fetch --multiple mislav cehoffman</span>
 
-<span class="comment"># check out a pull request for review</span>
+<span class="comment">Check out a pull request for review</span>
 $ git <strong>checkout https://github.com/github/hub/pull/134</strong>
 <span class="result">→ (creates a new branch with the contents of the pull request)</span>
 
-<span class="comment"># directly apply all commits from a pull request to the current branch</span>
+<span class="comment">Directly apply all commits from a pull request to the current branch</span>
 $ git <strong>am -3</strong> https://github.com/github/hub/pull/134
 
-<span class="comment"># cherry-pick a GitHub URL</span>
+<span class="comment">Cherry-pick a GitHub URL</span>
 $ git <strong>cherry-pick https://github.com/xoebus/hub/commit/177eeb8</strong>
 <span class="result">→ git remote add xoebus git://github.com/xoebus/hub.git</span>
 <span class="result">→ git fetch xoebus</span>
 <span class="result">→ git cherry-pick 177eeb8</span>
 
-<span class="comment"># `am` can be better than cherry-pick since it doesn't create a remote</span>
+<span class="comment">`am` can be better than cherry-pick since it doesn't create a remote</span>
 $ git <strong>am</strong> https://github.com/xoebus/hub/commit/177eeb8
 
-<span class="comment"># open the GitHub compare view between two releases</span>
+<span class="comment">Open the GitHub compare view between two releases</span>
 $ git <strong>compare v0.9..v1.0</strong>
 
-<span class="comment"># put compare URL for a topic branch to clipboard</span>
+<span class="comment">Put compare URL for a topic branch to clipboard</span>
 $ git <strong>compare -u feature | pbcopy</strong>
 
-<span class="comment"># create a repo for a new project</span>
+<span class="comment">Create a repo for a new project</span>
 $ git init
 $ git add . &amp;&amp; git commit -m "It begins."
 $ git <strong>create -d "My new thing"</strong>
 <span class="result">→ (creates a new project on GitHub with the name of current directory)</span>
 $ git push origin master
-</pre>
-</section>
-
-<section id=work>
-<h2>Using GitHub for work</h2>
-<p>
-Save time at work by opening <em>pull requests for code reviews</em> and
-pushing to <em>multiple remotes at once</em>. Even <em>GitHub Enterprise</em>
-is supported.
-</p>
-
-<pre>
-<span class="comment"># whitelist your GitHub Enterprise hostname</span>
+        </pre>
+      </section>
+  
+      <section id="work" class="border border-gray-dark p-4 bg-white mb-3 rounded-2">
+        <h2>Using GitHub for work</h2>
+        <p class="f4">
+          Save time at work by opening <em>pull requests for code reviews</em> and
+          pushing to <em>multiple remotes at once</em>. Even <em>GitHub Enterprise</em>
+          is supported.
+        </p>
+  
+        <pre>
+<span class="comment">Whitelist your GitHub Enterprise hostname</span>
 $ git config --global --add hub.host <strong>my.example.org</strong>
 
-<span class="comment"># open a pull request using a message generated from script, then put its URL to the clipboard</span>
+<span class="comment">Open a pull request using a message generated from script, then put its URL to the clipboard</span>
 $ git push origin feature
 $ git <strong>pull-request -F prepared-message.md | pbcopy</strong>
 <span class="result">→ (URL ready for pasting in a chat room)</span>
 
-<span class="comment"># push to multiple remotes</span>
+<span class="comment">Push to multiple remotes</span>
 $ git <strong>push production,staging</strong>
-</pre>
-</section>
-
-<p class=footer>
-Found a bug, have an idea? Contribute to
-<a href="https://github.com/github/hub">this project on GitHub</a>.
-</p>
-
-<script>
-  var _gauges = _gauges || [];
-  if (/github\.com/.test(location.hostname)) (function() {
-    var t   = document.createElement('script');
-    t.type  = 'text/javascript';
-    t.async = true;
-    t.id    = 'gauges-tracker';
-    t.setAttribute('data-site-id', '51dd714ef5a1f517070000ce');
-    t.src = '//secure.gaug.es/track.js';
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(t, s);
-  })();
-</script>
+        </pre>
+      </section>
+  
+      <p class="text-center mt-2 mb-4">
+        Found a bug, have an idea? Contribute to
+        <a href="https://github.com/github/hub">this project on GitHub</a>.
+      </p>
+  
+      <script>
+        var _gauges = _gauges || [];
+        if (/github\.com/.test(location.hostname)) (function() {
+          var t   = document.createElement('script');
+          t.type  = 'text/javascript';
+          t.async = true;
+          t.id    = 'gauges-tracker';
+          t.setAttribute('data-site-id', '51dd714ef5a1f517070000ce');
+          t.src = '//secure.gaug.es/track.js';
+          var s = document.getElementsByTagName('script')[0];
+          s.parentNode.insertBefore(t, s);
+        })();
+      </script>
+    </div>
+  </body>
+</html>

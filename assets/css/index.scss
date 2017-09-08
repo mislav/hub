@@ -4,4 +4,54 @@
 @import "primer-core/index.scss";
 @import "primer-marketing/index.scss";
 
-@import 'custom.scss';
+.bg-gray-300 {
+    background-color: $gray-300;
+}
+
+h1 {
+    font-size: 1.3em;
+
+    a {
+        font-size: 4.5em;
+        transition: color 200ms ease-in-out;
+        text-shadow:
+            #eee -1px -1px 0,
+            #eee -2px -2px 0,
+            #eee -3px -3px 0,
+            #eee -4px -4px 0,
+            rgba(65, 131, 196, .3) -5px -5px 0;
+
+        &:hover {
+            color: $blue-700;
+        }
+    }
+}
+
+.result, .comment {
+    font-style: italic;
+    font-weight: normal;
+    color: $gray-400;
+    font-family: $body-font;
+}
+
+pre {
+    font-size: 14px;
+    border-top: 1px solid $gray-300;
+    padding-top: $spacer-6;
+    margin-top: $spacer-6;
+
+    strong {
+        font-weight: normal;
+        color: $red;
+    }
+}
+
+p {
+    em {
+        font-style: normal;
+        background-color: $yellow-100;
+        padding: 0.2em;
+    }
+}
+
+// @import 'custom.scss';
