@@ -1,0 +1,22 @@
+title: "hub"
+description: "A command-line wrapper for git that makes you better at GitHub."
+
+exclude:
+  - bin
+  - Gemfile*
+  - node_modules
+  - package.json
+  - Rakefile
+  - README.md
+  - script
+  - test
+  - vendor
+  - node_modules
+
+branch: gh-pages
+
+sass:
+  style: :compressed
+  sass_dir: assets/css/
+  load_paths:
+    - node_modules
