@@ -40,3 +40,7 @@ Feature: bash tab-completion
   Scenario: Completion of user/repo in "browse"
   Scenario: Completion of branch names in "compare"
   Scenario: Completion of "owner/repo:branch" in "pull-request -h/b"
+
+  Scenario: Completion of the "assignees" command
+    When I type "git ass" and press <Tab>
+    Then the command should expand to "git assignees"

@@ -165,6 +165,7 @@ func customCommands() []string {
 var helpText = `
 These GitHub commands are provided by hub:
 
+   assignees      List the users that can be assigned an issue or a pull request
    browse         Open a GitHub page in the default browser
    ci-status      Show the CI status of a commit
    compare        Open a compare page on GitHub

@@ -16,6 +16,7 @@ if declare -F _git > /dev/null; then
   __git_list_all_commands() {
     cat <<-EOF
 alias
+assignees
 pull-request
 fork
 create

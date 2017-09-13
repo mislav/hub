@@ -22,3 +22,7 @@ Feature: fish tab-completion
   Scenario: Browse to issues
     When I type "git browse -- i" and press <Tab>
     Then the command should expand to "git browse -- issues"
+
+  Scenario: Completion of the "assignees" command
+    When I type "git ass" and press <Tab>
+    Then the command should expand to "git assignees"

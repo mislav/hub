@@ -564,6 +564,21 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
+func (client *Client) FetchAssignees(project *Project) (assignees []octokit.User, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/assignees", project.Owner, project.Name))
+	if err = checkStatus(200, "getting assignees", res, err); err != nil {
+		return
+	}
+
+  err = res.Unmarshal(&assignees)
+  return
+}
+
 func (client *Client) CurrentUser() (user *octokit.User, err error) {
 	url, err := octokit.CurrentUserURL.Expand(nil)
 	if err != nil {

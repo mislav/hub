@@ -83,6 +83,7 @@ __hub_setup_zsh_fns () {
     # actually trying to complete subcommands.
     hub_commands=(
       alias:'show shell instructions for wrapping git'
+      assignees:'list the potential assignees for issues and pull requests'
       pull-request:'open a pull request on GitHub'
       fork:'fork origin repo on GitHub'
       create:'create new repo on GitHub for the current project'
@@ -109,6 +110,7 @@ __hub_setup_bash_fns () {
   __git_list_all_commands() {
     cat <<-EOF
 alias
+assignees
 pull-request
 fork
 create

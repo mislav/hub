@@ -18,6 +18,7 @@ function  __fish_hub_using_command
 end
 
 complete -f -c hub -n '__fish_hub_needs_command' -a alias -d "show shell instructions for wrapping git"
+complete -f -c hub -n '__fish_hub_needs_command' -a assignees -d "list the potential assignees for issues and pull requests"
 complete -f -c hub -n '__fish_hub_needs_command' -a browse -d "browse the project on GitHub"
 complete -f -c hub -n '__fish_hub_needs_command' -a compare -d "lookup commit in GitHub Status API"
 complete -f -c hub -n '__fish_hub_needs_command' -a create -d "create new repo on GitHub for the current project"
@@ -27,6 +28,8 @@ complete -f -c hub -n '__fish_hub_needs_command' -a ci-status -d "display GitHub
 
 # alias
 complete -f -c hub -n ' __fish_hub_using_command alias' -a 'bash zsh sh ksh csh fish' -d "output shell script suitable for eval"
+# assignees
+complete -f -c hub -n ' __fish_hub_using_command assignees' -a 'bash zsh sh ksh csh fish' -d "list the potential assignees for issues and pull requests"
 # pull-request
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s f -d "Skip the check for unpushed commits"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s -m -d "Use the first line of <MESSAGE> as pull request title, and the rest as pull request description"
