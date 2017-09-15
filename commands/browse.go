@@ -25,7 +25,7 @@ var cmdBrowse = &Command{
 		Defaults to repository in the current working directory.
 
 	<SUBPAGE>
-		One of "wiki", "commits", "issues", or other (default: "tree").
+		One of "wiki", "commits", "issues", "pull", or other (default: "tree").
 
 ## Examples:
 		$ hub browse
@@ -85,7 +85,7 @@ func browse(command *Command, args *Args) {
 	if dest != "" {
 		project = github.NewProject("", dest, "")
 		branch = localRepo.MasterBranch()
-	} else if subpage != "" && subpage != "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" {
+	} else if subpage != "" && subpage != "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" && subpage != "pull" {
 		project, err = localRepo.MainProject()
 		branch = localRepo.MasterBranch()
 		utils.Check(err)
@@ -119,6 +119,8 @@ func browse(command *Command, args *Args) {
 
 	if subpage == "commits" {
 		path = fmt.Sprintf("commits/%s", branchInURL(branch))
+	} else if subpage == "pull" {
+		path = fmt.Sprintf("pull/%s", branchInURL(branch))
 	} else if subpage == "tree" || subpage == "" {
 		if !branch.IsMaster() {
 			path = fmt.Sprintf("tree/%s", branchInURL(branch))

@@ -141,6 +141,13 @@ Feature: hub browse
     When I successfully run `hub browse`
     Then "open https://github.com/mislav/dotfiles" should be run
 
+  Scenario: Pull subpage on current branch
+    Given I am in "git://github.com/mislav/dotfiles.git" git repo
+    And git "push.default" is set to "upstream"
+    And I am on the "feature" branch with upstream "origin/experimental"
+    When I successfully run `hub browse -- pull`
+    Then "open https://github.com/mislav/dotfiles/pull/experimental" should be run
+
   Scenario: No branch to pulls
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     And I am in detached HEAD
