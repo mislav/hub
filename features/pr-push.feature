@@ -7,7 +7,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :number => 77, :head => {
+        json :number => 77, :base => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -32,7 +32,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :number => 77, :head => {
+        json :number => 77, :base => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -56,7 +56,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :number => 77, :head => {
+        json :number => 77, :base => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -80,7 +80,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :number => 77, :head => {
+        json :number => 77, :base => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -105,7 +105,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :number => 77, :head => {
+        json :number => 77, :base => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -130,7 +130,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :number => 77, :head => {
+        json :number => 77, :base => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
@@ -155,7 +155,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
-        json :number => 77, :head => {
+        json :number => 77, :base => {
           :ref => "fixes",
           :repo => {
             :name => "jekyll",
