@@ -16,6 +16,7 @@ var (
 		Usage: `
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
+pr push <PULLREQ-NUMBER> [<BRANCH>]
 `,
 		Long: `Manage GitHub pull requests for the current project.
 
@@ -26,6 +27,9 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 	* _checkout_:
 		Check out the head of a pull request in a new branch.
+
+	* _push_:
+		Push a local branch to the head of a pull request.
 
 ## Options:
 
@@ -113,6 +117,11 @@ hub-issue(1), hub-pull-request(1), hub(1)
 		Run: listPulls,
 	}
 
+	cmdPushPr = &Command{
+		Key: "push",
+		Run: pushPr,
+	}
+
 	flagPullRequestState,
 	flagPullRequestFormat,
 	flagPullRequestSort string
@@ -120,6 +129,9 @@ hub-issue(1), hub-pull-request(1), hub(1)
 	flagPullRequestSortAscending bool
 
 	flagPullRequestLimit int
+
+	flagForce,
+	flagSetUpstream bool
 )
 
 func init() {
@@ -133,6 +145,11 @@ func init() {
 
 	cmdPr.Use(cmdListPulls)
 	cmdPr.Use(cmdCheckoutPr)
+
+	cmdPushPr.Flag.BoolVarP(&flagForce, "force", "f", false, "FORCE")
+	cmdPushPr.Flag.BoolVarP(&flagSetUpstream, "set-upstream", "u", false, "SET-UPSTREAM")
+	cmdPr.Use(cmdPushPr)
+
 	CmdRunner.Use(cmdPr)
 }
 
@@ -224,4 +241,50 @@ func formatPullRequest(pr github.PullRequest, format string, colorize bool) stri
 	placeholders["H"] = head
 
 	return ui.Expand(format, placeholders, colorize)
+}
+
+func pushPr(command *Command, args *Args) {
+	var localBranchName string
+	words := args.Words()
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	if len(words) == 0 {
+		utils.Check(fmt.Errorf("Error: No pull request number given"))
+	} else if len(words) > 1 {
+		localBranchName = words[1]
+	} else {
+		branch, err := localRepo.CurrentBranch()
+		utils.Check(err)
+		localBranchName = branch.ShortName()
+	}
+
+	prNumberString := words[0]
+	_, err = strconv.Atoi(prNumberString)
+	utils.Check(err)
+
+	baseProject, err := localRepo.MainProject()
+	utils.Check(err)
+	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
+	utils.Check(err)
+	client := github.NewClientWithHost(host)
+
+	pr, err := client.PullRequest(baseProject, prNumberString)
+	utils.Check(err)
+	head := pr.Head;
+	headRepo := head.Repo
+
+	refspec := fmt.Sprintf("%s:%s", localBranchName, head.Ref)
+
+	remoteProject := github.NewProject(headRepo.Owner.Login, headRepo.Name, host.Host)
+	remote := remoteProject.GitURL("", "", true)
+
+	args.Replace(args.Executable, "push", remote, refspec)
+	if flagForce {
+		args.AppendParams("--force")
+	}
+	if flagSetUpstream {
+		args.AppendParams("--set-upstream")
+	}
 }

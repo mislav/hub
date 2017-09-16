@@ -38,6 +38,7 @@ func (c *Command) Call(args *Args) (err error) {
 	if !c.GitExtension {
 		err = runCommand.parseArguments(args)
 		if err != nil {
+			ui.Errorln(c.Synopsis())
 			return
 		}
 	}
