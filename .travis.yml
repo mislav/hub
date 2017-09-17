@@ -5,7 +5,7 @@ before_install:
   - export PATH=~/bin:"$PATH"
 language: go
 go:
-  - 1.8.1
+  - 1.x
 script: make test-all
 install: script/bootstrap
 after_success: script/publish-release
