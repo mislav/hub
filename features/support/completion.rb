@@ -183,7 +183,7 @@ World Module.new {
   end
 
   def tmux_output_lines
-    tmux_pane_contents.split("\n").reject do |line|
+    tmux_pane_contents.split("\n").drop_while { |l| not l.start_with?('$') }.reject do |line|
       line.start_with?('$')
     end
   end
