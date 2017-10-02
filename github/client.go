@@ -274,19 +274,30 @@ type ReleaseAsset struct {
 	ApiUrl      string `json:"url"`
 }
 
-func (client *Client) FetchReleases(project *Project) (response []Release, err error) {
+func (client *Client) FetchReleases(project *Project) (releases []Release, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	res, err := api.Get(fmt.Sprintf("repos/%s/%s/releases", project.Owner, project.Name))
-	if err = checkStatus(200, "fetching releases", res, err); err != nil {
-		return
-	}
+	path := fmt.Sprintf("repos/%s/%s/releases?per_page=100", project.Owner, project.Name)
 
-	response = []Release{}
-	err = res.Unmarshal(&response)
+	releases = []Release{}
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching releases", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		releasesPage := []Release{}
+		if err = res.Unmarshal(&releasesPage); err != nil {
+			return
+		}
+		releases = append(releases, releasesPage...)
+	}
 
 	return
 }
