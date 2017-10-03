@@ -8,12 +8,13 @@ goto checkPrivileges
 :: This function takes care of these problems by calling Environment.Get/SetEnvironmentVariable
 :: via PowerShell, which lacks these issues.
 :appendToUserPath
+setlocal EnableDelayedExpansion
 set "RUNPS=powershell -NoProfile -ExecutionPolicy Bypass -Command" :: Command to start PowerShell.
 set "OLDPATHPS=[Environment]::GetEnvironmentVariable('PATH', 'User')" :: PowerShell command to run to get the old $PATH for the current user.
 
 :: Capture the output of %RUNPS% "%OLDPATHPS%" and set it to OLDPATH
 for /f "delims=" %%i in ('%RUNPS% "%OLDPATHPS%"') do (
-    set "OLDPATH=%%i"
+    set "OLDPATH=!OLDPATH!%%i"
 )
 
 set "NEWPATH=%OLDPATH%;%1"
