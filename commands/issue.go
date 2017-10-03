@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]]
+issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 `,
 		Long: `Manage GitHub issues for the current project.
@@ -131,6 +131,9 @@ With no arguments, show a list of open issues.
 	-^ --sort-ascending
 		Sort by ascending dates instead of descending.
 
+	-L, --limit <LIMIT>
+		Display only the first <LIMIT> issues.
+
 	--include-pulls
 		Include pull requests as well as issues.
 `,
@@ -165,6 +168,8 @@ With no arguments, show a list of open issues.
 
 	flagIssueAssignees,
 	flagIssueLabels listFlag
+
+	flagIssueLimit int
 )
 
 func init() {
@@ -188,6 +193,7 @@ func init() {
 	cmdIssue.Flag.StringVarP(&flagIssueSort, "sort", "o", "created", "SORT_KEY")
 	cmdIssue.Flag.BoolVarP(&flagIssueSortAscending, "sort-ascending", "^", false, "SORT_KEY")
 	cmdIssue.Flag.BoolVarP(&flagIssueIncludePulls, "include-pulls", "", false, "INCLUDE_PULLS")
+	cmdIssue.Flag.IntVarP(&flagIssueLimit, "limit", "L", -1, "LIMIT")
 
 	cmdIssue.Use(cmdCreateIssue)
 	CmdRunner.Use(cmdIssue)
@@ -244,12 +250,17 @@ func listIssues(cmd *Command, args *Args) {
 		}
 
 		colorize := ui.IsTerminal(os.Stdout)
+		c := 0
 		for _, issue := range issues {
 			if !flagIssueIncludePulls && issue.PullRequest != nil {
 				continue
 			}
 
 			ui.Printf(formatIssue(issue, flagIssueFormat, colorize))
+			c++
+			if c == flagIssueLimit {
+				break
+			}
 		}
 	}
 

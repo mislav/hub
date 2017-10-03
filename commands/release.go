@@ -17,7 +17,7 @@ var (
 	cmdRelease = &Command{
 		Run: listReleases,
 		Usage: `
-release [--include-drafts] [--exclude-prereleases]
+release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>]
 release show <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
@@ -56,6 +56,9 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	  Delete the release and associated assets for the specified <TAG>.
 
 ## Options:
+	-L, --limit
+		Display only the first <LIMIT> releases.
+
 	-d, --draft
 		Create a draft release.
 
@@ -135,11 +138,14 @@ hub(1), git-tag(1)
 	flagReleaseCommitish string
 
 	flagReleaseAssets stringSliceValue
+
+	flagReleaseLimit int
 )
 
 func init() {
 	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDrafts, "include-drafts", "d", false, "DRAFTS")
 	cmdRelease.Flag.BoolVarP(&flagReleaseExcludePrereleases, "exclude-prereleases", "p", false, "PRERELEASE")
+	cmdRelease.Flag.IntVarP(&flagReleaseLimit, "limit", "L", -1, "LIMIT")
 
 	cmdShowRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
 
@@ -184,10 +190,15 @@ func listReleases(cmd *Command, args *Args) {
 		releases, err := gh.FetchReleases(project)
 		utils.Check(err)
 
+		c := 0
 		for _, release := range releases {
 			if (!release.Draft || flagReleaseIncludeDrafts) &&
 				(!release.Prerelease || !flagReleaseExcludePrereleases) {
 				ui.Println(release.TagName)
+				c++
+				if c == flagReleaseLimit {
+					break
+				}
 			}
 		}
 	}

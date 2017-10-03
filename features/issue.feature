@@ -38,6 +38,37 @@ Feature: hub issue
            #13  Second issue\n
       """
 
+  Scenario: List limited number of issues
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+        },
+        { :number => 13,
+          :title => "Second issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+        },
+        { :number => 999,
+          :title => "Third issue",
+          :state => "open",
+          :user => { :login => "octocat" },
+        },
+      ]
+    }
+    """
+    When I successfully run `hub issue -L 2`
+    Then the output should contain exactly:
+      """
+          #102  First issue
+           #13  Second issue\n
+      """
+
   Scenario: Fetch issues and pull requests
     Given the GitHub API server:
     """
