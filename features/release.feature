@@ -94,6 +94,59 @@ Feature: hub release
       v1.0.2\n
       """
 
+  Scenario: Fetch releases across multiple pages
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        assert :per_page => "100", :page => :no
+        response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=2>; rel="next")
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: false,
+            prerelease: false,
+          },
+        ]
+      }
+
+      get('/repositories/12345') {
+        assert :per_page => "100"
+        if params[:page] == "2"
+          response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=3>; rel="next")
+          json [
+            { tag_name: 'v1.2.0-pre',
+              name: 'will_paginate 1.2.0-pre',
+              draft: false,
+              prerelease: true,
+            },
+            { tag_name: 'v1.0.2',
+              name: 'will_paginate 1.0.2',
+              draft: false,
+              prerelease: false,
+            },
+          ]
+        elsif params[:page] == "3"
+          json [
+            { tag_name: 'v1.0.0',
+              name: 'will_paginate 1.0.0',
+              draft: false,
+              prerelease: true,
+            },
+          ]
+        else
+          status 400
+        end
+      }
+      """
+      When I successfully run `hub release`
+      Then the output should contain exactly:
+      """
+      v1.2.0
+      v1.2.0-pre
+      v1.0.2
+      v1.0.0\n
+      """
+
   Scenario: Repository not found when listing releases
     Given the GitHub API server:
       """
