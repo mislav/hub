@@ -62,6 +62,17 @@ git version 2.9.3
 hub version 2.2.9
 ```
 
+#### Nix/NixOS
+
+On NixOS, or any Linux distribution with [Nix](https://nixos.org/nix/) package manager installed, one an install `hub` by typing:
+
+``` sh
+$ nix-env -i hub
+$ hub version
+git version 2.14.2
+hub version 2.2.9
+```
+
 #### Standalone
 
 `hub` can be easily installed as an executable. Download the latest
