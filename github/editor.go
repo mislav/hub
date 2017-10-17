@@ -111,8 +111,8 @@ func (e *Editor) readContent() (content []byte, err error) {
 
 func openTextEditor(program, file string) error {
 	editCmd := cmd.New(program)
-	r := regexp.MustCompile(`\b(?:[gm]?vim|vi)\b`)
-	if r.MatchString(program) {
+	r := regexp.MustCompile(`\b(?:[gm]?vim|vi)(?:\.exe)?$`)
+	if r.MatchString(editCmd.Name) {
 		editCmd.WithArg("--cmd")
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}
