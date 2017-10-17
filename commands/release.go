@@ -187,19 +187,11 @@ func listReleases(cmd *Command, args *Args) {
 	if args.Noop {
 		ui.Printf("Would request list of releases for %s\n", project)
 	} else {
-		releases, err := gh.FetchReleases(project)
+		releases, err := gh.FetchReleases(project, flagReleaseIncludeDrafts, flagReleaseExcludePrereleases, flagReleaseLimit)
 		utils.Check(err)
 
-		c := 0
 		for _, release := range releases {
-			if (!release.Draft || flagReleaseIncludeDrafts) &&
-				(!release.Prerelease || !flagReleaseExcludePrereleases) {
-				ui.Println(release.TagName)
-				c++
-				if c == flagReleaseLimit {
-					break
-				}
-			}
+			ui.Println(release.TagName)
 		}
 	}
 

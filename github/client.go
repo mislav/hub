@@ -274,7 +274,10 @@ type ReleaseAsset struct {
 	ApiUrl      string `json:"url"`
 }
 
-func (client *Client) FetchReleases(project *Project) (releases []Release, err error) {
+// FetchReleases fetches Releases from project, optionally including
+// drafts or excluding prereleases. If limit is positive, it returns at
+// most limit Releases.
+func (client *Client) FetchReleases(project *Project, includeDrafts, excludePrereleases bool, limit int) (releases []Release, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
@@ -296,14 +299,25 @@ func (client *Client) FetchReleases(project *Project) (releases []Release, err e
 		if err = res.Unmarshal(&releasesPage); err != nil {
 			return
 		}
-		releases = append(releases, releasesPage...)
+		for _, release := range releasesPage {
+			if release.Draft && !includeDrafts {
+				continue
+			}
+			if release.Prerelease && excludePrereleases {
+				continue
+			}
+			releases = append(releases, release)
+			if len(releases) == limit {
+				break
+			}
+		}
 	}
 
 	return
 }
 
 func (client *Client) FetchRelease(project *Project, tagName string) (foundRelease *Release, err error) {
-	releases, err := client.FetchReleases(project)
+	releases, err := client.FetchReleases(project, true, false, -1)
 	if err != nil {
 		return
 	}
@@ -506,7 +520,10 @@ type Milestone struct {
 	Title  string `json:"title"`
 }
 
-func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}) (issues []Issue, err error) {
+// FetchIssues fetches Issues matching the given filterParams from
+// project, optionally including pull requests. If limit is positive, it
+// returns at most limit Issues.
+func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}, includePulls bool, limit int) (issues []Issue, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
@@ -538,7 +555,15 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 		if err = res.Unmarshal(&issuesPage); err != nil {
 			return
 		}
-		issues = append(issues, issuesPage...)
+		for _, issue := range issuesPage {
+			if issue.PullRequest != nil && !includePulls {
+				continue
+			}
+			issues = append(issues, issue)
+			if len(issues) == limit {
+				break
+			}
+		}
 	}
 
 	return

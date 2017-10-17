@@ -239,7 +239,7 @@ func listIssues(cmd *Command, args *Args) {
 			}
 		}
 
-		issues, err := gh.FetchIssues(project, filters)
+		issues, err := gh.FetchIssues(project, filters, flagIssueIncludePulls, flagIssueLimit)
 		utils.Check(err)
 
 		maxNumWidth := 0
@@ -250,17 +250,8 @@ func listIssues(cmd *Command, args *Args) {
 		}
 
 		colorize := ui.IsTerminal(os.Stdout)
-		c := 0
 		for _, issue := range issues {
-			if !flagIssueIncludePulls && issue.PullRequest != nil {
-				continue
-			}
-
 			ui.Printf(formatIssue(issue, flagIssueFormat, colorize))
-			c++
-			if c == flagIssueLimit {
-				break
-			}
 		}
 	}
 
