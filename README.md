@@ -29,8 +29,8 @@ Dependencies:
 ``` sh
 $ brew install hub
 $ hub version
-git version 1.7.6
-hub version 2.2.3
+git version 2.14.2
+hub version 2.2.9
 ```
 
 If you want to get access to new `hub` features earlier and help with its
@@ -47,8 +47,8 @@ $ brew install --devel hub
 ``` sh
 > choco install hub
 > hub version
-git version 2.7.1.windows.2
-hub version 2.2.3
+git version 2.14.2.windows.3
+hub version 2.2.9
 ```
 
 #### Fedora Linux
@@ -58,7 +58,7 @@ On Fedora you can install `hub` through DNF:
 ``` sh
 $ sudo dnf install hub
 $ hub version
-git version 2.9.3
+git version 2.14.2
 hub version 2.2.9
 ```
 
