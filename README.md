@@ -40,6 +40,17 @@ development by reporting bugs, you can install the prerelease version:
 $ brew install --devel hub
 ```
 
+#### MacPorts
+
+`hub` can be installed through MacPorts:
+
+``` sh
+$ sudo port install hub
+$ hub version
+git version 2.14.2
+hub version 2.2.9
+```
+
 #### Chocolatey
 
 `hub` can be installed through [Chocolatey](https://chocolatey.org/) on Windows.
