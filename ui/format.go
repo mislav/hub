@@ -20,7 +20,7 @@ type expander struct {
 	// values is the map of values that should be expanded.
 	values map[string]string
 
-	// colorize is a flag to indiciate whether to use colors.
+	// colorize is a flag to indicate whether to use colors.
 	colorize bool
 
 	// skipNext is true if the next placeholder is not a placeholder and can be
