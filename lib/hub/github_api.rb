@@ -123,6 +123,14 @@ module Hub
       res.body
     end
 
+    def merge_pull_request(project, pr_number, commit_title, commit_message, merge_method='squash')
+      url = "https://%s/repos/%s/%s/pulls/%s/merge" %
+        [api_host(project.host), project.owner, project.name, pr_number]
+      res = put url, merge_method: merge_method, commit_title: commit_title, commit_message: commit_message
+      res.error! unless res.success?
+      res.data
+    end
+
     # Public: Fetch the patch from a commit
     def commit_patch project, sha
       res = get "https://%s/repos/%s/%s/commits/%s" %
@@ -257,6 +265,17 @@ module Hub
 
       def patch url, params = nil
         perform_request url, :Patch do |req|
+          if params
+            req.body = JSON.dump params
+            req['Content-Type'] = 'application/json;charset=utf-8'
+          end
+          yield req if block_given?
+          req['Content-Length'] = byte_size req.body
+        end
+      end
+
+      def put url, params = nil
+        perform_request url, :Put do |req|
           if params
             req.body = JSON.dump params
             req['Content-Type'] = 'application/json;charset=utf-8'

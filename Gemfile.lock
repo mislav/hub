@@ -71,6 +71,3 @@ DEPENDENCIES
   ruby-prof
   sinatra
   webmock (~> 1.9.0)
-
-BUNDLED WITH
-   1.10.3
