@@ -303,33 +303,10 @@ module Hub
         default_branch = config['default_branch']
       end
 
-
       args.shift
       branch = args.shift || current_branch.short_name
-      tracked_branch, head_project = remote_branch_and_project(method(:github_user))
+      _, head_project = remote_branch_and_project(method(:github_user))
       remote = 'origin'
-
-      # Check CI Status before landing
-      if SKIP_CI_CHECK_KEYWORDS.any? { |kw| (local_repo.git_command("log -1 --pretty=%B")).include?(kw) }
-        puts 'CI check skipped due to no-ci commit pragma.'
-      else
-        begin
-          ci_args = Args.new([ 'ci-status', branch ])
-          puts "CI status: "
-          ci_status(ci_args)
-        rescue SystemExit => e
-          case e.status
-          when 0
-            puts "Hurray!"
-          when 1
-            puts "Fix failures before landing."
-            exit 1
-          when 2
-            puts "Wait for CI success before landing."
-            exit 2
-          end
-        end
-      end
 
       begin
         pr = api_client.pullrequests base_project, head: "#{head_project.owner}:#{branch}"
@@ -343,21 +320,45 @@ module Hub
         exit 1
       end
 
-      title, body, url = pr['title'], pr['body'] || '', pr['html_url']
+      commit_title = pr['title']
+      commit_message = pr['body'] || ''
+      pr_number = pr['number']
+      local_sha = local_repo.git_command("rev-parse -q #{branch}")
+
+      begin
+        api_client.merge_pull_request(
+          base_project,
+          pr_number,
+          commit_title,
+          commit_message,
+          local_sha
+        )
+      rescue GitHubAPI::Exceptions => e
+        response = e.response
+        status = response.status
+        $stderr.puts '-' * 80
+        if status == 409
+          $stderr.puts 'Error landing PR. Local commit sha does not match the Github remote.'
+          $stderr.puts ''
+          $stderr.puts 'You have probably made changes locally:'
+          $stderr.puts ' - push'
+          $stderr.puts ' - wait for ci'
+          $stderr.puts ' - land again'
+        elsif status == 405
+          $stderr.puts 'Error landing PR. Pull Request is not mergeable.'
+          $stderr.puts 'Rebase and resolve conflicts before landing.'
+        else
+          display_api_exception("Error merging PR for #{branch}", response)
+        end
+        $stderr.puts '-' * 80
+        exit 1
+      end
 
       args.before ['checkout', default_branch]
-      args.before ['pull', remote, default_branch]
-      args.before ['checkout', branch]
-      args.before ['rebase', default_branch]
-      args.before ['checkout', default_branch]
-      args.before ['merge', '--squash', branch]
-      args.before ['commit', '-m', title, '-m', body, '-m', "Closes #{url}"]
-      args.before ['push', remote, default_branch]
       args.before ['branch', '-D', branch]
-      args.concat ['push', remote, ":#{branch}"]
-      args.after do
-        puts "#{branch} landed!"
-      end
+      args.before ['push', remote, ":#{branch}"]
+      args.concat ['pull', remote, default_branch]
+      args.after { puts "#{branch} landed!" }
     end
 
     # $ hub clone rtomayko/tilt
