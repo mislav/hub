@@ -142,8 +142,8 @@ New-Item -Type file -Force $PROFILE
 
 ### Shell tab-completion
 
-hub repository contains tab-completion scripts for bash and zsh. These scripts
-complement existing completion scripts that ship with git.
+hub repository contains tab-completion scripts for bash, zsh and fish.
+These scripts complement existing completion scripts that ship with git.
 
 [Installation instructions](etc)
 
