@@ -276,7 +276,7 @@ func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleRespo
 
 func (c *simpleClient) PostReview(path string, payload interface{}) (*simpleResponse, error) {
 	return c.jsonRequest("POST", path, payload, func(req *http.Request) {
-		req.Header.Set("Accept", "application/vnd.github.black-cat-preview+json;charset=utf-8")
+		req.Header.Set("Accept", "application/vnd.github.thor-preview+json;charset=utf-8")
 	})
 }
 
