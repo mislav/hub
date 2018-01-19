@@ -336,7 +336,19 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 
 		if len(flagPullRequestReviewers) > 0 {
-			err = client.RequestReview(baseProject, pr.Number, map[string]interface{}{"reviewers": flagPullRequestReviewers})
+			userReviewers := []string{}
+			teamReviewers := []string{}
+			for _, reviewer := range flagPullRequestReviewers {
+				if strings.Contains(reviewer, "/") {
+					teamReviewers = append(teamReviewers, strings.SplitN(reviewer, "/", 2)[1])
+				} else {
+					userReviewers = append(userReviewers, reviewer)
+				}
+			}
+			err = client.RequestReview(baseProject, pr.Number, map[string]interface{}{
+				"reviewers":      userReviewers,
+				"team_reviewers": teamReviewers,
+			})
 			utils.Check(err)
 		}
 	}
