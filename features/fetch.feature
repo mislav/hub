@@ -35,7 +35,10 @@ Feature: hub fetch
   Scenario: Creates new remote
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { json :private => false }
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
@@ -66,6 +69,19 @@ Feature: hub fetch
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') { json :private => true }
+      """
+    When I successfully run `hub fetch mislav`
+    Then "git fetch mislav" should be run
+    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no output
+
+  Scenario: Writeable repo
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => true }
+      }
       """
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run

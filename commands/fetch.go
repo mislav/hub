@@ -61,7 +61,7 @@ func transformFetchArgs(args *Args) error {
 					continue
 				}
 
-				projects[project] = repo.Private
+				projects[project] = repo.Private || repo.Permissions.Push
 			}
 		}
 	}
