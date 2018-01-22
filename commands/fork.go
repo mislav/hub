@@ -111,7 +111,7 @@ func fork(cmd *Command, args *Args) {
 		if err == nil {
 			currentProject, err := currentRemote.Project()
 			if err == nil {
-				if currentProject.SameAs(forkProject){
+				if currentProject.SameAs(forkProject) {
 					ui.Printf("existing remote: %s\n", newRemoteName)
 					return
 				}
