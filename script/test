@@ -25,4 +25,14 @@ script/build
 script/build test || STATUS="$?"
 script/ruby-test || STATUS="$?"
 
+if [ -n "$CI" ]; then
+  make fmt >/dev/null
+  if ! git diff -U1 --exit-code; then
+    STATUS=1
+    echo
+    echo "Some go code was not formatted properly." >&2
+    echo "Run \`make fmt' locally to fix these errors." >&2
+  fi
+fi
+
 exit "$STATUS"
