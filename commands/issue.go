@@ -357,16 +357,20 @@ func createIssue(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
-	var title string
-	var body string
-	var editor *github.Editor
+	messageBuilder := &github.MessageBuilder{
+		Filename: "ISSUE_EDITMSG",
+		Title:    "issue",
+	}
 
 	if cmd.FlagPassed("message") {
-		title, body = readMsg(flagIssueMessage)
+		messageBuilder.Message = flagIssueMessage
+		messageBuilder.Edit = flagIssueEdit
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagIssueFile, flagIssueEdit, "ISSUE_EDITMSG", "issue")
+		messageBuilder.Message, err = msgFromFile(flagIssueFile)
 		utils.Check(err)
+		messageBuilder.Edit = flagIssueEdit
 	} else {
+		messageBuilder.Edit = true
 		message := ""
 		helpMessage := fmt.Sprintf(`Creating an issue for %s
 
@@ -382,17 +386,12 @@ text is the title and the rest is the description.`, project)
 			}
 		}
 
-		editor, err := github.NewEditor("ISSUE_EDITMSG", "issue", message)
-		utils.Check(err)
-		editor.AddCommentedSection(helpMessage)
-
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
+		messageBuilder.Message = message
+		messageBuilder.AddCommentedSection(helpMessage)
 	}
 
-	if editor != nil {
-		defer editor.DeleteFile()
-	}
+	title, body, err := messageBuilder.Extract()
+	utils.Check(err)
 
 	if title == "" {
 		utils.Check(fmt.Errorf("Aborting creation due to empty issue title"))
@@ -424,4 +423,6 @@ text is the title and the rest is the description.`, project)
 
 		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, flagIssueCopy)
 	}
+
+	messageBuilder.Cleanup()
 }

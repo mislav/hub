@@ -82,6 +82,31 @@ func (e *Editor) EditTitleAndBody() (title, body string, err error) {
 	return
 }
 
+func (e *Editor) EditContent() (content string, err error) {
+	b, err := e.openAndEdit()
+	if err != nil {
+		return
+	}
+
+	b = bytes.TrimSpace(b)
+	reader := bytes.NewReader(b)
+	scanner := bufio.NewScanner(reader)
+	unquotedLines := []string{}
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if e.CS == "" || !strings.HasPrefix(line, e.CS) {
+			unquotedLines = append(unquotedLines, line)
+		}
+	}
+	if err = scanner.Err(); err != nil {
+		return
+	}
+
+	content = strings.Join(unquotedLines, "\n")
+	return
+}
+
 func (e *Editor) openAndEdit() (content []byte, err error) {
 	err = e.writeContent()
 	if err != nil {

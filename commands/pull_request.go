@@ -202,8 +202,10 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	var editor *github.Editor
-	var title, body string
+	messageBuilder := &github.MessageBuilder{
+		Filename: "PULLREQ_EDITMSG",
+		Title:    "pull request",
+	}
 
 	baseTracking := base
 	headTracking := head
@@ -224,11 +226,15 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	if cmd.FlagPassed("message") {
-		title, body = readMsg(flagPullRequestMessage)
+		messageBuilder.Message = flagPullRequestMessage
+		messageBuilder.Edit = flagPullRequestEdit
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ_EDITMSG", "pull request")
+		messageBuilder.Message, err = msgFromFile(flagPullRequestFile)
 		utils.Check(err)
+		messageBuilder.Edit = flagPullRequestEdit
 	} else if flagPullRequestIssue == "" {
+		messageBuilder.Edit = true
+
 		headForMessage := headTracking
 		if flagPullRequestPush {
 			headForMessage = head
@@ -270,13 +276,12 @@ of text is the title and the rest is the description.`, fullBase, fullHead)
 			helpMessage = helpMessage + "\n\nChanges:\n\n" + strings.TrimSpace(commitLogs)
 		}
 
-		editor, err = github.NewEditor("PULLREQ_EDITMSG", "pull request", message)
-		utils.Check(err)
-		editor.AddCommentedSection(helpMessage)
-
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
+		messageBuilder.Message = message
+		messageBuilder.AddCommentedSection(helpMessage)
 	}
+
+	title, body, err := messageBuilder.Extract()
+	utils.Check(err)
 
 	if title == "" && flagPullRequestIssue == "" {
 		utils.Check(fmt.Errorf("Aborting due to empty pull request title"))
@@ -345,8 +350,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead)
 			}
 		}
 
-		if err == nil && editor != nil {
-			defer editor.DeleteFile()
+		if err == nil {
+			defer messageBuilder.Cleanup()
 		}
 
 		utils.Check(err)

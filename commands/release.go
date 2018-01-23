@@ -296,29 +296,30 @@ func createRelease(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
-	var title string
-	var body string
-	var editor *github.Editor
+	messageBuilder := &github.MessageBuilder{
+		Filename: "RELEASE_EDITMSG",
+		Title:    "release",
+	}
 
 	if cmd.FlagPassed("message") {
-		title, body = readMsg(flagReleaseMessage)
+		messageBuilder.Message = flagReleaseMessage
+		messageBuilder.Edit = flagReleaseEdit
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE_EDITMSG", "release")
+		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
 		utils.Check(err)
+		messageBuilder.Edit = flagReleaseEdit
 	} else {
-		message := ""
+		messageBuilder.Edit = true
 		helpMessage := fmt.Sprintf(`Creating release %s for %s
 
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project.String())
 
-		editor, err := github.NewEditor("RELEASE_EDITMSG", "release", message)
-		utils.Check(err)
-		editor.AddCommentedSection(helpMessage)
-
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
+		messageBuilder.AddCommentedSection(helpMessage)
 	}
+
+	title, body, err := messageBuilder.Extract()
+	utils.Check(err)
 
 	if title == "" {
 		utils.Check(fmt.Errorf("Aborting release due to empty release title"))
@@ -345,9 +346,7 @@ text is the title and the rest is the description.`, tagName, project.String())
 		printBrowseOrCopy(args, release.HtmlUrl, flagReleaseBrowse, flagReleaseCopy)
 	}
 
-	if editor != nil {
-		editor.DeleteFile()
-	}
+	messageBuilder.Cleanup()
 
 	uploadAssets(gh, release, flagReleaseAssets, args)
 }
@@ -384,36 +383,34 @@ func editRelease(cmd *Command, args *Args) {
 		params["prerelease"] = flagReleasePrerelease
 	}
 
-	var title string
-	var body string
-	var editor *github.Editor
+	messageBuilder := &github.MessageBuilder{
+		Filename: "RELEASE_EDITMSG",
+		Title:    "release",
+	}
 
 	if cmd.FlagPassed("message") {
-		title, body = readMsg(flagReleaseMessage)
+		messageBuilder.Message = flagReleaseMessage
+		messageBuilder.Edit = flagReleaseEdit
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE_EDITMSG", "release")
+		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
 		utils.Check(err)
-
-		if title == "" {
-			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
-		}
+		messageBuilder.Edit = flagReleaseEdit
 	} else {
-		message := fmt.Sprintf("%s\n\n%s", release.Name, release.Body)
+		messageBuilder.Edit = true
+		messageBuilder.Message = fmt.Sprintf("%s\n\n%s", release.Name, release.Body)
 		helpMessage := fmt.Sprintf(`Editing release %s for %s
 
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project.String())
 
-		editor, err := github.NewEditor("RELEASE_EDITMSG", "release", message)
-		utils.Check(err)
-		editor.AddCommentedSection(helpMessage)
+		messageBuilder.AddCommentedSection(helpMessage)
+	}
 
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
+	title, body, err := messageBuilder.Extract()
+	utils.Check(err)
 
-		if title == "" {
-			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
-		}
+	if title == "" && !cmd.FlagPassed("message") {
+		utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
 	}
 
 	if title != "" {
@@ -431,9 +428,7 @@ text is the title and the rest is the description.`, tagName, project.String())
 			utils.Check(err)
 		}
 
-		if editor != nil {
-			editor.DeleteFile()
-		}
+		messageBuilder.Cleanup()
 	}
 
 	uploadAssets(gh, release, flagReleaseAssets, args)
