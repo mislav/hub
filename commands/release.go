@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
@@ -297,26 +296,29 @@ func createRelease(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
-	var title string
-	var body string
-	var editor *github.Editor
+	messageBuilder := &github.MessageBuilder{
+		Filename: "RELEASE_EDITMSG",
+		Title:    "release",
+	}
+
+	messageBuilder.AddCommentedSection(fmt.Sprintf(`Creating release %s for %s
+
+Write a message for this release. The first block of
+text is the title and the rest is the description.`, tagName, project))
 
 	if cmd.FlagPassed("message") {
-		title, body = readMsg(flagReleaseMessage)
+		messageBuilder.Message = flagReleaseMessage
+		messageBuilder.Edit = flagReleaseEdit
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE", "release")
+		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
 		utils.Check(err)
+		messageBuilder.Edit = flagReleaseEdit
 	} else {
-		cs := git.CommentChar()
-		message, err := renderReleaseTpl("Creating", cs, tagName, project.String(), flagReleaseCommitish)
-		utils.Check(err)
-
-		editor, err := github.NewEditor("RELEASE", "release", message)
-		utils.Check(err)
-
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
+		messageBuilder.Edit = true
 	}
+
+	title, body, err := messageBuilder.Extract()
+	utils.Check(err)
 
 	if title == "" {
 		utils.Check(fmt.Errorf("Aborting release due to empty release title"))
@@ -343,9 +345,7 @@ func createRelease(cmd *Command, args *Args) {
 		printBrowseOrCopy(args, release.HtmlUrl, flagReleaseBrowse, flagReleaseCopy)
 	}
 
-	if editor != nil {
-		editor.DeleteFile()
-	}
+	messageBuilder.Cleanup()
 
 	uploadAssets(gh, release, flagReleaseAssets, args)
 }
@@ -369,11 +369,9 @@ func editRelease(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	params := map[string]interface{}{}
-	commitish := release.TargetCommitish
 
 	if cmd.FlagPassed("commitish") {
 		params["target_commitish"] = flagReleaseCommitish
-		commitish = flagReleaseCommitish
 	}
 
 	if cmd.FlagPassed("draft") {
@@ -384,34 +382,33 @@ func editRelease(cmd *Command, args *Args) {
 		params["prerelease"] = flagReleasePrerelease
 	}
 
-	var title string
-	var body string
-	var editor *github.Editor
+	messageBuilder := &github.MessageBuilder{
+		Filename: "RELEASE_EDITMSG",
+		Title:    "release",
+	}
+
+	messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing release %s for %s
+
+Write a message for this release. The first block of
+text is the title and the rest is the description.`, tagName, project))
 
 	if cmd.FlagPassed("message") {
-		title, body = readMsg(flagReleaseMessage)
+		messageBuilder.Message = flagReleaseMessage
+		messageBuilder.Edit = flagReleaseEdit
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagReleaseFile, flagReleaseEdit, "RELEASE", "release")
+		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
 		utils.Check(err)
-
-		if title == "" {
-			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
-		}
+		messageBuilder.Edit = flagReleaseEdit
 	} else {
-		cs := git.CommentChar()
-		message, err := renderReleaseTpl("Editing", cs, tagName, project.String(), commitish)
-		utils.Check(err)
+		messageBuilder.Edit = true
+		messageBuilder.Message = fmt.Sprintf("%s\n\n%s", release.Name, release.Body)
+	}
 
-		message = fmt.Sprintf("%s\n\n%s\n%s", release.Name, release.Body, message)
-		editor, err := github.NewEditor("RELEASE", "release", message)
-		utils.Check(err)
+	title, body, err := messageBuilder.Extract()
+	utils.Check(err)
 
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
-
-		if title == "" {
-			utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
-		}
+	if title == "" && !cmd.FlagPassed("message") {
+		utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
 	}
 
 	if title != "" {
@@ -429,9 +426,7 @@ func editRelease(cmd *Command, args *Args) {
 			utils.Check(err)
 		}
 
-		if editor != nil {
-			editor.DeleteFile()
-		}
+		messageBuilder.Cleanup()
 	}
 
 	uploadAssets(gh, release, flagReleaseAssets, args)

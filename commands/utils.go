@@ -90,25 +90,6 @@ func isEmptyDir(path string) bool {
 	return match == nil
 }
 
-func readMsgFromFile(filename string, edit bool, editorPrefix, editorTopic string) (title, body string, editor *github.Editor, err error) {
-	message, err := msgFromFile(filename)
-	if err != nil {
-		return
-	}
-
-	if edit {
-		editor, err = github.NewEditor(editorPrefix, editorTopic, message)
-		if err != nil {
-			return
-		}
-		title, body, err = editor.EditTitleAndBody()
-		return
-	} else {
-		title, body = readMsg(message)
-		return
-	}
-}
-
 func msgFromFile(filename string) (string, error) {
 	var content []byte
 	var err error
@@ -123,16 +104,6 @@ func msgFromFile(filename string) (string, error) {
 	}
 
 	return strings.Replace(string(content), "\r\n", "\n", -1), nil
-}
-
-func readMsg(message string) (title, body string) {
-	parts := strings.SplitN(message, "\n\n", 2)
-
-	title = strings.TrimSpace(strings.Replace(parts[0], "\n", " ", -1))
-	if len(parts) > 1 {
-		body = strings.TrimSpace(parts[1])
-	}
-	return
 }
 
 func printBrowseOrCopy(args *Args, msg string, openBrowser bool, performCopy bool) {

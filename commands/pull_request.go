@@ -202,8 +202,10 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
-	var editor *github.Editor
-	var title, body string
+	messageBuilder := &github.MessageBuilder{
+		Filename: "PULLREQ_EDITMSG",
+		Title:    "pull request",
+	}
 
 	baseTracking := base
 	headTracking := head
@@ -223,26 +225,55 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("Can't find remote for %s", head))
 	}
 
+	messageBuilder.AddCommentedSection(fmt.Sprintf(`Requesting a pull to %s from %s
+
+Write a message for this pull request. The first block
+of text is the title and the rest is the description.`, fullBase, fullHead))
+
 	if cmd.FlagPassed("message") {
-		title, body = readMsg(flagPullRequestMessage)
+		messageBuilder.Message = flagPullRequestMessage
+		messageBuilder.Edit = flagPullRequestEdit
 	} else if cmd.FlagPassed("file") {
-		title, body, editor, err = readMsgFromFile(flagPullRequestFile, flagPullRequestEdit, "PULLREQ", "pull request")
+		messageBuilder.Message, err = msgFromFile(flagPullRequestFile)
 		utils.Check(err)
+		messageBuilder.Edit = flagPullRequestEdit
 	} else if flagPullRequestIssue == "" {
+		messageBuilder.Edit = true
+
 		headForMessage := headTracking
 		if flagPullRequestPush {
 			headForMessage = head
 		}
 
-		message, err := createPullRequestMessage(baseTracking, headForMessage, fullBase, fullHead)
-		utils.Check(err)
+		message := ""
+		commitLogs := ""
 
-		editor, err = github.NewEditor("PULLREQ", "pull request", message)
-		utils.Check(err)
+		commits, _ := git.RefList(baseTracking, headForMessage)
+		if len(commits) == 1 {
+			message, err = git.Show(commits[0])
+			utils.Check(err)
+		} else if len(commits) > 1 {
+			commitLogs, err = git.Log(baseTracking, headForMessage)
+			utils.Check(err)
+		}
 
-		title, body, err = editor.EditTitleAndBody()
-		utils.Check(err)
+		if commitLogs != "" {
+			messageBuilder.AddCommentedSection("\nChanges:\n\n" + strings.TrimSpace(commitLogs))
+		}
+
+		workdir, _ := git.WorkdirName()
+		if workdir != "" {
+			template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
+			if template != "" {
+				message = message + "\n\n" + template
+			}
+		}
+
+		messageBuilder.Message = message
 	}
+
+	title, body, err := messageBuilder.Extract()
+	utils.Check(err)
 
 	if title == "" && flagPullRequestIssue == "" {
 		utils.Check(fmt.Errorf("Aborting due to empty pull request title"))
@@ -311,8 +342,8 @@ func pullRequest(cmd *Command, args *Args) {
 			}
 		}
 
-		if err == nil && editor != nil {
-			defer editor.DeleteFile()
+		if err == nil {
+			defer messageBuilder.Cleanup()
 		}
 
 		utils.Check(err)
@@ -359,49 +390,6 @@ func pullRequest(cmd *Command, args *Args) {
 
 	args.NoForward()
 	printBrowseOrCopy(args, pullRequestURL, flagPullRequestBrowse, flagPullRequestCopy)
-}
-
-func createPullRequestMessage(base, head, fullBase, fullHead string) (string, error) {
-	var (
-		defaultMsg string
-		commitLogs string
-		err        error
-	)
-
-	commits, _ := git.RefList(base, head)
-	if len(commits) == 1 {
-		defaultMsg, err = git.Show(commits[0])
-		if err != nil {
-			return "", err
-		}
-	} else if len(commits) > 1 {
-		commitLogs, err = git.Log(base, head)
-		if err != nil {
-			return "", err
-		}
-	}
-
-	workdir, _ := git.WorkdirName()
-	if workdir != "" {
-		template, err := github.ReadTemplate(github.PullRequestTemplate, workdir)
-		if err != nil {
-			return "", err
-		} else if template != "" {
-			if defaultMsg == "" {
-				defaultMsg = "\n\n" + template
-			} else {
-				parts := strings.SplitN(defaultMsg, "\n\n", 2)
-				defaultMsg = parts[0] + "\n\n" + template
-				if len(parts) > 1 && parts[1] != "" {
-					defaultMsg = defaultMsg + "\n\n" + parts[1]
-				}
-			}
-		}
-	}
-
-	cs := git.CommentChar()
-
-	return renderPullRequestTpl(defaultMsg, cs, fullBase, fullHead, commitLogs)
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {

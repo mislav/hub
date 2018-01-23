@@ -154,3 +154,33 @@ func TestRemotes(t *testing.T) {
 		}
 	}
 }
+
+func TestCommentChar(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	char, err := CommentChar("")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "#", char)
+
+	SetGlobalConfig("core.commentchar", ";")
+	char, err = CommentChar("")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, ";", char)
+
+	SetGlobalConfig("core.commentchar", "auto")
+	char, err = CommentChar("")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "#", char)
+
+	char, err = CommentChar("hello\n#nice\nworld")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, ";", char)
+
+	char, err = CommentChar("hello\n#nice\n;world")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "@", char)
+
+	char, err = CommentChar("#\n;\n@\n!\n$\n%\n^\n&\n|\n:")
+	assert.Equal(t, "unable to select a comment character that is not used in the current message", err.Error())
+}
