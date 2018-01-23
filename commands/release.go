@@ -301,6 +301,11 @@ func createRelease(cmd *Command, args *Args) {
 		Title:    "release",
 	}
 
+	messageBuilder.AddCommentedSection(fmt.Sprintf(`Creating release %s for %s
+
+Write a message for this release. The first block of
+text is the title and the rest is the description.`, tagName, project))
+
 	if cmd.FlagPassed("message") {
 		messageBuilder.Message = flagReleaseMessage
 		messageBuilder.Edit = flagReleaseEdit
@@ -310,12 +315,6 @@ func createRelease(cmd *Command, args *Args) {
 		messageBuilder.Edit = flagReleaseEdit
 	} else {
 		messageBuilder.Edit = true
-		helpMessage := fmt.Sprintf(`Creating release %s for %s
-
-Write a message for this release. The first block of
-text is the title and the rest is the description.`, tagName, project.String())
-
-		messageBuilder.AddCommentedSection(helpMessage)
 	}
 
 	title, body, err := messageBuilder.Extract()
@@ -388,6 +387,11 @@ func editRelease(cmd *Command, args *Args) {
 		Title:    "release",
 	}
 
+	messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing release %s for %s
+
+Write a message for this release. The first block of
+text is the title and the rest is the description.`, tagName, project))
+
 	if cmd.FlagPassed("message") {
 		messageBuilder.Message = flagReleaseMessage
 		messageBuilder.Edit = flagReleaseEdit
@@ -398,12 +402,6 @@ func editRelease(cmd *Command, args *Args) {
 	} else {
 		messageBuilder.Edit = true
 		messageBuilder.Message = fmt.Sprintf("%s\n\n%s", release.Name, release.Body)
-		helpMessage := fmt.Sprintf(`Editing release %s for %s
-
-Write a message for this release. The first block of
-text is the title and the rest is the description.`, tagName, project.String())
-
-		messageBuilder.AddCommentedSection(helpMessage)
 	}
 
 	title, body, err := messageBuilder.Extract()

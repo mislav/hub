@@ -225,6 +225,11 @@ func pullRequest(cmd *Command, args *Args) {
 		utils.Check(fmt.Errorf("Can't find remote for %s", head))
 	}
 
+	messageBuilder.AddCommentedSection(fmt.Sprintf(`Requesting a pull to %s from %s
+
+Write a message for this pull request. The first block
+of text is the title and the rest is the description.`, fullBase, fullHead))
+
 	if cmd.FlagPassed("message") {
 		messageBuilder.Message = flagPullRequestMessage
 		messageBuilder.Edit = flagPullRequestEdit
@@ -252,6 +257,10 @@ func pullRequest(cmd *Command, args *Args) {
 			utils.Check(err)
 		}
 
+		if commitLogs != "" {
+			messageBuilder.AddCommentedSection("\nChanges:\n\n" + strings.TrimSpace(commitLogs))
+		}
+
 		workdir, _ := git.WorkdirName()
 		if workdir != "" {
 			template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
@@ -260,16 +269,7 @@ func pullRequest(cmd *Command, args *Args) {
 			}
 		}
 
-		helpMessage := fmt.Sprintf(`Requesting a pull to %s from %s
-
-Write a message for this pull request. The first block
-of text is the title and the rest is the description.`, fullBase, fullHead)
-		if commitLogs != "" {
-			helpMessage = helpMessage + "\n\nChanges:\n\n" + strings.TrimSpace(commitLogs)
-		}
-
 		messageBuilder.Message = message
-		messageBuilder.AddCommentedSection(helpMessage)
 	}
 
 	title, body, err := messageBuilder.Extract()
