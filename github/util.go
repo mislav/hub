@@ -5,8 +5,8 @@ import (
 )
 
 func IsHttpsProtocol() bool {
-	httpProcotol, _ := git.Config("hub.protocol")
-	if httpProcotol == "https" {
+	httpProtocol, _ := git.Config("hub.protocol")
+	if httpProtocol == "https" {
 		return true
 	}
 

@@ -105,7 +105,7 @@ func New(cmd string) *Cmd {
 }
 
 func NewWithArray(cmd []string) *Cmd {
-	return &Cmd{Name: cmd[0], Args: cmd[1:]}
+	return &Cmd{Name: cmd[0], Args: cmd[1:], Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
 }
 
 func verboseLog(cmd *Cmd) {

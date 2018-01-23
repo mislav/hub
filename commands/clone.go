@@ -47,13 +47,13 @@ func clone(command *Command, args *Args) {
 
 func transformCloneArgs(args *Args) {
 	isSSH := parseClonePrivateFlag(args)
-	hasValueRegxp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
+	hasValueRegexp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
 	for i := 0; i < args.ParamsSize(); i++ {
 		a := args.Params[i]
 
 		if strings.HasPrefix(a, "-") {
-			if hasValueRegxp.MatchString(a) {
+			if hasValueRegexp.MatchString(a) {
 				i++
 			}
 		} else {

@@ -17,7 +17,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-foc] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-focp] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE>
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
@@ -370,7 +370,19 @@ of text is the title and the rest is the description.`, fullBase, fullHead)
 		}
 
 		if len(flagPullRequestReviewers) > 0 {
-			err = client.RequestReview(baseProject, pr.Number, map[string]interface{}{"reviewers": flagPullRequestReviewers})
+			userReviewers := []string{}
+			teamReviewers := []string{}
+			for _, reviewer := range flagPullRequestReviewers {
+				if strings.Contains(reviewer, "/") {
+					teamReviewers = append(teamReviewers, strings.SplitN(reviewer, "/", 2)[1])
+				} else {
+					userReviewers = append(userReviewers, reviewer)
+				}
+			}
+			err = client.RequestReview(baseProject, pr.Number, map[string]interface{}{
+				"reviewers":      userReviewers,
+				"team_reviewers": teamReviewers,
+			})
 			utils.Check(err)
 		}
 	}

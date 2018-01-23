@@ -107,6 +107,10 @@ setup_tmp_home = lambda { |shell|
 }
 
 $tmux = nil
+$installed_shells = Hash.new { |cache, shell|
+  `which #{shell} 2>/dev/null`
+  cache[shell] = $?.success?
+}
 
 Before('@completion') do
   unless $tmux
@@ -126,7 +130,12 @@ World Module.new {
   attr_reader :shell
 
   def set_shell(shell)
-    @shell = shell
+    if $installed_shells[shell]
+      @shell = shell
+      true
+    else
+      false
+    end
   end
 
   define_method(:tmux_pane) do
@@ -183,7 +192,7 @@ World Module.new {
   end
 
   def tmux_output_lines
-    tmux_pane_contents.split("\n").reject do |line|
+    tmux_pane_contents.split("\n").drop_while { |l| not l.start_with?('$') }.reject do |line|
       line.start_with?('$')
     end
   end
@@ -221,7 +230,7 @@ World Module.new {
 }
 
 Given(/^my shell is (\w+)$/) do |shell|
-  set_shell(shell)
+  set_shell(shell) || pending
   setup_tmp_home.call(shell)
 end
 

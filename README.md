@@ -33,6 +33,13 @@ git version 1.7.6
 hub version 2.2.3
 ```
 
+If you want to get access to new `hub` features earlier and help with its
+development by reporting bugs, you can install the prerelease version:
+
+``` sh
+$ brew install --devel hub
+```
+
 #### Chocolatey
 
 `hub` can be installed through [Chocolatey](https://chocolatey.org/) on Windows.
@@ -135,8 +142,8 @@ New-Item -Type file -Force $PROFILE
 
 ### Shell tab-completion
 
-hub repository contains tab-completion scripts for bash and zsh. These scripts
-complement existing completion scripts that ship with git.
+hub repository contains tab-completion scripts for bash, zsh and fish.
+These scripts complement existing completion scripts that ship with git.
 
 [Installation instructions](etc)
 

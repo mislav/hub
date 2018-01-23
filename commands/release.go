@@ -115,7 +115,7 @@ hub(1), git-tag(1)
 		Run: downloadRelease,
 	}
 
-	cmdDeleteRelase = &Command{
+	cmdDeleteRelease = &Command{
 		Key: "delete",
 		Run: deleteRelease,
 	}
@@ -164,7 +164,7 @@ func init() {
 	cmdRelease.Use(cmdCreateRelease)
 	cmdRelease.Use(cmdEditRelease)
 	cmdRelease.Use(cmdDownloadRelease)
-	cmdRelease.Use(cmdDeleteRelase)
+	cmdRelease.Use(cmdDeleteRelease)
 	CmdRunner.Use(cmdRelease)
 }
 
