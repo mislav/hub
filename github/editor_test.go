@@ -1,11 +1,9 @@
 package github
 
 import (
-	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -77,86 +75,4 @@ func TestEditor_openAndEdit_writeFileIfNotExist(t *testing.T) {
 	content, err := editor.openAndEdit()
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "hello", string(content))
-}
-
-func TestEditor_EditTitleAndBodyEmptyTitle(t *testing.T) {
-	tempFile, _ := ioutil.TempFile("", "PULLREQ")
-	tempFile.Close()
-
-	editor := Editor{
-		Program: "memory",
-		File:    tempFile.Name(),
-		CS:      "#",
-		openEditor: func(program string, file string) error {
-			assert.Equal(t, "memory", program)
-			assert.Equal(t, tempFile.Name(), file)
-			return ioutil.WriteFile(file, []byte(""), 0644)
-		},
-	}
-
-	title, body, err := editor.EditTitleAndBody()
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "", title)
-	assert.Equal(t, "", body)
-
-	_, err = os.Stat(tempFile.Name())
-	assert.T(t, os.IsNotExist(err))
-}
-
-func TestEditor_EditTitleAndBody(t *testing.T) {
-	tempFile, _ := ioutil.TempFile("", "PULLREQ")
-	tempFile.Close()
-
-	editor := Editor{
-		Program: "memory",
-		File:    tempFile.Name(),
-		CS:      "#",
-		openEditor: func(program string, file string) error {
-			assert.Equal(t, "memory", program)
-			assert.Equal(t, tempFile.Name(), file)
-
-			message := `A title
-A title continues
-
-A body
-A body continues
-# comment
-`
-			return ioutil.WriteFile(file, []byte(message), 0644)
-		},
-	}
-
-	title, body, err := editor.EditTitleAndBody()
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "A title A title continues", title)
-	assert.Equal(t, "A body\nA body continues", body)
-}
-
-func TestReadTitleAndBody(t *testing.T) {
-	message := `A title
-A title continues
-
-A body
-A body continues
-# comment
-`
-	r := strings.NewReader(message)
-	reader := bufio.NewReader(r)
-	title, body, err := readTitleAndBody(reader, "#")
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "A title A title continues", title)
-	assert.Equal(t, "A body\nA body continues", body)
-
-	message = `# Dat title
-
-/ This line is commented out.
-
-Dem body.
-`
-	r = strings.NewReader(message)
-	reader = bufio.NewReader(r)
-	title, body, err = readTitleAndBody(reader, "/")
-	assert.Equal(t, nil, err)
-	assert.Equal(t, "# Dat title", title)
-	assert.Equal(t, "Dem body.", body)
 }
