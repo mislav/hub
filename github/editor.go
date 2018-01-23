@@ -108,8 +108,7 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 }
 
 func (e *Editor) writeContent() (err error) {
-	// only write message if file doesn't exist
-	if !e.isFileExist() && e.Message != "" {
+	if !e.isFileExist() {
 		err = ioutil.WriteFile(e.File, []byte(e.Message), 0644)
 		if err != nil {
 			return
