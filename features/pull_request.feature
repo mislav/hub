@@ -101,11 +101,11 @@ Feature: hub pull-request
         halt 400 if request.content_charset != 'utf-8'
         assert :title => 'Commit title',
                :body => <<BODY.chomp
+Commit body
+
 This is the pull request template
 
 Another line of template
-
-Commit body
 BODY
         status 201
         json :html_url => "the://url"

@@ -256,15 +256,7 @@ func pullRequest(cmd *Command, args *Args) {
 		if workdir != "" {
 			template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
 			if template != "" {
-				if message == "" {
-					message = "\n\n" + template
-				} else {
-					parts := strings.SplitN(message, "\n\n", 2)
-					message = parts[0] + "\n\n" + template
-					if len(parts) > 1 && parts[1] != "" {
-						message = message + "\n\n" + parts[1]
-					}
-				}
+				message = message + "\n\n" + template
 			}
 		}
 
