@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -63,23 +62,6 @@ func (e *Editor) AddCommentedSection(text string) {
 
 func (e *Editor) DeleteFile() error {
 	return os.Remove(e.File)
-}
-
-func (e *Editor) EditTitleAndBody() (title, body string, err error) {
-	content, err := e.openAndEdit()
-	if err != nil {
-		return
-	}
-
-	content = bytes.TrimSpace(content)
-	reader := bytes.NewReader(content)
-	title, body, err = readTitleAndBody(reader, e.CS)
-
-	if err != nil || title == "" {
-		defer e.DeleteFile()
-	}
-
-	return
 }
 
 func (e *Editor) EditContent() (content string, err error) {
@@ -158,35 +140,4 @@ func openTextEditor(program, file string) error {
 	setConsole(editCmd)
 
 	return editCmd.Spawn()
-}
-
-func readTitleAndBody(reader io.Reader, cs string) (title, body string, err error) {
-	var titleParts, bodyParts []string
-
-	r := regexp.MustCompile("\\S")
-	scanner := bufio.NewScanner(reader)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, cs) {
-			continue
-		}
-
-		if len(bodyParts) == 0 && r.MatchString(line) {
-			titleParts = append(titleParts, line)
-		} else {
-			bodyParts = append(bodyParts, line)
-		}
-	}
-
-	if err = scanner.Err(); err != nil {
-		return
-	}
-
-	title = strings.Join(titleParts, " ")
-	title = strings.TrimSpace(title)
-
-	body = strings.Join(bodyParts, "\n")
-	body = strings.TrimSpace(body)
-
-	return
 }
