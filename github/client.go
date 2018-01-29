@@ -171,26 +171,40 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 	return
 }
 
+type Gist struct {
+	Files map[string]GistFile `json:"files"`
+}
+type GistFile struct {
+	RawUrl string `json:"raw_url"`
+}
+
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
-	url, err := octokit.GistsURL.Expand(octokit.M{"gist_id": id})
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.Get(fmt.Sprintf("gists/%s", id))
+	if err = checkStatus(200, "getting gist patch", res, err); err != nil {
 		return
 	}
 
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	patch, result := api.Gists().Raw(&hyperlink, octokit.M{})
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
+	gist := Gist{}
+	if err = res.Unmarshal(&gist); err != nil {
+		return
+	}
+	rawUrl := ""
+	for _, file := range gist.Files {
+		rawUrl = file.RawUrl
+		break
+	}
+
+	res, err = api.GetFile(rawUrl, textMediaType)
+	if err = checkStatus(200, "getting gist patch", res, err); err != nil {
 		return
 	}
 
-	return
+	return res.Body, nil
 }
 
 func (client *Client) Repository(project *Project) (repo *octokit.Repository, err error) {
