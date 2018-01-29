@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 
 	"github.com/github/hub/ui"
@@ -111,7 +112,7 @@ func (c *Config) authorizeClient(client *Client, host string) (err error) {
 			break
 		}
 
-		if ae, ok := err.(*AuthError); ok && ae.IsRequired2FACodeError() {
+		if ae, ok := err.(*errorInfo); ok && strings.HasPrefix(ae.Response.Header.Get("X-GitHub-OTP"), "required;") {
 			if code != "" {
 				ui.Errorln("warning: invalid two-factor code")
 			}

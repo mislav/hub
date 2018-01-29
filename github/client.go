@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -11,7 +12,6 @@ import (
 	"time"
 
 	"github.com/github/hub/version"
-	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
@@ -28,24 +28,6 @@ func NewClient(h string) *Client {
 
 func NewClientWithHost(host *Host) *Client {
 	return &Client{host}
-}
-
-type AuthError struct {
-	Err error
-}
-
-func (e *AuthError) Error() string {
-	return e.Err.Error()
-}
-
-func (e *AuthError) IsRequired2FACodeError() bool {
-	re, ok := e.Err.(*octokit.ResponseError)
-	return ok && re.Type == octokit.ErrorOneTimePasswordRequired
-}
-
-func (e *AuthError) IsDuplicatedTokenError() bool {
-	re, ok := e.Err.(*octokit.ResponseError)
-	return ok && re.Type == octokit.ErrorUnprocessableEntity
 }
 
 type Client struct {
@@ -70,24 +52,17 @@ func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest,
 }
 
 func (client *Client) PullRequestPatch(project *Project, id string) (patch io.ReadCloser, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.GetFile(fmt.Sprintf("repos/%s/%s/pulls/%s", project.Owner, project.Name, id), patchMediaType)
+	if err = checkStatus(200, "getting pull request patch", res, err); err != nil {
 		return
 	}
 
-	patch, result := api.PullRequests(client.requestURL(url)).Patch()
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
-		return
-	}
-
-	return
+	return res.Body, nil
 }
 
 type PullRequest struct {
@@ -150,68 +125,68 @@ func (client *Client) RequestReview(project *Project, prNumber int, params map[s
 }
 
 func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCloser, err error) {
-	url, err := octokit.CommitsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "sha": sha})
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s", project.Owner, project.Name, sha), patchMediaType)
+	if err = checkStatus(200, "getting commit patch", res, err); err != nil {
 		return
 	}
 
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	patch, result := api.Commits().Patch(&hyperlink, octokit.M{})
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
-		return
-	}
+	return res.Body, nil
+}
 
-	return
+type Gist struct {
+	Files map[string]GistFile `json:"files"`
+}
+type GistFile struct {
+	RawUrl string `json:"raw_url"`
 }
 
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
-	url, err := octokit.GistsURL.Expand(octokit.M{"gist_id": id})
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.Get(fmt.Sprintf("gists/%s", id))
+	if err = checkStatus(200, "getting gist patch", res, err); err != nil {
 		return
 	}
 
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	patch, result := api.Gists().Raw(&hyperlink, octokit.M{})
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
+	gist := Gist{}
+	if err = res.Unmarshal(&gist); err != nil {
+		return
+	}
+	rawUrl := ""
+	for _, file := range gist.Files {
+		rawUrl = file.RawUrl
+		break
+	}
+
+	res, err = api.GetFile(rawUrl, textMediaType)
+	if err = checkStatus(200, "getting gist patch", res, err); err != nil {
 		return
 	}
 
-	return
+	return res.Body, nil
 }
 
-func (client *Client) Repository(project *Project) (repo *octokit.Repository, err error) {
-	url, err := octokit.RepositoryURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) Repository(project *Project) (repo *Repository, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting repository", err)
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s", project.Owner, project.Name))
+	if err = checkStatus(200, "getting commit patch", res, err); err != nil {
 		return
 	}
 
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	repo, result := api.Repositories().One(&hyperlink, octokit.M{})
-	if result.HasError() {
-		err = FormatError("getting repository", result.Err)
-		return
-	}
-
+	repo = &Repository{}
+	err = res.Unmarshal(&repo)
 	return
 }
 
@@ -221,38 +196,31 @@ func (client *Client) IsRepositoryExist(project *Project) bool {
 	return err == nil && repo != nil
 }
 
-func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
-	var repoURL octokit.Hyperlink
+func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *Repository, err error) {
+	repoURL := "user/repos"
 	if project.Owner != client.Host.User {
-		repoURL = octokit.OrgRepositoriesURL
-	} else {
-		repoURL = octokit.UserRepositoriesURL
+		repoURL = fmt.Sprintf("orgs/%s/repos", project.Owner)
 	}
 
-	url, err := repoURL.Expand(octokit.M{"org": project.Owner})
+	params := map[string]interface{}{
+		"name":        project.Name,
+		"description": description,
+		"homepage":    homepage,
+		"private":     isPrivate,
+	}
+
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating repository", err)
+	res, err := api.PostJSON(repoURL, params)
+	if err = checkStatus(201, "creating repository", res, err); err != nil {
 		return
 	}
 
-	params := octokit.Repository{
-		Name:        project.Name,
-		Description: description,
-		Homepage:    homepage,
-		Private:     isPrivate,
-	}
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	repo, result := api.Repositories().Create(&hyperlink, octokit.M{}, params)
-	if result.HasError() {
-		err = FormatError("creating repository", result.Err)
-		return
-	}
-
+	repo = &Repository{}
+	err = res.Unmarshal(repo)
 	return
 }
 
@@ -450,9 +418,11 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 
 type Repository struct {
 	Name        string                 `json:"name"`
+	FullName    string                 `json:"full_name"`
 	Parent      *Repository            `json:"parent"`
 	Owner       *User                  `json:"owner"`
 	Private     bool                   `json:"private"`
+	HasWiki     bool                   `json:"has_wiki"`
 	Permissions *RepositoryPermissions `json:"permissions"`
 	HtmlUrl     string                 `json:"html_url"`
 }
@@ -579,74 +549,71 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
-func (client *Client) CurrentUser() (user *octokit.User, err error) {
-	url, err := octokit.CurrentUserURL.Expand(nil)
+func (client *Client) CurrentUser() (user *User, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting current user", err)
+	res, err := api.Get("user")
+	if err = checkStatus(200, "getting current user", res, err); err != nil {
 		return
 	}
 
-	user, result := api.Users(client.requestURL(url)).One()
-	if result.HasError() {
-		err = FormatError("getting current user", result.Err)
-		return
-	}
-
+	user = &User{}
+	err = res.Unmarshal(user)
 	return
 }
 
+type AuthorizationEntry struct {
+	Token string `json:"token"`
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
-	authUrl, e := octokit.AuthorizationsURL.Expand(nil)
-	if e != nil {
-		err = &AuthError{e}
-		return
+	params := map[string]interface{}{
+		"scopes":   []string{"repo"},
+		"note_url": OAuthAppURL,
 	}
 
-	basicAuth := octokit.BasicAuth{
-		Login:           user,
-		Password:        password,
-		OneTimePassword: twoFactorCode,
-	}
-	c := client.newOctokitClient(basicAuth)
-	authsService := c.Authorizations(client.requestURL(authUrl))
-
-	authParam := octokit.AuthorizationParams{
-		Scopes:  []string{"repo"},
-		NoteURL: OAuthAppURL,
+	api := client.apiClient()
+	api.PrepareRequest = func(req *http.Request) {
+		req.SetBasicAuth(user, password)
+		if twoFactorCode != "" {
+			req.Header.Set("X-GitHub-OTP", twoFactorCode)
+		}
 	}
 
 	count := 1
+	maxTries := 9
 	for {
-		note, e := authTokenNote(count)
-		if e != nil {
-			err = e
+		params["note"], err = authTokenNote(count)
+		if err != nil {
 			return
 		}
 
-		authParam.Note = note
-		auth, result := authsService.Create(authParam)
-		if !result.HasError() {
-			token = auth.Token
+		res, postErr := api.PostJSON("authorizations", params)
+		if postErr != nil {
+			err = postErr
 			break
 		}
 
-		authErr := &AuthError{result.Err}
-		if authErr.IsDuplicatedTokenError() {
-			if count >= 9 {
-				err = authErr
-				break
-			} else {
-				count++
-				continue
+		if res.StatusCode == 201 {
+			auth := &AuthorizationEntry{}
+			if err = res.Unmarshal(auth); err != nil {
+				return
 			}
-		} else {
-			err = authErr
+			token = auth.Token
 			break
+		} else if res.StatusCode == 422 && count < maxTries {
+			count++
+		} else {
+			errInfo, e := res.ErrorInfo()
+			if e == nil {
+				err = errInfo
+			} else {
+				err = e
+			}
+			return
 		}
 	}
 
@@ -663,47 +630,30 @@ func (client *Client) ensureAccessToken() (err error) {
 	return
 }
 
-func (client *Client) api() (c *octokit.Client, err error) {
-	err = client.ensureAccessToken()
-	if err != nil {
-		return
-	}
-
-	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
-	c = client.newOctokitClient(tokenAuth)
-
-	return
-}
-
 func (client *Client) simpleApi() (c *simpleClient, err error) {
 	err = client.ensureAccessToken()
 	if err != nil {
 		return
 	}
 
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
-	apiRoot := client.requestURL(client.absolute(normalizeHost(client.Host.Host)))
-
-	c = &simpleClient{
-		httpClient:  httpClient,
-		rootUrl:     apiRoot,
-		accessToken: client.Host.AccessToken,
+	c = client.apiClient()
+	c.PrepareRequest = func(req *http.Request) {
+		req.Header.Set("Authorization", "token "+client.Host.AccessToken)
 	}
 	return
 }
 
-func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client {
-	var host string
-	if client.Host != nil {
-		host = client.Host.Host
-	}
-	host = normalizeHost(host)
-	apiHostURL := client.absolute(host)
-
+func (client *Client) apiClient() *simpleClient {
 	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
-	c := octokit.NewClientWith(apiHostURL.String(), UserAgent, auth, httpClient)
+	apiRoot := client.absolute(normalizeHost(client.Host.Host))
+	if client.Host != nil && client.Host.Host != GitHubHost {
+		apiRoot.Path = "/api/v3/"
+	}
 
-	return c
+	return &simpleClient{
+		httpClient: httpClient,
+		rootUrl:    apiRoot,
+	}
 }
 
 func (client *Client) absolute(host string) *url.URL {
@@ -712,20 +662,6 @@ func (client *Client) absolute(host string) *url.URL {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
-}
-
-func (client *Client) requestURL(base *url.URL) *url.URL {
-	if client.Host != nil && client.Host.Host != GitHubHost {
-		newUrl, _ := url.Parse(base.String())
-		basePath := base.Path
-		if !strings.HasPrefix(basePath, "/") {
-			basePath = "/" + basePath
-		}
-		newUrl.Path = "/api/v3" + basePath
-		return newUrl
-	} else {
-		return base
-	}
 }
 
 func normalizeHost(host string) string {
@@ -760,22 +696,6 @@ func FormatError(action string, err error) (ee error) {
 	switch e := err.(type) {
 	default:
 		ee = err
-	case *AuthError:
-		return FormatError(action, e.Err)
-	case *octokit.ResponseError:
-		info := &errorInfo{
-			Message:  e.Message,
-			Response: e.Response,
-			Errors:   []fieldError{},
-		}
-		for _, err := range e.Errors {
-			info.Errors = append(info.Errors, fieldError{
-				Field:   err.Field,
-				Message: err.Message,
-				Code:    err.Code,
-			})
-		}
-		return FormatError(action, info)
 	case *errorInfo:
 		statusCode := e.Response.StatusCode
 		var reason string

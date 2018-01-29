@@ -20,29 +20,6 @@
   revision = "b7ed37b82869576c289d7d97fb2bbd8b64a0cb28"
 
 [[projects]]
-  name = "github.com/fhs/go-netrc"
-  packages = ["netrc"]
-  revision = "4ffed54ee5c32ebfb1b8c7c72fc90bb08dc3ff43"
-  version = "v1.0.0"
-
-[[projects]]
-  branch = "master"
-  name = "github.com/jingweno/go-sawyer"
-  packages = [
-    ".",
-    "hypermedia",
-    "mediaheader",
-    "mediatype"
-  ]
-  revision = "1999ae5763d678f3ce1112cf1fda7c7e9cf2aadf"
-
-[[projects]]
-  name = "github.com/jtacoma/uritemplates"
-  packages = ["."]
-  revision = "307ae868f90f4ee1b73ebe4596e0394237dacce8"
-  version = "v1.0.0"
-
-[[projects]]
   branch = "master"
   name = "github.com/kballard/go-shellquote"
   packages = ["."]
@@ -79,12 +56,6 @@
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
 [[projects]]
-  branch = "master"
-  name = "github.com/octokit/go-octokit"
-  packages = ["octokit"]
-  revision = "812e91dfbd64051c1ec72c48feda0278727e8a4e"
-
-[[projects]]
   name = "github.com/ogier/pflag"
   packages = ["."]
   revision = "32a05c62658bd1d7c7e75cbc8195de5d585fde0f"
@@ -114,6 +85,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "0ca844b291d0677146cb19e9591e5e61d3bbbeaf662e25fc27cd3a06297e32dc"
+  inputs-digest = "8da7746ef8bc5712c5e117753f75f96e6eec12fa8967b601cdd006f1b66cc765"
   solver-name = "gps-cdcl"
   solver-version = 1

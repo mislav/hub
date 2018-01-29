@@ -14,6 +14,7 @@ Feature: OAuth authentication
         assert :scopes => ['repo'],
                :note => "hub for #{machine_id}",
                :note_url => 'http://hub.github.com/'
+        status 201
         json :token => 'OTOKEN'
       }
       get('/user') {
@@ -22,6 +23,7 @@ Feature: OAuth authentication
       }
       post('/user/repos') {
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -45,6 +47,7 @@ Feature: OAuth authentication
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         if params[:note] == "hub for #{machine_id} 3"
+          status 201
           json :token => 'OTOKEN'
         else
           status 422
@@ -60,6 +63,7 @@ Feature: OAuth authentication
         json :login => 'MiSlAv'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -102,12 +106,14 @@ Feature: OAuth authentication
       """
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
+        status 201
         json :token => 'OTOKEN'
       }
       get('/user') {
         json :login => 'mislav'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -126,6 +132,7 @@ Feature: OAuth authentication
       }
       post('/user/repos') {
         halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -146,6 +153,7 @@ Feature: OAuth authentication
       get('/repos/parkr/dotfiles') {
         halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token PTOKEN"
         json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'parkr' },
              :permissions => { :push => true }
       }
       """
@@ -200,6 +208,7 @@ Feature: OAuth authentication
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         if request.env['HTTP_X_GITHUB_OTP'] == '112233'
+          status 201
           json :token => 'OTOKEN'
         else
           response.headers['X-GitHub-OTP'] = 'required; app'
@@ -211,6 +220,7 @@ Feature: OAuth authentication
         json :login => 'mislav'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -232,6 +242,7 @@ Feature: OAuth authentication
         assert_basic_auth 'mislav', 'kitty'
         if request.env['HTTP_X_GITHUB_OTP'] == '112233'
           halt 400 unless '666' == previous_otp_code
+          status 201
           json :token => 'OTOKEN'
         else
           previous_otp_code = request.env['HTTP_X_GITHUB_OTP']
@@ -244,6 +255,7 @@ Feature: OAuth authentication
         json :login => 'mislav'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -261,6 +273,7 @@ Feature: OAuth authentication
       """
       post('/authorizations') {
         assert_basic_auth 'mislav@example.com', 'my pass@phrase ok?'
+        status 201
         json :token => 'OTOKEN'
       }
       get('/user') {
@@ -283,6 +296,7 @@ Feature: OAuth authentication
       post('/api/v3/authorizations', :host_name => 'git.my.org') {
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
+        status 201
         json :token => 'OTOKEN', :note_url => 'http://hub.github.com/'
       }
       get('/api/v3/user', :host_name => 'git.my.org') {
@@ -352,4 +366,3 @@ Feature: OAuth authentication
         """
       And the exit status should be 1
       And the file "../home/.config/hub" should not exist
-    

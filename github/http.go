@@ -19,6 +19,8 @@ import (
 )
 
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
+const patchMediaType = "application/vnd.github.v3.patch;charset=utf-8"
+const textMediaType = "text/plain;charset=utf-8"
 
 var inspectHeaders = []string{
 	"Authorization",
@@ -193,9 +195,9 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 }
 
 type simpleClient struct {
-	httpClient  *http.Client
-	rootUrl     *url.URL
-	accessToken string
+	httpClient     *http.Client
+	rootUrl        *url.URL
+	PrepareRequest func(*http.Request)
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
@@ -213,7 +215,9 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	if err != nil {
 		return
 	}
-	req.Header.Set("Authorization", "token "+c.accessToken)
+	if c.PrepareRequest != nil {
+		c.PrepareRequest(req)
+	}
 	req.Header.Set("User-Agent", UserAgent)
 	req.Header.Set("Accept", apiPayloadVersion)
 

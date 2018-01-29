@@ -7,21 +7,10 @@ import (
 	"testing"
 
 	"github.com/bmizerany/assert"
-	"github.com/octokit/go-octokit/octokit"
 )
 
-func TestClient_newOctokitClient(t *testing.T) {
-	c := NewClient("github.com")
-	cc := c.newOctokitClient(nil)
-	assert.Equal(t, "https://api.github.com/", cc.Endpoint.String())
-
-	c = NewClient("github.corporate.com")
-	cc = c.newOctokitClient(nil)
-	assert.Equal(t, "https://github.corporate.com/", cc.Endpoint.String())
-}
-
 func TestClient_FormatError(t *testing.T) {
-	e := &octokit.ResponseError{
+	e := &errorInfo{
 		Response: &http.Response{
 			StatusCode: 401,
 			Status:     "401 Not Found",
@@ -31,7 +20,7 @@ func TestClient_FormatError(t *testing.T) {
 	err := FormatError("action", e)
 	assert.Equal(t, "Error action: Not Found (HTTP 401)", fmt.Sprintf("%s", err))
 
-	e = &octokit.ResponseError{
+	e = &errorInfo{
 		Response: &http.Response{
 			StatusCode: 422,
 			Status:     "422 Unprocessable Entity",
