@@ -5,8 +5,6 @@
 // Package clipboard read/write on clipboard
 package clipboard
 
-import ()
-
 // ReadAll read string from clipboard
 func ReadAll() (string, error) {
 	return readAll()

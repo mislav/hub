@@ -7,41 +7,57 @@ import (
 	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
+//Hyperlinks to various ways of accessing users on github.
+//CurrentUserURL is the address for the current user.
+//UserURL is a template for the address any particular user or all users.
+//
+// https://developer.github.com/v3/users/
 var (
 	CurrentUserURL = Hyperlink("user")
 	UserURL        = Hyperlink("users{/user}")
 )
 
-// Create a UsersService with the base url.URL
+// Users creates a UsersService with a base url
+//
+// https://developer.github.com/v3/users/
 func (c *Client) Users(url *url.URL) (users *UsersService) {
 	users = &UsersService{client: c, URL: url}
 	return
 }
 
-// A service to return user records
+// UsersService is a service providing access to user records from a particular url
 type UsersService struct {
 	client *Client
 	URL    *url.URL
 }
 
-// Get a user based on UserService#URL
+// One gets a specific user record based on the url of the service
+//
+// https://developer.github.com/v3/users/#get-a-single-user
+// https://developer.github.com/v3/users/#get-the-authenticated-user
 func (u *UsersService) One() (user *User, result *Result) {
 	result = u.client.get(u.URL, &user)
 	return
 }
 
-// Update a user based on UserService#URL
+// Update modifies a user record specified in the User struct as parameters on the
+// service url
+//
+// https://developer.github.com/v3/users/#update-the-authenticated-user
 func (u *UsersService) Update(params interface{}) (user *User, result *Result) {
 	result = u.client.put(u.URL, params, &user)
 	return
 }
 
-// Get a list of users based on UserService#URL
+// All gets a list of all user records associated with the url of the service
+//
+// https://developer.github.com/v3/users/#get-all-users
 func (u *UsersService) All() (users []User, result *Result) {
 	result = u.client.get(u.URL, &users)
 	return
 }
 
+// User represents the full user record of a particular user on GitHub
 type User struct {
 	*hypermedia.HALResource
 

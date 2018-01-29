@@ -6,10 +6,13 @@ import (
 	"github.com/jingweno/go-sawyer/hypermedia"
 )
 
-var (
-	RootURL = Hyperlink("")
-)
+// RootURL is simply the root GitHub address. Accessing this address provides all
+// other accessible templates and addresses as hypermedia relations.
+//
+// https://api.github.com/
+var RootURL = Hyperlink("")
 
+// Rel fetches and expands the given name in the the Hyperlink map m
 func (c *Client) Rel(name string, m map[string]interface{}) (*url.URL, error) {
 	if c.rootRels == nil || len(c.rootRels) == 0 {
 		u, _ := url.Parse("/")
@@ -23,17 +26,24 @@ func (c *Client) Rel(name string, m map[string]interface{}) (*url.URL, error) {
 	return c.rootRels.Rel(name, m)
 }
 
-// Create a RooService with the base url.URL
+// Root creates a RootService with a base url
+//
+// https://api.github.com/
 func (c *Client) Root(url *url.URL) (root *RootService) {
 	root = &RootService{client: c, URL: url}
 	return
 }
 
+// RootService is a representation of a simple service to access hyperlinks
+// to all the other accessible URLs
 type RootService struct {
 	client *Client
 	URL    *url.URL
 }
 
+// One accesses the root URI templates and assigns them to result
+//
+// https://developer.github.com/v3/#root-endpoint
 func (r *RootService) One() (root *Root, result *Result) {
 	root = &Root{HALResource: &hypermedia.HALResource{}}
 	result = r.client.get(r.URL, &root)
@@ -45,6 +55,9 @@ func (r *RootService) One() (root *Root, result *Result) {
 	return
 }
 
+// Root represents the base with hyperlinks in template form to all API calls
+//
+// https://api.github.com/
 type Root struct {
 	*hypermedia.HALResource
 
@@ -79,6 +92,7 @@ type Root struct {
 	rels                        hypermedia.Relations `json:"-"`
 }
 
+// Rels gets the link relations from the HALResource's Links field.
 func (r *Root) Rels() hypermedia.Relations {
 	if r.rels == nil || len(r.rels) == 0 {
 		r.rels = hypermedia.HyperFieldDecoder(r)
