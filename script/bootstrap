@@ -20,9 +20,9 @@ script/build check || STATUS=1
 
 { ruby --version
   if [ -n "$TRAVIS" ]; then
-    script/cached-bundle install --deployment --jobs=3 --retry=3
+    script/cached-bundle install --deployment --jobs=3 --retry=3 --path bundle
   else
-    bundle install --path vendor/bundle
+    bundle install --path bundle
   fi
   bundle binstub cucumber ronn --path bin
 } || {
