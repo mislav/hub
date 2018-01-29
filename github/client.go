@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"io"
+	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
@@ -28,24 +29,6 @@ func NewClient(h string) *Client {
 
 func NewClientWithHost(host *Host) *Client {
 	return &Client{host}
-}
-
-type AuthError struct {
-	Err error
-}
-
-func (e *AuthError) Error() string {
-	return e.Err.Error()
-}
-
-func (e *AuthError) IsRequired2FACodeError() bool {
-	re, ok := e.Err.(*octokit.ResponseError)
-	return ok && re.Type == octokit.ErrorOneTimePasswordRequired
-}
-
-func (e *AuthError) IsDuplicatedTokenError() bool {
-	re, ok := e.Err.(*octokit.ResponseError)
-	return ok && re.Type == octokit.ErrorUnprocessableEntity
 }
 
 type Client struct {
@@ -567,74 +550,71 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
-func (client *Client) CurrentUser() (user *octokit.User, err error) {
-	url, err := octokit.CurrentUserURL.Expand(nil)
+func (client *Client) CurrentUser() (user *User, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting current user", err)
+	res, err := api.Get("user")
+	if err = checkStatus(200, "getting current user", res, err); err != nil {
 		return
 	}
 
-	user, result := api.Users(client.requestURL(url)).One()
-	if result.HasError() {
-		err = FormatError("getting current user", result.Err)
-		return
-	}
-
+	user = &User{}
+	err = res.Unmarshal(user)
 	return
 }
 
+type AuthorizationEntry struct {
+	Token string `json:"token"`
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
-	authUrl, e := octokit.AuthorizationsURL.Expand(nil)
-	if e != nil {
-		err = &AuthError{e}
-		return
+	params := map[string]interface{}{
+		"scopes":   []string{"repo"},
+		"note_url": OAuthAppURL,
 	}
 
-	basicAuth := octokit.BasicAuth{
-		Login:           user,
-		Password:        password,
-		OneTimePassword: twoFactorCode,
-	}
-	c := client.newOctokitClient(basicAuth)
-	authsService := c.Authorizations(client.requestURL(authUrl))
-
-	authParam := octokit.AuthorizationParams{
-		Scopes:  []string{"repo"},
-		NoteURL: OAuthAppURL,
+	api := client.apiClient()
+	api.PrepareRequest = func(req *http.Request) {
+		req.SetBasicAuth(user, password)
+		if twoFactorCode != "" {
+			req.Header.Set("X-GitHub-OTP", twoFactorCode)
+		}
 	}
 
 	count := 1
+	maxTries := 9
 	for {
-		note, e := authTokenNote(count)
-		if e != nil {
-			err = e
+		params["note"], err = authTokenNote(count)
+		if err != nil {
 			return
 		}
 
-		authParam.Note = note
-		auth, result := authsService.Create(authParam)
-		if !result.HasError() {
-			token = auth.Token
+		res, postErr := api.PostJSON("authorizations", params)
+		if postErr != nil {
+			err = postErr
 			break
 		}
 
-		authErr := &AuthError{result.Err}
-		if authErr.IsDuplicatedTokenError() {
-			if count >= 9 {
-				err = authErr
-				break
-			} else {
-				count++
-				continue
+		if res.StatusCode == 201 {
+			auth := &AuthorizationEntry{}
+			if err = res.Unmarshal(auth); err != nil {
+				return
 			}
-		} else {
-			err = authErr
+			token = auth.Token
 			break
+		} else if res.StatusCode == 422 && count < maxTries {
+			count++
+		} else {
+			errInfo, e := res.ErrorInfo()
+			if e == nil {
+				err = errInfo
+			} else {
+				err = e
+			}
+			return
 		}
 	}
 
@@ -651,47 +631,30 @@ func (client *Client) ensureAccessToken() (err error) {
 	return
 }
 
-func (client *Client) api() (c *octokit.Client, err error) {
-	err = client.ensureAccessToken()
-	if err != nil {
-		return
-	}
-
-	tokenAuth := octokit.TokenAuth{AccessToken: client.Host.AccessToken}
-	c = client.newOctokitClient(tokenAuth)
-
-	return
-}
-
 func (client *Client) simpleApi() (c *simpleClient, err error) {
 	err = client.ensureAccessToken()
 	if err != nil {
 		return
 	}
 
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
-	apiRoot := client.requestURL(client.absolute(normalizeHost(client.Host.Host)))
-
-	c = &simpleClient{
-		httpClient:  httpClient,
-		rootUrl:     apiRoot,
-		accessToken: client.Host.AccessToken,
+	c = client.apiClient()
+	c.PrepareRequest = func(req *http.Request) {
+		req.Header.Set("Authorization", "token "+client.Host.AccessToken)
 	}
 	return
 }
 
-func (client *Client) newOctokitClient(auth octokit.AuthMethod) *octokit.Client {
-	var host string
-	if client.Host != nil {
-		host = client.Host.Host
-	}
-	host = normalizeHost(host)
-	apiHostURL := client.absolute(host)
-
+func (client *Client) apiClient() *simpleClient {
 	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
-	c := octokit.NewClientWith(apiHostURL.String(), UserAgent, auth, httpClient)
+	apiRoot := client.absolute(normalizeHost(client.Host.Host))
+	if client.Host != nil && client.Host.Host != GitHubHost {
+		apiRoot.Path = "/api/v3/"
+	}
 
-	return c
+	return &simpleClient{
+		httpClient: httpClient,
+		rootUrl:    apiRoot,
+	}
 }
 
 func (client *Client) absolute(host string) *url.URL {
@@ -700,20 +663,6 @@ func (client *Client) absolute(host string) *url.URL {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
-}
-
-func (client *Client) requestURL(base *url.URL) *url.URL {
-	if client.Host != nil && client.Host.Host != GitHubHost {
-		newUrl, _ := url.Parse(base.String())
-		basePath := base.Path
-		if !strings.HasPrefix(basePath, "/") {
-			basePath = "/" + basePath
-		}
-		newUrl.Path = "/api/v3" + basePath
-		return newUrl
-	} else {
-		return base
-	}
 }
 
 func normalizeHost(host string) string {
@@ -748,8 +697,6 @@ func FormatError(action string, err error) (ee error) {
 	switch e := err.(type) {
 	default:
 		ee = err
-	case *AuthError:
-		return FormatError(action, e.Err)
 	case *octokit.ResponseError:
 		info := &errorInfo{
 			Message:  e.Message,
