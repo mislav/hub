@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build freebsd linux netbsd openbsd solaris
+// +build freebsd linux netbsd openbsd solaris dragonfly
 
 package clipboard
 
@@ -17,6 +17,8 @@ const (
 )
 
 var (
+	Primary bool
+
 	pasteCmdArgs []string
 	copyCmdArgs  []string
 
@@ -48,10 +50,16 @@ func init() {
 }
 
 func getPasteCommand() *exec.Cmd {
+	if Primary {
+		pasteCmdArgs = pasteCmdArgs[:1]
+	}
 	return exec.Command(pasteCmdArgs[0], pasteCmdArgs[1:]...)
 }
 
 func getCopyCommand() *exec.Cmd {
+	if Primary {
+		copyCmdArgs = copyCmdArgs[:1]
+	}
 	return exec.Command(copyCmdArgs[0], copyCmdArgs[1:]...)
 }
 

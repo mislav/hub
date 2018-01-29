@@ -46,6 +46,10 @@ feature is a good idea for hub if it improves some workflow for a GitHub user.
 8. Open a pull request describing your changes:
     `bin/hub pull-request`
 
+Vendored Go dependencies are managed with [`dep`](https://golang.github.io/dep/docs/daily-dep.html).
+Check `dep help ensure` for information on how to add or update a vendored
+dependency.
+
 ## How to write tests
 
 The new test suite is written in Cucumber under `features/` directory. Each

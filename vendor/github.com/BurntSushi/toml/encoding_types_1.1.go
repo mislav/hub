@@ -11,8 +11,8 @@ type TextMarshaler interface {
 	MarshalText() (text []byte, err error)
 }
 
-// TextUnmarshaler is a synonym for encoding.TextUnmarshaler. It is defined here
-// so that Go 1.1 can be supported.
+// TextUnmarshaler is a synonym for encoding.TextUnmarshaler. It is defined
+// here so that Go 1.1 can be supported.
 type TextUnmarshaler interface {
 	UnmarshalText(text []byte) error
 }

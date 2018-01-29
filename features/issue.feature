@@ -348,6 +348,30 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
+  Scenario: Editing empty issue message
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      hello
+
+      my nice issue
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        assert :title => "hello",
+               :body => "my nice issue"
+
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create -m '' --edit`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
   Scenario: Issue template
     Given the git commit editor is "vim"
     And the text editor adds:

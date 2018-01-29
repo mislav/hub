@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: cached-bundle install --deployment
 #
-# After running `bundle`, caches the `vendor/bundle` directory to S3.
+# After running `bundle`, caches the `bundle/` directory to S3.
 # On the next run, restores the cached directory before running `bundle`.
 # When `Gemfile.lock` changes, the cache gets rebuilt.
 #
@@ -27,7 +27,7 @@ download() {
   curl --tcp-nodelay -qsfL "$1" -o "$2"
 }
 
-bundle_path="vendor/bundle"
+bundle_path="bundle"
 gemfile_hash="$(compute_md5 <"${BUNDLE_GEMFILE:-Gemfile}.lock")"
 cache_name="${TRAVIS_RUBY_VERSION}-${gemfile_hash}.${TRAVIS_OS_NAME}.tgz"
 fetch_url="http://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${TRAVIS_REPO_SLUG}/${cache_name}"

@@ -24,7 +24,10 @@ Feature: hub fetch
   Scenario: Fetch from local bundle
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { json :private => false }
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     And a git bundle named "mislav"
     When I successfully run `hub fetch mislav`
@@ -35,7 +38,10 @@ Feature: hub fetch
   Scenario: Creates new remote
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { json :private => false }
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
@@ -45,7 +51,10 @@ Feature: hub fetch
   Scenario: Owner name with dash
     Given the GitHub API server:
       """
-      get('/repos/ankit-maverick/dotfiles') { json :private => false }
+      get('/repos/ankit-maverick/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     When I successfully run `hub fetch ankit-maverick`
     Then "git fetch ankit-maverick" should be run
@@ -55,7 +64,10 @@ Feature: hub fetch
   Scenario: HTTPS is preferred
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { json :private => false }
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     And HTTPS is preferred
     When I successfully run `hub fetch mislav`
@@ -65,7 +77,23 @@ Feature: hub fetch
   Scenario: Private repo
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { json :private => true }
+      get('/repos/mislav/dotfiles') {
+        json :private => true,
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub fetch mislav`
+    Then "git fetch mislav" should be run
+    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no output
+
+  Scenario: Writeable repo
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => true }
+      }
       """
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
@@ -75,7 +103,10 @@ Feature: hub fetch
   Scenario: Fetch with options
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { json :private => false }
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     When I successfully run `hub fetch --depth=1 mislav`
     Then "git fetch --depth=1 mislav" should be run
@@ -83,7 +114,10 @@ Feature: hub fetch
   Scenario: Fetch multiple
     Given the GitHub API server:
       """
-      get('/repos/:owner/dotfiles') { json :private => false }
+      get('/repos/:owner/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     When I successfully run `hub fetch --multiple mislav rtomayko`
     Then "git fetch --multiple mislav rtomayko" should be run
@@ -93,7 +127,10 @@ Feature: hub fetch
   Scenario: Fetch multiple with filtering
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { json :private => false }
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     When I successfully run `git config remotes.mygrp "foo bar"`
     When I successfully run `hub fetch --multiple origin mislav mygrp git://example.com typo`
@@ -105,7 +142,10 @@ Feature: hub fetch
   Scenario: Fetch multiple comma-separated
     Given the GitHub API server:
       """
-      get('/repos/:owner/dotfiles') { json :private => false }
+      get('/repos/:owner/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
       """
     When I successfully run `hub fetch mislav,rtomayko,dustinleblanc`
     Then "git fetch --multiple mislav rtomayko dustinleblanc" should be run

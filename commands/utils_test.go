@@ -8,24 +8,6 @@ import (
 	"github.com/bmizerany/assert"
 )
 
-func TestReadMsg(t *testing.T) {
-	title, body := readMsg("")
-	assert.Equal(t, "", title)
-	assert.Equal(t, "", body)
-
-	title, body = readMsg("my pull title")
-	assert.Equal(t, "my pull title", title)
-	assert.Equal(t, "", body)
-
-	title, body = readMsg("my pull title\n\nmy description\n\nanother line")
-	assert.Equal(t, "my pull title", title)
-	assert.Equal(t, "my description\n\nanother line", body)
-
-	title, body = readMsg("my pull\ntitle\n\nmy description\n\nanother line")
-	assert.Equal(t, "my pull title", title)
-	assert.Equal(t, "my description\n\nanother line", body)
-}
-
 func TestDirIsNotEmpty(t *testing.T) {
 	dir := createTempDir(t)
 	defer os.RemoveAll(dir)

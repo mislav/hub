@@ -8,7 +8,7 @@ set -e
 version="${1?}"
 
 echo '
-  darwin   amd64    OS X
+  darwin   amd64    macOS
   freebsd  386      FreeBSD 32-bit
   freebsd  amd64    FreeBSD 64-bit
   linux    386      Linux 32-bit

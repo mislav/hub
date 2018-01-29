@@ -192,17 +192,31 @@ func (r *Range) IsAncestor() bool {
 	return cmd.Success()
 }
 
-func CommentChar() string {
+func CommentChar(text string) (string, error) {
 	char, err := Config("core.commentchar")
 	if err != nil {
-		char = "#"
+		return "#", nil
+	} else if char == "auto" {
+		lines := strings.Split(text, "\n")
+		commentCharCandidates := strings.Split("#;@!$%^&|:", "")
+	candidateLoop:
+		for _, candidate := range commentCharCandidates {
+			for _, line := range lines {
+				if strings.HasPrefix(line, candidate) {
+					continue candidateLoop
+				}
+			}
+			return candidate, nil
+		}
+		return "", fmt.Errorf("unable to select a comment character that is not used in the current message")
+	} else {
+		return char, nil
 	}
-
-	return char
 }
 
 func Show(sha string) (string, error) {
 	cmd := cmd.New("git")
+	cmd.WithArg("-c").WithArg("log.showSignature=false")
 	cmd.WithArg("show").WithArg("-s").WithArg("--format=%s%n%+b").WithArg(sha)
 
 	output, err := cmd.CombinedOutput()

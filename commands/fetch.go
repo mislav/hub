@@ -34,12 +34,12 @@ func init() {
 
 func fetch(command *Command, args *Args) {
 	if !args.IsParamsEmpty() {
-		err := tranformFetchArgs(args)
+		err := transformFetchArgs(args)
 		utils.Check(err)
 	}
 }
 
-func tranformFetchArgs(args *Args) error {
+func transformFetchArgs(args *Args) error {
 	names := parseRemoteNames(args)
 
 	localRepo, err := github.LocalRepo()
@@ -61,7 +61,7 @@ func tranformFetchArgs(args *Args) error {
 					continue
 				}
 
-				projects[project] = repo.Private
+				projects[project] = repo.Private || repo.Permissions.Push
 			}
 		}
 	}

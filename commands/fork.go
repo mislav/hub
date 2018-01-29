@@ -84,7 +84,7 @@ func fork(cmd *Command, args *Args) {
 	if err == nil {
 		var parentURL *github.URL
 		if parent := existingRepo.Parent; parent != nil {
-			parentURL, _ = github.ParseURL(parent.HTMLURL)
+			parentURL, _ = github.ParseURL(parent.HtmlUrl)
 		}
 		if parentURL == nil || !project.SameAs(parentURL.Project) {
 			err = fmt.Errorf("Error creating fork: %s already exists on %s",
@@ -111,7 +111,7 @@ func fork(cmd *Command, args *Args) {
 		if err == nil {
 			currentProject, err := currentRemote.Project()
 			if err == nil {
-				if currentProject.SameAs(forkProject){
+				if currentProject.SameAs(forkProject) {
 					ui.Printf("existing remote: %s\n", newRemoteName)
 					return
 				}
