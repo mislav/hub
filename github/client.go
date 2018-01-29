@@ -70,24 +70,17 @@ func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest,
 }
 
 func (client *Client) PullRequestPatch(project *Project, id string) (patch io.ReadCloser, err error) {
-	url, err := octokit.PullRequestsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "number": id})
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.GetFile(fmt.Sprintf("repos/%s/%s/pulls/%s", project.Owner, project.Name, id), patchMediaType)
+	if err = checkStatus(200, "getting pull request patch", res, err); err != nil {
 		return
 	}
 
-	patch, result := api.PullRequests(client.requestURL(url)).Patch()
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
-		return
-	}
-
-	return
+	return res.Body, nil
 }
 
 type PullRequest struct {
@@ -150,25 +143,17 @@ func (client *Client) RequestReview(project *Project, prNumber int, params map[s
 }
 
 func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCloser, err error) {
-	url, err := octokit.CommitsURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name, "sha": sha})
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting pull request", err)
+	res, err := api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s", project.Owner, project.Name, sha), patchMediaType)
+	if err = checkStatus(200, "getting commit patch", res, err); err != nil {
 		return
 	}
 
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	patch, result := api.Commits().Patch(&hyperlink, octokit.M{})
-	if result.HasError() {
-		err = FormatError("getting pull request", result.Err)
-		return
-	}
-
-	return
+	return res.Body, nil
 }
 
 type Gist struct {
