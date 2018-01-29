@@ -27,10 +27,6 @@
   name = "github.com/mitchellh/go-homedir"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/octokit/go-octokit"
-
-[[constraint]]
   name = "github.com/ogier/pflag"
   version = "0.0.1"
 

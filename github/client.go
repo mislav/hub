@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/github/hub/version"
-	"github.com/octokit/go-octokit/octokit"
 )
 
 const (
@@ -697,20 +696,6 @@ func FormatError(action string, err error) (ee error) {
 	switch e := err.(type) {
 	default:
 		ee = err
-	case *octokit.ResponseError:
-		info := &errorInfo{
-			Message:  e.Message,
-			Response: e.Response,
-			Errors:   []fieldError{},
-		}
-		for _, err := range e.Errors {
-			info.Errors = append(info.Errors, fieldError{
-				Field:   err.Field,
-				Message: err.Message,
-				Code:    err.Code,
-			})
-		}
-		return FormatError(action, info)
 	case *errorInfo:
 		statusCode := e.Response.StatusCode
 		var reason string
