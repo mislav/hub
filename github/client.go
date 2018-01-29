@@ -192,25 +192,19 @@ func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
 	return res.Body, nil
 }
 
-func (client *Client) Repository(project *Project) (repo *octokit.Repository, err error) {
-	url, err := octokit.RepositoryURL.Expand(octokit.M{"owner": project.Owner, "repo": project.Name})
+func (client *Client) Repository(project *Project) (repo *Repository, err error) {
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("getting repository", err)
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s", project.Owner, project.Name))
+	if err = checkStatus(200, "getting commit patch", res, err); err != nil {
 		return
 	}
 
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	repo, result := api.Repositories().One(&hyperlink, octokit.M{})
-	if result.HasError() {
-		err = FormatError("getting repository", result.Err)
-		return
-	}
-
+	repo = &Repository{}
+	err = res.Unmarshal(&repo)
 	return
 }
 
@@ -452,6 +446,7 @@ type Repository struct {
 	Parent      *Repository            `json:"parent"`
 	Owner       *User                  `json:"owner"`
 	Private     bool                   `json:"private"`
+	HasWiki     bool                   `json:"has_wiki"`
 	Permissions *RepositoryPermissions `json:"permissions"`
 	HtmlUrl     string                 `json:"html_url"`
 }

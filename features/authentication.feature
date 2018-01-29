@@ -146,6 +146,7 @@ Feature: OAuth authentication
       get('/repos/parkr/dotfiles') {
         halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token PTOKEN"
         json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'parkr' },
              :permissions => { :push => true }
       }
       """
