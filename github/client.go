@@ -246,10 +246,7 @@ type ReleaseAsset struct {
 	ApiUrl      string `json:"url"`
 }
 
-// FetchReleases fetches Releases from project, optionally including
-// drafts or excluding prereleases. If limit is positive, it returns at
-// most limit Releases.
-func (client *Client) FetchReleases(project *Project, includeDrafts, excludePrereleases bool, limit int) (releases []Release, err error) {
+func (client *Client) FetchReleases(project *Project, limit int, filter func(*Release) bool) (releases []Release, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
@@ -272,15 +269,12 @@ func (client *Client) FetchReleases(project *Project, includeDrafts, excludePrer
 			return
 		}
 		for _, release := range releasesPage {
-			if release.Draft && !includeDrafts {
-				continue
-			}
-			if release.Prerelease && excludePrereleases {
-				continue
-			}
-			releases = append(releases, release)
-			if len(releases) == limit {
-				break
+			if filter == nil || filter(&release) {
+				releases = append(releases, release)
+				if limit > -1 && len(releases) == limit {
+					path = ""
+					break
+				}
 			}
 		}
 	}
@@ -288,23 +282,19 @@ func (client *Client) FetchReleases(project *Project, includeDrafts, excludePrer
 	return
 }
 
-func (client *Client) FetchRelease(project *Project, tagName string) (foundRelease *Release, err error) {
-	releases, err := client.FetchReleases(project, true, false, -1)
-	if err != nil {
-		return
-	}
-
-	for _, release := range releases {
-		if release.TagName == tagName {
-			foundRelease = &release
-			break
-		}
-	}
-
-	if foundRelease == nil {
+func (client *Client) FetchRelease(project *Project, tagName string) (*Release, error) {
+	releases, err := client.FetchReleases(project, 1, func(release *Release) bool {
+		return release.TagName == tagName
+	})
+	if err != nil && len(releases) < 1 {
 		err = fmt.Errorf("Unable to find release with tag name `%s'", tagName)
 	}
-	return
+
+	if err == nil {
+		return &releases[0], nil
+	} else {
+		return nil, err
+	}
 }
 
 func (client *Client) CreateRelease(project *Project, releaseParams *Release) (release *Release, err error) {
@@ -494,10 +484,7 @@ type Milestone struct {
 	Title  string `json:"title"`
 }
 
-// FetchIssues fetches Issues matching the given filterParams from
-// project, optionally including pull requests. If limit is positive, it
-// returns at most limit Issues.
-func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}, includePulls bool, limit int) (issues []Issue, err error) {
+func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}, limit int, filter func(*Issue) bool) (issues []Issue, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
@@ -530,12 +517,12 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 			return
 		}
 		for _, issue := range issuesPage {
-			if issue.PullRequest != nil && !includePulls {
-				continue
-			}
-			issues = append(issues, issue)
-			if len(issues) == limit {
-				break
+			if filter == nil || filter(&issue) {
+				issues = append(issues, issue)
+				if limit > -1 && len(issues) == limit {
+					path = ""
+					break
+				}
 			}
 		}
 	}

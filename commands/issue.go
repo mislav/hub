@@ -239,7 +239,9 @@ func listIssues(cmd *Command, args *Args) {
 			}
 		}
 
-		issues, err := gh.FetchIssues(project, filters, flagIssueIncludePulls, flagIssueLimit)
+		issues, err := gh.FetchIssues(project, filters, flagIssueLimit, func(issue *github.Issue) bool {
+			return issue.PullRequest == nil || flagIssueIncludePulls
+		})
 		utils.Check(err)
 
 		maxNumWidth := 0

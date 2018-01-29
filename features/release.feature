@@ -151,6 +151,7 @@ Feature: hub release
     Given the GitHub API server:
       """
       get('/repos/mislav/will_paginate/releases') {
+        response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=2>; rel="next")
         json [
           { tag_name: 'v1.2.0',
             name: 'will_paginate 1.2.0',

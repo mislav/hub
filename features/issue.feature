@@ -42,7 +42,7 @@ Feature: hub issue
     Given the GitHub API server:
     """
     get('/repos/github/hub/issues') {
-
+      response.headers["Link"] = %(<https://api.github.com/repositories/12345/issues?per_page=100&page=2>; rel="next")
       json [
         { :number => 102,
           :title => "First issue",
