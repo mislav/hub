@@ -271,7 +271,7 @@ func (client *Client) FetchReleases(project *Project, limit int, filter func(*Re
 		for _, release := range releasesPage {
 			if filter == nil || filter(&release) {
 				releases = append(releases, release)
-				if limit > -1 && len(releases) == limit {
+				if limit > 0 && len(releases) == limit {
 					path = ""
 					break
 				}
@@ -519,7 +519,7 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 		for _, issue := range issuesPage {
 			if filter == nil || filter(&issue) {
 				issues = append(issues, issue)
-				if limit > -1 && len(issues) == limit {
+				if limit > 0 && len(issues) == limit {
 					path = ""
 					break
 				}
@@ -779,7 +779,7 @@ func authTokenNote(num int) (string, error) {
 }
 
 func perPage(limit, max int) int {
-	if limit > -1 {
+	if limit > 0 {
 		limit = limit + (limit / 2)
 		if limit < max {
 			return limit
