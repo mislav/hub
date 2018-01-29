@@ -152,6 +152,7 @@ Feature: hub release
       """
       get('/repos/mislav/will_paginate/releases') {
         response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=2>; rel="next")
+        assert :per_page => "3"
         json [
           { tag_name: 'v1.2.0',
             name: 'will_paginate 1.2.0',

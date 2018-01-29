@@ -252,7 +252,7 @@ func (client *Client) FetchReleases(project *Project, limit int, filter func(*Re
 		return
 	}
 
-	path := fmt.Sprintf("repos/%s/%s/releases?per_page=100", project.Owner, project.Name)
+	path := fmt.Sprintf("repos/%s/%s/releases?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 
 	releases = []Release{}
 	var res *simpleResponse
@@ -490,7 +490,7 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 		return
 	}
 
-	path := fmt.Sprintf("repos/%s/%s/issues?per_page=100", project.Owner, project.Name)
+	path := fmt.Sprintf("repos/%s/%s/issues?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 	if filterParams != nil {
 		query := url.Values{}
 		for key, value := range filterParams {
@@ -776,4 +776,14 @@ func authTokenNote(num int) (string, error) {
 	}
 
 	return fmt.Sprintf("hub for %s@%s", n, h), nil
+}
+
+func perPage(limit, max int) int {
+	if limit > -1 {
+		limit = limit + (limit / 2)
+		if limit < max {
+			return limit
+		}
+	}
+	return max
 }

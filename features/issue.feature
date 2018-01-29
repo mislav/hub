@@ -43,6 +43,7 @@ Feature: hub issue
     """
     get('/repos/github/hub/issues') {
       response.headers["Link"] = %(<https://api.github.com/repositories/12345/issues?per_page=100&page=2>; rel="next")
+      assert :per_page => "3"
       json [
         { :number => 102,
           :title => "First issue",
