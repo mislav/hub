@@ -216,6 +216,7 @@ func CommentChar(text string) (string, error) {
 
 func Show(sha string) (string, error) {
 	cmd := cmd.New("git")
+	cmd.WithArg("-c").WithArg("log.showSignature=false")
 	cmd.WithArg("show").WithArg("-s").WithArg("--format=%s%n%+b").WithArg(sha)
 
 	output, err := cmd.CombinedOutput()
