@@ -147,6 +147,38 @@ Feature: hub release
       v1.0.0\n
       """
 
+  Scenario: List limited number of releases
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=2>; rel="next")
+        assert :per_page => "3"
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: false,
+            prerelease: false,
+          },
+          { tag_name: 'v1.2.0-pre',
+            name: 'will_paginate 1.2.0-pre',
+            draft: false,
+            prerelease: true,
+          },
+          { tag_name: 'v1.0.2',
+            name: 'will_paginate 1.0.2',
+            draft: false,
+            prerelease: false,
+          },
+        ]
+      }
+      """
+    When I successfully run `hub release -L 2`
+    Then the output should contain exactly:
+      """
+      v1.2.0
+      v1.2.0-pre\n
+      """
+
   Scenario: Repository not found when listing releases
     Given the GitHub API server:
       """

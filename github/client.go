@@ -246,13 +246,13 @@ type ReleaseAsset struct {
 	ApiUrl      string `json:"url"`
 }
 
-func (client *Client) FetchReleases(project *Project) (releases []Release, err error) {
+func (client *Client) FetchReleases(project *Project, limit int, filter func(*Release) bool) (releases []Release, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	path := fmt.Sprintf("repos/%s/%s/releases?per_page=100", project.Owner, project.Name)
+	path := fmt.Sprintf("repos/%s/%s/releases?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 
 	releases = []Release{}
 	var res *simpleResponse
@@ -268,29 +268,33 @@ func (client *Client) FetchReleases(project *Project) (releases []Release, err e
 		if err = res.Unmarshal(&releasesPage); err != nil {
 			return
 		}
-		releases = append(releases, releasesPage...)
+		for _, release := range releasesPage {
+			if filter == nil || filter(&release) {
+				releases = append(releases, release)
+				if limit > 0 && len(releases) == limit {
+					path = ""
+					break
+				}
+			}
+		}
 	}
 
 	return
 }
 
-func (client *Client) FetchRelease(project *Project, tagName string) (foundRelease *Release, err error) {
-	releases, err := client.FetchReleases(project)
-	if err != nil {
-		return
-	}
-
-	for _, release := range releases {
-		if release.TagName == tagName {
-			foundRelease = &release
-			break
-		}
-	}
-
-	if foundRelease == nil {
+func (client *Client) FetchRelease(project *Project, tagName string) (*Release, error) {
+	releases, err := client.FetchReleases(project, 1, func(release *Release) bool {
+		return release.TagName == tagName
+	})
+	if err != nil && len(releases) < 1 {
 		err = fmt.Errorf("Unable to find release with tag name `%s'", tagName)
 	}
-	return
+
+	if err == nil {
+		return &releases[0], nil
+	} else {
+		return nil, err
+	}
 }
 
 func (client *Client) CreateRelease(project *Project, releaseParams *Release) (release *Release, err error) {
@@ -480,13 +484,13 @@ type Milestone struct {
 	Title  string `json:"title"`
 }
 
-func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}) (issues []Issue, err error) {
+func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}, limit int, filter func(*Issue) bool) (issues []Issue, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	path := fmt.Sprintf("repos/%s/%s/issues?per_page=100", project.Owner, project.Name)
+	path := fmt.Sprintf("repos/%s/%s/issues?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 	if filterParams != nil {
 		query := url.Values{}
 		for key, value := range filterParams {
@@ -512,7 +516,15 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 		if err = res.Unmarshal(&issuesPage); err != nil {
 			return
 		}
-		issues = append(issues, issuesPage...)
+		for _, issue := range issuesPage {
+			if filter == nil || filter(&issue) {
+				issues = append(issues, issue)
+				if limit > 0 && len(issues) == limit {
+					path = ""
+					break
+				}
+			}
+		}
 	}
 
 	return
@@ -764,4 +776,14 @@ func authTokenNote(num int) (string, error) {
 	}
 
 	return fmt.Sprintf("hub for %s@%s", n, h), nil
+}
+
+func perPage(limit, max int) int {
+	if limit > 0 {
+		limit = limit + (limit / 2)
+		if limit < max {
+			return limit
+		}
+	}
+	return max
 }
