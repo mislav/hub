@@ -1,5 +1,4 @@
 package assert
-
 // Testing helpers for doozer.
 
 import (

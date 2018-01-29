@@ -438,7 +438,7 @@ func (f *FlagSet) parseArgs(args []string) error {
 				return f.failf("unknown flag: --%s", name)
 			}
 			if len(split) == 1 {
-				if _, ok := flag.Value.(*boolValue); !ok {
+				if bv, ok := flag.Value.(boolFlag); !ok || !bv.IsBoolFlag() {
 					return f.failf("flag needs an argument: %s", s)
 				}
 				f.setFlag(flag, "true", s)
@@ -459,7 +459,7 @@ func (f *FlagSet) parseArgs(args []string) error {
 					}
 					return f.failf("unknown shorthand flag: %q in -%s", c, shorthands)
 				}
-				if _, ok := flag.Value.(*boolValue); ok {
+				if bv, ok := flag.Value.(boolFlag); ok && bv.IsBoolFlag() {
 					f.setFlag(flag, "true", s)
 					continue
 				}

@@ -161,7 +161,8 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 		return
 	}
 
-	patch, result := api.Commits(client.requestURL(url)).Patch()
+	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
+	patch, result := api.Commits().Patch(&hyperlink, octokit.M{})
 	if result.HasError() {
 		err = FormatError("getting pull request", result.Err)
 		return
@@ -182,7 +183,8 @@ func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
 		return
 	}
 
-	patch, result := api.Gists(client.requestURL(url)).Raw()
+	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
+	patch, result := api.Gists().Raw(&hyperlink, octokit.M{})
 	if result.HasError() {
 		err = FormatError("getting pull request", result.Err)
 		return
@@ -203,7 +205,8 @@ func (client *Client) Repository(project *Project) (repo *octokit.Repository, er
 		return
 	}
 
-	repo, result := api.Repositories(client.requestURL(url)).One()
+	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
+	repo, result := api.Repositories().One(&hyperlink, octokit.M{})
 	if result.HasError() {
 		err = FormatError("getting repository", result.Err)
 		return
@@ -243,7 +246,8 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 		Homepage:    homepage,
 		Private:     isPrivate,
 	}
-	repo, result := api.Repositories(client.requestURL(url)).Create(params)
+	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
+	repo, result := api.Repositories().Create(&hyperlink, octokit.M{}, params)
 	if result.HasError() {
 		err = FormatError("creating repository", result.Err)
 		return

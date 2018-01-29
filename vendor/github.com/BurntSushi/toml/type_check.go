@@ -83,8 +83,8 @@ func (p *parser) typeOfArray(types []tomlType) tomlType {
 	theType := types[0]
 	for _, t := range types[1:] {
 		if !typeEqual(theType, t) {
-			p.panicf("Array contains values of type '%s' and '%s', but arrays "+
-				"must be homogeneous.", theType, t)
+			p.panicf("Array contains values of type '%s' and '%s', but "+
+				"arrays must be homogeneous.", theType, t)
 		}
 	}
 	return tomlArray

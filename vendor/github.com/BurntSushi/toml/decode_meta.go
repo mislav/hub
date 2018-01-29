@@ -59,6 +59,28 @@ func (k Key) String() string {
 	return strings.Join(k, ".")
 }
 
+func (k Key) maybeQuotedAll() string {
+	var ss []string
+	for i := range k {
+		ss = append(ss, k.maybeQuoted(i))
+	}
+	return strings.Join(ss, ".")
+}
+
+func (k Key) maybeQuoted(i int) string {
+	quote := false
+	for _, c := range k[i] {
+		if !isBareKeyChar(c) {
+			quote = true
+			break
+		}
+	}
+	if quote {
+		return "\"" + strings.Replace(k[i], "\"", "\\\"", -1) + "\""
+	}
+	return k[i]
+}
+
 func (k Key) add(piece string) Key {
 	newKey := make(Key, len(k)+1)
 	copy(newKey, k)
