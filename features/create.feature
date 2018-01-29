@@ -8,6 +8,7 @@ Feature: hub create
       """
       post('/user/repos') {
         assert :private => false
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -20,6 +21,7 @@ Feature: hub create
       """
       post('/user/repos') {
         assert :private => true
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -30,6 +32,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -41,6 +44,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/orgs/acme/repos') {
+        status 201
         json :full_name => 'acme/dotfiles'
       }
       """
@@ -63,6 +67,7 @@ Feature: hub create
       """
       post('/user/repos') {
         assert :name => 'myconfig'
+        status 201
         json :full_name => 'mislav/myconfig'
       }
       """
@@ -75,6 +80,7 @@ Feature: hub create
       post('/user/repos') {
         assert :description => 'mydesc',
                :homepage => 'http://example.com'
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -98,6 +104,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -109,6 +116,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -129,6 +137,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
+        status 201
         json :full_name => 'Mooslav/myconfig'
       }
       """
@@ -140,6 +149,7 @@ Feature: hub create
     Given the GitHub API server:
       """
       post('/user/repos') {
+        status 201
         json :full_name => 'Mooslav/myconfig'
       }
       """
@@ -153,6 +163,7 @@ Feature: hub create
       """
       post('/user/repos') {
         assert :name => 'my-dot-files'
+        status 201
         json :full_name => 'mislav/my-dot-files'
       }
       """
@@ -165,6 +176,7 @@ Feature: hub create
       get('/repos/mislav/dotfiles') { status 404 }
       post('/user/repos') {
         response['location'] = 'http://disney.com'
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -184,7 +196,7 @@ Feature: hub create
       """
     And the stderr should contain:
       """
-      < HTTP 200
+      < HTTP 201
       < Location: http://disney.com
       {"full_name":"mislav/dotfiles"}\n
       """

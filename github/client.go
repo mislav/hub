@@ -214,38 +214,31 @@ func (client *Client) IsRepositoryExist(project *Project) bool {
 	return err == nil && repo != nil
 }
 
-func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *octokit.Repository, err error) {
-	var repoURL octokit.Hyperlink
+func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *Repository, err error) {
+	repoURL := "user/repos"
 	if project.Owner != client.Host.User {
-		repoURL = octokit.OrgRepositoriesURL
-	} else {
-		repoURL = octokit.UserRepositoriesURL
+		repoURL = fmt.Sprintf("orgs/%s/repos", project.Owner)
 	}
 
-	url, err := repoURL.Expand(octokit.M{"org": project.Owner})
+	params := map[string]interface{}{
+		"name":        project.Name,
+		"description": description,
+		"homepage":    homepage,
+		"private":     isPrivate,
+	}
+
+	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	api, err := client.api()
-	if err != nil {
-		err = FormatError("creating repository", err)
+	res, err := api.PostJSON(repoURL, params)
+	if err = checkStatus(201, "creating repository", res, err); err != nil {
 		return
 	}
 
-	params := octokit.Repository{
-		Name:        project.Name,
-		Description: description,
-		Homepage:    homepage,
-		Private:     isPrivate,
-	}
-	hyperlink := octokit.Hyperlink(client.requestURL(url).String())
-	repo, result := api.Repositories().Create(&hyperlink, octokit.M{}, params)
-	if result.HasError() {
-		err = FormatError("creating repository", result.Err)
-		return
-	}
-
+	repo = &Repository{}
+	err = res.Unmarshal(repo)
 	return
 }
 
@@ -443,6 +436,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 
 type Repository struct {
 	Name        string                 `json:"name"`
+	FullName    string                 `json:"full_name"`
 	Parent      *Repository            `json:"parent"`
 	Owner       *User                  `json:"owner"`
 	Private     bool                   `json:"private"`

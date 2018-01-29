@@ -22,6 +22,7 @@ Feature: OAuth authentication
       }
       post('/user/repos') {
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -60,6 +61,7 @@ Feature: OAuth authentication
         json :login => 'MiSlAv'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -102,12 +104,14 @@ Feature: OAuth authentication
       """
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
+        status 201
         json :token => 'OTOKEN'
       }
       get('/user') {
         json :login => 'mislav'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -126,6 +130,7 @@ Feature: OAuth authentication
       }
       post('/user/repos') {
         halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -212,6 +217,7 @@ Feature: OAuth authentication
         json :login => 'mislav'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
@@ -245,6 +251,7 @@ Feature: OAuth authentication
         json :login => 'mislav'
       }
       post('/user/repos') {
+        status 201
         json :full_name => 'mislav/dotfiles'
       }
       """
