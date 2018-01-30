@@ -445,6 +445,7 @@ func listLabels(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
+	args.NoForward()
 	if args.Noop {
 		ui.Printf("Would request list of labels for %s\n", project)
 		return
@@ -457,8 +458,6 @@ func listLabels(cmd *Command, args *Args) {
 		// TODO add a colorize flag for the labels command
 		ui.Printf(formatLabel(label, true))
 	}
-
-	args.NoForward()
 }
 
 func formatLabel(label github.IssueLabel, colorize bool) string {
