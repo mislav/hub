@@ -19,7 +19,7 @@ var (
 		Usage: `
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
-issue labels
+issue labels [--no-color]
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -140,6 +140,9 @@ With no arguments, show a list of open issues.
 
 	--include-pulls
 		Include pull requests as well as issues.
+
+	--no-color
+		Disable colorized labels.
 `,
 	}
 
@@ -153,7 +156,7 @@ With no arguments, show a list of open issues.
 	cmdLabel = &Command{
 		Key:   "labels",
 		Run:   listLabels,
-		Usage: "issue labels",
+		Usage: "issue labels [--no-color]",
 		Long:  "List the labels available in this repository.",
 	}
 
@@ -181,6 +184,8 @@ With no arguments, show a list of open issues.
 	flagIssueLabels listFlag
 
 	flagIssueLimit int
+
+	flagLabelsNoColor bool
 )
 
 func init() {
@@ -205,6 +210,8 @@ func init() {
 	cmdIssue.Flag.BoolVarP(&flagIssueSortAscending, "sort-ascending", "^", false, "SORT_KEY")
 	cmdIssue.Flag.BoolVarP(&flagIssueIncludePulls, "include-pulls", "", false, "INCLUDE_PULLS")
 	cmdIssue.Flag.IntVarP(&flagIssueLimit, "limit", "L", -1, "LIMIT")
+
+	cmdLabel.Flag.BoolVarP(&flagLabelsNoColor, "no-color", "", false, "COLORIZE_LABELS")
 
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
@@ -455,8 +462,7 @@ func listLabels(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	for _, label := range labels {
-		// TODO add a colorize flag for the labels command
-		ui.Printf(formatLabel(label, true))
+		ui.Printf(formatLabel(label, !flagLabelsNoColor && ui.IsTerminal(os.Stdout)))
 	}
 }
 
@@ -470,7 +476,7 @@ func formatLabel(label github.IssueLabel, colorize bool) string {
 		return fmt.Sprintf("%s\n", colorizeLabel(label, color))
 	}
 
-	return label.Name
+	return fmt.Sprintf("%s\n", label.Name)
 }
 
 func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
