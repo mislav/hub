@@ -19,6 +19,7 @@ var (
 		Usage: `
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue labels [--color]
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -28,6 +29,9 @@ With no arguments, show a list of open issues.
 
 	* _create_:
 		Open an issue in the current project.
+
+	* _labels_:
+		List the labels available in this repository.
 
 ## Options:
 	-a, --assignee <ASSIGNEE>
@@ -136,6 +140,9 @@ With no arguments, show a list of open issues.
 
 	--include-pulls
 		Include pull requests as well as issues.
+
+	--color
+		Enable colored output for labels list.
 `,
 	}
 
@@ -144,6 +151,13 @@ With no arguments, show a list of open issues.
 		Run:   createIssue,
 		Usage: "issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]",
 		Long:  "Open an issue in the current project.",
+	}
+
+	cmdLabel = &Command{
+		Key:   "labels",
+		Run:   listLabels,
+		Usage: "issue labels [--color]",
+		Long:  "List the labels available in this repository.",
 	}
 
 	flagIssueAssignee,
@@ -170,6 +184,8 @@ With no arguments, show a list of open issues.
 	flagIssueLabels listFlag
 
 	flagIssueLimit int
+
+	flagLabelsColorize bool
 )
 
 func init() {
@@ -195,7 +211,10 @@ func init() {
 	cmdIssue.Flag.BoolVarP(&flagIssueIncludePulls, "include-pulls", "", false, "INCLUDE_PULLS")
 	cmdIssue.Flag.IntVarP(&flagIssueLimit, "limit", "L", -1, "LIMIT")
 
+	cmdLabel.Flag.BoolVarP(&flagLabelsColorize, "color", "", false, "COLORIZE")
+
 	cmdIssue.Use(cmdCreateIssue)
+	cmdIssue.Use(cmdLabel)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -282,12 +301,7 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 			utils.Check(err)
 		}
 
-		textColor := 16
-		if color.Brightness() < 0.65 {
-			textColor = 15
-		}
-
-		labelStrings = append(labelStrings, fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m", textColor, color.Red, color.Green, color.Blue, label.Name))
+		labelStrings = append(labelStrings, colorizeLabel(label, color))
 		rawLabels = append(rawLabels, label.Name)
 	}
 
@@ -430,4 +444,48 @@ text is the title and the rest is the description.`, project))
 	}
 
 	messageBuilder.Cleanup()
+}
+
+func listLabels(cmd *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	args.NoForward()
+	if args.Noop {
+		ui.Printf("Would request list of labels for %s\n", project)
+		return
+	}
+
+	labels, err := gh.FetchLabels(project)
+	utils.Check(err)
+
+	for _, label := range labels {
+		ui.Printf(formatLabel(label, flagLabelsColorize))
+	}
+}
+
+func formatLabel(label github.IssueLabel, colorize bool) string {
+	if colorize {
+		if color, err := utils.NewColor(label.Color); err == nil {
+			return fmt.Sprintf("%s\n", colorizeLabel(label, color))
+		}
+	}
+	return fmt.Sprintf("%s\n", label.Name)
+}
+
+func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
+	return fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m",
+		getSuitableLabelTextColor(color), color.Red, color.Green, color.Blue, label.Name)
+}
+
+func getSuitableLabelTextColor(color *utils.Color) int {
+	if color.Brightness() < 0.65 {
+		return 15 // white text
+	}
+	return 16 // black text
 }

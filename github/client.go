@@ -607,6 +607,34 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
+func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	path := fmt.Sprintf("repos/%s/%s/labels?per_page=100", project.Owner, project.Name)
+
+	labels = []IssueLabel{}
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching labels", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		labelsPage := []IssueLabel{}
+		if err = res.Unmarshal(&labelsPage); err != nil {
+			return
+		}
+		labels = append(labels, labelsPage...)
+	}
+
+	return
+}
+
 func (client *Client) CurrentUser() (user *User, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
