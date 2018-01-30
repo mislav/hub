@@ -470,6 +470,6 @@ Feature: hub issue
     When I successfully run `hub issue labels`
     Then the output should contain exactly:
       """
-       bug \e[m
-       feature \e[m\n
+      bug
+      feature\n
       """
