@@ -294,9 +294,7 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 			utils.Check(err)
 		}
 
-		textColor := getSuitableTextColor(color)
-
-		labelStrings = append(labelStrings, fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m", textColor, color.Red, color.Green, color.Blue, label.Name))
+		labelStrings = append(labelStrings, colorizeLabel(label, color))
 		rawLabels = append(rawLabels, label.Name)
 	}
 
@@ -476,14 +474,18 @@ func formatLabel(label github.IssueLabel, colorize bool) string {
 
 	placeholders := map[string]string{
 		"l": label.Name,
-		"c": fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m",
-			getSuitableTextColor(color), color.Red, color.Green, color.Blue, label.Name),
+		"c": colorizeLabel(label, color),
 	}
 
 	return ui.Expand(format, placeholders, colorize)
 }
 
-func getSuitableTextColor(color *utils.Color) int {
+func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
+	return fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m",
+		getSuitableLabelTextColor(color), color.Red, color.Green, color.Blue, label.Name)
+}
+
+func getSuitableLabelTextColor(color *utils.Color) int {
 	if color.Brightness() < 0.65 {
 		return 15 // white text
 	}
