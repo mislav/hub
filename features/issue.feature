@@ -452,3 +452,24 @@ Feature: hub issue
       """
       https://github.com/github/hub/issues/1337\n
       """
+
+  Scenario: Fetch issue labels
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/labels') {
+      json [
+        { :name => "bug",
+          :color => "ff0000",
+        },
+        { :name => "feature",
+          :color => "00ff00",
+        },
+      ]
+    }
+    """
+    When I successfully run `hub issue labels`
+    Then the output should contain exactly:
+      """
+      bug
+      feature\n
+      """
