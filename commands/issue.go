@@ -19,6 +19,7 @@ var (
 		Usage: `
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue label
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -28,6 +29,9 @@ With no arguments, show a list of open issues.
 
 	* _create_:
 		Open an issue in the current project.
+
+    * _label_:
+        List the labels available in this repository.
 
 ## Options:
 	-a, --assignee <ASSIGNEE>
@@ -196,6 +200,7 @@ func init() {
 	cmdIssue.Flag.IntVarP(&flagIssueLimit, "limit", "L", -1, "LIMIT")
 
 	cmdIssue.Use(cmdCreateIssue)
+    cmdIssue.Use(cmdLabel)
 	CmdRunner.Use(cmdIssue)
 }
 
