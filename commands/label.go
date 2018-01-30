@@ -27,13 +27,14 @@ func listLabels(cmd *Command, args *Args) {
 
 	if args.Noop {
 		ui.Printf("Would request list of labels for %s\n", project)
-	} else {
-		labels, err := gh.FetchLabels(project)
-		utils.Check(err)
+		return
+	}
 
-		for _, label := range labels {
-			ui.Printf(formatLabel(label, true))
-		}
+	labels, err := gh.FetchLabels(project)
+	utils.Check(err)
+
+	for _, label := range labels {
+		ui.Printf(formatLabel(label, true))
 	}
 
 	args.NoForward()
