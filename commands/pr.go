@@ -56,6 +56,10 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%b: body
 
+		%B: base branch
+
+		%H: head branch
+
 		%au: login name of author
 
 		%as: comma-separated list of assignees
