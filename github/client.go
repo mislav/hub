@@ -34,6 +34,52 @@ type Client struct {
 	Host *Host
 }
 
+func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	path := fmt.Sprintf("repos/%s/%s/pulls?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
+	if filterParams != nil {
+		query := url.Values{}
+		for key, value := range filterParams {
+			switch v := value.(type) {
+			case string:
+				query.Add(key, v)
+			}
+		}
+		path += "&" + query.Encode()
+	}
+
+	pulls = []PullRequest{}
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching pull requests", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		pullsPage := []PullRequest{}
+		if err = res.Unmarshal(&pullsPage); err != nil {
+			return
+		}
+		for _, pr := range pullsPage {
+			if filter == nil || filter(&pr) {
+				pulls = append(pulls, pr)
+				if limit > 0 && len(pulls) == limit {
+					path = ""
+					break
+				}
+			}
+		}
+	}
+
+	return
+}
+
 func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -63,29 +109,6 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 	}
 
 	return res.Body, nil
-}
-
-type PullRequest struct {
-	ApiUrl              string           `json:"url"`
-	Number              int              `json:"number"`
-	HtmlUrl             string           `json:"html_url"`
-	Title               string           `json:"title"`
-	MaintainerCanModify bool             `json:"maintainer_can_modify"`
-	Head                *PullRequestSpec `json:"head"`
-	Base                *PullRequestSpec `json:"base"`
-}
-
-type PullRequestSpec struct {
-	Label string      `json:"label"`
-	Ref   string      `json:"ref"`
-	Sha   string      `json:"sha"`
-	Repo  *Repository `json:"repo"`
-}
-
-func (pr *PullRequest) IsSameRepo() bool {
-	return pr.Head.Repo != nil &&
-		pr.Head.Repo.Name == pr.Base.Repo.Name &&
-		pr.Head.Repo.Owner.Login == pr.Base.Repo.Owner.Login
 }
 
 func (client *Client) CreatePullRequest(project *Project, params map[string]interface{}) (pr *PullRequest, err error) {
@@ -455,19 +478,42 @@ func (client *Client) ForkRepository(project *Project, params map[string]interfa
 }
 
 type Issue struct {
-	Number      int          `json:"number"`
-	State       string       `json:"state"`
-	Title       string       `json:"title"`
-	Body        string       `json:"body"`
-	User        *User        `json:"user"`
-	Assignees   []User       `json:"assignees"`
-	Labels      []IssueLabel `json:"labels"`
-	PullRequest *PullRequest `json:"pull_request"`
-	HtmlUrl     string       `json:"html_url"`
-	Comments    int          `json:"comments"`
-	Milestone   *Milestone   `json:"milestone"`
-	CreatedAt   time.Time    `json:"created_at"`
-	UpdatedAt   time.Time    `json:"updated_at"`
+	Number int    `json:"number"`
+	State  string `json:"state"`
+	Title  string `json:"title"`
+	Body   string `json:"body"`
+	User   *User  `json:"user"`
+
+	PullRequest *PullRequest     `json:"pull_request"`
+	Head        *PullRequestSpec `json:"head"`
+	Base        *PullRequestSpec `json:"base"`
+
+	MaintainerCanModify bool `json:"maintainer_can_modify"`
+
+	Comments  int          `json:"comments"`
+	Labels    []IssueLabel `json:"labels"`
+	Assignees []User       `json:"assignees"`
+	Milestone *Milestone   `json:"milestone"`
+	CreatedAt time.Time    `json:"created_at"`
+	UpdatedAt time.Time    `json:"updated_at"`
+
+	ApiUrl  string `json:"url"`
+	HtmlUrl string `json:"html_url"`
+}
+
+type PullRequest Issue
+
+type PullRequestSpec struct {
+	Label string      `json:"label"`
+	Ref   string      `json:"ref"`
+	Sha   string      `json:"sha"`
+	Repo  *Repository `json:"repo"`
+}
+
+func (pr *PullRequest) IsSameRepo() bool {
+	return pr.Head != nil && pr.Head.Repo != nil &&
+		pr.Head.Repo.Name == pr.Base.Repo.Name &&
+		pr.Head.Repo.Owner.Login == pr.Base.Repo.Owner.Login
 }
 
 type IssueLabel struct {

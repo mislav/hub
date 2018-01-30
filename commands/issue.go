@@ -260,7 +260,7 @@ func listIssues(cmd *Command, args *Args) {
 	args.NoForward()
 }
 
-func formatIssue(issue github.Issue, format string, colorize bool) string {
+func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]string {
 	var stateColorSwitch string
 	if colorize {
 		issueColor := 32
@@ -323,7 +323,7 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		updatedAtRelative = utils.TimeAgo(issue.UpdatedAt)
 	}
 
-	placeholders := map[string]string{
+	return map[string]string{
 		"I":  fmt.Sprintf("%d", issue.Number),
 		"i":  fmt.Sprintf("#%d", issue.Number),
 		"U":  issue.HtmlUrl,
@@ -348,7 +348,10 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 		"ut": updatedAtUnix,
 		"ur": updatedAtRelative,
 	}
+}
 
+func formatIssue(issue github.Issue, format string, colorize bool) string {
+	placeholders := formatIssuePlaceholders(issue, colorize)
 	return ui.Expand(format, placeholders, colorize)
 }
 
