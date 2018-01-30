@@ -150,6 +150,13 @@ With no arguments, show a list of open issues.
 		Long:  "Open an issue in the current project.",
 	}
 
+	cmdLabel = &Command{
+		Key:   "labels",
+		Run:   listLabels,
+		Usage: "issue labels",
+		Long:  "List the labels available in this repository.",
+	}
+
 	flagIssueAssignee,
 	flagIssueState,
 	flagIssueFormat,
@@ -200,7 +207,7 @@ func init() {
 	cmdIssue.Flag.IntVarP(&flagIssueLimit, "limit", "L", -1, "LIMIT")
 
 	cmdIssue.Use(cmdCreateIssue)
-    cmdIssue.Use(cmdLabel)
+	cmdIssue.Use(cmdLabel)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -287,10 +294,7 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 			utils.Check(err)
 		}
 
-		textColor := 16
-		if color.Brightness() < 0.65 {
-			textColor = 15
-		}
+		textColor := getSuitableTextColor(color)
 
 		labelStrings = append(labelStrings, fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m", textColor, color.Red, color.Green, color.Blue, label.Name))
 		rawLabels = append(rawLabels, label.Name)
@@ -432,4 +436,56 @@ text is the title and the rest is the description.`, project))
 	}
 
 	messageBuilder.Cleanup()
+}
+
+func listLabels(cmd *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	if args.Noop {
+		ui.Printf("Would request list of labels for %s\n", project)
+		return
+	}
+
+	labels, err := gh.FetchLabels(project)
+	utils.Check(err)
+
+	for _, label := range labels {
+		// TODO add a colorize flag for the labels command
+		ui.Printf(formatLabel(label, true))
+	}
+
+	args.NoForward()
+}
+
+func formatLabel(label github.IssueLabel, colorize bool) string {
+	format := "%l%n"
+	if colorize {
+		format = "%c%n"
+	}
+
+	color, err := utils.NewColor(label.Color)
+	if err != nil {
+		utils.Check(err)
+	}
+
+	placeholders := map[string]string{
+		"l": label.Name,
+		"c": fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m",
+			getSuitableTextColor(color), color.Red, color.Green, color.Blue, label.Name),
+	}
+
+	return ui.Expand(format, placeholders, colorize)
+}
+
+func getSuitableTextColor(color *utils.Color) int {
+	if color.Brightness() < 0.65 {
+		return 15 // white text
+	}
+	return 16 // black text
 }
