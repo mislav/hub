@@ -30,8 +30,8 @@ With no arguments, show a list of open issues.
 	* _create_:
 		Open an issue in the current project.
 
-    * _labels_:
-        List the labels available in this repository.
+	* _labels_:
+		List the labels available in this repository.
 
 ## Options:
 	-a, --assignee <ASSIGNEE>
@@ -142,7 +142,7 @@ With no arguments, show a list of open issues.
 		Include pull requests as well as issues.
 
 	--color
-		Enable colored output for labels.
+		Enable colored output for labels list.
 `,
 	}
 
@@ -467,15 +467,11 @@ func listLabels(cmd *Command, args *Args) {
 }
 
 func formatLabel(label github.IssueLabel, colorize bool) string {
-	color, err := utils.NewColor(label.Color)
-	if err != nil {
-		utils.Check(err)
-	}
-
 	if colorize {
-		return fmt.Sprintf("%s\n", colorizeLabel(label, color))
+		if color, err := utils.NewColor(label.Color); err == nil {
+			return fmt.Sprintf("%s\n", colorizeLabel(label, color))
+		}
 	}
-
 	return fmt.Sprintf("%s\n", label.Name)
 }
 
