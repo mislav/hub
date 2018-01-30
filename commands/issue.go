@@ -461,22 +461,16 @@ func listLabels(cmd *Command, args *Args) {
 }
 
 func formatLabel(label github.IssueLabel, colorize bool) string {
-	format := "%l%n"
-	if colorize {
-		format = "%c%n"
-	}
-
 	color, err := utils.NewColor(label.Color)
 	if err != nil {
 		utils.Check(err)
 	}
 
-	placeholders := map[string]string{
-		"l": label.Name,
-		"c": colorizeLabel(label, color),
+	if colorize {
+		return fmt.Sprintf("%s\n", colorizeLabel(label, color))
 	}
 
-	return ui.Expand(format, placeholders, colorize)
+	return label.Name
 }
 
 func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
