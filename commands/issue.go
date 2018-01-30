@@ -19,7 +19,7 @@ var (
 		Usage: `
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
-issue label
+issue labels
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -30,7 +30,7 @@ With no arguments, show a list of open issues.
 	* _create_:
 		Open an issue in the current project.
 
-    * _label_:
+    * _labels_:
         List the labels available in this repository.
 
 ## Options:

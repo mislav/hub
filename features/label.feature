@@ -1,4 +1,4 @@
-Feature: hub label
+Feature: hub labels
   Background:
     Given I am in "git://github.com/github/hub.git" git repo
     And I am "testeroni" on github.com with OAuth token "OTOKEN"
@@ -17,7 +17,7 @@ Feature: hub label
       ]
     }
     """
-    When I successfully run `hub issue label`
+    When I successfully run `hub issue labels`
     Then the output should contain exactly:
       """
       bug

@@ -9,9 +9,9 @@ import (
 
 var (
 	cmdLabel = &Command{
-        Key: "label",
+        Key: "labels",
 		Run: listLabels,
-		Usage: "issue label",
+		Usage: "issue labels",
 		Long: "List the labels available in this repository.",
 	}
 )
