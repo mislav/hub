@@ -757,18 +757,85 @@ BODY
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:
       """
+      get('/repos/mislav/coral/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 1337, :title => "v1" },
+          { :number => 41319, :title => "Hello World!" }
+        ]
+      }
       post('/repos/mislav/coral/pulls') {
         assert :head  => "mislav:feature"
         status 201
         json :html_url => "the://url", :number => 1234
       }
       patch('/repos/mislav/coral/issues/1234') {
-        assert :milestone => 1234
+        assert :milestone => 41319
         json :html_url => "the://url"
       }
       """
-    When I successfully run `hub pull-request -m hereyougo -M 1234`
+    When I successfully run `hub pull-request -m hereyougo -M "Hello World!"`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request with case-insensitive milestone
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/coral/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 1337, :title => "v1" },
+          { :number => 41319, :title => "Hello World!" }
+        ]
+      }
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        status 201
+        json :html_url => "the://url", :number => 1234
+      }
+      patch('/repos/mislav/coral/issues/1234') {
+        assert :milestone => 41319
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -M "hello world!"`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request uses integer milestone number for BC
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/coral/milestones') {
+        status 200
+        json [{ :number => 237, :title => "prerelease" }]
+      }
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        status 201
+        json :html_url => "the://url", :number => 1234
+      }
+      patch('/repos/mislav/coral/issues/1234') {
+        assert :milestone => 55
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -M 55`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request fails with unknown milestone before it's created
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/coral/milestones') {
+        status 200
+        json []
+      }
+      """
+    When I run `hub pull-request -m hereyougo -M "unknown"`
+    Then the exit status should be 1
+    And the stderr should contain exactly "error: no milestone found with name 'unknown'\n"
 
   Scenario: Pull request with labels
     Given I am on the "feature" branch with upstream "origin/feature"

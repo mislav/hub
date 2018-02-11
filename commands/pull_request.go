@@ -63,8 +63,9 @@ pull-request -i <ISSUE>
 	-a, --assign <USERS>
 		A comma-separated list of GitHub handles to assign to this pull request.
 
-	-M, --milestone <ID>
-		Add this pull request to a GitHub milestone with id <ID>.
+	-M, --milestone <NAME>
+		The milestone name to add to this pull request. Passing the milestone number
+		is deprecated.
 
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request.
@@ -85,6 +86,7 @@ var (
 	flagPullRequestHead,
 	flagPullRequestIssue,
 	flagPullRequestMessage,
+	flagPullRequestMilestone,
 	flagPullRequestFile string
 
 	flagPullRequestBrowse,
@@ -92,8 +94,6 @@ var (
 	flagPullRequestEdit,
 	flagPullRequestPush,
 	flagPullRequestForce bool
-
-	flagPullRequestMilestone uint64
 
 	flagPullRequestAssignees,
 	flagPullRequestReviewers,
@@ -113,7 +113,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
 	cmdPullRequest.Flag.VarP(&flagPullRequestReviewers, "reviewer", "r", "USERS")
-	cmdPullRequest.Flag.Uint64VarP(&flagPullRequestMilestone, "milestone", "M", 0, "MILESTONE")
+	cmdPullRequest.Flag.StringVarP(&flagPullRequestMilestone, "milestone", "M", "", "MILESTONE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestLabels, "labels", "l", "LABELS")
 
 	CmdRunner.Use(cmdPullRequest)
@@ -288,6 +288,18 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 	}
 
+	milestoneNumber := 0
+	if flagPullRequestMilestone != "" {
+		// BC: Don't try to resolve milestone name if it's an integer
+		milestoneNumber, err = strconv.Atoi(flagPullRequestMilestone)
+		if err != nil {
+			milestones, err := client.FetchMilestones(baseProject)
+			utils.Check(err)
+			milestoneNumber, err = findMilestoneNumber(milestones, flagPullRequestMilestone)
+			utils.Check(err)
+		}
+	}
+
 	var pullRequestURL string
 	if args.Noop {
 		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", fullBase, fullHead), "")
@@ -357,8 +369,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		if len(flagPullRequestAssignees) > 0 {
 			params["assignees"] = flagPullRequestAssignees
 		}
-		if flagPullRequestMilestone > 0 {
-			params["milestone"] = flagPullRequestMilestone
+		if milestoneNumber > 0 {
+			params["milestone"] = milestoneNumber
 		}
 
 		if len(params) > 0 {
@@ -422,4 +434,14 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
+}
+
+func findMilestoneNumber(milestones []github.Milestone, name string) (int, error) {
+	for _, milestone := range milestones {
+		if strings.EqualFold(milestone.Title, name) {
+			return milestone.Number, nil
+		}
+	}
+
+	return 0, fmt.Errorf("error: no milestone found with name '%s'", name)
 }
