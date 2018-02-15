@@ -174,4 +174,5 @@ These GitHub commands are provided by hub:
    pr             Work with pull requests
    pull-request   Open a pull request on GitHub
    release        List or create releases
+   sync           Fetch git objects from upstream and update branches
 `
