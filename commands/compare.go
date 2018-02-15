@@ -12,12 +12,15 @@ import (
 
 var cmdCompare = &Command{
 	Run:   compare,
-	Usage: "compare [-u] [<USER>] [[<START>...]<END>]",
+	Usage: "compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]",
 	Long: `Open a GitHub compare page in a web browser.
 
 ## Options:
 	-u
 		Print the URL instead of opening it.
+
+	-b <BASE>
+		Base branch to compare.
 
 	[<START>...]<END>
 		Branch names, tag names, or commit SHAs specifying the range to compare.
