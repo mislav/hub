@@ -22,6 +22,7 @@ create
 browse
 compare
 ci-status
+sync
 EOF
     __git_list_all_commands_without_hub
   }

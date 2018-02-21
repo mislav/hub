@@ -24,6 +24,7 @@ complete -f -c hub -n '__fish_hub_needs_command' -a create -d "create new repo o
 complete -f -c hub -n '__fish_hub_needs_command' -a fork -d "fork origin repo on GitHub"
 complete -f -c hub -n '__fish_hub_needs_command' -a pull-request -d "open a pull request on GitHub"
 complete -f -c hub -n '__fish_hub_needs_command' -a ci-status -d "display GitHub Status information for a commit"
+complete -f -c hub -n '__fish_hub_needs_command' -a sync -d "update local branches from upstream"
 
 # alias
 complete -f -c hub -n ' __fish_hub_using_command alias' -a 'bash zsh sh ksh csh fish' -d "output shell script suitable for eval"
