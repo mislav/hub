@@ -2,3 +2,4 @@
 site/*
 tmp/*
 vendor/*
+bundle/*

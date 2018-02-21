@@ -4,3 +4,4 @@
 --exclude=site
 --exclude=tmp
 --exclude=vendor
+--exclude=bundle
