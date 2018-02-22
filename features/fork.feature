@@ -110,7 +110,8 @@ Feature: hub fork
       """
       get('/repos/mislav/dotfiles') {
         halt 406 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
-        json :parent => { :html_url => 'https://github.com/unrelated/dotfiles' }
+        json :html_url => 'https://github.com/mislav/dotfiles',
+             :parent => { :html_url => 'https://github.com/unrelated/dotfiles' }
       }
       """
     When I run `hub fork`
@@ -125,7 +126,8 @@ Feature: hub fork
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
-        json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
+        json :html_url => 'https://github.com/mislav/dotfiles',
+             :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
       }
       """
     When I run `hub fork`
@@ -136,6 +138,22 @@ Feature: hub fork
       """
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
+  Scenario: Redirected repo already exists
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345') {
+        json :html_url => 'https://github.com/mislav/old-dotfiles'
+      }
+      post('/repos/evilchelu/dotfiles/forks') {
+        status 202
+        json :name => 'dotfiles', :owner => { :login => 'mislav' }
+      }
+      """
+    When I successfully run `hub fork`
+    And the stdout should contain exactly "new remote: mislav\n"
 
   Scenario: Unrelated remote already exists
     Given the "mislav" remote has url "git@github.com:mislav/unrelated.git"
@@ -161,7 +179,8 @@ Feature: hub fork
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
-        json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
+        json :html_url => 'https://github.com/mislav/dotfiles',
+             :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
       }
       """
     When I run `hub fork`
@@ -177,7 +196,8 @@ Feature: hub fork
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
-        json :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
+        json :html_url => 'https://github.com/mislav/dotfiles',
+             :parent => { :html_url => 'https://github.com/EvilChelu/Dotfiles' }
       }
       """
     When I run `hub fork`

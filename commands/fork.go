@@ -82,6 +82,12 @@ func fork(cmd *Command, args *Args) {
 	client := github.NewClient(project.Host)
 	existingRepo, err := client.Repository(forkProject)
 	if err == nil {
+		existingProject, err := github.NewProjectFromRepo(existingRepo)
+		if err == nil && !existingProject.SameAs(forkProject) {
+			existingRepo = nil
+		}
+	}
+	if err == nil && existingRepo != nil {
 		var parentURL *github.URL
 		if parent := existingRepo.Parent; parent != nil {
 			parentURL, _ = github.ParseURL(parent.HtmlUrl)
