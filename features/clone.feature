@@ -225,7 +225,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone myorg/myrepo`
-    Then it should clone "git@git.my.org:myorg/myrepo.git"
+    Then it should clone "https://git.my.org/myorg/myrepo.git"
     And there should be no output
 
   Scenario: Clone from existing directory is a local clone
