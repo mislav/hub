@@ -52,7 +52,7 @@ Feature: hub remote add
 
   Scenario: Add public remote
     When I successfully run `hub remote add mislav`
-    Then the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
+    Then the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: Add private remote
@@ -67,34 +67,34 @@ Feature: hub remote add
 
   Scenario: Add remote with arguments
     When I successfully run `hub remote add -f mislav`
-    Then "git remote add -f mislav git://github.com/mislav/dotfiles.git" should be run
+    Then "git remote add -f mislav https://github.com/mislav/dotfiles.git" should be run
     And there should be no output
 
-  Scenario: Add HTTPS protocol remote
-    Given HTTPS is preferred
+  Scenario: Add plain git protocol remote
+    Given Plain git protocol is preferred
     When I successfully run `hub remote add mislav`
-    Then the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
+    Then the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: Add named public remote
     When I successfully run `hub remote add mm mislav`
-    Then the url for "mm" should be "git://github.com/mislav/dotfiles.git"
+    Then the url for "mm" should be "https://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: set-url
-    Given the "origin" remote has url "git://github.com/evilchelu/dotfiles.git"
+    Given the "origin" remote has url "https://github.com/evilchelu/dotfiles.git"
     When I successfully run `hub remote set-url origin mislav`
-    Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: Add public remote including repo name
     When I successfully run `hub remote add mislav/dotfilez.js`
-    Then the url for "mislav" should be "git://github.com/mislav/dotfilez.js.git"
+    Then the url for "mislav" should be "https://github.com/mislav/dotfilez.js.git"
     And there should be no output
 
   Scenario: Add named public remote including repo name
     When I successfully run `hub remote add mm mislav/dotfilez.js`
-    Then the url for "mm" should be "git://github.com/mislav/dotfilez.js.git"
+    Then the url for "mm" should be "https://github.com/mislav/dotfilez.js.git"
     And there should be no output
 
   Scenario: Add named private remote

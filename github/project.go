@@ -73,14 +73,19 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 	host := rawHost(p.Host)
 
 	if preferredProtocol() == "https" {
-		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
-	} else if isSSH || preferredProtocol() == "ssh" {
-		url = fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
-	} else {
-		url = fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
+		return fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
 	}
 
-	return url
+	if isSSH || preferredProtocol() == "ssh" {
+		return fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
+	}
+
+	if preferredProtocol() == "git" {
+		return fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
+	}
+
+	// default to using the https url
+	return fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
 }
 
 // Remove the scheme from host when the host url is absolute.
