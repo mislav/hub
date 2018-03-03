@@ -160,7 +160,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone dotfiles`
-    Then it should clone "git@github.com:mislav/dotfiles.git"
+    Then it should clone "https://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: Clone my repo that doesn't exist
@@ -184,7 +184,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone --bare -o master dotfiles`
-    Then "git clone --bare -o master git@github.com:mislav/dotfiles.git" should be run
+    Then "git clone --bare -o master https://github.com/mislav/dotfiles.git" should be run
     And there should be no output
 
   Scenario: Clone repo to which I have push access to
@@ -197,7 +197,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone sstephenson/rbenv`
-    Then "git clone git@github.com:sstephenson/rbenv.git" should be run
+    Then "git clone https://github.com/sstephenson/rbenv.git" should be run
     And there should be no output
 
   Scenario: Preview cloning a repo I have push access to
@@ -210,7 +210,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub --noop clone sstephenson/rbenv`
-    Then the output should contain exactly "git clone git@github.com:sstephenson/rbenv.git\n"
+    Then the output should contain exactly "git clone https://github.com/sstephenson/rbenv.git\n"
     But it should not clone anything
 
   Scenario: Clone my Enterprise repo

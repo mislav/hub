@@ -104,7 +104,7 @@ func transformCloneArgs(args *Args) {
 				if !isSSH &&
 					args.Command != "submodule" &&
 					!github.IsHttpsProtocol() {
-					isSSH = repo.Private || repo.Permissions.Push
+					isSSH = repo.Private
 				}
 
 				url := project.GitURL(name, owner, isSSH)
