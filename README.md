@@ -2,7 +2,7 @@ git + hub = github
 ==================
 
 hub is a command line tool that wraps `git` in order to extend it with extra
-features and commands that make working with GitHub easier.
+features and commands, that makes it easier to work with github.
 
 ``` sh
 $ hub clone rtomayko/tilt
@@ -23,6 +23,9 @@ Dependencies:
 * **git 1.7.3** or newer
 
 #### Homebrew
+
+can install homebrew from the below link
+"https://docs.brew.sh/Installation"
 
 `hub` can be installed through Homebrew on macOS:
 
