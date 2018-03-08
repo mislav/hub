@@ -40,15 +40,26 @@ development by reporting bugs, you can install the prerelease version:
 $ brew install --devel hub
 ```
 
-#### Chocolatey
+#### Windows (Via Chocolatey)
 
 `hub` can be installed through [Chocolatey](https://chocolatey.org/) on Windows.
 
 ``` sh
 > choco install hub
 > hub version
-git version 2.7.1.windows.2
-hub version 2.2.3
+git version 2.16.2.1.windows.1
+hub version 2.2.9
+```
+
+#### Windows (Via Scoop)
+
+`hub` can be installed through [Scoop](https://scoop.sh/) on Windows.
+
+``` sh
+> scoop install hub
+> hub version
+git version 2.16.2.windows.1
+hub version 2.2.9
 ```
 
 #### Fedora Linux
