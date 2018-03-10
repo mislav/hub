@@ -112,7 +112,7 @@ func fork(cmd *Command, args *Args) {
 		originURL := originRemote.URL.String()
 		url := forkProject.GitURL("", "", true)
 
-		// Check to see if the remote already exists and points to the fork.
+		// Check to see if the remote already exists.
 		currentRemote, err := localRepo.RemoteByName(newRemoteName)
 		if err == nil {
 			currentProject, err := currentRemote.Project()
@@ -120,6 +120,11 @@ func fork(cmd *Command, args *Args) {
 				if currentProject.SameAs(forkProject) {
 					ui.Printf("existing remote: %s\n", newRemoteName)
 					return
+				}
+				if newRemoteName == "origin" {
+					// Assume user wants to follow github guides for collaboration
+					ui.Printf("renaming existing \"origin\" remote to \"upstream\"\n")
+					args.Before("git", "remote", "rename", "origin", "upstream")
 				}
 			}
 		}
