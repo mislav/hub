@@ -24,7 +24,7 @@ Dependencies:
 
 #### Homebrew
 
-`hub` can be installed through Homebrew on macOS:
+`hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS:
 
 ``` sh
 $ brew install hub
