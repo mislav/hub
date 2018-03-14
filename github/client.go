@@ -97,6 +97,28 @@ func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest,
 	return
 }
 
+type Gitignore struct {
+	Name   string `json:"name"`
+	Source string `json:"source"`
+}
+
+func (client *Client) Gitignore(name string) (gitignore *Gitignore, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(fmt.Sprintf("gitignore/templates/%s", name))
+	if err = checkStatus(200, "getting gitignore template", res, err); err != nil {
+		return
+	}
+
+	gitignore = &Gitignore{}
+	err = res.Unmarshal(gitignore)
+
+	return
+}
+
 func (client *Client) PullRequestPatch(project *Project, id string) (patch io.ReadCloser, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
