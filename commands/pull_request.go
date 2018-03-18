@@ -158,9 +158,22 @@ func pullRequest(cmd *Command, args *Args) {
 		flagPullRequestIssue = parsePullRequestIssueNumber(arg)
 	}
 
+	var defaultBase string
+	if headRepo, err := client.Repository(headProject); err == nil {
+		headProject.Owner = headRepo.Owner.Login
+		headProject.Name = headRepo.Name
+		defaultBase = headRepo.DefaultBranch
+	}
+
 	if base == "" {
-		masterBranch := localRepo.MasterBranch()
-		base = masterBranch.ShortName()
+		if masterBranch, ok := localRepo.RemoteMasterBranch(); ok {
+			base = masterBranch.ShortName()
+		} else {
+			base = defaultBase
+		}
+		if base != defaultBase {
+			fmt.Printf("Warning: Local base branch differs from remote (got: %s, want: %s), to fix:\n\tgit remote set-head origin --auto\n", base, defaultBase)
+		}
 	}
 
 	if head == "" && trackedBranch != nil {
@@ -183,11 +196,6 @@ func pullRequest(cmd *Command, args *Args) {
 		} else {
 			head = trackedBranch.ShortName()
 		}
-	}
-
-	if headRepo, err := client.Repository(headProject); err == nil {
-		headProject.Owner = headRepo.Owner.Login
-		headProject.Name = headRepo.Name
 	}
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
