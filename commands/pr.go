@@ -15,8 +15,8 @@ var (
 	cmdPr = &Command{
 		Run: printHelp,
 		Usage: `
-pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
-pr checkout <PR-NUMBER> [<BRANCH>]
+pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>] [-R <REMOTE>]
+pr checkout [-R <REMOTE>] <PR-NUMBER> [<BRANCH>]
 `,
 		Long: `Manage GitHub pull requests for the current project.
 
@@ -105,6 +105,9 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 	-L, --limit <LIMIT>
 		Display only the first <LIMIT> issues.
 
+	-R, --remote <REMOTE>
+		Specify the remote project to query pull requests
+
 ## See also:
 
 hub-issue(1), hub-pull-request(1), hub(1)
@@ -136,6 +139,7 @@ func init() {
 	cmdListPulls.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
 	cmdListPulls.Flag.StringVarP(&flagPullRequestFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
 	cmdListPulls.Flag.StringVarP(&flagPullRequestSort, "sort", "o", "created", "SORT_KEY")
+	cmdListPulls.Flag.StringVarP(&flagPullRequestRemote, "remote", "R", "", "REMOTE")
 	cmdListPulls.Flag.BoolVarP(&flagPullRequestSortAscending, "sort-ascending", "^", false, "SORT_KEY")
 	cmdListPulls.Flag.IntVarP(&flagPullRequestLimit, "limit", "L", -1, "LIMIT")
 
@@ -153,7 +157,13 @@ func listPulls(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.MainProject()
+	// If the user specifies a remote, load that project
+	var project *github.Project
+	if flagPullRequestRemote != "" {
+		project, err = localRepo.RemoteProject(flagPullRequestRemote)
+	} else { // Otherwise, load the default
+		project, err = localRepo.MainProject()
+	}
 	utils.Check(err)
 
 	gh := github.NewClient(project.Host)
