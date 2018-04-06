@@ -38,7 +38,7 @@ complete -f -c hub -n ' __fish_hub_using_command pull-request' -s p -d "Push the
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s b -d 'The base branch in "[OWNER:]BRANCH" format'
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s h -d 'The head branch in "[OWNER:]BRANCH" format'
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s a -d 'A comma-separated list of GitHub handles to assign to this pull request'
-complete -f -c hub -n ' __fish_hub_using_command pull-request' -s M -d "Add this pull request to a GitHub milestone with id <ID>"
+complete -f -c hub -n ' __fish_hub_using_command pull-request' -s M -d "The milestone name to add to this pull request. Passing the milestone number is deprecated."
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s l -d "Add a comma-separated list of labels to this pull request"
 # fork
 complete -f -c hub -n ' __fish_hub_using_command fork' -l no-remote -d "Skip adding a git remote for the fork"
