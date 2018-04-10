@@ -272,7 +272,7 @@ func pushPr(command *Command, args *Args) {
 
 	pr, err := client.PullRequest(baseProject, prNumberString)
 	utils.Check(err)
-	head := pr.Head;
+	head := pr.Head
 	headRepo := head.Repo
 
 	refspec := fmt.Sprintf("%s:%s", localBranchName, head.Ref)
