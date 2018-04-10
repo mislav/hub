@@ -280,7 +280,7 @@ func pushPr(command *Command, args *Args) {
 	remoteProject := github.NewProject(headRepo.Owner.Login, headRepo.Name, host.Host)
 	remote := remoteProject.GitURL("", "", true)
 
-	args.Replace(args.Executable, "push", remote, refspec)
+	args.Replace(args.Executable, "push", remote, refspec, "--no-follow-tags")
 	if flagForce {
 		args.AppendParams("--force")
 	}

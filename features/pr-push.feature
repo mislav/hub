@@ -26,7 +26,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
       """
 		Given HTTPS is preferred
     When I run `hub pr push 77`
-		Then "git push https://github.com/jridgewell/jekyll.git master:patch-1" should be run
+		Then "git push https://github.com/jridgewell/jekyll.git master:patch-1 --no-follow-tags" should be run
 
   Scenario: Push to a pull request (SSH fallback)
     Given the GitHub API server:
@@ -50,7 +50,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
       }
       """
     When I run `hub pr push 77`
-    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1" should be run
+    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --no-follow-tags" should be run
 
   Scenario: Push to a pull request with branch
     Given the GitHub API server:
@@ -74,7 +74,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
       }
       """
     When I run `hub pr push 77 local`
-    Then "git push git@github.com:jridgewell/jekyll.git local:patch-1" should be run
+    Then "git push git@github.com:jridgewell/jekyll.git local:patch-1 --no-follow-tags" should be run
 
   Scenario: Push to a pull request with force
     Given the GitHub API server:
@@ -98,7 +98,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
       }
       """
     When I run `hub pr push 77 -f`
-    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --force" should be run
+    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --no-follow-tags --force" should be run
 
 
   Scenario: Push to a pull request with force and gusto
@@ -123,7 +123,7 @@ Feature: hub pr push <PULLREQ-NUMBER>
       }
       """
     When I run `hub pr push 77 --force`
-    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --force" should be run
+    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --no-follow-tags --force" should be run
 
 
   Scenario: Push to a pull request while setting upstream
@@ -148,10 +148,10 @@ Feature: hub pr push <PULLREQ-NUMBER>
       }
       """
     When I run `hub pr push 77 -u`
-    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --set-upstream" should be run
+    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --no-follow-tags --set-upstream" should be run
 
 
-  Scenario: Push to a pull request with force and gusto
+  Scenario: Push to a pull request while setting upstream with gusto
     Given the GitHub API server:
       """
       get('/repos/mojombo/jekyll/pulls/77') {
@@ -173,5 +173,5 @@ Feature: hub pr push <PULLREQ-NUMBER>
       }
       """
     When I run `hub pr push 77 --set-upstream`
-    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --set-upstream" should be run
+    Then "git push git@github.com:jridgewell/jekyll.git master:patch-1 --no-follow-tags --set-upstream" should be run
 
