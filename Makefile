@@ -20,6 +20,7 @@ HELP_EXT = \
 	share/man/man1/hub-checkout.1 \
 	share/man/man1/hub-cherry-pick.1 \
 	share/man/man1/hub-clone.1 \
+	share/man/man1/hub-pull.1 \
 	share/man/man1/hub-fetch.1 \
 	share/man/man1/hub-help.1 \
 	share/man/man1/hub-init.1 \
