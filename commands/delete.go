@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"os"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -34,8 +34,7 @@ hub-init(1), hub(1)
 `,
 }
 
-var (
-)
+var ()
 
 func init() {
 	CmdRunner.Use(cmdDelete)
@@ -68,22 +67,22 @@ func delete(command *Command, args *Args) {
 		owner = split[0]
 		repoName = split[1]
 	}
-	
+
 	project := github.NewProject(owner, repoName, host.Host)
 	gh := github.NewClient(project.Host)
 
-	if ! gh.IsRepositoryExist(project) {
+	if !gh.IsRepositoryExist(project) {
 		fmt.Println("No such repository")
 		args.NoForward()
 		return
 	}
-	
+
 	if os.Getenv("HUB_UNSAFE_DELETE") == "" {
 		fmt.Printf("Repository '%s' exists. Really delete it (y/N)?", repoName)
-		var s string	
+		var s string
 		_, err = fmt.Scan(&s)
 		if err != nil {
-			fmt.Println(err);
+			fmt.Println(err)
 			args.NoForward()
 			return
 		}
@@ -92,13 +91,13 @@ func delete(command *Command, args *Args) {
 		if s != "y" {
 			fmt.Println("Abort: not deleting anything.")
 			args.NoForward()
-			return			
+			return
 		}
-		
+
 		fmt.Println("Please write the name of the repository again (this operation can not be undone!): ")
 		_, err = fmt.Scan(&s)
 		if err != nil {
-			fmt.Println(err);
+			fmt.Println(err)
 			args.NoForward()
 			return
 		}
@@ -109,11 +108,11 @@ func delete(command *Command, args *Args) {
 			return
 		}
 	}
-	
+
 	err = gh.DeleteRepository(project)
 	utils.Check(err)
-	
+
 	fmt.Printf("Deleted repository %v\n", repoName)
-	
+
 	args.NoForward()
 }

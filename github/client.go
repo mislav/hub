@@ -259,8 +259,8 @@ func (client *Client) DeleteRepository(project *Project) (err error) {
 	if err != nil {
 		return
 	}
-	
-	res, err := api.Delete(repoURL);
+
+	res, err := api.Delete(repoURL)
 	if err = checkStatus(204, "deleting repository", res, err); err != nil {
 		return err
 	}
