@@ -91,17 +91,32 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 		headRemote, _ = repo.RemoteForRepo(pullRequest.Head.Repo)
 	}
 
+	var remote string
+	var merge string
+	var pushRemote string
+	var pushBranch string
+
 	if headRemote != nil {
+		remoteRef := fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
+		remoteBranch := fmt.Sprintf("%s/%s", headRemote.Name, pullRequest.Head.Ref)
+		refSpec := fmt.Sprintf("+%s:refs/remotes/%s", remoteRef, remoteBranch)
+
 		if newBranchName == "" {
 			newBranchName = pullRequest.Head.Ref
+		} else {
+			merge = pullRequest.Head.Ref
+			pushBranch = pullRequest.Head.Ref
 		}
-		remoteBranch := fmt.Sprintf("%s/%s", headRemote.Name, pullRequest.Head.Ref)
-		refSpec := fmt.Sprintf("+refs/heads/%s:refs/remotes/%s", pullRequest.Head.Ref, remoteBranch)
+		if !pullRequest.IsSameRepo() {
+			remote = headRemote.Name
+			pushRemote = remote
+		}
+
 		if git.HasFile("refs", "heads", newBranchName) {
 			newArgs = append(newArgs, newBranchName)
 			args.After("git", "merge", "--ff-only", fmt.Sprintf("refs/remotes/%s", remoteBranch))
 		} else {
-			newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+			newArgs = append(newArgs, "-b", newBranchName)
 		}
 		args.Before("git", "fetch", headRemote.Name, refSpec)
 	} else {
@@ -117,8 +132,6 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 		ref := fmt.Sprintf("refs/pull/%d/head", pullRequest.Number)
 		args.Before("git", "fetch", baseRemote.Name, fmt.Sprintf("%s:%s", ref, newBranchName))
 
-		remote := baseRemote.Name
-		mergeRef := ref
 		if pullRequest.MaintainerCanModify && pullRequest.Head.Repo != nil {
 			var project *github.Project
 			project, err = github.NewProjectFromRepo(pullRequest.Head.Repo)
@@ -127,10 +140,26 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 			}
 
 			remote = project.GitURL("", "", true)
-			mergeRef = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
+			pushRemote = remote
+			merge = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
+			pushBranch = merge
+		} else {
+			remote = baseRemote.Name
+			merge = ref
 		}
+	}
+
+	if remote != "" {
 		args.Before("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
-		args.Before("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
+	}
+	if merge != "" {
+		args.Before("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), merge)
+	}
+	if pushRemote != "" {
+		args.Before("git", "config", fmt.Sprintf("branch.%s.pushRemote", newBranchName), pushRemote)
+	}
+	if pushBranch != "" {
+		args.Before("git", "config", fmt.Sprintf("branch.%s.pushBranch", newBranchName), pushBranch)
 	}
 	return
 }

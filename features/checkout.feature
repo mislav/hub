@@ -32,6 +32,7 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
     And "git checkout -f mislav-fixes -q" should be run
     And "mislav-fixes" should merge "refs/pull/77/head" from remote "origin"
+    And "mislav-fixes" should push "" to remote ""
 
   Scenario: No matching remotes for pull request base
     Given the GitHub API server:
@@ -76,6 +77,7 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git fetch origin refs/pull/77/head:fixes-from-mislav" should be run
     And "git checkout fixes-from-mislav" should be run
     And "fixes-from-mislav" should merge "refs/pull/77/head" from remote "origin"
+    And "fixes-from-mislav" should push "" to remote ""
 
   Scenario: Same-repo
     Given the GitHub API server:
@@ -98,7 +100,9 @@ Feature: hub checkout <PULLREQ-URL>
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
     Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
-    And "git checkout -f -b fixes --track origin/fixes -q" should be run
+    And "git checkout -f -b fixes -q" should be run
+    And "fixes" should merge "" from remote ""
+    And "fixes" should push "" to remote ""
 
   Scenario: Same-repo with custom branch name
     Given the GitHub API server:
@@ -121,7 +125,9 @@ Feature: hub checkout <PULLREQ-URL>
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77 mycustombranch`
     Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
-    And "git checkout -b mycustombranch --track origin/fixes" should be run
+    And "git checkout -b mycustombranch" should be run
+    And "mycustombranch" should merge "fixes" from remote ""
+    And "mycustombranch" should push "fixes" to remote ""
 
   Scenario: Unavailable fork
     Given the GitHub API server:
@@ -143,6 +149,7 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git fetch origin refs/pull/77/head:pr-77" should be run
     And "git checkout pr-77" should be run
     And "pr-77" should merge "refs/pull/77/head" from remote "origin"
+    And "pr-77" should push "" to remote ""
 
   Scenario: Reuse existing remote for head branch
     Given the GitHub API server:
@@ -167,7 +174,9 @@ Feature: hub checkout <PULLREQ-URL>
     And the "mislav" remote has url "git://github.com/mislav/jekyll.git"
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
     Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
-    And "git checkout -f -b fixes --track mislav/fixes -q" should be run
+    And "git checkout -f -b fixes -q" should be run
+    And "fixes" should merge "" from remote "mislav"
+    And "fixes" should push "" to remote "mislav"
 
   Scenario: Reuse existing remote and branch
     Given the GitHub API server:
@@ -195,6 +204,8 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git fetch mislav +refs/heads/fixes:refs/remotes/mislav/fixes" should be run
     And "git checkout -f fixes -q" should be run
     And "git merge --ff-only refs/remotes/mislav/fixes" should be run
+    And "fixes" should merge "" from remote "mislav"
+    And "fixes" should push "" to remote "mislav"
 
   Scenario: Modifiable fork
     Given the GitHub API server:
@@ -221,6 +232,7 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
     And "git checkout -f mislav-fixes -q" should be run
     And "mislav-fixes" should merge "refs/heads/fixes" from remote "git@github.com:mislav/jekyll.git"
+    And "mislav-fixes" should push "refs/heads/fixes" to remote "git@github.com:mislav/jekyll.git"
 
   Scenario: Modifiable fork with HTTPS
     Given the GitHub API server:
@@ -248,3 +260,4 @@ Feature: hub checkout <PULLREQ-URL>
     Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
     And "git checkout -f mislav-fixes -q" should be run
     And "mislav-fixes" should merge "refs/heads/fixes" from remote "https://github.com/mislav/jekyll.git"
+    And "mislav-fixes" should push "refs/heads/fixes" to remote "https://github.com/mislav/jekyll.git"
