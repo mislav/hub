@@ -1,8 +1,10 @@
 package commands
 
 import (
+  "fmt"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
 )
@@ -22,6 +24,8 @@ var cmdPush = &Command{
 		$ hub push origin
 		> git push origin HEAD
 
+    TODO: something about pushBranch
+
 ## See also:
 
 hub(1), git-push(1)
@@ -33,12 +37,31 @@ func init() {
 }
 
 func push(command *Command, args *Args) {
-	if !args.IsParamsEmpty() && strings.Contains(args.FirstParam(), ",") {
-		transformPushArgs(args)
+	if args.IsParamsEmpty() {
+    pushRemoteBranch(args)
+  } else if strings.Contains(args.FirstParam(), ",") {
+		pushMultipleRemotes(args)
 	}
 }
 
-func transformPushArgs(args *Args) {
+func pushRemoteBranch(args *Args) {
+  localRepo, err := github.LocalRepo()
+  utils.Check(err)
+
+  currentBranch, err := localRepo.CurrentBranch()
+  utils.Check(err)
+
+  shortName := currentBranch.ShortName()
+  pushRemote, _ := git.Config(fmt.Sprintf("branch.%s.pushRemote", shortName))
+  if pushRemote != "" {
+    pushBranch, _ := git.Config(fmt.Sprintf("branch.%s.pushBranch", shortName))
+    if pushBranch != "" {
+      args.AppendParams(pushRemote, fmt.Sprintf("%s:%s", shortName, pushBranch))
+    }
+  }
+}
+
+func pushMultipleRemotes(args *Args) {
 	refs := []string{}
 	if args.ParamsSize() > 1 {
 		refs = args.Params[1:]
