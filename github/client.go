@@ -656,6 +656,34 @@ func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err er
 	return
 }
 
+func (client *Client) FetchMilestones(project *Project) (milestones []Milestone, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	path := fmt.Sprintf("repos/%s/%s/milestones?per_page=100", project.Owner, project.Name)
+
+	milestones = []Milestone{}
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching milestones", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		milestonesPage := []Milestone{}
+		if err = res.Unmarshal(&milestonesPage); err != nil {
+			return
+		}
+		milestones = append(milestones, milestonesPage...)
+	}
+
+	return
+}
+
 func (client *Client) CurrentUser() (user *User, err error) {
 	api, err := client.simpleApi()
 	if err != nil {

@@ -34,12 +34,16 @@ Feature: hub fork
         json :name => 'dotfiles', :owner => { :login => 'mislav' }
       }
       """
-    And I successfully run `git remote rename origin upstream`
     When I successfully run `hub fork --remote-name=origin`
-    Then the output should contain exactly "new remote: origin\n"
+    Then the output should contain exactly:
+      """
+      renaming existing "origin" remote to "upstream"
+      new remote: origin\n
+      """
     And "git remote add -f origin git://github.com/evilchelu/dotfiles.git" should be run
     And "git remote set-url origin git@github.com:mislav/dotfiles.git" should be run
     And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    And the url for "upstream" should be "git://github.com/evilchelu/dotfiles.git"
 
   Scenario: Fork the repository with redirect
     Given the GitHub API server:
