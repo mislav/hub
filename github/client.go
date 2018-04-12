@@ -526,8 +526,89 @@ type User struct {
 }
 
 type Milestone struct {
-	Number int    `json:"number"`
-	Title  string `json:"title"`
+	ApiUrl       string `json:"url"`
+	HtmlUrl      string `json:"html_url"`
+	LabelsUrl    string `json:"labels_url"`
+	Id           int    `json:"id"`
+	Number       int    `json:"number"`
+	State        string `json:"state"`
+	Title        string `json:"title"`
+	Description  string `json:"description"`
+	OpenIssues   int    `json:"open_issues"`
+	ClosedIssues int    `json:"closed_issues"`
+	CreatedAt    string `json:"created_at"`
+	UpdatedAt    string `json:"updated_at"`
+	ClosedAt     string `json:"closed_at"`
+	DueOn        string `json:"due_on"`
+}
+
+type MilestoneParams struct {
+	Title       string `json:"title"`
+	State       string `json:"state"`
+	Description string `json:"description,omitempty"`
+	DueOn       string `json:"due_on,omitempty"`
+}
+
+func (client *Client) CreateMilestone(project *Project, params *MilestoneParams) (milestone *Milestone, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/milestones", project.Owner, project.Name), params)
+	if err = checkStatus(201, "creating milestone", res, err); err != nil {
+		return
+	}
+
+	milestone = &Milestone{}
+	err = res.Unmarshal(milestone)
+	return
+}
+
+func (client *Client) GetMilestone(project *Project, number string) (milestone *Milestone, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/milestones/%s", project.Owner, project.Name, number))
+	if err = checkStatus(200, "creating milestone", res, err); err != nil {
+		return
+	}
+
+	milestone = &Milestone{}
+	err = res.Unmarshal(milestone)
+	return
+}
+
+func (client *Client) UpdateMilestone(project *Project, number string, params *MilestoneParams) (milestone *Milestone, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PatchJSON(fmt.Sprintf("repos/%s/%s/milestones/%s", project.Owner, project.Name, number), params)
+	if err = checkStatus(200, "updating milestone", res, err); err != nil {
+		return
+	}
+
+	milestone = &Milestone{}
+	err = res.Unmarshal(milestone)
+	return
+}
+
+func (client *Client) DeleteMilestone(project *Project, number string) (err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Delete(fmt.Sprintf("repos/%s/%s/milestones/%s", project.Owner, project.Name, number))
+	if err = checkStatus(204, "deleting milestone", res, err); err != nil {
+		return
+	}
+
+	return
 }
 
 func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}, limit int, filter func(*Issue) bool) (issues []Issue, err error) {
