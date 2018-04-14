@@ -1,7 +1,7 @@
 package commands
 
 import (
-  "fmt"
+	"fmt"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -38,27 +38,27 @@ func init() {
 
 func push(command *Command, args *Args) {
 	if args.IsParamsEmpty() {
-    pushRemoteBranch(args)
-  } else if strings.Contains(args.FirstParam(), ",") {
+		pushRemoteBranch(args)
+	} else if strings.Contains(args.FirstParam(), ",") {
 		pushMultipleRemotes(args)
 	}
 }
 
 func pushRemoteBranch(args *Args) {
-  localRepo, err := github.LocalRepo()
-  utils.Check(err)
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
 
-  currentBranch, err := localRepo.CurrentBranch()
-  utils.Check(err)
+	currentBranch, err := localRepo.CurrentBranch()
+	utils.Check(err)
 
-  shortName := currentBranch.ShortName()
-  pushRemote, _ := git.Config(fmt.Sprintf("branch.%s.pushRemote", shortName))
-  if pushRemote != "" {
-    pushBranch, _ := git.Config(fmt.Sprintf("branch.%s.pushBranch", shortName))
-    if pushBranch != "" {
-      args.AppendParams(pushRemote, fmt.Sprintf("%s:%s", shortName, pushBranch))
-    }
-  }
+	shortName := currentBranch.ShortName()
+	pushRemote, _ := git.Config(fmt.Sprintf("branch.%s.pushRemote", shortName))
+	if pushRemote != "" {
+		pushBranch, _ := git.Config(fmt.Sprintf("branch.%s.pushBranch", shortName))
+		if pushBranch != "" {
+			args.AppendParams(pushRemote, fmt.Sprintf("%s:%s", shortName, pushBranch))
+		}
+	}
 }
 
 func pushMultipleRemotes(args *Args) {
