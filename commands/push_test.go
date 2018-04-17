@@ -18,7 +18,7 @@ func testPush(t *testing.T) {
 
 func TestTransformPushArgs(t *testing.T) {
 	args := NewArgs([]string{"push", "origin,staging,qa", "bert_timeout"})
-	transformPushArgs(args)
+	pushMultipleRemotes(args)
 	cmds := args.Commands()
 
 	assert.Equal(t, 3, len(cmds))
@@ -27,7 +27,7 @@ func TestTransformPushArgs(t *testing.T) {
 
 	// TODO: travis-ci doesn't have HEAD
 	//args = NewArgs([]string{"push", "origin"})
-	//transformPushArgs(args)
+	//pushMultipleRemotes(args)
 	//cmds = args.Commands()
 
 	//assert.Equal(t, 1, len(cmds))
