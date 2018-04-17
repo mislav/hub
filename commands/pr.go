@@ -19,6 +19,7 @@ pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] 
 pr checkout <PR-NUMBER> [<BRANCH>]
 pr show [-uc] [-f <FORMAT>] [-h <HEAD>]
 pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
+pr merge <PR-NUMBER>
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
 
@@ -35,6 +36,9 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 		specified, <HEAD> is used to look up open pull requests and defaults to
 		the current branch name. With ''--format'', print information about the
 		pull request instead of opening it.
+
+	* _merge_:
+		Merge a pull request in the current project.
 
 ## Options:
 
@@ -173,12 +177,18 @@ hub-issue(1), hub-pull-request(1), hub(1)
 		--color
 `,
 	}
+
+	cmdMergePr = &Command{
+		Key: "merge",
+		Run: mergePr,
+	}
 )
 
 func init() {
 	cmdPr.Use(cmdListPulls)
 	cmdPr.Use(cmdCheckoutPr)
 	cmdPr.Use(cmdShowPr)
+	cmdPr.Use(cmdMergePr)
 	CmdRunner.Use(cmdPr)
 }
 
@@ -409,6 +419,37 @@ func deducePushTarget(branch *github.Branch, owner string) (*github.Project, err
 		return nil, fmt.Errorf("no remote found for branch %s", branch.ShortName())
 	}
 	return remote.Project()
+}
+
+func mergePr(command *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	args.NoForward()
+	if args.Noop {
+		ui.Printf("Would merge pull request for %s\n", project)
+		return
+	}
+
+	words := args.Words()
+
+	if len(words) == 0 {
+		utils.Check(fmt.Errorf("Error: No pull request number given"))
+	}
+
+	prNumberString := words[0]
+	prNumber, err := strconv.Atoi(prNumberString)
+	utils.Check(err)
+
+	err = gh.MergePullRequest(project, prNumber, map[string]interface{}{
+		"merge_method": "merge",
+	})
+	utils.Check(err)
 }
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {

@@ -145,6 +145,21 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	return
 }
 
+func (client *Client) MergePullRequest(project *Project, prNumber int, params map[string]interface{}) (err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PutJSON(fmt.Sprintf("repos/%s/%s/pulls/%d/merge", project.Owner, project.Name, prNumber), params)
+	if err = checkStatus(200, "merging pull request", res, err); err != nil {
+		return
+	}
+
+	res.Body.Close()
+	return
+}
+
 func (client *Client) RequestReview(project *Project, prNumber int, params map[string]interface{}) (err error) {
 	api, err := client.simpleApi()
 	if err != nil {
