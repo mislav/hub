@@ -98,9 +98,8 @@ func New(cmd string) *Cmd {
 
 	name := cmds[0]
 	args := make([]string, len(cmds)-1)
-	for _, arg := range cmds[1:] {
-		args = append(args, arg)
-	}
+	copy(args, cmds[1:])
+
 	return &Cmd{Name: name, Args: args, Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
 }
 
