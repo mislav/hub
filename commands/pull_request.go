@@ -32,6 +32,10 @@ pull-request -i <ISSUE>
 		Use the first line of <MESSAGE> as pull request title, and the rest as pull
 		request description.
 
+	--no-edit
+		Use the message from the first commit on the branch as pull request title
+		and description without opening a text editor.
+
 	-F, --file <FILE>
 		Read the pull request title and description from <FILE>.
 
@@ -93,7 +97,8 @@ var (
 	flagPullRequestCopy,
 	flagPullRequestEdit,
 	flagPullRequestPush,
-	flagPullRequestForce bool
+	flagPullRequestForce,
+	flagPullRequestNoEdit bool
 
 	flagPullRequestAssignees,
 	flagPullRequestReviewers,
@@ -110,6 +115,7 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestNoEdit, "no-edit", "", false, "NO-EDIT")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
 	cmdPullRequest.Flag.VarP(&flagPullRequestReviewers, "reviewer", "r", "USERS")
@@ -237,6 +243,14 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		messageBuilder.Message, err = msgFromFile(flagPullRequestFile)
 		utils.Check(err)
 		messageBuilder.Edit = flagPullRequestEdit
+	} else if flagPullRequestNoEdit {
+		commits, _ := git.RefList(baseTracking, head)
+		if len(commits) == 0 {
+			utils.Check(fmt.Errorf("No commits detected between '<BASE>' and '<HEAD>' branches"))
+		}
+		message, err := git.Show(commits[len(commits)-1])
+		utils.Check(err)
+		messageBuilder.Message = message
 	} else if flagPullRequestIssue == "" {
 		messageBuilder.Edit = true
 
