@@ -723,6 +723,20 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 		} else {
 			errInfo, e := res.ErrorInfo()
 			if e == nil {
+				// If we got a un/pw message the user may have provided an
+				// access token rather than a password. Test if it's valid,
+				// and return it if it is
+				if strings.TrimSpace(errInfo.Message) == "This API can only be accessed with username and password Basic Auth" {
+					api.PrepareRequest = func(req *http.Request) {
+						req.Header.Set("Authorization", "token "+password)
+					}
+
+					res, _ := api.Get("user")
+					if res.StatusCode == 200 {
+						token = password
+						return
+					}
+				}
 				err = errInfo
 			} else {
 				err = e
