@@ -37,6 +37,54 @@ Feature: OAuth authentication
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
     And the file "../home/.config/hub" should have mode "0600"
 
+  Scenario: Prompt for username & password, receive personal access token
+    Given the GitHub API server:
+      """
+      get('/user') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token 0123456789012345678901234567890123456789'
+        json :login => 'llIMLLib'
+      }
+      post('/user/repos') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token 0123456789012345678901234567890123456789'
+        status 201
+        json :full_name => 'llimllib/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "llimllib"
+    And I type "0123456789012345678901234567890123456789"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "user: llIMLLib"
+    And the file "../home/.config/hub" should contain:
+      """
+      oauth_token: "0123456789012345678901234567890123456789"
+      """
+
+  Scenario: Ask for username & password, receive password that looks like a token
+    Given the GitHub API server:
+      """
+      post('/authorizations') {
+        assert_basic_auth 'llimllib', '0123456789012345678901234567890123456789'
+        status 201
+        json :token => 'OTOKEN'
+      }
+      get('/user') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        json :login => 'llIMLLib'
+      }
+      post('/user/repos') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        status 201
+        json :full_name => 'llimllib/dotfiles'
+      }
+      """
+    When I run `hub create` interactively
+    When I type "llimllib"
+    And I type "0123456789012345678901234567890123456789"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "user: llIMLLib"
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+
   Scenario: Rename & retry creating authorization if there's a token name collision
     Given the GitHub API server:
       """
