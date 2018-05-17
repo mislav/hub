@@ -683,13 +683,31 @@ type AuthorizationEntry struct {
 	Token string `json:"token"`
 }
 
+// Test if the provided password is actually a valid oauth token
+func isPasswordAToken(api *simpleClient, user, password string) bool {
+	api.PrepareRequest = func(req *http.Request) {
+		req.Header.Set("Authorization", "token "+password)
+	}
+
+	res, _ := api.Get("user")
+	if res != nil && res.StatusCode == 200 {
+		return true
+	}
+	return false
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
+	api := client.apiClient()
+
+	if len(password) >= 40 && isPasswordAToken(api, user, password) {
+		return password, nil
+	}
+
 	params := map[string]interface{}{
 		"scopes":   []string{"repo"},
 		"note_url": OAuthAppURL,
 	}
 
-	api := client.apiClient()
 	api.PrepareRequest = func(req *http.Request) {
 		req.SetBasicAuth(user, password)
 		if twoFactorCode != "" {
