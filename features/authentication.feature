@@ -50,15 +50,15 @@ Feature: OAuth authentication
         json :full_name => 'llimllib/dotfiles'
       }
       """
-	When I run `hub create` interactively
-	When I type "llimllib"
-	And I type "0123456789012345678901234567890123456789"
-	Then the output should contain "github.com username:"
-	And the output should contain "github.com password for llimllib (never stored):"
-	And the exit status should be 0
-	And the file "../home/.config/hub" should contain "user: llIMLLib"
-	And the file "../home/.config/hub" should match /oauth_token: "0123456789012345678901234567890123456789"/
-	And the file "../home/.config/hub" should have mode "0600"
+    When I run `hub create` interactively
+    When I type "llimllib"
+    And I type "0123456789012345678901234567890123456789"
+    Then the output should contain "github.com username:"
+    And the output should contain "github.com password for llimllib (never stored):"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "user: llIMLLib"
+    And the file "../home/.config/hub" should match /oauth_token: "0123456789012345678901234567890123456789"/
+    And the file "../home/.config/hub" should have mode "0600"
 
   Scenario: Ask for username & password, receive username & long password, create authorization
     Given the GitHub API server:
@@ -85,15 +85,15 @@ Feature: OAuth authentication
         json :full_name => 'llimllib/dotfiles'
       }
       """
-	When I run `hub create` interactively
-	When I type "llimllib"
-	And I type "0123456789012345678901234567890123456789"
-	Then the output should contain "github.com username:"
-	And the output should contain "github.com password for llimllib (never stored):"
-	And the exit status should be 0
-	And the file "../home/.config/hub" should contain "user: llIMLLib"
-	And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-	And the file "../home/.config/hub" should have mode "0600"
+    When I run `hub create` interactively
+    When I type "llimllib"
+    And I type "0123456789012345678901234567890123456789"
+    Then the output should contain "github.com username:"
+    And the output should contain "github.com password for llimllib (never stored):"
+    And the exit status should be 0
+    And the file "../home/.config/hub" should contain "user: llIMLLib"
+    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "../home/.config/hub" should have mode "0600"
 
   Scenario: Rename & retry creating authorization if there's a token name collision
     Given the GitHub API server:
