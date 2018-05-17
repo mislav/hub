@@ -683,7 +683,7 @@ type AuthorizationEntry struct {
 	Token string `json:"token"`
 }
 
-// Test if the provided password is actually valid oauth token
+// Test if the provided password is actually a valid oauth token
 func isPasswordAToken(api *simpleClient, user, password string) bool {
 	api.PrepareRequest = func(req *http.Request) {
 		req.Header.Set("Authorization", "token "+password)
