@@ -683,13 +683,31 @@ type AuthorizationEntry struct {
 	Token string `json:"token"`
 }
 
+// Test if the provided password is actually valid oauth token
+func isPasswordAToken(api *simpleClient, user, password string) bool {
+	api.PrepareRequest = func(req *http.Request) {
+		req.Header.Set("Authorization", "token "+password)
+	}
+
+	res, _ := api.Get("user")
+	if res != nil && res.StatusCode == 200 {
+		return true
+	}
+	return false
+}
+
 func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (token string, err error) {
+	api := client.apiClient()
+
+	if len(password) >= 40 && isPasswordAToken(api, user, password) {
+		return password, nil
+	}
+
 	params := map[string]interface{}{
 		"scopes":   []string{"repo"},
 		"note_url": OAuthAppURL,
 	}
 
-	api := client.apiClient()
 	api.PrepareRequest = func(req *http.Request) {
 		req.SetBasicAuth(user, password)
 		if twoFactorCode != "" {
@@ -723,20 +741,6 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 		} else {
 			errInfo, e := res.ErrorInfo()
 			if e == nil {
-				// If we got a un/pw message the user may have provided an
-				// access token rather than a password. Test if it's valid,
-				// and return it if it is
-				if strings.TrimSpace(errInfo.Message) == "This API can only be accessed with username and password Basic Auth" {
-					api.PrepareRequest = func(req *http.Request) {
-						req.Header.Set("Authorization", "token "+password)
-					}
-
-					res, _ := api.Get("user")
-					if res.StatusCode == 200 {
-						token = password
-						return
-					}
-				}
 				err = errInfo
 			} else {
 				err = e
