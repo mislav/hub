@@ -252,6 +252,9 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		if len(commits) == 1 {
 			message, err = git.Show(commits[0])
 			utils.Check(err)
+
+			re := regexp.MustCompile(`(?m)\n^Signed-off-by:\s.*$`)
+			message = re.ReplaceAllString(message, "")
 		} else if len(commits) > 1 {
 			commitLogs, err = git.Log(baseTracking, headForMessage)
 			utils.Check(err)
