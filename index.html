@@ -249,7 +249,7 @@
 <em>better at GitHub</em>.
 </p>
 
-<pre><span class="comment"># OS X: install the latest release</span>
+<pre><span class="comment"># macOS: install the latest release</span>
 $ <a href="http://brew.sh/">brew</a> install hub
 
 <span class="comment"># Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or build your own from source.</span>
@@ -262,8 +262,8 @@ $ <strong>script/build -o ~/bin/hub</strong>
 $ alias <strong>git=hub</strong>
 
 $ git version
-git version 2.1.4
-hub version 2.2.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
+git version 2.17.0
+hub version 2.3.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
 </pre>
 </section>
 
@@ -340,12 +340,6 @@ $ git <strong>am -3</strong> https://github.com/github/hub/pull/134
 
 <span class="comment"># cherry-pick a GitHub URL</span>
 $ git <strong>cherry-pick https://github.com/xoebus/hub/commit/177eeb8</strong>
-<span class="result">→ git remote add xoebus git://github.com/xoebus/hub.git</span>
-<span class="result">→ git fetch xoebus</span>
-<span class="result">→ git cherry-pick 177eeb8</span>
-
-<span class="comment"># `am` can be better than cherry-pick since it doesn't create a remote</span>
-$ git <strong>am</strong> https://github.com/xoebus/hub/commit/177eeb8
 
 <span class="comment"># open the GitHub compare view between two releases</span>
 $ git <strong>compare v0.9..v1.0</strong>
@@ -376,7 +370,7 @@ $ git config --global --add hub.host <strong>my.example.org</strong>
 
 <span class="comment"># open a pull request using a message generated from script, then put its URL to the clipboard</span>
 $ git push origin feature
-$ git <strong>pull-request -F prepared-message.md | pbcopy</strong>
+$ git <strong>pull-request -c -F prepared-message.md</strong>
 <span class="result">→ (URL ready for pasting in a chat room)</span>
 
 <span class="comment"># push to multiple remotes</span>
