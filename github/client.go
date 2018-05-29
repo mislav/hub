@@ -306,7 +306,7 @@ func (client *Client) FetchReleases(project *Project, limit int, filter func(*Re
 }
 
 func (client *Client) FetchRelease(project *Project, tagName string) (*Release, error) {
-	releases, err := client.FetchReleases(project, 1, func(release *Release) bool {
+	releases, err := client.FetchReleases(project, 100, func(release *Release) bool {
 		return release.TagName == tagName
 	})
 
