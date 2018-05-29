@@ -135,6 +135,30 @@ BODY
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Single-commit with PULL_REQUEST_TEMPLATE directory
+    Given the git commit editor is "true"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Commit title',
+               :body => 'Commit body'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    And I make a commit with message:
+      """
+      Commit title
+
+      Commit body
+      """
+    And the "topic" branch is pushed to "origin/topic"
+    And a directory named "PULL_REQUEST_TEMPLATE"
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Message template should include git log summary between base and head
     Given the text editor adds:
       """
