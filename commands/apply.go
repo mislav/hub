@@ -67,7 +67,8 @@ func apply(command *Command, args *Args) {
 
 func transformApplyArgs(args *Args) {
 	gistRegexp := regexp.MustCompile("^https?://gist\\.github\\.com/([\\w.-]+/)?([a-f0-9]+)")
-	pullRegexp := regexp.MustCompile("^(pull|commit)/([0-9a-f]+)")
+	commitRegexp := regexp.MustCompile("^(commit|pull/[0-9]+/commits)/([0-9a-f]+)")
+	pullRegexp := regexp.MustCompile("^pull/([0-9]+)")
 	for _, arg := range args.Params {
 		var (
 			patch    io.ReadCloser
@@ -76,13 +77,10 @@ func transformApplyArgs(args *Args) {
 		projectURL, err := github.ParseURL(arg)
 		if err == nil {
 			gh := github.NewClient(projectURL.Project.Host)
-			match := pullRegexp.FindStringSubmatch(projectURL.ProjectPath())
-			if match != nil {
-				if match[1] == "pull" {
-					patch, apiError = gh.PullRequestPatch(projectURL.Project, match[2])
-				} else {
-					patch, apiError = gh.CommitPatch(projectURL.Project, match[2])
-				}
+			if match := commitRegexp.FindStringSubmatch(projectURL.ProjectPath()); match != nil {
+				patch, apiError = gh.CommitPatch(projectURL.Project, match[2])
+			} else if match := pullRegexp.FindStringSubmatch(projectURL.ProjectPath()); match != nil {
+				patch, apiError = gh.PullRequestPatch(projectURL.Project, match[1])
 			}
 		} else {
 			match := gistRegexp.FindStringSubmatch(arg)
