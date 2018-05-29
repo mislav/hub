@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>hub-pull-request(1) - Create a GitHub pull request.</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
+
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#OPTIONS">OPTIONS</a>
+    <a href="#CONFIGURATION">CONFIGURATION</a>
+    <a href="#SEE-ALSO">SEE ALSO</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>hub-pull-request(1)</li>
+    <li class='tc'>Hub Manual</li>
+    <li class='tr'>hub-pull-request(1)</li>
+  </ol>
+
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>hub-pull-request</code> - <span class="man-whatis">Create a GitHub pull request.</span>
+</p>
+
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<p><code>hub pull-request</code> [-focp] [-b <var>BASE</var>] [-h <var>HEAD</var>] [-r <var>REVIEWERS</var> ] [-a <var>ASSIGNEES</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>]<br />
+<code>hub pull-request</code> -m <var>MESSAGE</var> [--edit]<br />
+<code>hub pull-request</code> -F <var>FILE</var> [--edit]<br />
+<code>hub pull-request</code> -i <var>ISSUE</var></p>
+
+<h2 id="OPTIONS">OPTIONS</h2>
+
+<dl>
+<dt>-f, --force</dt><dd><p>Skip the check for unpushed commits.</p></dd>
+<dt>-m, --message <var>MESSAGE</var></dt><dd><p>Use the first line of <var>MESSAGE</var> as pull request title, and the rest as pull
+request description.</p></dd>
+<dt>-F, --file <var>FILE</var></dt><dd><p>Read the pull request title and description from <var>FILE</var>.</p></dd>
+<dt>-e, --edit</dt><dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
+<dt>-i, --issue <var>ISSUE</var>, <var>ISSUE-URL</var></dt><dd><p>(Deprecated) Convert <var>ISSUE</var> to a pull request.</p></dd>
+<dt>-o, --browse</dt><dd><p>Open the new pull request in a web browser.</p></dd>
+<dt>-c, --copy</dt><dd><p>Put the URL of the new pull request to clipboard instead of printing it.</p></dd>
+<dt>-p, --push</dt><dd><p>Push the current branch to <var>HEAD</var> before creating the pull request.</p></dd>
+<dt>-b, --base <var>BASE</var></dt><dd><p>The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
+(usually "master").</p></dd>
+<dt>-h, --head <var>HEAD</var></dt><dd><p>The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.</p></dd>
+<dt>-r, --reviewer <var>USERS</var></dt><dd><p>A comma-separated list of GitHub handles to request a review from.</p></dd>
+<dt>-a, --assign <var>USERS</var></dt><dd><p>A comma-separated list of GitHub handles to assign to this pull request.</p></dd>
+<dt>-M, --milestone <var>NAME</var></dt><dd><p>The milestone name to add to this pull request. Passing the milestone number
+is deprecated.</p></dd>
+<dt>-l, --labels <var>LABELS</var></dt><dd><p>Add a comma-separated list of labels to this pull request.</p></dd>
+</dl>
+
+
+<h2 id="CONFIGURATION">CONFIGURATION</h2>
+
+<p>  HUB_RETRY_TIMEOUT=<var>SECONDS</var></p>
+
+<pre><code>The maximum time to keep retrying after HTTP 422 on `--push` (default: 9).
+</code></pre>
+
+<h2 id="SEE-ALSO">SEE ALSO</h2>
+
+<p><a class="man-ref" href="hub.1.html">hub<span class="s">(1)</span></a>, <a class="man-ref" href="hub-merge.1.html">hub-merge<span class="s">(1)</span></a>, <a class="man-ref" href="hub-checkout.1.html">hub-checkout<span class="s">(1)</span></a></p>
+
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'>GITHUB</li>
+    <li class='tc'>May 2018</li>
+    <li class='tr'>hub-pull-request(1)</li>
+  </ol>
+
+  </div>
+</body>
+</html>

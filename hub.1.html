@@ -3,7 +3,7 @@
 <head>
   <meta http-equiv='content-type' value='text/html;charset=utf8'>
   <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
-  <title>hub manual</title>
+  <title>hub(1) - make git easier with GitHub</title>
   <style type='text/css' media='all'>
   /* style: man */
   body#manpage {margin:0}
@@ -56,8 +56,8 @@
     <a href="#NAME">NAME</a>
     <a href="#SYNOPSIS">SYNOPSIS</a>
     <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#COMMANDS">COMMANDS</a>
     <a href="#CONFIGURATION">CONFIGURATION</a>
-    <a href="#EXAMPLES">EXAMPLES</a>
     <a href="#BUGS">BUGS</a>
     <a href="#AUTHORS">AUTHORS</a>
     <a href="#SEE-ALSO">SEE ALSO</a>
@@ -71,144 +71,55 @@
 
   <h2 id="NAME">NAME</h2>
 <p class="man-name">
-  <code>hub</code> - <span class="man-whatis">git + hub = github</span>
+  <code>hub</code> - <span class="man-whatis">make git easier with GitHub</span>
 </p>
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
-<p><code>hub</code> [<code>--noop</code>] <var>COMMAND</var> <var>OPTIONS</var><br />
-<code>hub alias</code> [<code>-s</code>] [<var>SHELL</var>]</p>
-
-<h3 id="Expanded-git-commands-">Expanded git commands:</h3>
-
-<p><code>git init -g</code> <var>OPTIONS</var><br />
-<code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var><br />
-<code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
-<code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]<br />
-<code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]<br />
-<code>git checkout</code> <var>PULLREQ-URL</var> [<var>BRANCH</var>]<br />
-<code>git merge</code> <var>PULLREQ-URL</var><br />
-<code>git cherry-pick</code> <var>GITHUB-REF</var><br />
-<code>git am</code> <var>GITHUB-URL</var><br />
-<code>git apply</code> <var>GITHUB-URL</var><br />
-<code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> [<var>REF</var>]<br />
-<code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></p>
-
-<h3 id="Custom-git-commands-">Custom git commands:</h3>
-
-<p><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]<br />
-<code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]<br />
-<code>git compare</code> [<code>-u</code>] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]<br />
-<code>git fork</code> [<code>--no-remote</code>]<br />
-<code>git pull-request</code> [<code>-o</code>|<code>--browse</code>] [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]<br />
-<code>git ci-status</code> [<code>-v</code>] [<var>COMMIT</var>]</p>
+<p><code>hub</code> [<code>--noop</code>] <var>COMMAND</var> [<var>OPTIONS</var>]<br />
+<code>hub alias</code> [<code>-s</code>] [<var>SHELL</var>]<br />
+<code>hub help</code> hub-<var>COMMAND</var></p>
 
 <h2 id="DESCRIPTION">DESCRIPTION</h2>
 
-<p>hub enhances various git commands to ease most common workflows with GitHub.</p>
+<p>Hub is a tool that wraps git in order to extend it with extra functionality that
+makes it better when working with GitHub.</p>
+
+<h2 id="COMMANDS">COMMANDS</h2>
+
+<p>Available commands are split into two groups: those that are already present in
+git but that are extended through hub, and custom ones that hub provides.</p>
+
+<h3 id="Extended-git-commands">Extended git commands</h3>
 
 <dl>
-<dt><code>hub --noop</code> <var>COMMAND</var></dt><dd><p>Shows which command(s) would be run as a result of the current command.
-Doesn't perform anything.</p></dd>
-<dt><code>hub alias</code> [<code>-s</code>] [<var>SHELL</var>]</dt><dd><p>Shows shell instructions for wrapping git. If given, <var>SHELL</var> specifies the
-type of shell; otherwise defaults to the value of SHELL environment
-variable.  With <code>-s</code>, outputs shell script suitable for <code>eval</code>.</p></dd>
-<dt><code>git init</code> <code>-g</code> <var>OPTIONS</var></dt><dd><p>Create a git repository as with <span class="man-ref">git-init<span class="s">(1)</span></span> and add remote <code>origin</code> at
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub username and
-<var>REPOSITORY</var> is the current working directory's basename.</p></dd>
-<dt><code>git clone</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var><code>/</code>]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Clone repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
-<var>DIRECTORY</var> as with <span class="man-ref">git-clone<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
-your GitHub login.</p>
-
-<p>If the repository is private or the current user has push access to the
-repository, hub will use the ssh protocol for cloning. Use <code>-p</code> to select
-the ssh protocol unconditionally. HTTPS protocol can be used instead by
-setting "hub.protocol" (see <var>CONFIGURATION</var>).</p></dd>
-<dt><code>git remote add</code> [<code>-p</code>] <var>OPTIONS</var> <var>USER</var>[<code>/</code><var>REPOSITORY</var>]</dt><dd><p>Add remote "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" as with
-<span class="man-ref">git-remote<span class="s">(1)</span></span>. When /<var>REPOSITORY</var> is omitted, the basename of the
-current working directory is used. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git". If <var>USER</var> is "origin"
-then uses your GitHub login.</p></dd>
-<dt><code>git remote set-url</code> [<code>-p</code>] <var>OPTIONS</var> <var>REMOTE-NAME</var> <var>USER</var>[/<var>REPOSITORY</var>]</dt><dd><p>Sets the url of remote <var>REMOTE-NAME</var> using the same rules as
-<code>git remote add</code>.</p></dd>
-<dt><code>git fetch</code> <var>USER-1</var>,[<var>USER-2</var>,...]</dt><dd><p>Adds missing remote(s) with <code>git remote add</code> prior to fetching. New
-remotes are only added if they correspond to valid forks on GitHub.</p></dd>
-<dt><code>git checkout</code> <var>PULLREQ-URL</var> [<var>BRANCH</var>]</dt><dd><p>Checks out the head of the pull request as a local branch, to allow for
-reviewing, rebasing and otherwise cleaning up the commits in the pull
-request before merging. The name of the local branch can explicitly be
-set with <var>BRANCH</var>.</p></dd>
-<dt><code>git merge</code> <var>PULLREQ-URL</var></dt><dd><p>Merge the pull request with a commit message that includes the pull request
-ID and title, similar to the GitHub Merge Button.</p></dd>
-<dt><code>git cherry-pick</code> <var>GITHUB-REF</var></dt><dd><p>Cherry-pick a commit from a fork using either full URL to the commit
-or GitHub-flavored Markdown notation, which is <code>user@sha</code>. If the remote
-doesn't yet exist, it will be added. A <code>git fetch &lt;user></code> is issued
-prior to the cherry-pick attempt.</p></dd>
-<dt><code>git [am|apply]</code> <var>GITHUB-URL</var></dt><dd><p>Downloads the patch file for the pull request or commit at the URL and
-applies that patch from disk with <code>git am</code> or <code>git apply</code>. Similar to
-<code>cherry-pick</code>, but doesn't add new remotes. <code>git am</code> creates commits while
-preserving authorship info while <code>apply</code> only applies the patch to the
-working copy.</p></dd>
-<dt><code>git push</code> <var>REMOTE-1</var>,<var>REMOTE-2</var>,...,<var>REMOTE-N</var> [<var>REF</var>]</dt><dd><p>Push <var>REF</var> to each of <var>REMOTE-1</var> through <var>REMOTE-N</var> by executing
-multiple <code>git push</code> commands.</p></dd>
-<dt><code>git submodule add</code> [<code>-p</code>] <var>OPTIONS</var> [<var>USER</var>/]<var>REPOSITORY</var> <var>DIRECTORY</var></dt><dd><p>Submodule repository "git://github.com/<var>USER</var>/<var>REPOSITORY</var>.git" into
-<var>DIRECTORY</var> as with <span class="man-ref">git-submodule<span class="s">(1)</span></span>. When <var>USER</var>/ is omitted, assumes
-your GitHub login. With <code>-p</code>, use private remote
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git".</p></dd>
-<dt><code>git help</code></dt><dd><p>Display enhanced <span class="man-ref">git-help<span class="s">(1)</span></span>.</p></dd>
+<dt><a class="man-ref" href="hub-am.1.html">hub-am<span class="s">(1)</span></a></dt><dd><p>Replicate commits from a GitHub pull request locally.</p></dd>
+<dt><a class="man-ref" href="hub-apply.1.html">hub-apply<span class="s">(1)</span></a></dt><dd><p>Download a patch from GitHub and apply it locally.</p></dd>
+<dt><a class="man-ref" href="hub-checkout.1.html">hub-checkout<span class="s">(1)</span></a></dt><dd><p>Check out the head of a pull request as a local branch.</p></dd>
+<dt><a class="man-ref" href="hub-cherry-pick.1.html">hub-cherry-pick<span class="s">(1)</span></a></dt><dd><p>Cherry-pick a commit from a fork on GitHub.</p></dd>
+<dt><a class="man-ref" href="hub-clone.1.html">hub-clone<span class="s">(1)</span></a></dt><dd><p>Clone a repository from GitHub.</p></dd>
+<dt><a class="man-ref" href="hub-fetch.1.html">hub-fetch<span class="s">(1)</span></a></dt><dd><p>Add missing remotes prior to performing git fetch.</p></dd>
+<dt><a class="man-ref" href="hub-init.1.html">hub-init<span class="s">(1)</span></a></dt><dd><p>Initialize a git repository and create it on GitHub.</p></dd>
+<dt><a class="man-ref" href="hub-merge.1.html">hub-merge<span class="s">(1)</span></a></dt><dd><p>Merge a pull request with a message like the GitHub Merge Button.</p></dd>
+<dt><a class="man-ref" href="hub-push.1.html">hub-push<span class="s">(1)</span></a></dt><dd><p>Push a git branch to each of the listed remotes.</p></dd>
+<dt><a class="man-ref" href="hub-remote.1.html">hub-remote<span class="s">(1)</span></a></dt><dd><p>Add a git remote for a GitHub repository.</p></dd>
+<dt><a class="man-ref" href="hub-submodule.1.html">hub-submodule<span class="s">(1)</span></a></dt><dd><p>Add a git submodule for a GitHub repository.</p></dd>
 </dl>
 
 
-<p>hub also adds some custom commands that are otherwise not present in git:</p>
+<h3 id="New-commands-provided-by-hub">New commands provided by hub</h3>
 
 <dl>
-<dt><code>git create</code> [<var>NAME</var>] [<code>-p</code>] [<code>-d</code> <var>DESCRIPTION</var>] [<code>-h</code> <var>HOMEPAGE</var>]</dt><dd><p>Create a new public GitHub repository from the current git
-repository and add remote <code>origin</code> at
-"git@github.com:<var>USER</var>/<var>REPOSITORY</var>.git"; <var>USER</var> is your GitHub
-username and <var>REPOSITORY</var> is the current working directory name.
-To explicitly name the new repository, pass in <var>NAME</var>, optionally in
-<var>ORGANIZATION</var>/<var>NAME</var> form to create under an organization you're a
-member of. With <code>-p</code>, create a private repository, and with <code>-d</code> and <code>-h</code>
-set the repository's description and homepage URL, respectively.</p></dd>
-<dt><code>git browse</code> [<code>-u</code>] [[<var>USER</var><code>/</code>]<var>REPOSITORY</var>] [SUBPAGE]</dt><dd><p>Open repository's GitHub page in the system's default web browser using
-<code>open(1)</code> or the <code>BROWSER</code> env variable. If the repository isn't
-specified, <code>browse</code> opens the page of the repository found in the current
-directory.
-If SUBPAGE is specified, the browser will open on the specified
-subpage: one of "wiki", "commits", "issues" or other (the default is
-"tree"). A specific commit in the default repository can be opened with
-<code>git browse -- commit/&lt;COMMIT></code>.
-With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
-<dt><code>git compare</code> [<code>-u</code>] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]</dt><dd><p>Open a GitHub compare view page in the system's default web browser.
-<var>START</var> to <var>END</var> are branch names, tag names, or commit SHA1s specifying
-the range of history to compare. If a range with two dots (<code>a..b</code>) is given,
-it will be transformed into one with three dots. If <var>START</var> is omitted,
-GitHub will compare against the base branch (the default is "master").
-If <var>END</var> is omitted, GitHub compare view is opened for the current branch.
-With <code>-u</code>, outputs the URL rather than opening the browser.</p></dd>
-<dt><code>git fork</code> [<code>--no-remote</code>]</dt><dd><p>Forks the original project (referenced by "origin" remote) on GitHub and
-adds a new remote for it under your username.</p></dd>
-<dt><code>git pull-request</code> [<code>-o</code>|<code>--browse</code>] [<code>-f</code>] [<code>-m</code> <var>MESSAGE</var>|<code>-F</code> <var>FILE</var>|<code>-i</code> <var>ISSUE</var>|<var>ISSUE-URL</var>] [<code>-b</code> <var>BASE</var>] [<code>-h</code> <var>HEAD</var>]</dt><dd><p>Opens a pull request on GitHub for the project that the "origin" remote
-points to. The default head of the pull request is the current branch.
-Both base and head of the pull request can be explicitly given in one of
-the following formats: "branch", "owner:branch", "owner/repo:branch".
-This command will abort operation if it detects that the current topic
-branch has local commits that are not yet pushed to its upstream branch
-on the remote. To skip this check, use <code>-f</code>.</p>
-
-<p>Without <var>MESSAGE</var> or <var>FILE</var>, a text editor will open in which title and body
-of the pull request can be entered in the same manner as git commit message.
-Pull request message can also be passed via stdin with <code>-F -</code>.</p>
-
-<p>With <code>-o</code> or <code>--browse</code>, the new pull request will open in the web browser.</p>
-
-<p>Issue to pull request conversion via <code>-i &lt;ISSUE></code> or <var>ISSUE-URL</var>
-arguments is deprecated and will likely be removed from the future versions
-of both hub and GitHub API.</p></dd>
-<dt><code>git ci-status</code> [<code>-v</code>] [<var>COMMIT</var>]</dt><dd><p>Looks up the SHA for <var>COMMIT</var> in GitHub Status API and displays the latest
-status. Exits with one of:<br />
-success (0), error (1), failure (1), pending (2), no status (3)</p>
-
-<p>If <code>-v</code> is given, additionally print detailed report of all checks and their URLs.</p></dd>
+<dt><a class="man-ref" href="hub-alias.1.html">hub-alias<span class="s">(1)</span></a></dt><dd><p>Show shell instructions for wrapping git.</p></dd>
+<dt><a class="man-ref" href="hub-browse.1.html">hub-browse<span class="s">(1)</span></a></dt><dd><p>Open a GitHub repository in a web browser.</p></dd>
+<dt><a class="man-ref" href="hub-ci-status.1.html">hub-ci-status<span class="s">(1)</span></a></dt><dd><p>Display GitHub Status information for a commit.</p></dd>
+<dt><a class="man-ref" href="hub-compare.1.html">hub-compare<span class="s">(1)</span></a></dt><dd><p>Open a GitHub compare page in a web browser.</p></dd>
+<dt><a class="man-ref" href="hub-create.1.html">hub-create<span class="s">(1)</span></a></dt><dd><p>Create a new repository on GitHub and add a git remote for it.</p></dd>
+<dt><a class="man-ref" href="hub-fork.1.html">hub-fork<span class="s">(1)</span></a></dt><dd><p>Fork the current project on GitHub and add a git remote for it.</p></dd>
+<dt><a class="man-ref" href="hub-pull-request.1.html">hub-pull-request<span class="s">(1)</span></a></dt><dd><p>Create a GitHub pull request.</p></dd>
+<dt><a class="man-ref" href="hub-issue.1.html">hub-issue<span class="s">(1)</span></a></dt><dd><p>List and create GitHub issues.</p></dd>
+<dt><a class="man-ref" href="hub-release.1.html">hub-release<span class="s">(1)</span></a></dt><dd><p>List and create GitHub releases.</p></dd>
+<dt><a class="man-ref" href="hub-sync.1.html">hub-sync<span class="s">(1)</span></a></dt><dd><p>Fetch from upstream and update local branches.</p></dd>
 </dl>
 
 
@@ -217,253 +128,49 @@ success (0), error (1), failure (1), pending (2), no status (3)</p>
 <h3 id="GitHub-OAuth-authentication">GitHub OAuth authentication</h3>
 
 <p>Hub will prompt for GitHub username &amp; password the first time it needs to access
-the API and exchange it for an OAuth token, which it saves in "~/.config/hub".</p>
+the API and exchange it for an OAuth token, which it saves in <code>~/.config/hub</code>.</p>
 
-<p>To avoid being prompted, use <var>GITHUB_USER</var> and <var>GITHUB_PASSWORD</var> environment
+<p>To avoid being prompted, use <code>GITHUB_USER</code> and <code>GITHUB_PASSWORD</code> environment
 variables.</p>
 
-<p>Alternatively, you may provide <var>GITHUB_TOKEN</var>, an access token with
-<var>repo</var> permissions. This will not be written to <code>~/.config/hub</code>.</p>
+<p>Alternatively, you may provide <code>GITHUB_TOKEN</code>, an access token with
+<strong>repo</strong> permissions. This will not be written to <code>~/.config/hub</code>.</p>
 
 <h3 id="HTTPS-instead-of-git-protocol">HTTPS instead of git protocol</h3>
 
-<p>If you prefer the HTTPS protocol for GitHub repositories, you can set
-"hub.protocol" to "https". This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code>
-and other operations that expand references to GitHub repositories as full
-URLs that otherwise use git and ssh protocols.</p>
+<p>If you prefer the HTTPS protocol for git operations, you can configure hub to
+generate all URLs with <code>https:</code> instead of <code>git:</code> or <code>ssh:</code>:</p>
 
-<p>"hub.protocol" only applies when the "OWNER/REPO" shorthand is used instead of
-a full git URL.</p>
-
-<pre><code># default behavior
-$ git clone defunkt/repl
-&lt; git clone >
-
-# opt into HTTPS:
-$ git config --global hub.protocol https
-$ git clone defunkt/repl
-&lt; https clone >
+<pre><code>$ git config --global hub.protocol https
 </code></pre>
+
+<p>This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code> and other hub commands that
+expand shorthand references to GitHub repo URLs.</p>
 
 <h3 id="GitHub-Enterprise">GitHub Enterprise</h3>
 
 <p>By default, hub will only work with repositories that have remotes which
-point to github.com. GitHub Enterprise hosts need to be whitelisted to
+point to <code>github.com</code>. GitHub Enterprise hosts need to be whitelisted to
 configure hub to treat such remotes same as github.com:</p>
 
-<pre><code>$ git config --global --add hub.host my.git.org
+<pre><code>$ git config --global --add hub.host MY.GIT.ORG
 </code></pre>
 
-<p>The default host for commands like <code>init</code> and <code>clone</code> is still
-github.com, but this can be affected with the <code>GITHUB_HOST</code> environment
-variable:</p>
+<p>The default host for commands like <code>init</code> and <code>clone</code> is still <code>github.com</code>, but
+this can be affected with the <code>GITHUB_HOST</code> environment variable:</p>
 
 <pre><code>$ GITHUB_HOST=my.git.org git clone myproject
 </code></pre>
 
-<h2 id="EXAMPLES">EXAMPLES</h2>
+<h3 id="Environment-variables">Environment variables</h3>
 
-<h3 id="git-clone">git clone</h3>
+<dl>
+<dt><code>HUB_VERBOSE</code></dt><dd><p>Enable verbose output from hub commands.</p></dd>
+<dt><code>HUB_CONFIG</code></dt><dd><p>Set the location of a custom config file (default: <code>~/.config/hub</code>).</p></dd>
+<dt><code>HUB_PROTOCOL</code></dt><dd><p>Use one of "https|ssh|git" as preferred protocol for git clone/push.</p></dd>
+<dt><code>GITHUB_TOKEN</code></dt><dd><p>OAuth token to use for GitHub API requests.</p></dd>
+</dl>
 
-<pre><code>$ git clone schacon/ticgit
-&gt; git clone git://github.com/schacon/ticgit.git
-
-$ git clone -p schacon/ticgit
-&gt; git clone git@github.com:schacon/ticgit.git
-
-$ git clone resque
-&gt; git clone git@github.com:YOUR_USER/resque.git
-</code></pre>
-
-<h3 id="git-remote-add">git remote add</h3>
-
-<pre><code>$ git remote add rtomayko
-&gt; git remote add rtomayko git://github.com/rtomayko/CURRENT_REPO.git
-
-$ git remote add -p rtomayko
-&gt; git remote add rtomayko git@github.com:rtomayko/CURRENT_REPO.git
-
-$ git remote add origin
-&gt; git remote add origin git://github.com/YOUR_USER/CURRENT_REPO.git
-</code></pre>
-
-<h3 id="git-fetch">git fetch</h3>
-
-<pre><code>$ git fetch mislav
-&gt; git remote add mislav git://github.com/mislav/REPO.git
-&gt; git fetch mislav
-
-$ git fetch mislav,xoebus
-&gt; git remote add mislav ...
-&gt; git remote add xoebus ...
-&gt; git fetch --multiple mislav xoebus
-</code></pre>
-
-<h3 id="git-cherry-pick">git cherry-pick</h3>
-
-<pre><code>$ git cherry-pick http://github.com/mislav/REPO/commit/SHA
-&gt; git remote add -f --no-tags mislav git://github.com/mislav/REPO.git
-&gt; git cherry-pick SHA
-
-$ git cherry-pick mislav@SHA
-&gt; git remote add -f --no-tags mislav git://github.com/mislav/CURRENT_REPO.git
-&gt; git cherry-pick SHA
-
-$ git cherry-pick mislav@SHA
-&gt; git fetch mislav
-&gt; git cherry-pick SHA
-</code></pre>
-
-<h3 id="git-am-git-apply">git am, git apply</h3>
-
-<pre><code>$ git am https://github.com/defunkt/hub/pull/55
-[ downloads patch via API ]
-&gt; git am /tmp/55.patch
-
-$ git am --ignore-whitespace https://github.com/davidbalbert/hub/commit/fdb9921
-[ downloads patch via API ]
-&gt; git am --ignore-whitespace /tmp/fdb9921.patch
-
-$ git apply https://gist.github.com/8da7fb575debd88c54cf
-[ downloads patch via API ]
-&gt; git apply /tmp/gist-8da7fb575debd88c54cf.txt
-</code></pre>
-
-<h3 id="git-fork">git fork</h3>
-
-<pre><code>$ git fork
-[ repo forked on GitHub ]
-&gt; git remote add -f YOUR_USER git@github.com:YOUR_USER/CURRENT_REPO.git
-</code></pre>
-
-<h3 id="git-pull-request">git pull-request</h3>
-
-<pre><code># while on a topic branch called "feature":
-$ git pull-request
-[ opens text editor to edit title &amp; body for the request ]
-[ opened pull request on GitHub for "YOUR_USER:feature" ]
-
-# explicit title, pull base &amp; head:
-$ git pull-request -m "Implemented feature X" -b defunkt:master -h mislav:feature
-</code></pre>
-
-<h3 id="git-checkout">git checkout</h3>
-
-<pre><code>$ git checkout https://github.com/defunkt/hub/pull/73
-&gt; git remote add -f --no-tags -t feature mislav git://github.com/mislav/hub.git
-&gt; git checkout --track -B mislav-feature mislav/feature
-
-$ git checkout https://github.com/defunkt/hub/pull/73 custom-branch-name
-</code></pre>
-
-<h3 id="git-merge">git merge</h3>
-
-<pre><code>$ git merge https://github.com/defunkt/hub/pull/73
-&gt; git fetch git://github.com/mislav/hub.git +refs/heads/feature:refs/remotes/mislav/feature
-&gt; git merge mislav/feature --no-ff -m 'Merge pull request #73 from mislav/feature...'
-</code></pre>
-
-<h3 id="git-create">git create</h3>
-
-<pre><code>$ git create
-[ repo created on GitHub ]
-&gt; git remote add origin git@github.com:YOUR_USER/CURRENT_REPO.git
-
-# with description:
-$ git create -d 'It shall be mine, all mine!'
-
-$ git create recipes
-[ repo created on GitHub ]
-&gt; git remote add origin git@github.com:YOUR_USER/recipes.git
-
-$ git create sinatra/recipes
-[ repo created in GitHub organization ]
-&gt; git remote add origin git@github.com:sinatra/recipes.git
-</code></pre>
-
-<h3 id="git-init">git init</h3>
-
-<pre><code>$ git init -g
-&gt; git init
-&gt; git remote add origin git@github.com:YOUR_USER/REPO.git
-</code></pre>
-
-<h3 id="git-push">git push</h3>
-
-<pre><code>$ git push origin,staging,qa bert_timeout
-&gt; git push origin bert_timeout
-&gt; git push staging bert_timeout
-&gt; git push qa bert_timeout
-</code></pre>
-
-<h3 id="git-browse">git browse</h3>
-
-<pre><code>$ git browse
-&gt; open https://github.com/YOUR_USER/CURRENT_REPO
-
-$ git browse -- commit/SHA
-&gt; open https://github.com/YOUR_USER/CURRENT_REPO/commit/SHA
-
-$ git browse -- issues
-&gt; open https://github.com/YOUR_USER/CURRENT_REPO/issues
-
-$ git browse -- issues/10
-&gt; open https://github.com/YOUR_USER/CURRENT_REPO/issues/10
-
-$ git browse schacon/ticgit
-&gt; open https://github.com/schacon/ticgit
-
-$ git browse schacon/ticgit commit/SHA
-&gt; open https://github.com/schacon/ticgit/commit/SHA
-
-$ git browse resque
-&gt; open https://github.com/YOUR_USER/resque
-
-$ git browse resque network
-&gt; open https://github.com/YOUR_USER/resque/network
-</code></pre>
-
-<h3 id="git-compare">git compare</h3>
-
-<pre><code>$ git compare refactor
-&gt; open https://github.com/CURRENT_REPO/compare/refactor
-
-$ git compare 1.0..1.1
-&gt; open https://github.com/CURRENT_REPO/compare/1.0...1.1
-
-$ git compare -u fix
-&gt; (https://github.com/CURRENT_REPO/compare/fix)
-
-$ git compare other-user patch
-&gt; open https://github.com/other-user/REPO/compare/patch
-</code></pre>
-
-<h3 id="git-submodule">git submodule</h3>
-
-<pre><code>$ git submodule add wycats/bundler vendor/bundler
-&gt; git submodule add git://github.com/wycats/bundler.git vendor/bundler
-
-$ git submodule add -p wycats/bundler vendor/bundler
-&gt; git submodule add git@github.com:wycats/bundler.git vendor/bundler
-
-$ git submodule add -b ryppl --name pip ryppl/pip vendor/pip
-&gt; git submodule add -b ryppl --name pip git://github.com/ryppl/pip.git vendor/pip
-</code></pre>
-
-<h3 id="git-ci-status">git ci-status</h3>
-
-<pre><code>$ git ci-status [commit]
-&gt; (prints CI state of commit and exits with appropriate code)
-&gt; One of: success (0), error (1), failure (1), pending (2), no status (3)
-</code></pre>
-
-<h3 id="git-help">git help</h3>
-
-<pre><code>$ git help
-&gt; (improved git help)
-$ git help hub
-&gt; (hub man page)
-</code></pre>
 
 <h2 id="BUGS">BUGS</h2>
 
@@ -476,30 +183,15 @@ $ git help hub
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
 <p><span class="man-ref">git<span class="s">(1)</span></span>, <span class="man-ref">git-clone<span class="s">(1)</span></span>, <span class="man-ref">git-remote<span class="s">(1)</span></span>, <span class="man-ref">git-init<span class="s">(1)</span></span>,
-<a href="http://github.com" data-bare-link="true">http://github.com</a>,
 <a href="https://github.com/github/hub" data-bare-link="true">https://github.com/github/hub</a></p>
 
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>November 2016</li>
+    <li class='tc'>May 2018</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
   </div>
-
-<script>
-  var _gauges = _gauges || [];
-  if (/github\.com/.test(location.hostname)) (function() {
-    var t   = document.createElement('script');
-    t.type  = 'text/javascript';
-    t.async = true;
-    t.id    = 'gauges-tracker';
-    t.setAttribute('data-site-id', '51dd714ef5a1f517070000ce');
-    t.src = '//secure.gaug.es/track.js';
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(t, s);
-  })();
-</script>
 </body>
 </html>
