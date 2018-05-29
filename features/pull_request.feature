@@ -107,12 +107,13 @@ Feature: hub pull-request
         halt 400 if request.content_charset != 'utf-8'
         assert :title => 'Commit title',
                :body => <<BODY.chomp
-Commit body
+      Commit body
 
-This is the pull request template
 
-Another line of template
-BODY
+       This is the pull request template
+
+      Another line of template
+      BODY
         status 201
         json :html_url => "the://url"
       }
@@ -128,7 +129,7 @@ BODY
     And the "topic" branch is pushed to "origin/topic"
     Given a file named "pull_request_template.md" with:
       """
-      This is the pull request template
+       This is the pull request template
 
       Another line of template
       """

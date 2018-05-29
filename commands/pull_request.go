@@ -268,7 +268,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		if workdir != "" {
 			template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
 			if template != "" {
-				message = message + "\n\n" + template
+				message = message + "\n\n\n" + template
 			}
 		}
 

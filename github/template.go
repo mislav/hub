@@ -59,6 +59,6 @@ func readContentsFromFile(filename string) (contents string, err error) {
 	}
 
 	contents = strings.Replace(string(content), "\r\n", "\n", -1)
-	contents = strings.TrimSpace(contents)
+	contents = strings.TrimSuffix(contents, "\n")
 	return
 }
