@@ -19,6 +19,9 @@ var cmdCompare = &Command{
 	-u
 		Print the URL instead of opening it.
 
+	-c, --copy
+		Put the URL to clipboard instead of opening it.
+
 	-b <BASE>
 		Base branch to compare.
 
@@ -46,11 +49,13 @@ hub-browse(1), hub(1)
 }
 
 var (
+	flagCompareCopy    bool
 	flagCompareURLOnly bool
 	flagCompareBase    string
 )
 
 func init() {
+	cmdCompare.Flag.BoolVarP(&flagCompareCopy, "copy", "c", false, "COPY")
 	cmdCompare.Flag.BoolVarP(&flagCompareURLOnly, "url-only", "u", false, "URL only")
 	cmdCompare.Flag.StringVarP(&flagCompareBase, "base", "b", "", "BASE")
 
@@ -116,7 +121,7 @@ func compare(command *Command, args *Args) {
 	url := project.WebURL("", "", subpage)
 
 	args.NoForward()
-	printBrowseOrCopy(args, url, !flagCompareURLOnly, false)
+	printBrowseOrCopy(args, url, !flagCompareURLOnly && !flagCompareCopy, flagCompareCopy)
 }
 
 func parseCompareRange(r string) string {
