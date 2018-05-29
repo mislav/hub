@@ -97,8 +97,7 @@ func New(cmd string) *Cmd {
 	utils.Check(err)
 
 	name := cmds[0]
-	args := make([]string, len(cmds)-1)
-	copy(args, cmds[1:])
+	args := cmds[1:]
 
 	return &Cmd{Name: name, Args: args, Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
 }
