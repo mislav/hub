@@ -306,15 +306,16 @@ func (client *Client) FetchReleases(project *Project, limit int, filter func(*Re
 }
 
 func (client *Client) FetchRelease(project *Project, tagName string) (*Release, error) {
-	releases, err := client.FetchReleases(project, 1, func(release *Release) bool {
+	releases, err := client.FetchReleases(project, 100, func(release *Release) bool {
 		return release.TagName == tagName
 	})
-	if err != nil && len(releases) < 1 {
-		err = fmt.Errorf("Unable to find release with tag name `%s'", tagName)
-	}
 
 	if err == nil {
-		return &releases[0], nil
+		if len(releases) < 1 {
+			return nil, fmt.Errorf("Unable to find release with tag name `%s'", tagName)
+		} else {
+			return &releases[0], nil
+		}
 	} else {
 		return nil, err
 	}
