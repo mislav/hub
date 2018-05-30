@@ -260,6 +260,8 @@ type Release struct {
 	HtmlUrl         string         `json:"html_url"`
 	UploadUrl       string         `json:"upload_url"`
 	ApiUrl          string         `json:"url"`
+	CreatedAt       time.Time      `json:"created_at"`
+	PublishedAt     time.Time      `json:"published_at"`
 }
 
 type ReleaseAsset struct {

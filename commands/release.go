@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -89,6 +90,47 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		A commit SHA or branch name to attach the release to, only used if <TAG>
 		doesn't already exist (default: main branch).
 
+	-f, --format <FORMAT>
+		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
+		FORMATS" section of git-log(1) for some additional details on how
+		placeholders are used in format. The available placeholders for issues are:
+
+		%U: the URL of this release
+
+		%uT: tarball URL
+
+		%uZ: zipball URL
+
+		%uA: asset upload URL
+
+		%S: state (i.e. "draft", "pre-release")
+
+		%sC: set color to yellow or red, depending on state
+
+		%t: release name
+
+		%T: release tag
+
+		%b: body
+
+		%as: the list of assets attached to this release
+
+		%cD: created date-only (no time of day)
+
+		%cr: created date, relative
+
+		%ct: created date, UNIX timestamp
+
+		%cI: created date, ISO 8601 format
+
+		%pD: published date-only (no time of day)
+
+		%pr: published date, relative
+
+		%pt: published date, UNIX timestamp
+
+		%pI: published date, ISO 8601 format
+
 	<TAG>
 		The git tag name for this release.
 
@@ -134,6 +176,7 @@ hub(1), git-tag(1)
 
 	flagReleaseMessage,
 	flagReleaseFile,
+	flagReleaseFormat,
 	flagReleaseCommitish string
 
 	flagReleaseAssets stringSliceValue
@@ -145,6 +188,7 @@ func init() {
 	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDrafts, "include-drafts", "d", false, "DRAFTS")
 	cmdRelease.Flag.BoolVarP(&flagReleaseExcludePrereleases, "exclude-prereleases", "p", false, "PRERELEASE")
 	cmdRelease.Flag.IntVarP(&flagReleaseLimit, "limit", "L", -1, "LIMIT")
+	cmdRelease.Flag.StringVarP(&flagReleaseFormat, "format", "f", "%T%n", "FORMAT")
 
 	cmdShowRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
 
@@ -192,12 +236,68 @@ func listReleases(cmd *Command, args *Args) {
 		})
 		utils.Check(err)
 
+		colorize := ui.IsTerminal(os.Stdout)
 		for _, release := range releases {
-			ui.Println(release.TagName)
+			ui.Printf(formatRelease(release, flagReleaseFormat, colorize))
 		}
 	}
 
 	args.NoForward()
+}
+
+func formatRelease(release github.Release, format string, colorize bool) string {
+	state := ""
+	stateColorSwitch := ""
+	if release.Draft {
+		state = "draft"
+		stateColorSwitch = fmt.Sprintf("\033[%dm", 33)
+	} else if release.Prerelease {
+		state = "pre-release"
+		stateColorSwitch = fmt.Sprintf("\033[%dm", 31)
+	}
+
+	var createdDate, createdAtISO8601, createdAtUnix, createdAtRelative,
+		publishedDate, publishedAtISO8601, publishedAtUnix, publishedAtRelative string
+	if !release.CreatedAt.IsZero() {
+		createdDate = release.CreatedAt.Format("02 Jan 2006")
+		createdAtISO8601 = release.CreatedAt.Format(time.RFC3339)
+		createdAtUnix = fmt.Sprintf("%d", release.CreatedAt.Unix())
+		createdAtRelative = utils.TimeAgo(release.CreatedAt)
+	}
+	if !release.PublishedAt.IsZero() {
+		publishedDate = release.PublishedAt.Format("02 Jan 2006")
+		publishedAtISO8601 = release.PublishedAt.Format(time.RFC3339)
+		publishedAtUnix = fmt.Sprintf("%d", release.PublishedAt.Unix())
+		publishedAtRelative = utils.TimeAgo(release.PublishedAt)
+	}
+
+	assets := make([]string, len(release.Assets))
+	for i, asset := range release.Assets {
+		assets[i] = fmt.Sprintf("%s\t%s", asset.DownloadUrl, asset.Label)
+	}
+
+	placeholders := map[string]string{
+		"U":  release.HtmlUrl,
+		"uT": release.TarballUrl,
+		"uZ": release.ZipballUrl,
+		"uA": release.UploadUrl,
+		"S":  state,
+		"sC": stateColorSwitch,
+		"t":  release.Name,
+		"T":  release.TagName,
+		"b":  release.Body,
+		"as": strings.Join(assets, "\n"),
+		"cD": createdDate,
+		"cI": createdAtISO8601,
+		"ct": createdAtUnix,
+		"cr": createdAtRelative,
+		"pD": publishedDate,
+		"pI": publishedAtISO8601,
+		"pt": publishedAtUnix,
+		"pr": publishedAtRelative,
+	}
+
+	return ui.Expand(format, placeholders, colorize)
 }
 
 func showRelease(cmd *Command, args *Args) {

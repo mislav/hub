@@ -179,6 +179,37 @@ Feature: hub release
       v1.2.0-pre\n
       """
 
+  Scenario: Pretty-print releases
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: true,
+            prerelease: false,
+          },
+          { tag_name: 'v1.2.0-pre',
+            name: 'will_paginate 1.2.0-pre',
+            draft: false,
+            prerelease: true,
+          },
+          { tag_name: 'v1.0.2',
+            name: 'will_paginate 1.0.2',
+            draft: false,
+            prerelease: false,
+          },
+        ]
+      }
+      """
+    When I successfully run `hub release --include-drafts --format='%t (%S)%n'`
+    Then the output should contain exactly:
+      """
+      will_paginate 1.2.0 (draft)
+      will_paginate 1.2.0-pre (pre-release)
+      will_paginate 1.0.2 ()\n
+      """
+
   Scenario: Repository not found when listing releases
     Given the GitHub API server:
       """
