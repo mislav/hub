@@ -18,7 +18,7 @@ var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
 pull-request [-focp] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
-pull-request -m <MESSAGE>
+pull-request -m <MESSAGE> [--edit]
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
 `,
@@ -252,6 +252,9 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		if len(commits) == 1 {
 			message, err = git.Show(commits[0])
 			utils.Check(err)
+
+			re := regexp.MustCompile(`\nSigned-off-by:\s.*$`)
+			message = re.ReplaceAllString(message, "")
 		} else if len(commits) > 1 {
 			commitLogs, err = git.Log(baseTracking, headForMessage)
 			utils.Check(err)
@@ -265,7 +268,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		if workdir != "" {
 			template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
 			if template != "" {
-				message = message + "\n\n" + template
+				message = message + "\n\n\n" + template
 			}
 		}
 

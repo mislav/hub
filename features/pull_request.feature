@@ -81,14 +81,20 @@ Feature: hub pull-request
       post('/repos/mislav/coral/pulls') {
         halt 400 if request.content_charset != 'utf-8'
         assert :title => 'This is somewhat of a longish title that does not get wrapped & references #1234',
-               :body => nil
+               :body => 'Hello'
         status 201
         json :html_url => "the://url"
       }
       """
     Given I am on the "master" branch pushed to "origin/master"
     When I successfully run `git checkout --quiet -b topic`
-    Given I make a commit with message "This is somewhat of a longish title that does not get wrapped & references #1234"
+    Given I make a commit with message:
+      """
+      This is somewhat of a longish title that does not get wrapped & references #1234
+
+      Hello
+      Signed-off-by: NAME <email@example.com>
+      """
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
@@ -101,12 +107,13 @@ Feature: hub pull-request
         halt 400 if request.content_charset != 'utf-8'
         assert :title => 'Commit title',
                :body => <<BODY.chomp
-Commit body
+      Commit body
 
-This is the pull request template
 
-Another line of template
-BODY
+       This is the pull request template
+
+      Another line of template
+      BODY
         status 201
         json :html_url => "the://url"
       }
@@ -122,10 +129,34 @@ BODY
     And the "topic" branch is pushed to "origin/topic"
     Given a file named "pull_request_template.md" with:
       """
-      This is the pull request template
+       This is the pull request template
 
       Another line of template
       """
+    When I successfully run `hub pull-request`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Single-commit with PULL_REQUEST_TEMPLATE directory
+    Given the git commit editor is "true"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Commit title',
+               :body => 'Commit body'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    And I make a commit with message:
+      """
+      Commit title
+
+      Commit body
+      """
+    And the "topic" branch is pushed to "origin/topic"
+    And a directory named "PULL_REQUEST_TEMPLATE"
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 

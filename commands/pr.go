@@ -14,7 +14,7 @@ var (
 	cmdPr = &Command{
 		Run: printHelp,
 		Usage: `
-pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
+pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
 `,
 		Long: `Manage GitHub pull requests for the current project.
@@ -30,7 +30,13 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 ## Options:
 
 	-s, --state <STATE>
-		Display pull requests with state <STATE> (default: "open").
+		Filter pull requests by <STATE> (default: "open").
+
+	-h, --head <BRANCH>
+		Show pull requests started from the specified head <BRANCH>.
+
+	-b, --base <BRANCH>
+		Show pull requests based on the specified <BRANCH>.
 
 	-f, --format <FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:

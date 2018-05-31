@@ -499,6 +499,29 @@ MARKDOWN
     When I successfully run `hub release delete v1.2.0`
     Then there should be no output
 
+  Scenario: Release not found
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        assert :per_page => "100"
+        json [
+          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+            tag_name: 'v1.2.0',
+          },
+        ]
+      }
+
+      delete('/repos/mislav/will_paginate/releases/123') {
+        status 204
+      }
+      """
+    When I run `hub release delete v2.0`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Unable to find release with tag name `v2.0'\n
+      """
+
   Scenario: Enterprise list releases
     Given the "origin" remote has url "git@git.my.org:mislav/will_paginate.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
