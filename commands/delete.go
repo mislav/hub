@@ -2,21 +2,23 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
+	"github.com/github/hub/ui"
 )
 
 var cmdDelete = &Command{
 	Run:   delete,
-	Usage: "delete [[<ORGANIZATION>/]<NAME>]",
+	Usage: "delete [-y] [<ORGANIZATION>/]<NAME>",
 	Long: `Delete an existing repository on GitHub.
 
 ## Options:
+
+	-y
+		Assume yes, force deletion of repository without asking.
 
 	[<ORGANIZATION>/]<NAME>
 		The name for the repository on GitHub.
@@ -34,18 +36,22 @@ hub-init(1), hub(1)
 `,
 }
 
-var ()
+var (
+	flagDeleteAssumeYes bool
+)
 
 func init() {
+	cmdDelete.Flag.BoolVarP(&flagDeleteAssumeYes, "--yes", "y", false, "YES")
+
 	CmdRunner.Use(cmdDelete)
 }
 
 func delete(command *Command, args *Args) {
 	var repoName string
 	if args.IsParamsEmpty() {
-		dirName, err := git.WorkdirName()
-		utils.Check(err)
-		repoName = github.SanitizeProjectName(dirName)
+		ui.Errorln("Expecting name of reposiroty to delete")
+		args.NoForward()
+		return
 	} else {
 		reg := regexp.MustCompile("^[^-]")
 		if !reg.MatchString(args.FirstParam()) {
@@ -70,15 +76,9 @@ func delete(command *Command, args *Args) {
 
 	project := github.NewProject(owner, repoName, host.Host)
 	gh := github.NewClient(project.Host)
-
-	if !gh.IsRepositoryExist(project) {
-		fmt.Println("No such repository")
-		args.NoForward()
-		return
-	}
-
-	if os.Getenv("HUB_UNSAFE_DELETE") == "" {
-		fmt.Printf("Repository '%s' exists. Really delete it (y/N)?", repoName)
+	
+	if !flagDeleteAssumeYes {
+		fmt.Printf("Really delete repository '%s'(y/N)?", repoName)
 		var s string
 		_, err = fmt.Scan(&s)
 		if err != nil {
@@ -90,20 +90,6 @@ func delete(command *Command, args *Args) {
 		s = strings.ToLower(s)
 		if s != "y" {
 			fmt.Println("Abort: not deleting anything.")
-			args.NoForward()
-			return
-		}
-
-		fmt.Println("Please write the name of the repository again (this operation can not be undone!): ")
-		_, err = fmt.Scan(&s)
-		if err != nil {
-			fmt.Println(err)
-			args.NoForward()
-			return
-		}
-		s = strings.TrimSpace(s)
-		if s != repoName {
-			fmt.Println("Names don't match.. bailing out.. no deletion")
 			args.NoForward()
 			return
 		}
