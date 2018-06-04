@@ -22,3 +22,17 @@ Feature: hub push
     When I successfully run `hub push origin,staging master new-feature`
     Then "git push origin master new-feature" should be run
     Then "git push staging master new-feature" should be run
+
+  Scenario: Push with remote pushRemote and pushBranch
+    Given I am on the "cool-feature" branch
+    And git "branch.cool-feature.pushRemote" is set to "test"
+    And git "branch.cool-feature.pushBranch" is set to "other"
+    When I successfully run `hub push`
+    Then "git push test cool-feature:other" should be run
+
+  Scenario: Push with url pushRemote and pushBranch
+    Given I am on the "cool-feature" branch
+    And git "branch.cool-feature.pushRemote" is set to "git@github.com:mislav/hub.git"
+    And git "branch.cool-feature.pushBranch" is set to "other"
+    When I successfully run `hub push`
+    Then "git push git@github.com:mislav/hub.git cool-feature:other" should be run

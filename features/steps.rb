@@ -209,11 +209,39 @@ Then(/^the "([^"]*)" submodule url should be "([^"]*)"$/) do |name, url|
 end
 
 Then(/^"([^"]*)" should merge "([^"]*)" from remote "([^"]*)"$/) do |name, merge, remote|
-  actual_remote = run_silent %(git config --get-all branch.#{name}.remote)
-  expect(remote).to eql(actual_remote)
+  if remote.empty?
+    result = run_silent %(git config --list)
+    expect(result).to_not include(%(branch.#{name}.remote))
+  else
+    actual_remote = run_silent %(git config --get-all branch.#{name}.remote)
+    expect(actual_remote).to eql(remote)
+  end
 
-  actual_merge = run_silent %(git config --get-all branch.#{name}.merge)
-  expect(merge).to eql(actual_merge)
+  if merge.empty?
+    result = run_silent %(git config --list)
+    expect(result).to_not include(%(branch.#{name}.merge))
+  else
+    actual_merge = run_silent %(git config --get-all branch.#{name}.merge)
+    expect(actual_merge).to eql(merge)
+  end
+end
+
+Then(/^"([^"]*)" should push "([^"]*)" to remote "([^"]*)"$/) do |name, branch, remote|
+  if remote.empty?
+    result = run_silent %(git config --list)
+    expect(result).to_not include(%(branch.#{name}.pushremote))
+  else
+    actual_remote = run_silent %(git config --get-all branch.#{name}.pushRemote)
+    expect(remote).to eql(actual_remote)
+  end
+
+  if branch.empty?
+    result = run_silent %(git config --list)
+    expect(result).to_not include(%(branch.#{name}.pushbranch))
+  else
+    actual_branch = run_silent %(git config --get-all branch.#{name}.pushBranch)
+    expect(branch).to eql(actual_branch)
+  end
 end
 
 Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
