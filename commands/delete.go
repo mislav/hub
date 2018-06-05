@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"os"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -17,7 +18,7 @@ var cmdDelete = &Command{
 
 ## Options:
 
-	-y
+	-y, --yes
 		Assume yes, force deletion of repository without asking.
 
 	[<ORGANIZATION>/]<NAME>
@@ -49,9 +50,9 @@ func init() {
 func delete(command *Command, args *Args) {
 	var repoName string
 	if args.IsParamsEmpty() {
-		ui.Errorln("Expecting name of reposiroty to delete")
-		args.NoForward()
-		return
+		ui.Errorln("Expecting name of repository to delete")
+		ui.Errorln(command.Synopsis())
+		os.Exit( 1 );
 	} else {
 		reg := regexp.MustCompile("^[^-]")
 		if !reg.MatchString(args.FirstParam()) {
@@ -96,6 +97,9 @@ func delete(command *Command, args *Args) {
 	}
 
 	err = gh.DeleteRepository(project)
+	if strings.Contains(err.Error(), "HTTP 403") {
+		fmt.Println("Please edit the token used for hub at https://github.com/settings/tokens\nand verify that the `delete_repo` scope is enabled.\n")
+	}
 	utils.Check(err)
 
 	fmt.Printf("Deleted repository %v\n", repoName)
