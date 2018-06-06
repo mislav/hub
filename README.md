@@ -22,9 +22,24 @@ Dependencies:
 
 * **git 1.7.3** or newer
 
-#### Homebrew
+#### macOS
 
-`hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS:
+There are two options to install hub on macOS:
+
+##### Macports
+
+`hub` can be installed through [MacPorts](https://www.macports.org/):
+
+``` sh
+$ sudo port install hub
+$ hub version
+git version 1.7.6
+hub version 2.2.3
+```
+
+##### Homebrew
+
+`hub` can be also installed through [Homebrew](https://docs.brew.sh/Installation) on macOS:
 
 ``` sh
 $ brew install hub
