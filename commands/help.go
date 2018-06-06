@@ -169,6 +169,7 @@ These GitHub commands are provided by hub:
    ci-status      Show the CI status of a commit
    compare        Open a compare page on GitHub
    create         Create this repository on GitHub and add GitHub as origin
+   delete         Delete a repository on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
    issue          List or create issues
    pr             Work with pull requests

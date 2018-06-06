@@ -247,6 +247,17 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 	return
 }
 
+func (client *Client) DeleteRepository(project *Project) error {
+	api, err := client.simpleApi()
+	if err != nil {
+		return err
+	}
+
+	repoURL := fmt.Sprintf("repos/%s/%s", project.Owner, project.Name)
+	res, err := api.Delete(repoURL)
+	return checkStatus(204, "deleting repository", res, err)
+}
+
 type Release struct {
 	Name            string         `json:"name"`
 	TagName         string         `json:"tag_name"`
