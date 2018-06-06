@@ -1,14 +1,15 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
-	"os"
 
 	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
 	"github.com/github/hub/ui"
+	"github.com/github/hub/utils"
 )
 
 var cmdDelete = &Command{
@@ -19,7 +20,7 @@ var cmdDelete = &Command{
 ## Options:
 
 	-y, --yes
-		Assume yes, force deletion of repository without asking.
+		Skip the confirmation prompt and immediately delete the repository.
 
 	[<ORGANIZATION>/]<NAME>
 		The name for the repository on GitHub.
@@ -79,20 +80,15 @@ func delete(command *Command, args *Args) {
 	gh := github.NewClient(project.Host)
 	
 	if !flagDeleteAssumeYes {
-		fmt.Printf("Really delete repository '%s'(y/N)?", repoName)
-		var s string
-		_, err = fmt.Scan(&s)
-		if err != nil {
-			fmt.Println(err)
-			args.NoForward()
-			return
+		ui.Printf("Really delete repository '%s' (yes/N)? ", project)
+		answer := ""
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			answer = strings.TrimSpace(scanner.Text())
 		}
-		s = strings.TrimSpace(s)
-		s = strings.ToLower(s)
-		if s != "y" {
-			fmt.Println("Abort: not deleting anything.")
-			args.NoForward()
-			return
+		utils.Check(scanner.Err())
+		if answer != "yes" {
+			utils.Check(fmt.Errorf("Please type 'yes' for confirmation."))
 		}
 	}
 
