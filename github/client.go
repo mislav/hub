@@ -247,17 +247,15 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 	return
 }
 
-func (client *Client) DeleteRepository(project *Project) (err error) {
+func (client *Client) DeleteRepository(project *Project) error {
 	api, err := client.simpleApi()
 	if err != nil {
-		return
+		return err
 	}
 
 	repoURL := fmt.Sprintf("repos/%s/%s", project.Owner, project.Name)
 	res, err := api.Delete(repoURL)
-	err = checkStatus(204, "deleting repository", res, err)
-
-	return err
+	return checkStatus(204, "deleting repository", res, err)
 }
 
 type Release struct {
