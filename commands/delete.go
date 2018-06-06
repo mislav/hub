@@ -88,13 +88,17 @@ func delete(command *Command, args *Args) {
 		}
 	}
 
-	err = gh.DeleteRepository(project)
-	if err != nil && strings.Contains(err.Error(), "HTTP 403") {
-		fmt.Println("Please edit the token used for hub at https://github.com/settings/tokens\nand verify that the `delete_repo` scope is enabled.\n")
+	if args.Noop {
+		ui.Printf("Would delete repository '%s'.\n", project)
+	} else {
+		err = gh.DeleteRepository(project)
+		if err != nil && strings.Contains(err.Error(), "HTTP 403") {
+			ui.Errorln("Please edit the token used for hub at https://github.com/settings/tokens")
+			ui.Errorln("and verify that the `delete_repo` scope is enabled.")
+		}
+		utils.Check(err)
+		ui.Printf("Deleted repository '%s'.\n", project)
 	}
-	utils.Check(err)
-
-	fmt.Printf("Deleted repository %v\n", repoName)
 
 	args.NoForward()
 }
