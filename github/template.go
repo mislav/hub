@@ -10,12 +10,17 @@ const (
 	PullRequestTemplate = "pull_request_template"
 	IssueTemplate       = "issue_template"
 	githubTemplateDir   = ".github"
+	docsDir             = "docs"
 )
 
 func ReadTemplate(kind, workdir string) (body string, err error) {
 	templateDir := filepath.Join(workdir, githubTemplateDir)
 
 	path, err := getFilePath(templateDir, kind)
+	if err != nil || path == "" {
+		docsDir := filepath.Join(workdir, docsDir)
+		path, err = getFilePath(docsDir, kind)
+	}
 	if err != nil || path == "" {
 		path, err = getFilePath(workdir, kind)
 	}
