@@ -13,7 +13,7 @@ import (
 )
 
 var cmdDelete = &Command{
-	Run:   delete,
+	Run:   deleteRepo,
 	Usage: "delete [-y] [<ORGANIZATION>/]<NAME>",
 	Long: `Delete an existing repository on GitHub.
 
@@ -48,7 +48,7 @@ func init() {
 	CmdRunner.Use(cmdDelete)
 }
 
-func delete(command *Command, args *Args) {
+func deleteRepo(command *Command, args *Args) {
 	var repoName string
 	if !args.IsParamsEmpty() {
 		repoName = args.FirstParam()
@@ -68,13 +68,12 @@ func delete(command *Command, args *Args) {
 	owner := host.User
 	if strings.Contains(repoName, "/") {
 		split := strings.SplitN(repoName, "/", 2)
-		owner = split[0]
-		repoName = split[1]
+		owner, repoName = split[0], split[1]
 	}
 
 	project := github.NewProject(owner, repoName, host.Host)
 	gh := github.NewClient(project.Host)
-	
+
 	if !flagDeleteAssumeYes {
 		ui.Printf("Really delete repository '%s' (yes/N)? ", project)
 		answer := ""
