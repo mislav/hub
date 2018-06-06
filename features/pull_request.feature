@@ -160,6 +160,87 @@ Feature: hub pull-request
     When I successfully run `hub pull-request`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Single-commit pull request with "--no-edit"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Commit title 1',
+               :body => 'Commit body 1'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message:
+      """
+      Commit title 1
+
+      Commit body 1
+      """
+    And the "topic" branch is pushed to "origin/topic"
+    When I successfully run `hub pull-request --no-edit`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Multiple-commit pull request with "--no-edit"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Commit title 1',
+               :body => 'Commit body 1'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message:
+      """
+      Commit title 1
+
+      Commit body 1
+      """
+    Given I make a commit with message:
+      """
+      Commit title 2
+
+      Commit body 2
+      """
+    And the "topic" branch is pushed to "origin/topic"
+    When I successfully run `hub pull-request --no-edit`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request with "--push" and "--no-edit"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Commit title 1',
+               :body => 'Commit body 1'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message:
+      """
+      Commit title 1
+
+      Commit body 1
+      """
+    When I successfully run `hub pull-request --push --no-edit`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: No commits with "--no-edit"
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    And I run `hub pull-request --no-edit`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Aborted: no commits detected between origin/master and topic\n
+      """
+
   Scenario: Message template should include git log summary between base and head
     Given the text editor adds:
       """
