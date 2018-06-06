@@ -29,9 +29,35 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
-    And "git checkout -f mislav-fixes -q" should be run
-    And "mislav-fixes" should merge "refs/pull/77/head" from remote "origin"
+    Then "git fetch origin refs/pull/77/head:fixes" should be run
+    And "git checkout -f fixes -q" should be run
+    And "fixes" should merge "refs/pull/77/head" from remote "origin"
+
+  Scenario: Head ref matches default branch
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :number => 77, :head => {
+          :ref => "master",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :default_branch => "master",
+            :private => false
+          }
+        }, :base => {
+          :repo => {
+            :name => 'jekyll',
+            :html_url => 'https://github.com/mojombo/jekyll',
+            :owner => { :login => "mojombo" },
+          }
+        }, :maintainer_can_modify => false
+      }
+      """
+    When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
+    Then "git fetch origin refs/pull/77/head:mislav-master" should be run
+    And "git checkout mislav-master" should be run
+    And "mislav-master" should merge "refs/pull/77/head" from remote "origin"
 
   Scenario: No matching remotes for pull request base
     Given the GitHub API server:
@@ -140,9 +166,9 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout https://github.com/mojombo/jekyll/pull/77`
-    Then "git fetch origin refs/pull/77/head:pr-77" should be run
-    And "git checkout pr-77" should be run
-    And "pr-77" should merge "refs/pull/77/head" from remote "origin"
+    Then "git fetch origin refs/pull/77/head:fixes" should be run
+    And "git checkout fixes" should be run
+    And "fixes" should merge "refs/pull/77/head" from remote "origin"
 
   Scenario: Reuse existing remote for head branch
     Given the GitHub API server:
@@ -218,9 +244,9 @@ Feature: hub checkout <PULLREQ-URL>
       }
       """
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
-    And "git checkout -f mislav-fixes -q" should be run
-    And "mislav-fixes" should merge "refs/heads/fixes" from remote "git@github.com:mislav/jekyll.git"
+    Then "git fetch origin refs/pull/77/head:fixes" should be run
+    And "git checkout -f fixes -q" should be run
+    And "fixes" should merge "refs/heads/fixes" from remote "git@github.com:mislav/jekyll.git"
 
   Scenario: Modifiable fork with HTTPS
     Given the GitHub API server:
@@ -245,6 +271,6 @@ Feature: hub checkout <PULLREQ-URL>
       """
     And HTTPS is preferred
     When I run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
-    Then "git fetch origin refs/pull/77/head:mislav-fixes" should be run
-    And "git checkout -f mislav-fixes -q" should be run
-    And "mislav-fixes" should merge "refs/heads/fixes" from remote "https://github.com/mislav/jekyll.git"
+    Then "git fetch origin refs/pull/77/head:fixes" should be run
+    And "git checkout -f fixes -q" should be run
+    And "fixes" should merge "refs/heads/fixes" from remote "https://github.com/mislav/jekyll.git"

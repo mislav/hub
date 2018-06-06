@@ -456,14 +456,15 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 }
 
 type Repository struct {
-	Name        string                 `json:"name"`
-	FullName    string                 `json:"full_name"`
-	Parent      *Repository            `json:"parent"`
-	Owner       *User                  `json:"owner"`
-	Private     bool                   `json:"private"`
-	HasWiki     bool                   `json:"has_wiki"`
-	Permissions *RepositoryPermissions `json:"permissions"`
-	HtmlUrl     string                 `json:"html_url"`
+	Name          string                 `json:"name"`
+	FullName      string                 `json:"full_name"`
+	Parent        *Repository            `json:"parent"`
+	Owner         *User                  `json:"owner"`
+	Private       bool                   `json:"private"`
+	HasWiki       bool                   `json:"has_wiki"`
+	Permissions   *RepositoryPermissions `json:"permissions"`
+	HtmlUrl       string                 `json:"html_url"`
+	DefaultBranch string                 `json:"default_branch"`
 }
 
 type RepositoryPermissions struct {
