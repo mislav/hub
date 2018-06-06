@@ -231,6 +231,16 @@ Feature: hub pull-request
     When I successfully run `hub pull-request --push --no-edit`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: No commits with "--no-edit"
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    And I run `hub pull-request --no-edit`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Aborted: no commits detected between origin/master and topic\n
+      """
+
   Scenario: Message template should include git log summary between base and head
     Given the text editor adds:
       """

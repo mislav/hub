@@ -246,7 +246,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 	} else if flagPullRequestNoEdit {
 		commits, _ := git.RefList(baseTracking, head)
 		if len(commits) == 0 {
-			utils.Check(fmt.Errorf("No commits detected between '<BASE>' and '<HEAD>' branches"))
+			utils.Check(fmt.Errorf("Aborted: no commits detected between %s and %s", baseTracking, head))
 		}
 		message, err := git.Show(commits[len(commits)-1])
 		utils.Check(err)
