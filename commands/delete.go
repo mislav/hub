@@ -50,17 +50,13 @@ func init() {
 
 func delete(command *Command, args *Args) {
 	var repoName string
-	if args.IsParamsEmpty() {
-		ui.Errorln("Expecting name of repository to delete")
-		ui.Errorln(command.Synopsis())
-		os.Exit( 1 );
-	} else {
-		reg := regexp.MustCompile("^[^-]")
-		if !reg.MatchString(args.FirstParam()) {
-			err := fmt.Errorf("invalid argument: %s", args.FirstParam())
-			utils.Check(err)
-		}
+	if !args.IsParamsEmpty() {
 		repoName = args.FirstParam()
+	}
+
+	re := regexp.MustCompile(NameWithOwnerRe)
+	if !re.MatchString(repoName) {
+		utils.Check(fmt.Errorf(command.Synopsis()))
 	}
 
 	config := github.CurrentConfig()
