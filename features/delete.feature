@@ -61,3 +61,35 @@ Feature: hub delete
       """
       Please type 'yes' for confirmation.\n
       """
+
+  Scenario: HTTP 403
+    Given the GitHub API server:
+      """
+      delete('/repos/andreasbaumann/my-repo') {
+        status 403
+      }
+      """
+    When I run `hub delete -y my-repo`
+    Then the exit status should be 1
+    And the stderr should contain:
+      """
+      Please edit the token used for hub at https://github.com/settings/tokens
+      and verify that the `delete_repo` scope is enabled.
+      """
+
+  Scenario: HTTP 403 on GitHub Enterprise
+    Given I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And $GITHUB_HOST is "git.my.org"
+    Given the GitHub API server:
+      """
+      delete('/api/v3/repos/mislav/my-repo', :host_name => 'git.my.org') {
+        status 403
+      }
+      """
+    When I run `hub delete -y my-repo`
+    Then the exit status should be 1
+    And the stderr should contain:
+      """
+      Please edit the token used for hub at https://git.my.org/settings/tokens
+      and verify that the `delete_repo` scope is enabled.
+      """

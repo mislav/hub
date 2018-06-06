@@ -92,7 +92,7 @@ func deleteRepo(command *Command, args *Args) {
 	} else {
 		err = gh.DeleteRepository(project)
 		if err != nil && strings.Contains(err.Error(), "HTTP 403") {
-			ui.Errorln("Please edit the token used for hub at https://github.com/settings/tokens")
+			ui.Errorf("Please edit the token used for hub at https://%s/settings/tokens\n", project.Host)
 			ui.Errorln("and verify that the `delete_repo` scope is enabled.")
 		}
 		utils.Check(err)

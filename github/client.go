@@ -248,14 +248,12 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 }
 
 func (client *Client) DeleteRepository(project *Project) (err error) {
-	var repoURL string
-	repoURL = fmt.Sprintf("/repos/%s/%s", project.Owner, project.Name)
-
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
+	repoURL := fmt.Sprintf("repos/%s/%s", project.Owner, project.Name)
 	res, err := api.Delete(repoURL)
 	err = checkStatus(204, "deleting repository", res, err)
 
