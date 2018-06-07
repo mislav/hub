@@ -188,6 +188,11 @@ Feature: hub release
             name: 'will_paginate 1.2.0',
             draft: true,
             prerelease: false,
+            created_at: '2018-02-27T19:35:32Z',
+            published_at: '2018-04-01T19:35:32Z',
+            assets: [
+              {browser_download_url: 'the://url', label: ''},
+            ],
           },
           { tag_name: 'v1.2.0-pre',
             name: 'will_paginate 1.2.0-pre',
@@ -437,6 +442,27 @@ MARKDOWN
       """
     When I successfully run `hub release edit --draft=false v1.2.0`
     Then there should be no output
+
+  Scenario: Edit existing release no title
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+          },
+        ]
+      }
+      """
+    And a file named "message.txt" with:
+      """
+      """
+    When I run `hub release edit v1.2.0 -F message.txt`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Aborting editing due to empty release title\n
+      """
 
   Scenario: Edit existing release by uploading assets
     Given the GitHub API server:
