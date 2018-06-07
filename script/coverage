@@ -19,7 +19,7 @@ prepare() {
     sed -E '
       /^package /a\
       import "github.com/github/hub/coverage"
-      s/(LiveCoverage[0-9]+)\.Count\[([0-9]+)\][^;]+/coverage.Record(\1, \2)/
+      s/(LiveCoverage[0-9]+)\.Count\[([0-9]+)\][^;]+/coverage.Record(\1, \2)/g
     ' < "$f"~ > "$f"
     rm "$f"~
   done
