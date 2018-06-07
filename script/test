@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: script/test [--coverage [<MIN>]]
+# Usage: script/test [--coverage [<MIN>]] [<FEATURES>...]
 #
 # Run Go and Cucumber test suites for hub.
 
@@ -9,7 +9,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
   --coverage )
     export HUB_COVERAGE="$PWD/tmp/cover.out"
-    if [ "$2" -gt 0 ] 2>/dev/null; then
+    if [ "${2%.*}" -gt 0 ] 2>/dev/null; then
       min_coverage="$2"
       shift 2
     else
@@ -22,8 +22,8 @@ while [ $# -gt 0 ]; do
     exit
     ;;
   * )
-    "$0" --help >&2
-    exit 1
+    break
+    ;;
   esac
 done
 
@@ -34,12 +34,13 @@ trap "exit 1" INT
 [ -z "$HUB_COVERAGE" ] || script/coverage prepare
 script/build
 script/build test || STATUS="$?"
-script/ruby-test || STATUS="$?"
+script/ruby-test "$@" || STATUS="$?"
 
 if [ -n "$HUB_COVERAGE" ]; then
   total_coverage="$(script/coverage generate)"
   echo "Code coverage: $total_coverage"
-  if [ "${total_coverage%.*}" -lt "$min_coverage" ]; then
+  result="$(bc <<<"${total_coverage%\%} < $min_coverage")"
+  if [ "$result" -eq 1 ]; then
     echo "Error: coverage dropped below the minimum treshold of ${min_coverage}%!"
     if [ -n "$CI" ]; then
       html_result="${HUB_COVERAGE%.out}.html"

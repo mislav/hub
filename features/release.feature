@@ -179,6 +179,42 @@ Feature: hub release
       v1.2.0-pre\n
       """
 
+  Scenario: Pretty-print releases
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+            draft: true,
+            prerelease: false,
+            created_at: '2018-02-27T19:35:32Z',
+            published_at: '2018-04-01T19:35:32Z',
+            assets: [
+              {browser_download_url: 'the://url', label: ''},
+            ],
+          },
+          { tag_name: 'v1.2.0-pre',
+            name: 'will_paginate 1.2.0-pre',
+            draft: false,
+            prerelease: true,
+          },
+          { tag_name: 'v1.0.2',
+            name: 'will_paginate 1.0.2',
+            draft: false,
+            prerelease: false,
+          },
+        ]
+      }
+      """
+    When I successfully run `hub release --include-drafts --format='%t (%S)%n'`
+    Then the output should contain exactly:
+      """
+      will_paginate 1.2.0 (draft)
+      will_paginate 1.2.0-pre (pre-release)
+      will_paginate 1.0.2 ()\n
+      """
+
   Scenario: Repository not found when listing releases
     Given the GitHub API server:
       """
@@ -289,6 +325,11 @@ MARKDOWN
       https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz\n
       """
 
+  Scenario: Show release no tag
+    When I run `hub release show`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release show"
+
   Scenario: Create a release
     Given the GitHub API server:
       """
@@ -363,6 +404,11 @@ MARKDOWN
     Then the output should contain exactly ""
     And "open https://github.com/mislav/will_paginate/releases/v1.2.0" should be run
 
+  Scenario: Create release no tag
+    When I run `hub release create -m hello`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release create"
+
   Scenario: Edit existing release
     Given the GitHub API server:
       """
@@ -396,6 +442,27 @@ MARKDOWN
       """
     When I successfully run `hub release edit --draft=false v1.2.0`
     Then there should be no output
+
+  Scenario: Edit existing release no title
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            name: 'will_paginate 1.2.0',
+          },
+        ]
+      }
+      """
+    And a file named "message.txt" with:
+      """
+      """
+    When I run `hub release edit v1.2.0 -F message.txt`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Aborting editing due to empty release title\n
+      """
 
   Scenario: Edit existing release by uploading assets
     Given the GitHub API server:
@@ -437,6 +504,11 @@ MARKDOWN
       """
       Attaching release asset `hello-1.2.0.tar.gz'...\n
       """
+
+  Scenario: Edit release no tag
+    When I run `hub release edit -m hello`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release edit"
 
     Scenario: Download a release asset.
       Given the GitHub API server:
@@ -480,6 +552,11 @@ MARKDOWN
           """
           ASSET_TARBALL
           """
+
+  Scenario: Download release no tag
+    When I run `hub release download`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release download"
 
   Scenario: Delete a release
     Given the GitHub API server:
