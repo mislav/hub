@@ -1,0 +1,53 @@
+#!/bin/bash
+set -e
+
+source_files() {
+  script/build files | grep -vE '^\./(coverage|fixtures)/'
+}
+
+prepare() {
+  if ! git diff --quiet; then
+    echo "Error: please commit your changes before continuing." >&2
+    exit 1
+  fi
+
+  local n=0
+  for f in $(source_files); do
+    go tool cover -mode=set -var="LiveCoverage$((++n))" "$f" > "$f"~
+    sed -E '
+      /^package /a\
+      import "github.com/github/hub/coverage"
+      s/(LiveCoverage[0-9]+)\.Count\[([0-9]+)\][^;]+/coverage.Record(\1, \2)/
+    ' < "$f"~ > "$f"
+    rm "$f"~
+  done
+
+  rm -rf "$HUB_COVERAGE"
+  mkdir -p "${HUB_COVERAGE%/*}"
+}
+
+generate() {
+  source_files | xargs git checkout --
+
+  echo 'mode: count' > "$HUB_COVERAGE"~
+  sed -E 's!^.+/(github.com/github/hub/)!\1!' "$HUB_COVERAGE" | awk '
+    { a[substr($0, 0, length()-2)] += $(NF) }
+    END { for (k in a) print k, a[k] }
+  ' >> "$HUB_COVERAGE"~
+
+  go tool cover -func="$HUB_COVERAGE"~ > "${HUB_COVERAGE%.out}.func"
+  if [ -z "$CI" ]; then
+    go tool cover -html="$HUB_COVERAGE"~ -o "${HUB_COVERAGE%.out}.html"
+  fi
+
+  awk '/^total:/ { print $(NF) }' "${HUB_COVERAGE%.out}.func"
+}
+
+case "${1?}" in
+  prepare | generate )
+    "$1"
+    ;;
+  * )
+    exit 1
+    ;;
+esac
