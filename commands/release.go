@@ -21,6 +21,7 @@ release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>]
 release show <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
+release download <TAG>
 release delete <TAG>
 `,
 		Long: `Manage GitHub releases.
@@ -303,7 +304,7 @@ func formatRelease(release github.Release, format string, colorize bool) string 
 func showRelease(cmd *Command, args *Args) {
 	tagName := cmd.Arg(0)
 	if tagName == "" {
-		utils.Check(fmt.Errorf("Missing argument TAG"))
+		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -344,7 +345,7 @@ func showRelease(cmd *Command, args *Args) {
 func downloadRelease(cmd *Command, args *Args) {
 	tagName := cmd.Arg(0)
 	if tagName == "" {
-		utils.Check(fmt.Errorf("Missing argument TAG"))
+		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -390,7 +391,7 @@ func downloadReleaseAsset(asset github.ReleaseAsset, gh *github.Client) (err err
 func createRelease(cmd *Command, args *Args) {
 	tagName := cmd.Arg(0)
 	if tagName == "" {
-		utils.Check(fmt.Errorf("Missing argument TAG"))
+		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
 		return
 	}
 
@@ -459,7 +460,7 @@ text is the title and the rest is the description.`, tagName, project))
 func editRelease(cmd *Command, args *Args) {
 	tagName := cmd.Arg(0)
 	if tagName == "" {
-		utils.Check(fmt.Errorf("Missing argument TAG"))
+		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
 		return
 	}
 
@@ -542,7 +543,7 @@ text is the title and the rest is the description.`, tagName, project))
 func deleteRelease(cmd *Command, args *Args) {
 	tagName := cmd.Arg(0)
 	if tagName == "" {
-		utils.Check(fmt.Errorf("Missing argument TAG"))
+		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
 		return
 	}
 

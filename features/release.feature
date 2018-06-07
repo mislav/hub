@@ -320,6 +320,11 @@ MARKDOWN
       https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz\n
       """
 
+  Scenario: Show release no tag
+    When I run `hub release show`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release show"
+
   Scenario: Create a release
     Given the GitHub API server:
       """
@@ -393,6 +398,11 @@ MARKDOWN
     When I successfully run `hub release create -o -m hello v1.2.0`
     Then the output should contain exactly ""
     And "open https://github.com/mislav/will_paginate/releases/v1.2.0" should be run
+
+  Scenario: Create release no tag
+    When I run `hub release create -m hello`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release create"
 
   Scenario: Edit existing release
     Given the GitHub API server:
@@ -469,6 +479,11 @@ MARKDOWN
       Attaching release asset `hello-1.2.0.tar.gz'...\n
       """
 
+  Scenario: Edit release no tag
+    When I run `hub release edit -m hello`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release edit"
+
     Scenario: Download a release asset.
       Given the GitHub API server:
         """
@@ -511,6 +526,11 @@ MARKDOWN
           """
           ASSET_TARBALL
           """
+
+  Scenario: Download release no tag
+    When I run `hub release download`
+    Then the exit status should be 1
+    Then the stderr should contain "hub release download"
 
   Scenario: Delete a release
     Given the GitHub API server:
