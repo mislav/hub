@@ -16,9 +16,9 @@ var (
 	cmdRelease = &Command{
 		Run: listReleases,
 		Usage: `
-release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>]
-release show <TAG>
-release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
+release [-R <REMOTE>] [--include-drafts] [--exclude-prereleases] [-L <LIMIT>]
+release show [-R <REMOTE>] <TAG>
+release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] [-R <REMOTE>] <TAG>
 release edit [<options>] <TAG>
 release delete <TAG>
 `,
@@ -89,6 +89,9 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		A commit SHA or branch name to attach the release to, only used if <TAG>
 		doesn't already exist (default: main branch).
 
+	-R, --remote <REMOTE>
+		Specify the remote on which to interact with the releases
+
 	<TAG>
 		The git tag name for this release.
 
@@ -134,7 +137,8 @@ hub(1), git-tag(1)
 
 	flagReleaseMessage,
 	flagReleaseFile,
-	flagReleaseCommitish string
+	flagReleaseCommitish,
+	flagReleaseRemote string
 
 	flagReleaseAssets stringSliceValue
 
@@ -157,6 +161,7 @@ func init() {
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "t", "", "COMMITISH")
+	cmdCreateRelease.Flag.StringVarP(&flagReleaseRemote, "remote", "R", "", "REMOTE")
 
 	cmdEditRelease.Flag.BoolVarP(&flagReleaseEdit, "edit", "e", false, "EDIT")
 	cmdEditRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
@@ -165,6 +170,7 @@ func init() {
 	cmdEditRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "t", "", "COMMITISH")
+	cmdEditRelease.Flag.StringVarP(&flagReleaseRemote, "remote", "R", "", "REMOTE")
 
 	cmdRelease.Use(cmdShowRelease)
 	cmdRelease.Use(cmdCreateRelease)
@@ -178,7 +184,13 @@ func listReleases(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.MainProject()
+	// If the user specifies a remote, load that project
+	var project *github.Project
+	if flagIssueRemote != "" {
+		project, err = localRepo.RemoteProject(flagIssueRemote)
+	} else { // Otherwise, load the default
+		project, err = localRepo.MainProject()
+	}
 	utils.Check(err)
 
 	gh := github.NewClient(project.Host)
@@ -209,7 +221,13 @@ func showRelease(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.MainProject()
+	// If the user specifies a remote, load that project
+	var project *github.Project
+	if flagIssueRemote != "" {
+		project, err = localRepo.RemoteProject(flagIssueRemote)
+	} else { // Otherwise, load the default
+		project, err = localRepo.MainProject()
+	}
 	utils.Check(err)
 
 	gh := github.NewClient(project.Host)
@@ -250,7 +268,13 @@ func downloadRelease(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.MainProject()
+	// If the user specifies a remote, load that project
+	var project *github.Project
+	if flagIssueRemote != "" {
+		project, err = localRepo.RemoteProject(flagIssueRemote)
+	} else { // Otherwise, load the default
+		project, err = localRepo.MainProject()
+	}
 	utils.Check(err)
 
 	gh := github.NewClient(project.Host)

@@ -10,7 +10,7 @@ import (
 
 var cmdFork = &Command{
 	Run:   fork,
-	Usage: "fork [--no-remote] [--remote-name=<REMOTE>] [--org=<ORGANIZATION>]",
+	Usage: "fork [--no-remote] [--remote=<REMOTE>] [--org=<ORGANIZATION>]",
 	Long: `Fork the current project on GitHub and add a git remote for it.
 
 ## Options:
@@ -19,6 +19,9 @@ var cmdFork = &Command{
 
 	--org=<ORGANIZATION>
 		Fork the repository within this organization.
+
+	-R --remote=<REMOTE> --remote-name=<REMOTE>
+		Specify the name of the remote to fork
 
 ## Examples:
 		$ hub fork
@@ -44,7 +47,8 @@ var (
 
 func init() {
 	cmdFork.Flag.BoolVar(&flagForkNoRemote, "no-remote", false, "")
-	cmdFork.Flag.StringVarP(&flagForkRemoteName, "remote-name", "", "", "REMOTE")
+	cmdFork.Flag.StringVarP(&flagForkRemoteName, "remote-name", "R", "", "REMOTE")
+	cmdFork.Flag.StringVarP(&flagForkRemoteName, "remote", "", "", "REMOTE")
 	cmdFork.Flag.StringVarP(&flagForkOrganization, "org", "", "", "ORGANIZATION")
 
 	CmdRunner.Use(cmdFork)

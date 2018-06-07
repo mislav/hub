@@ -233,3 +233,23 @@ func (r *GitHubRepo) UpstreamProject() (project *Project, err error) {
 
 	return
 }
+
+func (r *GitHubRepo) RemoteProject(name string) (project *Project, err error) {
+	user_remote, err := r.RemoteByName(name)
+	if err != nil {
+		return
+	}
+
+	if user_remote == nil {
+		err = fmt.Errorf("Can't find git remote " + name)
+
+		return
+	}
+
+	project, err = user_remote.Project()
+	if err != nil {
+		err = fmt.Errorf("Aborted: the " + name + " remote doesn't point to a GitHub repository.")
+	}
+
+	return
+}
