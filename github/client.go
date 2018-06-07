@@ -247,6 +247,17 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 	return
 }
 
+func (client *Client) DeleteRepository(project *Project) error {
+	api, err := client.simpleApi()
+	if err != nil {
+		return err
+	}
+
+	repoURL := fmt.Sprintf("repos/%s/%s", project.Owner, project.Name)
+	res, err := api.Delete(repoURL)
+	return checkStatus(204, "deleting repository", res, err)
+}
+
 type Release struct {
 	Name            string         `json:"name"`
 	TagName         string         `json:"tag_name"`
@@ -447,14 +458,15 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 }
 
 type Repository struct {
-	Name        string                 `json:"name"`
-	FullName    string                 `json:"full_name"`
-	Parent      *Repository            `json:"parent"`
-	Owner       *User                  `json:"owner"`
-	Private     bool                   `json:"private"`
-	HasWiki     bool                   `json:"has_wiki"`
-	Permissions *RepositoryPermissions `json:"permissions"`
-	HtmlUrl     string                 `json:"html_url"`
+	Name          string                 `json:"name"`
+	FullName      string                 `json:"full_name"`
+	Parent        *Repository            `json:"parent"`
+	Owner         *User                  `json:"owner"`
+	Private       bool                   `json:"private"`
+	HasWiki       bool                   `json:"has_wiki"`
+	Permissions   *RepositoryPermissions `json:"permissions"`
+	HtmlUrl       string                 `json:"html_url"`
+	DefaultBranch string                 `json:"default_branch"`
 }
 
 type RepositoryPermissions struct {

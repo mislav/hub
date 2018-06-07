@@ -106,10 +106,9 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 		args.Before("git", "fetch", headRemote.Name, refSpec)
 	} else {
 		if newBranchName == "" {
-			if pullRequest.Head.Repo == nil {
-				newBranchName = fmt.Sprintf("pr-%d", pullRequest.Number)
-			} else {
-				newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, pullRequest.Head.Ref)
+			newBranchName = pullRequest.Head.Ref
+			if pullRequest.Head.Repo != nil && newBranchName == pullRequest.Head.Repo.DefaultBranch {
+				newBranchName = fmt.Sprintf("%s-%s", pullRequest.Head.Repo.Owner.Login, newBranchName)
 			}
 		}
 		newArgs = append(newArgs, newBranchName)

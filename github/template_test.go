@@ -120,6 +120,22 @@ func TestGithubTemplate_WithTemplateInGithubDirAndMarkdown(t *testing.T) {
 	assert.Equal(t, issueContent, tpl)
 }
 
+func TestGithubTemplate_WithTemplateInDocsDir(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	addGithubTemplates(repo, map[string]string{"dir": docsDir})
+
+	pwd, _ := os.Getwd()
+	tpl, err := ReadTemplate(PullRequestTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, prContent, tpl)
+
+	tpl, err = ReadTemplate(IssueTemplate, pwd)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, issueContent, tpl)
+}
+
 func addGithubTemplates(r *fixtures.TestRepo, config map[string]string) {
 	repoDir := "test.git"
 	if dir := config["dir"]; dir != "" {

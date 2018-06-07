@@ -66,6 +66,9 @@ git but that are extended through hub, and custom ones that hub provides.
 
   * hub-create(1):
     Create a new repository on GitHub and add a git remote for it.
+  
+  * hub-delete(1):
+    Delete a repository on Github.
 
   * hub-fork(1):
     Fork the current project on GitHub and add a git remote for it.

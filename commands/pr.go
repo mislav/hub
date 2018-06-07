@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -32,8 +33,9 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 	-s, --state <STATE>
 		Filter pull requests by <STATE> (default: "open").
 
-	-h, --head <BRANCH>
-		Show pull requests started from the specified head <BRANCH>.
+	-h, --head [<OWNER>:]<BRANCH>
+		Show pull requests started from the specified head <BRANCH>. The default
+		value for <OWNER> is taken from the current repository.
 
 	-b, --base <BRANCH>
 		Show pull requests based on the specified <BRANCH>.
@@ -160,6 +162,10 @@ func listPulls(cmd *Command, args *Args) {
 	if args.Noop {
 		ui.Printf("Would request list of pull requests for %s\n", project)
 		return
+	}
+
+	if flagPullRequestHead != "" && !strings.Contains(flagPullRequestHead, ":") {
+		flagPullRequestHead = fmt.Sprintf("%s:%s", project.Owner, flagPullRequestHead)
 	}
 
 	flagFilters := map[string]string{

@@ -1,12 +1,15 @@
 SOURCES = $(shell script/build files)
 SOURCES_FMT = $(shell script/build files | cut -d/ -f1-2 | sort -u)
 
+MIN_COVERAGE = 83
+
 HELP_CMD = \
 	share/man/man1/hub-alias.1 \
 	share/man/man1/hub-browse.1 \
 	share/man/man1/hub-ci-status.1 \
 	share/man/man1/hub-compare.1 \
 	share/man/man1/hub-create.1 \
+	share/man/man1/hub-delete.1 \
 	share/man/man1/hub-fork.1 \
 	share/man/man1/hub-pr.1 \
 	share/man/man1/hub-pull-request.1 \
@@ -43,7 +46,11 @@ test:
 	script/build test
 
 test-all: bin/cucumber
+ifdef CI
+	script/test --coverage $(MIN_COVERAGE)
+else
 	script/test
+endif
 
 bin/ronn bin/cucumber:
 	script/bootstrap
