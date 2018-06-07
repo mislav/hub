@@ -1,7 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
-if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ] && [ -n "$GITHUB_OAUTH" ]; then
+# Asserts that this build runs in the context of the Go version that appears
+# first in build configuration.
+latest_go_version() {
+  local go_version="$(grep '^go:' -A1 .travis.yml | tail -1)"
+  go_version="${go_version#* - }"
+  go_version="${go_version%.x}"
+  [ -n "$go_version" ] && [[ "$(go version)" == *" go${go_version}".* ]]
+}
+
+if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ] && latest_go_version && [ -n "$GITHUB_OAUTH" ]; then
   version="${TRAVIS_TAG#v}"
   make man-pages
   script/cross-compile "$version" | \
