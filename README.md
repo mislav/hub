@@ -67,7 +67,7 @@ hub version 2.2.9
 On Arch Linux you can install `hub` from official repository:
 
 ```sh
-$ sudo pacman -S hub`
+$ sudo pacman -S hub
 ```
 
 #### Standalone
