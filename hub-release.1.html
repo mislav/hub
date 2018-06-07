@@ -77,6 +77,7 @@
 <code>hub release</code> show <var>TAG</var><br />
 <code>hub release</code> create [-dpoc] [-a <var>FILE</var>] [-m <var>MESSAGE</var>|-F <var>FILE</var>] [-t <var>TARGET</var>] <var>TAG</var><br />
 <code>hub release</code> edit [<var>options</var>] <var>TAG</var><br />
+<code>hub release</code> download <var>TAG</var><br />
 <code>hub release</code> delete <var>TAG</var></p>
 
 <h2 id="COMMANDS">COMMANDS</h2>
@@ -120,6 +121,45 @@ character is taken as asset label.</p></dd>
 <dt>-c, --copy</dt><dd><p>Put the URL of the new release to clipboard instead of printing it.</p></dd>
 <dt>-t, --commitish <var>TARGET</var></dt><dd><p>A commit SHA or branch name to attach the release to, only used if <var>TAG</var>
 doesn`t already exist (default: main branch).</p></dd>
+<dt>-f, --format <var>FORMAT</var></dt><dd><p>Pretty print releases using <var>FORMAT</var> (default: "%T%n"). See the "PRETTY
+FORMATS" section of <span class="man-ref">git-log<span class="s">(1)</span></span> for some additional details on how
+placeholders are used in format. The available placeholders for issues are:</p>
+
+<p>%U: the URL of this release</p>
+
+<p>%uT: tarball URL</p>
+
+<p>%uZ: zipball URL</p>
+
+<p>%uA: asset upload URL</p>
+
+<p>%S: state (i.e. "draft", "pre-release")</p>
+
+<p>%sC: set color to yellow or red, depending on state</p>
+
+<p>%t: release name</p>
+
+<p>%T: release tag</p>
+
+<p>%b: body</p>
+
+<p>%as: the list of assets attached to this release</p>
+
+<p>%cD: created date-only (no time of day)</p>
+
+<p>%cr: created date, relative</p>
+
+<p>%ct: created date, UNIX timestamp</p>
+
+<p>%cI: created date, ISO 8601 format</p>
+
+<p>%pD: published date-only (no time of day)</p>
+
+<p>%pr: published date, relative</p>
+
+<p>%pt: published date, UNIX timestamp</p>
+
+<p>%pI: published date, ISO 8601 format</p></dd>
 <dt class="flush"><var>TAG</var></dt><dd><p>The git tag name for this release.</p></dd>
 </dl>
 
@@ -131,7 +171,7 @@ doesn`t already exist (default: main branch).</p></dd>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>May 2018</li>
+    <li class='tc'>June 2018</li>
     <li class='tr'>hub-release(1)</li>
   </ol>
 

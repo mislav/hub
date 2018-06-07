@@ -73,7 +73,7 @@
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
-<p><code>hub pr</code> list [-s <var>STATE</var>] [-h <var>HEAD</var>] [-b <var>BASE</var>] [-o <var>SORT_KEY</var> [-<sup>]]</sup> [-L <var>LIMIT</var>]<br />
+<p><code>hub pr</code> list [-s <var>STATE</var>] [-h <var>HEAD</var>] [-b <var>BASE</var>] [-o <var>SORT_KEY</var> [-<sup>]]</sup> [-f <var>FORMAT</var>] [-L <var>LIMIT</var>]<br />
 <code>hub pr</code> checkout <var>PR-NUMBER</var> [<var>BRANCH</var>]</p>
 
 <h2 id="COMMANDS">COMMANDS</h2>
@@ -87,7 +87,10 @@
 <h2 id="OPTIONS">OPTIONS</h2>
 
 <dl>
-<dt>-s, --state <var>STATE</var></dt><dd><p>Display pull requests with state <var>STATE</var> (default: "open").</p></dd>
+<dt>-s, --state <var>STATE</var></dt><dd><p>Filter pull requests by <var>STATE</var> (default: "open").</p></dd>
+<dt>-h, --head [<var>OWNER</var>:]<var>BRANCH</var></dt><dd><p>Show pull requests started from the specified head <var>BRANCH</var>. The default
+value for <var>OWNER</var> is taken from the current repository.</p></dd>
+<dt>-b, --base <var>BRANCH</var></dt><dd><p>Show pull requests based on the specified <var>BRANCH</var>.</p></dd>
 <dt>-f, --format <var>FORMAT</var></dt><dd><p>Pretty print the list of pull requests using format <var>FORMAT</var> (default:
 "%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
 git-log manual for some additional details on how placeholders are used in
@@ -155,7 +158,7 @@ format. The available placeholders are:</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>May 2018</li>
+    <li class='tc'>June 2018</li>
     <li class='tr'>hub-pr(1)</li>
   </ol>
 

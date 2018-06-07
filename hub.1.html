@@ -115,6 +115,7 @@ git but that are extended through hub, and custom ones that hub provides.</p>
 <dt><a class="man-ref" href="hub-ci-status.1.html">hub-ci-status<span class="s">(1)</span></a></dt><dd><p>Display GitHub Status information for a commit.</p></dd>
 <dt><a class="man-ref" href="hub-compare.1.html">hub-compare<span class="s">(1)</span></a></dt><dd><p>Open a GitHub compare page in a web browser.</p></dd>
 <dt><a class="man-ref" href="hub-create.1.html">hub-create<span class="s">(1)</span></a></dt><dd><p>Create a new repository on GitHub and add a git remote for it.</p></dd>
+<dt><a class="man-ref" href="hub-delete.1.html">hub-delete<span class="s">(1)</span></a></dt><dd><p>Delete a repository on Github.</p></dd>
 <dt><a class="man-ref" href="hub-fork.1.html">hub-fork<span class="s">(1)</span></a></dt><dd><p>Fork the current project on GitHub and add a git remote for it.</p></dd>
 <dt><a class="man-ref" href="hub-pull-request.1.html">hub-pull-request<span class="s">(1)</span></a></dt><dd><p>Create a GitHub pull request.</p></dd>
 <dt><a class="man-ref" href="hub-issue.1.html">hub-issue<span class="s">(1)</span></a></dt><dd><p>List and create GitHub issues.</p></dd>
@@ -166,7 +167,10 @@ this can be affected with the <code>GITHUB_HOST</code> environment variable:</p>
 
 <dl>
 <dt><code>HUB_VERBOSE</code></dt><dd><p>Enable verbose output from hub commands.</p></dd>
-<dt><code>HUB_CONFIG</code></dt><dd><p>Set the location of a custom config file (default: <code>~/.config/hub</code>).</p></dd>
+<dt><code>HUB_CONFIG</code></dt><dd><p>The file path where hub configuration is read from and stored. If
+<code>XDG_CONFIG_HOME</code> is present, the default is <code>$XDG_CONFIG_HOME/hub</code>;
+otherwise it's <code>$HOME/.config/hub</code>. The configuration file is also
+searched for in <code>XDG_CONFIG_DIRS</code> per XDG Base Directory Specification.</p></dd>
 <dt><code>HUB_PROTOCOL</code></dt><dd><p>Use one of "https|ssh|git" as preferred protocol for git clone/push.</p></dd>
 <dt><code>GITHUB_TOKEN</code></dt><dd><p>OAuth token to use for GitHub API requests.</p></dd>
 </dl>
@@ -188,7 +192,7 @@ this can be affected with the <code>GITHUB_HOST</code> environment variable:</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>May 2018</li>
+    <li class='tc'>June 2018</li>
     <li class='tr'>hub(1)</li>
   </ol>
 
