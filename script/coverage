@@ -6,8 +6,10 @@ source_files() {
 }
 
 prepare() {
-  if ! git diff --quiet; then
-    echo "Error: please commit your changes before continuing." >&2
+  local changed_files="$(source_files | xargs git diff --name-only --)"
+  if [ -n "$changed_files" ]; then
+    echo "Aborted: please commit the following files before continuing" >&2
+    cat <<<"$changed_files" >&2
     exit 1
   fi
 
