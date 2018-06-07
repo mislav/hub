@@ -33,6 +33,9 @@ git but that are extended through hub, and custom ones that hub provides.
   * hub-clone(1):
     Clone a repository from GitHub.
 
+  * hub-pull(1):
+    Pull commits from a repository on GitHub.
+
   * hub-fetch(1):
     Add missing remotes prior to performing git fetch.
 
