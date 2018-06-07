@@ -230,26 +230,6 @@ Feature: OAuth authentication
     And the exit status should be 1
     And the file "../home/.config/hub" should not exist
 
-  Scenario: Personal access token used instead of password
-    Given the GitHub API server:
-      """
-      post('/authorizations') {
-        status 403
-        json :message => "This API can only be accessed with username and password Basic Auth"
-      }
-      """
-    When I run `hub create` interactively
-    When I type "mislav"
-    And I type "PERSONALACCESSTOKEN"
-    Then the stderr should contain exactly:
-      """
-      Error creating repository: Forbidden (HTTP 403)
-      This API can only be accessed with username and password Basic Auth
-
-      """
-    And the exit status should be 1
-    And the file "../home/.config/hub" should not exist
-
   Scenario: Two-factor authentication, create authorization
     Given the GitHub API server:
       """
