@@ -1,7 +1,7 @@
 SOURCES = $(shell script/build files)
 SOURCES_FMT = $(shell script/build files | cut -d/ -f1-2 | sort -u)
 
-MIN_COVERAGE = 83
+MIN_COVERAGE = 89.4
 
 HELP_CMD = \
 	share/man/man1/hub-alias.1 \
