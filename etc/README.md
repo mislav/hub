@@ -31,6 +31,20 @@ fpath=(~/.zsh/completions $fpath)
 autoload -U compinit && compinit
 ```
 
+> Note:
+>
+> If you receive the a "zsh compinit: insecure directories, run compaudit for list." message, use the following commands:
+>
+> ```bash
+> # list insecure directories
+> compaudit
+>
+> # fix insecure directories
+> compaudit | xargs chmod g-w
+> ```
+>
+> Reference: http://stackoverflow.com/questions/13762280/zsh-compinit-insecure-directories
+
 ## fish
 
 Copy the file `etc/hub.fish_completion` from the location where you downloaded
