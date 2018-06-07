@@ -81,10 +81,22 @@ Feature: hub pr list
     """
     get('/repos/github/hub/pulls') {
       assert :base => "develop",
-             :head => "patch-1"
+             :head => "github:patch-1"
 
       json []
     }
     """
     When I successfully run `hub pr list -b develop -h patch-1`
+    Then the output should contain exactly ""
+
+  Scenario: Filter by head with owner
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/pulls') {
+      assert :head => "mislav:patch-1"
+
+      json []
+    }
+    """
+    When I successfully run `hub pr list -h mislav:patch-1`
     Then the output should contain exactly ""
