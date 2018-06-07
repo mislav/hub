@@ -171,6 +171,57 @@ Feature: OAuth authentication
     Then the output should not contain "github.com password for mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
+  Scenario: XDG: legacy config found, credentials from GITHUB_USER & GITHUB_PASSWORD
+    Given I am "mislav" on github.com with OAuth token "LTOKEN"
+    And the GitHub API server:
+      """
+      post('/authorizations') {
+        assert_basic_auth 'mislav', 'kitty'
+        status 201
+        json :token => 'OTOKEN'
+      }
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        status 201
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    And $GITHUB_USER is "mislav"
+    And $GITHUB_PASSWORD is "kitty"
+    And $XDG_CONFIG_HOME is "$HOME/.xdg"
+    When I successfully run `hub create`
+    Then the file "../home/.xdg/hub" should contain "oauth_token: OTOKEN"
+    And the stderr should contain exactly:
+      """
+      Notice: config file found but not respected at: $HOME/.config/hub
+      You might want to move it to `$HOME/.xdg/hub' to avoid re-authenticating.\n
+      """
+
+  Scenario: XDG: config from secondary directories
+    Given I am "mislav" on github.com with OAuth token "OTOKEN"
+    And the GitHub API server:
+      """
+      get('/user') {
+        json :login => 'mislav'
+      }
+      post('/user/repos') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        status 201
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    And $GITHUB_USER is "mislav"
+    And $GITHUB_PASSWORD is "kitty"
+    And $XDG_CONFIG_HOME is "$HOME/.xdg"
+    And $XDG_CONFIG_DIRS is "/etc/xdg-nonsense:$HOME/.xdg-dir"
+    When I move the file named "../home/.config/hub" to "../home/.xdg-dir/hub"
+    And I successfully run `hub create`
+    Then the file "../home/.xdg/hub" should not exist
+    And the stderr should contain exactly ""
+
   Scenario: Credentials from GITHUB_TOKEN
     Given the GitHub API server:
       """
@@ -390,7 +441,7 @@ Feature: OAuth authentication
       When I run `hub create` interactively
       Then the output should contain:
         """
-        /home/.config/hub: permission denied\n
+        $HOME/.config/hub: permission denied\n
         """
       And the exit status should be 1
       And the file "../home/.config/hub" should not exist

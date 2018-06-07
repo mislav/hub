@@ -40,7 +40,7 @@ Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, h
 end
 
 Given(/^\$(\w+) is "([^"]*)"$/) do |name, value|
-  set_env name, value
+  set_env name, value.gsub(/\$([A-Z_]+)/) { ENV.fetch($1) }
 end
 
 Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
@@ -150,6 +150,13 @@ end
 Given(/^the current dir is not a repo$/) do
   in_current_dir do
     FileUtils.rm_rf '.git'
+  end
+end
+
+When(/^I move the file named "([^"]+)" to "([^"]+)"?$/) do |source, dest|
+  in_current_dir do
+    FileUtils.mkdir_p(File.dirname(dest))
+    FileUtils.mv(source, dest)
   end
 end
 

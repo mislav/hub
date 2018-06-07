@@ -17,15 +17,6 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
-var defaultConfigsFile string
-
-func init() {
-	homeDir, err := homedir.Dir()
-	utils.Check(err)
-
-	defaultConfigsFile = filepath.Join(homeDir, ".config", "hub")
-}
-
 type yamlHost struct {
 	User       string `yaml:"user"`
 	OAuthToken string `yaml:"oauth_token"`
@@ -243,13 +234,65 @@ func (c *Config) selectHost() *Host {
 	return c.Hosts[i-1]
 }
 
+var defaultConfigsFile string
+
 func configsFile() string {
-	configsFile := os.Getenv("HUB_CONFIG")
-	if configsFile == "" {
-		configsFile = defaultConfigsFile
+	if configFromEnv := os.Getenv("HUB_CONFIG"); configFromEnv != "" {
+		return configFromEnv
+	}
+	if defaultConfigsFile == "" {
+		var err error
+		defaultConfigsFile, err = determineConfigLocation()
+		utils.Check(err)
+	}
+	return defaultConfigsFile
+}
+
+func homeConfig() (string, error) {
+	if home, err := homedir.Dir(); err != nil {
+		return "", err
+	} else {
+		return filepath.Join(home, ".config"), nil
+	}
+}
+
+func determineConfigLocation() (string, error) {
+	var err error
+
+	xdgHome := os.Getenv("XDG_CONFIG_HOME")
+	configDir := xdgHome
+	if configDir == "" {
+		if configDir, err = homeConfig(); err != nil {
+			return "", err
+		}
 	}
 
-	return configsFile
+	xdgDirs := os.Getenv("XDG_CONFIG_DIRS")
+	if xdgDirs == "" {
+		xdgDirs = "/etc/xdg"
+	}
+	searchDirs := append([]string{configDir}, strings.Split(xdgDirs, ":")...)
+
+	for _, dir := range searchDirs {
+		filename := filepath.Join(dir, "hub")
+		if _, err := os.Stat(filename); err == nil {
+			return filename, nil
+		}
+	}
+
+	configFile := filepath.Join(configDir, "hub")
+
+	if configDir == xdgHome {
+		if homeDir, _ := homeConfig(); homeDir != "" {
+			legacyConfig := filepath.Join(homeDir, "hub")
+			if _, err = os.Stat(legacyConfig); err == nil {
+				ui.Errorf("Notice: config file found but not respected at: %s\n", legacyConfig)
+				ui.Errorf("You might want to move it to `%s' to avoid re-authenticating.\n", configFile)
+			}
+		}
+	}
+
+	return configFile, nil
 }
 
 var currentConfig *Config
@@ -315,7 +358,7 @@ func CheckWriteable(filename string) error {
 // Public for testing purpose
 func CreateTestConfigs(user, token string) *Config {
 	f, _ := ioutil.TempFile("", "test-config")
-	defaultConfigsFile = f.Name()
+	os.Setenv("HUB_CONFIG", f.Name())
 
 	host := &Host{
 		User:        "jingweno",
