@@ -3,16 +3,6 @@ require 'fileutils'
 require 'forwardable'
 require 'tmpdir'
 
-# Ruby 2.2.0 compat
-Cucumber::Ast::Step.class_eval do
-  undef_method :text_length
-  def text_length(name=name())
-    self.class::INDENT + self.class::INDENT +
-      keyword.unpack('U*').length +
-      name.unpack('U*').length
-  end
-end
-
 system_git = `which git 2>/dev/null`.chomp
 lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
