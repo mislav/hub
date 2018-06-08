@@ -4,16 +4,11 @@ require 'forwardable'
 require 'tmpdir'
 
 system_git = `which git 2>/dev/null`.chomp
-lib_dir = File.expand_path('../../../lib', __FILE__)
 bin_dir = File.expand_path('../fakebin', __FILE__)
 hub_dir = Dir.mktmpdir('hub_build')
 raise 'hub build failed' unless system("./script/build -o #{hub_dir}/hub")
 
 Before do
-  # don't want hub to run in bundle
-  unset_bundler_env_vars
-  # have bin/hub load code from the current project
-  set_env 'RUBYLIB', lib_dir
   # speed up load time by skipping RubyGems
   set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
@@ -21,7 +16,7 @@ Before do
   # clear out GIT if it happens to be set
   set_env 'GIT', nil
   # exclude this project's git directory from use in testing
-  set_env 'GIT_CEILING_DIRECTORIES', File.dirname(lib_dir)
+  set_env 'GIT_CEILING_DIRECTORIES', File.expand_path('../../..', __FILE__)
   # sabotage git commands that might try to access a remote host
   set_env 'GIT_PROXY_COMMAND', 'echo'
   # avoids reading from current user's "~/.gitconfig"
