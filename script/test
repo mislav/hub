@@ -33,7 +33,7 @@ trap "exit 1" INT
 
 [ -z "$HUB_COVERAGE" ] || script/coverage prepare
 script/build
-script/build test || STATUS="$?"
+go test ./... || STATUS="$?"
 script/ruby-test "$@" || STATUS="$?"
 
 if [ -n "$HUB_COVERAGE" ]; then
