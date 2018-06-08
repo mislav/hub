@@ -31,6 +31,10 @@
   version = "0.0.1"
 
 [[constraint]]
+  branch = "v2"
+  name = "github.com/russross/blackfriday"
+
+[[constraint]]
   branch = "master"
   name = "golang.org/x/crypto"
 
