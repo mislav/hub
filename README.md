@@ -33,13 +33,6 @@ git version 1.7.6
 hub version 2.2.3
 ```
 
-If you want to get access to new `hub` features earlier and help with its
-development by reporting bugs, you can install the prerelease version:
-
-``` sh
-$ brew install --devel hub
-```
-
 #### Windows
 
 `hub` can be installed through [Chocolatey](https://chocolatey.org/) or
@@ -78,11 +71,11 @@ in your executable path.
 
 #### Source
 
-To install hub from source:
+With your [GOPATH](https://github.com/golang/go/wiki/GOPATH) already set up:
 
 ``` sh
-$ git clone https://github.com/github/hub.git
-$ cd hub
+$ go get github.com/github/hub
+$ cd "$GOPATH"/src/github.com/github/hub
 $ make install prefix=/usr/local
 ```
 
@@ -91,23 +84,6 @@ Prerequisites for compilation are:
 * `make`
 * [Go 1.8+](http://golang.org/doc/install)
 * Ruby 1.9+ with Bundler - for generating man pages
-
-If you don't have `make`, Ruby, or want to skip man pages (for example, if you
-are on Windows), you can build only the `hub` binary:
-
-``` sh
-$ ./script/build
-```
-
-You can now move `bin/hub` to somewhere in your PATH.
-
-Finally, if you've done Go development before and your `$GOPATH/bin` directory
-is already in your PATH, this is an alternative installation method that fetches
-hub into your GOPATH and builds it automatically:
-
-``` sh
-$ go get github.com/github/hub
-```
 
 Aliasing
 --------

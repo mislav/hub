@@ -16,8 +16,6 @@ if [ -n "$TRAVIS" ] && [ ! -x ~/bin/tmux ]; then
   curl -fsSL "https://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${cache_name}.tgz" | tar -xz -C ~
 fi
 
-script/build check || STATUS=1
-
 { ruby --version
   if [ -n "$TRAVIS" ]; then
     script/cached-bundle install --deployment --jobs=3 --retry=3 --path bundle

@@ -45,9 +45,29 @@ generate() {
   awk '/^total:/ { print $(NF) }' "${HUB_COVERAGE%.out}.func"
 }
 
-case "${1?}" in
-  prepare | generate )
-    "$1"
+summarize() {
+  local total_coverage
+  local min_coverage="${1?}"
+  total_coverage="$(generate)"
+  echo "Code coverage: $total_coverage"
+  local result="$(bc <<<"${total_coverage%\%} < $min_coverage")"
+  if [ "$result" -eq 1 ]; then
+    echo "Error: coverage dropped below the minimum treshold of ${min_coverage}%!"
+    if [ -n "$CI" ]; then
+      html_result="${HUB_COVERAGE%.out}.html"
+      html_result="${html_result#$PWD/}"
+      printf 'Please run `script/test --coverage` locally and open `%s` to analyze the results.\n' "$html_result"
+    fi
+    return 1
+  fi
+}
+
+cmd="${1?}"
+shift 1
+
+case "$cmd" in
+  prepare | generate | summarize )
+    "$cmd" "$@"
     ;;
   * )
     exit 1

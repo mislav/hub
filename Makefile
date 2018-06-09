@@ -1,5 +1,4 @@
 SOURCES = $(shell script/build files)
-SOURCES_FMT = $(shell script/build files | cut -d/ -f1-2 | sort -u)
 
 MIN_COVERAGE = 89.4
 
@@ -35,15 +34,11 @@ HELP_ALL = share/man/man1/hub.1 $(HELP_CMD) $(HELP_EXT)
 
 TEXT_WIDTH = 87
 
-.PHONY: clean test test-all man-pages fmt install
-
-all: bin/hub
-
 bin/hub: $(SOURCES)
 	script/build -o $@
 
 test:
-	script/build test
+	go test ./...
 
 test-all: bin/cucumber
 ifdef CI
@@ -56,8 +51,7 @@ bin/ronn bin/cucumber:
 	script/bootstrap
 
 fmt:
-	go fmt $(filter %.go,$(SOURCES_FMT))
-	go fmt $(filter-out %.go,$(SOURCES_FMT))
+	go fmt ./...
 
 man-pages: $(HELP_ALL:=.ronn) $(HELP_ALL) $(HELP_ALL:=.txt)
 
@@ -78,3 +72,5 @@ install: bin/hub man-pages
 
 clean:
 	git clean -fdx bin share/man
+
+.PHONY: clean test test-all man-pages fmt install
