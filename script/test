@@ -35,21 +35,7 @@ trap "exit 1" INT
 script/build
 go test ./... || STATUS="$?"
 script/ruby-test "$@" || STATUS="$?"
-
-if [ -n "$HUB_COVERAGE" ]; then
-  total_coverage="$(script/coverage generate)"
-  echo "Code coverage: $total_coverage"
-  result="$(bc <<<"${total_coverage%\%} < $min_coverage")"
-  if [ "$result" -eq 1 ]; then
-    echo "Error: coverage dropped below the minimum treshold of ${min_coverage}%!"
-    if [ -n "$CI" ]; then
-      html_result="${HUB_COVERAGE%.out}.html"
-      html_result="${html_result#$PWD/}"
-      printf 'Please run `script/test --coverage` locally and open `%s` to analyze the results.\n' "$html_result"
-    fi
-    STATUS=1
-  fi
-fi
+[ -z "$HUB_COVERAGE" ] || script/coverage summarize "$min_coverage" || STATUS=1
 
 if [ -n "$CI" ]; then
   make fmt >/dev/null
