@@ -52,6 +52,8 @@ func SetupTestRepo() *TestRepo {
 	}
 
 	overrideEnv("HOME", home)
+	overrideEnv("XDG_CONFIG_HOME", "")
+	overrideEnv("XDG_CONFIG_DIRS", "")
 
 	targetPath := filepath.Join(home, "test.git")
 	cmd := cmd.New("git").WithArgs("clone", remotePath, targetPath)
