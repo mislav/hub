@@ -10,7 +10,7 @@ import (
 )
 
 type TestRepo struct {
-	Remote string
+	Remote   string
 	TearDown func()
 }
 
