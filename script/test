@@ -31,20 +31,25 @@ STATUS=0
 
 trap "exit 1" INT
 
+check_formatting() {
+  [[ "$(go version)" != *" go1.8."* ]] || return 0
+  make fmt >/dev/null
+  if ! git diff -U1 --exit-code; then
+    echo
+    echo "Some go code was not formatted properly." >&2
+    echo "Run \`make fmt' locally to fix these errors." >&2
+    return 1
+  fi
+}
+
 [ -z "$HUB_COVERAGE" ] || script/coverage prepare
 script/build
 go test ./... || STATUS="$?"
 script/ruby-test "$@" || STATUS="$?"
-[ -z "$HUB_COVERAGE" ] || script/coverage summarize "$min_coverage" || STATUS=1
+[ -z "$HUB_COVERAGE" ] || script/coverage summarize "$min_coverage" || STATUS="$?"
 
-if [ -n "$CI" ] && [[ "$(go version)" != *" go1.8."* ]]; then
-  make fmt >/dev/null
-  if ! git diff -U1 --exit-code; then
-    STATUS=1
-    echo
-    echo "Some go code was not formatted properly." >&2
-    echo "Run \`make fmt' locally to fix these errors." >&2
-  fi
+if [ -n "$CI" ]; then
+  check_formatting || STATUS="$?"
 fi
 
 exit "$STATUS"
