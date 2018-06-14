@@ -125,7 +125,7 @@ func compare(command *Command, args *Args) {
 }
 
 func parseCompareRange(r string) string {
-	shaOrTag := fmt.Sprintf("((?:%s:)?\\w[\\w.-]+\\w)", OwnerRe)
+	shaOrTag := fmt.Sprintf("((?:%s:)?\\w(?:[\\w.-]*\\w)?)", OwnerRe)
 	shaOrTagRange := fmt.Sprintf("^%s\\.\\.%s$", shaOrTag, shaOrTag)
 	shaOrTagRangeRegexp := regexp.MustCompile(shaOrTagRange)
 	return shaOrTagRangeRegexp.ReplaceAllString(r, "$1...$2")
