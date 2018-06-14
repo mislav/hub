@@ -17,7 +17,7 @@ prefix="${PREFIX:-$prefix}"
 prefix="${prefix:-/usr/local}"
 
 for src in bin/hub share/man/*/*.1; do
-  dest="${prefix}/${src}"
+  dest="${DESTDIR}${prefix}/${src}"
   mkdir -p "${dest%/*}"
   [[ $src == share/* ]] && mode="644" || mode=755
   install -m "$mode" "$src" "$dest"
