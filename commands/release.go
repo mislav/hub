@@ -66,7 +66,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	-p, --prerelease
 		Create a pre-release.
 
-	-a, --asset <FILE>
+	-a, --attach <FILE>
 		Attach a file as an asset for this release.
 
 		If <FILE> is in the "<filename>#<text>" format, the text after the '#'
