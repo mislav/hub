@@ -137,6 +137,14 @@ Feature: hub compare
     Then there should be no output
     And "open http://git.my.org/mislav/dotfiles/compare/refactor" should be run
 
+  Scenario: Enterprise repo with explicit upstream project
+    Given the "origin" remote has url "git://git.my.org/mislav/dotfiles.git"
+    And I am "mislav" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    When I successfully run `hub compare fehmicansaglam a..b`
+    Then there should be no output
+    And "open https://git.my.org/fehmicansaglam/dotfiles/compare/a...b" should be run
+
   Scenario: Compare in non-GitHub repo
     Given the "origin" remote has url "git@bitbucket.org:mislav/dotfiles.git"
     And I am on the "feature" branch

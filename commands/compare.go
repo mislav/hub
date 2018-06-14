@@ -101,10 +101,12 @@ func compare(command *Command, args *Args) {
 				utils.Check(err)
 			} else {
 				projectName := ""
+				projectHost := ""
 				if err == nil {
 					projectName = project.Name
+					projectHost = project.Host
 				}
-				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), projectName, "")
+				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), projectName, projectHost)
 				if project.Name == "" {
 					utils.Check(fmt.Errorf("error: missing project name (owner: %q)\n", project.Owner))
 				}
