@@ -42,6 +42,15 @@ check_formatting() {
   fi
 }
 
+install_test() {
+  touch share/man/man1/hub.1
+  DESTDIR="$PWD/tmp/destdir" prefix=/my/prefix bash < script/install.sh
+  test -x tmp/destdir/my/prefix/bin/hub
+  test -e tmp/destdir/my/prefix/share/man/man1/hub.1
+  test ! -x tmp/destdir/my/prefix/share/man/man1/hub.1
+  rm share/man/man1/hub.1
+}
+
 [ -z "$HUB_COVERAGE" ] || script/coverage prepare
 script/build
 go test ./... || STATUS="$?"
@@ -50,6 +59,7 @@ script/ruby-test "$@" || STATUS="$?"
 
 if [ -n "$CI" ]; then
   check_formatting || STATUS="$?"
+  install_test || STATUS="$?"
 fi
 
 exit "$STATUS"
