@@ -39,22 +39,32 @@ func transformCherryPickArgs(args *Args) {
 	}
 
 	ref := args.LastParam()
-	project, sha, isPrivate := parseCherryPickProjectAndSha(ref)
+	project, sha, refspec, isPrivate := parseCherryPickProjectAndSha(ref)
 	if project != nil {
 		args.ReplaceParam(args.IndexOfParam(ref), sha)
 
+		tmpName := "_hub-cherry-pick"
+		remoteName := tmpName
+
 		if remote := gitRemoteForProject(project); remote != nil {
-			args.Before("git", "fetch", remote.Name)
+			remoteName = remote.Name
 		} else {
-			tmpName := "_hub-cherry-pick"
-			args.Before("git", "remote", "add", tmpName, project.GitURL("", "", isPrivate))
-			args.Before("git", "fetch", "-q", "--no-tags", tmpName)
-			args.Before("git", "remote", "rm", tmpName)
+			args.Before("git", "remote", "add", remoteName, project.GitURL("", "", isPrivate))
+		}
+
+		fetchArgs := []string{"git", "fetch", "-q", "--no-tags", remoteName}
+		if refspec != "" {
+			fetchArgs = append(fetchArgs, refspec)
+		}
+		args.Before(fetchArgs...)
+
+		if remoteName == tmpName {
+			args.Before("git", "remote", "rm", remoteName)
 		}
 	}
 }
 
-func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha string, isPrivate bool) {
+func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha, refspec string, isPrivate bool) {
 	shaRe := "[a-f0-9]{7,40}"
 
 	var mainProject *github.Project
@@ -79,12 +89,8 @@ func parseCherryPickProjectAndSha(ref string) (project *github.Project, sha stri
 			pullId := matches[1]
 			sha = matches[2]
 			utils.Check(mainProjectErr)
-			api := github.NewClient(mainProject.Host)
-			pullRequest, err := api.PullRequest(url.Project, pullId)
-			utils.Check(err)
-			headRepo := pullRequest.Head.Repo
-			project = github.NewProject(headRepo.Owner.Login, headRepo.Name, mainProject.Host)
-			isPrivate = headRepo.Private
+			project = mainProject
+			refspec = fmt.Sprintf("refs/pull/%s/head", pullId)
 			return
 		}
 	}
