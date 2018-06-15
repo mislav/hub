@@ -14,10 +14,6 @@ You will need:
 2. git 1.8+
 3. tmux & zsh (optional) - for running shell completion tests
 
-We will also require you to sign the [GitHub Contributor License Agreement](https://cla.github.com/)
-after you submit your first pull request to this project. The link to sign the
-agreement will be presented to you in the web interface of the pull request.
-
 ## What makes a good hub feature
 
 hub is a tool that wraps git to provide useful integration with GitHub. A new
