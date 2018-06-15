@@ -35,8 +35,8 @@
   name = "golang.org/x/crypto"
 
 [[constraint]]
-  branch = "v1"
-  name = "gopkg.in/yaml.v1"
+  branch = "v2"
+  name = "gopkg.in/yaml.v2"
 
 [prune]
   go-tests = true
