@@ -258,7 +258,7 @@ Feature: OAuth authentication
       """
     Given $GITHUB_TOKEN is "PTOKEN"
     When I successfully run `hub clone dotfiles`
-    Then it should clone "git@github.com:parkr/dotfiles.git"
+    Then it should clone "https://github.com/parkr/dotfiles.git"
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 

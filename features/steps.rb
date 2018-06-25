@@ -4,6 +4,10 @@ Given(/^HTTPS is preferred$/) do
   run_silent %(git config --global hub.protocol https)
 end
 
+Given(/^Plain git protocol is preferred$/) do
+  run_silent %(git config --global hub.protocol git)
+end
+
 Given(/^there are no remotes$/) do
   result = run_silent('git remote')
   expect(result).to be_empty
