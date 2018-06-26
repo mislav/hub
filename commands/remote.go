@@ -89,18 +89,20 @@ func transformRemoteArgs(args *Args) {
 	}
 	host = hostConfig.Host
 
-	words := args.Words()
 	isPrivate := parseRemotePrivateFlag(args)
-	if len(words) == 2 && words[1] == "origin" {
-		// Origin special case triggers default user/repo
-		owner = hostConfig.User
-	} else if len(words) == 2 {
-		// gh remote add jingweno foo/bar
-		if idx := args.IndexOfParam(words[1]); idx != -1 {
-			args.ReplaceParam(idx, owner)
+	numWord := 0
+	for i, p := range args.Params {
+		if !looksLikeFlag(p) && (i < 1 || args.Params[i-1] != "-t") {
+			numWord += 1
+			if numWord == 2 && strings.Contains(p, "/") {
+				args.ReplaceParam(i, owner)
+			} else if numWord == 3 {
+				args.RemoveParam(i)
+			}
 		}
-	} else {
-		args.RemoveParam(args.ParamsSize() - 1)
+	}
+	if numWord == 2 && owner == "origin" {
+		owner = hostConfig.User
 	}
 
 	if strings.ToLower(owner) == strings.ToLower(hostConfig.User) {
@@ -109,9 +111,7 @@ func transformRemoteArgs(args *Args) {
 	}
 
 	project := github.NewProject(owner, name, host)
-	// for GitHub Enterprise
-	isPrivate = isPrivate || project.Host != github.GitHubHost
-	url := project.GitURL(name, owner, isPrivate)
+	url := project.GitURL("", "", isPrivate || project.Host != github.GitHubHost)
 	args.AppendParams(url)
 }
 
@@ -125,20 +125,11 @@ func parseRemotePrivateFlag(args *Args) bool {
 }
 
 func parseRepoNameOwner(nameWithOwner string) (owner, name string) {
-	ownerRe := fmt.Sprintf("^(%s)$", OwnerRe)
-	ownerRegexp := regexp.MustCompile(ownerRe)
-	if ownerRegexp.MatchString(nameWithOwner) {
-		owner = ownerRegexp.FindStringSubmatch(nameWithOwner)[1]
-		return
-	}
-
-	nameWithOwnerRe := fmt.Sprintf("^(%s)\\/(%s)$", OwnerRe, NameRe)
+	nameWithOwnerRe := fmt.Sprintf("^(%s)(?:\\/(%s))?$", OwnerRe, NameRe)
 	nameWithOwnerRegexp := regexp.MustCompile(nameWithOwnerRe)
 	if nameWithOwnerRegexp.MatchString(nameWithOwner) {
 		result := nameWithOwnerRegexp.FindStringSubmatch(nameWithOwner)
-		owner = result[1]
-		name = result[2]
+		owner, name = result[1], result[2]
 	}
-
 	return
 }

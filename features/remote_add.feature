@@ -70,6 +70,11 @@ Feature: hub remote add
     Then "git remote add -f mislav git://github.com/mislav/dotfiles.git" should be run
     And there should be no output
 
+  Scenario: Add remote with branch argument
+    When I successfully run `hub remote add -f -t feature mislav`
+    Then "git remote add -f -t feature mislav git://github.com/mislav/dotfiles.git" should be run
+    And there should be no output
+
   Scenario: Add HTTPS protocol remote
     Given HTTPS is preferred
     When I successfully run `hub remote add mislav`
