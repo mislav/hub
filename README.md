@@ -14,11 +14,8 @@ $ git clone git://github.com/rtomayko/tilt.git
 hub is best aliased as `git`, so you can type `$ git <command>` in the shell and
 get all the usual `hub` features. See "Aliasing" below.
 
-Usage documentation
-------------
-
-https://hub.github.com/hub.1.html
-
+See [Usage documentation](https://hub.github.com/hub.1.html) for the list of all
+commands and their arguments.
 
 Installation
 ------------
