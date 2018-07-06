@@ -17,8 +17,12 @@ if declare -F _git > /dev/null && ! declare -F __git_list_all_commands_without_h
     cat <<-EOF
 alias
 pull-request
+pr
+issue
+release
 fork
 create
+delete
 browse
 compare
 ci-status

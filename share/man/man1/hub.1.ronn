@@ -66,7 +66,7 @@ git but that are extended through hub, and custom ones that hub provides.
 
   * hub-create(1):
     Create a new repository on GitHub and add a git remote for it.
-  
+
   * hub-delete(1):
     Delete a repository on Github.
 
@@ -75,6 +75,9 @@ git but that are extended through hub, and custom ones that hub provides.
 
   * hub-pull-request(1):
     Create a GitHub pull request.
+
+  * hub-pr(1):
+    List and checkout GitHub pull requests.
 
   * hub-issue(1):
     List and create GitHub issues.

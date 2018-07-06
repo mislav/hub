@@ -21,8 +21,12 @@ complete -f -c hub -n '__fish_hub_needs_command' -a alias -d "show shell instruc
 complete -f -c hub -n '__fish_hub_needs_command' -a browse -d "browse the project on GitHub"
 complete -f -c hub -n '__fish_hub_needs_command' -a compare -d "lookup commit in GitHub Status API"
 complete -f -c hub -n '__fish_hub_needs_command' -a create -d "create new repo on GitHub for the current project"
+complete -f -c hub -n '__fish_hub_needs_command' -a delete -d "delete a GitHub repo"
 complete -f -c hub -n '__fish_hub_needs_command' -a fork -d "fork origin repo on GitHub"
 complete -f -c hub -n '__fish_hub_needs_command' -a pull-request -d "open a pull request on GitHub"
+complete -f -c hub -n '__fish_hub_needs_command' -a pr -d "list or checkout a GitHub release"
+complete -f -c hub -n '__fish_hub_needs_command' -a issue -d "list or create a GitHub issue"
+complete -f -c hub -n '__fish_hub_needs_command' -a release -d "list or create a GitHub release"
 complete -f -c hub -n '__fish_hub_needs_command' -a ci-status -d "display GitHub Status information for a commit"
 complete -f -c hub -n '__fish_hub_needs_command' -a sync -d "update local branches from upstream"
 
@@ -58,5 +62,8 @@ complete -f -c hub -n ' __fish_hub_using_command create' -l browse -d "Open the 
 complete -f -c hub -n ' __fish_hub_using_command create' -s p -d "Create a private repository"
 complete -f -c hub -n ' __fish_hub_using_command create' -s c -d "Put the URL of the new repository to clipboard instead of printing it."
 complete -f -c hub -n ' __fish_hub_using_command create' -l copy -d "Put the URL of the new repository to clipboard instead of printing it."
+# delete
+complete -f -c hub -n ' __fish_hub_using_command delete' -s y -d "Skip the confirmation prompt"
+complete -f -c hub -n ' __fish_hub_using_command delete' -l yes -d "Skip the confirmation prompt"
 # ci-status
 complete -f -c hub -n ' __fish_hub_using_command ci-status' -s v -d "Print detailed report of all status checks and their URLs"

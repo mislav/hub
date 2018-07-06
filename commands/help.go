@@ -171,9 +171,9 @@ These GitHub commands are provided by hub:
    create         Create this repository on GitHub and add GitHub as origin
    delete         Delete a repository on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
-   issue          List or create issues
-   pr             Work with pull requests
+   issue          List or create GitHub issues
+   pr             List or checkout GitHub pull requests
    pull-request   Open a pull request on GitHub
-   release        List or create releases
+   release        List or create GitHub releases
    sync           Fetch git objects from upstream and update branches
 `
