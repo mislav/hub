@@ -18,7 +18,7 @@ var cmdFetch = &Command{
 ## Examples:
 		$ hub fetch --multiple jingweno mislav
 		> git remote add jingweno git://github.com/jingweno/REPO.git
-		> git remote add jingweno git://github.com/mislav/REPO.git
+		> git remote add mislav git://github.com/mislav/REPO.git
 		> git fetch jingweno
 		> git fetch mislav
 
