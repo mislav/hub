@@ -191,7 +191,7 @@ var helpText = `
 These GitHub commands are provided by hub:
 
    browse         Open a GitHub page in the default browser
-   ci-status      Show the CI status of a commit
+   ci-status      Show the status of GitHub checks for a commit
    compare        Open a compare page on GitHub
    create         Create this repository on GitHub and add GitHub as origin
    delete         Delete a repository on GitHub

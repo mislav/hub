@@ -13,7 +13,7 @@ import (
 var cmdCiStatus = &Command{
 	Run:   ciStatus,
 	Usage: "ci-status [-v] [<COMMIT>]",
-	Long: `Display GitHub Status information for a commit.
+	Long: `Display status of GitHub checks for a commit.
 
 ## Options:
 	-v
@@ -22,7 +22,11 @@ var cmdCiStatus = &Command{
 	<COMMIT>
 		A commit SHA or branch name (default: "HEAD").
 
-Exits with one of: success (0), error (1), failure (1), pending (2), no status (3).
+Possible outputs and exit statuses:
+
+- success, neutral: 0
+- failure, error, action_required, cancelled, timed_out: 1
+- pending: 2
 
 ## See also:
 
@@ -31,11 +35,32 @@ hub-pull-request(1), hub(1)
 }
 
 var flagCiStatusVerbose bool
+var severityList []string
 
 func init() {
 	cmdCiStatus.Flag.BoolVarP(&flagCiStatusVerbose, "verbose", "v", false, "VERBOSE")
 
 	CmdRunner.Use(cmdCiStatus)
+
+	severityList = []string{
+		"neutral",
+		"success",
+		"pending",
+		"cancelled",
+		"timed_out",
+		"action_required",
+		"failure",
+		"error",
+	}
+}
+
+func checkSeverity(targetState string) int {
+	for i, state := range severityList {
+		if state == targetState {
+			return i
+		}
+	}
+	return -1
 }
 
 func ciStatus(cmd *Command, args *Args) {
@@ -64,15 +89,21 @@ func ciStatus(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		state := response.State
-		if len(response.Statuses) == 0 {
+		if len(response.Statuses) > 0 {
+			for _, status := range response.Statuses {
+				if checkSeverity(status.State) > checkSeverity(state) {
+					state = status.State
+				}
+			}
+		} else if len(response.Statuses) == 0 {
 			state = ""
 		}
 
 		var exitCode int
 		switch state {
-		case "success":
+		case "success", "neutral":
 			exitCode = 0
-		case "failure", "error":
+		case "failure", "error", "action_required", "cancelled", "timed_out":
 			exitCode = 1
 		case "pending":
 			exitCode = 2
@@ -111,9 +142,12 @@ func verboseFormat(statuses []github.CIStatus) {
 		case "success":
 			stateMarker = "✔︎"
 			color = 32
-		case "failure", "error":
+		case "failure", "error", "action_required", "cancelled", "timed_out":
 			stateMarker = "✖︎"
 			color = 31
+		case "neutral":
+			stateMarker = "◦"
+			color = 30
 		case "pending":
 			stateMarker = "●"
 			color = 33

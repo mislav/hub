@@ -21,6 +21,7 @@ import (
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
 const patchMediaType = "application/vnd.github.v3.patch;charset=utf-8"
 const textMediaType = "text/plain;charset=utf-8"
+const checksType = "application/vnd.github.antiope-preview+json;charset=utf-8"
 
 var inspectHeaders = []string{
 	"Authorization",

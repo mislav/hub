@@ -440,6 +440,17 @@ type CIStatus struct {
 	TargetUrl string `json:"target_url"`
 }
 
+type CheckRunsResponse struct {
+	CheckRuns []CheckRun `json:"check_runs"`
+}
+
+type CheckRun struct {
+	Status     string `json:"status"`
+	Conclusion string `json:"conclusion"`
+	Name       string `json:"name"`
+	HtmlUrl    string `json:"html_url"`
+}
+
 func (client *Client) FetchCIStatus(project *Project, sha string) (status *CIStatusResponse, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -452,7 +463,35 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	}
 
 	status = &CIStatusResponse{}
-	err = res.Unmarshal(status)
+	if err = res.Unmarshal(status); err != nil {
+		return
+	}
+
+	res, err = api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s/check-runs", project.Owner, project.Name, sha), checksType)
+	if err == nil && res.StatusCode == 422 {
+		return
+	}
+	if err = checkStatus(200, "fetching checks", res, err); err != nil {
+		return
+	}
+
+	checks := &CheckRunsResponse{}
+	if err = res.Unmarshal(checks); err != nil {
+		return
+	}
+
+	for _, checkRun := range checks.CheckRuns {
+		state := "pending"
+		if checkRun.Status == "completed" {
+			state = checkRun.Conclusion
+		}
+		checkStatus := CIStatus{
+			State:     state,
+			Context:   checkRun.Name,
+			TargetUrl: checkRun.HtmlUrl,
+		}
+		status.Statuses = append(status.Statuses, checkStatus)
+	}
 
 	return
 }
