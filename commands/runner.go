@@ -84,12 +84,18 @@ func (r *Runner) Execute() ExecError {
 		forceFail = true
 	}
 
-	git.GlobalFlags = args.GlobalFlags // preserve git global flags
-	if !isBuiltInHubCommand(args.Command) {
-		expandAlias(args)
+	cmdName := args.Command
+	if strings.Contains(cmdName, "=") {
+		cmdName = strings.SplitN(cmdName, "=", 2)[0]
 	}
 
-	cmd := r.Lookup(args.Command)
+	git.GlobalFlags = args.GlobalFlags // preserve git global flags
+	if !isBuiltInHubCommand(cmdName) {
+		expandAlias(args)
+		cmdName = args.Command
+	}
+
+	cmd := r.Lookup(cmdName)
 	if cmd != nil && cmd.Runnable() {
 		execErr := r.Call(cmd, args)
 		if execErr.ExitCode == 0 && forceFail {

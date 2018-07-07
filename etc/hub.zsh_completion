@@ -84,8 +84,12 @@ __hub_setup_zsh_fns () {
     hub_commands=(
       alias:'show shell instructions for wrapping git'
       pull-request:'open a pull request on GitHub'
+      pr:'list or checkout a GitHub pull request'
+      issue:'list or create a GitHub issue'
+      release:'list or create a GitHub release'
       fork:'fork origin repo on GitHub'
       create:'create new repo on GitHub for the current project'
+      delete:'delete a GitHub repo'
       browse:'browse the project on GitHub'
       compare:'open GitHub compare view'
       ci-status:'lookup commit in GitHub Status API'
@@ -111,8 +115,12 @@ __hub_setup_bash_fns () {
     cat <<-EOF
 alias
 pull-request
+pr
+issue
+release
 fork
 create
+delete
 browse
 compare
 ci-status

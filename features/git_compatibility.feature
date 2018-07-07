@@ -5,3 +5,28 @@ Feature: git-hub compatibility
     When I successfully run `git config --global alias.branch "branch -a"`
     When I run `hub branch`
     Then the stdout should contain exactly "* master\n"
+
+  Scenario: List commands
+    When I successfully run `hub --list-cmds=others`
+    Then the stdout should contain exactly:
+      """
+      add
+      branch
+      commit
+      alias
+      browse
+      ci-status
+      compare
+      create
+      delete
+      fork
+      issue
+      pr
+      pull-request
+      release
+      sync\n
+      """
+
+  Scenario: Doesn't sabotage --exec-path
+    When I successfully run `hub --exec-path`
+    Then the output should not contain "These GitHub commands"

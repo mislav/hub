@@ -45,8 +45,15 @@ hub(1), git-help(1)
 `,
 }
 
+var cmdListCmds = &Command{
+	Key:          "--list-cmds",
+	Run:          runListCmds,
+	GitExtension: true,
+}
+
 func init() {
 	CmdRunner.Use(cmdHelp, "--help")
+	CmdRunner.Use(cmdListCmds)
 }
 
 func runHelp(helpCmd *Command, args *Args) {
@@ -86,6 +93,24 @@ func runHelp(helpCmd *Command, args *Args) {
 
 		ui.Println(c.HelpText())
 		args.NoForward()
+	}
+}
+
+func runListCmds(cmd *Command, args *Args) {
+	listOthers := false
+	parts := strings.SplitN(args.Command, "=", 2)
+	for _, kind := range strings.Split(parts[1], ",") {
+		if kind == "others" {
+			listOthers = true
+			break
+		}
+	}
+
+	if listOthers {
+		args.AfterFn(func() error {
+			ui.Println(strings.Join(customCommands(), "\n"))
+			return nil
+		})
 	}
 }
 
@@ -171,9 +196,9 @@ These GitHub commands are provided by hub:
    create         Create this repository on GitHub and add GitHub as origin
    delete         Delete a repository on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
-   issue          List or create issues
-   pr             Work with pull requests
+   issue          List or create GitHub issues
+   pr             List or checkout GitHub pull requests
    pull-request   Open a pull request on GitHub
-   release        List or create releases
+   release        List or create GitHub releases
    sync           Fetch git objects from upstream and update branches
 `
