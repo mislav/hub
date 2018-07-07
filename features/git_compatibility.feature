@@ -5,3 +5,7 @@ Feature: git-hub compatibility
     When I successfully run `git config --global alias.branch "branch -a"`
     When I run `hub branch`
     Then the stdout should contain exactly "* master\n"
+
+  Scenario: List commands
+    When I successfully run `hub --list-cmds=others`
+    Then the stdout should contain "pull-request"

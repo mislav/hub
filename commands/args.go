@@ -208,6 +208,7 @@ func NewArgs(args []string) *Args {
 const (
 	noopFlag    = "--noop"
 	versionFlag = "--version"
+	listCmds    = "--list-cmds="
 	helpFlag    = "--help"
 	configFlag  = "-c"
 	chdirFlag   = "-C"
@@ -226,7 +227,7 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
 		if slurpNextValue {
 			commandIndex = i + 1
 			slurpNextValue = false
-		} else if arg == versionFlag || arg == helpFlag || !looksLikeFlag(arg) {
+		} else if arg == versionFlag || arg == helpFlag || strings.HasPrefix(arg, listCmds) || !looksLikeFlag(arg) {
 			break
 		} else {
 			commandIndex = i + 1
