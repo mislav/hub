@@ -37,12 +37,9 @@ hub version 2.2.3
 
 #### Windows
 
-`hub` can be installed through [Chocolatey](https://chocolatey.org/) or
-[Scoop](http://scoop.sh/) on Windows:
+`hub` can be installed through [Scoop](http://scoop.sh/) on Windows:
 
 ``` sh
-> choco install hub
-# or:
 > scoop install hub
 ```
 
