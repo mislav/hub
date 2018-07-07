@@ -9,3 +9,7 @@ Feature: git-hub compatibility
   Scenario: List commands
     When I successfully run `hub --list-cmds=others`
     Then the stdout should contain "pull-request"
+
+  Scenario: Doesn't sabotage --exec-path
+    When I successfully run `hub --exec-path`
+    Then the output should not contain "These GitHub commands"
