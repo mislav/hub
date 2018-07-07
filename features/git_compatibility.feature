@@ -8,7 +8,24 @@ Feature: git-hub compatibility
 
   Scenario: List commands
     When I successfully run `hub --list-cmds=others`
-    Then the stdout should contain "pull-request"
+    Then the stdout should contain exactly:
+      """
+      add
+      branch
+      commit
+      alias
+      browse
+      ci-status
+      compare
+      create
+      delete
+      fork
+      issue
+      pr
+      pull-request
+      release
+      sync\n
+      """
 
   Scenario: Doesn't sabotage --exec-path
     When I successfully run `hub --exec-path`

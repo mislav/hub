@@ -7,6 +7,11 @@ command="$1"
 [ "$command" = "config" ] || echo git "$@" >> "$HOME"/.history
 
 case "$command" in
+  "--list-cmds="* )
+    echo add
+    echo branch
+    echo commit
+    ;;
   "clone" | "fetch" | "pull" | "push" )
     # don't actually execute these commands
     exit

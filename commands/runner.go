@@ -92,6 +92,7 @@ func (r *Runner) Execute() ExecError {
 	git.GlobalFlags = args.GlobalFlags // preserve git global flags
 	if !isBuiltInHubCommand(cmdName) {
 		expandAlias(args)
+		cmdName = args.Command
 	}
 
 	cmd := r.Lookup(cmdName)
