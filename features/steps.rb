@@ -259,6 +259,9 @@ Given(/^the remote commit states of "(.*?)" "(.*?)" are:$/) do |proj, ref, json_
     get('#{'/api/v3' if host}/repos/#{owner}/#{repo}/commits/#{rev}/status'#{", :host_name => '#{host}'" if host}) {
       json(#{json_value})
     }
+    get('#{'/api/v3' if host}/repos/#{owner}/#{repo}/commits/#{rev}/check-runs'#{", :host_name => '#{host}'" if host}) {
+      status 422
+    }
     EOS
   step %{the GitHub API server:}, status_endpoint
 end
