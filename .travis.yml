@@ -10,6 +10,10 @@ go:
   - 1.8.x
 script: make test-all
 install: script/bootstrap
+addons:
+  apt:
+    packages:
+      - tmux
 after_success: script/publish-release
 env:
   global:
