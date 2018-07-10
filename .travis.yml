@@ -14,6 +14,8 @@ addons:
   apt:
     packages:
       - tmux
+      - zsh
+      - fish
 after_success: script/publish-release
 env:
   global:
