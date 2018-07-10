@@ -26,6 +26,7 @@ if tmux -V; then
     git --version
     bash --version | head -1
     zsh --version
+    fish --version
     echo
   fi
   profile="all"

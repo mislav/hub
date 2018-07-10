@@ -12,6 +12,8 @@ script: make test-all
 install: script/bootstrap
 addons:
   apt:
+    sources:
+      - sourceline: 'ppa:fish-shell/release-2'
     packages:
       - tmux
       - zsh
