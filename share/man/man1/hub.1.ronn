@@ -37,7 +37,7 @@ git but that are extended through hub, and custom ones that hub provides.
     Add missing remotes prior to performing git fetch.
 
   * hub-init(1):
-    Initialize a git repository and create it on GitHub.
+    Initialize a git repository and add a remote pointing to GitHub.
 
   * hub-merge(1):
     Merge a pull request with a message like the GitHub Merge Button.

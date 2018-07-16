@@ -13,12 +13,12 @@ var cmdInit = &Command{
 	Run:          gitInit,
 	GitExtension: true,
 	Usage:        "init -g",
-	Long: `Initialize a git repository and create it on GitHub.
+	Long: `Initialize a git repository and add a remote pointing to GitHub.
 
 ## Options:
 	-g
-		After initializing the repository locally, create a "<USER>/<REPO>"
-		repository on GitHub and add it as the "origin" remote.
+		After initializing the repository locally, add the "origin" remote pointing
+		to "<USER>/<REPO>" repository on GitHub.
 
 		<USER> is your GitHub username, while <REPO> is the name of the current
 		working directory.
