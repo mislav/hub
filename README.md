@@ -134,6 +134,15 @@ These scripts complement existing completion scripts that ship with git.
 * [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
 * [hub fish completion](https://github.com/github/hub/blob/master/etc/hub.fish_completion)
 
+# Note: Pull Request in Markdown Style
+
+If you want make pull requests in Markdown style through hub, you must change the default comment char by another char distinct of '#' by example running the following:
+
+``` sh
+git config --global core.commentChar %
+```
+
+Else, the headers in the comment of the pull request will be commented.
 Meta
 ----
 
