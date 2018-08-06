@@ -5,7 +5,7 @@ Contributions to this project are [released](https://help.github.com/articles/gi
 
 This project adheres to the [Open Code of Conduct][code-of-conduct]. By participating, you are expected to uphold this code.
 
-[code-of-conduct]: http://todogroup.org/opencodeofconduct/#Hub/opensource@github.com
+[code-of-conduct]: ./CODE_OF_CONDUCT.md
 
 You will need:
 
