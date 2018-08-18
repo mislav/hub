@@ -1026,6 +1026,24 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
     And "git push --set-upstream origin HEAD:topic" should be run
 
+  Scenario: Default message with --push --no-track
+    Given the git commit editor is "true"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'The commit I never pushed',
+               :body => nil
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    Given I am on the "master" branch pushed to "origin/master"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message "The commit I never pushed"
+    When I successfully run `hub pull-request -p --no-track`
+    Then the output should contain exactly "the://url\n"
+    And "git push origin HEAD:topic" should be run
+
   Scenario: Text editor fails with --push
     Given the text editor exits with error status
     And I am on the "master" branch pushed to "origin/master"

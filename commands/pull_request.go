@@ -54,6 +54,9 @@ pull-request -i <ISSUE>
 	-p, --push
 		Push the current branch to <HEAD> before creating the pull request.
 
+	--no-track
+		When using "--push", do not change the upstream tracking branch.
+
 	-b, --base <BASE>
 		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
 		(usually "master").
@@ -98,6 +101,7 @@ var (
 	flagPullRequestEdit,
 	flagPullRequestPush,
 	flagPullRequestForce,
+	flagPullRequestNoTrack,
 	flagPullRequestNoEdit bool
 
 	flagPullRequestAssignees,
@@ -116,6 +120,7 @@ func init() {
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestNoEdit, "no-edit", "", false, "NO-EDIT")
+	cmdPullRequest.Flag.BoolVarP(&flagPullRequestNoTrack, "no-track", "", false, "NO-TRACK")
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
 	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
 	cmdPullRequest.Flag.VarP(&flagPullRequestReviewers, "reviewer", "r", "USERS")
@@ -300,7 +305,12 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		if args.Noop {
 			args.Before(fmt.Sprintf("Would push to %s/%s", remote.Name, head), "")
 		} else {
-			err = git.Spawn("push", "--set-upstream", remote.Name, fmt.Sprintf("HEAD:%s", head))
+			args := []string{"push"}
+			if !flagPullRequestNoTrack {
+				args = append(args, "--set-upstream")
+			}
+			args = append(args, remote.Name, fmt.Sprintf("HEAD:%s", head))
+			err = git.Spawn(args...)
 			utils.Check(err)
 		}
 	}
