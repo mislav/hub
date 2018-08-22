@@ -865,6 +865,29 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo -r mislav,josh -rgithub/robots -rpcorpet -r github/js`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Requesting reviewers failed
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        status 201
+        json :html_url => "the://url", :number => 1234
+      }
+      post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
+        status 422
+        json :message => "Validation Failed",
+          :errors => ["Could not add requested reviewers to pull request."],
+          :documentation_url => "https://developer.github.com/v3/pulls/review_requests/#create-a-review-request"
+      }
+      """
+    When I run `hub pull-request -m hereyougo -r pedrohc`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Error requesting reviewer: Unprocessable Entity (HTTP 422)
+      Could not add requested reviewers to pull request.\n
+      """
+
   Scenario: Pull request with milestone
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:

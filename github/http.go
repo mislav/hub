@@ -312,6 +312,10 @@ type errorInfo struct {
 	Errors   []fieldError `json:"errors"`
 	Response *http.Response
 }
+type errorInfoSimple struct {
+	Message string   `json:"message"`
+	Errors  []string `json:"errors"`
+}
 type fieldError struct {
 	Resource string `json:"resource"`
 	Message  string `json:"message"`
@@ -344,6 +348,18 @@ func (res *simpleResponse) ErrorInfo() (msg *errorInfo, err error) {
 
 	msg = &errorInfo{}
 	err = json.Unmarshal(body, msg)
+	if err != nil {
+		msgSimple := &errorInfoSimple{}
+		if err = json.Unmarshal(body, msgSimple); err == nil {
+			msg.Message = msgSimple.Message
+			for _, errMsg := range msgSimple.Errors {
+				msg.Errors = append(msg.Errors, fieldError{
+					Code:    "custom",
+					Message: errMsg,
+				})
+			}
+		}
+	}
 	if err == nil {
 		msg.Response = res.Response
 	}
