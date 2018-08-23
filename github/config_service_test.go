@@ -28,6 +28,7 @@ func TestConfigService_TomlLoad(t *testing.T) {
 	assert.Equal(t, "jingweno", host.User)
 	assert.Equal(t, "123", host.AccessToken)
 	assert.Equal(t, "http", host.Protocol)
+	assert.Equal(t, "/tmp/go.sock", host.UnixSocket)
 }
 
 func TestConfigService_YamlLoad(t *testing.T) {
@@ -48,6 +49,7 @@ func TestConfigService_YamlLoad(t *testing.T) {
 	assert.Equal(t, "jingweno", host.User)
 	assert.Equal(t, "123", host.AccessToken)
 	assert.Equal(t, "http", host.Protocol)
+	assert.Equal(t, "/tmp/go.sock", host.UnixSocket)
 }
 
 func TestConfigService_TomlSave(t *testing.T) {
@@ -59,6 +61,7 @@ func TestConfigService_TomlSave(t *testing.T) {
 		User:        "jingweno",
 		AccessToken: "123",
 		Protocol:    "https",
+		UnixSocket:  "/tmp/go.sock",
 	}
 	c := &Config{Hosts: []*Host{host}}
 
@@ -74,7 +77,8 @@ func TestConfigService_TomlSave(t *testing.T) {
   host = "github.com"
   user = "jingweno"
   access_token = "123"
-  protocol = "https"`
+  protocol = "https"
+  unix_socket = "/tmp/go.sock"`
 	assert.Equal(t, content, strings.TrimSpace(string(b)))
 }
 
@@ -87,6 +91,7 @@ func TestConfigService_YamlSave(t *testing.T) {
 		User:        "jingweno",
 		AccessToken: "123",
 		Protocol:    "https",
+		UnixSocket:  "/tmp/go.sock",
 	}
 	c := &Config{Hosts: []*Host{host}}
 
@@ -101,6 +106,7 @@ func TestConfigService_YamlSave(t *testing.T) {
 	content := `github.com:
 - user: jingweno
   oauth_token: "123"
-  protocol: https`
+  protocol: https
+  unix_socket: /tmp/go.sock`
 	assert.Equal(t, content, strings.TrimSpace(string(b)))
 }

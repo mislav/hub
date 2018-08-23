@@ -21,7 +21,8 @@ func SetupTomlTestConfig() *TestConfigs {
   host = "github.com"
   user = "jingweno"
   access_token = "123"
-  protocol = "http"`
+  protocol = "http"
+  unix_socket = "/tmp/go.sock"`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
 	os.Setenv("HUB_CONFIG", file.Name())
 
@@ -35,7 +36,8 @@ func SetupTestConfigs() *TestConfigs {
 github.com:
 - user: jingweno
   oauth_token: 123
-  protocol: http`
+  protocol: http
+  unix_socket: /tmp/go.sock`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
 	os.Setenv("HUB_CONFIG", file.Name())
 
