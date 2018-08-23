@@ -37,6 +37,9 @@ func (y *yamlConfigDecoder) Decode(r io.Reader, c *Config) error {
 	}
 
 	for h, v := range yc {
+		if len(v) < 1 {
+			continue
+		}
 		vv := v[0]
 		host := &Host{
 			Host:        h,
