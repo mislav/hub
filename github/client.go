@@ -468,7 +468,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	}
 
 	res, err = api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s/check-runs", project.Owner, project.Name, sha), checksType)
-	if err == nil && res.StatusCode == 422 {
+	if err == nil && (res.StatusCode == 403 || res.StatusCode == 404 || res.StatusCode == 422) {
 		return
 	}
 	if err = checkStatus(200, "fetching checks", res, err); err != nil {

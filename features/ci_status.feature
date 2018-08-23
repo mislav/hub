@@ -134,3 +134,28 @@ Feature: hub ci-status
     When I run `hub ci-status the_sha`
     Then the output should contain exactly "action_required\n"
     And the exit status should be 1
+
+  Scenario: Older Enterprise version doesn't have Checks
+    Given the "origin" remote has url "git@git.my.org:michiels/pencilbox.git"
+    And I am "michiels" on git.my.org with OAuth token "FITOKEN"
+    And "git.my.org" is a whitelisted Enterprise host
+    And there is a commit named "the_sha"
+    And the GitHub API server:
+      """
+      get('/api/v3/repos/michiels/pencilbox/commits/:sha/status', :host_name => 'git.my.org') {
+        json({ :state => "success",
+               :statuses => [
+                 { :state => "success",
+                   :context => "travis-ci",
+                   :target_url => "the://url"}
+               ]
+        })
+      }
+      get('/api/v3/repos/michiels/pencilbox/commits/:sha/check-runs', :host_name => 'git.my.org') {
+        status 403
+        json :message => "Must have admin rights to Repository.",
+          :documentation_url => "https://developer.github.com/enterprise/2.13/v3/"
+      }
+      """
+    When I successfully run `hub ci-status the_sha`
+    Then the output should contain exactly "success\n"
