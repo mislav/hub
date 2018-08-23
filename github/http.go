@@ -135,20 +135,35 @@ func (t *verboseTransport) verbosePrintln(msg string) {
 	fmt.Fprintln(t.Out, msg)
 }
 
-func newHttpClient(testHost string, verbose bool) *http.Client {
+func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Client {
 	var testURL *url.URL
 	if testHost != "" {
 		testURL, _ = url.Parse(testHost)
 	}
-	tr := &verboseTransport{
-		Transport: &http.Transport{
+	var httpTransport *http.Transport
+	if unixSocket != "" {
+		dialFunc := func(network, addr string) (net.Conn, error) {
+			return net.Dial("unix", unixSocket)
+		}
+		httpTransport = &http.Transport{
+			Dial:                  dialFunc,
+			DialTLS:               dialFunc,
+			ResponseHeaderTimeout: 30 * time.Second,
+			ExpectContinueTimeout: 10 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+		}
+	} else {
+		httpTransport = &http.Transport{
 			Proxy: proxyFromEnvironment,
 			Dial: (&net.Dialer{
 				Timeout:   30 * time.Second,
 				KeepAlive: 30 * time.Second,
 			}).Dial,
 			TLSHandshakeTimeout: 10 * time.Second,
-		},
+		}
+	}
+	tr := &verboseTransport{
+		Transport:   httpTransport,
 		Verbose:     verbose,
 		OverrideURL: testURL,
 		Out:         ui.Stderr,

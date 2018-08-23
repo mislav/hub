@@ -30,6 +30,7 @@ type Host struct {
 	User        string `toml:"user"`
 	AccessToken string `toml:"access_token"`
 	Protocol    string `toml:"protocol"`
+	UnixSocket  string `toml:"unix_socket,omitempty"`
 }
 
 type Config struct {
