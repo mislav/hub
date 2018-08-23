@@ -855,7 +855,6 @@ Feature: hub pull-request
         json :html_url => "the://url", :number => 1234
       }
       post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
-        halt 415 unless request.accept?('application/vnd.github.thor-preview+json')
         assert :reviewers => ["mislav", "josh", "pcorpet"]
         assert :team_reviewers => ["robots", "js"]
         status 201
@@ -877,7 +876,6 @@ Feature: hub pull-request
           :requested_teams => [{ :name => "robots" }]
       }
       post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
-        halt 415 unless request.accept?('application/vnd.github.thor-preview+json')
         assert :reviewers => ["mislav", "pcorpet"]
         assert :team_reviewers => ["js"]
         status 201
