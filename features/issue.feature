@@ -427,6 +427,63 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
+  Scenario: Multiple issue templates
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      hello
+      """
+    And a file named ".github/ISSUE_TEMPLATE/bug_report.md" with:
+      """
+      I want to report a bug
+      """
+    And a file named ".github/ISSUE_TEMPLATE/feature_request.md" with:
+      """
+      There is a feature that I need!
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        assert :title => "hello",
+               :body => ""
+
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Multiple issue templates with default
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      hello
+      """
+    And a directory named ".github/ISSUE_TEMPLATE"
+    And a file named ".github/ISSUE_TEMPLATE.md" with:
+      """
+      The default template
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/github/hub/issues') {
+        assert :title => "hello",
+               :body => "The default template"
+
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
   Scenario: A file named ".github"
     Given the git commit editor is "vim"
     And the text editor adds:
