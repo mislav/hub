@@ -551,6 +551,9 @@ type Issue struct {
 	CreatedAt time.Time    `json:"created_at"`
 	UpdatedAt time.Time    `json:"updated_at"`
 
+	RequestedReviewers []User `json:"requested_reviewers"`
+	RequestedTeams     []Team `json:"requested_teams"`
+
 	ApiUrl  string `json:"url"`
 	HtmlUrl string `json:"html_url"`
 }
@@ -570,6 +573,24 @@ func (pr *PullRequest) IsSameRepo() bool {
 		pr.Head.Repo.Owner.Login == pr.Base.Repo.Owner.Login
 }
 
+func (pr *PullRequest) HasRequestedReviewer(name string) bool {
+	for _, user := range pr.RequestedReviewers {
+		if strings.EqualFold(user.Login, name) {
+			return true
+		}
+	}
+	return false
+}
+
+func (pr *PullRequest) HasRequestedTeam(name string) bool {
+	for _, team := range pr.RequestedTeams {
+		if strings.EqualFold(team.Name, name) {
+			return true
+		}
+	}
+	return false
+}
+
 type IssueLabel struct {
 	Name  string `json:"name"`
 	Color string `json:"color"`
@@ -577,6 +598,10 @@ type IssueLabel struct {
 
 type User struct {
 	Login string `json:"login"`
+}
+
+type Team struct {
+	Name string `json:"name"`
 }
 
 type Milestone struct {

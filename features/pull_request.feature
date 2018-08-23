@@ -865,6 +865,43 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo -r mislav,josh -rgithub/robots -rpcorpet -r github/js`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Pull request with reviewers from CODEOWNERS
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        status 201
+        json :html_url => "the://url", :number => 1234,
+          :requested_reviewers => [{ :login => "josh" }],
+          :requested_teams => [{ :name => "robots" }]
+      }
+      post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
+        halt 415 unless request.accept?('application/vnd.github.thor-preview+json')
+        assert :reviewers => ["mislav", "pcorpet"]
+        assert :team_reviewers => ["js"]
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -r mislav,josh -rgithub/robots -rpcorpet -r github/js`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request avoids re-requesting reviewers
+    Given I am on the "feature" branch with upstream "origin/feature"
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head  => "mislav:feature"
+        status 201
+        json :html_url => "the://url", :number => 1234,
+          :requested_reviewers => [{ :login => "josh" }, { :login => "mislav" }],
+          :requested_teams => [{ :name => "robots" }]
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo -r mislav,josh -rgithub/robots`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Requesting reviewers failed
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:

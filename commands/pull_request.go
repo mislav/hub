@@ -400,16 +400,21 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			teamReviewers := []string{}
 			for _, reviewer := range flagPullRequestReviewers {
 				if strings.Contains(reviewer, "/") {
-					teamReviewers = append(teamReviewers, strings.SplitN(reviewer, "/", 2)[1])
-				} else {
+					teamName := strings.SplitN(reviewer, "/", 2)[1]
+					if !pr.HasRequestedTeam(teamName) {
+						teamReviewers = append(teamReviewers, teamName)
+					}
+				} else if !pr.HasRequestedReviewer(reviewer) {
 					userReviewers = append(userReviewers, reviewer)
 				}
 			}
-			err = client.RequestReview(baseProject, pr.Number, map[string]interface{}{
-				"reviewers":      userReviewers,
-				"team_reviewers": teamReviewers,
-			})
-			utils.Check(err)
+			if len(userReviewers) > 0 || len(teamReviewers) > 0 {
+				err = client.RequestReview(baseProject, pr.Number, map[string]interface{}{
+					"reviewers":      userReviewers,
+					"team_reviewers": teamReviewers,
+				})
+				utils.Check(err)
+			}
 		}
 	}
 
