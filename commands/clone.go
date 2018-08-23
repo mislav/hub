@@ -25,6 +25,13 @@ var cmdClone = &Command{
 	<DESTINATION>
 		Directory name to clone into (default: <REPOSITORY>).
 
+## Protocol used for cloning
+
+The 'git:' protocol will be used for cloning public repositories, while the SSH
+protocol will be used for private repositories and those that you have push
+acccess to. Alternatively, hub can be configured to use HTTPS protocol for
+everything. See "HTTPS instead of git protocol" and "HUB_PROTOCOL" of hub(1).
+
 ## Examples:
 		$ hub clone rtomayko/ronn
 		> git clone git://github.com/rtomayko/ronn.git
