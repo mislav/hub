@@ -43,6 +43,7 @@ func (y *yamlConfigDecoder) Decode(r io.Reader, c *Config) error {
 			User:        vv.User,
 			AccessToken: vv.OAuthToken,
 			Protocol:    vv.Protocol,
+			UnixSocket:  vv.UnixSocket,
 		}
 		c.Hosts = append(c.Hosts, host)
 	}

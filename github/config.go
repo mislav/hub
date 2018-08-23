@@ -21,6 +21,7 @@ type yamlHost struct {
 	User       string `yaml:"user"`
 	OAuthToken string `yaml:"oauth_token"`
 	Protocol   string `yaml:"protocol"`
+	UnixSocket string `yaml:"unix_socket,omitempty"`
 }
 
 type yamlConfig map[string][]yamlHost
