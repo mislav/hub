@@ -35,6 +35,17 @@ git version 1.7.6
 hub version 2.2.3
 ```
 
+### MacPorts
+
+`hub` can also be installed through [MacPorts](https://www.macports.org/):
+
+```sh
+$ sudo port install hub
+$ hub version
+git version 2.18.0
+hub version 2.5.0
+```
+
 #### Windows
 
 `hub` can be installed through [Scoop](http://scoop.sh/) on Windows:
