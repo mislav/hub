@@ -10,17 +10,47 @@ import (
 )
 
 type UI interface {
+	Promptf(format string, a ...interface{}) (n int, err error)
+	Promptln(a ...interface{}) (n int, err error)
+
 	Printf(format string, a ...interface{}) (n int, err error)
 	Println(a ...interface{}) (n int, err error)
+
 	Errorf(format string, a ...interface{}) (n int, err error)
 	Errorln(a ...interface{}) (n int, err error)
 }
 
+func init() {
+	console := Console{
+		Stdout: Stdout,
+		Stderr: Stderr,
+		TTY:    Stdout,
+	}
+
+	TTY = os.Stdin
+	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0644)
+	if err == nil {
+		TTY = tty
+		console.TTY = tty
+	}
+
+	Default = console
+}
+
 var (
-	Stdout     = colorable.NewColorableStdout()
-	Stderr     = colorable.NewColorableStderr()
-	Default UI = Console{Stdout: Stdout, Stderr: Stderr}
+	TTY     *os.File
+	Stdout  = colorable.NewColorableStdout()
+	Stderr  = colorable.NewColorableStderr()
+	Default UI
 )
+
+func Promptf(format string, a ...interface{}) (n int, err error) {
+	return Default.Promptf(format, a...)
+}
+
+func Promptln(a ...interface{}) (n int, err error) {
+	return Default.Promptln(a...)
+}
 
 func Printf(format string, a ...interface{}) (n int, err error) {
 	return Default.Printf(format, a...)
@@ -43,8 +73,17 @@ func IsTerminal(f *os.File) bool {
 }
 
 type Console struct {
+	TTY    io.Writer
 	Stdout io.Writer
 	Stderr io.Writer
+}
+
+func (c Console) Promptf(format string, a ...interface{}) (n int, err error) {
+	return fmt.Fprintf(c.TTY, format, a...)
+}
+
+func (c Console) Promptln(a ...interface{}) (n int, err error) {
+	return fmt.Fprintln(c.TTY, a...)
 }
 
 func (c Console) Printf(format string, a ...interface{}) (n int, err error) {

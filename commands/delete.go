@@ -3,7 +3,6 @@ package commands
 import (
 	"bufio"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -75,9 +74,9 @@ func deleteRepo(command *Command, args *Args) {
 	gh := github.NewClient(project.Host)
 
 	if !flagDeleteAssumeYes {
-		ui.Printf("Really delete repository '%s' (yes/N)? ", project)
+		ui.Promptf("Really delete repository '%s' (yes/N)? ", project)
 		answer := ""
-		scanner := bufio.NewScanner(os.Stdin)
+		scanner := bufio.NewScanner(ui.TTY)
 		if scanner.Scan() {
 			answer = strings.TrimSpace(scanner.Text())
 		}

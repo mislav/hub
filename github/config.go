@@ -130,7 +130,7 @@ func (c *Config) PromptForUser(host string) (user string) {
 		return
 	}
 
-	ui.Printf("%s username: ", host)
+	ui.Promptf("%s username: ", host)
 	user = c.scanLine()
 
 	return
@@ -142,8 +142,8 @@ func (c *Config) PromptForPassword(host, user string) (pass string) {
 		return
 	}
 
-	ui.Printf("%s password for %s (never stored): ", host, user)
-	if ui.IsTerminal(os.Stdin) {
+	ui.Promptf("%s password for %s (never stored): ", host, user)
+	if ui.IsTerminal(ui.TTY) {
 		if password, err := getPassword(); err == nil {
 			pass = password
 		}
@@ -161,7 +161,7 @@ func (c *Config) PromptForOTP() string {
 
 func (c *Config) scanLine() string {
 	var line string
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := bufio.NewScanner(ui.TTY)
 	if scanner.Scan() {
 		line = scanner.Text()
 	}
@@ -171,7 +171,7 @@ func (c *Config) scanLine() string {
 }
 
 func getPassword() (string, error) {
-	stdin := int(syscall.Stdin)
+	stdin := int(ui.TTY.Fd())
 	initialTermState, err := terminal.GetState(stdin)
 	if err != nil {
 		return "", err
@@ -224,7 +224,7 @@ func (c *Config) selectHost() *Host {
 	}
 	prompt += fmt.Sprint("> ")
 
-	ui.Printf(prompt)
+	ui.Promptf(prompt)
 	index := c.scanLine()
 	i, err := strconv.Atoi(index)
 	if err != nil || i < 1 || i > options {
