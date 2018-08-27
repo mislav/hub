@@ -204,7 +204,7 @@ func (client *Client) Repository(project *Project) (repo *Repository, err error)
 	}
 
 	res, err := api.Get(fmt.Sprintf("repos/%s/%s", project.Owner, project.Name))
-	if err = checkStatus(200, "getting commit patch", res, err); err != nil {
+	if err = checkStatus(200, "getting repository info", res, err); err != nil {
 		return
 	}
 

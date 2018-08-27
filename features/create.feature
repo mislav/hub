@@ -112,6 +112,19 @@ Feature: hub create
     When I successfully run `hub create`
     Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
 
+  Scenario: Unrelated origin remote already exists
+    Given the GitHub API server:
+      """
+      post('/user/repos') {
+        status 201
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    And the "origin" remote has url "git://example.com/unrelated.git"
+    When I successfully run `hub create`
+    Then the output should contain exactly "https://github.com/mislav/dotfiles\n"
+    And the url for "origin" should be "git://example.com/unrelated.git"
+
   Scenario: Another remote already exists
     Given the GitHub API server:
       """
