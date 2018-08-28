@@ -146,6 +146,20 @@ Feature: hub create
     Then the output should contain "Existing repository detected. Updating git remote\n"
     And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
+  Scenario: GitHub repo already exists and is not private
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { 
+        status 200 
+        json :private => false
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I run `hub create -p`
+    Then the output should contain "Repository 'mislav/dotfiles' already exists and is public\n"
+    And the exit status should be 1
+    And there should be no "origin" remote
+
   Scenario: API response changes the clone URL
     Given the GitHub API server:
       """
