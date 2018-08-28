@@ -213,12 +213,6 @@ func (client *Client) Repository(project *Project) (repo *Repository, err error)
 	return
 }
 
-func (client *Client) IsRepositoryExist(project *Project) bool {
-	repo, err := client.Repository(project)
-
-	return err == nil && repo != nil
-}
-
 func (client *Client) CreateRepository(project *Project, description, homepage string, isPrivate bool) (repo *Repository, err error) {
 	repoURL := "user/repos"
 	if project.Owner != client.Host.User {
