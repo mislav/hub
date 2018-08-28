@@ -63,7 +63,7 @@ func (r *GitHubRepo) remotesForPublish(owner string) (remotes []Remote) {
 		}
 	}
 
-	names := OriginNamesInLookupOrder
+	names := OriginNamesInLookupOrder()
 	for _, name := range names {
 		if _, ok := remotesMap[name]; ok {
 			continue

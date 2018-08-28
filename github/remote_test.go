@@ -5,6 +5,7 @@ import (
 
 	"github.com/bmizerany/assert"
 	"github.com/github/hub/fixtures"
+	"os"
 )
 
 func TestGithubRemote_NoPush(t *testing.T) {
@@ -77,4 +78,27 @@ func TestGithubRemote_ColonSlash(t *testing.T) {
 	assert.Equal(t, remotes[0].URL.Path, "/fatso83/my-project.git")
 	assert.Equal(t, remotes[1].Name, "origin")
 	assert.Equal(t, remotes[1].URL.Path, repo.Remote)
+}
+
+func TestGithubRemote_RemoveFromEnv(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
+	remoteName := "bob"
+	repo.AddRemote("upstream", "user@upstream.com:upstream/project.git", "")
+	repo.AddRemote(remoteName, "user@example.com:bob/project.git", "")
+
+	os.Setenv("HUB_REMOTE", remoteName)
+	remotes, err := Remotes()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, len(remotes), 3)
+	assert.Equal(t, remotes[0].Name, remoteName)
+	assert.Equal(t, remotes[0].URL.Scheme, "ssh")
+	assert.Equal(t, remotes[0].URL.Host, "example.com")
+	assert.Equal(t, remotes[0].URL.Path, "/bob/project.git")
+	assert.Equal(t, remotes[1].Name, "upstream")
+	assert.Equal(t, remotes[1].URL.Host, "upstream.com")
+	assert.Equal(t, remotes[1].URL.Path, "/upstream/project.git")
+	assert.Equal(t, remotes[2].Name, "origin")
+	assert.Equal(t, remotes[2].URL.Path, repo.Remote)
 }

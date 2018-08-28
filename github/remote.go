@@ -3,6 +3,7 @@ package github
 import (
 	"fmt"
 	"net/url"
+	"os"
 	"regexp"
 	"strings"
 
@@ -10,7 +11,7 @@ import (
 )
 
 var (
-	OriginNamesInLookupOrder = []string{"upstream", "github", "origin"}
+	originNamesInLookupOrder = []string{"upstream", "github", "origin"}
 )
 
 type Remote struct {
@@ -56,9 +57,8 @@ func Remotes() (remotes []Remote, err error) {
 			utm[urlType] = url
 		}
 	}
-
+	names := OriginNamesInLookupOrder()
 	// construct remotes in priority order
-	names := OriginNamesInLookupOrder
 	for _, name := range names {
 		if u, ok := remotesMap[name]; ok {
 			r, err := newRemote(name, u)
@@ -78,6 +78,18 @@ func Remotes() (remotes []Remote, err error) {
 	}
 
 	return
+}
+
+func OriginNamesInLookupOrder() []string {
+    names := []string{}
+	customRemote := os.Getenv("HUB_REMOTE")
+	if customRemote != "" {
+		names = append([]string{customRemote}, originNamesInLookupOrder...)
+	} else {
+		names = originNamesInLookupOrder
+	}
+
+    return names;
 }
 
 func newRemote(name string, urlMap map[string]string) (Remote, error) {
