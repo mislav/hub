@@ -109,9 +109,9 @@ func create(command *Command, args *Args) {
 	project := github.NewProject(owner, newRepoName, host.Host)
 	gh := github.NewClient(project.Host)
 
-	repo, _ := gh.Repository(project)
+	repo, err := gh.Repository(project)
 
-	if repo != nil {
+	if err == nil {
 		if !repo.Private && flagCreatePrivate {
 			err = fmt.Errorf("Repository '%s' already exists and is public", repo.FullName)
 			utils.Check(err)
