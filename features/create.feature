@@ -149,7 +149,7 @@ Feature: hub create
   Scenario: GitHub repo already exists and is not private
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { 
+      get('/repos/mislav/dotfiles') {
         json :full_name => 'mislav/dotfiles',
              :private => false
       }
@@ -162,7 +162,7 @@ Feature: hub create
   Scenario: GitHub repo already exists and is private
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { 
+      get('/repos/mislav/dotfiles') {
         json :full_name => 'mislav/dotfiles',
              :private => true
       }
