@@ -29,7 +29,7 @@ var cmdClone = &Command{
 
 The 'git:' protocol will be used for cloning public repositories, while the SSH
 protocol will be used for private repositories and those that you have push
-acccess to. Alternatively, hub can be configured to use HTTPS protocol for
+access to. Alternatively, hub can be configured to use HTTPS protocol for
 everything. See "HTTPS instead of git protocol" and "HUB_PROTOCOL" of hub(1).
 
 ## Examples:
