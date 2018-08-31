@@ -358,7 +358,9 @@ Feature: OAuth authentication
       get('/user') {
         json :login => 'mislav'
       }
-      get('/repos/mislav/dotfiles') { status 200 }
+      get('/repos/mislav/dotfiles') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     When I run `hub create` interactively
     When I type "mislav@example.com"
