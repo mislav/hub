@@ -140,7 +140,9 @@ Feature: hub create
   Scenario: GitHub repo already exists
     Given the GitHub API server:
       """
-      get('/repos/mislav/dotfiles') { status 200 }
+      get('/repos/mislav/dotfiles') {
+        json :full_name => 'mislav/dotfiles'
+      }
       """
     When I successfully run `hub create`
     Then the output should contain "Existing repository detected. Updating git remote\n"
@@ -169,6 +171,36 @@ Feature: hub create
       """
     When I successfully run `hub create -p`
     Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+
+  Scenario: Renamed GitHub repo already exists
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345') {
+        json :full_name => 'mislav/DOTfiles'
+      }
+      """
+    When I successfully run `hub create`
+    And the url for "origin" should be "git@github.com:mislav/DOTfiles.git"
+
+  Scenario: Renamed GitHub repo is unrelated
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345') {
+        json :full_name => 'mislav/old-dotfiles'
+      }
+      post('/user/repos') {
+        status 201
+        json :full_name => 'mislav/mydotfiles'
+      }
+      """
+    When I successfully run `hub create`
+    And the url for "origin" should be "git@github.com:mislav/mydotfiles.git"
 
   Scenario: API response changes the clone URL
     Given the GitHub API server:

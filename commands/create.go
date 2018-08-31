@@ -110,15 +110,24 @@ func create(command *Command, args *Args) {
 	gh := github.NewClient(project.Host)
 
 	repo, err := gh.Repository(project)
-
 	if err == nil {
-		if !repo.Private && flagCreatePrivate {
-			err = fmt.Errorf("Repository '%s' already exists and is public", repo.FullName)
-			utils.Check(err)
+		foundProject := github.NewProject(repo.FullName, "", project.Host)
+		if foundProject.SameAs(project) {
+			if !repo.Private && flagCreatePrivate {
+				err = fmt.Errorf("Repository '%s' already exists and is public", repo.FullName)
+				utils.Check(err)
+			} else {
+				ui.Errorln("Existing repository detected. Updating git remote")
+				project = foundProject
+			}
 		} else {
-			ui.Errorln("Existing repository detected. Updating git remote")
+			repo = nil
 		}
 	} else {
+		repo = nil
+	}
+
+	if repo == nil {
 		if !args.Noop {
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
 			utils.Check(err)
