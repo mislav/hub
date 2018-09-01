@@ -24,7 +24,7 @@ Dependencies:
 
 * **git 1.7.3** or newer
 
-#### Homebrew
+#### Homebrew (OSX)
 
 `hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS:
 
@@ -35,6 +35,16 @@ git version 1.7.6
 hub version 2.2.3
 ```
 
+#### Chromebrew (ChromeOS)
+
+`hub` can be installed through [Chromebrew](https://github.com/skycocker/chromebrew#installation) on ChromeOS:
+
+``` sh
+$ crew install hub
+$ hub version
+git version 1.7.6
+hub version 2.2.3
+```
 #### Windows
 
 `hub` can be installed through [Scoop](http://scoop.sh/) on Windows:
