@@ -40,7 +40,7 @@ git but that are extended through hub, and custom ones that hub provides.
     Initialize a git repository and add a remote pointing to GitHub.
 
   * hub-merge(1):
-    Merge a pull request with a message like the GitHub Merge Button.
+    Merge a pull request locally with a message like the GitHub Merge Button.
 
   * hub-push(1):
     Push a git branch to each of the listed remotes.

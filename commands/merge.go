@@ -12,7 +12,12 @@ var cmdMerge = &Command{
 	Run:          merge,
 	GitExtension: true,
 	Usage:        "merge <PULLREQ-URL>",
-	Long: `Merge a pull request with a message like the GitHub Merge Button.
+	Long: `Merge a pull request locally with a message like the GitHub Merge Button.
+
+This creates a local merge commit in the current branch, but does not actually
+change the state of the pull request. However, the pull request will get
+auto-closed and marked as "merged" as soon as the newly created merge commit is
+pushed to the default branch of the remote repository.
 
 ## Examples:
 		$ hub merge https://github.com/jingweno/gh/pull/73
