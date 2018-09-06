@@ -74,6 +74,20 @@ pull-request -i <ISSUE>
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request.
 
+## Examples:
+		$ hub pull-request
+		[ opens a text editor for writing title and message ]
+		[ creates a pull request for the current branch ]
+
+		$ hub pull-request --base OWNER:master --head MYUSER:my-branch
+		[ creates a pull request with explicit base and head branches ]
+
+		$ hub pull-request --browse -m "My title"
+		[ creates a pull request with the given title and opens it in a browser ]
+
+		$ hub pull-request -F - --edit
+		[ further edit the title and message received on standard input ]
+
 ## Configuration:
 
 	HUB_RETRY_TIMEOUT=<SECONDS>
