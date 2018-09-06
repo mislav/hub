@@ -85,7 +85,7 @@ pull-request -i <ISSUE>
 		$ hub pull-request --browse -m "My title"
 		[ creates a pull request with the given title and opens it in a browser ]
 
-		$ hub pull-request -F - --edit
+		$ hub pull-request -F - --edit < path/to/message-template.md
 		[ further edit the title and message received on standard input ]
 
 ## Configuration:
