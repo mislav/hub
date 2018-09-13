@@ -281,9 +281,15 @@ command-line.
 $ git <strong>clone dotfiles</strong>
 <span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
 
-<span class="comment"># clone another project</span>
-$ git <strong>clone github/hub</strong>
-<span class="result">→ git clone git://github.com/github/hub.git</span>
+<span class="comment"># clone your own project</span>
+$ git <strong>clone dotfiles</strong>
+<span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
+
+<span class="comment"># use https:// remote urls</span>
+<span class="comment"># (this will eventually become the default: https://github.com/github/hub/pull/1690)</span>
+$ git <strong>config --global hub.protocol https</strong>
+$ git <strong>clone dotfiles</strong>
+<span class="result">→ git clone https://github.com/YOUR_USER/dotfiles.git</span>
 
 <span class="comment"># open the current project's issues page</span>
 $ git <strong>browse -- issues</strong>
