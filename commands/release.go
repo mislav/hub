@@ -398,7 +398,7 @@ func createRelease(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.CurrentProject()
+	project, err := localRepo.MainProject()
 	utils.Check(err)
 
 	gh := github.NewClient(project.Host)
@@ -467,7 +467,7 @@ func editRelease(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.CurrentProject()
+	project, err := localRepo.MainProject()
 	utils.Check(err)
 
 	gh := github.NewClient(project.Host)
@@ -550,7 +550,7 @@ func deleteRelease(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.CurrentProject()
+	project, err := localRepo.MainProject()
 	utils.Check(err)
 
 	gh := github.NewClient(project.Host)

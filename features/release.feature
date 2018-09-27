@@ -443,6 +443,25 @@ MARKDOWN
     When I successfully run `hub release edit --draft=false v1.2.0`
     Then there should be no output
 
+  Scenario: Edit existing release when there is a fork
+    Given the "doge" remote has url "git://github.com/doge/will_paginate.git"
+    And I am on the "feature" branch with upstream "doge/feature"
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+            tag_name: 'v1.2.0',
+          },
+        ]
+      }
+      patch('/repos/mislav/will_paginate/releases/123') {
+        json({})
+      }
+      """
+    When I successfully run `hub release edit -m "" v1.2.0`
+    Then there should be no output
+
   Scenario: Edit existing release no title
     Given the GitHub API server:
       """
