@@ -155,3 +155,10 @@ Feature: hub compare
       Aborted: the origin remote doesn't point to a GitHub repository.\n
       """
     And the exit status should be 1
+
+  Scenario: Comparing two branches while not on a local branch
+    Given I am in detached HEAD
+    And I run `hub compare refactor...master`
+    Then the exit status should be 0
+    And there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/refactor...master" should be run
