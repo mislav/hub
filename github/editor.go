@@ -14,6 +14,8 @@ import (
 	"github.com/github/hub/git"
 )
 
+const Scissors = "------------------------ >8 ------------------------"
+
 func NewEditor(filename, topic, message string) (editor *Editor, err error) {
 	gitDir, err := git.Dir()
 	if err != nil {
@@ -44,20 +46,25 @@ func NewEditor(filename, topic, message string) (editor *Editor, err error) {
 }
 
 type Editor struct {
-	Program    string
-	Topic      string
-	File       string
-	Message    string
-	CS         string
-	openEditor func(program, file string) error
+	Program           string
+	Topic             string
+	File              string
+	Message           string
+	CS                string
+	addedFirstComment bool
+	openEditor        func(program, file string) error
 }
 
 func (e *Editor) AddCommentedSection(text string) {
-	startRegexp := regexp.MustCompilePOSIX("^")
-	endRegexp := regexp.MustCompilePOSIX(" +$")
-	commentedText := startRegexp.ReplaceAllString(text, e.CS+" ")
-	commentedText = endRegexp.ReplaceAllString(commentedText, "")
-	e.Message = e.Message + "\n" + commentedText
+	if !e.addedFirstComment {
+		scissors := e.CS + " " + Scissors + "\n"
+		scissors += e.CS + " Do not modify or remove the line above.\n"
+		scissors += e.CS + " Everything below it will be ignored.\n"
+		e.Message = e.Message + "\n" + scissors
+		e.addedFirstComment = true
+	}
+
+	e.Message = e.Message + "\n" + text
 }
 
 func (e *Editor) DeleteFile() error {
@@ -75,11 +82,13 @@ func (e *Editor) EditContent() (content string, err error) {
 	scanner := bufio.NewScanner(reader)
 	unquotedLines := []string{}
 
+	scissorsLine := e.CS + " " + Scissors
 	for scanner.Scan() {
 		line := scanner.Text()
-		if e.CS == "" || !strings.HasPrefix(line, e.CS) {
-			unquotedLines = append(unquotedLines, line)
+		if line == scissorsLine {
+			break
 		}
+		unquotedLines = append(unquotedLines, line)
 	}
 	if err = scanner.Err(); err != nil {
 		return
