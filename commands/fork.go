@@ -17,6 +17,9 @@ var cmdFork = &Command{
 	--no-remote
 		Skip adding a git remote for the fork.
 
+	--remote-name=<REMOTE>
+		Set the name for the new git remote.
+
 	--org=<ORGANIZATION>
 		Fork the repository within this organization.
 
