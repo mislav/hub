@@ -248,6 +248,8 @@ func listIssues(cmd *Command, args *Args) {
 
 		if flagIssueSortAscending {
 			filters["direction"] = "asc"
+		} else {
+			filters["direction"] = "desc"
 		}
 
 		if cmd.FlagPassed("since") {

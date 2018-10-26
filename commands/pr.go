@@ -182,6 +182,8 @@ func listPulls(cmd *Command, args *Args) {
 	}
 	if flagPullRequestSortAscending {
 		filters["direction"] = "asc"
+	} else {
+		filters["direction"] = "desc"
 	}
 
 	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, nil)

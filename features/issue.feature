@@ -9,7 +9,7 @@ Feature: hub issue
     get('/repos/github/hub/issues') {
       assert :assignee => "Cornwe19",
              :sort => nil,
-             :direction => nil
+             :direction => "desc"
 
       json [
         { :number => 999,
@@ -76,7 +76,7 @@ Feature: hub issue
     get('/repos/github/hub/issues') {
       assert :assignee => "Cornwe19",
              :sort => nil,
-             :direction => nil
+             :direction => "desc"
 
       json [
         { :number => 999,

@@ -10,7 +10,7 @@ Feature: hub pr list
       assert :per_page => "100",
              :page => :no,
              :sort => nil,
-             :direction => nil
+             :direction => "desc"
 
       response.headers["Link"] = %(<https://api.github.com/repositories/12345?per_page=100&page=2>; rel="next")
 
