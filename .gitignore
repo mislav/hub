@@ -12,3 +12,5 @@ target
 tags
 /site
 /hub
+.idea/
+.gitignore
