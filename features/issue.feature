@@ -530,3 +530,84 @@ Feature: hub issue
       bug
       feature\n
       """
+
+
+  Scenario: Fetch single issue
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues/102') { json \
+        :number => 102,
+        :state => "open",
+        :body => "I want this feature",
+        :title => "Feature request for hub issue show",
+        :created_at => "2017-04-14T16:00:49Z",
+        :user => { :login => "royels" },
+        :assignees => [{:login => "royels"}],
+        :comments => 1
+     }
+      get('/repos/github/hub/issues/102/comments') {
+      json [{
+              :id => 1,
+              :body => "I am from the future",
+              :created_at => "2011-04-14T16:00:49Z",
+              :user => { :login => "octocat" }}
+      ]
+      }
+      """
+    When I successfully run `hub issue show 102`
+    Then the output should contain exactly:
+      """
+      # Feature request for hub issue show
+
+      * created by @royels on 2017-04-14 16:00:49 +0000 UTC
+      * assignees: royels
+
+      I want this feature
+
+      ## Comments:
+
+      ### comment by @octocat on 2011-04-14 16:00:49 +0000 UTC
+
+      I am from the future
+
+      """
+
+  Scenario: Did not supply an issue number
+    When I run `hub issue show`
+    Then the exit status should be 1
+    Then the output should contain exactly "Usage: hub issue show <NUMBER>\n"
+
+
+  Scenario: Show error message if http code is not 200 for issues endpoint
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues/102') {
+    status 500
+     }
+      """
+    When I run `hub issue show 102`
+    Then the output should contain exactly:
+      """
+      Error fetching issue: Internal Server Error (HTTP 500)\n
+      """
+
+
+  Scenario: Show error message if http code is not 200 for comments endpoint
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues/102') { json \
+        :number => 102,
+        :body => "I want this feature",
+        :title => "Feature request for hub issue show",
+        :created_at => "2017-04-14T16:00:49Z",
+        :user => { :login => "royels" }
+     }
+      get('/repos/github/hub/issues/102/comments') {
+      status 404
+      }
+    """
+    When I run `hub issue show 102`
+    Then the output should contain exactly:
+      """
+      Error fetching comments for issue: Not Found (HTTP 404)\n
+      """

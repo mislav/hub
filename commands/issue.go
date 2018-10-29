@@ -20,6 +20,7 @@ var (
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
+issue show <NUMBER>
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -153,6 +154,13 @@ With no arguments, show a list of open issues.
 		Long:  "Open an issue in the current project.",
 	}
 
+	cmdShowIssue = &Command{
+		Key:   "show",
+		Run:   showIssue,
+		Usage: "issue show <NUMBER>",
+		Long:  "Show an issue in the current project.",
+	}
+
 	cmdLabel = &Command{
 		Key:   "labels",
 		Run:   listLabels,
@@ -213,6 +221,7 @@ func init() {
 
 	cmdLabel.Flag.BoolVarP(&flagLabelsColorize, "color", "", false, "COLORIZE")
 
+	cmdIssue.Use(cmdShowIssue)
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
 	CmdRunner.Use(cmdIssue)
@@ -369,6 +378,68 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 func formatIssue(issue github.Issue, format string, colorize bool) string {
 	placeholders := formatIssuePlaceholders(issue, colorize)
 	return ui.Expand(format, placeholders, colorize)
+}
+
+func showIssue(cmd *Command, args *Args) {
+	issueNumber := cmd.Arg(0)
+	if issueNumber == "" {
+		utils.Check(fmt.Errorf(cmd.Synopsis()))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	var issue = &github.Issue{}
+	issue, err = gh.FetchIssue(project, issueNumber)
+	utils.Check(err)
+
+	var closed = ""
+	if issue.State != "open" {
+		closed = "[CLOSED] "
+	}
+	commentsList, err := gh.FetchComments(project, issueNumber)
+	utils.Check(err)
+
+	var assignees []string
+	var assigneesString = ""
+	if len(issue.Assignees) > 0 {
+		for _, user := range issue.Assignees {
+			assignees = append(assignees, user.Login)
+		}
+		assigneesString = fmt.Sprintf("* assignees: %s\n\n", strings.Join(assignees, ", "))
+	}
+
+	var comments []string
+	var commentsString = ""
+	if issue.Comments > 0 {
+		for _, comment := range commentsList {
+			comments = append(comments, fmt.Sprintf(
+				"### comment by @%s on %s\n\n"+
+					"%s\n", comment.User.Login, comment.CreatedAt.String(), comment.Body))
+		}
+		commentsString = fmt.Sprintf("\n## Comments:\n\n%s", strings.Join(comments, ""))
+
+	}
+
+	ui.Printf("# %s\n\n"+
+		"* created by @%s on %s\n"+
+		"%s"+
+		"%s\n"+
+		"%s",
+		closed+issue.Title,
+		issue.User.Login,
+		issue.CreatedAt.String(),
+		assigneesString,
+		issue.Body,
+		commentsString)
+
+	args.NoForward()
+	return
 }
 
 func createIssue(cmd *Command, args *Args) {
