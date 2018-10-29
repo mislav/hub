@@ -14,6 +14,8 @@ import (
 	"github.com/github/hub/ui"
 )
 
+var timeNow = time.Now
+
 func Check(err error) {
 	if err != nil {
 		ui.Errorln(err)
@@ -113,7 +115,7 @@ func (c *Color) Brightness() float32 {
 }
 
 func TimeAgo(t time.Time) string {
-	duration := time.Since(t)
+	duration := timeNow().Sub(t)
 	minutes := duration.Minutes()
 	hours := duration.Hours()
 	days := hours / 24
