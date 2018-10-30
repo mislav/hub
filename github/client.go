@@ -890,7 +890,8 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 }
 
 func (client *Client) apiClient() *simpleClient {
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
+	unixSocket := os.ExpandEnv(client.Host.UnixSocket)
+	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", unixSocket)
 	apiRoot := client.absolute(normalizeHost(client.Host.Host))
 	if client.Host != nil && client.Host.Host != GitHubHost {
 		apiRoot.Path = "/api/v3/"

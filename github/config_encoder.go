@@ -30,6 +30,7 @@ func (y *yamlConfigEncoder) Encode(w io.Writer, c *Config) error {
 				User:       h.User,
 				OAuthToken: h.AccessToken,
 				Protocol:   h.Protocol,
+				UnixSocket: h.UnixSocket,
 			},
 		}
 	}
