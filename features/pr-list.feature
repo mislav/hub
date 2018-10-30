@@ -76,13 +76,19 @@ Feature: hub pr list
         { :number => 999,
           :title => "First",
           :state => "open",
-          :base => { :ref => "master", :label => "github:master" },
+          :base => {
+            :ref => "master",
+            :label => "github:master",
+            :repo => { :owner => { :login => "github" } }
+          },
           :head => { :ref => "patch-1", :label => "octocat:patch-1" },
           :user => { :login => "octocat" },
           :requested_reviewers => [
-            {
-              :login => "rey"
-            }
+            { :login => "rey" },
+          ],
+          :requested_teams => [
+            { :slug => "troopers" },
+            { :slug => "cantina-band" },
           ]
         },
         { :number => 102,
@@ -92,12 +98,8 @@ Feature: hub pr list
           :head => { :ref => "patch-2", :label => "octocat:patch-2" },
           :user => { :login => "octocat" },
           :requested_reviewers => [
-            {
-              :login => "luke"
-            },
-            {
-              :login => "jyn"
-            }
+            { :login => "luke" },
+            { :login => "jyn" },
           ]
         },
       ]
@@ -106,7 +108,7 @@ Feature: hub pr list
     When I successfully run `hub pr list -f "%sC%>(8)%i %rs%n"`
     Then the output should contain exactly:
       """
-          #999 rey
+          #999 rey, github/troopers, github/cantina-band
           #102 luke, jyn\n
       """
 

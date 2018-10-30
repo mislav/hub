@@ -316,6 +316,10 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 	for _, requestedReviewer := range issue.RequestedReviewers {
 		requestedReviewers = append(requestedReviewers, requestedReviewer.Login)
 	}
+	for _, requestedTeam := range issue.RequestedTeams {
+		teamSlug := fmt.Sprintf("%s/%s", issue.Base.Repo.Owner.Login, requestedTeam.Slug)
+		requestedReviewers = append(requestedReviewers, teamSlug)
+	}
 
 	var milestoneNumber, milestoneTitle string
 	if issue.Milestone != nil {

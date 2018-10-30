@@ -596,6 +596,7 @@ type User struct {
 
 type Team struct {
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 type Milestone struct {
