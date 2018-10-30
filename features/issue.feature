@@ -579,6 +579,41 @@ Feature: hub issue
       I did the thing\n
       """
 
+  Scenario: Format single issue
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/102') {
+        json \
+          :number => 102,
+          :state => "open",
+          :body => "I want this feature",
+          :title => "Feature request for hub issue show",
+          :created_at => "2017-04-14T16:00:49Z",
+          :user => { :login => "royels" },
+          :assignees => [{:login => "royels"}],
+          :comments => 1
+      }
+      get('/repos/github/hub/issues/102/comments') {
+        json [
+          { :body => "I am from the future",
+            :created_at => "2011-04-14T16:00:49Z",
+            :user => { :login => "octocat" }
+          },
+          { :body => "I did the thing",
+            :created_at => "2013-10-30T22:20:00Z",
+            :user => { :login => "hubot" }
+          },
+        ]
+      }
+      """
+    When I successfully run `hub issue show 102 --format='%I %t%n%n%b%n'`
+    Then the output should contain exactly:
+      """
+      102 Feature request for hub issue show
+
+      I want this feature\n
+      """
+
   Scenario: Did not supply an issue number
     When I run `hub issue show`
     Then the exit status should be 1

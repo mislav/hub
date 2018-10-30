@@ -18,9 +18,9 @@ var (
 		Run: listIssues,
 		Usage: `
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
+issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
-issue show <NUMBER>
 `,
 		Long: `Manage GitHub issues for the current project.
 
@@ -174,6 +174,7 @@ With no arguments, show a list of open issues.
 	flagIssueAssignee,
 	flagIssueState,
 	flagIssueFormat,
+	flagShowIssueFormat,
 	flagIssueMessage,
 	flagIssueMilestoneFilter,
 	flagIssueCreator,
@@ -200,6 +201,8 @@ With no arguments, show a list of open issues.
 )
 
 func init() {
+	cmdShowIssue.Flag.StringVarP(&flagShowIssueFormat, "format", "f", "", "FORMAT")
+
 	cmdCreateIssue.Flag.StringVarP(&flagIssueMessage, "message", "m", "", "MESSAGE")
 	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "F", "", "FILE")
 	cmdCreateIssue.Flag.Uint64VarP(&flagIssueMilestone, "milestone", "M", 0, "MILESTONE")
@@ -401,6 +404,14 @@ func showIssue(cmd *Command, args *Args) {
 	issue, err = gh.FetchIssue(project, issueNumber)
 	utils.Check(err)
 
+	args.NoForward()
+
+	colorize := ui.IsTerminal(os.Stdout)
+	if flagShowIssueFormat != "" {
+		ui.Printf(formatIssue(*issue, flagShowIssueFormat, colorize))
+		return
+	}
+
 	var closed = ""
 	if issue.State != "open" {
 		closed = "[CLOSED] "
@@ -428,7 +439,6 @@ func showIssue(cmd *Command, args *Args) {
 		}
 	}
 
-	args.NoForward()
 	return
 }
 
