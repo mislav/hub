@@ -578,7 +578,7 @@ func (pr *PullRequest) HasRequestedReviewer(name string) bool {
 
 func (pr *PullRequest) HasRequestedTeam(name string) bool {
 	for _, team := range pr.RequestedTeams {
-		if strings.EqualFold(team.Name, name) {
+		if strings.EqualFold(team.Slug, name) {
 			return true
 		}
 	}
@@ -596,6 +596,7 @@ type User struct {
 
 type Team struct {
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 type Milestone struct {

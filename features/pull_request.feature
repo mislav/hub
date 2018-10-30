@@ -873,7 +873,7 @@ Feature: hub pull-request
         status 201
         json :html_url => "the://url", :number => 1234,
           :requested_reviewers => [{ :login => "josh" }],
-          :requested_teams => [{ :name => "robots" }]
+          :requested_teams => [{ :slug => "robots" }]
       }
       post('/repos/mislav/coral/pulls/1234/requested_reviewers') {
         assert :reviewers => ["mislav", "pcorpet"]
@@ -894,7 +894,7 @@ Feature: hub pull-request
         status 201
         json :html_url => "the://url", :number => 1234,
           :requested_reviewers => [{ :login => "josh" }, { :login => "mislav" }],
-          :requested_teams => [{ :name => "robots" }]
+          :requested_teams => [{ :slug => "robots" }]
       }
       """
     When I successfully run `hub pull-request -m hereyougo -r mislav,josh -rgithub/robots`

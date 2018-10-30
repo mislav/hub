@@ -72,6 +72,8 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%as: comma-separated list of assignees
 
+		%rs: comma-separated list of requested reviewers
+
 		%Mn: milestone number
 
 		%Mt: milestone title
