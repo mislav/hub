@@ -269,18 +269,22 @@ Feature: hub pull-request
       Hello
 
 
-# Requesting a pull to mislav:master from mislav:topic
-#
-# Write a message for this pull request. The first block
-# of text is the title and the rest is the description.
-#
-# Changes:
-#
-# SHA1SHA (Hub, 0 seconds ago)
-#    Two on topic
-#
-# SHA1SHA (Hub, 0 seconds ago)
-#    One on topic
+      # ------------------------ >8 ------------------------
+      # Do not modify or remove the line above.
+      # Everything below it will be ignored.
+
+      Requesting a pull to mislav:master from mislav:topic
+
+      Write a message for this pull request. The first block
+      of text is the title and the rest is the description.
+
+      Changes:
+
+      SHA1SHA (Hub, 0 seconds ago)
+         Two on topic
+
+      SHA1SHA (Hub, 0 seconds ago)
+         One on topic
 
       """
 
@@ -363,7 +367,7 @@ Feature: hub pull-request
       """
       # Dat title
 
-      / This line is commented out.
+      / This line is not commented out.
 
       Dem body.
       """
@@ -371,7 +375,7 @@ Feature: hub pull-request
       """
       post('/repos/mislav/coral/pulls') {
         assert :title => '# Dat title',
-               :body  => 'Dem body.'
+               :body  => "/ This line is not commented out.\n\nDem body."
         status 201
         json :html_url => "the://url"
       }
