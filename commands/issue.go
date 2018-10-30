@@ -28,6 +28,9 @@ issue show <NUMBER>
 
 With no arguments, show a list of open issues.
 
+	* _show_:
+		Show an existing issue specified by <NUMBER>.
+
 	* _create_:
 		Open an issue in the current project.
 
@@ -405,38 +408,25 @@ func showIssue(cmd *Command, args *Args) {
 	commentsList, err := gh.FetchComments(project, issueNumber)
 	utils.Check(err)
 
-	var assignees []string
-	var assigneesString = ""
+	ui.Printf("# %s%s\n\n", closed, issue.Title)
+	ui.Printf("* created by @%s on %s\n", issue.User.Login, issue.CreatedAt.String())
+
 	if len(issue.Assignees) > 0 {
+		var assignees []string
 		for _, user := range issue.Assignees {
 			assignees = append(assignees, user.Login)
 		}
-		assigneesString = fmt.Sprintf("* assignees: %s\n\n", strings.Join(assignees, ", "))
+		ui.Printf("* assignees: %s\n", strings.Join(assignees, ", "))
 	}
 
-	var comments []string
-	var commentsString = ""
+	ui.Printf("\n%s\n", issue.Body)
+
 	if issue.Comments > 0 {
+		ui.Printf("\n## Comments:\n")
 		for _, comment := range commentsList {
-			comments = append(comments, fmt.Sprintf(
-				"### comment by @%s on %s\n\n"+
-					"%s\n", comment.User.Login, comment.CreatedAt.String(), comment.Body))
+			ui.Printf("\n### comment by @%s on %s\n\n%s\n", comment.User.Login, comment.CreatedAt.String(), comment.Body)
 		}
-		commentsString = fmt.Sprintf("\n## Comments:\n\n%s", strings.Join(comments, ""))
-
 	}
-
-	ui.Printf("# %s\n\n"+
-		"* created by @%s on %s\n"+
-		"%s"+
-		"%s\n"+
-		"%s",
-		closed+issue.Title,
-		issue.User.Login,
-		issue.CreatedAt.String(),
-		assigneesString,
-		issue.Body,
-		commentsString)
 
 	args.NoForward()
 	return
