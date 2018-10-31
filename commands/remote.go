@@ -104,22 +104,26 @@ func transformRemoteArgs(args *Args) {
 		owner = hostConfig.User
 	}
 
-	if strings.ToLower(owner) == strings.ToLower(hostConfig.User) {
+	if strings.EqualFold(owner, hostConfig.User) {
 		owner = hostConfig.User
 	}
 
 	project := github.NewProject(owner, name, host)
-	gh := github.NewClient(project.Host)
-	repo, err := gh.Repository(project)
-	if err != nil {
-		if strings.Contains(err.Error(), "HTTP 404") {
-			err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
+
+	isPrivate := parseRemotePrivateFlag(args) || owner == hostConfig.User || project.Host != github.GitHubHost
+	if !isPrivate {
+		gh := github.NewClient(project.Host)
+		repo, err := gh.Repository(project)
+		if err != nil {
+			if strings.Contains(err.Error(), "HTTP 404") {
+				err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
+			}
+			utils.Check(err)
 		}
-		utils.Check(err)
+		isPrivate = repo.Private || repo.Permissions.Push
 	}
 
-	isPrivate := repo.Private || repo.Permissions.Push || parseRemotePrivateFlag(args)
-	url := project.GitURL("", "", isPrivate || project.Host != github.GitHubHost)
+	url := project.GitURL("", "", isPrivate)
 	args.AppendParams(url)
 }
 
