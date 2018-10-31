@@ -140,3 +140,7 @@ Meta
 * Home: <https://github.com/github/hub>
 * Bugs: <https://github.com/github/hub/issues>
 * Authors: <https://github.com/github/hub/contributors>
+
+# Licensing
+
+[MIT License](https://github.com/github/hub/blob/master/LICENSE)
