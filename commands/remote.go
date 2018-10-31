@@ -21,7 +21,9 @@ remote set-url [-p] [<OPTIONS>] <NAME> <USER>[/<REPOSITORY>]
 
 ## Options:
 	-p
-		(Deprecated) Use the 'ssh:' protocol for the remote URL.
+		(Deprecated) Use the 'ssh:' protocol instead of 'git:' for the remote URL.
+		The writeable 'ssh:' protocol is automatically used for own repos, GitHub
+		Enterprise remotes, and private or pushable repositories.
 
 	<USER>[/<REPOSITORY>]
 		If <USER> is "origin", that value will be substituted for your GitHub
@@ -32,7 +34,7 @@ remote set-url [-p] [<OPTIONS>] <NAME> <USER>[/<REPOSITORY>]
 		> git remote add jingweno git://github.com/jingweno/REPO.git
 
 		$ hub remote add origin
-		> git remote add origin git://github.com/USER/REPO.git
+		> git remote add origin git@github.com:USER/REPO.git
 
 ## See also:
 
