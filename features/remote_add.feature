@@ -51,11 +51,59 @@ Feature: hub remote add
     And there should be no output
 
   Scenario: Add public remote
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub remote add mislav`
     Then the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
     And there should be no output
 
-  Scenario: Add private remote
+  Scenario: Add detected private remote
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => true,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub remote add mislav`
+    Then the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no output
+
+  Scenario: Add remote with push access
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => true }
+      }
+      """
+    When I successfully run `hub remote add mislav`
+    Then the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no output
+
+  Scenario: Add remote for missing repo
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        status 404
+      }
+      """
+    When I run `hub remote add mislav`
+    Then the exit status should be 1
+    And the output should contain exactly:
+      """
+      Error: repository mislav/dotfiles doesn't exist\n
+      """
+
+  Scenario: Add explicitly private remote
     When I successfully run `hub remote add -p mislav`
     Then the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
     And there should be no output
@@ -66,38 +114,94 @@ Feature: hub remote add
     And there should be no output
 
   Scenario: Add remote with arguments
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub remote add -f mislav`
     Then "git remote add -f mislav git://github.com/mislav/dotfiles.git" should be run
     And there should be no output
 
   Scenario: Add remote with branch argument
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub remote add -f -t feature mislav`
     Then "git remote add -f -t feature mislav git://github.com/mislav/dotfiles.git" should be run
     And there should be no output
 
   Scenario: Add HTTPS protocol remote
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     Given HTTPS is preferred
     When I successfully run `hub remote add mislav`
     Then the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: Add named public remote
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub remote add mm mislav`
     Then the url for "mm" should be "git://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: set-url
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     Given the "origin" remote has url "git://github.com/evilchelu/dotfiles.git"
     When I successfully run `hub remote set-url origin mislav`
     Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
     And there should be no output
 
   Scenario: Add public remote including repo name
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfilez.js') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub remote add mislav/dotfilez.js`
     Then the url for "mislav" should be "git://github.com/mislav/dotfilez.js.git"
     And there should be no output
 
   Scenario: Add named public remote including repo name
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfilez.js') {
+        json :private => false,
+             :name => 'dotfiles', :owner => { :login => 'mislav' },
+             :permissions => { :push => false }
+      }
+      """
     When I successfully run `hub remote add mm mislav/dotfilez.js`
     Then the url for "mm" should be "git://github.com/mislav/dotfilez.js.git"
     And there should be no output

@@ -21,7 +21,9 @@ remote set-url [-p] [<OPTIONS>] <NAME> <USER>[/<REPOSITORY>]
 
 ## Options:
 	-p
-		(Deprecated) Use the 'ssh:' protocol for the remote URL.
+		(Deprecated) Use the 'ssh:' protocol instead of 'git:' for the remote URL.
+		The writeable 'ssh:' protocol is automatically used for own repos, GitHub
+		Enterprise remotes, and private or pushable repositories.
 
 	<USER>[/<REPOSITORY>]
 		If <USER> is "origin", that value will be substituted for your GitHub
@@ -32,7 +34,7 @@ remote set-url [-p] [<OPTIONS>] <NAME> <USER>[/<REPOSITORY>]
 		> git remote add jingweno git://github.com/jingweno/REPO.git
 
 		$ hub remote add origin
-		> git remote add origin git://github.com/USER/REPO.git
+		> git remote add origin git@github.com:USER/REPO.git
 
 ## See also:
 
@@ -89,7 +91,6 @@ func transformRemoteArgs(args *Args) {
 	}
 	host = hostConfig.Host
 
-	isPrivate := parseRemotePrivateFlag(args)
 	numWord := 0
 	for i, p := range args.Params {
 		if !looksLikeFlag(p) && (i < 1 || args.Params[i-1] != "-t") {
@@ -105,13 +106,26 @@ func transformRemoteArgs(args *Args) {
 		owner = hostConfig.User
 	}
 
-	if strings.ToLower(owner) == strings.ToLower(hostConfig.User) {
+	if strings.EqualFold(owner, hostConfig.User) {
 		owner = hostConfig.User
-		isPrivate = true
 	}
 
 	project := github.NewProject(owner, name, host)
-	url := project.GitURL("", "", isPrivate || project.Host != github.GitHubHost)
+
+	isPrivate := parseRemotePrivateFlag(args) || owner == hostConfig.User || project.Host != github.GitHubHost
+	if !isPrivate {
+		gh := github.NewClient(project.Host)
+		repo, err := gh.Repository(project)
+		if err != nil {
+			if strings.Contains(err.Error(), "HTTP 404") {
+				err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
+			}
+			utils.Check(err)
+		}
+		isPrivate = repo.Private || repo.Permissions.Push
+	}
+
+	url := project.GitURL("", "", isPrivate)
 	args.AppendParams(url)
 }
 
