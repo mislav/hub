@@ -72,7 +72,8 @@ pull-request -i <ISSUE>
 		is deprecated.
 
 	-l, --labels <LABELS>
-		Add a comma-separated list of labels to this pull request.
+		Add a comma-separated list of labels to this pull request. Labels will be
+		created if they don't already exist.
 
 ## Examples:
 		$ hub pull-request

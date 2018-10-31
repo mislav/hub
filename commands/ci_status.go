@@ -88,15 +88,13 @@ func ciStatus(cmd *Command, args *Args) {
 		response, err := gh.FetchCIStatus(project, sha)
 		utils.Check(err)
 
-		state := response.State
+		state := ""
 		if len(response.Statuses) > 0 {
 			for _, status := range response.Statuses {
 				if checkSeverity(status.State) > checkSeverity(state) {
 					state = status.State
 				}
 			}
-		} else if len(response.Statuses) == 0 {
-			state = ""
 		}
 
 		var exitCode int

@@ -18,6 +18,7 @@ var (
 		Run: listIssues,
 		Usage: `
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
+issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
 `,
@@ -26,6 +27,9 @@ issue labels [--color]
 ## Commands:
 
 With no arguments, show a list of open issues.
+
+	* _show_:
+		Show an existing issue specified by <NUMBER>.
 
 	* _create_:
 		Open an issue in the current project.
@@ -153,6 +157,13 @@ With no arguments, show a list of open issues.
 		Long:  "Open an issue in the current project.",
 	}
 
+	cmdShowIssue = &Command{
+		Key:   "show",
+		Run:   showIssue,
+		Usage: "issue show <NUMBER>",
+		Long:  "Show an issue in the current project.",
+	}
+
 	cmdLabel = &Command{
 		Key:   "labels",
 		Run:   listLabels,
@@ -163,6 +174,7 @@ With no arguments, show a list of open issues.
 	flagIssueAssignee,
 	flagIssueState,
 	flagIssueFormat,
+	flagShowIssueFormat,
 	flagIssueMessage,
 	flagIssueMilestoneFilter,
 	flagIssueCreator,
@@ -189,6 +201,8 @@ With no arguments, show a list of open issues.
 )
 
 func init() {
+	cmdShowIssue.Flag.StringVarP(&flagShowIssueFormat, "format", "f", "", "FORMAT")
+
 	cmdCreateIssue.Flag.StringVarP(&flagIssueMessage, "message", "m", "", "MESSAGE")
 	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "F", "", "FILE")
 	cmdCreateIssue.Flag.Uint64VarP(&flagIssueMilestone, "milestone", "M", 0, "MILESTONE")
@@ -213,6 +227,7 @@ func init() {
 
 	cmdLabel.Flag.BoolVarP(&flagLabelsColorize, "color", "", false, "COLORIZE")
 
+	cmdIssue.Use(cmdShowIssue)
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
 	CmdRunner.Use(cmdIssue)
@@ -248,6 +263,8 @@ func listIssues(cmd *Command, args *Args) {
 
 		if flagIssueSortAscending {
 			filters["direction"] = "asc"
+		} else {
+			filters["direction"] = "desc"
 		}
 
 		if cmd.FlagPassed("since") {
@@ -310,6 +327,15 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 		assignees = append(assignees, assignee.Login)
 	}
 
+	var requestedReviewers []string
+	for _, requestedReviewer := range issue.RequestedReviewers {
+		requestedReviewers = append(requestedReviewers, requestedReviewer.Login)
+	}
+	for _, requestedTeam := range issue.RequestedTeams {
+		teamSlug := fmt.Sprintf("%s/%s", issue.Base.Repo.Owner.Login, requestedTeam.Slug)
+		requestedReviewers = append(requestedReviewers, teamSlug)
+	}
+
 	var milestoneNumber, milestoneTitle string
 	if issue.Milestone != nil {
 		milestoneNumber = fmt.Sprintf("%d", issue.Milestone.Number)
@@ -349,6 +375,7 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 		"b":  issue.Body,
 		"au": issue.User.Login,
 		"as": strings.Join(assignees, ", "),
+		"rs": strings.Join(requestedReviewers, ", "),
 		"Mn": milestoneNumber,
 		"Mt": milestoneTitle,
 		"NC": numComments,
@@ -367,6 +394,62 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 func formatIssue(issue github.Issue, format string, colorize bool) string {
 	placeholders := formatIssuePlaceholders(issue, colorize)
 	return ui.Expand(format, placeholders, colorize)
+}
+
+func showIssue(cmd *Command, args *Args) {
+	issueNumber := cmd.Arg(0)
+	if issueNumber == "" {
+		utils.Check(fmt.Errorf(cmd.Synopsis()))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	var issue = &github.Issue{}
+	issue, err = gh.FetchIssue(project, issueNumber)
+	utils.Check(err)
+
+	args.NoForward()
+
+	colorize := ui.IsTerminal(os.Stdout)
+	if flagShowIssueFormat != "" {
+		ui.Printf(formatIssue(*issue, flagShowIssueFormat, colorize))
+		return
+	}
+
+	var closed = ""
+	if issue.State != "open" {
+		closed = "[CLOSED] "
+	}
+	commentsList, err := gh.FetchComments(project, issueNumber)
+	utils.Check(err)
+
+	ui.Printf("# %s%s\n\n", closed, issue.Title)
+	ui.Printf("* created by @%s on %s\n", issue.User.Login, issue.CreatedAt.String())
+
+	if len(issue.Assignees) > 0 {
+		var assignees []string
+		for _, user := range issue.Assignees {
+			assignees = append(assignees, user.Login)
+		}
+		ui.Printf("* assignees: %s\n", strings.Join(assignees, ", "))
+	}
+
+	ui.Printf("\n%s\n", issue.Body)
+
+	if issue.Comments > 0 {
+		ui.Printf("\n## Comments:\n")
+		for _, comment := range commentsList {
+			ui.Printf("\n### comment by @%s on %s\n\n%s\n", comment.User.Login, comment.CreatedAt.String(), comment.Body)
+		}
+	}
+
+	return
 }
 
 func createIssue(cmd *Command, args *Args) {

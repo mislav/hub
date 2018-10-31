@@ -72,14 +72,14 @@ func compare(command *Command, args *Args) {
 		r       string
 	)
 
-	branch, project, err = localRepo.RemoteBranchAndProject("", false)
-	utils.Check(err)
-
 	usageHelp := func() {
 		utils.Check(fmt.Errorf("Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]"))
 	}
 
 	if args.IsParamsEmpty() {
+		branch, project, err = localRepo.RemoteBranchAndProject("", false)
+		utils.Check(err)
+
 		if branch == nil ||
 			(branch.IsMaster() && flagCompareBase == "") ||
 			(flagCompareBase == branch.ShortName()) {

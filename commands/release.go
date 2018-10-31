@@ -17,8 +17,8 @@ var (
 	cmdRelease = &Command{
 		Run: listReleases,
 		Usage: `
-release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>]
-release show <TAG>
+release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>] [-f <FORMAT>]
+release show [-f <FORMAT>] <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
 release download <TAG>
@@ -178,6 +178,7 @@ hub(1), git-tag(1)
 	flagReleaseMessage,
 	flagReleaseFile,
 	flagReleaseFormat,
+	flagShowReleaseFormat,
 	flagReleaseCommitish string
 
 	flagReleaseAssets stringSliceValue
@@ -192,6 +193,7 @@ func init() {
 	cmdRelease.Flag.StringVarP(&flagReleaseFormat, "format", "f", "%T%n", "FORMAT")
 
 	cmdShowRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
+	cmdShowRelease.Flag.StringVarP(&flagShowReleaseFormat, "format", "f", "", "FORMAT")
 
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseEdit, "edit", "e", false, "EDIT")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
@@ -315,6 +317,8 @@ func showRelease(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
+	args.NoForward()
+
 	if args.Noop {
 		ui.Printf("Would display information for `%s' release\n", tagName)
 	} else {
@@ -322,6 +326,12 @@ func showRelease(cmd *Command, args *Args) {
 		utils.Check(err)
 
 		body := strings.TrimSpace(release.Body)
+
+		colorize := ui.IsTerminal(os.Stdout)
+		if flagShowReleaseFormat != "" {
+			ui.Printf(formatRelease(*release, flagShowReleaseFormat, colorize))
+			return
+		}
 
 		ui.Println(release.Name)
 		if body != "" {
@@ -338,8 +348,6 @@ func showRelease(cmd *Command, args *Args) {
 			}
 		}
 	}
-
-	args.NoForward()
 }
 
 func downloadRelease(cmd *Command, args *Args) {

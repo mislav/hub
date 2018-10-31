@@ -525,6 +525,13 @@ func (client *Client) ForkRepository(project *Project, params map[string]interfa
 	return
 }
 
+type Comment struct {
+	Id        int       `json:"id"`
+	Body      string    `json:"body"`
+	User      *User     `json:"user"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Issue struct {
 	Number int    `json:"number"`
 	State  string `json:"state"`
@@ -550,6 +557,8 @@ type Issue struct {
 
 	ApiUrl  string `json:"url"`
 	HtmlUrl string `json:"html_url"`
+
+	ClosedBy *User `json:"closed_by"`
 }
 
 type PullRequest Issue
@@ -578,7 +587,7 @@ func (pr *PullRequest) HasRequestedReviewer(name string) bool {
 
 func (pr *PullRequest) HasRequestedTeam(name string) bool {
 	for _, team := range pr.RequestedTeams {
-		if strings.EqualFold(team.Name, name) {
+		if strings.EqualFold(team.Slug, name) {
 			return true
 		}
 	}
@@ -596,6 +605,7 @@ type User struct {
 
 type Team struct {
 	Name string `json:"name"`
+	Slug string `json:"slug"`
 }
 
 type Milestone struct {
@@ -646,6 +656,38 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 		}
 	}
 
+	return
+}
+
+func (client *Client) FetchIssue(project *Project, number string) (issue *Issue, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/issues/%s", project.Owner, project.Name, number))
+	if err = checkStatus(200, "fetching issue", res, err); err != nil {
+		return nil, err
+	}
+
+	issue = &Issue{}
+	err = res.Unmarshal(issue)
+	return
+}
+
+func (client *Client) FetchComments(project *Project, number string) (comments []Comment, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/issues/%s/comments", project.Owner, project.Name, number))
+	if err = checkStatus(200, "fetching comments for issue", res, err); err != nil {
+		return nil, err
+	}
+
+	comments = []Comment{}
+	err = res.Unmarshal(&comments)
 	return
 }
 
@@ -848,7 +890,8 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 }
 
 func (client *Client) apiClient() *simpleClient {
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "")
+	unixSocket := os.ExpandEnv(client.Host.UnixSocket)
+	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", unixSocket)
 	apiRoot := client.absolute(normalizeHost(client.Host.Host))
 	if client.Host != nil && client.Host.Host != GitHubHost {
 		apiRoot.Path = "/api/v3/"

@@ -3,18 +3,31 @@ package github
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 
 	"github.com/bmizerany/assert"
 )
 
-func setupTestServer() *testServer {
+func setupTestServer(unixSocket string) *testServer {
 	m := http.NewServeMux()
 	s := httptest.NewServer(m)
 	u, _ := url.Parse(s.URL)
+
+	if unixSocket != "" {
+		os.Remove(unixSocket)
+		unixListener, err := net.Listen("unix", unixSocket)
+		if err != nil {
+			log.Fatal("Unable to listen on unix-socket: ", err)
+		}
+		go http.Serve(unixListener, m)
+	}
 
 	return &testServer{
 		Server:   s,
@@ -34,7 +47,7 @@ func (s *testServer) Close() {
 }
 
 func TestNewHttpClient_OverrideURL(t *testing.T) {
-	s := setupTestServer()
+	s := setupTestServer("")
 	defer s.Close()
 
 	s.HandleFunc("/override", func(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +55,7 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 		assert.Equal(t, "example.com", r.Host)
 	})
 
-	c := newHttpClient(s.URL.String(), false)
+	c := newHttpClient(s.URL.String(), false, "")
 	c.Get("https://example.com/override")
 
 	s.HandleFunc("/not-override", func(w http.ResponseWriter, r *http.Request) {
@@ -50,8 +63,23 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 		assert.Equal(t, s.URL.Host, r.Host)
 	})
 
-	c = newHttpClient("", false)
+	c = newHttpClient("", false, "")
 	c.Get(fmt.Sprintf("%s/not-override", s.URL.String()))
+}
+
+func TestNewHttpClient_UnixSocket(t *testing.T) {
+	sock := "/tmp/hub-go.sock"
+	s := setupTestServer(sock)
+	defer s.Close()
+
+	s.HandleFunc("/unix-socket", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("unix-socket-works"))
+	})
+	c := newHttpClient("", false, sock)
+	resp, err := c.Get(fmt.Sprintf("%s/unix-socket", s.URL.String()))
+	assert.Equal(t, nil, err)
+	result, _ := ioutil.ReadAll(resp.Body)
+	assert.Equal(t, "unix-socket-works", string(result))
 }
 
 func TestVerboseTransport_VerbosePrintln(t *testing.T) {
