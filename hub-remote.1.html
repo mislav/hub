@@ -79,7 +79,9 @@
 <h2 id="OPTIONS">OPTIONS</h2>
 
 <dl>
-<dt class="flush">-p</dt><dd><p>(Deprecated) Use the <code>ssh:</code> protocol for the remote URL.</p></dd>
+<dt class="flush">-p</dt><dd><p>(Deprecated) Use the <code>ssh:</code> protocol instead of <code>git:</code> for the remote URL.
+The writeable <code>ssh:</code> protocol is automatically used for own repos, GitHub
+Enterprise remotes, and private or pushable repositories.</p></dd>
 <dt><var>USER</var>[/<var>REPOSITORY</var>]</dt><dd><p>If <var>USER</var> is "origin", that value will be substituted for your GitHub
 username. <var>REPOSITORY</var> defaults to the name of the current working directory.</p></dd>
 </dl>
@@ -91,7 +93,7 @@ username. <var>REPOSITORY</var> defaults to the name of the current working dire
 &gt; git remote add jingweno git://github.com/jingweno/REPO.git
 
 $ hub remote add origin
-&gt; git remote add origin git://github.com/USER/REPO.git
+&gt; git remote add origin git@github.com:USER/REPO.git
 </code></pre>
 
 <h2 id="SEE-ALSO">SEE ALSO</h2>
@@ -101,7 +103,7 @@ $ hub remote add origin
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>August 2018</li>
+    <li class='tc'>October 2018</li>
     <li class='tr'>hub-remote(1)</li>
   </ol>
 

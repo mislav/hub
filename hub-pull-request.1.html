@@ -56,6 +56,7 @@
     <a href="#NAME">NAME</a>
     <a href="#SYNOPSIS">SYNOPSIS</a>
     <a href="#OPTIONS">OPTIONS</a>
+    <a href="#EXAMPLES">EXAMPLES</a>
     <a href="#CONFIGURATION">CONFIGURATION</a>
     <a href="#SEE-ALSO">SEE ALSO</a>
   </div>
@@ -99,9 +100,26 @@ and description without opening a text editor.</p></dd>
 <dt>-a, --assign <var>USERS</var></dt><dd><p>A comma-separated list of GitHub handles to assign to this pull request.</p></dd>
 <dt>-M, --milestone <var>NAME</var></dt><dd><p>The milestone name to add to this pull request. Passing the milestone number
 is deprecated.</p></dd>
-<dt>-l, --labels <var>LABELS</var></dt><dd><p>Add a comma-separated list of labels to this pull request.</p></dd>
+<dt>-l, --labels <var>LABELS</var></dt><dd><p>Add a comma-separated list of labels to this pull request. Labels will be
+created if they don`t already exist.</p></dd>
 </dl>
 
+
+<h2 id="EXAMPLES">EXAMPLES</h2>
+
+<pre><code>$ hub pull-request
+[ opens a text editor for writing title and message ]
+[ creates a pull request for the current branch ]
+
+$ hub pull-request --base OWNER:master --head MYUSER:my-branch
+[ creates a pull request with explicit base and head branches ]
+
+$ hub pull-request --browse -m "My title"
+[ creates a pull request with the given title and opens it in a browser ]
+
+$ hub pull-request -F - --edit &lt; path/to/message-template.md
+[ further edit the title and message received on standard input ]
+</code></pre>
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
 
@@ -117,7 +135,7 @@ is deprecated.</p></dd>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>August 2018</li>
+    <li class='tc'>October 2018</li>
     <li class='tr'>hub-pull-request(1)</li>
   </ol>
 

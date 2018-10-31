@@ -3,7 +3,7 @@
 <head>
   <meta http-equiv='content-type' value='text/html;charset=utf8'>
   <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
-  <title>hub-merge(1) - Merge a pull request with a message like the GitHub Merge Button.</title>
+  <title>hub-merge(1) - Merge a pull request locally with a message like the GitHub Merge Button.</title>
   <style type='text/css' media='all'>
   /* style: man */
   body#manpage {margin:0}
@@ -67,12 +67,17 @@
 
   <h2 id="NAME">NAME</h2>
 <p class="man-name">
-  <code>hub-merge</code> - <span class="man-whatis">Merge a pull request with a message like the GitHub Merge Button.</span>
+  <code>hub-merge</code> - <span class="man-whatis">Merge a pull request locally with a message like the GitHub Merge Button.</span>
 </p>
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
 <p><code>hub merge</code> <var>PULLREQ-URL</var></p>
+
+<p>This creates a local merge commit in the current branch, but does not actually
+change the state of the pull request. However, the pull request will get
+auto-closed and marked as "merged" as soon as the newly created merge commit is
+pushed to the default branch of the remote repository.</p>
 
 <h2 id="EXAMPLES">EXAMPLES</h2>
 
@@ -88,7 +93,7 @@
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>August 2018</li>
+    <li class='tc'>October 2018</li>
     <li class='tr'>hub-merge(1)</li>
   </ol>
 
