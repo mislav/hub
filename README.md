@@ -73,8 +73,13 @@ in your executable path.
 With your [GOPATH](https://github.com/golang/go/wiki/GOPATH) already set up:
 
 ``` sh
-$ go get github.com/github/hub
-$ cd "$GOPATH"/src/github.com/github/hub
+$ mkdir -p "$GOPATH"/src/github.com/github
+$ cd "$GOPATH"/src/github.com/github
+$ git clone --config transfer.fsckobjects=false \
+            --config receive.fsckobjects=false \
+            --config fetch.fsckobjects=false \
+            https://github.com/github/hub hub
+$ cd hub
 $ make install prefix=/usr/local
 ```
 
