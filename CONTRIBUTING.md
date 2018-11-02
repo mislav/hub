@@ -28,7 +28,7 @@ feature is a good idea for hub if it improves some workflow for a GitHub user.
 
 ## How to install dependencies and run tests
 
-1. [Clone the project](./README#source) into your GOPATH
+1. [Clone the project](./README.md#source) into your GOPATH
 2. Verify that existing tests pass:
     `make test-all`
 3. Create a topic branch:
