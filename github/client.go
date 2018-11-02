@@ -161,6 +161,29 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 	return res.Body, nil
 }
 
+type PullRequestMergeResult struct {
+	SHA     string `json:"sha"`
+	Merged  bool   `json:"merged"`
+	Message string `json:"message"`
+}
+
+func (client *Client) Merge(project *Project, prNumber string, params map[string]string) (m *PullRequestMergeResult, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PutJSON(fmt.Sprintf("repos/%v/%v/pulls/%s/merge", project.Owner, project.Name, prNumber), params)
+	if err = checkStatus(200, "merge a pull request", res, err); err != nil {
+		return
+	}
+
+	m = &PullRequestMergeResult{}
+	err = res.Unmarshal(m)
+
+	return
+}
+
 type Gist struct {
 	Files map[string]GistFile `json:"files"`
 }
@@ -551,6 +574,12 @@ type Issue struct {
 	Milestone *Milestone   `json:"milestone"`
 	CreatedAt time.Time    `json:"created_at"`
 	UpdatedAt time.Time    `json:"updated_at"`
+
+	Merged         bool   `json:"merged,omitempty"`
+	Mergeable      bool   `json:"mergeable,omitempty"`
+	MergeableState string `json:"mergeable_state,omitempty"`
+	MergedBy       User   `json:"merged_by,omitempty"`
+	MergeCommitSHA string `json:"merge_commit_sha,omitempty"`
 
 	RequestedReviewers []User `json:"requested_reviewers"`
 	RequestedTeams     []Team `json:"requested_teams"`

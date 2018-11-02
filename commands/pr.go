@@ -17,6 +17,7 @@ var (
 		Usage: `
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
+pr close <PR-NUMBER> [-m <MESSAGE>] [-M <METHOD>] [-t <TITLE>]
 `,
 		Long: `Manage GitHub pull requests for the current project.
 
@@ -28,7 +29,19 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 	* _checkout_:
 		Check out the head of a pull request in a new branch.
 
+	* _close_:
+		Close a pull request.
+
 ## Options:
+
+	-t, --title <TITLE>
+		Title for the automatic commit message. <MESSAGE> (default: "").
+
+	-m, --message <MESSAGE>
+		Extra detail to append to automatic commit message. <MESSAGE> (default: "").
+
+	-M, --method <MESSAGE>
+		Merge method to use. Possible values are merge, squash or rebase. <METHOD> (default: "merge").
 
 	-s, --state <STATE>
 		Filter pull requests by <STATE> (default: "open").
@@ -123,6 +136,11 @@ hub-issue(1), hub-pull-request(1), hub(1)
 		Run: listPulls,
 	}
 
+	cmdClosePulls = &Command{
+		Key: "close",
+		Run: closePulls,
+	}
+
 	flagPullRequestState,
 	flagPullRequestFormat,
 	flagPullRequestSort string
@@ -130,6 +148,10 @@ hub-issue(1), hub-pull-request(1), hub(1)
 	flagPullRequestSortAscending bool
 
 	flagPullRequestLimit int
+
+	flagClosePullRequestMethod  string
+	flagClosePullRequestMessage string
+	flagClosePullRequestTitle   string
 )
 
 func init() {
@@ -141,8 +163,13 @@ func init() {
 	cmdListPulls.Flag.BoolVarP(&flagPullRequestSortAscending, "sort-ascending", "^", false, "SORT_KEY")
 	cmdListPulls.Flag.IntVarP(&flagPullRequestLimit, "limit", "L", -1, "LIMIT")
 
+	cmdClosePulls.Flag.StringVarP(&flagClosePullRequestMethod, "method", "M", "merge", "METHOD")
+	cmdClosePulls.Flag.StringVarP(&flagClosePullRequestMessage, "message", "m", "", "MESSAGE")
+	cmdClosePulls.Flag.StringVarP(&flagClosePullRequestTitle, "title", "t", "", "TITLE")
+
 	cmdPr.Use(cmdListPulls)
 	cmdPr.Use(cmdCheckoutPr)
+	cmdPr.Use(cmdClosePulls)
 	CmdRunner.Use(cmdPr)
 }
 
@@ -195,6 +222,43 @@ func listPulls(cmd *Command, args *Args) {
 	for _, pr := range pulls {
 		ui.Printf(formatPullRequest(pr, flagPullRequestFormat, colorize))
 	}
+}
+func closePulls(cmd *Command, args *Args) {
+	words := args.Words()
+	prNumberString := words[0]
+	_, err := strconv.Atoi(prNumberString)
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	if len(words) == 0 {
+		utils.Check(fmt.Errorf("Error: No pull request number given"))
+	}
+
+	args.NoForward()
+
+	params := map[string]string{
+		"commit_title":   flagClosePullRequestTitle,
+		"commit_message": flagClosePullRequestMessage,
+		"merge_method":   flagClosePullRequestMethod,
+	}
+
+	gh := github.NewClient(project.Host)
+
+	pr, err := gh.PullRequest(project, prNumberString)
+	utils.Check(err)
+
+	if pr.State == "close" {
+		utils.Check(fmt.Errorf("Error: Pull request already closed"))
+	}
+
+	merge, err := gh.Merge(project, prNumberString, params)
+	utils.Check(err)
+
+	ui.Printf("%s", merge.Message)
 }
 
 func checkoutPr(command *Command, args *Args) {

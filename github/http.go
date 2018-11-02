@@ -294,6 +294,10 @@ func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleRespo
 	return c.jsonRequest("PATCH", path, payload, nil)
 }
 
+func (c *simpleClient) PutJSON(path string, payload interface{}) (*simpleResponse, error) {
+	return c.jsonRequest("PUT", path, payload, nil)
+}
+
 func (c *simpleClient) PostFile(path, filename string) (*simpleResponse, error) {
 	stat, err := os.Stat(filename)
 	if err != nil {
