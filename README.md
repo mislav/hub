@@ -4,11 +4,12 @@ git + hub = github
 hub is a command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
 
-``` sh
-$ hub clone rtomayko/tilt
-
-# expands to:
-$ git clone git://github.com/rtomayko/tilt.git
+```sh
+hub clone rtomayko/tilt
+```
+exands to:
+```sh
+git clone git://github.com/rtomayko/tilt.git
 ```
 
 hub is best aliased as `git`, so you can type `$ git <command>` in the shell and
@@ -28,18 +29,16 @@ Dependencies:
 
 `hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS:
 
-``` sh
-$ brew install hub
-$ hub version
-git version 1.7.6
-hub version 2.2.3
+```sh
+brew install hub
+hub version
 ```
 
 #### Windows
 
 `hub` can be installed through [Scoop](http://scoop.sh/) on Windows:
 
-``` sh
+```sh
 > scoop install hub
 ```
 
@@ -47,11 +46,9 @@ hub version 2.2.3
 
 On Fedora you can install `hub` through DNF:
 
-``` sh
-$ sudo dnf install hub
-$ hub version
-git version 2.9.3
-hub version 2.2.9
+```sh
+sudo dnf install hub
+hub version
 ```
 
 #### Arch Linux
@@ -59,7 +56,7 @@ hub version 2.2.9
 On Arch Linux you can install `hub` from official repository:
 
 ```sh
-$ sudo pacman -S hub
+sudo pacman -S hub
 ```
 
 #### Standalone
@@ -73,15 +70,15 @@ in your executable path.
 With your [GOPATH](https://github.com/golang/go/wiki/GOPATH) already set up:
 
 ```sh
-$ mkdir -p "$GOPATH"/src/github.com/github
-$ git clone \
-   --config transfer.fsckobjects=false \
-   --config receive.fsckobjects=false \
-   --config fetch.fsckobjects=false \
-   https://github.com/github/hub \
-   "$GOPATH"/src/github.com/github
-$ cd "$GOPATH"/src/github.com/github/hub
-$ make install prefix=/usr/local
+mkdir -p "$GOPATH"/src/github.com/github
+git clone \
+  --config transfer.fsckobjects=false \
+  --config receive.fsckobjects=false \
+  --config fetch.fsckobjects=false \
+  https://github.com/github/hub \
+  "$GOPATH"/src/github.com/github
+cd "$GOPATH"/src/github.com/github/hub
+make install prefix=/usr/local
 ```
 
 Prerequisites for compilation are:
