@@ -28,8 +28,7 @@ feature is a good idea for hub if it improves some workflow for a GitHub user.
 
 ## How to install dependencies and run tests
 
-1. Clone hub:
-    `git clone https://github.com/github/hub.git && cd hub`
+1. [Clone the project](./README#source) into your GOPATH
 2. Verify that existing tests pass:
     `make test-all`
 3. Create a topic branch:
@@ -37,10 +36,10 @@ feature is a good idea for hub if it improves some workflow for a GitHub user.
 4. **Make your changes.**
    (It helps a lot if you write tests first.)
 5. Verify that the tests still pass.
-6. Fork hub on GitHub (adds a remote named "YOUR-USER"):
-    `make && bin/hub fork`
+6. Fork the project on GitHub:
+    `make && bin/hub fork --remote-name=origin`
 7. Push to your fork:
-    `git push -u <YOUR-USER> HEAD`
+    `git push -u origin HEAD`
 8. Open a pull request describing your changes:
     `bin/hub pull-request`
 
