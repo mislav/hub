@@ -71,6 +71,14 @@ func (r *SSHConfigReader) readFile(c SSHConfig, re *regexp.Regexp, f string) err
 }
 
 func expandTokens(text, host string) string {
-	expanded := strings.Replace(text, "%h", host, -1)
-	return strings.Replace(expanded, "%%", "%", -1)
+	re := regexp.MustCompile(`%[%h]`)
+	return re.ReplaceAllStringFunc(text, func(match string) string {
+		switch match {
+		case "%h":
+			return host
+		case "%%":
+			return "%"
+		}
+		return ""
+	})
 }
