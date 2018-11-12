@@ -1,11 +1,13 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
-	"github.com/github/hub/github"
 	"os"
 	"regexp"
 	"testing"
+
+	"github.com/bmizerany/assert"
+	"github.com/github/hub/fixtures"
+	"github.com/github/hub/github"
 )
 
 func TestParseRepoNameOwner(t *testing.T) {
@@ -19,6 +21,9 @@ func TestParseRepoNameOwner(t *testing.T) {
 }
 
 func TestTransformRemoteArgs(t *testing.T) {
+	repo := fixtures.SetupTestRepo()
+	defer repo.TearDown()
+
 	os.Setenv("HUB_PROTOCOL", "git")
 	github.CreateTestConfigs("jingweno", "123")
 
