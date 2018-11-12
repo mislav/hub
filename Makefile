@@ -58,8 +58,8 @@ man-pages: $(HELP_ALL:=.ronn) $(HELP_ALL) $(HELP_ALL:=.txt)
 %.txt: %.ronn
 	groff -Wall -mtty-char -mandoc -Tutf8 -rLL=$(TEXT_WIDTH)n $< | col -b >$@
 
-$(HELP_ALL): share/man/man-pages.stamp
-share/man/man-pages.stamp: bin/ronn $(HELP_ALL:=.ronn)
+$(HELP_ALL): share/man/.man-pages.stamp
+share/man/.man-pages.stamp: bin/ronn $(HELP_ALL:=.ronn)
 	bin/ronn --organization=GITHUB --manual="Hub Manual" share/man/man1/*.ronn
 	touch $@
 
