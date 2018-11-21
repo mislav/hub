@@ -16,7 +16,7 @@ import (
 
 const (
 	GitHubHost  string = "github.com"
-	OAuthAppURL string = "http://hub.github.com/"
+	OAuthAppURL string = "https://hub.github.com/"
 )
 
 var UserAgent = "Hub " + version.Version
