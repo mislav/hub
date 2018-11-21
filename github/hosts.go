@@ -40,7 +40,7 @@ func knownGitHubHosts() []string {
 	hosts := []string{}
 	defaultHost := DefaultGitHubHost()
 	hosts = append(hosts, defaultHost)
-	hosts = append(hosts, "ssh."+GitHubHost)
+	hosts = append(hosts, "ssh.github.com")
 
 	ghHosts, _ := git.ConfigAll("hub.host")
 	for _, ghHost := range ghHosts {

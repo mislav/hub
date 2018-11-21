@@ -96,6 +96,15 @@ func TestProject_NewProjectFromURL(t *testing.T) {
 	assert.Equal(t, "github.com", p.Host)
 	assert.Equal(t, "http", p.Protocol)
 
+	u, _ = url.Parse("ssh://ssh.github.com/octokit/go-octokit.git")
+	p, err = NewProjectFromURL(u)
+
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "go-octokit", p.Name)
+	assert.Equal(t, "octokit", p.Owner)
+	assert.Equal(t, "github.com", p.Host)
+	assert.Equal(t, "http", p.Protocol)
+
 	u, _ = url.Parse("git://github.com/octokit/go-octokit.git")
 	p, err = NewProjectFromURL(u)
 

@@ -154,7 +154,7 @@ func newProject(owner, name, host, protocol string) *Project {
 		host = DefaultGitHubHost()
 	}
 	if host == "ssh.github.com" {
-		host = "github.com"
+		host = GitHubHost
 	}
 
 	if protocol != "http" && protocol != "https" {
