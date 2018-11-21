@@ -57,12 +57,17 @@ github.com:
   oauth_token: OTOKEN
 - user: tpw
   oauth_token: POKEN
+  - user: test
+    oauth_token: TEST
+
     YAML
 
     assert_equal 'mislav', data['github.com'][0]['user']
     assert_equal 'OTOKEN', data['github.com'][0]['oauth_token']
     assert_equal 'tpw',    data['github.com'][1]['user']
     assert_equal 'POKEN',  data['github.com'][1]['oauth_token']
+    assert_equal 'test',   data['github.com'][2]['user']
+    assert_equal 'TEST',   data['github.com'][2]['oauth_token']
   end
 
   def test_yaml_load_quoted
@@ -71,9 +76,13 @@ github.com:
 github.com:
 - user: 'true'
   oauth_token: '1234'
+  - user: 'false'
+    oauth_token: '5678'
     YAML
 
     assert_equal 'true', data['github.com'][0]['user']
     assert_equal '1234', data['github.com'][0]['oauth_token']
+    assert_equal 'false', data['github.com'][1]['user']
+    assert_equal '5678', data['github.com'][1]['oauth_token']
   end
 end

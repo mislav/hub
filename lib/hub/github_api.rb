@@ -507,7 +507,8 @@ module Hub
             host = hash[$1] = []
           when /^([- ]) (.+?): (.+)/
             key, value = $2, $3
-            host << {} if $1 == '-'
+            host << {} if $1 == '-' or $2 =~ /^\s*-\s*/
+            key.gsub!(/^\s*-\s*|^\s*/, '')
             host.last[key] = value.gsub(/^'|'$/, '')
           else
             raise "unsupported YAML line: #{line}"
