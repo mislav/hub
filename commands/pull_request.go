@@ -29,8 +29,12 @@ pull-request -i <ISSUE>
 		Skip the check for unpushed commits.
 
 	-m, --message <MESSAGE>
-		Use the first line of <MESSAGE> as pull request title, and the rest as pull
-		request description.
+		The text up to the first blank line in <MESSAGE> is treated as the pull
+		request title, and the rest is used as pull request description in Markdown
+		format.
+
+		If multiple <MESSAGE> options are given, their values are concatenated as
+		separate paragraphs.
 
 	--no-edit
 		Use the message from the first commit on the branch as pull request title
@@ -104,9 +108,10 @@ var (
 	flagPullRequestBase,
 	flagPullRequestHead,
 	flagPullRequestIssue,
-	flagPullRequestMessage,
 	flagPullRequestMilestone,
 	flagPullRequestFile string
+
+	flagPullRequestMessage messageBlocks
 
 	flagPullRequestBrowse,
 	flagPullRequestCopy,
@@ -126,7 +131,7 @@ func init() {
 	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestCopy, "copy", "c", false, "COPY")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestMessage, "message", "m", "", "MESSAGE")
+	cmdPullRequest.Flag.VarP(&flagPullRequestMessage, "message", "m", "MESSAGE")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
 	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
@@ -251,8 +256,8 @@ func pullRequest(cmd *Command, args *Args) {
 Write a message for this pull request. The first block
 of text is the title and the rest is the description.`, fullBase, fullHead))
 
-	if cmd.FlagPassed("message") {
-		messageBuilder.Message = flagPullRequestMessage
+	if len(flagPullRequestMessage) > 0 {
+		messageBuilder.Message = flagPullRequestMessage.String()
 		messageBuilder.Edit = flagPullRequestEdit
 	} else if cmd.FlagPassed("file") {
 		messageBuilder.Message, err = msgFromFile(flagPullRequestFile)

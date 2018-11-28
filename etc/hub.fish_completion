@@ -34,7 +34,7 @@ complete -f -c hub -n '__fish_hub_needs_command' -a sync -d "update local branch
 complete -f -c hub -n ' __fish_hub_using_command alias' -a 'bash zsh sh ksh csh fish' -d "output shell script suitable for eval"
 # pull-request
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s f -d "Skip the check for unpushed commits"
-complete -f -c hub -n ' __fish_hub_using_command pull-request' -s -m -d "Use the first line of <MESSAGE> as pull request title, and the rest as pull request description"
+complete -f -c hub -n ' __fish_hub_using_command pull-request' -s -m -d "Set the pull request title and description separated by a blank line"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s F -d "Read the pull request title and description from <FILE>"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s o -d "Open the new pull request in a web browser"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -l browse -d "Open the new pull request in a web browser"

@@ -73,7 +73,11 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		character is taken as asset label.
 
 	-m, --message <MESSAGE>
-		Use the first line of <MESSAGE> as release title, and the rest as release description.
+		The text up to the first blank line in <MESSAGE> is treated as the release
+		title, and the rest is used as release description in Markdown format.
+
+		If multiple <MESSAGE> options are given, their values are concatenated as
+		separate paragraphs.
 
 	-F, --file <FILE>
 		Read the release title and description from <FILE>.
@@ -175,11 +179,12 @@ hub(1), git-tag(1)
 	flagReleaseCopy,
 	flagReleasePrerelease bool
 
-	flagReleaseMessage,
 	flagReleaseFile,
 	flagReleaseFormat,
 	flagShowReleaseFormat,
 	flagReleaseCommitish string
+
+	flagReleaseMessage messageBlocks
 
 	flagReleaseAssets stringSliceValue
 
@@ -201,7 +206,7 @@ func init() {
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseBrowse, "browse", "o", false, "BROWSE")
 	cmdCreateRelease.Flag.BoolVarP(&flagReleaseCopy, "copy", "c", false, "COPY")
 	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
-	cmdCreateRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
+	cmdCreateRelease.Flag.VarP(&flagReleaseMessage, "message", "m", "MESSAGE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
 	cmdCreateRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "t", "", "COMMITISH")
 
@@ -209,7 +214,7 @@ func init() {
 	cmdEditRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
 	cmdEditRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
 	cmdEditRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
-	cmdEditRelease.Flag.StringVarP(&flagReleaseMessage, "message", "m", "", "MESSAGE")
+	cmdEditRelease.Flag.VarP(&flagReleaseMessage, "message", "m", "MESSAGE")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
 	cmdEditRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "t", "", "COMMITISH")
 
@@ -421,8 +426,8 @@ func createRelease(cmd *Command, args *Args) {
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project))
 
-	if cmd.FlagPassed("message") {
-		messageBuilder.Message = flagReleaseMessage
+	if len(flagReleaseMessage) > 0 {
+		messageBuilder.Message = flagReleaseMessage.String()
 		messageBuilder.Edit = flagReleaseEdit
 	} else if cmd.FlagPassed("file") {
 		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
@@ -507,8 +512,8 @@ func editRelease(cmd *Command, args *Args) {
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project))
 
-	if cmd.FlagPassed("message") {
-		messageBuilder.Message = flagReleaseMessage
+	if len(flagReleaseMessage) > 0 {
+		messageBuilder.Message = flagReleaseMessage.String()
 		messageBuilder.Edit = flagReleaseEdit
 	} else if cmd.FlagPassed("file") {
 		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
