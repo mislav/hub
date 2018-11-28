@@ -39,6 +39,17 @@ func (l *listFlag) Set(value string) error {
 	return nil
 }
 
+type messageBlocks []string
+
+func (m *messageBlocks) String() string {
+	return strings.Join([]string(*m), "\n\n")
+}
+
+func (m *messageBlocks) Set(value string) error {
+	*m = append(*m, value)
+	return nil
+}
+
 func isCloneable(file string) bool {
 	f, err := os.Open(file)
 	if err != nil {

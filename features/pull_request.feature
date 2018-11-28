@@ -499,6 +499,19 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+  Scenario: Title and body from multiple command-line arguments
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'I am just a pull',
+               :body  => "A little pull\n\nAnd description"
+        status 201
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    When I successfully run `hub pull-request -m "I am just a pull" -m "A little pull" -m "And description"`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+
   Scenario: Error when implicit head is the same as base
     Given I am on the "master" branch with upstream "origin/master"
     When I run `hub pull-request`

@@ -109,6 +109,9 @@ With no arguments, show a list of open issues.
 		The text up to the first blank line in <MESSAGE> is treated as the issue
 		title, and the rest is used as issue description in Markdown format.
 
+		If multiple <MESSAGE> options are given, their values are concatenated as
+		separate paragraphs.
+
 	-F, --file <FILE>
 		Read the issue title and description from <FILE>.
 
@@ -176,7 +179,6 @@ With no arguments, show a list of open issues.
 	flagIssueState,
 	flagIssueFormat,
 	flagShowIssueFormat,
-	flagIssueMessage,
 	flagIssueMilestoneFilter,
 	flagIssueCreator,
 	flagIssueMentioned,
@@ -184,6 +186,8 @@ With no arguments, show a list of open issues.
 	flagIssueSince,
 	flagIssueSort,
 	flagIssueFile string
+
+	flagIssueMessage messageBlocks
 
 	flagIssueEdit,
 	flagIssueCopy,
@@ -204,7 +208,7 @@ With no arguments, show a list of open issues.
 func init() {
 	cmdShowIssue.Flag.StringVarP(&flagShowIssueFormat, "format", "f", "", "FORMAT")
 
-	cmdCreateIssue.Flag.StringVarP(&flagIssueMessage, "message", "m", "", "MESSAGE")
+	cmdCreateIssue.Flag.VarP(&flagIssueMessage, "message", "m", "MESSAGE")
 	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "F", "", "FILE")
 	cmdCreateIssue.Flag.Uint64VarP(&flagIssueMilestone, "milestone", "M", 0, "MILESTONE")
 	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
@@ -472,8 +476,8 @@ func createIssue(cmd *Command, args *Args) {
 Write a message for this issue. The first block of
 text is the title and the rest is the description.`, project))
 
-	if cmd.FlagPassed("message") {
-		messageBuilder.Message = flagIssueMessage
+	if len(flagIssueMessage) > 0 {
+		messageBuilder.Message = flagIssueMessage.String()
 		messageBuilder.Edit = flagIssueEdit
 	} else if cmd.FlagPassed("file") {
 		messageBuilder.Message, err = msgFromFile(flagIssueFile)
