@@ -15,9 +15,8 @@ import (
 )
 
 const (
-	GitHubHost    string = "github.com"
-	GitHubApiHost string = "api.github.com"
-	OAuthAppURL   string = "http://hub.github.com/"
+	GitHubHost  string = "github.com"
+	OAuthAppURL string = "https://hub.github.com/"
 )
 
 var UserAgent = "Hub " + version.Version
@@ -893,7 +892,7 @@ func (client *Client) apiClient() *simpleClient {
 	unixSocket := os.ExpandEnv(client.Host.UnixSocket)
 	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", unixSocket)
 	apiRoot := client.absolute(normalizeHost(client.Host.Host))
-	if client.Host != nil && client.Host.Host != GitHubHost {
+	if !strings.HasPrefix(apiRoot.Host, "api.github.") {
 		apiRoot.Path = "/api/v3/"
 	}
 
@@ -912,16 +911,15 @@ func (client *Client) absolute(host string) *url.URL {
 }
 
 func normalizeHost(host string) string {
-	host = strings.ToLower(host)
 	if host == "" {
-		host = GitHubHost
+		return GitHubHost
+	} else if strings.EqualFold(host, GitHubHost) {
+		return "api.github.com"
+	} else if strings.EqualFold(host, "github.localhost") {
+		return "api.github.localhost"
+	} else {
+		return strings.ToLower(host)
 	}
-
-	if host == GitHubHost {
-		host = GitHubApiHost
-	}
-
-	return host
 }
 
 func checkStatus(expectedStatus int, action string, response *simpleResponse, err error) error {

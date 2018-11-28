@@ -13,7 +13,7 @@ Feature: OAuth authentication
         assert_basic_auth 'mislav', 'kitty'
         assert :scopes => ['repo'],
                :note => "hub for #{machine_id}",
-               :note_url => 'http://hub.github.com/'
+               :note_url => 'https://hub.github.com/'
         status 201
         json :token => 'OTOKEN'
       }
@@ -378,7 +378,7 @@ Feature: OAuth authentication
         auth = Rack::Auth::Basic::Request.new(env)
         halt 401 unless auth.credentials == %w[mislav kitty]
         status 201
-        json :token => 'OTOKEN', :note_url => 'http://hub.github.com/'
+        json :token => 'OTOKEN', :note_url => 'https://hub.github.com/'
       }
       get('/api/v3/user', :host_name => 'git.my.org') {
         json :login => 'mislav'
