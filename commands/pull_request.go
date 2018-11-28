@@ -66,17 +66,17 @@ pull-request -i <ISSUE>
 		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
 
 	-r, --reviewer <USERS>
-		A comma-separated list of GitHub handles to request a review from.
+		A comma-separated list (without spaces) of GitHub handles to request a review from.
 
 	-a, --assign <USERS>
-		A comma-separated list of GitHub handles to assign to this pull request.
+		A comma-separated list (without spaces) of GitHub handles to assign to this pull request.
 
 	-M, --milestone <NAME>
 		The milestone name to add to this pull request. Passing the milestone number
 		is deprecated.
 
 	-l, --labels <LABELS>
-		Add a comma-separated list of labels to this pull request. Labels will be
+		Add a comma-separated list (without spaces) of labels to this pull request. Labels will be
 		created if they don't already exist.
 
 ## Examples:
