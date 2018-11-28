@@ -29,8 +29,9 @@ pull-request -i <ISSUE>
 		Skip the check for unpushed commits.
 
 	-m, --message <MESSAGE>
-		Use the first line of <MESSAGE> as pull request title, and the rest as pull
-		request description.
+		The text up to the first blank line in <MESSAGE> is treated as the pull
+		request title, and the rest is used as pull request description in Markdown
+		format.
 
 	--no-edit
 		Use the message from the first commit on the branch as pull request title

@@ -73,7 +73,8 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		character is taken as asset label.
 
 	-m, --message <MESSAGE>
-		Use the first line of <MESSAGE> as release title, and the rest as release description.
+		The text up to the first blank line in <MESSAGE> is treated as the release
+		title, and the rest is used as release description in Markdown format.
 
 	-F, --file <FILE>
 		Read the release title and description from <FILE>.

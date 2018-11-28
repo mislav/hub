@@ -106,7 +106,8 @@ With no arguments, show a list of open issues.
 		%uI: updated date, ISO 8601 format
 
 	-m, --message <MESSAGE>
-		Use the first line of <MESSAGE> as issue title, and the rest as issue description.
+		The text up to the first blank line in <MESSAGE> is treated as the issue
+		title, and the rest is used as issue description in Markdown format.
 
 	-F, --file <FILE>
 		Read the issue title and description from <FILE>.
