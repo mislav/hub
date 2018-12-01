@@ -41,11 +41,9 @@ var cmdCreate = &Command{
 ## Examples:
 		$ hub create
 		[ repo created on GitHub ]
-		> git remote add -f origin git@github.com:USER/REPO.git
 
 		$ hub create sinatra/recipes
 		[ repo created in GitHub organization ]
-		> git remote add -f origin git@github.com:sinatra/recipes.git
 
 ## See also:
 
