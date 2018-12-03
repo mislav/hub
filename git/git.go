@@ -215,10 +215,8 @@ func CommentChar(text string) (string, error) {
 }
 
 func Show(sha string) (string, error) {
-	cmd := cmd.New("git")
-	cmd.WithArg("-c").WithArg("log.showSignature=false")
-	cmd.WithArg("show").WithArg("-s").WithArg("--format=%s%n%+b").WithArg(sha)
-
+	cmd := gitCmd("-c", "log.showSignature=false",
+		"show", "-s", "--format=%s%n%+b", sha)
 	output, err := cmd.CombinedOutput()
 	output = strings.TrimSpace(output)
 
@@ -226,12 +224,10 @@ func Show(sha string) (string, error) {
 }
 
 func Log(sha1, sha2 string) (string, error) {
-	execCmd := cmd.New("git")
-	execCmd.WithArg("-c").WithArg("log.showSignature=false").WithArg("log").WithArg("--no-color")
-	execCmd.WithArg("--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b")
-	execCmd.WithArg("--cherry")
 	shaRange := fmt.Sprintf("%s...%s", sha1, sha2)
-	execCmd.WithArg(shaRange)
+	execCmd := gitCmd("-c", "log.showSignature=false",
+		"log", "--no-color", "--format=%h (%aN, %ar)%n%w(78,3,3)%s%n%+b",
+		"--cherry", shaRange)
 
 	outputs, err := execCmd.CombinedOutput()
 	if err != nil {
@@ -313,8 +309,7 @@ func Quiet(args ...string) bool {
 }
 
 func IsGitDir(dir string) bool {
-	cmd := cmd.New("git")
-	cmd.WithArgs("--git-dir="+dir, "rev-parse", "--git-dir")
+	cmd := gitCmd("--git-dir="+dir, "rev-parse", "--git-dir")
 	return cmd.Success()
 }
 
@@ -344,15 +339,8 @@ func gitOutput(input ...string) (outputs []string, err error) {
 
 func gitCmd(args ...string) *cmd.Cmd {
 	cmd := cmd.New("git")
-
-	for _, v := range GlobalFlags {
-		cmd.WithArg(v)
-	}
-
-	for _, a := range args {
-		cmd.WithArg(a)
-	}
-
+	cmd.WithArgs(GlobalFlags...)
+	cmd.WithArgs(args...)
 	return cmd
 }
 
