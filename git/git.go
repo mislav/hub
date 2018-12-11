@@ -357,7 +357,11 @@ func gitCmd(args ...string) *cmd.Cmd {
 }
 
 func IsBuiltInGitCommand(command string) bool {
-	helpCommandOutput, err := gitOutput("help", "-a")
+	helpCommandOutput, err := gitOutput("help", "--no-verbose", "-a")
+	if err != nil {
+		// support git versions that don't recognize --no-verbose
+		helpCommandOutput, err = gitOutput("help", "-a")
+	}
 	if err != nil {
 		return false
 	}
