@@ -148,7 +148,11 @@ format. The available placeholders for issues are:</p>
 <p>%ut: updated date, UNIX timestamp</p>
 
 <p>%uI: updated date, ISO 8601 format</p></dd>
-<dt>-m, --message <var>MESSAGE</var></dt><dd><p>Use the first line of <var>MESSAGE</var> as issue title, and the rest as issue description.</p></dd>
+<dt>-m, --message <var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the issue
+title, and the rest is used as issue description in Markdown format.</p>
+
+<p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
+separate paragraphs.</p></dd>
 <dt>-F, --file <var>FILE</var></dt><dd><p>Read the issue title and description from <var>FILE</var>.</p></dd>
 <dt>-e, --edit</dt><dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
 <dt>-o, --browse</dt><dd><p>Open the new issue in a web browser.</p></dd>
@@ -171,7 +175,7 @@ format. The available placeholders for issues are:</p>
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>October 2018</li>
+    <li class='tc'>December 2018</li>
     <li class='tr'>hub-issue(1)</li>
   </ol>
 

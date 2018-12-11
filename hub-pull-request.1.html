@@ -83,8 +83,12 @@
 
 <dl>
 <dt>-f, --force</dt><dd><p>Skip the check for unpushed commits.</p></dd>
-<dt>-m, --message <var>MESSAGE</var></dt><dd><p>Use the first line of <var>MESSAGE</var> as pull request title, and the rest as pull
-request description.</p></dd>
+<dt>-m, --message <var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the pull
+request title, and the rest is used as pull request description in Markdown
+format.</p>
+
+<p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
+separate paragraphs.</p></dd>
 <dt>--no-edit</dt><dd><p>Use the message from the first commit on the branch as pull request title
 and description without opening a text editor.</p></dd>
 <dt>-F, --file <var>FILE</var></dt><dd><p>Read the pull request title and description from <var>FILE</var>.</p></dd>
@@ -135,7 +139,7 @@ $ hub pull-request -F - --edit &lt; path/to/message-template.md
 
   <ol class='man-decor man-foot man foot'>
     <li class='tl'>GITHUB</li>
-    <li class='tc'>October 2018</li>
+    <li class='tc'>December 2018</li>
     <li class='tr'>hub-pull-request(1)</li>
   </ol>
 
