@@ -62,7 +62,15 @@ On Arch Linux you can install `hub` from official repository:
 $ sudo pacman -S hub
 ```
 
-#### Standalone
+#### Ubuntu Linux
+
+On Ubuntu you can install `hub` through [Snap](https://github.com/snapcore/snapcraft) :
+
+```sh
+$ snap install hub --classic
+```
+
+## Standalone
 
 `hub` can be easily installed as an executable. Download the latest
 [compiled binaries](https://github.com/github/hub/releases) and put it anywhere
