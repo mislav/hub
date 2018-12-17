@@ -332,15 +332,6 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 		assignees = append(assignees, assignee.Login)
 	}
 
-	var requestedReviewers []string
-	for _, requestedReviewer := range issue.RequestedReviewers {
-		requestedReviewers = append(requestedReviewers, requestedReviewer.Login)
-	}
-	for _, requestedTeam := range issue.RequestedTeams {
-		teamSlug := fmt.Sprintf("%s/%s", issue.Base.Repo.Owner.Login, requestedTeam.Slug)
-		requestedReviewers = append(requestedReviewers, teamSlug)
-	}
-
 	var milestoneNumber, milestoneTitle string
 	if issue.Milestone != nil {
 		milestoneNumber = fmt.Sprintf("%d", issue.Milestone.Number)
@@ -380,7 +371,6 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 		"b":  issue.Body,
 		"au": issue.User.Login,
 		"as": strings.Join(assignees, ", "),
-		"rs": strings.Join(requestedReviewers, ", "),
 		"Mn": milestoneNumber,
 		"Mt": milestoneTitle,
 		"NC": numComments,
@@ -393,6 +383,41 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 		"uI": updatedAtISO8601,
 		"ut": updatedAtUnix,
 		"ur": updatedAtRelative,
+	}
+}
+
+func formatPullRequestPlaceholders(pr github.PullRequest) map[string]string {
+	base := pr.Base.Ref
+	head := pr.Head.Label
+	if pr.IsSameRepo() {
+		head = pr.Head.Ref
+	}
+
+	var requestedReviewers []string
+	for _, requestedReviewer := range pr.RequestedReviewers {
+		requestedReviewers = append(requestedReviewers, requestedReviewer.Login)
+	}
+	for _, requestedTeam := range pr.RequestedTeams {
+		teamSlug := fmt.Sprintf("%s/%s", pr.Base.Repo.Owner.Login, requestedTeam.Slug)
+		requestedReviewers = append(requestedReviewers, teamSlug)
+	}
+
+	var mergedDate, mergedAtISO8601, mergedAtUnix, mergedAtRelative string
+	if !pr.MergedAt.IsZero() {
+		mergedDate = pr.MergedAt.Format("02 Jan 2006")
+		mergedAtISO8601 = pr.MergedAt.Format(time.RFC3339)
+		mergedAtUnix = fmt.Sprintf("%d", pr.MergedAt.Unix())
+		mergedAtRelative = utils.TimeAgo(pr.MergedAt)
+	}
+
+	return map[string]string{
+		"B":  base,
+		"H":  head,
+		"rs": strings.Join(requestedReviewers, ", "),
+		"mD": mergedDate,
+		"mI": mergedAtISO8601,
+		"mt": mergedAtUnix,
+		"mr": mergedAtRelative,
 	}
 }
 

@@ -550,6 +550,7 @@ type Issue struct {
 	Milestone *Milestone   `json:"milestone"`
 	CreatedAt time.Time    `json:"created_at"`
 	UpdatedAt time.Time    `json:"updated_at"`
+	MergedAt  time.Time    `json:"merged_at"`
 
 	RequestedReviewers []User `json:"requested_reviewers"`
 	RequestedTeams     []Team `json:"requested_teams"`

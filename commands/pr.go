@@ -98,6 +98,14 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%uI: updated date, ISO 8601 format
 
+		%mD: merged date-only (no time of day)
+
+		%mr: merged date, relative
+
+		%mt: merged date, UNIX timestamp
+
+		%mI: merged date, ISO 8601 format
+
 	-o, --sort <SORT_KEY>
 		Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".
 
@@ -229,15 +237,9 @@ func checkoutPr(command *Command, args *Args) {
 }
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {
-	base := pr.Base.Ref
-	head := pr.Head.Label
-	if pr.IsSameRepo() {
-		head = pr.Head.Ref
-	}
-
 	placeholders := formatIssuePlaceholders(github.Issue(pr), colorize)
-	placeholders["B"] = base
-	placeholders["H"] = head
-
+	for key, value := range formatPullRequestPlaceholders(pr) {
+		placeholders[key] = value
+	}
 	return ui.Expand(format, placeholders, colorize)
 }
