@@ -149,3 +149,44 @@ Feature: hub pr list
     """
     When I successfully run `hub pr list -h mislav:patch-1`
     Then the output should contain exactly ""
+
+  Scenario: Filter by merged state
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/pulls') {
+      assert :state => "closed"
+
+      json [
+        { :number => 999,
+          :title => "First",
+          :state => "closed",
+          :merged_at => "2018-12-11T10:50:33Z",
+          :base => { :ref => "master", :label => "github:master" },
+          :head => { :ref => "patch-1", :label => "octocat:patch-1" },
+          :user => { :login => "octocat" },
+        },
+        { :number => 102,
+          :title => "Second",
+          :state => "closed",
+          :merged_at => nil,
+          :base => { :ref => "master", :label => "github:master" },
+          :head => { :ref => "patch-2", :label => "octocat:patch-2" },
+          :user => { :login => "octocat" },
+        },
+        { :number => 13,
+          :title => "Third",
+          :state => "closed",
+          :merged_at => "2018-12-11T10:50:33Z",
+          :base => { :ref => "master", :label => "github:master" },
+          :head => { :ref => "patch-3", :label => "octocat:patch-3" },
+          :user => { :login => "octocat" },
+        },
+      ]
+    }
+    """
+    When I successfully run `hub pr list --state=merged`
+    Then the output should contain exactly:
+      """
+          #999  First
+           #13  Third\n
+      """

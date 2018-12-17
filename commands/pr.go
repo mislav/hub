@@ -31,7 +31,8 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 ## Options:
 
 	-s, --state <STATE>
-		Filter pull requests by <STATE> (default: "open").
+		Filter pull requests by <STATE>. Supported values are: "open" (default),
+		"closed", "merged", or "all".
 
 	-h, --head [<OWNER>:]<BRANCH>
 		Show pull requests started from the specified head <BRANCH>. The default
@@ -52,7 +53,7 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%U: the URL of this pull request
 
-		%S: state (i.e. "open", "closed")
+		%S: state ("open" or "closed")
 
 		%sC: set color to red or green, depending on pull request state.
 
@@ -196,7 +197,15 @@ func listPulls(cmd *Command, args *Args) {
 		filters["direction"] = "desc"
 	}
 
-	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, nil)
+	onlyMerged := false
+	if filters["state"] == "merged" {
+		filters["state"] = "closed"
+		onlyMerged = true
+	}
+
+	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+		return !(onlyMerged && pr.MergedAt.IsZero())
+	})
 	utils.Check(err)
 
 	colorize := ui.IsTerminal(os.Stdout)
