@@ -67,7 +67,13 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%B: base branch
 
+		%sB: base commit SHA
+
 		%H: head branch
+
+		%sH: head commit SHA
+
+		%sm: merge commit SHA
 
 		%au: login name of author
 

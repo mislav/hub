@@ -542,7 +542,8 @@ type Issue struct {
 	Head        *PullRequestSpec `json:"head"`
 	Base        *PullRequestSpec `json:"base"`
 
-	MaintainerCanModify bool `json:"maintainer_can_modify"`
+	MergeCommitSha      string `json:"merge_commit_sha"`
+	MaintainerCanModify bool   `json:"maintainer_can_modify"`
 
 	Comments  int          `json:"comments"`
 	Labels    []IssueLabel `json:"labels"`

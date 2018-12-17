@@ -413,6 +413,9 @@ func formatPullRequestPlaceholders(pr github.PullRequest) map[string]string {
 	return map[string]string{
 		"B":  base,
 		"H":  head,
+		"sB": pr.Base.Sha,
+		"sH": pr.Head.Sha,
+		"sm": pr.MergeCommitSha,
 		"rs": strings.Join(requestedReviewers, ", "),
 		"mD": mergedDate,
 		"mI": mergedAtISO8601,
