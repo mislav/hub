@@ -43,8 +43,8 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 	-f, --format=<FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:
-		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
-		git-log manual for some additional details on how placeholders are used in
+		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
+		git-log(1) for some additional details on how placeholders are used in
 		format. The available placeholders are:
 
 		%I: pull request number
