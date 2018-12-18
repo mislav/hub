@@ -34,12 +34,12 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 		Filter pull requests by <STATE>. Supported values are: "open" (default),
 		"closed", "merged", or "all".
 
-	-h, --head=[<OWNER>:]<BRANCH>
-		Show pull requests started from the specified head <BRANCH>. The default
-		value for <OWNER> is taken from the current repository.
+	-h, --head=<BRANCH>
+		Show pull requests started from the specified head <BRANCH>. The
+		"OWNER:BRANCH" format must be used for pull requests from forks.
 
 	-b, --base=<BRANCH>
-		Show pull requests based on the specified <BRANCH>.
+		Show pull requests based off the specified <BRANCH>.
 
 	-f, --format=<FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:
