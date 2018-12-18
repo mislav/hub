@@ -16,7 +16,7 @@ var cmdCompare = &Command{
 	Long: `Open a GitHub compare page in a web browser.
 
 ## Options:
-	-u
+	-u, --url
 		Print the URL instead of opening it.
 
 	-c, --copy
@@ -56,7 +56,7 @@ var (
 
 func init() {
 	cmdCompare.Flag.BoolVarP(&flagCompareCopy, "copy", "c", false, "COPY")
-	cmdCompare.Flag.BoolVarP(&flagCompareURLOnly, "url-only", "u", false, "URL only")
+	cmdCompare.Flag.BoolVarP(&flagCompareURLOnly, "url", "u", false, "URL only")
 	cmdCompare.Flag.StringVarP(&flagCompareBase, "base", "b", "", "BASE")
 
 	CmdRunner.Use(cmdCompare)

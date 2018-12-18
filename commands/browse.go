@@ -15,10 +15,10 @@ var cmdBrowse = &Command{
 	Long: `Open a GitHub repository in a web browser.
 
 ## Options:
-	-u
+	-u, --url
 		Print the URL instead of opening it.
 
-	-c
+	-c, --copy
 		Put the URL in clipboard instead of opening it.
 	
 	[<USER>/]<REPOSITORY>
@@ -52,8 +52,8 @@ var (
 )
 
 func init() {
-	cmdBrowse.Flag.BoolVarP(&flagBrowseURLPrint, "url-only", "u", false, "URL")
-	cmdBrowse.Flag.BoolVarP(&flagBrowseURLCopy, "copy-only", "c", false, "COPY")
+	cmdBrowse.Flag.BoolVarP(&flagBrowseURLPrint, "url", "u", false, "URL")
+	cmdBrowse.Flag.BoolVarP(&flagBrowseURLCopy, "copy", "c", false, "COPY")
 
 	CmdRunner.Use(cmdBrowse)
 }
