@@ -22,7 +22,7 @@ var cmdCompare = &Command{
 	-c, --copy
 		Put the URL to clipboard instead of opening it.
 
-	-b <BASE>
+	-b, --base=<BASE>
 		Base branch to compare.
 
 	[<START>...]<END>
