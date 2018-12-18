@@ -17,13 +17,13 @@ var cmdCreate = &Command{
 	Long: `Create a new repository on GitHub and add a git remote for it.
 
 ## Options:
-	-p
+	-p, --private
 		Create a private repository.
 
-	-d <DESCRIPTION>
+	-d, --description=<DESCRIPTION>
 		Use this text as the description of the GitHub repository.
 
-	-h <HOMEPAGE>
+	-h, --homepage=<HOMEPAGE>
 		Use this text as the URL of the GitHub repository.
 
 	-o, --browse

@@ -28,7 +28,7 @@ pull-request -i <ISSUE>
 	-f, --force
 		Skip the check for unpushed commits.
 
-	-m, --message <MESSAGE>
+	-m, --message=<MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the pull
 		request title, and the rest is used as pull request description in Markdown
 		format.
@@ -40,14 +40,15 @@ pull-request -i <ISSUE>
 		Use the message from the first commit on the branch as pull request title
 		and description without opening a text editor.
 
-	-F, --file <FILE>
+	-F, --file=<FILE>
 		Read the pull request title and description from <FILE>.
 
 	-e, --edit
 		Further edit the contents of <FILE> in a text editor before submitting.
 
-	-i, --issue <ISSUE>, <ISSUE-URL>
-		(Deprecated) Convert <ISSUE> to a pull request.
+	-i, --issue=<ISSUE>
+		(Deprecated) Convert an issue to a pull request. <ISSUE> may be an issue
+		number or a URL.
 
 	-o, --browse
 		Open the new pull request in a web browser.
@@ -58,24 +59,24 @@ pull-request -i <ISSUE>
 	-p, --push
 		Push the current branch to <HEAD> before creating the pull request.
 
-	-b, --base <BASE>
+	-b, --base=<BASE>
 		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
 		(usually "master").
 
-	-h, --head <HEAD>
+	-h, --head=<HEAD>
 		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
 
-	-r, --reviewer <USERS>
+	-r, --reviewer=<USERS>
 		A comma-separated list of GitHub handles to request a review from.
 
-	-a, --assign <USERS>
+	-a, --assign=<USERS>
 		A comma-separated list of GitHub handles to assign to this pull request.
 
-	-M, --milestone <NAME>
+	-M, --milestone=<NAME>
 		The milestone name to add to this pull request. Passing the milestone number
 		is deprecated.
 
-	-l, --labels <LABELS>
+	-l, --labels=<LABELS>
 		Add a comma-separated list of labels to this pull request. Labels will be
 		created if they don't already exist.
 

@@ -38,25 +38,25 @@ With no arguments, show a list of open issues.
 		List the labels available in this repository.
 
 ## Options:
-	-a, --assignee <ASSIGNEE>
+	-a, --assignee=<ASSIGNEE>
 		Display only issues assigned to <ASSIGNEE>.
 
 		When opening an issue, this can be a comma-separated list of people to
 		assign to the new issue.
 
-	-c, --creator <CREATOR>
+	-c, --creator=<CREATOR>
 		Display only issues created by <CREATOR>.
 
-	-@, --mentioned <USER>
+	-@, --mentioned=<USER>
 		Display only issues mentioning <USER>.
 
-	-s, --state <STATE>
+	-s, --state=<STATE>
 		Display issues with state <STATE> (default: "open").
 
-	-f, --format <FORMAT>
+	-f, --format=<FORMAT>
 		Pretty print the contents of the issues using format <FORMAT> (default:
-		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
-		git-log manual for some additional details on how placeholders are used in
+		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
+		git-log(1) for some additional details on how placeholders are used in
 		format. The available placeholders for issues are:
 
 		%I: issue number
@@ -105,14 +105,14 @@ With no arguments, show a list of open issues.
 
 		%uI: updated date, ISO 8601 format
 
-	-m, --message <MESSAGE>
+	-m, --message=<MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the issue
 		title, and the rest is used as issue description in Markdown format.
 
 		If multiple <MESSAGE> options are given, their values are concatenated as
 		separate paragraphs.
 
-	-F, --file <FILE>
+	-F, --file=<FILE>
 		Read the issue title and description from <FILE>.
 
 	-e, --edit
@@ -124,26 +124,26 @@ With no arguments, show a list of open issues.
 	-c, --copy
 		Put the URL of the new issue to clipboard instead of printing it.
 
-	-M, --milestone <ID>
+	-M, --milestone=<ID>
 		Display only issues for a GitHub milestone with id <ID>.
 
 		When opening an issue, add this issue to a GitHub milestone with id <ID>.
 
-	-l, --labels <LABELS>
+	-l, --labels=<LABELS>
 		Display only issues with certain labels.
 
 		When opening an issue, add a comma-separated list of labels to this issue.
 
-	-d, --since <DATE>
+	-d, --since=<DATE>
 		Display only issues updated on or after <DATE> in ISO 8601 format.
 
-	-o, --sort <SORT_KEY>
+	-o, --sort=<SORT_KEY>
 		Sort displayed issues by "created" (default), "updated" or "comments".
 
 	-^ --sort-ascending
 		Sort by ascending dates instead of descending.
 
-	-L, --limit <LIMIT>
+	-L, --limit=<LIMIT>
 		Display only the first <LIMIT> issues.
 
 	--include-pulls

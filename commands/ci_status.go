@@ -16,7 +16,7 @@ var cmdCiStatus = &Command{
 	Long: `Display status of GitHub checks for a commit.
 
 ## Options:
-	-v
+	-v, --verbose
 		Print detailed report of all status checks and their URLs.
 
 	<COMMIT>
