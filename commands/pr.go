@@ -31,7 +31,8 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 ## Options:
 
 	-s, --state <STATE>
-		Filter pull requests by <STATE> (default: "open").
+		Filter pull requests by <STATE>. Supported values are: "open" (default),
+		"closed", "merged", or "all".
 
 	-h, --head [<OWNER>:]<BRANCH>
 		Show pull requests started from the specified head <BRANCH>. The default
@@ -52,7 +53,7 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%U: the URL of this pull request
 
-		%S: state (i.e. "open", "closed")
+		%S: state ("open" or "closed")
 
 		%sC: set color to red or green, depending on pull request state.
 
@@ -66,7 +67,13 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%B: base branch
 
+		%sB: base commit SHA
+
 		%H: head branch
+
+		%sH: head commit SHA
+
+		%sm: merge commit SHA
 
 		%au: login name of author
 
@@ -97,6 +104,14 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 		%ut: updated date, UNIX timestamp
 
 		%uI: updated date, ISO 8601 format
+
+		%mD: merged date-only (no time of day)
+
+		%mr: merged date, relative
+
+		%mt: merged date, UNIX timestamp
+
+		%mI: merged date, ISO 8601 format
 
 	-o, --sort <SORT_KEY>
 		Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".
@@ -188,7 +203,15 @@ func listPulls(cmd *Command, args *Args) {
 		filters["direction"] = "desc"
 	}
 
-	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, nil)
+	onlyMerged := false
+	if filters["state"] == "merged" {
+		filters["state"] = "closed"
+		onlyMerged = true
+	}
+
+	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+		return !(onlyMerged && pr.MergedAt.IsZero())
+	})
 	utils.Check(err)
 
 	colorize := ui.IsTerminal(os.Stdout)
@@ -229,15 +252,9 @@ func checkoutPr(command *Command, args *Args) {
 }
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {
-	base := pr.Base.Ref
-	head := pr.Head.Label
-	if pr.IsSameRepo() {
-		head = pr.Head.Ref
-	}
-
 	placeholders := formatIssuePlaceholders(github.Issue(pr), colorize)
-	placeholders["B"] = base
-	placeholders["H"] = head
-
+	for key, value := range formatPullRequestPlaceholders(pr) {
+		placeholders[key] = value
+	}
 	return ui.Expand(format, placeholders, colorize)
 }
