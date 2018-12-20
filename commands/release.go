@@ -136,6 +136,10 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 		%pI: published date, ISO 8601 format
 
+		%n: newline
+
+		%%: a literal %
+
 	<TAG>
 		The git tag name for this release.
 

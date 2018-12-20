@@ -105,6 +105,10 @@ With no arguments, show a list of open issues.
 
 		%uI: updated date, ISO 8601 format
 
+		%n: newline
+
+		%%: a literal %
+
 	-m, --message=<MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the issue
 		title, and the rest is used as issue description in Markdown format.
