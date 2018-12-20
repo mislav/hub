@@ -29,7 +29,7 @@ var cmdFork = &Command{
 		> git remote add -f USER git@github.com:USER/REPO.git
 
 		$ hub fork --org=ORGANIZATION
-		[ repo forked on Github into the ORGANIZATION organization]
+		[ repo forked on GitHub into the ORGANIZATION organization]
 		> git remote add -f ORGANIZATION git@github.com:ORGANIZATION/REPO.git
 
 ## See also:
