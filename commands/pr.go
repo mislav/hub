@@ -220,7 +220,7 @@ func listPulls(cmd *Command, args *Args) {
 
 	colorize := ui.IsTerminal(os.Stdout)
 	for _, pr := range pulls {
-		ui.Printf(formatPullRequest(pr, flagPullRequestFormat, colorize))
+		ui.Print(formatPullRequest(pr, flagPullRequestFormat, colorize))
 	}
 }
 

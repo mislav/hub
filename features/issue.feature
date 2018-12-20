@@ -614,6 +614,26 @@ Feature: hub issue
       I want this feature\n
       """
 
+  Scenario: Format with literal % characters
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/102') {
+        json \
+          :number => 102,
+          :state => "open",
+          :title => "Feature request % hub",
+          :user => { :login => "alexfornuto" }
+      }
+      get('/repos/github/hub/issues/102/comments') {
+        json []
+      }
+      """
+    When I successfully run `hub issue show 102 --format='%t%%t%%n%n'`
+    Then the output should contain exactly:
+      """
+      Feature request % hub%t%n\n
+      """
+
   Scenario: Did not supply an issue number
     When I run `hub issue show`
     Then the exit status should be 1

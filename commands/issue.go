@@ -298,7 +298,7 @@ func listIssues(cmd *Command, args *Args) {
 
 		colorize := ui.IsTerminal(os.Stdout)
 		for _, issue := range issues {
-			ui.Printf(formatIssue(issue, flagIssueFormat, colorize))
+			ui.Print(formatIssue(issue, flagIssueFormat, colorize))
 		}
 	}
 
@@ -455,7 +455,7 @@ func showIssue(cmd *Command, args *Args) {
 
 	colorize := ui.IsTerminal(os.Stdout)
 	if flagShowIssueFormat != "" {
-		ui.Printf(formatIssue(*issue, flagShowIssueFormat, colorize))
+		ui.Print(formatIssue(*issue, flagShowIssueFormat, colorize))
 		return
 	}
 
@@ -585,7 +585,7 @@ func listLabels(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	for _, label := range labels {
-		ui.Printf(formatLabel(label, flagLabelsColorize))
+		ui.Print(formatLabel(label, flagLabelsColorize))
 	}
 }
 

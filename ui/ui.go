@@ -10,6 +10,7 @@ import (
 )
 
 type UI interface {
+	Print(a ...interface{}) (n int, err error)
 	Printf(format string, a ...interface{}) (n int, err error)
 	Println(a ...interface{}) (n int, err error)
 	Errorf(format string, a ...interface{}) (n int, err error)
@@ -21,6 +22,10 @@ var (
 	Stderr     = colorable.NewColorableStderr()
 	Default UI = Console{Stdout: Stdout, Stderr: Stderr}
 )
+
+func Print(a ...interface{}) (n int, err error) {
+	return Default.Print(a...)
+}
 
 func Printf(format string, a ...interface{}) (n int, err error) {
 	return Default.Printf(format, a...)
@@ -45,6 +50,10 @@ func IsTerminal(f *os.File) bool {
 type Console struct {
 	Stdout io.Writer
 	Stderr io.Writer
+}
+
+func (c Console) Print(a ...interface{}) (n int, err error) {
+	return fmt.Fprint(c.Stdout, a...)
 }
 
 func (c Console) Printf(format string, a ...interface{}) (n int, err error) {
