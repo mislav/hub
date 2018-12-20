@@ -85,6 +85,8 @@ With no arguments, show a list of open issues.
 
 		%Mt: milestone title
 
+		%n: newline (\n)
+
 		%NC: number of comments
 
 		%Nc: number of comments wrapped in parentheses, or blank string if zero.
