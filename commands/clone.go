@@ -5,7 +5,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/hub/cmd"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -72,17 +74,96 @@ func transformCloneArgs(args *Args) {
 		p.RegisterValue("--shallow-since")
 		p.RegisterValue("--template")
 		p.RegisterValue("--upload-pack", "-u")
+		p.RegisterBool("--quiet", "-q")
 	}
 	p.Parse(args.Params)
 
+	upstreamName := "upstream"
+	originName := p.Value("--origin")
+	quiet := p.Bool("--quiet")
+	targetDir := ""
+
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
-	for _, i := range p.PositionalIndices {
-		a := args.Params[i]
-		if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
-			url := getCloneUrl(a, isSSH, args.Command != "submodule")
-			args.ReplaceParam(i, url)
+	for n, i := range p.PositionalIndices {
+		switch n {
+		case 0:
+			repo := args.Params[i]
+			if nameWithOwnerRegexp.MatchString(repo) && !isCloneable(repo) {
+				name := repo
+				owner := ""
+				if strings.Contains(name, "/") {
+					split := strings.SplitN(name, "/", 2)
+					owner = split[0]
+					name = split[1]
+				}
+
+				config := github.CurrentConfig()
+				host, err := config.DefaultHost()
+				if err != nil {
+					utils.Check(github.FormatError("cloning repository", err))
+				}
+				if owner == "" {
+					owner = host.User
+				}
+
+				expectWiki := strings.HasSuffix(name, ".wiki")
+				if expectWiki {
+					name = strings.TrimSuffix(name, ".wiki")
+				}
+
+				project := github.NewProject(owner, name, host.Host)
+				gh := github.NewClient(project.Host)
+				repo, err := gh.Repository(project)
+				if err != nil {
+					if strings.Contains(err.Error(), "HTTP 404") {
+						err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
+					}
+					utils.Check(err)
+				}
+
+				owner = repo.Owner.Login
+				name = repo.Name
+				if expectWiki {
+					if !repo.HasWiki {
+						utils.Check(fmt.Errorf("Error: %s/%s doesn't have a wiki", owner, name))
+					} else {
+						name = name + ".wiki"
+					}
+				}
+
+				if !isSSH &&
+					args.Command != "submodule" &&
+					!github.IsHttpsProtocol() {
+					isSSH = repo.Private || repo.Permissions.Push
+				}
+
+				targetDir = name
+				url := project.GitURL(name, owner, isSSH)
+				args.ReplaceParam(i, url)
+
+				if repo.Parent != nil && args.Command == "clone" && originName != upstreamName {
+					args.AfterFn(func() error {
+						upstreamUrl := project.GitURL(repo.Parent.Name, repo.Parent.Owner.Login, repo.Parent.Private)
+						addRemote := cmd.New("git")
+						addRemote.WithArgs("-C", targetDir)
+						addRemote.WithArgs("remote", "add", "-f", upstreamName, upstreamUrl)
+						if !quiet {
+							ui.Errorf("Adding remote '%s' for the '%s/%s' repo\n",
+								upstreamName, repo.Parent.Owner.Login, repo.Parent.Name)
+						}
+						output, err := addRemote.CombinedOutput()
+						if err != nil {
+							ui.Errorln(output)
+						}
+						return err
+					})
+				} else {
+					break
+				}
+			}
+		case 1:
+			targetDir = args.Params[i]
 		}
-		break
 	}
 }
 
@@ -93,64 +174,4 @@ func parseClonePrivateFlag(args *Args) bool {
 	}
 
 	return false
-}
-
-func getCloneUrl(nameWithOwner string, isSSH, allowSSH bool) string {
-	name := nameWithOwner
-	owner := ""
-	if strings.Contains(name, "/") {
-		split := strings.SplitN(name, "/", 2)
-		owner = split[0]
-		name = split[1]
-	}
-
-	var host *github.Host
-	if owner == "" {
-		config := github.CurrentConfig()
-		h, err := config.DefaultHost()
-		if err != nil {
-			utils.Check(github.FormatError("cloning repository", err))
-		}
-
-		host = h
-		owner = host.User
-	}
-
-	var hostStr string
-	if host != nil {
-		hostStr = host.Host
-	}
-
-	expectWiki := strings.HasSuffix(name, ".wiki")
-	if expectWiki {
-		name = strings.TrimSuffix(name, ".wiki")
-	}
-
-	project := github.NewProject(owner, name, hostStr)
-	gh := github.NewClient(project.Host)
-	repo, err := gh.Repository(project)
-	if err != nil {
-		if strings.Contains(err.Error(), "HTTP 404") {
-			err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
-		}
-		utils.Check(err)
-	}
-
-	owner = repo.Owner.Login
-	name = repo.Name
-	if expectWiki {
-		if !repo.HasWiki {
-			utils.Check(fmt.Errorf("Error: %s/%s doesn't have a wiki", owner, name))
-		} else {
-			name = name + ".wiki"
-		}
-	}
-
-	if !isSSH &&
-		allowSSH &&
-		!github.IsHttpsProtocol() {
-		isSSH = repo.Private || repo.Permissions.Push
-	}
-
-	return project.GitURL(name, owner, isSSH)
 }
