@@ -136,6 +136,10 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 		%pI: published date, ISO 8601 format
 
+		%n: newline
+
+		%%: a literal %
+
 	<TAG>
 		The git tag name for this release.
 
@@ -246,7 +250,7 @@ func listReleases(cmd *Command, args *Args) {
 
 		colorize := ui.IsTerminal(os.Stdout)
 		for _, release := range releases {
-			ui.Printf(formatRelease(release, flagReleaseFormat, colorize))
+			ui.Print(formatRelease(release, flagReleaseFormat, colorize))
 		}
 	}
 
@@ -334,7 +338,7 @@ func showRelease(cmd *Command, args *Args) {
 
 		colorize := ui.IsTerminal(os.Stdout)
 		if flagShowReleaseFormat != "" {
-			ui.Printf(formatRelease(*release, flagShowReleaseFormat, colorize))
+			ui.Print(formatRelease(*release, flagShowReleaseFormat, colorize))
 			return
 		}
 

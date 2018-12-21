@@ -105,6 +105,10 @@ With no arguments, show a list of open issues.
 
 		%uI: updated date, ISO 8601 format
 
+		%n: newline
+
+		%%: a literal %
+
 	-m, --message=<MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the issue
 		title, and the rest is used as issue description in Markdown format.
@@ -294,7 +298,7 @@ func listIssues(cmd *Command, args *Args) {
 
 		colorize := ui.IsTerminal(os.Stdout)
 		for _, issue := range issues {
-			ui.Printf(formatIssue(issue, flagIssueFormat, colorize))
+			ui.Print(formatIssue(issue, flagIssueFormat, colorize))
 		}
 	}
 
@@ -451,7 +455,7 @@ func showIssue(cmd *Command, args *Args) {
 
 	colorize := ui.IsTerminal(os.Stdout)
 	if flagShowIssueFormat != "" {
-		ui.Printf(formatIssue(*issue, flagShowIssueFormat, colorize))
+		ui.Print(formatIssue(*issue, flagShowIssueFormat, colorize))
 		return
 	}
 
@@ -581,7 +585,7 @@ func listLabels(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	for _, label := range labels {
-		ui.Printf(formatLabel(label, flagLabelsColorize))
+		ui.Print(formatLabel(label, flagLabelsColorize))
 	}
 }
 

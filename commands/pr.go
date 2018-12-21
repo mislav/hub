@@ -113,6 +113,10 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%mI: merged date, ISO 8601 format
 
+		%n: newline
+
+		%%: a literal %
+
 	-o, --sort=<SORT_KEY>
 		Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".
 
@@ -216,7 +220,7 @@ func listPulls(cmd *Command, args *Args) {
 
 	colorize := ui.IsTerminal(os.Stdout)
 	for _, pr := range pulls {
-		ui.Printf(formatPullRequest(pr, flagPullRequestFormat, colorize))
+		ui.Print(formatPullRequest(pr, flagPullRequestFormat, colorize))
 	}
 }
 
