@@ -29,6 +29,10 @@ Given(/^the "([^"]*)" remote has(?: (push))? url "([^"]*)"$/) do |remote_name, p
   end
 end
 
+Given(/^there are no "(.*?)" remote$/) do |name|
+  run_silent %(git remote remove #{name})
+end
+
 Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, host, token|
   edit_hub_config do |cfg|
     entry = {'user' => name}
@@ -107,11 +111,16 @@ Then(/^the latest commit message should be "([^"]+)"$/) do |subject|
   step %(the output should contain exactly "#{subject}\\n")
 end
 
-Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
+Given(/^the "([^"]+)" branch is pushed (to|and tracks) "([^"]+)"$/) do |name, mode, upstream|
   full_upstream = ".git/refs/remotes/#{upstream}"
   in_current_dir do
     FileUtils.mkdir_p File.dirname(full_upstream)
     FileUtils.cp ".git/refs/heads/#{name}", full_upstream
+  end
+  if mode == "and tracks"
+    # This is what git push -u does to the remote
+    step %(git "branch.#{name}.remote" is set to "#{upstream}")
+    step %(git "branch.#{name}.merge" is set to "#{full_upstream}")
   end
 end
 
