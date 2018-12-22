@@ -595,8 +595,9 @@ func formatLabel(label github.IssueLabel, colorize bool) string {
 }
 
 func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
-	return fmt.Sprintf("\033[38;5;%d;48;2;%d;%d;%dm %s \033[m",
-		getSuitableLabelTextColor(color), color.Red, color.Green, color.Blue, label.Name)
+	bgColorCode := utils.RgbToTermColorCode(color)
+	return fmt.Sprintf("\033[38;5;%d;48;%sm %s \033[m",
+		getSuitableLabelTextColor(color), bgColorCode, label.Name)
 }
 
 func getSuitableLabelTextColor(color *utils.Color) int {
