@@ -205,7 +205,12 @@ func (client *Client) FetchRepositories(owner string) (repos []Repository, err e
 	var res *simpleResponse
 	repos = []Repository{}
 
-	path := fmt.Sprintf("users/%s/repos?per_page=100", owner)
+	var path string
+	if owner == "" {
+		path = "user/repos?per_page=100"
+	} else {
+		path = fmt.Sprintf("users/%s/repos?per_page=100", owner)
+	}
 	for path != "" {
 		res, err = api.Get(path)
 		if err = checkStatus(200, "fetching repositories", res, err); err != nil {

@@ -48,10 +48,6 @@ func internalListRepos(cmd *Command, args *Args) {
 	var ownerName string
 	if len(words) > 0 {
 		ownerName = words[0]
-	} else {
-		user, err := gh.CurrentUser()
-		utils.Check(err)
-		ownerName = user.Login
 	}
 
 	repos, err := gh.FetchRepositories(ownerName)
