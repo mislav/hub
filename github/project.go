@@ -54,12 +54,12 @@ func (p *Project) WebURL(name, owner, path string) string {
 		}
 	}
 
-	url := fmt.Sprintf("%s://%s", p.Protocol, utils.ConcatPaths(p.Host, ownerWithName))
+	myUrl := fmt.Sprintf("%s://%s", p.Protocol, utils.ConcatPaths(p.Host, ownerWithName))
 	if path != "" {
-		url = utils.ConcatPaths(url, path)
+		myUrl = utils.ConcatPaths(myUrl, path)
 	}
 
-	return url
+	return myUrl
 }
 
 func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
@@ -104,12 +104,12 @@ func preferredProtocol() string {
 }
 
 func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
-	url, err := url.Parse(repo.HtmlUrl)
+	repoUrl, err := url.Parse(repo.HtmlUrl)
 	if err != nil {
 		return
 	}
 
-	p, err = NewProjectFromURL(url)
+	p, err = NewProjectFromURL(repoUrl)
 	return
 }
 

@@ -46,14 +46,14 @@ func Remotes() (remotes []Remote, err error) {
 		if re.MatchString(r) {
 			match := re.FindStringSubmatch(r)
 			name := strings.TrimSpace(match[1])
-			url := strings.TrimSpace(match[2])
+			theUrl := strings.TrimSpace(match[2])
 			urlType := strings.TrimSpace(match[3])
 			utm, ok := remotesMap[name]
 			if !ok {
 				utm = make(map[string]string)
 				remotesMap[name] = utm
 			}
-			utm[urlType] = url
+			utm[urlType] = theUrl
 		}
 	}
 

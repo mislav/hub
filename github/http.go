@@ -217,10 +217,10 @@ type simpleClient struct {
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
-	url, err := url.Parse(path)
+	myUrl, err := url.Parse(path)
 	if err == nil {
-		url = c.rootUrl.ResolveReference(url)
-		return c.performRequestUrl(method, url, body, configure)
+		myUrl = c.rootUrl.ResolveReference(myUrl)
+		return c.performRequestUrl(method, myUrl, body, configure)
 	} else {
 		return nil, err
 	}
@@ -258,11 +258,11 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 }
 
 func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {
-	json, err := json.Marshal(body)
+	jsonStr, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
-	buf := bytes.NewBuffer(json)
+	buf := bytes.NewBuffer(jsonStr)
 
 	return c.performRequest(method, path, buf, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")

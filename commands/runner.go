@@ -95,9 +95,9 @@ func (r *Runner) Execute() ExecError {
 		cmdName = args.Command
 	}
 
-	cmd := r.Lookup(cmdName)
-	if cmd != nil && cmd.Runnable() {
-		execErr := r.Call(cmd, args)
+	myCmd := r.Lookup(cmdName)
+	if myCmd != nil && myCmd.Runnable() {
+		execErr := r.Call(myCmd, args)
 		if execErr.ExitCode == 0 && forceFail {
 			execErr = newExecError(fmt.Errorf(""))
 		}
@@ -164,10 +164,10 @@ func executeCommands(cmds []*cmd.Cmd, execFinal bool) error {
 }
 
 func expandAlias(args *Args) {
-	cmd := args.Command
-	expandedCmd, err := git.Alias(cmd)
+	myCmd := args.Command
+	expandedCmd, err := git.Alias(myCmd)
 
-	if err == nil && expandedCmd != "" && !git.IsBuiltInGitCommand(cmd) {
+	if err == nil && expandedCmd != "" && !git.IsBuiltInGitCommand(myCmd) {
 		words, e := splitAliasCmd(expandedCmd)
 		if e == nil {
 			args.Command = words[0]

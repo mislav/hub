@@ -20,15 +20,15 @@ func (url URL) ProjectPath() (projectPath string) {
 }
 
 func ParseURL(rawurl string) (*URL, error) {
-	url, err := url.Parse(rawurl)
+	repoUrl, err := url.Parse(rawurl)
 	if err != nil {
 		return nil, err
 	}
 
-	project, err := NewProjectFromURL(url)
+	project, err := NewProjectFromURL(repoUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	return &URL{Project: project, URL: *url}, nil
+	return &URL{Project: project, URL: *repoUrl}, nil
 }

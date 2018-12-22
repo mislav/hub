@@ -21,11 +21,11 @@ func TestGitHubRepo_OriginRemote(t *testing.T) {
 }
 
 func TestGitHubRepo_remotesForPublish(t *testing.T) {
-	url, _ := url.Parse("ssh://git@github.com/Owner/repo.git")
+	myUrl, _ := url.Parse("ssh://git@github.com/Owner/repo.git")
 	remotes := []Remote{
 		{
 			Name: "Owner",
-			URL:  url,
+			URL:  myUrl,
 		},
 	}
 	repo := GitHubRepo{remotes}
@@ -33,5 +33,5 @@ func TestGitHubRepo_remotesForPublish(t *testing.T) {
 
 	assert.Equal(t, 1, len(remotesForPublish))
 	assert.Equal(t, "Owner", remotesForPublish[0].Name)
-	assert.Equal(t, url.String(), remotesForPublish[0].URL.String())
+	assert.Equal(t, myUrl.String(), remotesForPublish[0].URL.String())
 }

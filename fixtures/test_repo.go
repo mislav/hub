@@ -56,9 +56,9 @@ func SetupTestRepo() *TestRepo {
 	overrideEnv("XDG_CONFIG_DIRS", "")
 
 	targetPath := filepath.Join(home, "test.git")
-	cmd := cmd.New("git").WithArgs("clone", remotePath, targetPath)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		panic(fmt.Errorf("error running %s\n%s\n%s", cmd, err, output))
+	myCmd := cmd.New("git").WithArgs("clone", remotePath, targetPath)
+	if output, err := myCmd.CombinedOutput(); err != nil {
+		panic(fmt.Errorf("error running %s\n%s\n%s", myCmd, err, output))
 	}
 
 	if err = os.Chdir(targetPath); err != nil {

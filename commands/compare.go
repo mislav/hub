@@ -120,10 +120,10 @@ func compare(command *Command, args *Args) {
 	}
 
 	subpage := utils.ConcatPaths("compare", rangeQueryEscape(r))
-	url := project.WebURL("", "", subpage)
+	myUrl := project.WebURL("", "", subpage)
 
 	args.NoForward()
-	printBrowseOrCopy(args, url, !flagCompareURLOnly && !flagCompareCopy, flagCompareCopy)
+	printBrowseOrCopy(args, myUrl, !flagCompareURLOnly && !flagCompareCopy, flagCompareCopy)
 }
 
 func parseCompareRange(r string) string {

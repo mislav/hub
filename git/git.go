@@ -188,8 +188,8 @@ func (r *Range) IsIdentical() bool {
 }
 
 func (r *Range) IsAncestor() bool {
-	cmd := gitCmd("merge-base", "--is-ancestor", r.A, r.B)
-	return cmd.Success()
+	myCmd := gitCmd("merge-base", "--is-ancestor", r.A, r.B)
+	return myCmd.Success()
 }
 
 func CommentChar(text string) (string, error) {
@@ -215,11 +215,11 @@ func CommentChar(text string) (string, error) {
 }
 
 func Show(sha string) (string, error) {
-	cmd := cmd.New("git")
-	cmd.WithArg("-c").WithArg("log.showSignature=false")
-	cmd.WithArg("show").WithArg("-s").WithArg("--format=%s%n%+b").WithArg(sha)
+	myCmd := cmd.New("git")
+	myCmd.WithArg("-c").WithArg("log.showSignature=false")
+	myCmd.WithArg("show").WithArg("-s").WithArg("--format=%s%n%+b").WithArg(sha)
 
-	output, err := cmd.CombinedOutput()
+	output, err := myCmd.CombinedOutput()
 	output = strings.TrimSpace(output)
 
 	return output, err
@@ -289,8 +289,8 @@ func gitConfig(args ...string) ([]string, error) {
 }
 
 func gitConfigCommand(args []string) []string {
-	cmd := []string{"config"}
-	return append(cmd, args...)
+	myCmd := []string{"config"}
+	return append(myCmd, args...)
 }
 
 func Alias(name string) (string, error) {
@@ -298,24 +298,21 @@ func Alias(name string) (string, error) {
 }
 
 func Run(args ...string) error {
-	cmd := gitCmd(args...)
-	return cmd.Run()
+	return gitCmd(args...).Run()
 }
 
 func Spawn(args ...string) error {
-	cmd := gitCmd(args...)
-	return cmd.Spawn()
+	return gitCmd(args...).Spawn()
 }
 
 func Quiet(args ...string) bool {
-	cmd := gitCmd(args...)
-	return cmd.Success()
+	return gitCmd(args...).Success()
 }
 
 func IsGitDir(dir string) bool {
-	cmd := cmd.New("git")
-	cmd.WithArgs("--git-dir="+dir, "rev-parse", "--git-dir")
-	return cmd.Success()
+	myCmd := cmd.New("git")
+	myCmd.WithArgs("--git-dir="+dir, "rev-parse", "--git-dir")
+	return myCmd.Success()
 }
 
 func LocalBranches() ([]string, error) {
@@ -330,9 +327,9 @@ func LocalBranches() ([]string, error) {
 }
 
 func gitOutput(input ...string) (outputs []string, err error) {
-	cmd := gitCmd(input...)
+	myCmd := gitCmd(input...)
 
-	out, err := cmd.CombinedOutput()
+	out, err := myCmd.CombinedOutput()
 	for _, line := range strings.Split(out, "\n") {
 		if strings.TrimSpace(line) != "" {
 			outputs = append(outputs, string(line))
@@ -343,17 +340,17 @@ func gitOutput(input ...string) (outputs []string, err error) {
 }
 
 func gitCmd(args ...string) *cmd.Cmd {
-	cmd := cmd.New("git")
+	myCmd := cmd.New("git")
 
 	for _, v := range GlobalFlags {
-		cmd.WithArg(v)
+		myCmd.WithArg(v)
 	}
 
 	for _, a := range args {
-		cmd.WithArg(a)
+		myCmd.WithArg(a)
 	}
 
-	return cmd
+	return myCmd
 }
 
 func IsBuiltInGitCommand(command string) bool {

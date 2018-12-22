@@ -165,9 +165,9 @@ func lookupCmd(name string) *Command {
 	if strings.HasPrefix(name, "hub-") {
 		return CmdRunner.Lookup(strings.TrimPrefix(name, "hub-"))
 	} else {
-		cmd := CmdRunner.Lookup(name)
-		if cmd != nil && !cmd.GitExtension {
-			return cmd
+		myCmd := CmdRunner.Lookup(name)
+		if myCmd != nil && !myCmd.GitExtension {
+			return myCmd
 		} else {
 			return nil
 		}
