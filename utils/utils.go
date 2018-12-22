@@ -84,29 +84,29 @@ func IsOption(confirm, short, long string) bool {
 }
 
 type Color struct {
-	Red   int64
-	Green int64
-	Blue  int64
+	Red   uint8
+	Green uint8
+	Blue  uint8
 }
 
 func NewColor(hex string) (*Color, error) {
-	red, err := strconv.ParseInt(hex[0:2], 16, 16)
+	red, err := strconv.ParseUint(hex[0:2], 16, 8)
 	if err != nil {
 		return nil, err
 	}
-	green, err := strconv.ParseInt(hex[2:4], 16, 16)
+	green, err := strconv.ParseUint(hex[2:4], 16, 8)
 	if err != nil {
 		return nil, err
 	}
-	blue, err := strconv.ParseInt(hex[4:6], 16, 16)
+	blue, err := strconv.ParseUint(hex[4:6], 16, 8)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Color{
-		Red:   red,
-		Green: green,
-		Blue:  blue,
+		Red:   uint8(red),
+		Green: uint8(green),
+		Blue:  uint8(blue),
 	}, nil
 }
 
