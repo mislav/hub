@@ -12,29 +12,29 @@ func init() {
 }
 
 type Color struct {
-	Red   int64
-	Green int64
-	Blue  int64
+	Red   uint8
+	Green uint8
+	Blue  uint8
 }
 
 func NewColor(hex string) (*Color, error) {
-	red, err := strconv.ParseInt(hex[0:2], 16, 16)
+	red, err := strconv.ParseUint(hex[0:2], 16, 8)
 	if err != nil {
 		return nil, err
 	}
-	green, err := strconv.ParseInt(hex[2:4], 16, 16)
+	green, err := strconv.ParseUint(hex[2:4], 16, 8)
 	if err != nil {
 		return nil, err
 	}
-	blue, err := strconv.ParseInt(hex[4:6], 16, 16)
+	blue, err := strconv.ParseUint(hex[4:6], 16, 8)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Color{
-		Red:   red,
-		Green: green,
-		Blue:  blue,
+		Red:   uint8(red),
+		Green: uint8(green),
+		Blue:  uint8(blue),
 	}, nil
 }
 
@@ -50,7 +50,7 @@ func (c *Color) Distance(other *Color) float64 {
 		math.Pow(float64(c.Blue-other.Blue), 2)))
 }
 
-func rgbComponentToBoldValue(component int64) float64 {
+func rgbComponentToBoldValue(component uint8) float64 {
 	srgb := float64(component) / 255
 	if srgb <= 0.03928 {
 		return srgb / 12.92
@@ -133,9 +133,9 @@ func (c *HslColor) ToRgb() *Color {
 	case c.Hue < 360.0:
 		rPrime, gPrime, bPrime = C, 0, X
 	}
-	R := int64((rPrime + m) * 255)
-	G := int64((gPrime + m) * 255)
-	B := int64((bPrime + m) * 255)
+	R := uint8((rPrime + m) * 255)
+	G := uint8((gPrime + m) * 255)
+	B := uint8((bPrime + m) * 255)
 
 	return &Color{R, G, B}
 }
@@ -150,7 +150,7 @@ func (c *HslColor) ScaleSaturation(x float64) *HslColor {
 	return &HslColor{c.Hue, newSaturation, c.Lightness}
 }
 
-var x6colorIndexes = [6]int64{0, 95, 135, 175, 215, 255}
+var x6colorIndexes = [6]uint8{0, 95, 135, 175, 215, 255}
 var x6colorCube [216]Color
 
 func initColorCube() {
