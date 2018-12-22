@@ -600,13 +600,44 @@ func formatLabel(label github.IssueLabel, colorize bool) string {
 
 func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
 	bgColorCode := utils.RgbToTermColorCode(color)
-	return fmt.Sprintf("\033[38;5;%d;48;%sm %s \033[m",
-		getSuitableLabelTextColor(color), bgColorCode, label.Name)
+	fgColor := pickHighContrastTextColor(color)
+	fgColorCode := utils.RgbToTermColorCode(fgColor)
+	return fmt.Sprintf("\033[38;%s;48;%sm %s \033[m",
+		fgColorCode, bgColorCode, label.Name)
 }
 
-func getSuitableLabelTextColor(color *utils.Color) int {
-	if color.Brightness() < 0.65 {
-		return 15 // white text
+func pickHighContrastTextColor(color *utils.Color) *utils.Color {
+	var candidates [12]*utils.Color
+	hsl := color.ToHsl()
+	a := hsl.ScaleLightness(0.5)
+	candidates[0] = a.ToRgb()
+	candidates[1] = a.ScaleLightness(0.25).ToRgb()
+	candidates[2] = a.ScaleSaturation(-0.25).ToRgb()
+	b := hsl.ScaleSaturation(0.75)
+	candidates[3] = b.ToRgb()
+	candidates[4] = b.ScaleLightness(0.25).ToRgb()
+	candidates[5] = b.ScaleSaturation(-0.25).ToRgb()
+	c := hsl.ScaleLightness(-0.5)
+	candidates[6] = c.ToRgb()
+	candidates[7] = c.ScaleLightness(-0.25).ToRgb()
+	candidates[8] = c.ScaleSaturation(-0.25).ToRgb()
+	d := hsl.ScaleSaturation(-0.75)
+	candidates[9] = d.ToRgb()
+	candidates[10] = d.ScaleLightness(-0.25).ToRgb()
+	candidates[11] = d.ScaleSaturation(-0.25).ToRgb()
+
+	foundContrastRatio := -999.0
+	ix := -1
+	for i := 0; i < 12; i++ {
+		contrastRatio := color.ContrastRatio(candidates[i])
+		if contrastRatio > foundContrastRatio {
+			ix = i
+			foundContrastRatio = contrastRatio
+		}
 	}
-	return 16 // black text
+	if foundContrastRatio >= 7.0 {
+		return candidates[ix]
+	} else {
+		return candidates[11]
+	}
 }
