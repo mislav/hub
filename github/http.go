@@ -2,6 +2,7 @@ package github
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -145,8 +146,11 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 		dialFunc := func(network, addr string) (net.Conn, error) {
 			return net.Dial("unix", unixSocket)
 		}
+		dialContext := func(_ context.Context, _, _ string) (net.Conn, error) {
+			return net.Dial("unix", unixSocket)
+		}
 		httpTransport = &http.Transport{
-			Dial:                  dialFunc,
+			DialContext:           dialContext,
 			DialTLS:               dialFunc,
 			ResponseHeaderTimeout: 30 * time.Second,
 			ExpectContinueTimeout: 10 * time.Second,
@@ -155,10 +159,10 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 	} else {
 		httpTransport = &http.Transport{
 			Proxy: proxyFromEnvironment,
-			Dial: (&net.Dialer{
+			DialContext: (&net.Dialer{
 				Timeout:   30 * time.Second,
 				KeepAlive: 30 * time.Second,
-			}).Dial,
+			}).DialContext,
 			TLSHandshakeTimeout: 10 * time.Second,
 		}
 	}
