@@ -66,7 +66,7 @@ func TestFormatIssue(t *testing.T) {
 			},
 			format:   format,
 			colorize: true,
-			expect:   "\033[32m     #42\033[m  An issue with labels  \033[38;5;15;48;2;128;0;0m bug \033[m \033[38;5;16;48;2;85;255;85m reproduced \033[m\n",
+			expect:   "\033[32m     #42\033[m  An issue with labels  \033[38;2;64;64;64;48;2;128;0;0m bug \033[m \033[38;2;0;0;0;48;2;85;255;85m reproduced \033[m\n",
 		},
 		{
 			name: "not colorized",
@@ -181,7 +181,7 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 			issue:    issue,
 			format:   "%l",
 			colorize: true,
-			expect:   "\033[38;5;15;48;2;136;0;0m bug \033[m \033[38;5;15;48;2;0;136;0m feature \033[m",
+			expect:   "\033[38;2;68;68;68;48;2;136;0;0m bug \033[m \033[38;2;68;68;68;48;2;0;136;0m feature \033[m",
 		},
 		{
 			name:     "label not colorized",
