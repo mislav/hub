@@ -562,6 +562,10 @@ type Issue struct {
 	ClosedBy *User `json:"closed_by"`
 }
 
+type Organization struct {
+	Login string `json:"login"`
+}
+
 type PullRequest Issue
 
 type PullRequestSpec struct {
