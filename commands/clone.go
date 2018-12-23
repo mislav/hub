@@ -77,11 +77,11 @@ func transformCloneArgs(args *Args) {
 
 func getProjectGitURL(nameWithOwner string, isSSH bool, isSubmodule bool) string {
 	name, owner := parseCloneNameAndOwner(nameWithOwner)
-	var host *github.Host
 	isMissingOwner := false
+	host := getCloneHost()
 	if owner == "" {
 		isMissingOwner = true
-		owner, host = determineCloneOwnerAndHost()
+		owner = host.User
 	}
 
 	var hostStr string
@@ -193,23 +193,20 @@ func parseCloneNameAndOwner(arg string) (name, owner string) {
 	return
 }
 
-func determineCloneOwnerAndHost() (owner string, host *github.Host) {
+func getCloneHost() *github.Host {
 	config := github.CurrentConfig()
-	h, err := config.DefaultHost()
+	host, err := config.DefaultHost()
 	if err != nil {
 		utils.Check(github.FormatError("cloning repository", err))
 	}
 
-	host = h
-	owner = host.User
-
-	return
+	return host
 }
 
 func parseUserOrganizationNames(gh *github.Client) (organizationsNames []string) {
 	organizations, err := gh.FetchOrganizations()
 	if err != nil {
-		err = fmt.Errorf("Error: Problems fetching organizations for current user")
+		err = fmt.Errorf("Error: Problems fetching organizations for current user. %s", err)
 		utils.Check(err)
 	}
 
