@@ -52,6 +52,10 @@ module Hub
       def blank_response?(obj)
         obj.nil? || (obj.respond_to?(:empty?) && obj.empty?)
       end
+
+      get '/user/orgs' do
+        json []
+      end
     end
 
     def self.start_sinatra(&block)
