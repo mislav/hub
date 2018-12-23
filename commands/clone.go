@@ -136,7 +136,7 @@ func determineRepository(ownerCandidates []string, repositoryName string, hostSt
 	}
 
 	if repo == nil {
-		errorMessage := fmt.Sprintf("Error: repository doesn't exist for your username (%s) or any of the organizations you are part of (%s)", project.Owner, ownerCandidates)
+		errorMessage := fmt.Sprintf("Error: repository doesn't exist for your username (%s) or any of the organizations you are part of (%s)", ownerCandidates[0], strings.Join(ownerCandidates[1:], ", "))
 		if len(ownerCandidates) == 1 {
 			errorMessage = fmt.Sprintf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
 		}
