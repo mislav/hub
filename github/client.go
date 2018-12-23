@@ -618,6 +618,36 @@ type Milestone struct {
 	Title  string `json:"title"`
 }
 
+func (client *Client) FetchOrganizations() (organizations []Organization, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	path := fmt.Sprintf("user/orgs?per_page=%d", 100)
+
+	organizations = []Organization{}
+	var res *simpleResponse
+
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching user organizations", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		organizationsPage := []Organization{}
+		if err = res.Unmarshal(&organizationsPage); err != nil {
+			return
+		}
+		for _, org := range organizationsPage {
+			organizations = append(organizations, org)
+		}
+	}
+
+	return
+}
+
 func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}, limit int, filter func(*Issue) bool) (issues []Issue, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
