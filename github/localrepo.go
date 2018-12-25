@@ -103,12 +103,7 @@ func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 }
 
 func (r *GitHubRepo) MasterBranch() (branch *Branch) {
-	origin, e := r.RemoteByName("origin")
-	var name string
-	if e == nil {
-		name, _ = git.BranchAtRef("refs", "remotes", origin.Name, "HEAD")
-	}
-
+	name := r.remoteMasterBranchName()
 	if name == "" {
 		name = "refs/heads/master"
 	}
@@ -116,6 +111,23 @@ func (r *GitHubRepo) MasterBranch() (branch *Branch) {
 	branch = &Branch{r, name}
 
 	return
+}
+
+func (r *GitHubRepo) RemoteMasterBranch() (b *Branch, ok bool) {
+	name := r.remoteMasterBranchName()
+	if name == "" {
+		return nil, false
+	}
+	return &Branch{Repo: r, Name: name}, true
+}
+
+func (r *GitHubRepo) remoteMasterBranchName() string {
+	origin, e := r.RemoteByName("origin")
+	var name string
+	if e == nil {
+		name, _ = git.BranchAtRef("refs", "remotes", origin.Name, "HEAD")
+	}
+	return name
 }
 
 func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (branch *Branch, project *Project, err error) {
