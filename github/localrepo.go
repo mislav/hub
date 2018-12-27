@@ -170,10 +170,6 @@ func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
 	return nil, fmt.Errorf("could not find git remote for %s/%s", repo.Owner.Login, repo.Name)
 }
 
-func (r *GitHubRepo) OriginRemote() (remote *Remote, err error) {
-	return r.RemoteByName("origin")
-}
-
 func (r *GitHubRepo) MainRemote() (remote *Remote, err error) {
 	r.loadRemotes()
 

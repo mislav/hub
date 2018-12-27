@@ -111,6 +111,7 @@ Feature: hub create
     And the "origin" remote has url "git://github.com/mislav/dotfiles.git"
     When I successfully run `hub create`
     Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
+    And the output should contain exactly "https://github.com/mislav/dotfiles\n"
 
   Scenario: Unrelated origin remote already exists
     Given the GitHub API server:
@@ -122,8 +123,12 @@ Feature: hub create
       """
     And the "origin" remote has url "git://example.com/unrelated.git"
     When I successfully run `hub create`
-    Then the output should contain exactly "https://github.com/mislav/dotfiles\n"
-    And the url for "origin" should be "git://example.com/unrelated.git"
+    Then the url for "origin" should be "git://example.com/unrelated.git"
+    And the stdout should contain exactly "https://github.com/mislav/dotfiles\n"
+    And the stderr should contain exactly:
+      """
+      A git remote named "origin" already exists and is set to push to 'git://example.com/unrelated.git'.\n
+      """
 
   Scenario: Another remote already exists
     Given the GitHub API server:
@@ -145,7 +150,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create`
-    Then the output should contain "Existing repository detected. Updating git remote\n"
+    Then the output should contain "Existing repository detected\n"
     And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: GitHub repo already exists and is not private
