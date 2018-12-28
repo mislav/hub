@@ -669,8 +669,7 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -i 92`
     Then the output should contain exactly:
       """
-      https://github.com/mislav/coral/pull/92
-      Warning: Issue to pull request conversion is deprecated and might not work in the future.\n
+      https://github.com/mislav/coral/pull/92\n
       """
 
   Scenario: Convert issue URL to pull request
@@ -686,8 +685,7 @@ Feature: hub pull-request
     When I successfully run `hub pull-request https://github.com/mislav/coral/issues/92`
     Then the output should contain exactly:
       """
-      https://github.com/mislav/coral/pull/92
-      Warning: Issue to pull request conversion is deprecated and might not work in the future.\n
+      https://github.com/mislav/coral/pull/92\n
       """
 
   Scenario: Enterprise host

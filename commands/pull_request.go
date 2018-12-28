@@ -10,7 +10,6 @@ import (
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -47,8 +46,12 @@ pull-request -i <ISSUE>
 		Further edit the contents of <FILE> in a text editor before submitting.
 
 	-i, --issue=<ISSUE>
-		(Deprecated) Convert an issue to a pull request. <ISSUE> may be an issue
-		number or a URL.
+		Convert an issue to a pull request. <ISSUE> may be an issue number or a URL.
+
+		You can only convert issues that you've opened or that which you have admin
+		rights over. In most workflows it isn't necessary to convert issues to pull
+		requests; you can simply reference the original issue in the body of the new
+		pull request.
 
 	-o, --browse
 		Open the new pull request in a web browser.
@@ -441,10 +444,6 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 				utils.Check(err)
 			}
 		}
-	}
-
-	if flagPullRequestIssue != "" {
-		ui.Errorln("Warning: Issue to pull request conversion is deprecated and might not work in the future.")
 	}
 
 	args.NoForward()
