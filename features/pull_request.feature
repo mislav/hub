@@ -13,7 +13,10 @@ Feature: hub pull-request
   Scenario: Non-GitHub repo
     Given the "origin" remote has url "mygh:Manganeez/repo.git"
     When I run `hub pull-request`
-    Then the stderr should contain "Aborted: the origin remote doesn't point to a GitHub repository.\n"
+    Then the stderr should contain exactly:
+      """
+      Aborted: could not find any git remote pointing to a GitHub repository\n
+      """
     And the exit status should be 1
 
   Scenario: Create pull request respecting "insteadOf" configuration
@@ -792,6 +795,40 @@ Feature: hub pull-request
   Scenario: Create pull request to "upstream" remote
     Given the "upstream" remote has url "git://github.com/github/coral.git"
     And I am on the "master" branch pushed to "origin/master"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:master',
+               :title => 'hereyougo'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request to "upstream" remote with differently-named default branch
+    Given I am on the "master" branch pushed to "origin/master"
+    And the "upstream" remote has url "git://github.com/github/coral.git"
+    And the default branch for "upstream" is "develop"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'develop',
+               :head  => 'mislav:master',
+               :title => 'hereyougo'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Create pull request to "github" remote when "upstream" is non-GitHub
+    Given I am on the "master" branch pushed to "origin/master"
+    And the "github" remote has url "git://github.com/github/coral.git"
+    And the "upstream" remote has url "git://example.com/coral.git"
     Given the GitHub API server:
       """
       post('/repos/github/coral/pulls') {

@@ -39,7 +39,9 @@ func (r *GitHubRepo) loadRemotes() error {
 }
 
 func (r *GitHubRepo) RemoteByName(name string) (*Remote, error) {
-	r.loadRemotes()
+	if err := r.loadRemotes(); err != nil {
+		return nil, err
+	}
 
 	for _, remote := range r.remotes {
 		if remote.Name == name {
@@ -102,24 +104,29 @@ func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 	return
 }
 
-func (r *GitHubRepo) MasterBranch() (branch *Branch) {
-	origin, e := r.RemoteByName("origin")
-	var name string
-	if e == nil {
-		name, _ = git.BranchAtRef("refs", "remotes", origin.Name, "HEAD")
+func (r *GitHubRepo) MasterBranch() *Branch {
+	if remote, err := r.MainRemote(); err == nil {
+		return r.DefaultBranch(remote)
+	} else {
+		return r.DefaultBranch(nil)
 	}
+}
 
+func (r *GitHubRepo) DefaultBranch(remote *Remote) *Branch {
+	var name string
+	if remote != nil {
+		name, _ = git.BranchAtRef("refs", "remotes", remote.Name, "HEAD")
+	}
 	if name == "" {
 		name = "refs/heads/master"
 	}
-
-	branch = &Branch{r, name}
-
-	return
+	return &Branch{r, name}
 }
 
 func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (branch *Branch, project *Project, err error) {
-	r.loadRemotes()
+	if err = r.loadRemotes(); err != nil {
+		return
+	}
 
 	for _, remote := range r.remotes {
 		if p, err := remote.Project(); err == nil {
@@ -150,7 +157,9 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (
 }
 
 func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
-	r.loadRemotes()
+	if err := r.loadRemotes(); err != nil {
+		return nil, err
+	}
 
 	repoUrl, err := url.Parse(repo.HtmlUrl)
 	if err != nil {
@@ -166,38 +175,42 @@ func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
 			}
 		}
 	}
-
-	return nil, fmt.Errorf("could not find git remote for %s/%s", repo.Owner.Login, repo.Name)
+	return nil, fmt.Errorf("could not find a git remote for '%s/%s'", repo.Owner.Login, repo.Name)
 }
 
-func (r *GitHubRepo) MainRemote() (remote *Remote, err error) {
+func (r *GitHubRepo) RemoteForProject(project *Project) (*Remote, error) {
+	if err := r.loadRemotes(); err != nil {
+		return nil, err
+	}
+
+	for _, remote := range r.remotes {
+		remoteProject, err := remote.Project()
+		if err == nil && remoteProject.SameAs(project) {
+			return &remote, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find a git remote for '%s'", project)
+}
+
+func (r *GitHubRepo) MainRemote() (*Remote, error) {
 	r.loadRemotes()
 
 	if len(r.remotes) > 0 {
-		remote = &r.remotes[0]
+		return &r.remotes[0], nil
+	} else {
+		return nil, fmt.Errorf("no git remotes found")
 	}
-
-	if remote == nil {
-		err = fmt.Errorf("Can't find git remote origin")
-	}
-
-	return
 }
 
-func (r *GitHubRepo) MainProject() (project *Project, err error) {
-	origin, err := r.MainRemote()
-	if err != nil {
-		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
+func (r *GitHubRepo) MainProject() (*Project, error) {
+	r.loadRemotes()
 
-		return
+	for _, remote := range r.remotes {
+		if project, err := remote.Project(); err == nil {
+			return project, nil
+		}
 	}
-
-	project, err = origin.Project()
-	if err != nil {
-		err = fmt.Errorf("Aborted: the origin remote doesn't point to a GitHub repository.")
-	}
-
-	return
+	return nil, fmt.Errorf("Aborted: could not find any git remote pointing to a GitHub repository")
 }
 
 func (r *GitHubRepo) CurrentProject() (project *Project, err error) {

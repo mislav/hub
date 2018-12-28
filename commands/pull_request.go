@@ -60,11 +60,15 @@ pull-request -i <ISSUE>
 		Push the current branch to <HEAD> before creating the pull request.
 
 	-b, --base=<BASE>
-		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
-		(usually "master").
+		The base branch in the "[<OWNER>:]<BRANCH>" format. Defaults to the default
+		branch of the upstream repository (usually "master").
+
+		See the "CONVENTIONS" section of hub(1) for more information on how hub
+		selects the defaults in case of multiple git remotes.
 
 	-h, --head=<HEAD>
-		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
+		The head branch in "[<OWNER>:]<BRANCH>" format. Defaults to the currently
+		checked out branch.
 
 	-r, --reviewer=<USERS>
 		A comma-separated list of GitHub handles to request a review from.
@@ -185,9 +189,9 @@ func pullRequest(cmd *Command, args *Args) {
 		flagPullRequestIssue = parsePullRequestIssueNumber(arg)
 	}
 
-	if base == "" {
-		masterBranch := localRepo.MasterBranch()
-		base = masterBranch.ShortName()
+	baseRemote, _ := localRepo.RemoteForProject(baseProject)
+	if base == "" && baseRemote != nil {
+		base = localRepo.DefaultBranch(baseRemote).ShortName()
 	}
 
 	if head == "" && trackedBranch != nil {
@@ -237,12 +241,12 @@ func pullRequest(cmd *Command, args *Args) {
 	baseTracking := base
 	headTracking := head
 
-	remote := gitRemoteForProject(baseProject)
+	remote := baseRemote
 	if remote != nil {
 		baseTracking = fmt.Sprintf("%s/%s", remote.Name, base)
 	}
 	if remote == nil || !baseProject.SameAs(headProject) {
-		remote = gitRemoteForProject(headProject)
+		remote, _ = localRepo.RemoteForProject(headProject)
 	}
 	if remote != nil {
 		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)

@@ -64,7 +64,7 @@ func fork(cmd *Command, args *Args) {
 	host, err := config.PromptForHost(project.Host)
 	utils.Check(github.FormatError("forking repository", err))
 
-	originRemote, err := localRepo.MainRemote()
+	originRemote, err := localRepo.RemoteForProject(project)
 	utils.Check(err)
 
 	params := map[string]interface{}{}
