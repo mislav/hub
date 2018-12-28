@@ -117,7 +117,7 @@ func create(command *Command, args *Args) {
 				err = fmt.Errorf("Repository '%s' already exists and is public", repo.FullName)
 				utils.Check(err)
 			} else {
-				ui.Errorln("Existing repository detected. Updating git remote")
+				ui.Errorln("Existing repository detected")
 				project = foundProject
 			}
 		} else {
@@ -138,10 +138,15 @@ func create(command *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	remote, _ := localRepo.OriginRemote()
-	if remote == nil || remote.Name != "origin" {
+	originName := "origin"
+	if originRemote, err := localRepo.RemoteByName(originName); err == nil {
+		originProject, err := originRemote.Project()
+		if err != nil || !originProject.SameAs(project) {
+			ui.Errorf(`A git remote named "%s" already exists and is set to push to '%s'.\n`, originRemote.Name, originRemote.PushURL)
+		}
+	} else {
 		url := project.GitURL("", "", true)
-		args.Before("git", "remote", "add", "-f", "origin", url)
+		args.Before("git", "remote", "add", "-f", originName, url)
 	}
 
 	webUrl := project.WebURL("", "", "")
