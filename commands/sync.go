@@ -21,7 +21,7 @@ var cmdSync = &Command{
 - If the local branch contains unpushed work, warn about it;
 - If the branch seems merged and its upstream branch was deleted, delete it.
 
-If a local branch doesn't have any upstream configuration, but has a
+If a local branch does not have any upstream configuration, but has a
 same-named branch on the remote, treat that as its upstream branch.
 
 ## See also:

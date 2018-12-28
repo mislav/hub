@@ -48,10 +48,10 @@ pull-request -i <ISSUE>
 	-i, --issue=<ISSUE>
 		Convert an issue to a pull request. <ISSUE> may be an issue number or a URL.
 
-		You can only convert issues that you've opened or that which you have admin
-		rights over. In most workflows it isn't necessary to convert issues to pull
-		requests; you can simply reference the original issue in the body of the new
-		pull request.
+		You can only convert issues authored by you or that which you have admin
+		rights over. In most workflows it is not necessary to convert issues to
+		pull requests; you can simply reference the original issue in the body of
+		the new pull request.
 
 	-o, --browse
 		Open the new pull request in a web browser.
@@ -85,7 +85,7 @@ pull-request -i <ISSUE>
 
 	-l, --labels=<LABELS>
 		Add a comma-separated list of labels to this pull request. Labels will be
-		created if they don't already exist.
+		created if they do not already exist.
 
 ## Examples:
 		$ hub pull-request
@@ -103,7 +103,7 @@ pull-request -i <ISSUE>
 
 ## Configuration:
 
-	HUB_RETRY_TIMEOUT=<SECONDS>
+	* 'HUB_RETRY_TIMEOUT':
 		The maximum time to keep retrying after HTTP 422 on '--push' (default: 9).
 
 ## See also:

@@ -40,7 +40,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
-		doesn't exist, it will be created at <TARGET> (default: current branch).
+		does not exist, it will be created at <TARGET> (default: current branch).
 
 	* _edit_:
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
@@ -93,7 +93,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	-t, --commitish=<TARGET>
 		A commit SHA or branch name to attach the release to, only used if <TAG>
-		doesn't already exist (default: main branch).
+		does not already exist (default: main branch).
 
 	-f, --format=<FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY

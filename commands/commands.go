@@ -107,7 +107,9 @@ func (c *Command) Synopsis() string {
 }
 
 func (c *Command) HelpText() string {
-	return fmt.Sprintf("%s\n\n%s", c.Synopsis(), strings.Replace(c.Long, "'", "`", -1))
+	return fmt.Sprintf("%s\n\n%s",
+		strings.Replace(c.Synopsis(), "-^", "`-^`", 1),
+		strings.Replace(c.Long, "'", "`", -1))
 }
 
 func (c *Command) Name() string {
