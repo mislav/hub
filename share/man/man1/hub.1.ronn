@@ -88,6 +88,37 @@ git but that are extended through hub, and custom ones that hub provides.
   * hub-sync(1):
     Fetch from upstream and update local branches.
 
+## CONVENTIONS
+
+Most hub commands are supposed to be run in a context of an existing local git
+repository. Hub will automatically detect the GitHub repository the current
+project belongs to by scanning its git remotes.
+
+In case there are multiple git remotes that are all pointing to GitHub, hub
+assumes that the main one is named "upstream", "github", or "origin", in that
+order of preference.
+
+When working with forks, it's recommended that the git remote for your own fork
+is named "origin" and that the git remote for the upstream repository is named
+"upstream". See <https://help.github.com/articles/configuring-a-remote-for-a-fork/>
+
+The default branch (usually "master") for the project is detected like so:
+
+    git symbolic-ref refs/remotes/origin/HEAD
+
+where <origin> is the name of the git remote for the upstream repository.
+
+The destination where the currently checked out branch is considered to be
+pushed to depends on the `git config push.default` setting. If the value is
+"upstream" or "tracking", the tracking information for a branch is read like so:
+
+    git rev-parse --symbolic-full-name BRANCH@{upstream}
+
+Otherwise, hub scans git remotes to find the first one for which
+`refs/remotes/REMOTE/BRANCH` exists. The "origin", "github", and "upstream"
+remotes are searched last because hub assumes that it's more likely that the
+current branch is pushed to your fork rather than to the canonical repo.
+
 ## CONFIGURATION
 
 ### GitHub OAuth authentication
