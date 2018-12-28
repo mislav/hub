@@ -152,7 +152,7 @@ Feature: hub compare
     Then the stdout should contain exactly ""
     And the stderr should contain exactly:
       """
-      Aborted: the origin remote doesn't point to a GitHub repository.\n
+      Aborted: could not find any git remote pointing to a GitHub repository\n
       """
     And the exit status should be 1
 

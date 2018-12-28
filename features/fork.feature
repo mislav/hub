@@ -250,7 +250,7 @@ Feature: hub fork
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Aborted: the origin remote doesn't point to a GitHub repository.\n
+      Aborted: could not find any git remote pointing to a GitHub repository\n
       """
     And there should be no "origin" remote
 
@@ -260,7 +260,7 @@ Feature: hub fork
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      Aborted: the origin remote doesn't point to a GitHub repository.\n
+      Aborted: could not find any git remote pointing to a GitHub repository\n
       """
 
   Scenario: Enterprise fork

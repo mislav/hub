@@ -85,7 +85,10 @@ Feature: hub ci-status
   Scenario: Non-GitHub repo
     Given the "origin" remote has url "mygh:Manganeez/repo.git"
     When I run `hub ci-status`
-    Then the stderr should contain "Aborted: the origin remote doesn't point to a GitHub repository.\n"
+    Then the stderr should contain exactly:
+      """
+      Aborted: could not find any git remote pointing to a GitHub repository\n
+      """
     And the exit status should be 1
 
   Scenario: Enterprise CI statuses
