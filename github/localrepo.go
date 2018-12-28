@@ -39,7 +39,9 @@ func (r *GitHubRepo) loadRemotes() error {
 }
 
 func (r *GitHubRepo) RemoteByName(name string) (*Remote, error) {
-	r.loadRemotes()
+	if err := r.loadRemotes(); err != nil {
+		return nil, err
+	}
 
 	for _, remote := range r.remotes {
 		if remote.Name == name {
@@ -122,7 +124,9 @@ func (r *GitHubRepo) DefaultBranch(remote *Remote) *Branch {
 }
 
 func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (branch *Branch, project *Project, err error) {
-	r.loadRemotes()
+	if err = r.loadRemotes(); err != nil {
+		return
+	}
 
 	for _, remote := range r.remotes {
 		if p, err := remote.Project(); err == nil {
@@ -153,7 +157,9 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (
 }
 
 func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
-	r.loadRemotes()
+	if err := r.loadRemotes(); err != nil {
+		return nil, err
+	}
 
 	repoUrl, err := url.Parse(repo.HtmlUrl)
 	if err != nil {
