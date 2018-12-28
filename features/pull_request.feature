@@ -805,6 +805,23 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Create pull request to "upstream" remote with differently-named default branch
+    Given I am on the "master" branch pushed to "origin/master"
+    And the "upstream" remote has url "git://github.com/github/coral.git"
+    And the default branch for "upstream" is "develop"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'develop',
+               :head  => 'mislav:master',
+               :title => 'hereyougo'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Open pull request in web browser
     Given the GitHub API server:
       """

@@ -132,11 +132,13 @@ Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/)
 end
 
 Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|
-  empty_commit
-  ref_file = ".git/refs/remotes/#{remote}/#{branch}"
   in_current_dir do
-    FileUtils.mkdir_p File.dirname(ref_file)
-    FileUtils.cp '.git/refs/heads/master', ref_file
+    ref_file = ".git/refs/remotes/#{remote}/#{branch}"
+    unless File.exist? ref_file
+      empty_commit unless File.exist? '.git/refs/heads/master'
+      FileUtils.mkdir_p File.dirname(ref_file)
+      FileUtils.cp '.git/refs/heads/master', ref_file
+    end
   end
   run_silent %(git remote set-head #{remote} #{branch})
 end

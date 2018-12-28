@@ -41,7 +41,7 @@ func sync(cmd *Command, args *Args) {
 	remote, err := localRepo.MainRemote()
 	utils.Check(err)
 
-	defaultBranch := localRepo.MasterBranch().ShortName()
+	defaultBranch := localRepo.DefaultBranch(remote).ShortName()
 	fullDefaultBranch := fmt.Sprintf("refs/remotes/%s/%s", remote.Name, defaultBranch)
 	currentBranch := ""
 	if curBranch, err := localRepo.CurrentBranch(); err == nil {
