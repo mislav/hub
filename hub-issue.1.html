@@ -91,16 +91,16 @@
 <h2 id="OPTIONS">OPTIONS</h2>
 
 <dl>
-<dt>-a, --assignee <var>ASSIGNEE</var></dt><dd><p>Display only issues assigned to <var>ASSIGNEE</var>.</p>
+<dt>-a, --assignee=<var>ASSIGNEE</var></dt><dd><p>Display only issues assigned to <var>ASSIGNEE</var>.</p>
 
 <p>When opening an issue, this can be a comma-separated list of people to
 assign to the new issue.</p></dd>
-<dt>-c, --creator <var>CREATOR</var></dt><dd><p>Display only issues created by <var>CREATOR</var>.</p></dd>
-<dt>-@, --mentioned <var>USER</var></dt><dd><p>Display only issues mentioning <var>USER</var>.</p></dd>
-<dt>-s, --state <var>STATE</var></dt><dd><p>Display issues with state <var>STATE</var> (default: "open").</p></dd>
-<dt>-f, --format <var>FORMAT</var></dt><dd><p>Pretty print the contents of the issues using format <var>FORMAT</var> (default:
-"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
-git-log manual for some additional details on how placeholders are used in
+<dt>-c, --creator=<var>CREATOR</var></dt><dd><p>Display only issues created by <var>CREATOR</var>.</p></dd>
+<dt>-@, --mentioned=<var>USER</var></dt><dd><p>Display only issues mentioning <var>USER</var>.</p></dd>
+<dt>-s, --state=<var>STATE</var></dt><dd><p>Display issues with state <var>STATE</var> (default: "open").</p></dd>
+<dt>-f, --format=<var>FORMAT</var></dt><dd><p>Pretty print the contents of the issues using format <var>FORMAT</var> (default:
+"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
+<span class="man-ref">git-log<span class="s">(1)</span></span> for some additional details on how placeholders are used in
 format. The available placeholders for issues are:</p>
 
 <p>%I: issue number</p>
@@ -147,26 +147,30 @@ format. The available placeholders for issues are:</p>
 
 <p>%ut: updated date, UNIX timestamp</p>
 
-<p>%uI: updated date, ISO 8601 format</p></dd>
-<dt>-m, --message <var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the issue
+<p>%uI: updated date, ISO 8601 format</p>
+
+<p>%n: newline</p>
+
+<p>%%: a literal %</p></dd>
+<dt>-m, --message=<var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the issue
 title, and the rest is used as issue description in Markdown format.</p>
 
 <p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
 separate paragraphs.</p></dd>
-<dt>-F, --file <var>FILE</var></dt><dd><p>Read the issue title and description from <var>FILE</var>.</p></dd>
+<dt>-F, --file=<var>FILE</var></dt><dd><p>Read the issue title and description from <var>FILE</var>.</p></dd>
 <dt>-e, --edit</dt><dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
 <dt>-o, --browse</dt><dd><p>Open the new issue in a web browser.</p></dd>
 <dt>-c, --copy</dt><dd><p>Put the URL of the new issue to clipboard instead of printing it.</p></dd>
-<dt>-M, --milestone <var>ID</var></dt><dd><p>Display only issues for a GitHub milestone with id <var>ID</var>.</p>
+<dt>-M, --milestone=<var>ID</var></dt><dd><p>Display only issues for a GitHub milestone with id <var>ID</var>.</p>
 
 <p>When opening an issue, add this issue to a GitHub milestone with id <var>ID</var>.</p></dd>
-<dt>-l, --labels <var>LABELS</var></dt><dd><p>Display only issues with certain labels.</p>
+<dt>-l, --labels=<var>LABELS</var></dt><dd><p>Display only issues with certain labels.</p>
 
 <p>When opening an issue, add a comma-separated list of labels to this issue.</p></dd>
-<dt>-d, --since <var>DATE</var></dt><dd><p>Display only issues updated on or after <var>DATE</var> in ISO 8601 format.</p></dd>
-<dt>-o, --sort <var>SORT_KEY</var></dt><dd><p>Sort displayed issues by "created" (default), "updated" or "comments".</p></dd>
+<dt>-d, --since=<var>DATE</var></dt><dd><p>Display only issues updated on or after <var>DATE</var> in ISO 8601 format.</p></dd>
+<dt>-o, --sort=<var>SORT_KEY</var></dt><dd><p>Sort displayed issues by "created" (default), "updated" or "comments".</p></dd>
 <dt>-^ --sort-ascending</dt><dd><p>Sort by ascending dates instead of descending.</p></dd>
-<dt>-L, --limit <var>LIMIT</var></dt><dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
+<dt>-L, --limit=<var>LIMIT</var></dt><dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
 <dt>--include-pulls</dt><dd><p>Include pull requests as well as issues.</p></dd>
 <dt class="flush">--color</dt><dd><p>Enable colored output for labels list.</p></dd>
 </dl>

@@ -57,6 +57,7 @@
     <a href="#SYNOPSIS">SYNOPSIS</a>
     <a href="#DESCRIPTION">DESCRIPTION</a>
     <a href="#COMMANDS">COMMANDS</a>
+    <a href="#CONVENTIONS">CONVENTIONS</a>
     <a href="#CONFIGURATION">CONFIGURATION</a>
     <a href="#BUGS">BUGS</a>
     <a href="#AUTHORS">AUTHORS</a>
@@ -115,7 +116,7 @@ git but that are extended through hub, and custom ones that hub provides.</p>
 <dt><a class="man-ref" href="hub-ci-status.1.html">hub-ci-status<span class="s">(1)</span></a></dt><dd><p>Display GitHub Status information for a commit.</p></dd>
 <dt><a class="man-ref" href="hub-compare.1.html">hub-compare<span class="s">(1)</span></a></dt><dd><p>Open a GitHub compare page in a web browser.</p></dd>
 <dt><a class="man-ref" href="hub-create.1.html">hub-create<span class="s">(1)</span></a></dt><dd><p>Create a new repository on GitHub and add a git remote for it.</p></dd>
-<dt><a class="man-ref" href="hub-delete.1.html">hub-delete<span class="s">(1)</span></a></dt><dd><p>Delete a repository on Github.</p></dd>
+<dt><a class="man-ref" href="hub-delete.1.html">hub-delete<span class="s">(1)</span></a></dt><dd><p>Delete a repository on GitHub.</p></dd>
 <dt><a class="man-ref" href="hub-fork.1.html">hub-fork<span class="s">(1)</span></a></dt><dd><p>Fork the current project on GitHub and add a git remote for it.</p></dd>
 <dt><a class="man-ref" href="hub-pull-request.1.html">hub-pull-request<span class="s">(1)</span></a></dt><dd><p>Create a GitHub pull request.</p></dd>
 <dt><a class="man-ref" href="hub-pr.1.html">hub-pr<span class="s">(1)</span></a></dt><dd><p>List and checkout GitHub pull requests.</p></dd>
@@ -124,6 +125,39 @@ git but that are extended through hub, and custom ones that hub provides.</p>
 <dt><a class="man-ref" href="hub-sync.1.html">hub-sync<span class="s">(1)</span></a></dt><dd><p>Fetch from upstream and update local branches.</p></dd>
 </dl>
 
+
+<h2 id="CONVENTIONS">CONVENTIONS</h2>
+
+<p>Most hub commands are supposed to be run in a context of an existing local git
+repository. Hub will automatically detect the GitHub repository the current
+project belongs to by scanning its git remotes.</p>
+
+<p>In case there are multiple git remotes that are all pointing to GitHub, hub
+assumes that the main one is named "upstream", "github", or "origin", in that
+order of preference.</p>
+
+<p>When working with forks, it's recommended that the git remote for your own fork
+is named "origin" and that the git remote for the upstream repository is named
+"upstream". See <a href="https://help.github.com/articles/configuring-a-remote-for-a-fork/" data-bare-link="true">https://help.github.com/articles/configuring-a-remote-for-a-fork/</a></p>
+
+<p>The default branch (usually "master") for the project is detected like so:</p>
+
+<pre><code>git symbolic-ref refs/remotes/origin/HEAD
+</code></pre>
+
+<p>where <var>origin</var> is the name of the git remote for the upstream repository.</p>
+
+<p>The destination where the currently checked out branch is considered to be
+pushed to depends on the <code>git config push.default</code> setting. If the value is
+"upstream" or "tracking", the tracking information for a branch is read like so:</p>
+
+<pre><code>git rev-parse --symbolic-full-name BRANCH@{upstream}
+</code></pre>
+
+<p>Otherwise, hub scans git remotes to find the first one for which
+<code>refs/remotes/REMOTE/BRANCH</code> exists. The "origin", "github", and "upstream"
+remotes are searched last because hub assumes that it's more likely that the
+current branch is pushed to your fork rather than to the canonical repo.</p>
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
 

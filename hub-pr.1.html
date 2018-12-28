@@ -87,13 +87,14 @@
 <h2 id="OPTIONS">OPTIONS</h2>
 
 <dl>
-<dt>-s, --state <var>STATE</var></dt><dd><p>Filter pull requests by <var>STATE</var> (default: "open").</p></dd>
-<dt>-h, --head [<var>OWNER</var>:]<var>BRANCH</var></dt><dd><p>Show pull requests started from the specified head <var>BRANCH</var>. The default
-value for <var>OWNER</var> is taken from the current repository.</p></dd>
-<dt>-b, --base <var>BRANCH</var></dt><dd><p>Show pull requests based on the specified <var>BRANCH</var>.</p></dd>
-<dt>-f, --format <var>FORMAT</var></dt><dd><p>Pretty print the list of pull requests using format <var>FORMAT</var> (default:
-"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of the
-git-log manual for some additional details on how placeholders are used in
+<dt>-s, --state=<var>STATE</var></dt><dd><p>Filter pull requests by <var>STATE</var>. Supported values are: "open" (default),
+"closed", "merged", or "all".</p></dd>
+<dt>-h, --head=<var>BRANCH</var></dt><dd><p>Show pull requests started from the specified head <var>BRANCH</var>. The
+"OWNER:BRANCH" format must be used for pull requests from forks.</p></dd>
+<dt>-b, --base=<var>BRANCH</var></dt><dd><p>Show pull requests based off the specified <var>BRANCH</var>.</p></dd>
+<dt>-f, --format=<var>FORMAT</var></dt><dd><p>Pretty print the list of pull requests using format <var>FORMAT</var> (default:
+"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
+<span class="man-ref">git-log<span class="s">(1)</span></span> for some additional details on how placeholders are used in
 format. The available placeholders are:</p>
 
 <p>%I: pull request number</p>
@@ -102,7 +103,7 @@ format. The available placeholders are:</p>
 
 <p>%U: the URL of this pull request</p>
 
-<p>%S: state (i.e. "open", "closed")</p>
+<p>%S: state ("open" or "closed")</p>
 
 <p>%sC: set color to red or green, depending on pull request state.</p>
 
@@ -116,7 +117,13 @@ format. The available placeholders are:</p>
 
 <p>%B: base branch</p>
 
+<p>%sB: base commit SHA</p>
+
 <p>%H: head branch</p>
+
+<p>%sH: head commit SHA</p>
+
+<p>%sm: merge commit SHA</p>
 
 <p>%au: login name of author</p>
 
@@ -146,10 +153,22 @@ format. The available placeholders are:</p>
 
 <p>%ut: updated date, UNIX timestamp</p>
 
-<p>%uI: updated date, ISO 8601 format</p></dd>
-<dt>-o, --sort <var>SORT_KEY</var></dt><dd><p>Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".</p></dd>
+<p>%uI: updated date, ISO 8601 format</p>
+
+<p>%mD: merged date-only (no time of day)</p>
+
+<p>%mr: merged date, relative</p>
+
+<p>%mt: merged date, UNIX timestamp</p>
+
+<p>%mI: merged date, ISO 8601 format</p>
+
+<p>%n: newline</p>
+
+<p>%%: a literal %</p></dd>
+<dt>-o, --sort=<var>SORT_KEY</var></dt><dd><p>Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".</p></dd>
 <dt>-^ --sort-ascending</dt><dd><p>Sort by ascending dates instead of descending.</p></dd>
-<dt>-L, --limit <var>LIMIT</var></dt><dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
+<dt>-L, --limit=<var>LIMIT</var></dt><dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
 </dl>
 
 

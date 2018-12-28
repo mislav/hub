@@ -110,22 +110,22 @@ and body unchanged, pass <code>-m ""</code>.</p></dd>
 <dt>-L, --limit</dt><dd><p>Display only the first <var>LIMIT</var> releases.</p></dd>
 <dt>-d, --draft</dt><dd><p>Create a draft release.</p></dd>
 <dt>-p, --prerelease</dt><dd><p>Create a pre-release.</p></dd>
-<dt>-a, --attach <var>FILE</var></dt><dd><p>Attach a file as an asset for this release.</p>
+<dt>-a, --attach=<var>FILE</var></dt><dd><p>Attach a file as an asset for this release.</p>
 
 <p>If <var>FILE</var> is in the "<var>filename</var>#<var>text</var>" format, the text after the <code>#</code>
 character is taken as asset label.</p></dd>
-<dt>-m, --message <var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the release
+<dt>-m, --message=<var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the release
 title, and the rest is used as release description in Markdown format.</p>
 
 <p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
 separate paragraphs.</p></dd>
-<dt>-F, --file <var>FILE</var></dt><dd><p>Read the release title and description from <var>FILE</var>.</p></dd>
+<dt>-F, --file=<var>FILE</var></dt><dd><p>Read the release title and description from <var>FILE</var>.</p></dd>
 <dt>-e, --edit</dt><dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
 <dt>-o, --browse</dt><dd><p>Open the new release in a web browser.</p></dd>
 <dt>-c, --copy</dt><dd><p>Put the URL of the new release to clipboard instead of printing it.</p></dd>
-<dt>-t, --commitish <var>TARGET</var></dt><dd><p>A commit SHA or branch name to attach the release to, only used if <var>TAG</var>
+<dt>-t, --commitish=<var>TARGET</var></dt><dd><p>A commit SHA or branch name to attach the release to, only used if <var>TAG</var>
 doesn`t already exist (default: main branch).</p></dd>
-<dt>-f, --format <var>FORMAT</var></dt><dd><p>Pretty print releases using <var>FORMAT</var> (default: "%T%n"). See the "PRETTY
+<dt>-f, --format=<var>FORMAT</var></dt><dd><p>Pretty print releases using <var>FORMAT</var> (default: "%T%n"). See the "PRETTY
 FORMATS" section of <span class="man-ref">git-log<span class="s">(1)</span></span> for some additional details on how
 placeholders are used in format. The available placeholders for issues are:</p>
 
@@ -163,7 +163,11 @@ placeholders are used in format. The available placeholders for issues are:</p>
 
 <p>%pt: published date, UNIX timestamp</p>
 
-<p>%pI: published date, ISO 8601 format</p></dd>
+<p>%pI: published date, ISO 8601 format</p>
+
+<p>%n: newline</p>
+
+<p>%%: a literal %</p></dd>
 <dt class="flush"><var>TAG</var></dt><dd><p>The git tag name for this release.</p></dd>
 </dl>
 

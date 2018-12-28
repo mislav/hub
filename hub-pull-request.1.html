@@ -83,7 +83,7 @@
 
 <dl>
 <dt>-f, --force</dt><dd><p>Skip the check for unpushed commits.</p></dd>
-<dt>-m, --message <var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the pull
+<dt>-m, --message=<var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the pull
 request title, and the rest is used as pull request description in Markdown
 format.</p>
 
@@ -91,20 +91,29 @@ format.</p>
 separate paragraphs.</p></dd>
 <dt>--no-edit</dt><dd><p>Use the message from the first commit on the branch as pull request title
 and description without opening a text editor.</p></dd>
-<dt>-F, --file <var>FILE</var></dt><dd><p>Read the pull request title and description from <var>FILE</var>.</p></dd>
+<dt>-F, --file=<var>FILE</var></dt><dd><p>Read the pull request title and description from <var>FILE</var>.</p></dd>
 <dt>-e, --edit</dt><dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
-<dt>-i, --issue <var>ISSUE</var>, <var>ISSUE-URL</var></dt><dd><p>(Deprecated) Convert <var>ISSUE</var> to a pull request.</p></dd>
+<dt>-i, --issue=<var>ISSUE</var></dt><dd><p>Convert an issue to a pull request. <var>ISSUE</var> may be an issue number or a URL.</p>
+
+<p>You can only convert issues that you<code>ve opened or that which you have admin
+rights over. In most workflows it isn</code>t necessary to convert issues to pull
+requests; you can simply reference the original issue in the body of the new
+pull request.</p></dd>
 <dt>-o, --browse</dt><dd><p>Open the new pull request in a web browser.</p></dd>
 <dt>-c, --copy</dt><dd><p>Put the URL of the new pull request to clipboard instead of printing it.</p></dd>
 <dt>-p, --push</dt><dd><p>Push the current branch to <var>HEAD</var> before creating the pull request.</p></dd>
-<dt>-b, --base <var>BASE</var></dt><dd><p>The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
-(usually "master").</p></dd>
-<dt>-h, --head <var>HEAD</var></dt><dd><p>The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.</p></dd>
-<dt>-r, --reviewer <var>USERS</var></dt><dd><p>A comma-separated list of GitHub handles to request a review from.</p></dd>
-<dt>-a, --assign <var>USERS</var></dt><dd><p>A comma-separated list of GitHub handles to assign to this pull request.</p></dd>
-<dt>-M, --milestone <var>NAME</var></dt><dd><p>The milestone name to add to this pull request. Passing the milestone number
+<dt>-b, --base=<var>BASE</var></dt><dd><p>The base branch in the "[<var>OWNER</var>:]<var>BRANCH</var>" format. Defaults to the default
+branch of the upstream repository (usually "master").</p>
+
+<p>See the "CONVENTIONS" section of <a class="man-ref" href="hub.1.html">hub<span class="s">(1)</span></a> for more information on how hub
+selects the defaults in case of multiple git remotes.</p></dd>
+<dt>-h, --head=<var>HEAD</var></dt><dd><p>The head branch in "[<var>OWNER</var>:]<var>BRANCH</var>" format. Defaults to the currently
+checked out branch.</p></dd>
+<dt>-r, --reviewer=<var>USERS</var></dt><dd><p>A comma-separated list of GitHub handles to request a review from.</p></dd>
+<dt>-a, --assign=<var>USERS</var></dt><dd><p>A comma-separated list of GitHub handles to assign to this pull request.</p></dd>
+<dt>-M, --milestone=<var>NAME</var></dt><dd><p>The milestone name to add to this pull request. Passing the milestone number
 is deprecated.</p></dd>
-<dt>-l, --labels <var>LABELS</var></dt><dd><p>Add a comma-separated list of labels to this pull request. Labels will be
+<dt>-l, --labels=<var>LABELS</var></dt><dd><p>Add a comma-separated list of labels to this pull request. Labels will be
 created if they don`t already exist.</p></dd>
 </dl>
 
