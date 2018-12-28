@@ -10,7 +10,6 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/github/hub/git"
-	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
@@ -79,20 +78,6 @@ func isCloneable(file string) bool {
 			return false
 		}
 	}
-}
-
-func gitRemoteForProject(project *github.Project) (foundRemote *github.Remote) {
-	remotes, err := github.Remotes()
-	utils.Check(err)
-	for _, remote := range remotes {
-		remoteProject, pErr := remote.Project()
-		if pErr == nil && remoteProject.SameAs(project) {
-			foundRemote = &remote
-			return
-		}
-	}
-
-	return nil
 }
 
 func isEmptyDir(path string) bool {

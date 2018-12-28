@@ -169,8 +169,21 @@ func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
 			}
 		}
 	}
+	return nil, fmt.Errorf("could not find a git remote for '%s/%s'", repo.Owner.Login, repo.Name)
+}
 
-	return nil, fmt.Errorf("could not find git remote for %s/%s", repo.Owner.Login, repo.Name)
+func (r *GitHubRepo) RemoteForProject(project *Project) (*Remote, error) {
+	if err := r.loadRemotes(); err != nil {
+		return nil, err
+	}
+
+	for _, remote := range r.remotes {
+		remoteProject, err := remote.Project()
+		if err == nil && remoteProject.SameAs(project) {
+			return &remote, nil
+		}
+	}
+	return nil, fmt.Errorf("could not find a git remote for '%s'", project)
 }
 
 func (r *GitHubRepo) MainRemote() (remote *Remote, err error) {

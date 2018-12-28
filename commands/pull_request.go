@@ -185,9 +185,9 @@ func pullRequest(cmd *Command, args *Args) {
 		flagPullRequestIssue = parsePullRequestIssueNumber(arg)
 	}
 
-	if base == "" {
-		masterBranch := localRepo.MasterBranch()
-		base = masterBranch.ShortName()
+	baseRemote, _ := localRepo.RemoteForProject(baseProject)
+	if base == "" && baseRemote != nil {
+		base = localRepo.DefaultBranch(baseRemote).ShortName()
 	}
 
 	if head == "" && trackedBranch != nil {
@@ -237,12 +237,12 @@ func pullRequest(cmd *Command, args *Args) {
 	baseTracking := base
 	headTracking := head
 
-	remote := gitRemoteForProject(baseProject)
+	remote := baseRemote
 	if remote != nil {
 		baseTracking = fmt.Sprintf("%s/%s", remote.Name, base)
 	}
 	if remote == nil || !baseProject.SameAs(headProject) {
-		remote = gitRemoteForProject(headProject)
+		remote, _ = localRepo.RemoteForProject(headProject)
 	}
 	if remote != nil {
 		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)

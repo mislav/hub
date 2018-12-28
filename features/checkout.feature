@@ -76,7 +76,7 @@ Feature: hub checkout <PULLREQ-URL>
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
-      could not find git remote for mislav/jekyll\n
+      could not find a git remote for 'mislav/jekyll'\n
       """
 
   Scenario: Custom name for new branch
