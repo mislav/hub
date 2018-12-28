@@ -41,6 +41,43 @@
   ol.man-decor li.tc {text-align:center;letter-spacing:4px}
   ol.man-decor li.tr {text-align:right;float:right}
   </style>
+  <style type='text/css' media='screen'>
+  /* style: screen */
+  body {margin:0}
+  #man {max-width:88ex;padding:0 2ex 1ex 2ex}
+  #man p,#man pre,#man ul,#man ol,#man dl {margin:0 0 20px 0}
+  #man h2 {margin:10px 0 0 0}
+  #man > p,#man > pre,#man > ul,#man > ol,#man > dl {margin-left:8ex}
+  #man h3 {margin:0 0 0 4ex}
+  #man dt {margin:0;clear:left}
+  #man dt.flush {float:left;width:8ex}
+  #man dd {margin:0 0 0 9ex}
+  #man h1,#man h2,#man h3,#man h4 {clear:left}
+  #man pre {margin-bottom:20px}
+  #man pre+h2,#man pre+h3 {margin-top:22px}
+  #man h2+pre,#man h3+pre {margin-top:5px}
+  #man img {display:block;margin:auto}
+  #man h1.man-title {display:none}
+  #man,#man code,#man pre,#man tt,#man kbd,#man samp,#man h3,#man h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  #man h2,#man ol.man {font-size:16px;line-height:1.25
+  }
+  #man h1 {font-size:20px;line-height:2}
+  #man {text-align:justify;background:#fff}
+  #man,#man code,#man pre,#man pre code,#man tt,#man kbd,#man samp {color:#131211}
+  #man h1,#man h2,#man h3,#man h4 {color:#030201}
+  #man ol.man,#man ol.man li {color:#636261}
+  #man code,#man strong,#man b {font-weight:bold;color:#131211}
+  #man em,#man var,#man u {font-style:italic;color:#434241;text-decoration:none}
+  #man pre {background:#edeceb;padding:5px 1ex;border-left:1ex solid #ddd}
+  #man pre code {font-weight:normal;background:inherit}
+  #man ol.man,#man ol.man li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  #man ol.man {width:100%}
+  #man ol.man li.tl {text-align:left}
+  #man ol.man li.tc {text-align:center;letter-spacing:4px}
+  #man ol.man li.tr {text-align:right;float:right}
+  #man div.man-navigation {position:fixed;top:0;left:96ex;height:100%;width:100%;padding:1ex 0 0 2ex;border-left:0.25ex solid #DCDCDC;background-color: #F5F5F5}
+  #man div.man-navigation a {display:block;margin-bottom:1.5ex}
+  </style>
 </head>
 <!--
   The following styles are deprecated and will be removed at some point:
@@ -73,7 +110,7 @@
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
-<p><code>hub pr</code> list [-s <var>STATE</var>] [-h <var>HEAD</var>] [-b <var>BASE</var>] [-o <var>SORT_KEY</var> [-<sup>]]</sup> [-f <var>FORMAT</var>] [-L <var>LIMIT</var>]<br />
+<p><code>hub pr</code> list [-s <var>STATE</var>] [-h <var>HEAD</var>] [-b <var>BASE</var>] [-o <var>SORT_KEY</var> [<code>-^</code>]] [-f <var>FORMAT</var>] [-L <var>LIMIT</var>]<br />
 <code>hub pr</code> checkout <var>PR-NUMBER</var> [<var>BRANCH</var>]</p>
 
 <h2 id="COMMANDS">COMMANDS</h2>
@@ -174,7 +211,7 @@ format. The available placeholders are:</p>
 
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
-<p><a class="man-ref" href="hub-issue.1.html">hub-issue<span class="s">(1)</span></a>, <a class="man-ref" href="hub-pull-request.1.html">hub-pull-request<span class="s">(1)</span></a>, <a class="man-ref" href="hub.1.html">hub<span class="s">(1)</span></a></p>
+<p><span class="man-ref">hub-issue<span class="s">(1)</span></span>, <span class="man-ref">hub-pull-request<span class="s">(1)</span></span>, <span class="man-ref">hub<span class="s">(1)</span></span></p>
 
 
   <ol class='man-decor man-foot man foot'>

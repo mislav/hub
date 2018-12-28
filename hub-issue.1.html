@@ -41,6 +41,12 @@
   ol.man-decor li.tc {text-align:center;letter-spacing:4px}
   ol.man-decor li.tr {text-align:right;float:right}
   </style>
+  <style type='text/css' media='all'>
+  /* style: toc */
+  .man-navigation {display:block !important;position:fixed;top:0;left:113ex;height:100%;width:100%;padding:48px 0 0 0;border-left:1px solid #dbdbdb;background:#eee}
+  .man-navigation a,.man-navigation a:hover,.man-navigation a:link,.man-navigation a:visited {display:block;margin:0;padding:5px 2px 5px 30px;color:#999;text-decoration:none}
+  .man-navigation a:hover {color:#111;text-decoration:underline}
+  </style>
 </head>
 <!--
   The following styles are deprecated and will be removed at some point:
@@ -72,7 +78,7 @@
 
 <h2 id="SYNOPSIS">SYNOPSIS</h2>
 
-<p><code>hub issue</code> [-a <var>ASSIGNEE</var>] [-c <var>CREATOR</var>] [-@ <var>USER</var>] [-s <var>STATE</var>] [-f <var>FORMAT</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>] [-d <var>DATE</var>] [-o <var>SORT_KEY</var> [-<sup>]]</sup> [-L <var>LIMIT</var>]<br />
+<p><code>hub issue</code> [-a <var>ASSIGNEE</var>] [-c <var>CREATOR</var>] [-@ <var>USER</var>] [-s <var>STATE</var>] [-f <var>FORMAT</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>] [-d <var>DATE</var>] [-o <var>SORT_KEY</var> [<code>-^</code>]] [-L <var>LIMIT</var>]<br />
 <code>hub issue</code> show [-f <var>FORMAT</var>] <var>NUMBER</var><br />
 <code>hub issue</code> create [-oc] [-m <var>MESSAGE</var>|-F <var>FILE</var>] [--edit] [-a <var>USERS</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>]<br />
 <code>hub issue</code> labels [--color]</p>

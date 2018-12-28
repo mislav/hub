@@ -136,14 +136,15 @@ $ hub pull-request -F - --edit &lt; path/to/message-template.md
 
 <h2 id="CONFIGURATION">CONFIGURATION</h2>
 
-<p>  HUB_RETRY_TIMEOUT=<var>SECONDS</var></p>
+<dl>
+<dt><code>HUB_RETRY_TIMEOUT</code></dt><dd>The maximum time to keep retrying after HTTP 422 on <code>--push</code> (default: 9).</dd>
+</dl>
 
-<pre><code>The maximum time to keep retrying after HTTP 422 on `--push` (default: 9).
-</code></pre>
 
 <h2 id="SEE-ALSO">SEE ALSO</h2>
 
-<p><a class="man-ref" href="hub.1.html">hub<span class="s">(1)</span></a>, <a class="man-ref" href="hub-merge.1.html">hub-merge<span class="s">(1)</span></a>, <a class="man-ref" href="hub-checkout.1.html">hub-checkout<span class="s">(1)</span></a></p>
+<p><a class="man-ref" href="hub.1.html">hub<span class="s">(1)</span></a>, <a class="man-ref" href="hub-merge.1.html">hub-merge<span class="s">(1)</span></a>, <a class="man-ref" href="hub-checkout.1.html">hub-checkout<span class="s">(1)</span></a>
+<span class="man-ref">kout<span class="s">(1)</span></span></p>
 
 
   <ol class='man-decor man-foot man foot'>
