@@ -2,9 +2,12 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
+	"regexp"
 	"strings"
 	"text/template"
 
@@ -19,6 +22,8 @@ var (
 	flagTemplate,
 	flagDate string
 
+	xRefRe = regexp.MustCompile(`\b(?P<name>[a-z][\w-]*)\((?P<section>\d)\)`)
+
 	pageIndex map[string]bool
 )
 
@@ -27,6 +32,7 @@ func init() {
 	flag.StringVarP(&flagVersion, "version", "", "", "VERSION")
 	flag.StringVarP(&flagTemplate, "template", "t", "", "TEMPLATE")
 	flag.StringVarP(&flagDate, "date", "d", "", "DATE")
+	pageIndex = make(map[string]bool)
 }
 
 type templateData struct {
@@ -88,6 +94,21 @@ func generateFromFile(mdFile string) error {
 			content = strings.Join(contentLines[1:], "\n")
 		}
 
+		currentPage := fmt.Sprintf("%s(%d)", roff.Name, roff.Section)
+		content = xRefRe.ReplaceAllStringFunc(content, func(match string) string {
+			if match == currentPage {
+				return match
+			} else {
+				matches := xRefRe.FindAllStringSubmatch(match, 1)
+				fileName := fmt.Sprintf("%s.%s", matches[0][1], matches[0][2])
+				if pageIndex[fileName] {
+					return fmt.Sprintf(`<a href="./%s.html">%s</a>`, fileName, match)
+				} else {
+					return match
+				}
+			}
+		})
+
 		tmplData := templateData{
 			Manual:   roff.Manual,
 			Date:     roff.Date,
@@ -117,6 +138,12 @@ func generateFromFile(mdFile string) error {
 
 func main() {
 	flag.Parse()
+
+	for _, infile := range flag.Args() {
+		name := path.Base(infile)
+		name = strings.TrimSuffix(name, ".md")
+		pageIndex[name] = true
+	}
 
 	for _, infile := range flag.Args() {
 		err := generateFromFile(infile)
