@@ -155,6 +155,10 @@ With no arguments, show a list of open issues.
 
 	--color
 		Enable colored output for labels list.
+
+## See also:
+
+hub-pr(1), hub(1)
 `,
 	}
 
