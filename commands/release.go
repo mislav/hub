@@ -51,10 +51,10 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		and body unchanged, pass '-m ""'.
 
 	* _download_:
-	  Download the assets attached to release for the specified <TAG>.
+		Download the assets attached to release for the specified <TAG>.
 
 	* _delete_:
-	  Delete the release and associated assets for the specified <TAG>.
+		Delete the release and associated assets for the specified <TAG>.
 
 ## Options:
 	-L, --limit
