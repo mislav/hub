@@ -7,10 +7,8 @@
 <style>
 
   body {
-    font: 100% Helvetica, Arial, sans-serif;
-    background: #ced0d8;
-    width: 750px;
-    margin: 2em auto;
+    font: 100% -apple-system, Segoe UI, Helvetica, Arial, sans-serif;
+    margin: 0;
   }
 
 
@@ -25,16 +23,23 @@
     color: rgb(35, 101, 166);
   }
 
+  header {
+    background: #ced0d8;
+    float: left;
+    width: 100%;
+    text-align: center;
+    padding: 2em 0;
+  }
 
   h1 {
-    font: 400 1.3em "Futura", "Lucida Grande", Helvetica, Arial, sans-serif;
+    font: 400 1.3em Futura, Lucida Grande, -apple-system, Helvetica, Arial, sans-serif;
     text-transform: uppercase;
     color: white;
     text-shadow: rgba(0,0,0,.7) 1px 1px 2px;
     margin: .2em 0;
     line-height: 1.2;
     float: left;
-    width: 75%;
+    width: 90%;
   }
 
   h1 a {
@@ -59,52 +64,30 @@
   }
 
 
-  .man {
-    text-align: right;
-    float: right;
-    width: 25%;
-    padding-top: 5em;
-    color: gray;
-    text-transform: lowercase;
-    font-size: .9em;
-  }
-
-
-  h2,
-  .man,
-  .footer {
+  footer {
     text-shadow: rgba(255,255,255,.8) 0 1px 0;
   }
 
   h2 {
-    margin: 1em 0 0em 0;
+    margin: 0;
     color: #444;
   }
 
 
   p code,
-  .man a,
+  footer,
   pre {
-    font: 15px Monaco, Courier, monospace;
-    font-weight: 600;
+    font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, Courier, monospace;
   }
 
 
   section {
+    max-width: 100ex;
     clear: both;
-    background: white;
     color: #444;
     padding: 1em;
-    margin: 12px 0 0 0;
-    -webkit-border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-box-shadow: rgba(0,0,0,.4) 1px 1px 4px;
-    -moz-box-shadow: rgba(0,0,0,.4) 1px 1px 4px;
+    margin: 12px auto 0;
     line-height: 1.5;
-  }
-
-  section > *:first-child {
-    margin-top: 0;
   }
 
   section p {
@@ -115,42 +98,41 @@
     font-style: normal;
     background: #fcf4c1;
     padding: 1px 4px;
-    -webkit-border-radius: 3px;
-    -moz-border-radius: 3px;
+    border-radius: 3px;
   }
 
 
   pre {
     margin: .5em 0 0 0;
-    border-top: 1px dotted silver;
-    padding-top: 1em;
     line-height: 1.5;
+    background: #222;
+    border-radius: 5px;
+    padding: 1em 1.5em;
+    color: white;
   }
 
   pre .comment {
     color: #969896;
-    font: italic 1.2em "Hoefler Text", "Times New Roman", "Georgia", serif;
     line-height: 1.4;
     white-space: pre-wrap;
   }
 
   pre .comment .hidden {
-    color: white;
+    color: #222;
   }
 
   pre .result {
     color: #777;
-    font-style: italic;
     margin-left: 1em;
   }
 
   pre strong {
-    color: #894400;
-    font-weight: 600;
+    color: #dada82;
+    font-weight: 400;
   }
 
 
-  .footer {
+  footer {
     text-align: center;
     margin-top: 15px;
     color: gray;
@@ -182,16 +164,10 @@
       margin-top: 0;
     }
 
-    h1,
-    .man {
+    h1 {
       width: auto;
       text-align: center;
       float: none;
-    }
-
-    .man {
-      padding-top: 0;
-      padding-right: 10px;
     }
 
     h1 a {
@@ -218,7 +194,7 @@
 
     section p em {
       padding: 0;
-      -webkit-border-radius: 0;
+      border-radius: 0;
     }
 
     pre {
@@ -240,27 +216,27 @@
 </style>
 
 <body>
-<h1><a href="https://github.com/github/hub#readme">hub</a> makes git better with GitHub</h1>
-
-<p class="man">Documentation: <a href="hub.1.html">man hub</a></p>
+<header>
+<h1><a href="https://github.com/github/hub#readme">hub</a>: use GitHub from the command-line</h1>
+</header>
 
 <section id=install>
 <p>
-<strong>hub</strong> is a command-line wrapper for git that makes you
-<em>better at GitHub</em>.
+<strong>hub</strong> is <em>an extension to command-line git</em> that
+helps you do everyday GitHub tasks without ever leaving the terminal.
 </p>
+<p>Read the full documentation: <a href="hub.1.html">man hub</a>, or
+visit this project <a href="https://github.com/github/hub">on GitHub</a>.</p>
 
 <pre><span class="comment"># macOS: install the latest release</span>
 $ <a href="http://brew.sh/">brew</a> install hub
 
-<span class="comment"># Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or <a href="https://github.com/github/hub#source">build your own from source</a>.</span>
+<span class="comment"># Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or
+# <a href="https://github.com/github/hub#source">build your own from source</a>.</span>
 
-<span class="comment"># alias it as git</span>
-$ alias <strong>git=hub</strong>
-
-$ git version
-git version 2.17.0
-hub version 2.3.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
+$ hub version
+git version 2.20.1
+hub version 2.7.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
 </pre>
 </section>
 
@@ -275,41 +251,60 @@ command-line.
 
 <pre>
 <span class="comment"># clone your own project</span>
-$ git <strong>clone dotfiles</strong>
+$ <strong>hub clone</strong> dotfiles
 <span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
 
 <span class="comment"># clone another project</span>
-$ git <strong>clone github/hub</strong>
+$ <strong>hub clone</strong> github/hub
 <span class="result">→ git clone git://github.com/github/hub.git</span>
 
 <span class="comment"># open the current project's issues page</span>
-$ git <strong>browse -- issues</strong>
+$ <strong>hub browse</strong> -- issues
 <span class="result">→ open https://github.com/github/hub/issues</span>
 
 <span class="comment"># open another project's wiki</span>
-$ git <strong>browse mojombo/jekyll wiki</strong>
+$ <strong>hub browse</strong> mojombo/jekyll wiki
 <span class="result">→ open https://github.com/mojombo/jekyll/wiki</span>
 </pre>
 
 <pre>
 <span class="comment"># Example workflow for contributing to a project:</span>
-$ git clone github/hub
+$ hub clone github/hub
 $ cd hub
 <span class="comment"># create a topic branch</span>
 $ git checkout -b feature
-  ( making changes ... )
+<span class="comment"># make some changes...</span>
 $ git commit -m "done with feature"
 
 <span class="comment"># It's time to fork the repo!</span>
-$ git <strong>fork</strong>
+$ <strong>hub fork</strong> --remote-name=origin
 <span class="result">→ (forking repo on GitHub...)</span>
-<span class="result">→ git remote add YOUR_USER git://github.com/YOUR_USER/hub.git</span>
+<span class="result">→ git remote add origin git@github.com:YOUR_USER/hub.git</span>
 
 <span class="comment"># push the changes to your new remote</span>
-$ git push YOUR_USER feature
+$ git push origin feature
 <span class="comment"># open a pull request for the topic branch you've just pushed</span>
-$ git <strong>pull-request</strong>
+$ <strong>hub pull-request</strong>
 <span class="result">→ (opens a text editor for your pull request message)</span>
+</pre>
+</section>
+
+<section id=scripting>
+<h2>As someone who loves automation</h2>
+<p>
+<em>Scripting your workflows</em> is much easier now that you can <em>list and create</em>
+issues, pull requests, and GitHub releases.
+</p>
+
+<pre>
+<span class="comment"># List issues assigned to you that are labeled "urgent"</span>
+$ <strong>hub issue</strong> -a YOUR_USER -l urgent
+
+<span class="comment"># List the URLs of at most 20 PRs based on "develop" branch:</span>
+$ <strong>hub pr list</strong> -L 20 -b develop --format='%t [%H] | %U%n'
+
+<span class="comment"># Create a GitHub release with notes from a file and copy the URL to clipboard:</span>
+$ <strong>hub release create</strong> -c -F release-notes.txt v2.3.0
 </pre>
 </section>
 
@@ -323,31 +318,31 @@ Maintaining a project is easier when you can <em>easily fetch from other forks</
 
 <pre>
 <span class="comment"># fetch from multiple trusted forks, even if they don't yet exist as remotes</span>
-$ git <strong>fetch mislav,cehoffman</strong>
+$ <strong>hub fetch</strong> mislav,cehoffman
 <span class="result">→ git remote add mislav git://github.com/mislav/hub.git</span>
 <span class="result">→ git remote add cehoffman git://github.com/cehoffman/hub.git</span>
 <span class="result">→ git fetch --multiple mislav cehoffman</span>
 
 <span class="comment"># check out a pull request for review</span>
-$ git <strong>checkout https://github.com/github/hub/pull/134</strong>
+$ <strong>hub pr checkout</strong> 134
 <span class="result">→ (creates a new branch with the contents of the pull request)</span>
 
 <span class="comment"># directly apply all commits from a pull request to the current branch</span>
-$ git <strong>am -3</strong> https://github.com/github/hub/pull/134
+$ <strong>hub am -3</strong> https://github.com/github/hub/pull/134
 
 <span class="comment"># cherry-pick a GitHub URL</span>
-$ git <strong>cherry-pick https://github.com/xoebus/hub/commit/177eeb8</strong>
+$ <strong>hub cherry-pick</strong> https://github.com/xoebus/hub/commit/177eeb8
 
 <span class="comment"># open the GitHub compare view between two releases</span>
-$ git <strong>compare v0.9..v1.0</strong>
+$ <strong>hub compare</strong> v0.9..v1.0
 
 <span class="comment"># put compare URL for a topic branch to clipboard</span>
-$ git <strong>compare -u feature | pbcopy</strong>
+$ <strong>hub compare -u</strong> feature | pbcopy
 
 <span class="comment"># create a repo for a new project</span>
 $ git init
 $ git add . &amp;&amp; git commit -m "It begins."
-$ git <strong>create -d "My new thing"</strong>
+$ <strong>hub create</strong> -d "My new thing"
 <span class="result">→ (creates a new project on GitHub with the name of current directory)</span>
 $ git push origin master
 </pre>
@@ -363,22 +358,21 @@ is supported.
 
 <pre>
 <span class="comment"># whitelist your GitHub Enterprise hostname</span>
-$ git config --global --add hub.host <strong>my.example.org</strong>
+$ git config --global --add <strong>hub.host my.example.org</strong>
 
 <span class="comment"># open a pull request using a message generated from script, then put its URL to the clipboard</span>
 $ git push origin feature
-$ git <strong>pull-request -c -F prepared-message.md</strong>
+$ <strong>hub pull-request</strong> -c -F prepared-message.md
 <span class="result">→ (URL ready for pasting in a chat room)</span>
 
 <span class="comment"># push to multiple remotes</span>
-$ git <strong>push production,staging</strong>
+$ <strong>hub push</strong> production,staging
 </pre>
 </section>
 
-<p class=footer>
-Found a bug, have an idea? Contribute to
-<a href="https://github.com/github/hub">this project on GitHub</a>.
-</p>
+<footer>
+<p>made with &lt;3 at GitHub</p>
+</footer>
 
 <script>
   var _gauges = _gauges || [];
