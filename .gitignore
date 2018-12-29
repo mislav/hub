@@ -4,7 +4,7 @@
 .bundle
 bundle/
 share/man/*
-!share/man/man1/hub.1.ronn
+!share/man/man1/hub.1.md
 tmp/
 *.test
 target

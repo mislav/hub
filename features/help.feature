@@ -15,4 +15,4 @@ Feature: hub help
 
   Scenario: Shows help for a subcommand
     When I successfully run `hub help hub-help`
-    Then the output should contain "Usage: hub help"
+    Then the output should contain "`hub help` hub-<COMMAND>"
