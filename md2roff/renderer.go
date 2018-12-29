@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"regexp"
+	"strconv"
 
 	"github.com/russross/blackfriday"
 )
@@ -35,8 +36,11 @@ func escape(src []byte, re *regexp.Regexp) []byte {
 }
 
 type RoffRenderer struct {
-	Manual string
-	Date   string
+	Manual  string
+	Date    string
+	Title   string
+	Name    string
+	Section uint8
 
 	listWasTerm bool
 }
@@ -89,7 +93,7 @@ func (r *RoffRenderer) RenderNode(buf io.Writer, node *blackfriday.Node, enterin
 				}
 			}
 		case blackfriday.Heading:
-			renderHeading(buf, node, r.Date, r.Manual)
+			r.renderHeading(buf, node)
 			return blackfriday.SkipChildren
 		}
 	}
@@ -147,7 +151,7 @@ func textContent(node *blackfriday.Node) []byte {
 	return buf.Bytes()
 }
 
-func renderHeading(buf io.Writer, node *blackfriday.Node, date, version string) {
+func (r *RoffRenderer) renderHeading(buf io.Writer, node *blackfriday.Node) {
 	text := textContent(node)
 	switch node.HeadingData.Level {
 	case 1:
@@ -155,12 +159,17 @@ func renderHeading(buf io.Writer, node *blackfriday.Node, date, version string) 
 		var num []byte
 		if match := titleRe.FindAllSubmatch(text, 1); match != nil {
 			name, num, text = match[0][1], match[0][2], match[0][3]
+			r.Name = string(name)
+			if sectionNum, err := strconv.Atoi(string(num)); err == nil {
+				r.Section = uint8(sectionNum)
+			}
+			r.Title = string(text)
 		}
 		fmt.Fprintf(buf, ".TH \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"\n",
 			escape(name, headingEscape),
 			num,
-			escape([]byte(date), headingEscape),
-			escape([]byte(version), headingEscape),
+			escape([]byte(r.Date), headingEscape),
+			escape([]byte(r.Manual), headingEscape),
 			escape(text, headingEscape),
 		)
 		io.WriteString(buf, ".nh\n")   // disable hyphenation

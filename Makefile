@@ -1,4 +1,6 @@
 SOURCES = $(shell script/build files)
+TODAY_DATE = $(shell date '+%d %b %Y')
+HUB_VERSION = $(shell hub version | tail -1)
 
 MIN_COVERAGE = 89.4
 
@@ -59,8 +61,11 @@ man-pages: $(HELP_ALL:=.md) $(HELP_ALL) $(HELP_ALL:=.txt)
 	groff -Wall -mtty-char -mandoc -Tutf8 -rLL=$(TEXT_WIDTH)n $< | col -b >$@
 
 $(HELP_ALL): share/man/.man-pages.stamp
-share/man/.man-pages.stamp: $(HELP_ALL:=.md)
-	go run md2roff-bin/cmd.go --organization=GITHUB --manual="Hub Manual" share/man/man1/*.md
+share/man/.man-pages.stamp: $(HELP_ALL:=.md) ./man-template.html
+	go run md2roff-bin/cmd.go --manual="hub manual" \
+		--date="$(TODAY_DATE)" --version="$(HUB_VERSION)" \
+		--template=./man-template.html \
+		share/man/man1/*.md
 	touch $@
 
 %.1.md: bin/hub
