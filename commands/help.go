@@ -29,15 +29,15 @@ help hub-<COMMAND> [--plain-text]
 	--plain-text
 		Skip man page lookup mechanism and display plain help text.
 
-## Man lookup mechanism:
+## Lookup mechanism:
 
 On systems that have 'man', help pages are looked up in these directories
-relative to 'hub' install prefix:
+relative to the hub install prefix:
 
-* 'man/<command>.1'
-* 'share/man/man1/<command>.1'
+* man/<command>.1
+* share/man/man1/<command>.1
 
-On systems without 'man', same help pages are looked up with a '.txt' suffix.
+On systems without 'man', help pages are looked up using the ".txt" extension.
 
 ## See also:
 
