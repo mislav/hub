@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 
 	"github.com/github/hub/ui"
@@ -107,9 +108,28 @@ func (c *Command) Synopsis() string {
 }
 
 func (c *Command) HelpText() string {
-	return fmt.Sprintf("%s\n\n%s",
-		strings.Replace(c.Synopsis(), "-^", "`-^`", 1),
-		strings.Replace(c.Long, "'", "`", -1))
+	usage := strings.Replace(c.Usage, "-^", "`-^`", 1)
+	usageRe := regexp.MustCompile(`(?m)^([a-z-]+)(.*)$`)
+	usage = usageRe.ReplaceAllString(usage, "`hub $1`$2  ")
+	usage = strings.TrimSpace(usage)
+
+	var desc string
+	long := strings.TrimSpace(c.Long)
+	if lines := strings.Split(long, "\n"); len(lines) > 1 {
+		desc = lines[0]
+		long = strings.Join(lines[1:], "\n")
+	}
+
+	long = strings.Replace(long, "'", "`", -1)
+	headingRe := regexp.MustCompile(`(?m)^(## .+):$`)
+	long = headingRe.ReplaceAllString(long, "$1")
+
+	indentRe := regexp.MustCompile(`(?m)^\t`)
+	long = indentRe.ReplaceAllLiteralString(long, "")
+	definitionListRe := regexp.MustCompile(`(?m)^(\* )?([^#\s][^\n]*?):?\n\t`)
+	long = definitionListRe.ReplaceAllString(long, "$2\n:\t")
+
+	return fmt.Sprintf("hub-%s(1) -- %s\n===\n\n## Synopsis\n\n%s\n%s", c.Name(), desc, usage, long)
 }
 
 func (c *Command) Name() string {

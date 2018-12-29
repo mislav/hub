@@ -44,7 +44,7 @@ if [ "$os" = "windows" ]; then
 else
   cp -R README.md LICENSE etc share "$tmpdir"
   rm -rf "${tmpdir}/share/man/"*/*.html
-  rm -rf "${tmpdir}/share/man/"*/*.ronn
+  rm -rf "${tmpdir}/share/man/"*/*.md
   cp script/install.sh "${tmpdir}/install"
   chmod +x "${tmpdir}/install"
 fi

@@ -47,26 +47,26 @@ else
 	script/test
 endif
 
-bin/ronn bin/cucumber:
+bin/cucumber:
 	script/bootstrap
 
 fmt:
 	go fmt ./...
 
-man-pages: $(HELP_ALL:=.ronn) $(HELP_ALL) $(HELP_ALL:=.txt)
+man-pages: $(HELP_ALL:=.md) $(HELP_ALL) $(HELP_ALL:=.txt)
 
-%.txt: %.ronn
+%.txt: %
 	groff -Wall -mtty-char -mandoc -Tutf8 -rLL=$(TEXT_WIDTH)n $< | col -b >$@
 
 $(HELP_ALL): share/man/.man-pages.stamp
-share/man/.man-pages.stamp: bin/ronn $(HELP_ALL:=.ronn)
-	bin/ronn --organization=GITHUB --manual="Hub Manual" share/man/man1/*.ronn
+share/man/.man-pages.stamp: $(HELP_ALL:=.md)
+	go run md2roff-bin/cmd.go --organization=GITHUB --manual="Hub Manual" share/man/man1/*.md
 	touch $@
 
-%.1.ronn: bin/hub
-	bin/hub help $(*F) --plain-text | script/format-ronn $(*F) $@
+%.1.md: bin/hub
+	bin/hub help $(*F) --plain-text >$@
 
-share/man/man1/hub.1.ronn:
+share/man/man1/hub.1.md:
 	true
 
 install: bin/hub man-pages

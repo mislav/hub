@@ -1,94 +1,96 @@
 hub(1) -- make git easier with GitHub
 =====================================
 
-## SYNOPSIS
+## Synopsis
 
-`hub` [`--noop`] <COMMAND> [<OPTIONS>]  
-`hub alias` [`-s`] [<SHELL>]  
+`hub` [--noop] <COMMAND> [<OPTIONS>]  
+`hub alias` [-s] [<SHELL>]  
 `hub help` hub-<COMMAND>
 
-## DESCRIPTION
+## Description
 
 Hub is a tool that wraps git in order to extend it with extra functionality that
 makes it better when working with GitHub.
 
-## COMMANDS
+## Commands
 
 Available commands are split into two groups: those that are already present in
 git but that are extended through hub, and custom ones that hub provides.
 
 ### Extended git commands
-  * hub-am(1):
-    Replicate commits from a GitHub pull request locally.
 
-  * hub-apply(1):
-    Download a patch from GitHub and apply it locally.
+hub-am(1)
+:   Replicate commits from a GitHub pull request locally.
 
-  * hub-checkout(1):
-    Check out the head of a pull request as a local branch.
+hub-apply(1)
+:   Download a patch from GitHub and apply it locally.
 
-  * hub-cherry-pick(1):
-    Cherry-pick a commit from a fork on GitHub.
+hub-checkout(1)
+:   Check out the head of a pull request as a local branch.
 
-  * hub-clone(1):
-    Clone a repository from GitHub.
+hub-cherry-pick(1)
+:   Cherry-pick a commit from a fork on GitHub.
 
-  * hub-fetch(1):
-    Add missing remotes prior to performing git fetch.
+hub-clone(1)
+:   Clone a repository from GitHub.
 
-  * hub-init(1):
-    Initialize a git repository and add a remote pointing to GitHub.
+hub-fetch(1)
+:   Add missing remotes prior to performing git fetch.
 
-  * hub-merge(1):
-    Merge a pull request locally with a message like the GitHub Merge Button.
+hub-init(1)
+:   Initialize a git repository and add a remote pointing to GitHub.
 
-  * hub-push(1):
-    Push a git branch to each of the listed remotes.
+hub-merge(1)
+:   Merge a pull request locally with a message like the GitHub Merge Button.
 
-  * hub-remote(1):
-    Add a git remote for a GitHub repository.
+hub-push(1)
+:   Push a git branch to each of the listed remotes.
 
-  * hub-submodule(1):
-    Add a git submodule for a GitHub repository.
+hub-remote(1)
+:   Add a git remote for a GitHub repository.
+
+hub-submodule(1)
+:   Add a git submodule for a GitHub repository.
 
 ### New commands provided by hub
-  * hub-alias(1):
-    Show shell instructions for wrapping git.
 
-  * hub-browse(1):
-    Open a GitHub repository in a web browser.
+hub-alias(1)
+:   Show shell instructions for wrapping git.
 
-  * hub-ci-status(1):
-    Display GitHub Status information for a commit.
+hub-browse(1)
+:   Open a GitHub repository in a web browser.
 
-  * hub-compare(1):
-    Open a GitHub compare page in a web browser.
+hub-ci-status(1)
+:   Display GitHub Status information for a commit.
 
-  * hub-create(1):
-    Create a new repository on GitHub and add a git remote for it.
+hub-compare(1)
+:   Open a GitHub compare page in a web browser.
 
-  * hub-delete(1):
-    Delete a repository on GitHub.
+hub-create(1)
+:   Create a new repository on GitHub and add a git remote for it.
 
-  * hub-fork(1):
-    Fork the current project on GitHub and add a git remote for it.
+hub-delete(1)
+:   Delete a repository on GitHub.
 
-  * hub-pull-request(1):
-    Create a GitHub pull request.
+hub-fork(1)
+:   Fork the current project on GitHub and add a git remote for it.
 
-  * hub-pr(1):
-    List and checkout GitHub pull requests.
+hub-pull-request(1)
+:   Create a GitHub pull request.
 
-  * hub-issue(1):
-    List and create GitHub issues.
+hub-pr(1)
+:   List and checkout GitHub pull requests.
 
-  * hub-release(1):
-    List and create GitHub releases.
+hub-issue(1)
+:   List and create GitHub issues.
 
-  * hub-sync(1):
-    Fetch from upstream and update local branches.
+hub-release(1)
+:   List and create GitHub releases.
 
-## CONVENTIONS
+hub-sync(1)
+:   Fetch from upstream and update local branches.
+
+## Conventions
 
 Most hub commands are supposed to be run in a context of an existing local git
 repository. Hub will automatically detect the GitHub repository the current
@@ -119,7 +121,7 @@ Otherwise, hub scans git remotes to find the first one for which
 remotes are searched last because hub assumes that it's more likely that the
 current branch is pushed to your fork rather than to the canonical repo.
 
-## CONFIGURATION
+## Configuration
 
 ### GitHub OAuth authentication
 
@@ -157,30 +159,30 @@ this can be affected with the `GITHUB_HOST` environment variable:
 
 ### Environment variables
 
-  * `HUB_VERBOSE`:
-    Enable verbose output from hub commands.
+`HUB_VERBOSE`
+:   Enable verbose output from hub commands.
 
-  * `HUB_CONFIG`:
-    The file path where hub configuration is read from and stored. If
+`HUB_CONFIG`
+:   The file path where hub configuration is read from and stored. If
     `XDG_CONFIG_HOME` is present, the default is `$XDG_CONFIG_HOME/hub`;
     otherwise it's `$HOME/.config/hub`. The configuration file is also
     searched for in `XDG_CONFIG_DIRS` per XDG Base Directory Specification.
 
-  * `HUB_PROTOCOL`:
-    Use one of "https|ssh|git" as preferred protocol for git clone/push.
+`HUB_PROTOCOL`
+:   Use one of "https|ssh|git" as preferred protocol for git clone/push.
 
-  * `GITHUB_TOKEN`:
-    OAuth token to use for GitHub API requests.
+`GITHUB_TOKEN`
+:   OAuth token to use for GitHub API requests.
 
-## BUGS
+## Bugs
 
 <https://github.com/github/hub/issues>
 
-## AUTHORS
+## Authors
 
 <https://github.com/github/hub/contributors>
 
-## SEE ALSO
+## See also
 
 git(1), git-clone(1), git-remote(1), git-init(1),
 <https://github.com/github/hub>
