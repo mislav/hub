@@ -1,5 +1,6 @@
 SOURCES = $(shell script/build files)
-TODAY_DATE = $(shell date '+%d %b %Y')
+SOURCE_DATE_EPOCH ?= $(shell date +%s)
+BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
 HUB_VERSION = $(shell hub version | tail -1)
 
 MIN_COVERAGE = 89.4
@@ -63,7 +64,7 @@ man-pages: $(HELP_ALL:=.md) $(HELP_ALL) $(HELP_ALL:=.txt)
 $(HELP_ALL): share/man/.man-pages.stamp
 share/man/.man-pages.stamp: $(HELP_ALL:=.md) ./man-template.html
 	go run md2roff-bin/cmd.go --manual="hub manual" \
-		--date="$(TODAY_DATE)" --version="$(HUB_VERSION)" \
+		--date="$(BUILD_DATE)" --version="$(HUB_VERSION)" \
 		--template=./man-template.html \
 		share/man/man1/*.md
 	touch $@
