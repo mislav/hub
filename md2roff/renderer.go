@@ -6,6 +6,7 @@ import (
 	"io"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/russross/blackfriday"
 )
@@ -174,15 +175,10 @@ func (r *RoffRenderer) renderHeading(buf io.Writer, node *blackfriday.Node) {
 		)
 		io.WriteString(buf, ".nh\n")   // disable hyphenation
 		io.WriteString(buf, ".ad l\n") // disable justification
-	case 2, 3:
-		var ht string
-		switch node.HeadingData.Level {
-		case 2:
-			ht = ".SH"
-		case 3:
-			ht = ".SS"
-		}
-		fmt.Fprintf(buf, "%s \"%s\"\n", ht, escape(text, headingEscape))
+	case 2:
+		fmt.Fprintf(buf, ".SH \"%s\"\n", strings.ToUpper(string(escape(text, headingEscape))))
+	case 3:
+		fmt.Fprintf(buf, ".SS \"%s\"\n", escape(text, headingEscape))
 	}
 }
 
