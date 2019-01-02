@@ -29,24 +29,30 @@ func (y *yamlConfigDecoder) Decode(r io.Reader, c *Config) error {
 		return err
 	}
 
-	yc := make(yamlConfig)
+	yc := yaml.MapSlice{}
 	err = yaml.Unmarshal(d, &yc)
 
 	if err != nil {
 		return err
 	}
 
-	for h, v := range yc {
+	for _, hostEntry := range yc {
+		v := hostEntry.Value.([]interface{})
 		if len(v) < 1 {
 			continue
 		}
-		vv := v[0]
-		host := &Host{
-			Host:        h,
-			User:        vv.User,
-			AccessToken: vv.OAuthToken,
-			Protocol:    vv.Protocol,
-			UnixSocket:  vv.UnixSocket,
+		host := &Host{Host: hostEntry.Key.(string)}
+		for _, prop := range v[0].(yaml.MapSlice) {
+			switch prop.Key.(string) {
+			case "user":
+				host.User = prop.Value.(string)
+			case "oauth_token":
+				host.AccessToken = prop.Value.(string)
+			case "protocol":
+				host.Protocol = prop.Value.(string)
+			case "unix_socket":
+				host.UnixSocket = prop.Value.(string)
+			}
 		}
 		c.Hosts = append(c.Hosts, host)
 	}
