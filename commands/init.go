@@ -78,7 +78,7 @@ func transformInitArgs(args *Args) error {
 	// Assume that the name of the working directory is going to be the name of
 	// the project on GitHub.
 	projectName := strings.Replace(filepath.Base(dirToInit), " ", "-", -1)
-	project := github.NewProject(host.User, projectName, "")
+	project := github.NewProject(host.User, projectName, host.Host)
 	url := project.GitURL("", "", true)
 
 	addRemote := []string{
