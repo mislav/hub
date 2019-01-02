@@ -69,8 +69,8 @@ func generateFromFile(mdFile string) error {
 		Flags: blackfriday.HTMLFlagsNone,
 	})
 	roff := &md2roff.RoffRenderer{
-		Manual: flagManual,
-		Date:   flagDate,
+		Version: flagVersion,
+		Date:    flagDate,
 	}
 
 	htmlGenBuf := &bytes.Buffer{}
@@ -110,8 +110,8 @@ func generateFromFile(mdFile string) error {
 		})
 
 		tmplData := templateData{
-			Manual:   roff.Manual,
-			Date:     roff.Date,
+			Manual:   flagManual,
+			Date:     flagDate,
 			Contents: content,
 			Title:    roff.Title,
 			Section:  roff.Section,

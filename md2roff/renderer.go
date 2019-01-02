@@ -36,7 +36,7 @@ func escape(src []byte, re *regexp.Regexp) []byte {
 }
 
 type RoffRenderer struct {
-	Manual  string
+	Version string
 	Date    string
 	Title   string
 	Name    string
@@ -169,7 +169,7 @@ func (r *RoffRenderer) renderHeading(buf io.Writer, node *blackfriday.Node) {
 			escape(name, headingEscape),
 			num,
 			escape([]byte(r.Date), headingEscape),
-			escape([]byte(r.Manual), headingEscape),
+			escape([]byte(r.Version), headingEscape),
 			escape(text, headingEscape),
 		)
 		io.WriteString(buf, ".nh\n")   // disable hyphenation
