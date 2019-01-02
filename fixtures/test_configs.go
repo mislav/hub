@@ -49,7 +49,7 @@ func SetupTestConfigs() *TestConfigs {
 	content := `---
 github.com:
 - user: jingweno
-  oauth_token: 123
+  oauth_token: "123"
   protocol: http`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)
 	os.Setenv("HUB_CONFIG", file.Name())
@@ -63,7 +63,7 @@ func SetupTestConfigsWithUnixSocket() *TestConfigs {
 	content := `---
 github.com:
 - user: jingweno
-  oauth_token: 123
+  oauth_token: "123"
   protocol: http
   unix_socket: /tmp/go.sock`
 	ioutil.WriteFile(file.Name(), []byte(content), os.ModePerm)

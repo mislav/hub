@@ -24,8 +24,6 @@ type yamlHost struct {
 	UnixSocket string `yaml:"unix_socket,omitempty"`
 }
 
-type yamlConfig map[string][]yamlHost
-
 type Host struct {
 	Host        string `toml:"host"`
 	User        string `toml:"user"`
