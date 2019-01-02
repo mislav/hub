@@ -2,7 +2,7 @@ SOURCES = $(shell script/build files)
 SOURCE_DATE_EPOCH ?= $(shell date +%s)
 BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
 HUB_VERSION = $(shell hub version | tail -1)
-export LDFLAGS := -extldflags=$(LDFLAGS)
+export LDFLAGS := -extldflags='$(LDFLAGS)'
 export GCFLAGS := all=-trimpath=$(PWD)
 export ASMFLAGS := all=-trimpath=$(PWD)
 
