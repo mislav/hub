@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -723,6 +724,18 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
+type sortedLabels []IssueLabel
+
+func (s sortedLabels) Len() int {
+	return len(s)
+}
+func (s sortedLabels) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s sortedLabels) Less(i, j int) bool {
+	return strings.Compare(strings.ToLower(s[i].Name), strings.ToLower(s[j].Name)) < 0
+}
+
 func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -747,6 +760,8 @@ func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err er
 		}
 		labels = append(labels, labelsPage...)
 	}
+
+	sort.Sort(sortedLabels(labels))
 
 	return
 }
