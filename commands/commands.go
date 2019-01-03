@@ -52,8 +52,11 @@ func (c *Command) parseArguments(args *Args) (err error) {
 	c.Flag.SetInterspersed(true)
 	c.Flag.Init(c.Name(), flag.ContinueOnError)
 	c.Flag.Usage = func() {
-		ui.Errorln("")
-		ui.Errorln(c.Synopsis())
+		if args.HasFlags("-help", "--help") {
+			ui.Println(c.Synopsis())
+		} else {
+			ui.Errorln(c.Synopsis())
+		}
 	}
 	if err = c.Flag.Parse(args.Params); err == nil {
 		for _, arg := range args.Params {
