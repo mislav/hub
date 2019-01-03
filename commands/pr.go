@@ -166,8 +166,8 @@ func init() {
 }
 
 func printHelp(command *Command, args *Args) {
-	fmt.Print(command.HelpText())
-	os.Exit(0)
+	ui.Errorln(command.Synopsis())
+	os.Exit(1)
 }
 
 func listPulls(cmd *Command, args *Args) {
