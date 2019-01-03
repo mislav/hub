@@ -606,38 +606,32 @@ func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
 		fgColorCode, bgColorCode, label.Name)
 }
 
-func pickHighContrastTextColor(color *utils.Color) *utils.Color {
-	var candidates [12]*utils.Color
-	hsl := color.ToHsl()
-	a := hsl.ScaleLightness(0.5)
-	candidates[0] = a.ToRgb()
-	candidates[1] = a.ScaleLightness(0.25).ToRgb()
-	candidates[2] = a.ScaleSaturation(-0.25).ToRgb()
-	b := hsl.ScaleSaturation(0.75)
-	candidates[3] = b.ToRgb()
-	candidates[4] = b.ScaleLightness(0.25).ToRgb()
-	candidates[5] = b.ScaleSaturation(-0.25).ToRgb()
-	c := hsl.ScaleLightness(-0.5)
-	candidates[6] = c.ToRgb()
-	candidates[7] = c.ScaleLightness(-0.25).ToRgb()
-	candidates[8] = c.ScaleSaturation(-0.25).ToRgb()
-	d := hsl.ScaleSaturation(-0.75)
-	candidates[9] = d.ToRgb()
-	candidates[10] = d.ScaleLightness(-0.25).ToRgb()
-	candidates[11] = d.ScaleSaturation(-0.25).ToRgb()
+type contrastCandidate struct {
+	color    *utils.Color
+	contrast float64
+}
 
-	foundContrastRatio := -999.0
-	ix := -1
-	for i := 0; i < 12; i++ {
-		contrastRatio := color.ContrastRatio(candidates[i])
-		if contrastRatio > foundContrastRatio {
-			ix = i
-			foundContrastRatio = contrastRatio
+func pickHighContrastTextColor(color *utils.Color) *utils.Color {
+	candidates := []contrastCandidate{}
+	appendCandidate := func(c *utils.Color) {
+		candidates = append(candidates, contrastCandidate{
+			color:    c,
+			contrast: color.ContrastRatio(c),
+		})
+	}
+
+	appendCandidate(utils.White)
+	appendCandidate(utils.Black)
+
+	for _, candidate := range candidates {
+		if candidate.contrast >= 7.0 {
+			return candidate.color
 		}
 	}
-	if foundContrastRatio >= 7.0 {
-		return candidates[ix]
-	} else {
-		return candidates[11]
+	for _, candidate := range candidates {
+		if candidate.contrast >= 4.5 {
+			return candidate.color
+		}
 	}
+	return utils.Black
 }
