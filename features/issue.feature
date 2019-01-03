@@ -514,7 +514,12 @@ Feature: hub issue
     Given the GitHub API server:
     """
     get('/repos/github/hub/labels') {
+      response.headers["Link"] = %(<https://api.github.com/repositories/12345/labels?per_page=100&page=2>; rel="next")
+      assert :per_page => "100", :page => nil
       json [
+        { :name => "Discuss",
+          :color => "0000ff",
+        },
         { :name => "bug",
           :color => "ff0000",
         },
@@ -523,11 +528,21 @@ Feature: hub issue
         },
       ]
     }
+    get('/repositories/12345/labels') {
+      assert :per_page => "100", :page => "2"
+      json [
+        { :name => "affects",
+          :color => "ffffff",
+        },
+      ]
+    }
     """
     When I successfully run `hub issue labels`
     Then the output should contain exactly:
       """
+      affects
       bug
+      Discuss
       feature\n
       """
 
