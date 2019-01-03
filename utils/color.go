@@ -141,13 +141,21 @@ func (c *HslColor) ToRgb() *Color {
 }
 
 func (c *HslColor) ScaleLightness(x float64) *HslColor {
-	newLightness := math.Round(math.Min(math.Max(0, c.Lightness*(1.0+x)), 1.0))
+	newLightness := round(math.Min(math.Max(0, c.Lightness*(1.0+x)), 1.0))
 	return &HslColor{c.Hue, c.Saturation, newLightness}
 }
 
 func (c *HslColor) ScaleSaturation(x float64) *HslColor {
-	newSaturation := math.Round(math.Min(math.Max(0, c.Lightness*(1.0+x)), 1.0))
+	newSaturation := round(math.Min(math.Max(0, c.Lightness*(1.0+x)), 1.0))
 	return &HslColor{c.Hue, newSaturation, c.Lightness}
+}
+
+func round(n float64) float64 {
+	i := math.Trunc(n)
+	if math.Abs(n-i) >= 0.5 {
+		return i + math.Copysign(1, n)
+	}
+	return i
 }
 
 var x6colorIndexes = [6]uint8{0, 95, 135, 175, 215, 255}
