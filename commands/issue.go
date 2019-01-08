@@ -604,13 +604,38 @@ func formatLabel(label github.IssueLabel, colorize bool) string {
 
 func colorizeLabel(label github.IssueLabel, color *utils.Color) string {
 	bgColorCode := utils.RgbToTermColorCode(color)
-	return fmt.Sprintf("\033[38;5;%d;48;%sm %s \033[m",
-		getSuitableLabelTextColor(color), bgColorCode, label.Name)
+	fgColor := pickHighContrastTextColor(color)
+	fgColorCode := utils.RgbToTermColorCode(fgColor)
+	return fmt.Sprintf("\033[38;%s;48;%sm %s \033[m",
+		fgColorCode, bgColorCode, label.Name)
 }
 
-func getSuitableLabelTextColor(color *utils.Color) int {
-	if color.Brightness() < 0.65 {
-		return 15 // white text
+type contrastCandidate struct {
+	color    *utils.Color
+	contrast float64
+}
+
+func pickHighContrastTextColor(color *utils.Color) *utils.Color {
+	candidates := []contrastCandidate{}
+	appendCandidate := func(c *utils.Color) {
+		candidates = append(candidates, contrastCandidate{
+			color:    c,
+			contrast: color.ContrastRatio(c),
+		})
 	}
-	return 16 // black text
+
+	appendCandidate(utils.White)
+	appendCandidate(utils.Black)
+
+	for _, candidate := range candidates {
+		if candidate.contrast >= 7.0 {
+			return candidate.color
+		}
+	}
+	for _, candidate := range candidates {
+		if candidate.contrast >= 4.5 {
+			return candidate.color
+		}
+	}
+	return utils.Black
 }
