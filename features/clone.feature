@@ -286,3 +286,39 @@ Feature: hub clone
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/RTomayko/ronin.git"
     And there should be no output
+
+  Scenario: Clone repo from my organisations
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { status 404 }
+      get('/repos/github/dotfiles') {
+        json :private => false,
+        :name => 'dotfiles', :owner => { :login => 'github' },
+        :permissions => { :push => true }
+      }
+      get('/user/orgs') {
+        json [
+          { :login => 'github' }
+        ]
+      }
+      """
+    When I successfully run `hub clone dotfiles`
+    Then it should clone "git@github.com:github/dotfiles.git"
+    And there should be no output
+
+  Scenario: Clone repo from my organization that doesn't exist
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') { status 404 }
+      get('/repos/github/dotfiles') { status 404 }
+      get('/user/orgs') {
+        json [
+          { :login => 'github' }
+        ]
+      }
+      """
+    When I run `hub clone dotfiles`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly "Error: repository doesn't exist for your username (mislav) or any of the organizations you are part of (github)\n"
+    And it should not clone anything
