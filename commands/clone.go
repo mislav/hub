@@ -5,7 +5,9 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/github/hub/cmd"
 	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
@@ -56,15 +58,32 @@ func transformCloneArgs(args *Args) {
 	isSSH := parseClonePrivateFlag(args)
 	hasValueRegexp := regexp.MustCompile("^(--(upload-pack|template|depth|origin|branch|reference|name)|-[ubo])$")
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
+	var targetDir string
+	var originName string
+	quiet := false
 	for i := 0; i < args.ParamsSize(); i++ {
 		a := args.Params[i]
 
 		if strings.HasPrefix(a, "-") {
+			if a == "--origin" || a == "-o" {
+				if i+1 < args.ParamsSize() {
+					originName = args.Params[i+1]
+				}
+			} else if strings.HasPrefix(a, "--origin=") {
+				originName = strings.TrimPrefix(a, "--origin=")
+			} else if strings.HasPrefix(a, "-o") {
+				originName = strings.TrimPrefix(a, "-o")
+			} else if a == "--quiet" || a == "-q" {
+				quiet = true
+			}
 			if hasValueRegexp.MatchString(a) {
 				i++
 			}
 		} else {
-			if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
+			if targetDir != "" {
+				targetDir = a
+				break
+			} else if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
 				name, owner := parseCloneNameAndOwner(a)
 				var host *github.Host
 				if owner == "" {
@@ -116,9 +135,32 @@ func transformCloneArgs(args *Args) {
 
 				url := project.GitURL(name, owner, isSSH)
 				args.ReplaceParam(i, url)
-			}
 
-			break
+				targetDir = name
+				if repo.Parent != nil && args.Command != "submodule" {
+					args.AfterFn(func() error {
+						upstreamName := "upstream"
+						if originName == "upstream" {
+							upstreamName = "origin"
+						}
+						upstreamUrl := project.GitURL(repo.Parent.Name, repo.Parent.Owner.Login, repo.Parent.Private)
+						addRemote := cmd.New("git")
+						addRemote.WithArgs("-C", targetDir)
+						addRemote.WithArgs("remote", "add", "-f", upstreamName, upstreamUrl)
+						if !quiet {
+							ui.Errorf("Adding remote '%s' for the '%s/%s' repo\n",
+								upstreamName, repo.Parent.Owner.Login, repo.Parent.Name)
+						}
+						output, err := addRemote.CombinedOutput()
+						if err != nil {
+							ui.Errorln(output)
+						}
+						return err
+					})
+				}
+			} else {
+				break
+			}
 		}
 	}
 }
