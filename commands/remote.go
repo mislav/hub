@@ -91,15 +91,19 @@ func transformRemoteArgs(args *Args) {
 	}
 	host = hostConfig.Host
 
+	p := utils.NewArgsParser()
+	p.RegisterValue("-t")
+	p.RegisterValue("-m")
+	p.Parse(args.Params)
+
 	numWord := 0
-	for i, p := range args.Params {
-		if !looksLikeFlag(p) && (i < 1 || args.Params[i-1] != "-t") {
-			numWord += 1
-			if numWord == 2 && strings.Contains(p, "/") {
-				args.ReplaceParam(i, owner)
-			} else if numWord == 3 {
-				args.RemoveParam(i)
-			}
+	for _, i := range p.PositionalIndices {
+		p := args.Params[i]
+		numWord += 1
+		if numWord == 2 && strings.Contains(p, "/") {
+			args.ReplaceParam(i, owner)
+		} else if numWord == 3 {
+			args.RemoveParam(i)
 		}
 	}
 	if numWord == 2 && owner == "origin" {
