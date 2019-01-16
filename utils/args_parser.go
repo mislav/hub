@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -187,4 +188,28 @@ func NewArgsParser() *ArgsParser {
 		flagMap:     make(map[string]*argsFlag),
 		flagAliases: make(map[string]string),
 	}
+}
+
+func NewArgsParserWithUsage(usage string) *ArgsParser {
+	p := NewArgsParser()
+	f := `(-[a-zA-Z0-9@^]|--[a-z][a-z0-9-]+)(?:[ =]<?([a-zA-Z_-]+)>?)?`
+	re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s(?:,\s*%s)?$`, f, f))
+	for _, match := range re.FindAllStringSubmatch(usage, -1) {
+		n1 := match[1]
+		n2 := match[3]
+		hasValue := match[2] != "" || match[4] != ""
+		var aliases []string
+		if len(n1) == 2 && len(n2) > 2 {
+			aliases = []string{n1}
+			n1 = n2
+		} else if n2 != "" {
+			aliases = []string{n2}
+		}
+		if hasValue {
+			p.RegisterValue(n1, aliases...)
+		} else {
+			p.RegisterBool(n1, aliases...)
+		}
+	}
+	return p
 }

@@ -170,3 +170,21 @@ func TestArgsParser_Int(t *testing.T) {
 	equal(t, true, p.HasReceived("--depth"))
 	equal(t, -3, p.Int("--depth"))
 }
+
+func TestArgsParser_WithUsage(t *testing.T) {
+	p := NewArgsParserWithUsage(`
+		-L, --limit N
+			retrieve at most N records
+		-d, --draft
+			save as draft
+		--message=<msg>, -m <msg>
+			set message body
+	`)
+	args := []string{"-L24", "-d", "-mhello"}
+	rest, err := p.Parse(args)
+	equal(t, nil, err)
+	equal(t, []string{}, rest)
+	equal(t, "24", p.Value("--limit"))
+	equal(t, true, p.Bool("--draft"))
+	equal(t, "hello", p.Value("--message"))
+}
