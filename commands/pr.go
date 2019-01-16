@@ -142,6 +142,8 @@ hub-issue(1), hub-pull-request(1), hub(1)
 		Run: listPulls,
 	}
 
+	flagPullRequestBase,
+	flagPullRequestHead,
 	flagPullRequestState,
 	flagPullRequestFormat,
 	flagPullRequestSort string
