@@ -1,11 +1,12 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/ui"
+	"github.com/github/hub/utils"
 	flag "github.com/ogier/pflag"
 )
 
@@ -32,7 +33,6 @@ type Command struct {
 func (c *Command) Call(args *Args) (err error) {
 	runCommand, err := c.lookupSubCommand(args)
 	if err != nil {
-		ui.Errorln(err)
 		return
 	}
 
@@ -48,26 +48,56 @@ func (c *Command) Call(args *Args) (err error) {
 	return
 }
 
-func (c *Command) parseArguments(args *Args) (err error) {
+type ErrHelp struct {
+	err string
+}
+
+func (e ErrHelp) Error() string {
+	return e.err
+}
+
+func hasFlags(fs *flag.FlagSet) (found bool) {
+	fs.VisitAll(func(f *flag.Flag) {
+		found = true
+	})
+	return
+}
+
+func (c *Command) parseArguments(args *Args) error {
+	if !hasFlags(&c.Flag) {
+		args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + c.Long)
+		if rest, err := args.Flag.Parse(args.Params); err == nil {
+			if args.Flag.Bool("--help") {
+				return &ErrHelp{err: c.Synopsis()}
+			}
+			args.Params = rest
+			return nil
+		} else {
+			return fmt.Errorf("%s\n%s", err, c.Synopsis())
+		}
+	}
+
 	c.Flag.SetInterspersed(true)
 	c.Flag.Init(c.Name(), flag.ContinueOnError)
 	c.Flag.Usage = func() {
-		if args.HasFlags("-help", "--help") {
-			ui.Println(c.Synopsis())
-		} else {
-			ui.Errorln(c.Synopsis())
-		}
 	}
-	if err = c.Flag.Parse(args.Params); err == nil {
+	var flagBuf bytes.Buffer
+	c.Flag.SetOutput(&flagBuf)
+
+	err := c.Flag.Parse(args.Params)
+	if err == nil {
 		for _, arg := range args.Params {
 			if arg == "--" {
 				args.Terminator = true
 			}
 		}
 		args.Params = c.Flag.Args()
+	} else if err == flag.ErrHelp {
+		err = &ErrHelp{err: c.Synopsis()}
+	} else {
+		return fmt.Errorf("%s\n%s", err, c.Synopsis())
 	}
-
-	return
+	return err
 }
 
 func (c *Command) FlagPassed(name string) bool {
@@ -78,15 +108,6 @@ func (c *Command) FlagPassed(name string) bool {
 		}
 	})
 	return found
-}
-
-func (c *Command) Arg(idx int) string {
-	args := c.Flag.Args()
-	if idx < len(args) {
-		return args[idx]
-	} else {
-		return ""
-	}
 }
 
 func (c *Command) Use(subCommand *Command) {

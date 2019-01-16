@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/github/hub/cmd"
+	"github.com/github/hub/utils"
 )
 
 type Args struct {
@@ -19,6 +20,7 @@ type Args struct {
 	Terminator  bool
 	noForward   bool
 	Callbacks   []func() error
+	Flag        *utils.ArgsParser
 }
 
 func (a *Args) Words() []string {

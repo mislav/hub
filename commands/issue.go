@@ -438,7 +438,10 @@ func formatIssue(issue github.Issue, format string, colorize bool) string {
 }
 
 func showIssue(cmd *Command, args *Args) {
-	issueNumber := cmd.Arg(0)
+	issueNumber := ""
+	if args.ParamsSize() > 0 {
+		issueNumber = args.GetParam(0)
+	}
 	if issueNumber == "" {
 		utils.Check(fmt.Errorf(cmd.Synopsis()))
 	}
