@@ -128,9 +128,8 @@ func (a *Args) InsertParam(i int, items ...string) {
 }
 
 func (a *Args) RemoveParam(i int) string {
-	newParams, item := removeItem(a.Params, i)
-	a.Params = newParams
-
+	item := a.Params[i]
+	a.Params = append(a.Params[:i], a.Params[i+1:]...)
 	return item
 }
 
@@ -170,18 +169,24 @@ func (a *Args) AppendParams(params ...string) {
 
 func NewArgs(args []string) *Args {
 	var (
-		command     string
-		params      []string
-		noop        bool
-		globalFlags []string
+		command string
+		params  []string
+		noop    bool
 	)
 
-	slurpGlobalFlags(&args, &globalFlags)
-	noop = removeValue(&globalFlags, noopFlag)
+	cmdIdx := findCommandIndex(args)
+	globalFlags := args[:cmdIdx]
+	if cmdIdx > 0 {
+		args = args[cmdIdx:]
+		for i := len(globalFlags) - 1; i >= 0; i-- {
+			if globalFlags[i] == noopFlag {
+				noop = true
+				globalFlags = append(globalFlags[:i], globalFlags[i+1:]...)
+			}
+		}
+	}
 
-	if len(args) == 0 {
-		params = []string{}
-	} else {
+	if len(args) != 0 {
 		command = args[0]
 		params = args[1:]
 	}
@@ -211,11 +216,11 @@ func looksLikeFlag(value string) bool {
 	return strings.HasPrefix(value, flagPrefix)
 }
 
-func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
+func findCommandIndex(args []string) int {
 	slurpNextValue := false
 	commandIndex := 0
 
-	for i, arg := range *args {
+	for i, arg := range args {
 		if slurpNextValue {
 			commandIndex = i + 1
 			slurpNextValue = false
@@ -228,33 +233,5 @@ func slurpGlobalFlags(args *[]string, globalFlags *[]string) {
 			}
 		}
 	}
-
-	if commandIndex > 0 {
-		aa := *args
-		*globalFlags = aa[0:commandIndex]
-		*args = aa[commandIndex:]
-	}
-}
-
-func removeItem(slice []string, index int) (newSlice []string, item string) {
-	if index < 0 || index > len(slice)-1 {
-		panic(fmt.Sprintf("Index %d is out of bound", index))
-	}
-
-	item = slice[index]
-	newSlice = append(slice[:index], slice[index+1:]...)
-
-	return newSlice, item
-}
-
-func removeValue(slice *[]string, value string) (found bool) {
-	aa := *slice
-	for i := len(aa) - 1; i >= 0; i-- {
-		arg := aa[i]
-		if arg == value {
-			found = true
-			*slice, _ = removeItem(*slice, i)
-		}
-	}
-	return found
+	return commandIndex
 }
