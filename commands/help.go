@@ -65,7 +65,12 @@ func runHelp(helpCmd *Command, args *Args) {
 		return
 	}
 
-	if args.HasFlags("-a", "--all") {
+	p := utils.NewArgsParser()
+	p.RegisterBool("--all", "-a")
+	p.RegisterBool("--plain-text")
+	p.Parse(args.Params)
+
+	if p.Bool("--all") {
 		args.AfterFn(func() error {
 			ui.Printf("\nhub custom commands\n\n  %s\n", strings.Join(customCommands(), "  "))
 			return nil
@@ -83,7 +88,7 @@ func runHelp(helpCmd *Command, args *Args) {
 	}
 
 	if c := lookupCmd(command); c != nil {
-		if !args.HasFlags("--plain-text") {
+		if !p.Bool("--plain-text") {
 			manPage := fmt.Sprintf("hub-%s.1", c.Name())
 			err := displayManPage(manPage, args)
 			if err == nil {

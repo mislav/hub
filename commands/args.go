@@ -168,16 +168,6 @@ func (a *Args) AppendParams(params ...string) {
 	a.Params = append(a.Params, params...)
 }
 
-func (a *Args) HasFlags(flags ...string) bool {
-	for _, f := range flags {
-		if i := a.IndexOfParam(f); i != -1 {
-			return true
-		}
-	}
-
-	return false
-}
-
 func NewArgs(args []string) *Args {
 	var (
 		command     string
