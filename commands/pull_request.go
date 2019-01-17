@@ -46,7 +46,7 @@ pull-request -i <ISSUE>
 		Further edit the contents of <FILE> in a text editor before submitting.
 
 	-i, --issue=<ISSUE>
-		Convert an issue to a pull request. <ISSUE> may be an issue number or a URL.
+		Convert <ISSUE> (referenced by its number) to a pull request.
 
 		You can only convert issues authored by you or that which you have admin
 		rights over. In most workflows it is not necessary to convert issues to
