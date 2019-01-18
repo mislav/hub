@@ -35,7 +35,7 @@ type ArgsParser struct {
 	flagMap           map[string]*argsFlag
 	flagAliases       map[string]string
 	PositionalIndices []int
-	terminated        bool
+	HasTerminated     bool
 }
 
 func (p *ArgsParser) Parse(args []string) ([]string, error) {
@@ -45,7 +45,7 @@ func (p *ArgsParser) Parse(args []string) ([]string, error) {
 	var i int
 	var arg string
 
-	p.terminated = false
+	p.HasTerminated = false
 	for _, f := range p.flagMap {
 		f.reset()
 	}
@@ -95,10 +95,10 @@ func (p *ArgsParser) Parse(args []string) ([]string, error) {
 	for i = 0; i < len(args); i++ {
 		arg = args[i]
 
-		if p.terminated || arg == "-" {
+		if p.HasTerminated || arg == "-" {
 		} else if arg == "--" {
-			if !p.terminated {
-				p.terminated = true
+			if !p.HasTerminated {
+				p.HasTerminated = true
 				continue
 			}
 		} else if strings.HasPrefix(arg, "--") {

@@ -42,7 +42,7 @@ func TestArgsParser_RepeatedInvocation(t *testing.T) {
 	equal(t, true, p.HasReceived("--hello"))
 	equal(t, "world", p.Value("--hello"))
 	equal(t, false, p.HasReceived("--origin"))
-	equal(t, true, p.terminated)
+	equal(t, true, p.HasTerminated)
 
 	rest, err = p.Parse([]string{"two", "-oupstream"})
 	equal(t, nil, err)
@@ -51,7 +51,7 @@ func TestArgsParser_RepeatedInvocation(t *testing.T) {
 	equal(t, false, p.HasReceived("--hello"))
 	equal(t, true, p.HasReceived("--origin"))
 	equal(t, "upstream", p.Value("--origin"))
-	equal(t, false, p.terminated)
+	equal(t, false, p.HasTerminated)
 }
 
 func TestArgsParser_UnknownFlag(t *testing.T) {

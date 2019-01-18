@@ -71,6 +71,7 @@ func (c *Command) parseArguments(args *Args) error {
 				return &ErrHelp{err: c.Synopsis()}
 			}
 			args.Params = rest
+			args.Terminator = args.Flag.HasTerminated
 			return nil
 		} else {
 			return fmt.Errorf("%s\n%s", err, c.Synopsis())
