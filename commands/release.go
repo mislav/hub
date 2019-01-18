@@ -310,7 +310,7 @@ func showRelease(cmd *Command, args *Args) {
 		tagName = args.GetParam(0)
 	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -360,7 +360,7 @@ func downloadRelease(cmd *Command, args *Args) {
 		tagName = args.GetParam(0)
 	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -409,7 +409,7 @@ func createRelease(cmd *Command, args *Args) {
 		tagName = args.GetParam(0)
 	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 		return
 	}
 
@@ -485,7 +485,7 @@ func editRelease(cmd *Command, args *Args) {
 		tagName = args.GetParam(0)
 	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 		return
 	}
 
@@ -570,7 +570,7 @@ func deleteRelease(cmd *Command, args *Args) {
 		tagName = args.GetParam(0)
 	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 		return
 	}
 

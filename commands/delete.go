@@ -50,7 +50,7 @@ func deleteRepo(command *Command, args *Args) {
 
 	re := regexp.MustCompile(NameWithOwnerRe)
 	if !re.MatchString(repoName) {
-		utils.Check(fmt.Errorf(command.Synopsis()))
+		utils.Check(command.UsageError(""))
 	}
 
 	config := github.CurrentConfig()

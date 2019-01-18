@@ -105,8 +105,7 @@ func browse(command *Command, args *Args) {
 	}
 
 	if project == nil {
-		err := fmt.Errorf(command.Synopsis())
-		utils.Check(err)
+		utils.Check(command.UsageError(""))
 	}
 
 	if subpage == "commits" {
