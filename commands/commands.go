@@ -25,6 +25,7 @@ type Command struct {
 	Key          string
 	Usage        string
 	Long         string
+	KnownFlags   string
 	GitExtension bool
 
 	subCommands   map[string]*Command
@@ -66,7 +67,11 @@ func hasFlags(fs *flag.FlagSet) (found bool) {
 
 func (c *Command) parseArguments(args *Args) error {
 	if !hasFlags(&c.Flag) {
-		args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + c.Long)
+		knownFlags := c.KnownFlags
+		if knownFlags == "" {
+			knownFlags = c.Long
+		}
+		args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + knownFlags)
 		if rest, err := args.Flag.Parse(args.Params); err == nil {
 			if args.Flag.Bool("--help") {
 				return &ErrHelp{err: c.Synopsis()}
