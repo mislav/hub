@@ -120,7 +120,7 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 	-o, --sort=<SORT_KEY>
 		Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".
 
-	-^ --sort-ascending
+	-^, --sort-ascending
 		Sort by ascending dates instead of descending.
 
 	-L, --limit=<LIMIT>
@@ -138,38 +138,20 @@ hub-issue(1), hub-pull-request(1), hub(1)
 	}
 
 	cmdListPulls = &Command{
-		Key: "list",
-		Run: listPulls,
+		Key:  "list",
+		Run:  listPulls,
+		Long: cmdPr.Long,
 	}
-
-	flagPullRequestBase,
-	flagPullRequestHead,
-	flagPullRequestState,
-	flagPullRequestFormat,
-	flagPullRequestSort string
-
-	flagPullRequestSortAscending bool
-
-	flagPullRequestLimit int
 )
 
 func init() {
-	cmdListPulls.Flag.StringVarP(&flagPullRequestState, "state", "s", "", "STATE")
-	cmdListPulls.Flag.StringVarP(&flagPullRequestBase, "base", "b", "", "BASE")
-	cmdListPulls.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
-	cmdListPulls.Flag.StringVarP(&flagPullRequestFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
-	cmdListPulls.Flag.StringVarP(&flagPullRequestSort, "sort", "o", "created", "SORT_KEY")
-	cmdListPulls.Flag.BoolVarP(&flagPullRequestSortAscending, "sort-ascending", "^", false, "SORT_KEY")
-	cmdListPulls.Flag.IntVarP(&flagPullRequestLimit, "limit", "L", -1, "LIMIT")
-
 	cmdPr.Use(cmdListPulls)
 	cmdPr.Use(cmdCheckoutPr)
 	CmdRunner.Use(cmdPr)
 }
 
 func printHelp(command *Command, args *Args) {
-	ui.Errorln(command.Synopsis())
-	os.Exit(1)
+	utils.Check(command.UsageError(""))
 }
 
 func listPulls(cmd *Command, args *Args) {
@@ -187,23 +169,25 @@ func listPulls(cmd *Command, args *Args) {
 		return
 	}
 
-	if flagPullRequestHead != "" && !strings.Contains(flagPullRequestHead, ":") {
-		flagPullRequestHead = fmt.Sprintf("%s:%s", project.Owner, flagPullRequestHead)
+	filters := map[string]interface{}{}
+	if args.Flag.HasReceived("--state") {
+		filters["state"] = args.Flag.Value("--state")
+	}
+	if args.Flag.HasReceived("--sort") {
+		filters["sort"] = args.Flag.Value("--sort")
+	}
+	if args.Flag.HasReceived("--base") {
+		filters["base"] = args.Flag.Value("--base")
+	}
+	if args.Flag.HasReceived("--head") {
+		head := args.Flag.Value("--head")
+		if !strings.Contains(head, ":") {
+			head = fmt.Sprintf("%s:%s", project.Owner, head)
+		}
+		filters["head"] = head
 	}
 
-	flagFilters := map[string]string{
-		"state": flagPullRequestState,
-		"head":  flagPullRequestHead,
-		"base":  flagPullRequestBase,
-		"sort":  flagPullRequestSort,
-	}
-	filters := map[string]interface{}{}
-	for flag, filter := range flagFilters {
-		if cmd.FlagPassed(flag) {
-			filters[flag] = filter
-		}
-	}
-	if flagPullRequestSortAscending {
+	if args.Flag.Bool("--sort-ascending") {
 		filters["direction"] = "asc"
 	} else {
 		filters["direction"] = "desc"
@@ -213,6 +197,12 @@ func listPulls(cmd *Command, args *Args) {
 	if filters["state"] == "merged" {
 		filters["state"] = "closed"
 		onlyMerged = true
+	}
+
+	flagPullRequestLimit := args.Flag.Int("--limit")
+	flagPullRequestFormat := args.Flag.Value("--format")
+	if !args.Flag.HasReceived("--format") {
+		flagPullRequestFormat = "%sC%>(8)%i%Creset  %t%  l%n"
 	}
 
 	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
