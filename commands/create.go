@@ -53,22 +53,7 @@ hub-init(1), hub(1)
 `,
 }
 
-var (
-	flagCreatePrivate,
-	flagCreateBrowse,
-	flagCreateCopy bool
-
-	flagCreateDescription,
-	flagCreateHomepage string
-)
-
 func init() {
-	cmdCreate.Flag.BoolVarP(&flagCreatePrivate, "private", "p", false, "PRIVATE")
-	cmdCreate.Flag.BoolVarP(&flagCreateBrowse, "browse", "o", false, "BROWSE")
-	cmdCreate.Flag.BoolVarP(&flagCreateCopy, "copy", "c", false, "COPY")
-	cmdCreate.Flag.StringVarP(&flagCreateDescription, "description", "d", "", "DESCRIPTION")
-	cmdCreate.Flag.StringVarP(&flagCreateHomepage, "homepage", "h", "", "HOMEPAGE")
-
 	CmdRunner.Use(cmdCreate)
 }
 
@@ -109,6 +94,8 @@ func create(command *Command, args *Args) {
 	project := github.NewProject(owner, newRepoName, host.Host)
 	gh := github.NewClient(project.Host)
 
+	flagCreatePrivate := args.Flag.Bool("--private")
+
 	repo, err := gh.Repository(project)
 	if err == nil {
 		foundProject := github.NewProject(repo.FullName, "", project.Host)
@@ -129,6 +116,8 @@ func create(command *Command, args *Args) {
 
 	if repo == nil {
 		if !args.Noop {
+			flagCreateDescription := args.Flag.Value("--description")
+			flagCreateHomepage := args.Flag.Value("--homepage")
 			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
 			utils.Check(err)
 			project = github.NewProject(repo.FullName, "", project.Host)
@@ -151,5 +140,7 @@ func create(command *Command, args *Args) {
 
 	webUrl := project.WebURL("", "", "")
 	args.NoForward()
+	flagCreateBrowse := args.Flag.Bool("--browse")
+	flagCreateCopy := args.Flag.Bool("--copy")
 	printBrowseOrCopy(args, webUrl, flagCreateBrowse, flagCreateCopy)
 }
