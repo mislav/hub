@@ -39,10 +39,10 @@ With no arguments, show a list of open issues.
 
 ## Options:
 	-a, --assignee=<ASSIGNEE>
-		Display only issues assigned to <ASSIGNEE>.
+		In list mode, display only issues assigned to <ASSIGNEE>.
 
-		When opening an issue, this can be a comma-separated list of people to
-		assign to the new issue.
+	-a, --assign=<USERS>
+		A comma-separated list of GitHub handles to assign to the created issue.
 
 	-c, --creator=<CREATOR>
 		Display only issues created by <CREATOR>.
@@ -184,7 +184,7 @@ hub-pr(1), hub(1)
 		-F, --file FILE
 		-M, --milestone M
 		-l, --labels LIST
-		-a, --assignee USER
+		-a, --assign USER
 		-o, --browse
 		-c, --copy
 		-e, --edit
@@ -541,7 +541,7 @@ text is the title and the rest is the description.`, project))
 		params["labels"] = flagIssueLabels
 	}
 
-	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assignee"))
+	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assign"))
 	if len(flagIssueAssignees) > 0 {
 		params["assignees"] = flagIssueAssignees
 	}

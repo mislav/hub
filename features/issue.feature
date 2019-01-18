@@ -343,7 +343,7 @@ Feature: hub issue
         json :html_url => "https://github.com/github/hub/issues/1337"
       }
       """
-    When I successfully run `hub issue create -m "hello" -M 12 -a mislav,josh -apcorpet`
+    When I successfully run `hub issue create -m "hello" -M 12 --assign mislav,josh -apcorpet`
     Then the output should contain exactly:
       """
       https://github.com/github/hub/issues/1337\n
