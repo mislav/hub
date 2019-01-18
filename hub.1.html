@@ -1,172 +1,146 @@
-<!doctype html>
-<title>hub(1) - make git easier with GitHub</title>
-<meta charset="utf-8">
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv='content-type' value='text/html;charset=utf8'>
+  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
+  <title>hub(1) - make git easier with GitHub</title>
+  <style type='text/css' media='all'>
+  /* style: man */
+  body#manpage {margin:0}
+  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
+  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
+  .mp h2 {margin:10px 0 0 0}
+  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
+  .mp h3 {margin:0 0 0 4ex}
+  .mp dt {margin:0;clear:left}
+  .mp dt.flush {float:left;width:8ex}
+  .mp dd {margin:0 0 0 9ex}
+  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
+  .mp pre {margin-bottom:20px}
+  .mp pre+h2,.mp pre+h3 {margin-top:22px}
+  .mp h2+pre,.mp h3+pre {margin-top:5px}
+  .mp img {display:block;margin:auto}
+  .mp h1.man-title {display:none}
+  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
+  .mp h2 {font-size:16px;line-height:1.25}
+  .mp h1 {font-size:20px;line-height:2}
+  .mp {text-align:justify;background:#fff}
+  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
+  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
+  .mp u {text-decoration:underline}
+  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
+  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
+  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
+  .mp b.man-ref {font-weight:normal;color:#434241}
+  .mp pre {padding:0 4ex}
+  .mp pre code {font-weight:normal;color:#434241}
+  .mp h2+pre,h3+pre {padding-left:0}
+  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
+  ol.man-decor {width:100%}
+  ol.man-decor li.tl {text-align:left}
+  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
+  ol.man-decor li.tr {text-align:right;float:right}
+  </style>
+</head>
+<!--
+  The following styles are deprecated and will be removed at some point:
+  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
 
-<style>
-body {
-  margin: 0;
-  font: 15px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
-}
-pre, code, var, dt, .man-head {
-  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
-}
-header, footer {
-  padding: .5em 2em;
-}
-.man-head {
-  color: #999;
-  padding: 0;
-  width: 100%;
-  float: left;
-  list-style-type: none;
-}
-header .man-head {
-  text-transform: uppercase;
-}
-.man-head li {
-  width: 33%;
-  float: left;
-}
-.tl { text-align: left }
-.tc { text-align: center }
-.tr { text-align: right; float: right }
-article {
-  max-width: 110ex;
-  margin: 4em auto 2em;
-}
-h1 {
-  font-size: 1em;
-  font-weight: normal;
-}
-h2 {
-  text-transform: uppercase;
-}
-code {
-  color: darkslategray;
-  font-weight: bold;
-}
-var {
-  color: orangered;
-  font-weight: normal;
-  font-style: normal;
-}
-dt {
-  margin: .5em 0;
-}
-dd {
-  margin-bottom: 1em;
-}
-pre {
-  background: #eee;
-  padding: 1em 1.5em;
-}
-pre code {
-  color: inherit;
-  font-weight: inherit;
-}
-var::before { content: "<" }
-var::after { content: ">" }
-a:link, a:hover, a:visited { color: blue }
-</style>
+  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
+  .man-navigation should be used instead.
+-->
+<body id='manpage'>
+  <div class='mp' id='man'>
 
-<header>
-  <ol class="man-head">
-    <li class="tl">hub(1)</li>
-    <li class="tc">hub manual</li>
-    <li class="tr">hub(1)</li>
+  <div class='man-navigation' style='display:none'>
+    <a href="#NAME">NAME</a>
+    <a href="#SYNOPSIS">SYNOPSIS</a>
+    <a href="#DESCRIPTION">DESCRIPTION</a>
+    <a href="#COMMANDS">COMMANDS</a>
+    <a href="#CONVENTIONS">CONVENTIONS</a>
+    <a href="#CONFIGURATION">CONFIGURATION</a>
+    <a href="#BUGS">BUGS</a>
+    <a href="#AUTHORS">AUTHORS</a>
+    <a href="#SEE-ALSO">SEE ALSO</a>
+  </div>
+
+  <ol class='man-decor man-head man head'>
+    <li class='tl'>hub(1)</li>
+    <li class='tc'>Hub Manual</li>
+    <li class='tr'>hub(1)</li>
   </ol>
-</header>
 
-<article>
-  <h1>make git easier with GitHub</h1>
-  
-<h2 id="synopsis">Synopsis</h2>
+  <h2 id="NAME">NAME</h2>
+<p class="man-name">
+  <code>hub</code> - <span class="man-whatis">make git easier with GitHub</span>
+</p>
 
-<p><code>hub</code> [--noop] <var>COMMAND</var> [<var>OPTIONS</var>]<br>
-<code>hub alias</code> [-s] [<var>SHELL</var>]<br>
+<h2 id="SYNOPSIS">SYNOPSIS</h2>
+
+<p><code>hub</code> [<code>--noop</code>] <var>COMMAND</var> [<var>OPTIONS</var>]<br />
+<code>hub alias</code> [<code>-s</code>] [<var>SHELL</var>]<br />
 <code>hub help</code> hub-<var>COMMAND</var></p>
 
-<h2 id="description">Description</h2>
+<h2 id="DESCRIPTION">DESCRIPTION</h2>
 
 <p>Hub is a tool that wraps git in order to extend it with extra functionality that
 makes it better when working with GitHub.</p>
 
-<h2 id="commands">Commands</h2>
+<h2 id="COMMANDS">COMMANDS</h2>
 
 <p>Available commands are split into two groups: those that are already present in
 git but that are extended through hub, and custom ones that hub provides.</p>
 
-<h3 id="extended-git-commands">Extended git commands</h3>
+<h3 id="Extended-git-commands">Extended git commands</h3>
 
 <dl>
-<dt><a href="./hub-am.1.html">hub-am(1)</a></dt>
-<dd>Replicate commits from a GitHub pull request locally.</dd>
-<dt><a href="./hub-apply.1.html">hub-apply(1)</a></dt>
-<dd>Download a patch from GitHub and apply it locally.</dd>
-<dt><a href="./hub-checkout.1.html">hub-checkout(1)</a></dt>
-<dd>Check out the head of a pull request as a local branch.</dd>
-<dt><a href="./hub-cherry-pick.1.html">hub-cherry-pick(1)</a></dt>
-<dd>Cherry-pick a commit from a fork on GitHub.</dd>
-<dt><a href="./hub-clone.1.html">hub-clone(1)</a></dt>
-<dd>Clone a repository from GitHub.</dd>
-<dt><a href="./hub-fetch.1.html">hub-fetch(1)</a></dt>
-<dd>Add missing remotes prior to performing git fetch.</dd>
-<dt><a href="./hub-init.1.html">hub-init(1)</a></dt>
-<dd>Initialize a git repository and add a remote pointing to GitHub.</dd>
-<dt><a href="./hub-merge.1.html">hub-merge(1)</a></dt>
-<dd>Merge a pull request locally with a message like the GitHub Merge Button.</dd>
-<dt><a href="./hub-push.1.html">hub-push(1)</a></dt>
-<dd>Push a git branch to each of the listed remotes.</dd>
-<dt><a href="./hub-remote.1.html">hub-remote(1)</a></dt>
-<dd>Add a git remote for a GitHub repository.</dd>
-<dt><a href="./hub-submodule.1.html">hub-submodule(1)</a></dt>
-<dd>Add a git submodule for a GitHub repository.</dd>
+<dt><a class="man-ref" href="hub-am.1.html">hub-am<span class="s">(1)</span></a></dt><dd><p>Replicate commits from a GitHub pull request locally.</p></dd>
+<dt><a class="man-ref" href="hub-apply.1.html">hub-apply<span class="s">(1)</span></a></dt><dd><p>Download a patch from GitHub and apply it locally.</p></dd>
+<dt><a class="man-ref" href="hub-checkout.1.html">hub-checkout<span class="s">(1)</span></a></dt><dd><p>Check out the head of a pull request as a local branch.</p></dd>
+<dt><a class="man-ref" href="hub-cherry-pick.1.html">hub-cherry-pick<span class="s">(1)</span></a></dt><dd><p>Cherry-pick a commit from a fork on GitHub.</p></dd>
+<dt><a class="man-ref" href="hub-clone.1.html">hub-clone<span class="s">(1)</span></a></dt><dd><p>Clone a repository from GitHub.</p></dd>
+<dt><a class="man-ref" href="hub-fetch.1.html">hub-fetch<span class="s">(1)</span></a></dt><dd><p>Add missing remotes prior to performing git fetch.</p></dd>
+<dt><a class="man-ref" href="hub-init.1.html">hub-init<span class="s">(1)</span></a></dt><dd><p>Initialize a git repository and add a remote pointing to GitHub.</p></dd>
+<dt><a class="man-ref" href="hub-merge.1.html">hub-merge<span class="s">(1)</span></a></dt><dd><p>Merge a pull request locally with a message like the GitHub Merge Button.</p></dd>
+<dt><a class="man-ref" href="hub-push.1.html">hub-push<span class="s">(1)</span></a></dt><dd><p>Push a git branch to each of the listed remotes.</p></dd>
+<dt><a class="man-ref" href="hub-remote.1.html">hub-remote<span class="s">(1)</span></a></dt><dd><p>Add a git remote for a GitHub repository.</p></dd>
+<dt><a class="man-ref" href="hub-submodule.1.html">hub-submodule<span class="s">(1)</span></a></dt><dd><p>Add a git submodule for a GitHub repository.</p></dd>
 </dl>
 
-<h3 id="new-commands-provided-by-hub">New commands provided by hub</h3>
+
+<h3 id="New-commands-provided-by-hub">New commands provided by hub</h3>
 
 <dl>
-<dt><a href="./hub-alias.1.html">hub-alias(1)</a></dt>
-<dd>Show shell instructions for wrapping git.</dd>
-<dt><a href="./hub-browse.1.html">hub-browse(1)</a></dt>
-<dd>Open a GitHub repository in a web browser.</dd>
-<dt><a href="./hub-ci-status.1.html">hub-ci-status(1)</a></dt>
-<dd>Display GitHub Status information for a commit.</dd>
-<dt><a href="./hub-compare.1.html">hub-compare(1)</a></dt>
-<dd>Open a GitHub compare page in a web browser.</dd>
-<dt><a href="./hub-create.1.html">hub-create(1)</a></dt>
-<dd>Create a new repository on GitHub and add a git remote for it.</dd>
-<dt><a href="./hub-delete.1.html">hub-delete(1)</a></dt>
-<dd>Delete a repository on GitHub.</dd>
-<dt><a href="./hub-fork.1.html">hub-fork(1)</a></dt>
-<dd>Fork the current project on GitHub and add a git remote for it.</dd>
-<dt><a href="./hub-pull-request.1.html">hub-pull-request(1)</a></dt>
-<dd>Create a GitHub pull request.</dd>
-<dt><a href="./hub-pr.1.html">hub-pr(1)</a></dt>
-<dd>List and checkout GitHub pull requests.</dd>
-<dt><a href="./hub-issue.1.html">hub-issue(1)</a></dt>
-<dd>List and create GitHub issues.</dd>
-<dt><a href="./hub-release.1.html">hub-release(1)</a></dt>
-<dd>List and create GitHub releases.</dd>
-<dt><a href="./hub-sync.1.html">hub-sync(1)</a></dt>
-<dd>Fetch from upstream and update local branches.</dd>
+<dt><a class="man-ref" href="hub-alias.1.html">hub-alias<span class="s">(1)</span></a></dt><dd><p>Show shell instructions for wrapping git.</p></dd>
+<dt><a class="man-ref" href="hub-browse.1.html">hub-browse<span class="s">(1)</span></a></dt><dd><p>Open a GitHub repository in a web browser.</p></dd>
+<dt><a class="man-ref" href="hub-ci-status.1.html">hub-ci-status<span class="s">(1)</span></a></dt><dd><p>Display GitHub Status information for a commit.</p></dd>
+<dt><a class="man-ref" href="hub-compare.1.html">hub-compare<span class="s">(1)</span></a></dt><dd><p>Open a GitHub compare page in a web browser.</p></dd>
+<dt><a class="man-ref" href="hub-create.1.html">hub-create<span class="s">(1)</span></a></dt><dd><p>Create a new repository on GitHub and add a git remote for it.</p></dd>
+<dt><a class="man-ref" href="hub-delete.1.html">hub-delete<span class="s">(1)</span></a></dt><dd><p>Delete a repository on GitHub.</p></dd>
+<dt><a class="man-ref" href="hub-fork.1.html">hub-fork<span class="s">(1)</span></a></dt><dd><p>Fork the current project on GitHub and add a git remote for it.</p></dd>
+<dt><a class="man-ref" href="hub-pull-request.1.html">hub-pull-request<span class="s">(1)</span></a></dt><dd><p>Create a GitHub pull request.</p></dd>
+<dt><a class="man-ref" href="hub-pr.1.html">hub-pr<span class="s">(1)</span></a></dt><dd><p>List and checkout GitHub pull requests.</p></dd>
+<dt><a class="man-ref" href="hub-issue.1.html">hub-issue<span class="s">(1)</span></a></dt><dd><p>List and create GitHub issues.</p></dd>
+<dt><a class="man-ref" href="hub-release.1.html">hub-release<span class="s">(1)</span></a></dt><dd><p>List and create GitHub releases.</p></dd>
+<dt><a class="man-ref" href="hub-sync.1.html">hub-sync<span class="s">(1)</span></a></dt><dd><p>Fetch from upstream and update local branches.</p></dd>
 </dl>
 
-<h2 id="conventions">Conventions</h2>
+
+<h2 id="CONVENTIONS">CONVENTIONS</h2>
 
 <p>Most hub commands are supposed to be run in a context of an existing local git
 repository. Hub will automatically detect the GitHub repository the current
 project belongs to by scanning its git remotes.</p>
 
 <p>In case there are multiple git remotes that are all pointing to GitHub, hub
-assumes that the main one is named &quot;upstream&quot;, &quot;github&quot;, or &quot;origin&quot;, in that
+assumes that the main one is named "upstream", "github", or "origin", in that
 order of preference.</p>
 
 <p>When working with forks, it's recommended that the git remote for your own fork
-is named &quot;origin&quot; and that the git remote for the upstream repository is named
-&quot;upstream&quot;. See <a href="https://help.github.com/articles/configuring-a-remote-for-a-fork/">https://help.github.com/articles/configuring-a-remote-for-a-fork/</a></p>
+is named "origin" and that the git remote for the upstream repository is named
+"upstream". See <a href="https://help.github.com/articles/configuring-a-remote-for-a-fork/" data-bare-link="true">https://help.github.com/articles/configuring-a-remote-for-a-fork/</a></p>
 
-<p>The default branch (usually &quot;master&quot;) for the project is detected like so:</p>
+<p>The default branch (usually "master") for the project is detected like so:</p>
 
 <pre><code>git symbolic-ref refs/remotes/origin/HEAD
 </code></pre>
@@ -175,19 +149,19 @@ is named &quot;origin&quot; and that the git remote for the upstream repository 
 
 <p>The destination where the currently checked out branch is considered to be
 pushed to depends on the <code>git config push.default</code> setting. If the value is
-&quot;upstream&quot; or &quot;tracking&quot;, the tracking information for a branch is read like so:</p>
+"upstream" or "tracking", the tracking information for a branch is read like so:</p>
 
 <pre><code>git rev-parse --symbolic-full-name BRANCH@{upstream}
 </code></pre>
 
 <p>Otherwise, hub scans git remotes to find the first one for which
-<code>refs/remotes/REMOTE/BRANCH</code> exists. The &quot;origin&quot;, &quot;github&quot;, and &quot;upstream&quot;
+<code>refs/remotes/REMOTE/BRANCH</code> exists. The "origin", "github", and "upstream"
 remotes are searched last because hub assumes that it's more likely that the
 current branch is pushed to your fork rather than to the canonical repo.</p>
 
-<h2 id="configuration">Configuration</h2>
+<h2 id="CONFIGURATION">CONFIGURATION</h2>
 
-<h3 id="github-oauth-authentication">GitHub OAuth authentication</h3>
+<h3 id="GitHub-OAuth-authentication">GitHub OAuth authentication</h3>
 
 <p>Hub will prompt for GitHub username &amp; password the first time it needs to access
 the API and exchange it for an OAuth token, which it saves in <code>~/.config/hub</code>.</p>
@@ -198,7 +172,7 @@ variables.</p>
 <p>Alternatively, you may provide <code>GITHUB_TOKEN</code>, an access token with
 <strong>repo</strong> permissions. This will not be written to <code>~/.config/hub</code>.</p>
 
-<h3 id="https-instead-of-git-protocol">HTTPS instead of git protocol</h3>
+<h3 id="HTTPS-instead-of-git-protocol">HTTPS instead of git protocol</h3>
 
 <p>If you prefer the HTTPS protocol for git operations, you can configure hub to
 generate all URLs with <code>https:</code> instead of <code>git:</code> or <code>ssh:</code>:</p>
@@ -209,7 +183,7 @@ generate all URLs with <code>https:</code> instead of <code>git:</code> or <code
 <p>This will affect <code>clone</code>, <code>fork</code>, <code>remote add</code> and other hub commands that
 expand shorthand references to GitHub repo URLs.</p>
 
-<h3 id="github-enterprise">GitHub Enterprise</h3>
+<h3 id="GitHub-Enterprise">GitHub Enterprise</h3>
 
 <p>By default, hub will only work with repositories that have remotes which
 point to <code>github.com</code>. GitHub Enterprise hosts need to be whitelisted to
@@ -224,41 +198,39 @@ this can be affected with the <code>GITHUB_HOST</code> environment variable:</p>
 <pre><code>$ GITHUB_HOST=my.git.org git clone myproject
 </code></pre>
 
-<h3 id="environment-variables">Environment variables</h3>
+<h3 id="Environment-variables">Environment variables</h3>
 
 <dl>
-<dt><code>HUB_VERBOSE</code></dt>
-<dd>Enable verbose output from hub commands.</dd>
-<dt><code>HUB_CONFIG</code></dt>
-<dd>The file path where hub configuration is read from and stored. If
+<dt><code>HUB_VERBOSE</code></dt><dd><p>Enable verbose output from hub commands.</p></dd>
+<dt><code>HUB_CONFIG</code></dt><dd><p>The file path where hub configuration is read from and stored. If
 <code>XDG_CONFIG_HOME</code> is present, the default is <code>$XDG_CONFIG_HOME/hub</code>;
 otherwise it's <code>$HOME/.config/hub</code>. The configuration file is also
-searched for in <code>XDG_CONFIG_DIRS</code> per XDG Base Directory Specification.</dd>
-<dt><code>HUB_PROTOCOL</code></dt>
-<dd>Use one of &quot;https|ssh|git&quot; as preferred protocol for git clone/push.</dd>
-<dt><code>GITHUB_TOKEN</code></dt>
-<dd>OAuth token to use for GitHub API requests.</dd>
+searched for in <code>XDG_CONFIG_DIRS</code> per XDG Base Directory Specification.</p></dd>
+<dt><code>HUB_PROTOCOL</code></dt><dd><p>Use one of "https|ssh|git" as preferred protocol for git clone/push.</p></dd>
+<dt><code>GITHUB_TOKEN</code></dt><dd><p>OAuth token to use for GitHub API requests.</p></dd>
 </dl>
 
-<h2 id="bugs">Bugs</h2>
 
-<p><a href="https://github.com/github/hub/issues">https://github.com/github/hub/issues</a></p>
+<h2 id="BUGS">BUGS</h2>
 
-<h2 id="authors">Authors</h2>
+<p><a href="https://github.com/github/hub/issues" data-bare-link="true">https://github.com/github/hub/issues</a></p>
 
-<p><a href="https://github.com/github/hub/contributors">https://github.com/github/hub/contributors</a></p>
+<h2 id="AUTHORS">AUTHORS</h2>
 
-<h2 id="see-also">See also</h2>
+<p><a href="https://github.com/github/hub/contributors" data-bare-link="true">https://github.com/github/hub/contributors</a></p>
 
-<p>git(1), git-clone(1), git-remote(1), git-init(1),
-<a href="https://github.com/github/hub">https://github.com/github/hub</a></p>
+<h2 id="SEE-ALSO">SEE ALSO</h2>
 
-</article>
+<p><span class="man-ref">git<span class="s">(1)</span></span>, <span class="man-ref">git-clone<span class="s">(1)</span></span>, <span class="man-ref">git-remote<span class="s">(1)</span></span>, <span class="man-ref">git-init<span class="s">(1)</span></span>,
+<a href="https://github.com/github/hub" data-bare-link="true">https://github.com/github/hub</a></p>
 
-<footer>
-  <ol class="man-head">
-    <li class="tl">hub version 2.7.0-9-gf275d48</li>
-    <li class="tc">29 Dec 2018</li>
-    <li class="tr"></li>
+
+  <ol class='man-decor man-foot man foot'>
+    <li class='tl'>GITHUB</li>
+    <li class='tc'>January 2019</li>
+    <li class='tr'>hub(1)</li>
   </ol>
-</footer>
+
+  </div>
+</body>
+</html>
