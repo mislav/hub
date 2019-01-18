@@ -1,13 +1,11 @@
 package commands
 
 import (
-	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/github/hub/utils"
-	flag "github.com/ogier/pflag"
 )
 
 var (
@@ -19,8 +17,7 @@ var (
 )
 
 type Command struct {
-	Run  func(cmd *Command, args *Args)
-	Flag flag.FlagSet
+	Run func(cmd *Command, args *Args)
 
 	Key          string
 	Usage        string
@@ -58,53 +55,23 @@ func (e ErrHelp) Error() string {
 	return e.err
 }
 
-func hasFlags(fs *flag.FlagSet) (found bool) {
-	fs.VisitAll(func(f *flag.Flag) {
-		found = true
-	})
-	return
-}
-
 func (c *Command) parseArguments(args *Args) error {
-	if !hasFlags(&c.Flag) {
-		knownFlags := c.KnownFlags
-		if knownFlags == "" {
-			knownFlags = c.Long
-		}
-		args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + knownFlags)
-		if rest, err := args.Flag.Parse(args.Params); err == nil {
-			if args.Flag.Bool("--help") {
-				return &ErrHelp{err: c.Synopsis()}
-			}
-			args.Params = rest
-			args.Terminator = args.Flag.HasTerminated
-			return nil
-		} else {
-			return fmt.Errorf("%s\n%s", err, c.Synopsis())
-		}
+	knownFlags := c.KnownFlags
+	if knownFlags == "" {
+		knownFlags = c.Long
 	}
+	args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + knownFlags)
 
-	c.Flag.SetInterspersed(true)
-	c.Flag.Init(c.Name(), flag.ContinueOnError)
-	c.Flag.Usage = func() {
-	}
-	var flagBuf bytes.Buffer
-	c.Flag.SetOutput(&flagBuf)
-
-	err := c.Flag.Parse(args.Params)
-	if err == nil {
-		for _, arg := range args.Params {
-			if arg == "--" {
-				args.Terminator = true
-			}
+	if rest, err := args.Flag.Parse(args.Params); err == nil {
+		if args.Flag.Bool("--help") {
+			return &ErrHelp{err: c.Synopsis()}
 		}
-		args.Params = c.Flag.Args()
-	} else if err == flag.ErrHelp {
-		err = &ErrHelp{err: c.Synopsis()}
+		args.Params = rest
+		args.Terminator = args.Flag.HasTerminated
+		return nil
 	} else {
 		return fmt.Errorf("%s\n%s", err, c.Synopsis())
 	}
-	return err
 }
 
 func (c *Command) Use(subCommand *Command) {

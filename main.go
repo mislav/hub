@@ -10,7 +10,6 @@ import (
 	"github.com/github/hub/commands"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
-	flag "github.com/ogier/pflag"
 )
 
 func main() {
@@ -22,8 +21,6 @@ func main() {
 
 func handleError(err error) int {
 	if err == nil {
-		return 0
-	} else if err == flag.ErrHelp {
 		return 0
 	}
 
