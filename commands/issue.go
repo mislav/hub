@@ -160,86 +160,55 @@ With no arguments, show a list of open issues.
 
 hub-pr(1), hub(1)
 `,
+		KnownFlags: `
+		-a, --assignee USER
+		-s, --state STATE
+		-f, --format FMT
+		-M, --milestone M
+		-c, --creator USER
+		-@, --mentioned USER
+		-l, --labels LIST
+		-d, --since DATE
+		-o, --sort KEY
+		-^, --sort-ascending
+		--include-pulls
+		-L, --limit N
+`,
 	}
 
 	cmdCreateIssue = &Command{
-		Key:   "create",
-		Run:   createIssue,
-		Usage: "issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]",
-		Long:  "Open an issue in the current project.",
+		Key: "create",
+		Run: createIssue,
+		KnownFlags: `
+		-m, --message MSG
+		-F, --file FILE
+		-M, --milestone M
+		-l, --labels LIST
+		-a, --assignee USER
+		-o, --browse
+		-c, --copy
+		-e, --edit
+`,
 	}
 
 	cmdShowIssue = &Command{
-		Key:   "show",
-		Run:   showIssue,
-		Usage: "issue show <NUMBER>",
-		Long:  "Show an issue in the current project.",
+		Key: "show",
+		Run: showIssue,
+		KnownFlags: `
+		-f, --format FMT
+`,
 	}
 
 	cmdLabel = &Command{
-		Key:   "labels",
-		Run:   listLabels,
-		Usage: "issue labels [--color]",
-		Long:  "List the labels available in this repository.",
+		Key: "labels",
+		Run: listLabels,
+		KnownFlags: `
+		--color
+`,
 	}
-
-	flagIssueAssignee,
-	flagIssueState,
-	flagIssueFormat,
-	flagShowIssueFormat,
-	flagIssueMilestoneFilter,
-	flagIssueCreator,
-	flagIssueMentioned,
-	flagIssueLabelsFilter,
-	flagIssueSince,
-	flagIssueSort,
-	flagIssueFile string
-
-	flagIssueMessage messageBlocks
-
-	flagIssueEdit,
-	flagIssueCopy,
-	flagIssueBrowse,
-	flagIssueSortAscending bool
-	flagIssueIncludePulls bool
-
-	flagIssueMilestone uint64
-
-	flagIssueAssignees,
-	flagIssueLabels listFlag
-
-	flagIssueLimit int
-
-	flagLabelsColorize bool
 )
 
 func init() {
-	cmdShowIssue.Flag.StringVarP(&flagShowIssueFormat, "format", "f", "", "FORMAT")
-
-	cmdCreateIssue.Flag.VarP(&flagIssueMessage, "message", "m", "MESSAGE")
-	cmdCreateIssue.Flag.StringVarP(&flagIssueFile, "file", "F", "", "FILE")
-	cmdCreateIssue.Flag.Uint64VarP(&flagIssueMilestone, "milestone", "M", 0, "MILESTONE")
-	cmdCreateIssue.Flag.VarP(&flagIssueLabels, "label", "l", "LABEL")
-	cmdCreateIssue.Flag.VarP(&flagIssueAssignees, "assign", "a", "ASSIGNEE")
-	cmdCreateIssue.Flag.BoolVarP(&flagIssueBrowse, "browse", "o", false, "BROWSE")
-	cmdCreateIssue.Flag.BoolVarP(&flagIssueCopy, "copy", "c", false, "COPY")
-	cmdCreateIssue.Flag.BoolVarP(&flagIssueEdit, "edit", "e", false, "EDIT")
-
-	cmdIssue.Flag.StringVarP(&flagIssueAssignee, "assignee", "a", "", "ASSIGNEE")
-	cmdIssue.Flag.StringVarP(&flagIssueState, "state", "s", "", "STATE")
-	cmdIssue.Flag.StringVarP(&flagIssueFormat, "format", "f", "%sC%>(8)%i%Creset  %t%  l%n", "FORMAT")
-	cmdIssue.Flag.StringVarP(&flagIssueMilestoneFilter, "milestone", "M", "", "MILESTONE")
-	cmdIssue.Flag.StringVarP(&flagIssueCreator, "creator", "c", "", "CREATOR")
-	cmdIssue.Flag.StringVarP(&flagIssueMentioned, "mentioned", "@", "", "USER")
-	cmdIssue.Flag.StringVarP(&flagIssueLabelsFilter, "labels", "l", "", "LABELS")
-	cmdIssue.Flag.StringVarP(&flagIssueSince, "since", "d", "", "DATE")
-	cmdIssue.Flag.StringVarP(&flagIssueSort, "sort", "o", "created", "SORT_KEY")
-	cmdIssue.Flag.BoolVarP(&flagIssueSortAscending, "sort-ascending", "^", false, "SORT_KEY")
-	cmdIssue.Flag.BoolVarP(&flagIssueIncludePulls, "include-pulls", "", false, "INCLUDE_PULLS")
-	cmdIssue.Flag.IntVarP(&flagIssueLimit, "limit", "L", -1, "LIMIT")
-
-	cmdLabel.Flag.BoolVarP(&flagLabelsColorize, "color", "", false, "COLORIZE")
-
 	cmdIssue.Use(cmdShowIssue)
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
@@ -258,34 +227,50 @@ func listIssues(cmd *Command, args *Args) {
 	if args.Noop {
 		ui.Printf("Would request list of issues for %s\n", project)
 	} else {
-		flagFilters := map[string]string{
-			"state":     flagIssueState,
-			"assignee":  flagIssueAssignee,
-			"milestone": flagIssueMilestoneFilter,
-			"creator":   flagIssueCreator,
-			"mentioned": flagIssueMentioned,
-			"labels":    flagIssueLabelsFilter,
-			"sort":      flagIssueSort,
-		}
 		filters := map[string]interface{}{}
-		for flag, filter := range flagFilters {
-			if cmd.FlagPassed(flag) {
-				filters[flag] = filter
-			}
+		if args.Flag.HasReceived("--state") {
+			filters["state"] = args.Flag.Value("--state")
+		}
+		if args.Flag.HasReceived("--assignee") {
+			filters["assignee"] = args.Flag.Value("--assignee")
+		}
+		if args.Flag.HasReceived("--milestone") {
+			filters["milestone"] = args.Flag.Value("--milestone")
+		}
+		if args.Flag.HasReceived("--creator") {
+			filters["creator"] = args.Flag.Value("--creator")
+		}
+		if args.Flag.HasReceived("--mentioned") {
+			filters["mentioned"] = args.Flag.Value("--mentioned")
+		}
+		if args.Flag.HasReceived("--labels") {
+			labels := commaSeparated(args.Flag.AllValues("--labels"))
+			filters["labels"] = strings.Join(labels, ",")
+		}
+		if args.Flag.HasReceived("--sort") {
+			filters["sort"] = args.Flag.Value("--sort")
 		}
 
-		if flagIssueSortAscending {
+		if args.Flag.Bool("--sort-ascending") {
 			filters["direction"] = "asc"
 		} else {
 			filters["direction"] = "desc"
 		}
 
-		if cmd.FlagPassed("since") {
+		if args.Flag.HasReceived("--since") {
+			flagIssueSince := args.Flag.Value("--since")
 			if sinceTime, err := time.ParseInLocation("2006-01-02", flagIssueSince, time.Local); err == nil {
 				filters["since"] = sinceTime.Format(time.RFC3339)
 			} else {
 				filters["since"] = flagIssueSince
 			}
+		}
+
+		flagIssueLimit := args.Flag.Int("--limit")
+		flagIssueIncludePulls := args.Flag.Bool("--include-pulls")
+		flagIssueFormat := "%sC%>(8)%i%Creset  %t%  l%n"
+		if args.Flag.HasReceived("--format") {
+			flagIssueFormat = args.Flag.Value("--format")
 		}
 
 		issues, err := gh.FetchIssues(project, filters, flagIssueLimit, func(issue *github.Issue) bool {
@@ -443,7 +428,7 @@ func showIssue(cmd *Command, args *Args) {
 		issueNumber = args.GetParam(0)
 	}
 	if issueNumber == "" {
-		utils.Check(fmt.Errorf(cmd.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -461,7 +446,8 @@ func showIssue(cmd *Command, args *Args) {
 	args.NoForward()
 
 	colorize := ui.IsTerminal(os.Stdout)
-	if flagShowIssueFormat != "" {
+	if args.Flag.HasReceived("--format") {
+		flagShowIssueFormat := args.Flag.Value("--format")
 		ui.Print(formatIssue(*issue, flagShowIssueFormat, colorize))
 		return
 	}
@@ -515,11 +501,13 @@ func createIssue(cmd *Command, args *Args) {
 Write a message for this issue. The first block of
 text is the title and the rest is the description.`, project))
 
+	flagIssueEdit := args.Flag.Bool("--edit")
+	flagIssueMessage := args.Flag.AllValues("--message")
 	if len(flagIssueMessage) > 0 {
-		messageBuilder.Message = flagIssueMessage.String()
+		messageBuilder.Message = strings.Join(flagIssueMessage, "\n\n")
 		messageBuilder.Edit = flagIssueEdit
-	} else if cmd.FlagPassed("file") {
-		messageBuilder.Message, err = msgFromFile(flagIssueFile)
+	} else if args.Flag.HasReceived("--file") {
+		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 		utils.Check(err)
 		messageBuilder.Edit = flagIssueEdit
 	} else {
@@ -548,15 +536,17 @@ text is the title and the rest is the description.`, project))
 		"body":  body,
 	}
 
+	flagIssueLabels := commaSeparated(args.Flag.AllValues("--labels"))
 	if len(flagIssueLabels) > 0 {
 		params["labels"] = flagIssueLabels
 	}
 
+	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assignee"))
 	if len(flagIssueAssignees) > 0 {
 		params["assignees"] = flagIssueAssignees
 	}
 
-	if flagIssueMilestone > 0 {
+	if flagIssueMilestone := args.Flag.Int("--milestone"); flagIssueMilestone > 0 {
 		params["milestone"] = flagIssueMilestone
 	}
 
@@ -567,6 +557,8 @@ text is the title and the rest is the description.`, project))
 		issue, err := gh.CreateIssue(project, params)
 		utils.Check(err)
 
+		flagIssueBrowse := args.Flag.Bool("--browse")
+		flagIssueCopy := args.Flag.Bool("--copy")
 		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, flagIssueCopy)
 	}
 
@@ -591,6 +583,7 @@ func listLabels(cmd *Command, args *Args) {
 	labels, err := gh.FetchLabels(project)
 	utils.Check(err)
 
+	flagLabelsColorize := args.Flag.Bool("--color")
 	for _, label := range labels {
 		ui.Print(formatLabel(label, flagLabelsColorize))
 	}
