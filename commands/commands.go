@@ -27,7 +27,8 @@ type Command struct {
 	Long         string
 	GitExtension bool
 
-	subCommands map[string]*Command
+	subCommands   map[string]*Command
+	parentCommand *Command
 }
 
 func (c *Command) Call(args *Args) (err error) {
@@ -116,6 +117,7 @@ func (c *Command) Use(subCommand *Command) {
 		c.subCommands = make(map[string]*Command)
 	}
 	c.subCommands[subCommand.Name()] = subCommand
+	subCommand.parentCommand = c
 }
 
 func (c *Command) UsageError(msg string) error {
@@ -129,8 +131,12 @@ func (c *Command) UsageError(msg string) error {
 func (c *Command) Synopsis() string {
 	lines := []string{}
 	usagePrefix := "Usage:"
+	usageStr := c.Usage
+	if usageStr == "" && c.parentCommand != nil {
+		usageStr = c.parentCommand.Usage
+	}
 
-	for _, line := range strings.Split(c.Usage, "\n") {
+	for _, line := range strings.Split(usageStr, "\n") {
 		if line != "" {
 			usage := fmt.Sprintf("%s hub %s", usagePrefix, line)
 			usagePrefix = "      "
