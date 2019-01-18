@@ -118,6 +118,14 @@ func (c *Command) Use(subCommand *Command) {
 	c.subCommands[subCommand.Name()] = subCommand
 }
 
+func (c *Command) UsageError(msg string) error {
+	nl := ""
+	if msg != "" {
+		nl = "\n"
+	}
+	return fmt.Errorf("%s%s%s", msg, nl, c.Synopsis())
+}
+
 func (c *Command) Synopsis() string {
 	lines := []string{}
 	usagePrefix := "Usage:"
