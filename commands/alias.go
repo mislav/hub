@@ -29,10 +29,7 @@ hub(1)
 `,
 }
 
-var flagAliasScript bool
-
 func init() {
-	cmdAlias.Flag.BoolVarP(&flagAliasScript, "script", "s", false, "SCRIPT")
 	CmdRunner.Use(cmdAlias)
 }
 
@@ -44,6 +41,7 @@ func alias(command *Command, args *Args) {
 		shell = os.Getenv("SHELL")
 	}
 
+	flagAliasScript := args.Flag.Bool("-s")
 	if shell == "" {
 		cmd := "hub alias <shell>"
 		if flagAliasScript {
