@@ -86,7 +86,7 @@ make install prefix=/usr/local
 Prerequisites for compilation are:
 
 * `make`
-* [Go 1.8+](http://golang.org/doc/install)
+* [Go 1.9+](http://golang.org/doc/install)
 * Ruby 1.9+ with Bundler - for generating man pages
 
 Aliasing
