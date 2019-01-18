@@ -31,11 +31,16 @@ publish_documentation() {
   popd
 }
 
+in_default_branch() {
+  git fetch origin master --depth 10
+  git merge-base --is-ancestor "$1" FETCH_HEAD
+}
+
 if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ] && latest_go_version && [ -n "$GITHUB_OAUTH" ]; then
   version="${TRAVIS_TAG#v}"
   make man-pages
   script/cross-compile "$version" | \
     PATH="bin:$PATH" script/github-release hub "$version"
 
-  publish_documentation
+  in_default_branch "$TRAVIS_TAG" && publish_documentation || echo "skipping publishing documentation"
 fi
