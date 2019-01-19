@@ -1,116 +1,132 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta http-equiv='content-type' value='text/html;charset=utf8'>
-  <meta name='generator' value='Ronn/v0.7.3 (http://github.com/rtomayko/ronn/tree/0.7.3)'>
-  <title>hub-issue(1) - Manage GitHub issues for the current project.</title>
-  <style type='text/css' media='all'>
-  /* style: man */
-  body#manpage {margin:0}
-  .mp {max-width:100ex;padding:0 9ex 1ex 4ex}
-  .mp p,.mp pre,.mp ul,.mp ol,.mp dl {margin:0 0 20px 0}
-  .mp h2 {margin:10px 0 0 0}
-  .mp > p,.mp > pre,.mp > ul,.mp > ol,.mp > dl {margin-left:8ex}
-  .mp h3 {margin:0 0 0 4ex}
-  .mp dt {margin:0;clear:left}
-  .mp dt.flush {float:left;width:8ex}
-  .mp dd {margin:0 0 0 9ex}
-  .mp h1,.mp h2,.mp h3,.mp h4 {clear:left}
-  .mp pre {margin-bottom:20px}
-  .mp pre+h2,.mp pre+h3 {margin-top:22px}
-  .mp h2+pre,.mp h3+pre {margin-top:5px}
-  .mp img {display:block;margin:auto}
-  .mp h1.man-title {display:none}
-  .mp,.mp code,.mp pre,.mp tt,.mp kbd,.mp samp,.mp h3,.mp h4 {font-family:monospace;font-size:14px;line-height:1.42857142857143}
-  .mp h2 {font-size:16px;line-height:1.25}
-  .mp h1 {font-size:20px;line-height:2}
-  .mp {text-align:justify;background:#fff}
-  .mp,.mp code,.mp pre,.mp pre code,.mp tt,.mp kbd,.mp samp {color:#131211}
-  .mp h1,.mp h2,.mp h3,.mp h4 {color:#030201}
-  .mp u {text-decoration:underline}
-  .mp code,.mp strong,.mp b {font-weight:bold;color:#131211}
-  .mp em,.mp var {font-style:italic;color:#232221;text-decoration:none}
-  .mp a,.mp a:link,.mp a:hover,.mp a code,.mp a pre,.mp a tt,.mp a kbd,.mp a samp {color:#0000ff}
-  .mp b.man-ref {font-weight:normal;color:#434241}
-  .mp pre {padding:0 4ex}
-  .mp pre code {font-weight:normal;color:#434241}
-  .mp h2+pre,h3+pre {padding-left:0}
-  ol.man-decor,ol.man-decor li {margin:3px 0 10px 0;padding:0;float:left;width:33%;list-style-type:none;text-transform:uppercase;color:#999;letter-spacing:1px}
-  ol.man-decor {width:100%}
-  ol.man-decor li.tl {text-align:left}
-  ol.man-decor li.tc {text-align:center;letter-spacing:4px}
-  ol.man-decor li.tr {text-align:right;float:right}
-  </style>
-</head>
-<!--
-  The following styles are deprecated and will be removed at some point:
-  div#man, div#man ol.man, div#man ol.head, div#man ol.man.
+<!doctype html>
+<title>hub-issue(1) - Manage GitHub issues for the current project.</title>
+<meta charset="utf-8">
 
-  The .man-page, .man-decor, .man-head, .man-foot, .man-title, and
-  .man-navigation should be used instead.
--->
-<body id='manpage'>
-  <div class='mp' id='man'>
+<style>
+body {
+  margin: 0;
+  font: 15px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+}
+pre, code, var, dt, .man-head {
+  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+}
+header, footer {
+  padding: .5em 2em;
+}
+.man-head {
+  color: #999;
+  padding: 0;
+  width: 100%;
+  float: left;
+  list-style-type: none;
+}
+header .man-head {
+  text-transform: uppercase;
+}
+.man-head li {
+  width: 33%;
+  float: left;
+}
+.tl { text-align: left }
+.tc { text-align: center }
+.tr { text-align: right; float: right }
+article {
+  max-width: 110ex;
+  margin: 4em auto 2em;
+}
+h1 {
+  font-size: 1em;
+  font-weight: normal;
+}
+h2 {
+  text-transform: uppercase;
+}
+code {
+  color: darkslategray;
+  font-weight: bold;
+}
+var {
+  color: orangered;
+  font-weight: normal;
+  font-style: normal;
+}
+dt {
+  margin: .5em 0;
+}
+dd {
+  margin-bottom: 1em;
+}
+pre {
+  background: #eee;
+  padding: 1em 1.5em;
+}
+pre code {
+  color: inherit;
+  font-weight: inherit;
+}
+var::before { content: "<" }
+var::after { content: ">" }
+a:link, a:hover, a:visited { color: blue }
+</style>
 
-  <div class='man-navigation' style='display:none'>
-    <a href="#NAME">NAME</a>
-    <a href="#SYNOPSIS">SYNOPSIS</a>
-    <a href="#COMMANDS">COMMANDS</a>
-    <a href="#OPTIONS">OPTIONS</a>
-    <a href="#SEE-ALSO">SEE ALSO</a>
-  </div>
-
-  <ol class='man-decor man-head man head'>
-    <li class='tl'>hub-issue(1)</li>
-    <li class='tc'>Hub Manual</li>
-    <li class='tr'>hub-issue(1)</li>
+<header>
+  <ol class="man-head">
+    <li class="tl">hub-issue(1)</li>
+    <li class="tc">hub manual</li>
+    <li class="tr">hub-issue(1)</li>
   </ol>
+</header>
 
-  <h2 id="NAME">NAME</h2>
-<p class="man-name">
-  <code>hub-issue</code> - <span class="man-whatis">Manage GitHub issues for the current project.</span>
-</p>
+<article>
+  <h1>Manage GitHub issues for the current project.</h1>
+  
+<h2 id="synopsis">Synopsis</h2>
 
-<h2 id="SYNOPSIS">SYNOPSIS</h2>
-
-<p><code>hub issue</code> [-a <var>ASSIGNEE</var>] [-c <var>CREATOR</var>] [-@ <var>USER</var>] [-s <var>STATE</var>] [-f <var>FORMAT</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>] [-d <var>DATE</var>] [-o <var>SORT_KEY</var> [<code>-^</code>]] [-L <var>LIMIT</var>]<br />
-<code>hub issue</code> show [-f <var>FORMAT</var>] <var>NUMBER</var><br />
-<code>hub issue</code> create [-oc] [-m <var>MESSAGE</var>|-F <var>FILE</var>] [--edit] [-a <var>USERS</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>]<br />
+<p><code>hub issue</code> [-a <var>ASSIGNEE</var>] [-c <var>CREATOR</var>] [-@ <var>USER</var>] [-s <var>STATE</var>] [-f <var>FORMAT</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>] [-d <var>DATE</var>] [-o <var>SORT_KEY</var> [<code>-^</code>]] [-L <var>LIMIT</var>]<br>
+<code>hub issue</code> show [-f <var>FORMAT</var>] <var>NUMBER</var><br>
+<code>hub issue</code> create [-oc] [-m <var>MESSAGE</var>|-F <var>FILE</var>] [--edit] [-a <var>USERS</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>]<br>
 <code>hub issue</code> labels [--color]</p>
 
-<h2 id="COMMANDS">COMMANDS</h2>
+<h2 id="commands">Commands</h2>
 
 <p>With no arguments, show a list of open issues.</p>
 
 <dl>
-<dt class="flush"><em>show</em></dt><dd><p>Show an existing issue specified by <var>NUMBER</var>.</p></dd>
-<dt class="flush"><em>create</em></dt><dd><p>Open an issue in the current project.</p></dd>
-<dt class="flush"><em>labels</em></dt><dd><p>List the labels available in this repository.</p></dd>
+<dt><em>show</em></dt>
+<dd>Show an existing issue specified by <var>NUMBER</var>.</dd>
+<dt><em>create</em></dt>
+<dd>Open an issue in the current project.</dd>
+<dt><em>labels</em></dt>
+<dd>List the labels available in this repository.</dd>
 </dl>
 
-
-<h2 id="OPTIONS">OPTIONS</h2>
+<h2 id="options">Options</h2>
 
 <dl>
-<dt>-a, --assignee=<var>ASSIGNEE</var></dt><dd><p>Display only issues assigned to <var>ASSIGNEE</var>.</p>
+<dt>-a, --assignee=<var>ASSIGNEE</var></dt>
+<dd><p>Display only issues assigned to <var>ASSIGNEE</var>.</p>
 
 <p>When opening an issue, this can be a comma-separated list of people to
 assign to the new issue.</p></dd>
-<dt>-c, --creator=<var>CREATOR</var></dt><dd><p>Display only issues created by <var>CREATOR</var>.</p></dd>
-<dt>-@, --mentioned=<var>USER</var></dt><dd><p>Display only issues mentioning <var>USER</var>.</p></dd>
-<dt>-s, --state=<var>STATE</var></dt><dd><p>Display issues with state <var>STATE</var> (default: "open").</p></dd>
-<dt>-f, --format=<var>FORMAT</var></dt><dd><p>Pretty print the contents of the issues using format <var>FORMAT</var> (default:
-"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
-<span class="man-ref">git-log<span class="s">(1)</span></span> for some additional details on how placeholders are used in
+<dt>-c, --creator=<var>CREATOR</var></dt>
+<dd><p>Display only issues created by <var>CREATOR</var>.</p></dd>
+<dt>-@, --mentioned=<var>USER</var></dt>
+<dd><p>Display only issues mentioning <var>USER</var>.</p></dd>
+<dt>-s, --state=<var>STATE</var></dt>
+<dd><p>Display issues with state <var>STATE</var> (default: &quot;open&quot;).</p></dd>
+<dt>-f, --format=<var>FORMAT</var></dt>
+<dd><p>Pretty print the contents of the issues using format <var>FORMAT</var> (default:
+&quot;%sC%&gt;(8)%i%Creset  %t%  l%n&quot;). See the &quot;PRETTY FORMATS&quot; section of
+git-log(1) for some additional details on how placeholders are used in
 format. The available placeholders for issues are:</p>
 
 <p>%I: issue number</p>
 
-<p>%i: issue number prefixed with "#"</p>
+<p>%i: issue number prefixed with &quot;#&quot;</p>
 
 <p>%U: the URL of this issue</p>
 
-<p>%S: state (i.e. "open", "closed")</p>
+<p>%S: state (i.e. &quot;open&quot;, &quot;closed&quot;)</p>
 
 <p>%sC: set color to red or green, depending on issue state.</p>
 
@@ -153,41 +169,52 @@ format. The available placeholders for issues are:</p>
 <p>%n: newline</p>
 
 <p>%%: a literal %</p></dd>
-<dt>-m, --message=<var>MESSAGE</var></dt><dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the issue
+<dt>-m, --message=<var>MESSAGE</var></dt>
+<dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the issue
 title, and the rest is used as issue description in Markdown format.</p>
 
 <p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
 separate paragraphs.</p></dd>
-<dt>-F, --file=<var>FILE</var></dt><dd><p>Read the issue title and description from <var>FILE</var>.</p></dd>
-<dt>-e, --edit</dt><dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
-<dt>-o, --browse</dt><dd><p>Open the new issue in a web browser.</p></dd>
-<dt>-c, --copy</dt><dd><p>Put the URL of the new issue to clipboard instead of printing it.</p></dd>
-<dt>-M, --milestone=<var>ID</var></dt><dd><p>Display only issues for a GitHub milestone with id <var>ID</var>.</p>
+<dt>-F, --file=<var>FILE</var></dt>
+<dd><p>Read the issue title and description from <var>FILE</var>.</p></dd>
+<dt>-e, --edit</dt>
+<dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
+<dt>-o, --browse</dt>
+<dd><p>Open the new issue in a web browser.</p></dd>
+<dt>-c, --copy</dt>
+<dd><p>Put the URL of the new issue to clipboard instead of printing it.</p></dd>
+<dt>-M, --milestone=<var>ID</var></dt>
+<dd><p>Display only issues for a GitHub milestone with id <var>ID</var>.</p>
 
 <p>When opening an issue, add this issue to a GitHub milestone with id <var>ID</var>.</p></dd>
-<dt>-l, --labels=<var>LABELS</var></dt><dd><p>Display only issues with certain labels.</p>
+<dt>-l, --labels=<var>LABELS</var></dt>
+<dd><p>Display only issues with certain labels.</p>
 
 <p>When opening an issue, add a comma-separated list of labels to this issue.</p></dd>
-<dt>-d, --since=<var>DATE</var></dt><dd><p>Display only issues updated on or after <var>DATE</var> in ISO 8601 format.</p></dd>
-<dt>-o, --sort=<var>SORT_KEY</var></dt><dd><p>Sort displayed issues by "created" (default), "updated" or "comments".</p></dd>
-<dt>-^ --sort-ascending</dt><dd><p>Sort by ascending dates instead of descending.</p></dd>
-<dt>-L, --limit=<var>LIMIT</var></dt><dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
-<dt>--include-pulls</dt><dd><p>Include pull requests as well as issues.</p></dd>
-<dt class="flush">--color</dt><dd><p>Enable colored output for labels list.</p></dd>
+<dt>-d, --since=<var>DATE</var></dt>
+<dd><p>Display only issues updated on or after <var>DATE</var> in ISO 8601 format.</p></dd>
+<dt>-o, --sort=<var>SORT_KEY</var></dt>
+<dd><p>Sort displayed issues by &quot;created&quot; (default), &quot;updated&quot; or &quot;comments&quot;.</p></dd>
+<dt>-^ --sort-ascending</dt>
+<dd><p>Sort by ascending dates instead of descending.</p></dd>
+<dt>-L, --limit=<var>LIMIT</var></dt>
+<dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
+<dt>--include-pulls</dt>
+<dd><p>Include pull requests as well as issues.</p></dd>
+<dt>--color</dt>
+<dd><p>Enable colored output for labels list.</p></dd>
 </dl>
 
+<h2 id="see-also">See also</h2>
 
-<h2 id="SEE-ALSO">SEE ALSO</h2>
+<p><a href="./hub-pr.1.html">hub-pr(1)</a>, <a href="./hub.1.html">hub(1)</a></p>
 
-<p><a class="man-ref" href="hub-pr.1.html">hub-pr<span class="s">(1)</span></a>, <a class="man-ref" href="hub.1.html">hub<span class="s">(1)</span></a></p>
+</article>
 
-
-  <ol class='man-decor man-foot man foot'>
-    <li class='tl'>GITHUB</li>
-    <li class='tc'>January 2019</li>
-    <li class='tr'>hub-issue(1)</li>
+<footer>
+  <ol class="man-head">
+    <li class="tl">hub version 2.7.0-32-gcdd5ce9</li>
+    <li class="tc">19 Jan 2019</li>
+    <li class="tr"></li>
   </ol>
-
-  </div>
-</body>
-</html>
+</footer>
