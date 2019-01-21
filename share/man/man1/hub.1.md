@@ -73,7 +73,7 @@ hub-delete(1)
 :   Delete a repository on GitHub.
 
 hub-fork(1)
-:   Fork the current project on GitHub and add a git remote for it.
+:   Fork the current repository on GitHub and add a git remote for it.
 
 hub-pull-request(1)
 :   Create a GitHub pull request.
@@ -93,8 +93,8 @@ hub-sync(1)
 ## Conventions
 
 Most hub commands are supposed to be run in a context of an existing local git
-repository. Hub will automatically detect the GitHub repository the current
-project belongs to by scanning its git remotes.
+repository. Hub will automatically detect the GitHub repository that the current
+working directory belongs to by scanning its git remotes.
 
 In case there are multiple git remotes that are all pointing to GitHub, hub
 assumes that the main one is named "upstream", "github", or "origin", in that
@@ -104,7 +104,8 @@ When working with forks, it's recommended that the git remote for your own fork
 is named "origin" and that the git remote for the upstream repository is named
 "upstream". See <https://help.github.com/articles/configuring-a-remote-for-a-fork/>
 
-The default branch (usually "master") for the project is detected like so:
+The default branch (usually "master") for the current repository is detected
+like so:
 
     git symbolic-ref refs/remotes/origin/HEAD
 

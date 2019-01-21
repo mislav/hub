@@ -11,7 +11,7 @@ import (
 var cmdFork = &Command{
 	Run:   fork,
 	Usage: "fork [--no-remote] [--remote-name=<REMOTE>] [--org=<ORGANIZATION>]",
-	Long: `Fork the current project on GitHub and add a git remote for it.
+	Long: `Fork the current repository on GitHub and add a git remote for it.
 
 ## Options:
 	--no-remote

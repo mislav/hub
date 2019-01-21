@@ -22,7 +22,7 @@ issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
 `,
-		Long: `Manage GitHub issues for the current project.
+		Long: `Manage GitHub issues for the current repository.
 
 ## Commands:
 
@@ -32,7 +32,7 @@ With no arguments, show a list of open issues.
 		Show an existing issue specified by <NUMBER>.
 
 	* _create_:
-		Open an issue in the current project.
+		Open an issue in the current repository.
 
 	* _labels_:
 		List the labels available in this repository.
@@ -166,14 +166,14 @@ hub-pr(1), hub(1)
 		Key:   "create",
 		Run:   createIssue,
 		Usage: "issue create [-o] [-m <MESSAGE>|-F <FILE>] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]",
-		Long:  "Open an issue in the current project.",
+		Long:  "Open an issue in the current repository.",
 	}
 
 	cmdShowIssue = &Command{
 		Key:   "show",
 		Run:   showIssue,
 		Usage: "issue show <NUMBER>",
-		Long:  "Show an issue in the current project.",
+		Long:  "Show an issue in the current repository.",
 	}
 
 	cmdLabel = &Command{
