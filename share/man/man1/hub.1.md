@@ -61,7 +61,7 @@ hub-browse(1)
 :   Open a GitHub repository in a web browser.
 
 hub-ci-status(1)
-:   Display GitHub Status information for a commit.
+:   Display status of GitHub checks for a commit.
 
 hub-compare(1)
 :   Open a GitHub compare page in a web browser.
@@ -76,19 +76,19 @@ hub-fork(1)
 :   Fork the current repository on GitHub and add a git remote for it.
 
 hub-pull-request(1)
-:   Create a GitHub pull request.
+:   Create a GitHub Pull Request.
 
 hub-pr(1)
-:   List and checkout GitHub pull requests.
+:   Manage GitHub Pull Requests for the current repository.
 
 hub-issue(1)
-:   List and create GitHub issues.
+:   Manage GitHub Issues for the current repository.
 
 hub-release(1)
-:   List and create GitHub releases.
+:   Manage GitHub Releases for the current repository.
 
 hub-sync(1)
-:   Fetch from upstream and update local branches.
+:   Fetch git objects from upstream and update local branches.
 
 ## Conventions
 

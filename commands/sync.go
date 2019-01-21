@@ -15,7 +15,7 @@ import (
 var cmdSync = &Command{
 	Run:   sync,
 	Usage: "sync",
-	Long: `Fetch git objects from upstream and update branches.
+	Long: `Fetch git objects from upstream and update local branches.
 
 - If the local branch is outdated, fast-forward it;
 - If the local branch contains unpushed work, warn about it;

@@ -24,7 +24,7 @@ release edit [<options>] <TAG>
 release download <TAG>
 release delete <TAG>
 `,
-		Long: `Manage GitHub releases.
+		Long: `Manage GitHub Releases for the current repository.
 
 ## Commands:
 

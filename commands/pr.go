@@ -18,7 +18,7 @@ var (
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
 `,
-		Long: `Manage GitHub pull requests for the current repository.
+		Long: `Manage GitHub Pull Requests for the current repository.
 
 ## Commands:
 

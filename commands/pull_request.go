@@ -21,7 +21,7 @@ pull-request -m <MESSAGE> [--edit]
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
 `,
-	Long: `Create a GitHub pull request.
+	Long: `Create a GitHub Pull Request.
 
 ## Options:
 	-f, --force

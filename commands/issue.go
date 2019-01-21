@@ -22,7 +22,7 @@ issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
 `,
-		Long: `Manage GitHub issues for the current repository.
+		Long: `Manage GitHub Issues for the current repository.
 
 ## Commands:
 
