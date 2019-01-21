@@ -21,10 +21,11 @@ var cmdCreate = &Command{
 		Create a private repository.
 
 	-d, --description=<DESCRIPTION>
-		Use this text as the description of the GitHub repository.
+		A short description of the GitHub repository.
 
 	-h, --homepage=<HOMEPAGE>
-		Use this text as the URL of the GitHub repository.
+		A URL with more information about the repository. Use this, for example, if
+		your project has an external website.
 
 	-o, --browse
 		Open the new repository in a web browser.
