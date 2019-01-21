@@ -23,7 +23,8 @@ Feature: hub compare
     Then the exit status should be 1
     And the stderr should contain:
       """
-      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
+      Usage: hub compare [-uc] [<USER>] [[<START>...]<END>]
+             hub compare [-uc] [-b <BASE>]
       """
 
   Scenario: Can't compare default branch to self
@@ -31,10 +32,7 @@ Feature: hub compare
     And I am on the "develop" branch with upstream "origin/develop"
     When I run `hub compare`
     Then the exit status should be 1
-    And the stderr should contain:
-      """
-      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
-      """
+    And the stderr should contain "Usage: hub compare"
 
   Scenario: No args, has upstream branch
     Given I am on the "feature" branch with upstream "origin/experimental"
@@ -83,20 +81,14 @@ Feature: hub compare
     When I run `hub compare -b experimental`
     Then "open https://github.com/mislav/dotfiles/compare/experimental...experimental" should not be run
     And the exit status should be 1
-    And the stderr should contain:
-      """
-      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
-      """
+    And the stderr should contain "Usage: hub compare"
 
   Scenario: Compare base with parameters
     Given I am on the "master" branch with upstream "origin/master"
     When I run `hub compare -b master experimental..master`
     Then "open https://github.com/mislav/dotfiles/compare/experimental...master" should not be run
     And the exit status should be 1
-    And the stderr should contain:
-      """
-      Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]
-      """
+    And the stderr should contain "Usage: hub compare"
 
   Scenario: Compare 2-dots range for tags
     When I successfully run `hub compare 1.0..fix`

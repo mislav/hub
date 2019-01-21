@@ -73,16 +73,12 @@ func TestArgsForSubCommand(t *testing.T) {
 }
 
 func TestFlagsAfterArguments(t *testing.T) {
-	c := &Command{Usage: "foo -m MESSAGE ARG1"}
-
-	var flag string
-	c.Flag.StringVarP(&flag, "message", "m", "", "MESSAGE")
+	c := &Command{Long: "-m, --message MSG"}
 
 	args := NewArgs([]string{"foo", "bar", "-m", "baz"})
-
-	c.parseArguments(args)
-	assert.Equal(t, "baz", flag)
-
+	err := c.parseArguments(args)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "baz", args.Flag.Value("--message"))
 	assert.Equal(t, 1, len(args.Params))
 	assert.Equal(t, "bar", args.LastParam())
 }

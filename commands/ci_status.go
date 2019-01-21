@@ -34,12 +34,9 @@ hub-pull-request(1), hub(1)
 `,
 }
 
-var flagCiStatusVerbose bool
 var severityList []string
 
 func init() {
-	cmdCiStatus.Flag.BoolVarP(&flagCiStatusVerbose, "verbose", "v", false, "VERBOSE")
-
 	CmdRunner.Use(cmdCiStatus)
 
 	severityList = []string{
@@ -109,7 +106,7 @@ func ciStatus(cmd *Command, args *Args) {
 			exitCode = 3
 		}
 
-		if flagCiStatusVerbose && len(response.Statuses) > 0 {
+		if args.Flag.Bool("--verbose") && len(response.Statuses) > 0 {
 			verboseFormat(response.Statuses)
 		} else {
 			if state != "" {

@@ -27,7 +27,7 @@ pull-request -i <ISSUE>
 	-f, --force
 		Skip the check for unpushed commits.
 
-	-m, --message=<MESSAGE>
+	-m, --message <MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the pull
 		request title, and the rest is used as pull request description in Markdown
 		format.
@@ -39,14 +39,14 @@ pull-request -i <ISSUE>
 		Use the message from the first commit on the branch as pull request title
 		and description without opening a text editor.
 
-	-F, --file=<FILE>
+	-F, --file <FILE>
 		Read the pull request title and description from <FILE>.
 
 	-e, --edit
 		Further edit the contents of <FILE> in a text editor before submitting.
 
-	-i, --issue=<ISSUE>
-		Convert an issue to a pull request. <ISSUE> may be an issue number or a URL.
+	-i, --issue <ISSUE>
+		Convert <ISSUE> (referenced by its number) to a pull request.
 
 		You can only convert issues authored by you or that which you have admin
 		rights over. In most workflows it is not necessary to convert issues to
@@ -62,28 +62,28 @@ pull-request -i <ISSUE>
 	-p, --push
 		Push the current branch to <HEAD> before creating the pull request.
 
-	-b, --base=<BASE>
+	-b, --base <BASE>
 		The base branch in the "[<OWNER>:]<BRANCH>" format. Defaults to the default
 		branch of the upstream repository (usually "master").
 
 		See the "CONVENTIONS" section of hub(1) for more information on how hub
 		selects the defaults in case of multiple git remotes.
 
-	-h, --head=<HEAD>
+	-h, --head <HEAD>
 		The head branch in "[<OWNER>:]<BRANCH>" format. Defaults to the currently
 		checked out branch.
 
-	-r, --reviewer=<USERS>
+	-r, --reviewer <USERS>
 		A comma-separated list of GitHub handles to request a review from.
 
-	-a, --assign=<USERS>
+	-a, --assign <USERS>
 		A comma-separated list of GitHub handles to assign to this pull request.
 
-	-M, --milestone=<NAME>
+	-M, --milestone <NAME>
 		The milestone name to add to this pull request. Passing the milestone number
 		is deprecated.
 
-	-l, --labels=<LABELS>
+	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request. Labels will be
 		created if they do not already exist.
 
@@ -112,44 +112,7 @@ hub(1), hub-merge(1), hub-checkout(1)
 `,
 }
 
-var (
-	flagPullRequestBase,
-	flagPullRequestHead,
-	flagPullRequestIssue,
-	flagPullRequestMilestone,
-	flagPullRequestFile string
-
-	flagPullRequestMessage messageBlocks
-
-	flagPullRequestBrowse,
-	flagPullRequestCopy,
-	flagPullRequestEdit,
-	flagPullRequestPush,
-	flagPullRequestForce,
-	flagPullRequestNoEdit bool
-
-	flagPullRequestAssignees,
-	flagPullRequestReviewers,
-	flagPullRequestLabels listFlag
-)
-
 func init() {
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestBase, "base", "b", "", "BASE")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestCopy, "copy", "c", false, "COPY")
-	cmdPullRequest.Flag.VarP(&flagPullRequestMessage, "message", "m", "MESSAGE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestNoEdit, "no-edit", "", false, "NO-EDIT")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
-	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
-	cmdPullRequest.Flag.VarP(&flagPullRequestReviewers, "reviewer", "r", "USERS")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestMilestone, "milestone", "M", "", "MILESTONE")
-	cmdPullRequest.Flag.VarP(&flagPullRequestLabels, "labels", "l", "LABELS")
-
 	CmdRunner.Use(cmdPullRequest)
 }
 
@@ -174,22 +137,14 @@ func pullRequest(cmd *Command, args *Args) {
 
 	var (
 		base, head string
-		force      bool
 	)
 
-	force = flagPullRequestForce
-
-	if flagPullRequestBase != "" {
+	if flagPullRequestBase := args.Flag.Value("--base"); flagPullRequestBase != "" {
 		baseProject, base = parsePullRequestProject(baseProject, flagPullRequestBase)
 	}
 
-	if flagPullRequestHead != "" {
+	if flagPullRequestHead := args.Flag.Value("--head"); flagPullRequestHead != "" {
 		headProject, head = parsePullRequestProject(headProject, flagPullRequestHead)
-	}
-
-	if args.ParamsSize() == 1 {
-		arg := args.RemoveParam(0)
-		flagPullRequestIssue = parsePullRequestIssueNumber(arg)
 	}
 
 	baseRemote, _ := localRepo.RemoteForProject(baseProject)
@@ -227,6 +182,7 @@ func pullRequest(cmd *Command, args *Args) {
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
+	force := args.Flag.Bool("--force")
 	if !force && trackedBranch != nil {
 		remoteCommits, _ := git.RefList(trackedBranch.LongName(), "")
 		if len(remoteCommits) > 0 {
@@ -255,6 +211,7 @@ func pullRequest(cmd *Command, args *Args) {
 		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
 	}
 
+	flagPullRequestPush := args.Flag.Bool("--push")
 	if flagPullRequestPush && remote == nil {
 		utils.Check(fmt.Errorf("Can't find remote for %s", head))
 	}
@@ -264,14 +221,21 @@ func pullRequest(cmd *Command, args *Args) {
 Write a message for this pull request. The first block
 of text is the title and the rest is the description.`, fullBase, fullHead))
 
+	flagPullRequestMessage := args.Flag.AllValues("--message")
+	flagPullRequestEdit := args.Flag.Bool("--edit")
+	flagPullRequestIssue := args.Flag.Value("--issue")
+	if !args.Flag.HasReceived("--issue") && args.ParamsSize() > 0 {
+		flagPullRequestIssue = parsePullRequestIssueNumber(args.GetParam(0))
+	}
+
 	if len(flagPullRequestMessage) > 0 {
-		messageBuilder.Message = flagPullRequestMessage.String()
+		messageBuilder.Message = strings.Join(flagPullRequestMessage, "\n\n")
 		messageBuilder.Edit = flagPullRequestEdit
-	} else if cmd.FlagPassed("file") {
-		messageBuilder.Message, err = msgFromFile(flagPullRequestFile)
+	} else if args.Flag.HasReceived("--file") {
+		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 		utils.Check(err)
 		messageBuilder.Edit = flagPullRequestEdit
-	} else if flagPullRequestNoEdit {
+	} else if args.Flag.Bool("--no-edit") {
 		commits, _ := git.RefList(baseTracking, head)
 		if len(commits) == 0 {
 			utils.Check(fmt.Errorf("Aborted: no commits detected between %s and %s", baseTracking, head))
@@ -334,7 +298,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 	}
 
 	milestoneNumber := 0
-	if flagPullRequestMilestone != "" {
+	if flagPullRequestMilestone := args.Flag.Value("--milestone"); flagPullRequestMilestone != "" {
 		// BC: Don't try to resolve milestone name if it's an integer
 		milestoneNumber, err = strconv.Atoi(flagPullRequestMilestone)
 		if err != nil {
@@ -408,9 +372,11 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		pullRequestURL = pr.HtmlUrl
 
 		params = map[string]interface{}{}
+		flagPullRequestLabels := commaSeparated(args.Flag.AllValues("--labels"))
 		if len(flagPullRequestLabels) > 0 {
 			params["labels"] = flagPullRequestLabels
 		}
+		flagPullRequestAssignees := commaSeparated(args.Flag.AllValues("--assign"))
 		if len(flagPullRequestAssignees) > 0 {
 			params["assignees"] = flagPullRequestAssignees
 		}
@@ -423,6 +389,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			utils.Check(err)
 		}
 
+		flagPullRequestReviewers := commaSeparated(args.Flag.AllValues("--reviewer"))
 		if len(flagPullRequestReviewers) > 0 {
 			userReviewers := []string{}
 			teamReviewers := []string{}
@@ -447,7 +414,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 	}
 
 	args.NoForward()
-	printBrowseOrCopy(args, pullRequestURL, flagPullRequestBrowse, flagPullRequestCopy)
+	printBrowseOrCopy(args, pullRequestURL, args.Flag.Bool("--browse"), args.Flag.Bool("--copy"))
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {
@@ -490,4 +457,12 @@ func findMilestoneNumber(milestones []github.Milestone, name string) (int, error
 	}
 
 	return 0, fmt.Errorf("error: no milestone found with name '%s'", name)
+}
+
+func commaSeparated(l []string) []string {
+	res := []string{}
+	for _, i := range l {
+		res = append(res, strings.Split(i, ",")...)
+	}
+	return res
 }

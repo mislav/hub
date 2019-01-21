@@ -9,6 +9,12 @@ Feature: hub help
       """
     And the output should contain "usage: git "
 
+  Scenario: Shows help text with no arguments
+    When I run `hub`
+    Then the stdout should contain "usage: git "
+    And the stderr should contain exactly ""
+    And the exit status should be 1
+
   Scenario: Appends hub commands to `--all` output
     When I successfully run `hub help -a`
     Then the output should contain "pull-request"

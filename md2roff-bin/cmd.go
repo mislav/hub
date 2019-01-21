@@ -12,7 +12,7 @@ import (
 	"text/template"
 
 	"github.com/github/hub/md2roff"
-	flag "github.com/ogier/pflag"
+	"github.com/github/hub/utils"
 	"github.com/russross/blackfriday"
 )
 
@@ -28,10 +28,6 @@ var (
 )
 
 func init() {
-	flag.StringVarP(&flagManual, "manual", "m", "", "MANUAL")
-	flag.StringVarP(&flagVersion, "version", "", "", "VERSION")
-	flag.StringVarP(&flagTemplate, "template", "t", "", "TEMPLATE")
-	flag.StringVarP(&flagDate, "date", "d", "", "DATE")
 	pageIndex = make(map[string]bool)
 }
 
@@ -137,15 +133,28 @@ func generateFromFile(mdFile string) error {
 }
 
 func main() {
-	flag.Parse()
+	p := utils.NewArgsParserWithUsage(`
+		--manual NAME
+		--version STR
+		--template FILE
+		--date DATE
+	`)
+	files, err := p.Parse(os.Args)
+	if err != nil {
+		panic(err)
+	}
+	flagManual = p.Value("--manual")
+	flagVersion = p.Value("--version")
+	flagTemplate = p.Value("--template")
+	flagDate = p.Value("--date")
 
-	for _, infile := range flag.Args() {
+	for _, infile := range files {
 		name := path.Base(infile)
 		name = strings.TrimSuffix(name, ".md")
 		pageIndex[name] = true
 	}
 
-	for _, infile := range flag.Args() {
+	for _, infile := range files {
 		err := generateFromFile(infile)
 		if err != nil {
 			panic(err)

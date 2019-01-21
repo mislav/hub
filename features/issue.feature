@@ -343,7 +343,7 @@ Feature: hub issue
         json :html_url => "https://github.com/github/hub/issues/1337"
       }
       """
-    When I successfully run `hub issue create -m "hello" -M 12 -a mislav,josh -apcorpet`
+    When I successfully run `hub issue create -m "hello" -M 12 --assign mislav,josh -apcorpet`
     Then the output should contain exactly:
       """
       https://github.com/github/hub/issues/1337\n
@@ -652,7 +652,7 @@ Feature: hub issue
   Scenario: Did not supply an issue number
     When I run `hub issue show`
     Then the exit status should be 1
-    Then the output should contain exactly "Usage: hub issue show <NUMBER>\n"
+    Then the stderr should contain "Usage: hub issue"
 
   Scenario: Show error message if http code is not 200 for issues endpoint
     Given the GitHub API server:

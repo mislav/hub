@@ -9,7 +9,7 @@ This project adheres to a [Code of Conduct][code-of-conduct]. By participating, 
 
 You will need:
 
-1. Go 1.8+
+1. Go 1.9+
 1. Ruby 1.9+ with Bundler
 2. git 1.8+
 3. tmux & zsh (optional) - for running shell completion tests

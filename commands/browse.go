@@ -46,15 +46,7 @@ hub-compare(1), hub(1)
 `,
 }
 
-var (
-	flagBrowseURLPrint,
-	flagBrowseURLCopy bool
-)
-
 func init() {
-	cmdBrowse.Flag.BoolVarP(&flagBrowseURLPrint, "url", "u", false, "URL")
-	cmdBrowse.Flag.BoolVarP(&flagBrowseURLCopy, "copy", "c", false, "COPY")
-
 	CmdRunner.Use(cmdBrowse)
 }
 
@@ -113,8 +105,7 @@ func browse(command *Command, args *Args) {
 	}
 
 	if project == nil {
-		err := fmt.Errorf(command.Synopsis())
-		utils.Check(err)
+		utils.Check(command.UsageError(""))
 	}
 
 	if subpage == "commits" {
@@ -130,6 +121,8 @@ func browse(command *Command, args *Args) {
 	pageUrl := project.WebURL("", "", path)
 
 	args.NoForward()
+	flagBrowseURLPrint := args.Flag.Bool("--url")
+	flagBrowseURLCopy := args.Flag.Bool("--copy")
 	printBrowseOrCopy(args, pageUrl, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
 }
 

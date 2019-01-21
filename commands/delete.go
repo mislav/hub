@@ -38,13 +38,7 @@ hub-init(1), hub(1)
 `,
 }
 
-var (
-	flagDeleteAssumeYes bool
-)
-
 func init() {
-	cmdDelete.Flag.BoolVarP(&flagDeleteAssumeYes, "--yes", "y", false, "YES")
-
 	CmdRunner.Use(cmdDelete)
 }
 
@@ -56,7 +50,7 @@ func deleteRepo(command *Command, args *Args) {
 
 	re := regexp.MustCompile(NameWithOwnerRe)
 	if !re.MatchString(repoName) {
-		utils.Check(fmt.Errorf(command.Synopsis()))
+		utils.Check(command.UsageError(""))
 	}
 
 	config := github.CurrentConfig()
@@ -74,7 +68,7 @@ func deleteRepo(command *Command, args *Args) {
 	project := github.NewProject(owner, repoName, host.Host)
 	gh := github.NewClient(project.Host)
 
-	if !flagDeleteAssumeYes {
+	if !args.Flag.Bool("--yes") {
 		ui.Printf("Really delete repository '%s' (yes/N)? ", project)
 		answer := ""
 		scanner := bufio.NewScanner(os.Stdin)

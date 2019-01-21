@@ -56,12 +56,6 @@
   revision = "b8bc1bf767474819792c23f32d8286a45736f1c6"
 
 [[projects]]
-  name = "github.com/ogier/pflag"
-  packages = ["."]
-  revision = "32a05c62658bd1d7c7e75cbc8195de5d585fde0f"
-  version = "v0.0.1"
-
-[[projects]]
   branch = "v2"
   name = "github.com/russross/blackfriday"
   packages = ["."]

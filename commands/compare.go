@@ -11,8 +11,11 @@ import (
 )
 
 var cmdCompare = &Command{
-	Run:   compare,
-	Usage: "compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]",
+	Run: compare,
+	Usage: `
+compare [-uc] [<USER>] [[<START>...]<END>]
+compare [-uc] [-b <BASE>]
+`,
 	Long: `Open a GitHub compare page in a web browser.
 
 ## Options:
@@ -22,8 +25,8 @@ var cmdCompare = &Command{
 	-c, --copy
 		Put the URL to clipboard instead of opening it.
 
-	-b, --base=<BASE>
-		Base branch to compare.
+	-b, --base <BASE>
+		Base branch to compare against in case no explicit arguments were given.
 
 	[<START>...]<END>
 		Branch names, tag names, or commit SHAs specifying the range to compare.
@@ -48,17 +51,7 @@ hub-browse(1), hub(1)
 `,
 }
 
-var (
-	flagCompareCopy    bool
-	flagCompareURLOnly bool
-	flagCompareBase    string
-)
-
 func init() {
-	cmdCompare.Flag.BoolVarP(&flagCompareCopy, "copy", "c", false, "COPY")
-	cmdCompare.Flag.BoolVarP(&flagCompareURLOnly, "url", "u", false, "URL only")
-	cmdCompare.Flag.StringVarP(&flagCompareBase, "base", "b", "", "BASE")
-
 	CmdRunner.Use(cmdCompare)
 }
 
@@ -72,9 +65,7 @@ func compare(command *Command, args *Args) {
 		r       string
 	)
 
-	usageHelp := func() {
-		utils.Check(fmt.Errorf("Usage: hub compare [-u] [-b <BASE>] [<USER>] [[<START>...]<END>]"))
-	}
+	flagCompareBase := args.Flag.Value("--base")
 
 	if args.IsParamsEmpty() {
 		branch, project, err = localRepo.RemoteBranchAndProject("", false)
@@ -83,8 +74,7 @@ func compare(command *Command, args *Args) {
 		if branch == nil ||
 			(branch.IsMaster() && flagCompareBase == "") ||
 			(flagCompareBase == branch.ShortName()) {
-
-			usageHelp()
+			utils.Check(command.UsageError(""))
 		} else {
 			r = branch.ShortName()
 			if flagCompareBase != "" {
@@ -93,7 +83,7 @@ func compare(command *Command, args *Args) {
 		}
 	} else {
 		if flagCompareBase != "" {
-			usageHelp()
+			utils.Check(command.UsageError(""))
 		} else {
 			r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
 			project, err = localRepo.CurrentProject()
@@ -123,6 +113,8 @@ func compare(command *Command, args *Args) {
 	url := project.WebURL("", "", subpage)
 
 	args.NoForward()
+	flagCompareURLOnly := args.Flag.Bool("--url")
+	flagCompareCopy := args.Flag.Bool("--copy")
 	printBrowseOrCopy(args, url, !flagCompareURLOnly && !flagCompareCopy, flagCompareCopy)
 }
 
