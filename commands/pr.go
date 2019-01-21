@@ -30,18 +30,18 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 ## Options:
 
-	-s, --state=<STATE>
+	-s, --state <STATE>
 		Filter pull requests by <STATE>. Supported values are: "open" (default),
 		"closed", "merged", or "all".
 
-	-h, --head=<BRANCH>
+	-h, --head <BRANCH>
 		Show pull requests started from the specified head <BRANCH>. The
 		"OWNER:BRANCH" format must be used for pull requests from forks.
 
-	-b, --base=<BRANCH>
+	-b, --base <BRANCH>
 		Show pull requests based off the specified <BRANCH>.
 
-	-f, --format=<FORMAT>
+	-f, --format <FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:
 		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
 		git-log(1) for some additional details on how placeholders are used in
@@ -117,13 +117,13 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%%: a literal %
 
-	-o, --sort=<SORT_KEY>
+	-o, --sort <KEY>
 		Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".
 
 	-^, --sort-ascending
 		Sort by ascending dates instead of descending.
 
-	-L, --limit=<LIMIT>
+	-L, --limit <LIMIT>
 		Display only the first <LIMIT> issues.
 
 ## See also:

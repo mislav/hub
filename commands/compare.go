@@ -25,7 +25,7 @@ compare [-uc] [-b <BASE>]
 	-c, --copy
 		Put the URL to clipboard instead of opening it.
 
-	-b, --base=<BASE>
+	-b, --base <BASE>
 		Base branch to compare against in case no explicit arguments were given.
 
 	[<START>...]<END>

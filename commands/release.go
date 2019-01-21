@@ -66,20 +66,20 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	-p, --prerelease
 		Create a pre-release.
 
-	-a, --attach=<FILE>
+	-a, --attach <FILE>
 		Attach a file as an asset for this release.
 
 		If <FILE> is in the "<filename>#<text>" format, the text after the '#'
 		character is taken as asset label.
 
-	-m, --message=<MESSAGE>
+	-m, --message <MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the release
 		title, and the rest is used as release description in Markdown format.
 
 		If multiple <MESSAGE> options are given, their values are concatenated as
 		separate paragraphs.
 
-	-F, --file=<FILE>
+	-F, --file <FILE>
 		Read the release title and description from <FILE>.
 
 	-e, --edit
@@ -91,11 +91,11 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	-c, --copy
 		Put the URL of the new release to clipboard instead of printing it.
 
-	-t, --commitish=<TARGET>
+	-t, --commitish <TARGET>
 		A commit SHA or branch name to attach the release to, only used if <TAG>
 		does not already exist (default: main branch).
 
-	-f, --format=<FORMAT>
+	-f, --format <FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
 		FORMATS" section of git-log(1) for some additional details on how
 		placeholders are used in format. The available placeholders for issues are:

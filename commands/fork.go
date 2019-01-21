@@ -10,17 +10,17 @@ import (
 
 var cmdFork = &Command{
 	Run:   fork,
-	Usage: "fork [--no-remote] [--remote-name=<REMOTE>] [--org=<ORGANIZATION>]",
+	Usage: "fork [--no-remote] [--remote-name <REMOTE>] [--org <ORGANIZATION>]",
 	Long: `Fork the current project on GitHub and add a git remote for it.
 
 ## Options:
 	--no-remote
 		Skip adding a git remote for the fork.
 
-	--remote-name=<REMOTE>
+	--remote-name <REMOTE>
 		Set the name for the new git remote.
 
-	--org=<ORGANIZATION>
+	--org <ORGANIZATION>
 		Fork the repository within this organization.
 
 ## Examples:
