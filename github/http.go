@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -218,6 +219,7 @@ type simpleClient struct {
 	httpClient     *http.Client
 	rootUrl        *url.URL
 	PrepareRequest func(*http.Request)
+	CacheTTL       int
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
@@ -245,10 +247,9 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		configure(req)
 	}
 
-	var bodyBackup io.ReadWriter
-	if req.Body != nil {
-		bodyBackup = &bytes.Buffer{}
-		req.Body = ioutil.NopCloser(io.TeeReader(req.Body, bodyBackup))
+	if cachedResponse := c.cacheRead(req); cachedResponse != nil {
+		res = &simpleResponse{cachedResponse}
+		return
 	}
 
 	httpResponse, err := c.httpClient.Do(req)
@@ -256,9 +257,87 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		return
 	}
 
+	c.cacheWrite(httpResponse)
 	res = &simpleResponse{httpResponse}
 
 	return
+}
+
+func (c *simpleClient) cacheRead(req *http.Request) (res *http.Response) {
+	if c.CacheTTL > 0 && req.Method == "GET" {
+		f := cacheFile(cacheKey(req))
+		cacheInfo, err := os.Stat(f)
+		if err != nil {
+			return
+		}
+		if time.Since(cacheInfo.ModTime()).Seconds() > float64(c.CacheTTL) {
+			return
+		}
+		cf, err := os.Open(f)
+		if err != nil {
+			return
+		}
+		res = &http.Response{
+			StatusCode: 200,
+			Body:       cf,
+		}
+	}
+	return
+}
+
+func (c *simpleClient) cacheWrite(res *http.Response) {
+	if c.CacheTTL > 0 && res.StatusCode < 300 && res.Request.Method == "GET" && res.Body != nil {
+		bodyCopy := &bytes.Buffer{}
+		key := cacheKey(res.Request)
+		bodyReplacement := readCloserCallback{
+			Reader: io.TeeReader(res.Body, bodyCopy),
+			Closer: res.Body,
+			Callback: func() {
+				f := cacheFile(key)
+				err := os.MkdirAll(filepath.Dir(f), 0771)
+				if err != nil {
+					return
+				}
+				cf, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE, 0600)
+				if err != nil {
+					return
+				}
+				defer cf.Close()
+				io.Copy(cf, bodyCopy)
+			},
+		}
+		res.Body = &bodyReplacement
+	}
+}
+
+type readCloserCallback struct {
+	Callback func()
+	Closer   io.Closer
+	io.Reader
+}
+
+func (rc *readCloserCallback) Close() error {
+	err := rc.Closer.Close()
+	if err == nil {
+		rc.Callback()
+	}
+	return err
+}
+
+func cacheKey(req *http.Request) string {
+	// TODO:
+	// - sort query string
+	// - Accept header
+	// - auth token
+	path := strings.Replace(req.URL.RequestURI(), "/", "-", -1)
+	if len(path) > 1 {
+		path = strings.TrimPrefix(path, "-")
+	}
+	return fmt.Sprintf("%s/%s", req.URL.Host, path)
+}
+
+func cacheFile(key string) string {
+	return fmt.Sprintf("%s/hub/%s", os.TempDir(), key)
 }
 
 func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {
