@@ -1,6 +1,7 @@
 package github
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -8,7 +9,6 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
-	"bufio"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
