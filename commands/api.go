@@ -19,6 +19,7 @@ var cmdApi = &Command{
 ## Options:
 	-X, --method <METHOD>
 	-F, --field <KEY-VALUE>
+	-f, --raw-field <KEY-VALUE>
 	-t, --flat
 	--cache <TTL>
 `,
@@ -46,22 +47,13 @@ func apiCommand(cmd *Command, args *Args) {
 	for _, val := range args.Flag.AllValues("--field") {
 		parts := strings.SplitN(val, "=", 2)
 		if len(parts) >= 2 {
-			value := parts[1]
-			if strings.HasPrefix(value, "@") {
-				file := strings.TrimPrefix(value, "@")
-				var content []byte
-				var err error
-				if file == "-" {
-					content, err = ioutil.ReadAll(os.Stdin)
-				} else {
-					content, err = ioutil.ReadFile(file)
-				}
-				if err != nil {
-					utils.Check(err)
-				}
-				value = string(content)
-			}
-			params[parts[0]] = value
+			params[parts[0]] = valueOrFileContents(parts[1])
+		}
+	}
+	for _, val := range args.Flag.AllValues("--raw-field") {
+		parts := strings.SplitN(val, "=", 2)
+		if len(parts) >= 2 {
+			params[parts[0]] = parts[1]
 		}
 	}
 
@@ -99,4 +91,23 @@ func apiCommand(cmd *Command, args *Args) {
 	}
 
 	args.NoForward()
+}
+
+func valueOrFileContents(value string) string {
+	if strings.HasPrefix(value, "@") {
+		file := strings.TrimPrefix(value, "@")
+		var content []byte
+		var err error
+		if file == "-" {
+			content, err = ioutil.ReadAll(os.Stdin)
+		} else {
+			content, err = ioutil.ReadFile(file)
+		}
+		if err != nil {
+			utils.Check(err)
+		}
+		return string(content)
+	} else {
+		return value
+	}
 }

@@ -50,10 +50,10 @@ Feature: hub api
              :params => params.size
       }
       """
-    When I successfully run `hub api -t -F name=Ed -F a=b=c hello/world`
+    When I successfully run `hub api -t -f name=@hubot -F a=b=c hello/world`
     Then the output should contain exactly:
       """
-      .name	Ed
+      .name	@hubot
       .value	b=c
       .params	2\n
       """
