@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/github/hub/github"
@@ -91,6 +92,21 @@ func apiCommand(cmd *Command, args *Args) {
 	utils.Check(err)
 	defer response.Body.Close()
 
+	args.NoForward()
+
+	if response.StatusCode >= 300 {
+		ui.Errorf("Error: HTTP %s\n", strings.TrimSpace(response.Status))
+		jsonType, _ := regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
+		colorize := ui.IsTerminal(os.Stderr)
+		if args.Flag.Bool("--flat") && jsonType {
+			utils.JSONPath(ui.Stderr, response.Body, colorize)
+		} else {
+			io.Copy(ui.Stderr, response.Body)
+			ui.Errorln()
+		}
+		os.Exit(1)
+	}
+
 	colorize := ui.IsTerminal(os.Stdout)
 	if args.Flag.Bool("--flat") {
 		utils.JSONPath(ui.Stdout, response.Body, colorize)
@@ -98,8 +114,6 @@ func apiCommand(cmd *Command, args *Args) {
 		io.Copy(ui.Stdout, response.Body)
 		ui.Println()
 	}
-
-	args.NoForward()
 }
 
 func valueOrFileContents(value string) string {

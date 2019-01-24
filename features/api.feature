@@ -15,6 +15,58 @@ Feature: hub api
       {"name":"Ed"}\n
       """
 
+  Scenario: Non-success response
+    Given the GitHub API server:
+      """
+      get('/hello/world') {
+        status 400
+        json :name => "Ed"
+      }
+      """
+    When I run `hub api hello/world`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly:
+      """
+      Error: HTTP 400 Bad Request
+      {"name":"Ed"}\n
+      """
+
+  Scenario: Non-success response flat output
+    Given the GitHub API server:
+      """
+      get('/hello/world') {
+        status 400
+        json :name => "Ed"
+      }
+      """
+    When I run `hub api -t hello/world`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly:
+      """
+      Error: HTTP 400 Bad Request
+      .name	Ed\n
+      """
+
+  Scenario: Non-success response doesn't choke on non-JSON
+    Given the GitHub API server:
+      """
+      get('/hello/world') {
+        status 400
+        content_type :text
+        'Something went wrong'
+      }
+      """
+    When I run `hub api -t hello/world`
+    Then the exit status should be 1
+    And the stdout should contain exactly ""
+    And the stderr should contain exactly:
+      """
+      Error: HTTP 400 Bad Request
+      Something went wrong\n
+      """
+
   Scenario: GET query string
     Given the GitHub API server:
       """
