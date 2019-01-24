@@ -6,6 +6,7 @@ Feature: hub api
     Given the GitHub API server:
       """
       get('/hello/world') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
         json :name => "Ed"
       }
       """
@@ -83,7 +84,8 @@ Feature: hub api
   Scenario: GET full URL
     Given the GitHub API server:
       """
-      get('/hello/world') {
+      get('/hello/world', :host_name => 'api.github.com') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
         json :name => "Faye"
       }
       """
@@ -91,6 +93,20 @@ Feature: hub api
     Then the output should contain exactly:
       """
       {"name":"Faye"}\n
+      """
+
+  Scenario: Avoid leaking token to a 3rd party
+    Given the GitHub API server:
+      """
+      get('/hello/world', :host_name => 'example.com') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'].nil?
+        json :name => "Jet"
+      }
+      """
+    When I successfully run `hub api http://example.com/hello/world`
+    Then the output should contain exactly:
+      """
+      {"name":"Jet"}\n
       """
 
   Scenario: POST fields

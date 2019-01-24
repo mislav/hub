@@ -940,7 +940,9 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 
 	c = client.apiClient()
 	c.PrepareRequest = func(req *http.Request) {
-		req.Header.Set("Authorization", "token "+client.Host.AccessToken)
+		if strings.EqualFold(req.URL.Host, normalizeHost(client.Host.Host)) {
+			req.Header.Set("Authorization", "token "+client.Host.AccessToken)
+		}
 	}
 	return
 }
