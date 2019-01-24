@@ -78,10 +78,6 @@ func CommandPath(cmd string) (string, error) {
 	return filepath.EvalSymlinks(path)
 }
 
-func IsOption(confirm, short, long string) bool {
-	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
-}
-
 func TimeAgo(t time.Time) string {
 	duration := timeNow().Sub(t)
 	minutes := duration.Minutes()

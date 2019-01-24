@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"bufio"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
@@ -23,42 +24,50 @@ const (
 
 func CaptureCrash() {
 	if rec := recover(); rec != nil {
-		if err, ok := rec.(error); ok {
+		switch err := rec.(type) {
+		case error:
 			reportCrash(err)
-		} else if err, ok := rec.(string); ok {
+		case string:
 			reportCrash(errors.New(err))
+		default:
+			return
 		}
+		os.Exit(1)
 	}
 }
 
 func reportCrash(err error) {
-	if err == nil {
-		return
-	}
-
 	buf := make([]byte, 10000)
 	runtime.Stack(buf, false)
 	stack := formatStack(buf)
 
-	switch reportCrashConfig() {
-	case "always":
-		report(err, stack)
-	case "never":
-		printError(err, stack)
-	default:
-		printError(err, stack)
-		fmt.Print("Would you like to open an issue? ([Y]es/[N]o/[A]lways/N[e]ver): ")
-		var confirm string
-		fmt.Scan(&confirm)
+	ui.Errorf("%v\n\n", err)
+	ui.Errorln(stack)
 
-		always := utils.IsOption(confirm, "a", "always")
-		if always || utils.IsOption(confirm, "y", "yes") {
-			report(err, stack)
-		}
-
-		saveReportConfiguration(confirm, always)
+	isTerm := ui.IsTerminal(os.Stdin) && ui.IsTerminal(os.Stdout)
+	if !isTerm || reportCrashConfig() == "never" {
+		return
 	}
-	os.Exit(1)
+
+	ui.Print("Would you like to open an issue? ([y]es / [N]o / n[e]ver): ")
+	var confirm string
+	prompt := bufio.NewScanner(os.Stdin)
+	if prompt.Scan() {
+		confirm = prompt.Text()
+	}
+	if prompt.Err() != nil {
+		return
+	}
+
+	if isOption(confirm, "y", "yes") {
+		report(err, stack)
+	} else if isOption(confirm, "e", "never") {
+		git.SetGlobalConfig(hubReportCrashConfig, "never")
+	}
+}
+
+func isOption(confirm, short, long string) bool {
+	return strings.EqualFold(confirm, short) || strings.EqualFold(confirm, long)
 }
 
 func report(reportedError error, stack string) {
@@ -133,19 +142,6 @@ func formatStack(buf []byte) string {
 	stack = append(stack[0:1], stack[5:]...)
 
 	return strings.Join(stack, "\n")
-}
-
-func printError(err error, stack string) {
-	ui.Printf("%v\n\n", err)
-	ui.Println(stack)
-}
-
-func saveReportConfiguration(confirm string, always bool) {
-	if always {
-		git.SetGlobalConfig(hubReportCrashConfig, "always")
-	} else if utils.IsOption(confirm, "e", "never") {
-		git.SetGlobalConfig(hubReportCrashConfig, "never")
-	}
 }
 
 func reportCrashConfig() (opt string) {
