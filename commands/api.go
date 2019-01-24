@@ -15,15 +15,66 @@ import (
 
 var cmdApi = &Command{
 	Run:   apiCommand,
-	Usage: "api <RESOURCE>",
-	Long: `Interact with the GitHub API.
+	Usage: "api [-t] [-X <METHOD>] [--cache <TTL>] <ENDPOINT> [-F <KEY-VALUE>]",
+	Long: `Low-level GitHub API request interface.
 
 ## Options:
 	-X, --method <METHOD>
+		The HTTP method to use for the request (default: "GET"). The method is
+		automatically set to "POST" if '--field' or '--raw-field' are used.
+
+		Use '-XGET' to force serializing fields into the query string for the GET
+		request instead of JSON body of the POST request.
+
 	-F, --field <KEY-VALUE>
+		Send data in 'KEY=VALUE' format. If <VALUE> starts with "@", the rest of
+		the value is interpreted as a filename to read the value from. Use "@-" to
+		read from standard input.
+
+		Unless '-XGET' was used, all fields are sent serialized as JSON within the
+		request body.
+
 	-f, --raw-field <KEY-VALUE>
+		Same as '--field', except that it allows values starting with "@".
+
 	-t, --flat
+		Parse response JSON and output the data in a line-based key-value format
+		suitable for use in shell scripts.
+
 	--cache <TTL>
+		Cache successful responses to GET requests for <TTL> seconds.
+
+		When using "graphql" as <ENDPOINT>, caching will apply to responses to POST
+		requests as well. Just make sure to not use '--cache' for any GraphQL
+		mutations.
+
+	<ENDPOINT>
+		The GitHub API endpoint to send the HTTP request to (default: "/").
+		
+		To learn about available endpoints, see <https://developer.github.com/v3/>.
+		To make GraphQL queries, use "graphql" as endpoint and pass '-F query=QUERY'.
+
+		If the literal strings "{owner}" or "{repo}" appear in endpoint or in the
+		GraphQL query, fill in those placeholders with values read from the git
+		remote configuration of the current git repository.
+
+## Examples:
+
+		# fetch information about the currently authenticated user as JSON
+		$ hub api user
+
+		# list user repositories as line-based output
+		$ hub api --flat users/octocat/repos
+
+		# post a comment to issue #23 of the current repository
+		$ hub api repos/{owner}/{repo}/issues/23/comments --raw-field "body=Nice job!"
+
+		# perform a GraphQL query read from a file
+		$ hub api graphql -F query=@path/to/myquery.graphql
+
+## See also:
+
+hub(1)
 `,
 }
 

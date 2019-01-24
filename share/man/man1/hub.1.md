@@ -57,6 +57,9 @@ hub-submodule(1)
 hub-alias(1)
 :   Show shell instructions for wrapping git.
 
+hub-api(1)
+:   Low-level GitHub API request interface.
+
 hub-browse(1)
 :   Open a GitHub repository in a web browser.
 

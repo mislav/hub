@@ -11,6 +11,7 @@ MIN_COVERAGE = 89.4
 
 HELP_CMD = \
 	share/man/man1/hub-alias.1 \
+	share/man/man1/hub-api.1 \
 	share/man/man1/hub-browse.1 \
 	share/man/man1/hub-ci-status.1 \
 	share/man/man1/hub-compare.1 \
