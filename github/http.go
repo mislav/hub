@@ -3,6 +3,7 @@ package github
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,8 +12,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -247,7 +250,8 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		configure(req)
 	}
 
-	if cachedResponse := c.cacheRead(req); cachedResponse != nil {
+	key := cacheKey(req)
+	if cachedResponse := c.cacheRead(key, req); cachedResponse != nil {
 		res = &simpleResponse{cachedResponse}
 		return
 	}
@@ -257,15 +261,23 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		return
 	}
 
-	c.cacheWrite(httpResponse)
+	c.cacheWrite(key, httpResponse)
 	res = &simpleResponse{httpResponse}
 
 	return
 }
 
-func (c *simpleClient) cacheRead(req *http.Request) (res *http.Response) {
-	if c.CacheTTL > 0 && req.Method == "GET" {
-		f := cacheFile(cacheKey(req))
+func isGraphQL(req *http.Request) bool {
+	return req.URL.Path == "/graphql"
+}
+
+func canCache(req *http.Request) bool {
+	return strings.EqualFold(req.Method, "GET") || isGraphQL(req)
+}
+
+func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Response) {
+	if c.CacheTTL > 0 && canCache(req) {
+		f := cacheFile(key)
 		cacheInfo, err := os.Stat(f)
 		if err != nil {
 			return
@@ -285,10 +297,9 @@ func (c *simpleClient) cacheRead(req *http.Request) (res *http.Response) {
 	return
 }
 
-func (c *simpleClient) cacheWrite(res *http.Response) {
-	if c.CacheTTL > 0 && res.StatusCode < 300 && res.Request.Method == "GET" && res.Body != nil {
+func (c *simpleClient) cacheWrite(key string, res *http.Response) {
+	if c.CacheTTL > 0 && canCache(res.Request) && res.StatusCode < 300 && res.Body != nil {
 		bodyCopy := &bytes.Buffer{}
-		key := cacheKey(res.Request)
 		bodyReplacement := readCloserCallback{
 			Reader: io.TeeReader(res.Body, bodyCopy),
 			Closer: res.Body,
@@ -325,19 +336,33 @@ func (rc *readCloserCallback) Close() error {
 }
 
 func cacheKey(req *http.Request) string {
-	// TODO:
-	// - sort query string
-	// - Accept header
-	// - auth token
-	path := strings.Replace(req.URL.RequestURI(), "/", "-", -1)
+	path := strings.Replace(req.URL.EscapedPath(), "/", "-", -1)
 	if len(path) > 1 {
 		path = strings.TrimPrefix(path, "-")
 	}
-	return fmt.Sprintf("%s/%s", req.URL.Host, path)
+	host := req.Host
+	if host == "" {
+		host = req.URL.Host
+	}
+	hash := md5.New()
+	io.WriteString(hash, req.Header.Get("Accept"))
+	io.WriteString(hash, req.Header.Get("Authorization"))
+	queryParts := strings.Split(req.URL.RawQuery, "&")
+	sort.Strings(queryParts)
+	for _, q := range queryParts {
+		fmt.Fprintf(hash, "%s&", q)
+	}
+	if isGraphQL(req) && req.Body != nil {
+		if b, err := ioutil.ReadAll(req.Body); err == nil {
+			req.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+			hash.Write(b)
+		}
+	}
+	return fmt.Sprintf("%s/%s_%x", host, path, hash.Sum(nil))
 }
 
 func cacheFile(key string) string {
-	return fmt.Sprintf("%s/hub/%s", os.TempDir(), key)
+	return path.Join(os.TempDir(), "hub", key)
 }
 
 func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {
