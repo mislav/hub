@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -74,8 +75,16 @@ func apiCommand(cmd *Command, args *Args) {
 		utils.Check(err)
 		host = defHost.Host
 	}
-	path = strings.Replace(path, "{owner}", owner, 1)
-	path = strings.Replace(path, "{repo}", repo, 1)
+
+	if path == "graphql" && params["query"] != nil {
+		query := params["query"].(string)
+		query = strings.Replace(query, quote("{owner}"), quote(owner), 1)
+		query = strings.Replace(query, quote("{repo}"), quote(repo), 1)
+		params["query"] = query
+	} else {
+		path = strings.Replace(path, "{owner}", owner, 1)
+		path = strings.Replace(path, "{repo}", repo, 1)
+	}
 
 	gh := github.NewClient(host)
 	response, err := gh.GenericAPIRequest(method, path, params, cacheTTL)
@@ -110,4 +119,8 @@ func valueOrFileContents(value string) string {
 	} else {
 		return value
 	}
+}
+
+func quote(s string) string {
+	return fmt.Sprintf("%q", s)
 }

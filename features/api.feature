@@ -90,3 +90,21 @@ Feature: hub api
       """
       {"commits":12}\n
       """
+
+  Scenario: Repo context in graphql
+    Given I am in "git://github.com/octocat/Hello-World.git" git repo
+    Given the GitHub API server:
+      """
+      post('/graphql') {
+        json :query => params[:query]
+      }
+      """
+    When I run `hub api -t -F query=@- graphql` interactively
+    And I pass in:
+      """
+      repository(owner: "{owner}", name: "{repo}")
+      """
+    Then the output should contain exactly:
+      """
+      .query	repository(owner: "octocat", name: "Hello-World")\n\n
+      """
