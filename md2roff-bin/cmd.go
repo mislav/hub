@@ -44,20 +44,20 @@ type templateData struct {
 func generateFromFile(mdFile string) error {
 	content, err := ioutil.ReadFile(mdFile)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s (%q)", err, mdFile)
 	}
 
 	roffFile := strings.TrimSuffix(mdFile, ".md")
 	roffBuf, err := os.OpenFile(roffFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s (%q)", err, roffFile)
 	}
 	defer roffBuf.Close()
 
 	htmlFile := strings.TrimSuffix(mdFile, ".md") + ".html"
 	htmlBuf, err := os.OpenFile(htmlFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
 	if err != nil {
-		return err
+		return fmt.Errorf("%s (%q)", err, htmlFile)
 	}
 	defer htmlBuf.Close()
 
@@ -83,7 +83,7 @@ func generateFromFile(mdFile string) error {
 	if flagTemplate != "" {
 		htmlGenBytes, err := ioutil.ReadAll(htmlGenBuf)
 		if err != nil {
-			return err
+			return fmt.Errorf("%s [%s]", err, "htmlGenBuf")
 		}
 		content := ""
 		if contentLines := strings.Split(string(htmlGenBytes), "\n"); len(contentLines) > 1 {
@@ -117,7 +117,7 @@ func generateFromFile(mdFile string) error {
 
 		templateFile, err := ioutil.ReadFile(flagTemplate)
 		if err != nil {
-			return err
+			return fmt.Errorf("%s (%q)", err, flagTemplate)
 		}
 		tmpl, err := template.New("test").Parse(string(templateFile))
 		if err != nil {
