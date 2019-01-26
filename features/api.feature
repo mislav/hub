@@ -16,6 +16,22 @@ Feature: hub api
       {"name":"Ed"}\n
       """
 
+  Scenario: GET Enterprise resource
+    Given I am "octokitten" on git.my.org with OAuth token "FITOKEN"
+    Given the GitHub API server:
+      """
+      get('/api/v3/hello/world', :host_name => 'git.my.org') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
+        json :name => "Ed"
+      }
+      """
+    And $GITHUB_HOST is "git.my.org"
+    When I successfully run `hub api hello/world`
+    Then the output should contain exactly:
+      """
+      {"name":"Ed"}\n
+      """
+
   Scenario: Non-success response
     Given the GitHub API server:
       """

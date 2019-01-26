@@ -130,7 +130,7 @@ func apiCommand(cmd *Command, args *Args) {
 		}
 	}
 	if host == "" {
-		defHost, err := github.CurrentConfig().DefaultHost()
+		defHost, err := github.CurrentConfig().DefaultHostNoPrompt()
 		utils.Check(err)
 		host = defHost.Host
 	}
