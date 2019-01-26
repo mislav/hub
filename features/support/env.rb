@@ -21,6 +21,7 @@ Before do
   set_env 'GIT_PROXY_COMMAND', 'echo'
   # avoids reading from current user's "~/.gitconfig"
   set_env 'HOME', File.expand_path(File.join(current_dir, 'home'))
+  set_env 'TMPDIR', File.expand_path(File.join(current_dir, 'tmp'))
   # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
   set_env 'XDG_CONFIG_HOME', nil
   set_env 'XDG_CONFIG_DIRS', nil

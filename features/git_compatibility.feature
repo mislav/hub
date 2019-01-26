@@ -14,6 +14,7 @@ Feature: git-hub compatibility
       branch
       commit
       alias
+      api
       browse
       ci-status
       compare

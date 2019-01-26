@@ -1,6 +1,8 @@
 package github
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -794,6 +796,50 @@ func (client *Client) FetchMilestones(project *Project) (milestones []Milestone,
 	return
 }
 
+func (client *Client) GenericAPIRequest(method, path string, params map[string]interface{}, ttl int) (*simpleResponse, error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return nil, err
+	}
+	api.CacheTTL = ttl
+
+	var body io.Reader
+	if len(params) > 0 {
+		if method == "GET" {
+			query := url.Values{}
+			for key, value := range params {
+				switch v := value.(type) {
+				case string:
+					query.Add(key, v)
+				case nil:
+					query.Add(key, "")
+				case int:
+					query.Add(key, fmt.Sprintf("%d", v))
+				case bool:
+					query.Add(key, fmt.Sprintf("%v", v))
+				}
+			}
+			sep := "?"
+			if strings.Contains(path, sep) {
+				sep = "&"
+			}
+			path += sep + query.Encode()
+		} else {
+			json, err := json.Marshal(params)
+			if err != nil {
+				return nil, err
+			}
+			body = bytes.NewBuffer(json)
+		}
+	}
+
+	return api.performRequest(method, path, body, func(req *http.Request) {
+		if body != nil {
+			req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		}
+	})
+}
+
 func (client *Client) CurrentUser() (user *User, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -900,7 +946,9 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 
 	c = client.apiClient()
 	c.PrepareRequest = func(req *http.Request) {
-		req.Header.Set("Authorization", "token "+client.Host.AccessToken)
+		if strings.EqualFold(req.URL.Host, normalizeHost(client.Host.Host)) {
+			req.Header.Set("Authorization", "token "+client.Host.AccessToken)
+		}
 	}
 	return
 }

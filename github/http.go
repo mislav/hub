@@ -3,6 +3,7 @@ package github
 import (
 	"bytes"
 	"context"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,7 +12,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
 
@@ -218,6 +222,7 @@ type simpleClient struct {
 	httpClient     *http.Client
 	rootUrl        *url.URL
 	PrepareRequest func(*http.Request)
+	CacheTTL       int
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
@@ -245,10 +250,10 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		configure(req)
 	}
 
-	var bodyBackup io.ReadWriter
-	if req.Body != nil {
-		bodyBackup = &bytes.Buffer{}
-		req.Body = ioutil.NopCloser(io.TeeReader(req.Body, bodyBackup))
+	key := cacheKey(req)
+	if cachedResponse := c.cacheRead(key, req); cachedResponse != nil {
+		res = &simpleResponse{cachedResponse}
+		return
 	}
 
 	httpResponse, err := c.httpClient.Do(req)
@@ -256,9 +261,108 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		return
 	}
 
+	c.cacheWrite(key, httpResponse)
 	res = &simpleResponse{httpResponse}
 
 	return
+}
+
+func isGraphQL(req *http.Request) bool {
+	return req.URL.Path == "/graphql"
+}
+
+func canCache(req *http.Request) bool {
+	return strings.EqualFold(req.Method, "GET") || isGraphQL(req)
+}
+
+func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Response) {
+	if c.CacheTTL > 0 && canCache(req) {
+		f := cacheFile(key)
+		cacheInfo, err := os.Stat(f)
+		if err != nil {
+			return
+		}
+		if time.Since(cacheInfo.ModTime()).Seconds() > float64(c.CacheTTL) {
+			return
+		}
+		cf, err := os.Open(f)
+		if err != nil {
+			return
+		}
+		res = &http.Response{
+			StatusCode: 200,
+			Body:       cf,
+		}
+	}
+	return
+}
+
+func (c *simpleClient) cacheWrite(key string, res *http.Response) {
+	if c.CacheTTL > 0 && canCache(res.Request) && res.StatusCode < 300 && res.Body != nil {
+		bodyCopy := &bytes.Buffer{}
+		bodyReplacement := readCloserCallback{
+			Reader: io.TeeReader(res.Body, bodyCopy),
+			Closer: res.Body,
+			Callback: func() {
+				f := cacheFile(key)
+				err := os.MkdirAll(filepath.Dir(f), 0771)
+				if err != nil {
+					return
+				}
+				cf, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE, 0600)
+				if err != nil {
+					return
+				}
+				defer cf.Close()
+				io.Copy(cf, bodyCopy)
+			},
+		}
+		res.Body = &bodyReplacement
+	}
+}
+
+type readCloserCallback struct {
+	Callback func()
+	Closer   io.Closer
+	io.Reader
+}
+
+func (rc *readCloserCallback) Close() error {
+	err := rc.Closer.Close()
+	if err == nil {
+		rc.Callback()
+	}
+	return err
+}
+
+func cacheKey(req *http.Request) string {
+	path := strings.Replace(req.URL.EscapedPath(), "/", "-", -1)
+	if len(path) > 1 {
+		path = strings.TrimPrefix(path, "-")
+	}
+	host := req.Host
+	if host == "" {
+		host = req.URL.Host
+	}
+	hash := md5.New()
+	io.WriteString(hash, req.Header.Get("Accept"))
+	io.WriteString(hash, req.Header.Get("Authorization"))
+	queryParts := strings.Split(req.URL.RawQuery, "&")
+	sort.Strings(queryParts)
+	for _, q := range queryParts {
+		fmt.Fprintf(hash, "%s&", q)
+	}
+	if isGraphQL(req) && req.Body != nil {
+		if b, err := ioutil.ReadAll(req.Body); err == nil {
+			req.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+			hash.Write(b)
+		}
+	}
+	return fmt.Sprintf("%s/%s_%x", host, path, hash.Sum(nil))
+}
+
+func cacheFile(key string) string {
+	return path.Join(os.TempDir(), "hub", key)
 }
 
 func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {
