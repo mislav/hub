@@ -946,7 +946,12 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 
 	c = client.apiClient()
 	c.PrepareRequest = func(req *http.Request) {
-		if strings.EqualFold(req.URL.Host, normalizeHost(client.Host.Host)) {
+		clientDomain := normalizeHost(client.Host.Host)
+		if strings.HasPrefix(clientDomain, "api.github.") {
+			clientDomain = strings.TrimPrefix(clientDomain, "api.")
+		}
+		requestHost := strings.ToLower(req.URL.Host)
+		if requestHost == clientDomain || strings.HasSuffix(requestHost, "."+clientDomain) {
 			req.Header.Set("Authorization", "token "+client.Host.AccessToken)
 		}
 	}

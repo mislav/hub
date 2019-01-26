@@ -410,9 +410,10 @@ MARKDOWN
       post('/repos/mislav/will_paginate/releases') {
         status 201
         json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0",
-             :upload_url => "https://api.github.com/uploads/assets{?name,label}"
+             :upload_url => "https://uploads.github.com/uploads/assets{?name,label}"
       }
-      post('/uploads/assets') {
+      post('/uploads/assets', :host_name => 'uploads.github.com') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
         assert :name => 'hello-1.2.0.tar.gz',
                :label => 'Hello World'
         status 201
@@ -527,7 +528,7 @@ MARKDOWN
       get('/repos/mislav/will_paginate/releases') {
         json [
           { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-            upload_url: 'https://api.github.com/uploads/assets{?name,label}',
+            upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
             tag_name: 'v1.2.0',
             name: 'will_paginate 1.2.0',
             draft: true,
@@ -544,8 +545,9 @@ MARKDOWN
         deleted = true
         status 204
       }
-      post('/uploads/assets') {
+      post('/uploads/assets', :host_name => 'uploads.github.com') {
         halt 422 unless deleted
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
         assert :name => 'hello-1.2.0.tar.gz',
                :label => nil
         status 201
@@ -572,7 +574,7 @@ MARKDOWN
         get('/repos/mislav/will_paginate/releases') {
           json [
             { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-              upload_url: 'https://api.github.com/uploads/assets{?name,label}',
+              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
               tag_name: 'v1.2.0',
               name: 'will_paginate 1.2.0',
               draft: true,
