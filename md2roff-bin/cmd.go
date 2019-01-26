@@ -139,7 +139,7 @@ func main() {
 		--template FILE
 		--date DATE
 	`)
-	files, err := p.Parse(os.Args)
+	files, err := p.Parse(os.Args[1:])
 	if err != nil {
 		panic(err)
 	}
