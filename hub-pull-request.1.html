@@ -1,5 +1,5 @@
 <!doctype html>
-<title>hub-pull-request(1) - Create a GitHub pull request.</title>
+<title>hub-pull-request(1) - Create a GitHub Pull Request.</title>
 <meta charset="utf-8">
 
 <style>
@@ -78,7 +78,7 @@ a:link, a:hover, a:visited { color: blue }
 </header>
 
 <article>
-  <h1>Create a GitHub pull request.</h1>
+  <h1>Create a GitHub Pull Request.</h1>
   
 <h2 id="synopsis">Synopsis</h2>
 
@@ -92,7 +92,7 @@ a:link, a:hover, a:visited { color: blue }
 <dl>
 <dt>-f, --force</dt>
 <dd><p>Skip the check for unpushed commits.</p></dd>
-<dt>-m, --message=<var>MESSAGE</var></dt>
+<dt>-m, --message <var>MESSAGE</var></dt>
 <dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the pull
 request title, and the rest is used as pull request description in Markdown
 format.</p>
@@ -102,12 +102,12 @@ separate paragraphs.</p></dd>
 <dt>--no-edit</dt>
 <dd><p>Use the message from the first commit on the branch as pull request title
 and description without opening a text editor.</p></dd>
-<dt>-F, --file=<var>FILE</var></dt>
+<dt>-F, --file <var>FILE</var></dt>
 <dd><p>Read the pull request title and description from <var>FILE</var>.</p></dd>
 <dt>-e, --edit</dt>
 <dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
-<dt>-i, --issue=<var>ISSUE</var></dt>
-<dd><p>Convert an issue to a pull request. <var>ISSUE</var> may be an issue number or a URL.</p>
+<dt>-i, --issue <var>ISSUE</var></dt>
+<dd><p>Convert <var>ISSUE</var> (referenced by its number) to a pull request.</p>
 
 <p>You can only convert issues authored by you or that which you have admin
 rights over. In most workflows it is not necessary to convert issues to
@@ -119,23 +119,23 @@ the new pull request.</p></dd>
 <dd><p>Put the URL of the new pull request to clipboard instead of printing it.</p></dd>
 <dt>-p, --push</dt>
 <dd><p>Push the current branch to <var>HEAD</var> before creating the pull request.</p></dd>
-<dt>-b, --base=<var>BASE</var></dt>
+<dt>-b, --base <var>BASE</var></dt>
 <dd><p>The base branch in the &quot;[<var>OWNER</var>:]<var>BRANCH</var>&quot; format. Defaults to the default
 branch of the upstream repository (usually &quot;master&quot;).</p>
 
 <p>See the &quot;CONVENTIONS&quot; section of <a href="./hub.1.html">hub(1)</a> for more information on how hub
 selects the defaults in case of multiple git remotes.</p></dd>
-<dt>-h, --head=<var>HEAD</var></dt>
+<dt>-h, --head <var>HEAD</var></dt>
 <dd><p>The head branch in &quot;[<var>OWNER</var>:]<var>BRANCH</var>&quot; format. Defaults to the currently
 checked out branch.</p></dd>
-<dt>-r, --reviewer=<var>USERS</var></dt>
+<dt>-r, --reviewer <var>USERS</var></dt>
 <dd><p>A comma-separated list of GitHub handles to request a review from.</p></dd>
-<dt>-a, --assign=<var>USERS</var></dt>
+<dt>-a, --assign <var>USERS</var></dt>
 <dd><p>A comma-separated list of GitHub handles to assign to this pull request.</p></dd>
-<dt>-M, --milestone=<var>NAME</var></dt>
+<dt>-M, --milestone <var>NAME</var></dt>
 <dd><p>The milestone name to add to this pull request. Passing the milestone number
 is deprecated.</p></dd>
-<dt>-l, --labels=<var>LABELS</var></dt>
+<dt>-l, --labels <var>LABELS</var></dt>
 <dd><p>Add a comma-separated list of labels to this pull request. Labels will be
 created if they do not already exist.</p></dd>
 </dl>
@@ -171,8 +171,8 @@ $ hub pull-request -F - --edit &lt; path/to/message-template.md
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.7.0-32-gcdd5ce9</li>
-    <li class="tc">19 Jan 2019</li>
+    <li class="tl">hub version 2.8.3</li>
+    <li class="tc">26 Jan 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

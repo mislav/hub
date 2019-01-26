@@ -82,7 +82,8 @@ a:link, a:hover, a:visited { color: blue }
   
 <h2 id="synopsis">Synopsis</h2>
 
-<p><code>hub compare</code> [-u] [-b <var>BASE</var>] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]</p>
+<p><code>hub compare</code> [-uc] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]<br>
+<code>hub compare</code> [-uc] [-b <var>BASE</var>]</p>
 
 <h2 id="options">Options</h2>
 
@@ -91,8 +92,8 @@ a:link, a:hover, a:visited { color: blue }
 <dd><p>Print the URL instead of opening it.</p></dd>
 <dt>-c, --copy</dt>
 <dd><p>Put the URL to clipboard instead of opening it.</p></dd>
-<dt>-b, --base=<var>BASE</var></dt>
-<dd><p>Base branch to compare.</p></dd>
+<dt>-b, --base <var>BASE</var></dt>
+<dd><p>Base branch to compare against in case no explicit arguments were given.</p></dd>
 <dt>[<var>START</var>...]<var>END</var></dt>
 <dd><p>Branch names, tag names, or commit SHAs specifying the range to compare.
 <var>END</var> defaults to the current branch name.</p>
@@ -121,8 +122,8 @@ $ hub compare -u jingweno feature
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.7.0-32-gcdd5ce9</li>
-    <li class="tc">19 Jan 2019</li>
+    <li class="tl">hub version 2.8.3</li>
+    <li class="tc">26 Jan 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

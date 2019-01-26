@@ -1,5 +1,5 @@
 <!doctype html>
-<title>hub-issue(1) - Manage GitHub issues for the current project.</title>
+<title>hub-issue(1) - Manage GitHub Issues for the current repository.</title>
 <meta charset="utf-8">
 
 <style>
@@ -78,7 +78,7 @@ a:link, a:hover, a:visited { color: blue }
 </header>
 
 <article>
-  <h1>Manage GitHub issues for the current project.</h1>
+  <h1>Manage GitHub Issues for the current repository.</h1>
   
 <h2 id="synopsis">Synopsis</h2>
 
@@ -95,7 +95,7 @@ a:link, a:hover, a:visited { color: blue }
 <dt><em>show</em></dt>
 <dd>Show an existing issue specified by <var>NUMBER</var>.</dd>
 <dt><em>create</em></dt>
-<dd>Open an issue in the current project.</dd>
+<dd>Open an issue in the current repository.</dd>
 <dt><em>labels</em></dt>
 <dd>List the labels available in this repository.</dd>
 </dl>
@@ -103,18 +103,17 @@ a:link, a:hover, a:visited { color: blue }
 <h2 id="options">Options</h2>
 
 <dl>
-<dt>-a, --assignee=<var>ASSIGNEE</var></dt>
-<dd><p>Display only issues assigned to <var>ASSIGNEE</var>.</p>
-
-<p>When opening an issue, this can be a comma-separated list of people to
-assign to the new issue.</p></dd>
-<dt>-c, --creator=<var>CREATOR</var></dt>
+<dt>-a, --assignee <var>ASSIGNEE</var></dt>
+<dd><p>In list mode, display only issues assigned to <var>ASSIGNEE</var>.</p></dd>
+<dt>-a, --assign <var>USERS</var></dt>
+<dd><p>A comma-separated list of GitHub handles to assign to the created issue.</p></dd>
+<dt>-c, --creator <var>CREATOR</var></dt>
 <dd><p>Display only issues created by <var>CREATOR</var>.</p></dd>
-<dt>-@, --mentioned=<var>USER</var></dt>
+<dt>-@, --mentioned <var>USER</var></dt>
 <dd><p>Display only issues mentioning <var>USER</var>.</p></dd>
-<dt>-s, --state=<var>STATE</var></dt>
+<dt>-s, --state <var>STATE</var></dt>
 <dd><p>Display issues with state <var>STATE</var> (default: &quot;open&quot;).</p></dd>
-<dt>-f, --format=<var>FORMAT</var></dt>
+<dt>-f, --format <var>FORMAT</var></dt>
 <dd><p>Pretty print the contents of the issues using format <var>FORMAT</var> (default:
 &quot;%sC%&gt;(8)%i%Creset  %t%  l%n&quot;). See the &quot;PRETTY FORMATS&quot; section of
 git-log(1) for some additional details on how placeholders are used in
@@ -169,13 +168,13 @@ format. The available placeholders for issues are:</p>
 <p>%n: newline</p>
 
 <p>%%: a literal %</p></dd>
-<dt>-m, --message=<var>MESSAGE</var></dt>
+<dt>-m, --message <var>MESSAGE</var></dt>
 <dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the issue
 title, and the rest is used as issue description in Markdown format.</p>
 
 <p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
 separate paragraphs.</p></dd>
-<dt>-F, --file=<var>FILE</var></dt>
+<dt>-F, --file <var>FILE</var></dt>
 <dd><p>Read the issue title and description from <var>FILE</var>.</p></dd>
 <dt>-e, --edit</dt>
 <dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
@@ -183,21 +182,21 @@ separate paragraphs.</p></dd>
 <dd><p>Open the new issue in a web browser.</p></dd>
 <dt>-c, --copy</dt>
 <dd><p>Put the URL of the new issue to clipboard instead of printing it.</p></dd>
-<dt>-M, --milestone=<var>ID</var></dt>
+<dt>-M, --milestone <var>ID</var></dt>
 <dd><p>Display only issues for a GitHub milestone with id <var>ID</var>.</p>
 
 <p>When opening an issue, add this issue to a GitHub milestone with id <var>ID</var>.</p></dd>
-<dt>-l, --labels=<var>LABELS</var></dt>
+<dt>-l, --labels <var>LABELS</var></dt>
 <dd><p>Display only issues with certain labels.</p>
 
 <p>When opening an issue, add a comma-separated list of labels to this issue.</p></dd>
-<dt>-d, --since=<var>DATE</var></dt>
+<dt>-d, --since <var>DATE</var></dt>
 <dd><p>Display only issues updated on or after <var>DATE</var> in ISO 8601 format.</p></dd>
-<dt>-o, --sort=<var>SORT_KEY</var></dt>
+<dt>-o, --sort <var>KEY</var></dt>
 <dd><p>Sort displayed issues by &quot;created&quot; (default), &quot;updated&quot; or &quot;comments&quot;.</p></dd>
 <dt>-^ --sort-ascending</dt>
 <dd><p>Sort by ascending dates instead of descending.</p></dd>
-<dt>-L, --limit=<var>LIMIT</var></dt>
+<dt>-L, --limit <var>LIMIT</var></dt>
 <dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
 <dt>--include-pulls</dt>
 <dd><p>Include pull requests as well as issues.</p></dd>
@@ -213,8 +212,8 @@ separate paragraphs.</p></dd>
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.7.0-32-gcdd5ce9</li>
-    <li class="tc">19 Jan 2019</li>
+    <li class="tl">hub version 2.8.3</li>
+    <li class="tc">26 Jan 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

@@ -1,5 +1,5 @@
 <!doctype html>
-<title>hub-release(1) - Manage GitHub releases.</title>
+<title>hub-release(1) - Manage GitHub Releases for the current repository.</title>
 <meta charset="utf-8">
 
 <style>
@@ -78,7 +78,7 @@ a:link, a:hover, a:visited { color: blue }
 </header>
 
 <article>
-  <h1>Manage GitHub releases.</h1>
+  <h1>Manage GitHub Releases for the current repository.</h1>
   
 <h2 id="synopsis">Synopsis</h2>
 
@@ -126,18 +126,18 @@ and body unchanged, pass <code>-m &quot;&quot;</code>.</p></dd>
 <dd><p>Create a draft release.</p></dd>
 <dt>-p, --prerelease</dt>
 <dd><p>Create a pre-release.</p></dd>
-<dt>-a, --attach=<var>FILE</var></dt>
+<dt>-a, --attach <var>FILE</var></dt>
 <dd><p>Attach a file as an asset for this release.</p>
 
 <p>If <var>FILE</var> is in the &quot;<var>filename</var>#<var>text</var>&quot; format, the text after the <code>#</code>
 character is taken as asset label.</p></dd>
-<dt>-m, --message=<var>MESSAGE</var></dt>
+<dt>-m, --message <var>MESSAGE</var></dt>
 <dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the release
 title, and the rest is used as release description in Markdown format.</p>
 
 <p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
 separate paragraphs.</p></dd>
-<dt>-F, --file=<var>FILE</var></dt>
+<dt>-F, --file <var>FILE</var></dt>
 <dd><p>Read the release title and description from <var>FILE</var>.</p></dd>
 <dt>-e, --edit</dt>
 <dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
@@ -145,10 +145,10 @@ separate paragraphs.</p></dd>
 <dd><p>Open the new release in a web browser.</p></dd>
 <dt>-c, --copy</dt>
 <dd><p>Put the URL of the new release to clipboard instead of printing it.</p></dd>
-<dt>-t, --commitish=<var>TARGET</var></dt>
+<dt>-t, --commitish <var>TARGET</var></dt>
 <dd><p>A commit SHA or branch name to attach the release to, only used if <var>TAG</var>
 does not already exist (default: main branch).</p></dd>
-<dt>-f, --format=<var>FORMAT</var></dt>
+<dt>-f, --format <var>FORMAT</var></dt>
 <dd><p>Pretty print releases using <var>FORMAT</var> (default: &quot;%T%n&quot;). See the &quot;PRETTY
 FORMATS&quot; section of git-log(1) for some additional details on how
 placeholders are used in format. The available placeholders for issues are:</p>
@@ -204,8 +204,8 @@ placeholders are used in format. The available placeholders for issues are:</p>
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.7.0-32-gcdd5ce9</li>
-    <li class="tc">19 Jan 2019</li>
+    <li class="tl">hub version 2.8.3</li>
+    <li class="tc">26 Jan 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

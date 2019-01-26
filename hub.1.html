@@ -128,10 +128,12 @@ git but that are extended through hub, and custom ones that hub provides.</p>
 <dl>
 <dt><a href="./hub-alias.1.html">hub-alias(1)</a></dt>
 <dd>Show shell instructions for wrapping git.</dd>
+<dt><a href="./hub-api.1.html">hub-api(1)</a></dt>
+<dd>Low-level GitHub API request interface.</dd>
 <dt><a href="./hub-browse.1.html">hub-browse(1)</a></dt>
 <dd>Open a GitHub repository in a web browser.</dd>
 <dt><a href="./hub-ci-status.1.html">hub-ci-status(1)</a></dt>
-<dd>Display GitHub Status information for a commit.</dd>
+<dd>Display status of GitHub checks for a commit.</dd>
 <dt><a href="./hub-compare.1.html">hub-compare(1)</a></dt>
 <dd>Open a GitHub compare page in a web browser.</dd>
 <dt><a href="./hub-create.1.html">hub-create(1)</a></dt>
@@ -139,24 +141,24 @@ git but that are extended through hub, and custom ones that hub provides.</p>
 <dt><a href="./hub-delete.1.html">hub-delete(1)</a></dt>
 <dd>Delete a repository on GitHub.</dd>
 <dt><a href="./hub-fork.1.html">hub-fork(1)</a></dt>
-<dd>Fork the current project on GitHub and add a git remote for it.</dd>
+<dd>Fork the current repository on GitHub and add a git remote for it.</dd>
 <dt><a href="./hub-pull-request.1.html">hub-pull-request(1)</a></dt>
-<dd>Create a GitHub pull request.</dd>
+<dd>Create a GitHub Pull Request.</dd>
 <dt><a href="./hub-pr.1.html">hub-pr(1)</a></dt>
-<dd>List and checkout GitHub pull requests.</dd>
+<dd>Manage GitHub Pull Requests for the current repository.</dd>
 <dt><a href="./hub-issue.1.html">hub-issue(1)</a></dt>
-<dd>List and create GitHub issues.</dd>
+<dd>Manage GitHub Issues for the current repository.</dd>
 <dt><a href="./hub-release.1.html">hub-release(1)</a></dt>
-<dd>List and create GitHub releases.</dd>
+<dd>Manage GitHub Releases for the current repository.</dd>
 <dt><a href="./hub-sync.1.html">hub-sync(1)</a></dt>
-<dd>Fetch from upstream and update local branches.</dd>
+<dd>Fetch git objects from upstream and update local branches.</dd>
 </dl>
 
 <h2 id="conventions">Conventions</h2>
 
 <p>Most hub commands are supposed to be run in a context of an existing local git
-repository. Hub will automatically detect the GitHub repository the current
-project belongs to by scanning its git remotes.</p>
+repository. Hub will automatically detect the GitHub repository that the current
+working directory belongs to by scanning its git remotes.</p>
 
 <p>In case there are multiple git remotes that are all pointing to GitHub, hub
 assumes that the main one is named &quot;upstream&quot;, &quot;github&quot;, or &quot;origin&quot;, in that
@@ -166,7 +168,8 @@ order of preference.</p>
 is named &quot;origin&quot; and that the git remote for the upstream repository is named
 &quot;upstream&quot;. See <a href="https://help.github.com/articles/configuring-a-remote-for-a-fork/">https://help.github.com/articles/configuring-a-remote-for-a-fork/</a></p>
 
-<p>The default branch (usually &quot;master&quot;) for the project is detected like so:</p>
+<p>The default branch (usually &quot;master&quot;) for the current repository is detected
+like so:</p>
 
 <pre><code>git symbolic-ref refs/remotes/origin/HEAD
 </code></pre>
@@ -257,8 +260,8 @@ searched for in <code>XDG_CONFIG_DIRS</code> per XDG Base Directory Specificatio
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.7.0-32-gcdd5ce9</li>
-    <li class="tc">19 Jan 2019</li>
+    <li class="tl">hub version 2.8.3</li>
+    <li class="tc">26 Jan 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

@@ -1,0 +1,158 @@
+<!doctype html>
+<title>hub-api(1) - Low-level GitHub API request interface.</title>
+<meta charset="utf-8">
+
+<style>
+body {
+  margin: 0;
+  font: 15px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+}
+pre, code, var, dt, .man-head {
+  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+}
+header, footer {
+  padding: .5em 2em;
+}
+.man-head {
+  color: #999;
+  padding: 0;
+  width: 100%;
+  float: left;
+  list-style-type: none;
+}
+header .man-head {
+  text-transform: uppercase;
+}
+.man-head li {
+  width: 33%;
+  float: left;
+}
+.tl { text-align: left }
+.tc { text-align: center }
+.tr { text-align: right; float: right }
+article {
+  max-width: 110ex;
+  margin: 4em auto 2em;
+}
+h1 {
+  font-size: 1em;
+  font-weight: normal;
+}
+h2 {
+  text-transform: uppercase;
+}
+code {
+  color: darkslategray;
+  font-weight: bold;
+}
+var {
+  color: orangered;
+  font-weight: normal;
+  font-style: normal;
+}
+dt {
+  margin: .5em 0;
+}
+dd {
+  margin-bottom: 1em;
+}
+pre {
+  background: #eee;
+  padding: 1em 1.5em;
+}
+pre code {
+  color: inherit;
+  font-weight: inherit;
+}
+var::before { content: "<" }
+var::after { content: ">" }
+a:link, a:hover, a:visited { color: blue }
+</style>
+
+<header>
+  <ol class="man-head">
+    <li class="tl">hub-api(1)</li>
+    <li class="tc">hub manual</li>
+    <li class="tr">hub-api(1)</li>
+  </ol>
+</header>
+
+<article>
+  <h1>Low-level GitHub API request interface.</h1>
+  
+<h2 id="synopsis">Synopsis</h2>
+
+<p><code>hub api</code> [-t] [-X <var>METHOD</var>] [--cache <var>TTL</var>] <var>ENDPOINT</var> [-F <var>KEY-VALUE</var>]</p>
+
+<h2 id="options">Options</h2>
+
+<dl>
+<dt>-X, --method <var>METHOD</var></dt>
+<dd><p>The HTTP method to use for the request (default: &quot;GET&quot;). The method is
+automatically set to &quot;POST&quot; if <code>--field</code> or <code>--raw-field</code> are used.</p>
+
+<p>Use <code>-XGET</code> to force serializing fields into the query string for the GET
+request instead of JSON body of the POST request.</p></dd>
+<dt>-F, --field <var>KEY-VALUE</var></dt>
+<dd><p>Send data in <code>KEY=VALUE</code> format. The <var>VALUE</var> part has some magic handling;
+see <code>--raw-field</code> for passing arbitrary strings.</p>
+
+<p>If <var>VALUE</var> starts with &quot;@&quot;, the rest of the value is interpreted as a
+filename to read the value from. Use &quot;@-&quot; to read from standard input.</p>
+
+<p>If <var>VALUE</var> is &quot;true&quot;, &quot;false&quot;, &quot;null&quot;, or looks like a number, an
+appropriate JSON type is used instead of a string.</p>
+
+<p>Unless <code>-XGET</code> was used, all fields are sent serialized as JSON within the
+request body. When <var>ENDPOINT</var> is &quot;graphql&quot;, all extra fields other than
+&quot;query&quot; will sent grouped under the &quot;variables&quot; parameter.</p></dd>
+<dt>-f, --raw-field <var>KEY-VALUE</var></dt>
+<dd><p>Same as <code>--field</code>, except that it allows values starting with &quot;@&quot;.</p></dd>
+<dt>-t, --flat</dt>
+<dd><p>Parse response JSON and output the data in a line-based key-value format
+suitable for use in shell scripts.</p></dd>
+<dt>--cache <var>TTL</var></dt>
+<dd><p>Cache successful responses to GET requests for <var>TTL</var> seconds.</p>
+
+<p>When using &quot;graphql&quot; as <var>ENDPOINT</var>, caching will apply to responses to POST
+requests as well. Just make sure to not use <code>--cache</code> for any GraphQL
+mutations.</p></dd>
+<dt><var>ENDPOINT</var></dt>
+<dd><p>The GitHub API endpoint to send the HTTP request to (default: &quot;/&quot;).</p>
+
+<p>To learn about available endpoints, see <a href="https://developer.github.com/v3/">https://developer.github.com/v3/</a>.
+To make GraphQL queries, use &quot;graphql&quot; as <var>ENDPOINT</var> and pass <code>-F query=QUERY</code>.</p>
+
+<p>If the literal strings &quot;{owner}&quot; or &quot;{repo}&quot; appear in <var>ENDPOINT</var> or in the
+GraphQL &quot;query&quot; field, fill in those placeholders with values read from the
+git remote configuration of the current git repository.</p></dd>
+</dl>
+
+<h2 id="examples">Examples</h2>
+
+<pre><code># fetch information about the currently authenticated user as JSON
+$ hub api user
+
+# list user repositories as line-based output
+$ hub api --flat users/octocat/repos
+
+# post a comment to issue #23 of the current repository
+$ hub api repos/{owner}/{repo}/issues/23/comments --raw-field &quot;body=Nice job!&quot;
+
+# perform a GraphQL query read from a file
+$ hub api graphql -F query=@path/to/myquery.graphql
+</code></pre>
+
+<h2 id="see-also">See also</h2>
+
+<p><a href="./hub.1.html">hub(1)</a></p>
+
+</article>
+
+<footer>
+  <ol class="man-head">
+    <li class="tl">hub version 2.8.3</li>
+    <li class="tc">26 Jan 2019</li>
+    <li class="tr"></li>
+  </ol>
+</footer>
