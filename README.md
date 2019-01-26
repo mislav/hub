@@ -1,8 +1,12 @@
-git + hub = github
-==================
-
 hub is a command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
+
+This repository and its issue tracker is **not for reporting problems with
+GitHub.com** web interface. If you have a problem with GitHub itself, please
+[contact Support](https://github.com/contact).
+
+Usage
+-----
 
 ``` sh
 $ hub clone rtomayko/tilt
@@ -11,18 +15,20 @@ $ hub clone rtomayko/tilt
 $ git clone git://github.com/rtomayko/tilt.git
 ```
 
-hub is best aliased as `git`, so you can type `$ git <command>` in the shell and
-get all the usual `hub` features. See "Aliasing" below.
+hub can be safely [aliased](#aliasing) as `git` so you can type `$ git
+<command>` in the shell and get all the usual `hub` features.
 
 See [Usage documentation](https://hub.github.com/hub.1.html) for the list of all
 commands and their arguments.
 
+Hub can also be used to make shell scripts that [manually interface with the
+GitHub API](https://hub.github.com/hub-api.1.html).
+
 Installation
 ------------
 
-Dependencies:
-
-* **git 1.7.3** or newer
+The `hub` executable has no dependencies, but since it was designed to wrap
+`git`, it's recommended to have at least **git 1.7.3** or newer.
 
 #### Homebrew
 
@@ -91,7 +97,7 @@ Prerequisites for compilation are:
 Aliasing
 --------
 
-Using hub feels best when it's aliased as `git`. This is not dangerous; your
+Some hub features feel best when it's aliased as `git`. This is not dangerous; your
 _normal git commands will all work_. hub merely adds some sugar.
 
 `hub alias` displays instructions for the current shell. With the `-s` flag, it
