@@ -1,7 +1,7 @@
 SOURCES = $(shell script/build files)
 SOURCE_DATE_EPOCH ?= $(shell date +%s)
 BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
-HUB_VERSION = $(shell hub version | tail -1)
+HUB_VERSION = $(shell bin/hub version | tail -1)
 FLAGS_ALL = $(shell go version | grep -q 'go1.[89]' || echo 'all=')
 export LDFLAGS := -extldflags='$(LDFLAGS)'
 export GCFLAGS := $(FLAGS_ALL)-trimpath='$(PWD)'
@@ -45,6 +45,9 @@ TEXT_WIDTH = 87
 bin/hub: $(SOURCES)
 	script/build -o $@
 
+bin/md2roff: $(SOURCES)
+	go build -o $@ github.com/github/hub/md2roff-bin
+
 test:
 	go test ./...
 
@@ -67,8 +70,8 @@ man-pages: $(HELP_ALL:=.md) $(HELP_ALL) $(HELP_ALL:=.txt)
 	groff -Wall -mtty-char -mandoc -Tutf8 -rLL=$(TEXT_WIDTH)n $< | col -b >$@
 
 $(HELP_ALL): share/man/.man-pages.stamp
-share/man/.man-pages.stamp: $(HELP_ALL:=.md) ./man-template.html
-	go run md2roff-bin/cmd.go --manual="hub manual" \
+share/man/.man-pages.stamp: $(HELP_ALL:=.md) ./man-template.html bin/md2roff
+	bin/md2roff --manual="hub manual" \
 		--date="$(BUILD_DATE)" --version="$(HUB_VERSION)" \
 		--template=./man-template.html \
 		share/man/man1/*.md
