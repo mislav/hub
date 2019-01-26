@@ -38,11 +38,14 @@ var cmdApi = &Command{
 		appropriate JSON type is used instead of a string.
 
 		Unless '-XGET' was used, all fields are sent serialized as JSON within the
-		request body. When <ENDPOINT> is "graphql", all extra fields other than
-		"query" will sent grouped under the "variables" parameter.
+		request body. When <ENDPOINT> is "graphql", all fields other than "query"
+		are grouped under "variables". See
+		<https://graphql.org/learn/queries/#variables>
 
 	-f, --raw-field <KEY-VALUE>
-		Same as '--field', except that it allows values starting with "@".
+		Same as '--field', except that it allows values starting with "@", literal
+		strings "true", "false", and "null", as well as strings that look like
+		numbers.
 
 	-t, --flat
 		Parse response JSON and output the data in a line-based key-value format
