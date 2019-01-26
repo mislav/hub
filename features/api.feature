@@ -138,6 +138,19 @@ Feature: hub api
       {"bool":false,"name":"@hubot","num":12,"void":null}\n
       """
 
+  Scenario: POST raw fields
+    Given the GitHub API server:
+      """
+      post('/hello/world') {
+        json Hash[*params.sort.flatten]
+      }
+      """
+    When I successfully run `hub api -fnum=12 -fbool=false hello/world`
+    Then the output should contain exactly:
+      """
+      {"bool":"false","num":"12"}\n
+      """
+
   Scenario: POST from stdin
     Given the GitHub API server:
       """

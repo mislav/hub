@@ -98,7 +98,7 @@ func apiCommand(cmd *Command, args *Args) {
 	method := "GET"
 	if args.Flag.HasReceived("--method") {
 		method = args.Flag.Value("--method")
-	} else if args.Flag.HasReceived("--field") {
+	} else if args.Flag.HasReceived("--field") || args.Flag.HasReceived("--raw-field") {
 		method = "POST"
 	}
 	cacheTTL := args.Flag.Int("--cache")
