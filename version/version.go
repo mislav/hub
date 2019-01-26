@@ -6,7 +6,7 @@ import (
 	"github.com/github/hub/git"
 )
 
-var Version = "2.8.1"
+var Version = "2.8.2"
 
 func FullVersion() (string, error) {
 	gitVersion, err := git.Version()
