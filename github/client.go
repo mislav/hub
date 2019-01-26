@@ -811,6 +811,12 @@ func (client *Client) GenericAPIRequest(method, path string, params map[string]i
 				switch v := value.(type) {
 				case string:
 					query.Add(key, v)
+				case nil:
+					query.Add(key, "")
+				case int:
+					query.Add(key, fmt.Sprintf("%d", v))
+				case bool:
+					query.Add(key, fmt.Sprintf("%v", v))
 				}
 			}
 			sep := "?"

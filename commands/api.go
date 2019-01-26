@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/github/hub/github"
@@ -27,12 +28,18 @@ var cmdApi = &Command{
 		request instead of JSON body of the POST request.
 
 	-F, --field <KEY-VALUE>
-		Send data in 'KEY=VALUE' format. If <VALUE> starts with "@", the rest of
-		the value is interpreted as a filename to read the value from. Use "@-" to
-		read from standard input.
+		Send data in 'KEY=VALUE' format. The <VALUE> part has some magic handling;
+		see '--raw-field' for passing arbitrary strings.
+
+		If <VALUE> starts with "@", the rest of the value is interpreted as a
+		filename to read the value from. Use "@-" to read from standard input.
+
+		If <VALUE> is "true", "false", "null", or looks like a number, an
+		appropriate JSON type is used instead of a string.
 
 		Unless '-XGET' was used, all fields are sent serialized as JSON within the
-		request body.
+		request body. When <ENDPOINT> is "graphql", all extra fields other than
+		"query" will sent grouped under the "variables" parameter.
 
 	-f, --raw-field <KEY-VALUE>
 		Same as '--field', except that it allows values starting with "@".
@@ -52,11 +59,11 @@ var cmdApi = &Command{
 		The GitHub API endpoint to send the HTTP request to (default: "/").
 		
 		To learn about available endpoints, see <https://developer.github.com/v3/>.
-		To make GraphQL queries, use "graphql" as endpoint and pass '-F query=QUERY'.
+		To make GraphQL queries, use "graphql" as <ENDPOINT> and pass '-F query=QUERY'.
 
-		If the literal strings "{owner}" or "{repo}" appear in endpoint or in the
-		GraphQL query, fill in those placeholders with values read from the git
-		remote configuration of the current git repository.
+		If the literal strings "{owner}" or "{repo}" appear in <ENDPOINT> or in the
+		GraphQL "query" field, fill in those placeholders with values read from the
+		git remote configuration of the current git repository.
 
 ## Examples:
 
@@ -100,7 +107,7 @@ func apiCommand(cmd *Command, args *Args) {
 	for _, val := range args.Flag.AllValues("--field") {
 		parts := strings.SplitN(val, "=", 2)
 		if len(parts) >= 2 {
-			params[parts[0]] = valueOrFileContents(parts[1])
+			params[parts[0]] = magicValue(parts[1])
 		}
 	}
 	for _, val := range args.Flag.AllValues("--raw-field") {
@@ -132,6 +139,18 @@ func apiCommand(cmd *Command, args *Args) {
 		query := params["query"].(string)
 		query = strings.Replace(query, quote("{owner}"), quote(owner), 1)
 		query = strings.Replace(query, quote("{repo}"), quote(repo), 1)
+
+		variables := make(map[string]interface{})
+		for key, value := range params {
+			if key != "query" {
+				variables[key] = value
+			}
+		}
+		if len(variables) > 0 {
+			params = make(map[string]interface{})
+			params["variables"] = variables
+		}
+
 		params["query"] = query
 	} else {
 		path = strings.Replace(path, "{owner}", owner, 1)
@@ -167,23 +186,40 @@ func apiCommand(cmd *Command, args *Args) {
 	}
 }
 
-func valueOrFileContents(value string) string {
-	if strings.HasPrefix(value, "@") {
-		file := strings.TrimPrefix(value, "@")
-		var content []byte
-		var err error
-		if file == "-" {
-			content, err = ioutil.ReadAll(os.Stdin)
+const (
+	trueVal  = "true"
+	falseVal = "false"
+	nilVal   = "null"
+)
+
+func magicValue(value string) interface{} {
+	switch value {
+	case trueVal:
+		return true
+	case falseVal:
+		return false
+	case nilVal:
+		return nil
+	default:
+		if strings.HasPrefix(value, "@") {
+			return string(readFile(value[1:]))
+		} else if i, err := strconv.Atoi(value); err == nil {
+			return i
 		} else {
-			content, err = ioutil.ReadFile(file)
+			return value
 		}
-		if err != nil {
-			utils.Check(err)
-		}
-		return string(content)
-	} else {
-		return value
 	}
+}
+
+func readFile(file string) (content []byte) {
+	var err error
+	if file == "-" {
+		content, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		content, err = ioutil.ReadFile(file)
+	}
+	utils.Check(err)
+	return
 }
 
 func quote(s string) string {

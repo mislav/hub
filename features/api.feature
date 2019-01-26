@@ -72,13 +72,13 @@ Feature: hub api
     Given the GitHub API server:
       """
       get('/hello/world') {
-        json :name => params[:name]
+        json Hash[*params.sort.flatten]
       }
       """
-    When I successfully run `hub api -XGET -F name=Ed hello/world`
+    When I successfully run `hub api -XGET -Fname=Ed -Fnum=12 -Fbool=false -Fvoid=null hello/world`
     Then the output should contain exactly:
       """
-      {"name":"Ed"}\n
+      {"bool":"false","name":"Ed","num":"12","void":""}\n
       """
 
   Scenario: GET full URL
@@ -113,17 +113,13 @@ Feature: hub api
     Given the GitHub API server:
       """
       post('/hello/world') {
-        json :name => params[:name],
-             :value => params[:a],
-             :params => params.size
+        json Hash[*params.sort.flatten]
       }
       """
-    When I successfully run `hub api -t -f name=@hubot -F a=b=c hello/world`
+    When I successfully run `hub api -f name=@hubot -Fnum=12 -Fbool=false -Fvoid=null hello/world`
     Then the output should contain exactly:
       """
-      .name	@hubot
-      .value	b=c
-      .params	2\n
+      {"bool":false,"name":"@hubot","num":12,"void":null}\n
       """
 
   Scenario: POST from stdin
@@ -143,6 +139,19 @@ Feature: hub api
     Then the output should contain exactly:
       """
       .query	query {\n  repository\n}\n\n
+      """
+
+  Scenario: Pass extra GraphQL variables
+    Given the GitHub API server:
+      """
+      post('/graphql') {
+        json(params[:variables])
+      }
+      """
+    When I successfully run `hub api -F query='query {}' -Fname=Jet -Fsize=2 graphql`
+    Then the output should contain exactly:
+      """
+      {"name":"Jet","size":2}\n
       """
 
   Scenario: Repo context
