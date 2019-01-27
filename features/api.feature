@@ -123,7 +123,7 @@ Feature: hub api
       {"name":"Jet"}
       """
 
-  Scenario: Custom headers
+  Scenario: Request headers
     Given the GitHub API server:
       """
       get('/hello/world') {
@@ -136,6 +136,17 @@ Feature: hub api
       """
       {"accept":"text/json","foo":"bar"}
       """
+
+  Scenario: Response headers
+    Given the GitHub API server:
+      """
+      get('/hello/world') {
+        json({})
+      }
+      """
+    When I successfully run `hub api hello/world -i`
+    Then the output should contain "HTTP/1.1 200 OK"
+    And the output should contain "Content-Length: 2"
 
   Scenario: POST fields
     Given the GitHub API server:

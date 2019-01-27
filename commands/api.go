@@ -50,6 +50,9 @@ var cmdApi = &Command{
 	-H, --header <KEY-VALUE>
 		An HTTP request header in 'KEY: VALUE' format.
 
+	-i, --include
+		Include HTTP response headers in the output.
+
 	-t, --flat
 		Parse response JSON and output the data in a line-based key-value format
 		suitable for use in shell scripts.
@@ -186,6 +189,12 @@ func apiCommand(cmd *Command, args *Args) {
 	if !success {
 		jsonType, _ := regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
 		parseJSON = parseJSON && jsonType
+	}
+
+	if args.Flag.Bool("--include") {
+		fmt.Fprintf(out, "%s %s\r\n", response.Proto, response.Status)
+		response.Header.Write(out)
+		fmt.Fprintf(out, "\r\n")
 	}
 
 	if parseJSON {
