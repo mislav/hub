@@ -3,9 +3,9 @@ SOURCE_DATE_EPOCH ?= $(shell date +%s)
 BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
 HUB_VERSION = $(shell bin/hub version | tail -1)
 FLAGS_ALL = $(shell go version | grep -q 'go1.[89]' || echo 'all=')
-export LDFLAGS := -extldflags='$(LDFLAGS)'
-export GCFLAGS := $(FLAGS_ALL)-trimpath='$(PWD)'
-export ASMFLAGS := $(FLAGS_ALL)-trimpath='$(PWD)'
+export LDFLAGS := -extldflags '$(LDFLAGS)'
+export GCFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
+export ASMFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
 
 MIN_COVERAGE = 89.4
 
