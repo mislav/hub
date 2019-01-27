@@ -796,7 +796,7 @@ func (client *Client) FetchMilestones(project *Project) (milestones []Milestone,
 	return
 }
 
-func (client *Client) GenericAPIRequest(method, path string, params map[string]interface{}, ttl int) (*simpleResponse, error) {
+func (client *Client) GenericAPIRequest(method, path string, params map[string]interface{}, headers map[string]string, ttl int) (*simpleResponse, error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return nil, err
@@ -836,6 +836,9 @@ func (client *Client) GenericAPIRequest(method, path string, params map[string]i
 	return api.performRequest(method, path, body, func(req *http.Request) {
 		if body != nil {
 			req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		}
+		for key, value := range headers {
+			req.Header.Set(key, value)
 		}
 	})
 }

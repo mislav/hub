@@ -7,6 +7,7 @@ Feature: hub api
       """
       get('/hello/world') {
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        halt 401 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :name => "Ed"
       }
       """
@@ -123,6 +124,20 @@ Feature: hub api
     Then the output should contain exactly:
       """
       {"name":"Jet"}\n
+      """
+
+  Scenario: Custom headers
+    Given the GitHub API server:
+      """
+      get('/hello/world') {
+        json :accept => request.env['HTTP_ACCEPT'],
+             :foo => request.env['HTTP_X_FOO']
+      }
+      """
+      When I successfully run `hub api hello/world -H 'x-foo:bar' -H 'Accept: text/json'`
+    Then the output should contain exactly:
+      """
+      {"accept":"text/json","foo":"bar"}\n
       """
 
   Scenario: POST fields

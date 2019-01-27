@@ -47,6 +47,9 @@ var cmdApi = &Command{
 		strings "true", "false", and "null", as well as strings that look like
 		numbers.
 
+	-H, --header <KEY-VALUE>
+		An HTTP request header in 'KEY: VALUE' format.
+
 	-t, --flat
 		Parse response JSON and output the data in a line-based key-value format
 		suitable for use in shell scripts.
@@ -120,6 +123,14 @@ func apiCommand(cmd *Command, args *Args) {
 		}
 	}
 
+	headers := make(map[string]string)
+	for _, val := range args.Flag.AllValues("--header") {
+		parts := strings.SplitN(val, ":", 2)
+		if len(parts) >= 2 {
+			headers[parts[0]] = strings.TrimLeft(parts[1], " ")
+		}
+	}
+
 	host := ""
 	owner := ""
 	repo := ""
@@ -161,7 +172,7 @@ func apiCommand(cmd *Command, args *Args) {
 	}
 
 	gh := github.NewClient(host)
-	response, err := gh.GenericAPIRequest(method, path, params, cacheTTL)
+	response, err := gh.GenericAPIRequest(method, path, params, headers, cacheTTL)
 	utils.Check(err)
 	defer response.Body.Close()
 
