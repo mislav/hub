@@ -178,25 +178,24 @@ func apiCommand(cmd *Command, args *Args) {
 
 	args.NoForward()
 
-	if response.StatusCode >= 300 {
-		ui.Errorf("Error: HTTP %s\n", strings.TrimSpace(response.Status))
+	out := ui.Stdout
+	colorize := ui.IsTerminal(os.Stdout)
+	success := response.StatusCode < 300
+	parseJSON := args.Flag.Bool("--flat")
+
+	if !success {
 		jsonType, _ := regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
-		colorize := ui.IsTerminal(os.Stderr)
-		if args.Flag.Bool("--flat") && jsonType {
-			utils.JSONPath(ui.Stderr, response.Body, colorize)
-		} else {
-			io.Copy(ui.Stderr, response.Body)
-			ui.Errorln()
-		}
-		os.Exit(1)
+		parseJSON = parseJSON && jsonType
 	}
 
-	colorize := ui.IsTerminal(os.Stdout)
-	if args.Flag.Bool("--flat") {
-		utils.JSONPath(ui.Stdout, response.Body, colorize)
+	if parseJSON {
+		utils.JSONPath(out, response.Body, colorize)
 	} else {
-		io.Copy(ui.Stdout, response.Body)
-		ui.Println()
+		io.Copy(out, response.Body)
+	}
+
+	if !success {
+		os.Exit(22)
 	}
 }
 
