@@ -55,11 +55,33 @@ func (cmd *Cmd) Success() bool {
 // Run runs command with `Exec` on platforms except Windows
 // which only supports `Spawn`
 func (cmd *Cmd) Run() error {
-	if runtime.GOOS == "windows" {
+	if isWindows() {
 		return cmd.Spawn()
 	} else {
 		return cmd.Exec()
 	}
+}
+
+func isWindows() bool {
+	return runtime.GOOS == "windows" || detectWSL()
+}
+
+var detectedWSL bool
+var detectedWSLContents string
+
+// https://github.com/Microsoft/WSL/issues/423#issuecomment-221627364
+func detectWSL() bool {
+	if !detectedWSL {
+		b := make([]byte, 1024)
+		f, err := os.Open("/proc/version")
+		if err == nil {
+			f.Read(b)
+			f.Close()
+			detectedWSLContents = string(b)
+		}
+		detectedWSL = true
+	}
+	return strings.Contains(detectedWSLContents, "Microsoft")
 }
 
 // Spawn runs command with spawn(3)
