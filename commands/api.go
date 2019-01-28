@@ -47,6 +47,12 @@ var cmdApi = &Command{
 		strings "true", "false", and "null", as well as strings that look like
 		numbers.
 
+	-H, --header <KEY-VALUE>
+		An HTTP request header in 'KEY: VALUE' format.
+
+	-i, --include
+		Include HTTP response headers in the output.
+
 	-t, --flat
 		Parse response JSON and output the data in a line-based key-value format
 		suitable for use in shell scripts.
@@ -120,6 +126,14 @@ func apiCommand(cmd *Command, args *Args) {
 		}
 	}
 
+	headers := make(map[string]string)
+	for _, val := range args.Flag.AllValues("--header") {
+		parts := strings.SplitN(val, ":", 2)
+		if len(parts) >= 2 {
+			headers[parts[0]] = strings.TrimLeft(parts[1], " ")
+		}
+	}
+
 	host := ""
 	owner := ""
 	repo := ""
@@ -161,31 +175,36 @@ func apiCommand(cmd *Command, args *Args) {
 	}
 
 	gh := github.NewClient(host)
-	response, err := gh.GenericAPIRequest(method, path, params, cacheTTL)
+	response, err := gh.GenericAPIRequest(method, path, params, headers, cacheTTL)
 	utils.Check(err)
 	defer response.Body.Close()
 
 	args.NoForward()
 
-	if response.StatusCode >= 300 {
-		ui.Errorf("Error: HTTP %s\n", strings.TrimSpace(response.Status))
+	out := ui.Stdout
+	colorize := ui.IsTerminal(os.Stdout)
+	success := response.StatusCode < 300
+	parseJSON := args.Flag.Bool("--flat")
+
+	if !success {
 		jsonType, _ := regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
-		colorize := ui.IsTerminal(os.Stderr)
-		if args.Flag.Bool("--flat") && jsonType {
-			utils.JSONPath(ui.Stderr, response.Body, colorize)
-		} else {
-			io.Copy(ui.Stderr, response.Body)
-			ui.Errorln()
-		}
-		os.Exit(1)
+		parseJSON = parseJSON && jsonType
 	}
 
-	colorize := ui.IsTerminal(os.Stdout)
-	if args.Flag.Bool("--flat") {
-		utils.JSONPath(ui.Stdout, response.Body, colorize)
+	if args.Flag.Bool("--include") {
+		fmt.Fprintf(out, "%s %s\r\n", response.Proto, response.Status)
+		response.Header.Write(out)
+		fmt.Fprintf(out, "\r\n")
+	}
+
+	if parseJSON {
+		utils.JSONPath(out, response.Body, colorize)
 	} else {
-		io.Copy(ui.Stdout, response.Body)
-		ui.Println()
+		io.Copy(out, response.Body)
+	}
+
+	if !success {
+		os.Exit(22)
 	}
 }
 

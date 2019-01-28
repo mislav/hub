@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -289,9 +290,37 @@ func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Respo
 		if err != nil {
 			return
 		}
+		defer cf.Close()
+
+		cb, err := ioutil.ReadAll(cf)
+		if err != nil {
+			return
+		}
+		parts := strings.SplitN(string(cb), "\r\n\r\n", 2)
+		if len(parts) < 2 {
+			return
+		}
+
 		res = &http.Response{
-			StatusCode: 200,
-			Body:       cf,
+			Body:   ioutil.NopCloser(bytes.NewBufferString(parts[1])),
+			Header: http.Header{},
+		}
+		headerLines := strings.Split(parts[0], "\r\n")
+		if len(headerLines) < 1 {
+			return
+		}
+		if proto := strings.SplitN(headerLines[0], " ", 3); len(proto) >= 3 {
+			res.Proto = proto[0]
+			res.Status = fmt.Sprintf("%s %s", proto[1], proto[2])
+			if code, _ := strconv.Atoi(proto[1]); code > 0 {
+				res.StatusCode = code
+			}
+		}
+		for _, line := range headerLines[1:] {
+			kv := strings.SplitN(line, ":", 2)
+			if len(kv) >= 2 {
+				res.Header.Add(kv[0], strings.TrimLeft(kv[1], " "))
+			}
 		}
 	}
 	return
@@ -314,6 +343,9 @@ func (c *simpleClient) cacheWrite(key string, res *http.Response) {
 					return
 				}
 				defer cf.Close()
+				fmt.Fprintf(cf, "%s %s\r\n", res.Proto, res.Status)
+				res.Header.Write(cf)
+				fmt.Fprintf(cf, "\r\n")
 				io.Copy(cf, bodyCopy)
 			},
 		}
@@ -362,7 +394,7 @@ func cacheKey(req *http.Request) string {
 }
 
 func cacheFile(key string) string {
-	return path.Join(os.TempDir(), "hub", key)
+	return path.Join(os.TempDir(), "hub", "api", key)
 }
 
 func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {

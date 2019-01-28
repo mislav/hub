@@ -7,13 +7,14 @@ Feature: hub api
       """
       get('/hello/world') {
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        halt 401 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.v3+json;charset=utf-8'
         json :name => "Ed"
       }
       """
     When I successfully run `hub api hello/world`
     Then the output should contain exactly:
       """
-      {"name":"Ed"}\n
+      {"name":"Ed"}
       """
 
   Scenario: GET Enterprise resource
@@ -29,7 +30,7 @@ Feature: hub api
     When I successfully run `hub api hello/world`
     Then the output should contain exactly:
       """
-      {"name":"Ed"}\n
+      {"name":"Ed"}
       """
 
   Scenario: Non-success response
@@ -41,13 +42,12 @@ Feature: hub api
       }
       """
     When I run `hub api hello/world`
-    Then the exit status should be 1
-    And the stdout should contain exactly ""
-    And the stderr should contain exactly:
+    Then the exit status should be 22
+    And the stdout should contain exactly:
       """
-      Error: HTTP 400 Bad Request
-      {"name":"Ed"}\n
+      {"name":"Ed"}
       """
+    And the stderr should contain exactly ""
 
   Scenario: Non-success response flat output
     Given the GitHub API server:
@@ -58,13 +58,12 @@ Feature: hub api
       }
       """
     When I run `hub api -t hello/world`
-    Then the exit status should be 1
-    And the stdout should contain exactly ""
-    And the stderr should contain exactly:
+    Then the exit status should be 22
+    And the stdout should contain exactly:
       """
-      Error: HTTP 400 Bad Request
       .name	Ed\n
       """
+    And the stderr should contain exactly ""
 
   Scenario: Non-success response doesn't choke on non-JSON
     Given the GitHub API server:
@@ -76,13 +75,12 @@ Feature: hub api
       }
       """
     When I run `hub api -t hello/world`
-    Then the exit status should be 1
-    And the stdout should contain exactly ""
-    And the stderr should contain exactly:
+    Then the exit status should be 22
+    And the stdout should contain exactly:
       """
-      Error: HTTP 400 Bad Request
-      Something went wrong\n
+      Something went wrong
       """
+    And the stderr should contain exactly ""
 
   Scenario: GET query string
     Given the GitHub API server:
@@ -94,7 +92,7 @@ Feature: hub api
     When I successfully run `hub api -XGET -Fname=Ed -Fnum=12 -Fbool=false -Fvoid=null hello/world`
     Then the output should contain exactly:
       """
-      {"bool":"false","name":"Ed","num":"12","void":""}\n
+      {"bool":"false","name":"Ed","num":"12","void":""}
       """
 
   Scenario: GET full URL
@@ -108,7 +106,7 @@ Feature: hub api
     When I successfully run `hub api https://api.github.com/hello/world`
     Then the output should contain exactly:
       """
-      {"name":"Faye"}\n
+      {"name":"Faye"}
       """
 
   Scenario: Avoid leaking token to a 3rd party
@@ -122,8 +120,33 @@ Feature: hub api
     When I successfully run `hub api http://example.com/hello/world`
     Then the output should contain exactly:
       """
-      {"name":"Jet"}\n
+      {"name":"Jet"}
       """
+
+  Scenario: Request headers
+    Given the GitHub API server:
+      """
+      get('/hello/world') {
+        json :accept => request.env['HTTP_ACCEPT'],
+             :foo => request.env['HTTP_X_FOO']
+      }
+      """
+      When I successfully run `hub api hello/world -H 'x-foo:bar' -H 'Accept: text/json'`
+    Then the output should contain exactly:
+      """
+      {"accept":"text/json","foo":"bar"}
+      """
+
+  Scenario: Response headers
+    Given the GitHub API server:
+      """
+      get('/hello/world') {
+        json({})
+      }
+      """
+    When I successfully run `hub api hello/world -i`
+    Then the output should contain "HTTP/1.1 200 OK"
+    And the output should contain "Content-Length: 2"
 
   Scenario: POST fields
     Given the GitHub API server:
@@ -135,7 +158,7 @@ Feature: hub api
     When I successfully run `hub api -f name=@hubot -Fnum=12 -Fbool=false -Fvoid=null hello/world`
     Then the output should contain exactly:
       """
-      {"bool":false,"name":"@hubot","num":12,"void":null}\n
+      {"bool":false,"name":"@hubot","num":12,"void":null}
       """
 
   Scenario: POST raw fields
@@ -148,7 +171,7 @@ Feature: hub api
     When I successfully run `hub api -fnum=12 -fbool=false hello/world`
     Then the output should contain exactly:
       """
-      {"bool":"false","num":"12"}\n
+      {"bool":"false","num":"12"}
       """
 
   Scenario: POST from stdin
@@ -180,7 +203,7 @@ Feature: hub api
     When I successfully run `hub api -F query='query {}' -Fname=Jet -Fsize=2 graphql`
     Then the output should contain exactly:
       """
-      {"name":"Jet","size":2}\n
+      {"name":"Jet","size":2}
       """
 
   Scenario: Repo context
@@ -194,7 +217,7 @@ Feature: hub api
     When I successfully run `hub api repos/{owner}/{repo}/commits`
     Then the output should contain exactly:
       """
-      {"commits":12}\n
+      {"commits":12}
       """
 
   Scenario: Repo context in graphql
@@ -267,10 +290,9 @@ Feature: hub api
     And I successfully run `hub api -t count --cache 5`
     Then the output should contain exactly:
       """
+      .count	1
       .count	2
-      .count	2
-      Error: HTTP 400 Bad Request
-      .count	1\n
+      .count	2\n
       """
 
   Scenario: Avoid caching response if the OAuth token changes
