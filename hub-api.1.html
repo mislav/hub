@@ -104,10 +104,17 @@ filename to read the value from. Use &quot;@-&quot; to read from standard input.
 appropriate JSON type is used instead of a string.</p>
 
 <p>Unless <code>-XGET</code> was used, all fields are sent serialized as JSON within the
-request body. When <var>ENDPOINT</var> is &quot;graphql&quot;, all extra fields other than
-&quot;query&quot; will sent grouped under the &quot;variables&quot; parameter.</p></dd>
+request body. When <var>ENDPOINT</var> is &quot;graphql&quot;, all fields other than &quot;query&quot;
+are grouped under &quot;variables&quot;. See
+<a href="https://graphql.org/learn/queries/#variables">https://graphql.org/learn/queries/#variables</a></p></dd>
 <dt>-f, --raw-field <var>KEY-VALUE</var></dt>
-<dd><p>Same as <code>--field</code>, except that it allows values starting with &quot;@&quot;.</p></dd>
+<dd><p>Same as <code>--field</code>, except that it allows values starting with &quot;@&quot;, literal
+strings &quot;true&quot;, &quot;false&quot;, and &quot;null&quot;, as well as strings that look like
+numbers.</p></dd>
+<dt>-H, --header <var>KEY-VALUE</var></dt>
+<dd><p>An HTTP request header in <code>KEY: VALUE</code> format.</p></dd>
+<dt>-i, --include</dt>
+<dd><p>Include HTTP response headers in the output.</p></dd>
 <dt>-t, --flat</dt>
 <dd><p>Parse response JSON and output the data in a line-based key-value format
 suitable for use in shell scripts.</p></dd>
@@ -151,8 +158,8 @@ $ hub api graphql -F query=@path/to/myquery.graphql
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.8.3</li>
-    <li class="tc">26 Jan 2019</li>
+    <li class="tl">hub version 2.8.4</li>
+    <li class="tc">28 Jan 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>
