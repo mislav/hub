@@ -30,24 +30,62 @@ Feature: hub ci-status
           { :state => "success",
             :context => "continuous-integration/travis-ci/push",
             :target_url => "https://travis-ci.org/michiels/pencilbox/builds/1234567" },
+          { :state => "success",
+            :context => "continuous-integration/travis-ci/ants",
+            :target_url => "https://travis-ci.org/michiels/pencilbox/builds/1234568" },
           { :state => "pending",
             :context => "continuous-integration/travis-ci/merge",
             :target_url => nil },
+          { :state => "error",
+            :context => "whatevs!" },
           { :state => "failure",
             :context => "GitHub CLA",
             :target_url => "https://cla.github.com/michiels/pencilbox/accept/mislav" },
-          { :state => "error",
-            :context => "whatevs!" }
         ]
       }
       """
     When I run `hub ci-status -v the_sha`
     Then the output should contain exactly:
       """
-      ✔︎	continuous-integration/travis-ci/push 	https://travis-ci.org/michiels/pencilbox/builds/1234567
-      ●	continuous-integration/travis-ci/merge
       ✖︎	GitHub CLA                            	https://cla.github.com/michiels/pencilbox/accept/mislav
-      ✖︎	whatevs!\n
+      ✖︎	whatevs!
+      ●	continuous-integration/travis-ci/merge
+      ✔︎	continuous-integration/travis-ci/ants 	https://travis-ci.org/michiels/pencilbox/builds/1234568
+      ✔︎	continuous-integration/travis-ci/push 	https://travis-ci.org/michiels/pencilbox/builds/1234567\n
+      """
+    And the exit status should be 1
+
+  Scenario: Multiple statuses with format string
+    Given there is a commit named "the_sha"
+    Given the remote commit states of "michiels/pencilbox" "the_sha" are:
+      """
+      { :state => "error",
+        :statuses => [
+          { :state => "success",
+            :context => "continuous-integration/travis-ci/push",
+            :target_url => "https://travis-ci.org/michiels/pencilbox/builds/1234567" },
+          { :state => "success",
+            :context => "continuous-integration/travis-ci/ants",
+            :target_url => "https://travis-ci.org/michiels/pencilbox/builds/1234568" },
+          { :state => "pending",
+            :context => "continuous-integration/travis-ci/merge",
+            :target_url => nil },
+          { :state => "error",
+            :context => "whatevs!" },
+          { :state => "failure",
+            :context => "GitHub CLA",
+            :target_url => "https://cla.github.com/michiels/pencilbox/accept/mislav" },
+        ]
+      }
+      """
+    When I run `hub ci-status the_sha --format '%S: %t (%U)%n'`
+    Then the output should contain exactly:
+      """
+      failure: GitHub CLA (https://cla.github.com/michiels/pencilbox/accept/mislav)
+      error: whatevs! ()
+      pending: continuous-integration/travis-ci/merge ()
+      success: continuous-integration/travis-ci/ants (https://travis-ci.org/michiels/pencilbox/builds/1234568)
+      success: continuous-integration/travis-ci/push (https://travis-ci.org/michiels/pencilbox/builds/1234567)\n
       """
     And the exit status should be 1
 
