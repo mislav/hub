@@ -20,6 +20,19 @@ var cmdCiStatus = &Command{
 	-v, --verbose
 		Print detailed report of all status checks and their URLs.
 
+	-f, --format <FORMAT>
+		Pretty print all status checks using <FORMAT> (implies '--verbose'). See the
+		"PRETTY FORMATS" section of git-log(1) for some additional details on how
+		placeholders are used in format. The available placeholders for issues are:
+
+		%U: the URL of this status check
+
+		%S: check state (e.g. "success", "failure")
+
+		%sC: set color to red, green, or yellow, depending on state
+
+		%t: name of the status check
+
 	<COMMIT>
 		A commit SHA or branch name (default: "HEAD").
 
@@ -107,8 +120,9 @@ func ciStatus(cmd *Command, args *Args) {
 			exitCode = 3
 		}
 
-		if args.Flag.Bool("--verbose") && len(response.Statuses) > 0 {
-			verboseFormat(response.Statuses)
+		verbose := args.Flag.Bool("--verbose") || args.Flag.HasReceived("--format")
+		if verbose && len(response.Statuses) > 0 {
+			verboseFormat(response.Statuses, args.Flag.Value("--format"))
 		} else {
 			if state != "" {
 				ui.Println(state)
@@ -121,7 +135,7 @@ func ciStatus(cmd *Command, args *Args) {
 	}
 }
 
-func verboseFormat(statuses []github.CIStatus) {
+func verboseFormat(statuses []github.CIStatus, formatString string) {
 	colorize := ui.IsTerminal(os.Stdout)
 
 	contextWidth := 0
@@ -153,15 +167,26 @@ func verboseFormat(statuses []github.CIStatus) {
 			color = 33
 		}
 
-		if colorize {
-			stateMarker = fmt.Sprintf("\033[%dm%s\033[0m", color, stateMarker)
+		placeholders := map[string]string{
+			"S":  status.State,
+			"sC": "",
+			"t":  status.Context,
+			"U":  status.TargetUrl,
 		}
 
-		if status.TargetUrl == "" {
-			ui.Printf("%s\t%s\n", stateMarker, status.Context)
-		} else {
-			ui.Printf("%s\t%-*s\t%s\n", stateMarker, contextWidth, status.Context, status.TargetUrl)
+		if colorize {
+			placeholders["sC"] = fmt.Sprintf("\033[%dm", color)
 		}
+
+		format := formatString
+		if format == "" {
+			if status.TargetUrl == "" {
+				format = fmt.Sprintf("%%sC%s%%Creset\t%%t\n", stateMarker)
+			} else {
+				format = fmt.Sprintf("%%sC%s%%Creset\t%%<(%d)%%t\t%%U\n", stateMarker, contextWidth)
+			}
+		}
+		ui.Print(ui.Expand(format, placeholders, colorize))
 	}
 }
 
