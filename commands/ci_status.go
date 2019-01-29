@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
@@ -130,6 +131,10 @@ func verboseFormat(statuses []github.CIStatus) {
 		}
 	}
 
+	sort.SliceStable(statuses, func(a, b int) bool {
+		return stateRank(statuses[a].State) < stateRank(statuses[b].State)
+	})
+
 	for _, status := range statuses {
 		var color int
 		var stateMarker string
@@ -157,5 +162,16 @@ func verboseFormat(statuses []github.CIStatus) {
 		} else {
 			ui.Printf("%s\t%-*s\t%s\n", stateMarker, contextWidth, status.Context, status.TargetUrl)
 		}
+	}
+}
+
+func stateRank(state string) uint32 {
+	switch state {
+	case "failure", "error", "action_required", "cancelled", "timed_out":
+		return 1
+	case "success", "neutral":
+		return 3
+	default:
+		return 2
 	}
 }

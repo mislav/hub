@@ -463,6 +463,20 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 
+	sortStatuses := func() {
+		sort.Slice(status.Statuses, func(a, b int) bool {
+			sA := status.Statuses[a]
+			sB := status.Statuses[b]
+			cmp := strings.Compare(strings.ToLower(sA.Context), strings.ToLower(sB.Context))
+			if cmp == 0 {
+				return strings.Compare(sA.TargetUrl, sB.TargetUrl) < 0
+			} else {
+				return cmp < 0
+			}
+		})
+	}
+	sortStatuses()
+
 	res, err = api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s/check-runs", project.Owner, project.Name, sha), checksType)
 	if err == nil && (res.StatusCode == 403 || res.StatusCode == 404 || res.StatusCode == 422) {
 		return
@@ -488,6 +502,8 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		}
 		status.Statuses = append(status.Statuses, checkStatus)
 	}
+
+	sortStatuses()
 
 	return
 }
