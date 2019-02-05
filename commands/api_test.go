@@ -42,7 +42,7 @@ func TestMagicValue(t *testing.T) {
 		},
 		{
 			"[]",
-			[]string(nil),
+			[]string{},
 		},
 	}
 

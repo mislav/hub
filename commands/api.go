@@ -248,7 +248,7 @@ func readFile(file string) (content []byte) {
 
 func readArray(input string) []string {
 	input = strings.TrimRight(strings.TrimLeft(input, "["), "]")
-	var values []string
+	values := []string{}
 	for _, v := range strings.Split(input, ",") {
 		v = strings.TrimSpace(v)
 		if v != "" {
