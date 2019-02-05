@@ -66,7 +66,7 @@ var cmdApi = &Command{
 
 	<ENDPOINT>
 		The GitHub API endpoint to send the HTTP request to (default: "/").
-		
+
 		To learn about available endpoints, see <https://developer.github.com/v3/>.
 		To make GraphQL queries, use "graphql" as <ENDPOINT> and pass '-F query=QUERY'.
 
@@ -227,6 +227,8 @@ func magicValue(value string) interface{} {
 			return string(readFile(value[1:]))
 		} else if i, err := strconv.Atoi(value); err == nil {
 			return i
+		} else if strings.HasPrefix(value, "[") && strings.HasSuffix(value, "]") {
+			return readArray(value)
 		} else {
 			return value
 		}
@@ -242,6 +244,18 @@ func readFile(file string) (content []byte) {
 	}
 	utils.Check(err)
 	return
+}
+
+func readArray(input string) []string {
+	input = strings.TrimRight(strings.TrimLeft(input, "["), "]")
+	var values []string
+	for _, v := range strings.Split(input, ",") {
+		v = strings.TrimSpace(v)
+		if v != "" {
+			values = append(values, v)
+		}
+	}
+	return values
 }
 
 func quote(s string) string {
