@@ -38,11 +38,15 @@ func TestMagicValue(t *testing.T) {
 		},
 		{
 			"[v1, v2]",
-			[]string{"v1", "v2"},
+			[]interface{}{"v1", "v2"},
+		},
+		{
+			"[1, true, false, v5]",
+			[]interface{}{1, true, false, "v5"},
 		},
 		{
 			"[]",
-			[]string{},
+			[]interface{}{},
 		},
 	}
 

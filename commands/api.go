@@ -246,13 +246,13 @@ func readFile(file string) (content []byte) {
 	return
 }
 
-func readArray(input string) []string {
+func readArray(input string) []interface{} {
 	input = strings.TrimRight(strings.TrimLeft(input, "["), "]")
-	values := []string{}
+	values := []interface{}{}
 	for _, v := range strings.Split(input, ",") {
 		v = strings.TrimSpace(v)
 		if v != "" {
-			values = append(values, v)
+			values = append(values, magicValue(v))
 		}
 	}
 	return values
