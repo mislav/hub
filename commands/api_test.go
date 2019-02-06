@@ -48,6 +48,18 @@ func TestMagicValue(t *testing.T) {
 			"[]",
 			[]interface{}{},
 		},
+		{
+			`[v1, v2, "v3,v4"]`,
+			[]interface{}{"v1", "v2", "v3,v4"},
+		},
+		{
+			`[v1, v2, v3"]`,
+			[]interface{}{"v1", "v2", `v3"`},
+		},
+		{
+			`[v1,    , v3"]`,
+			[]interface{}{"v1", "", `v3"`},
+		},
 	}
 
 	for _, test := range tests {
@@ -55,6 +67,7 @@ func TestMagicValue(t *testing.T) {
 		t.Run(test.input, func(t *testing.T) {
 			t.Parallel()
 			value := magicValue(test.input)
+			t.Log(value)
 			assert.Equal(t, test.expected, value)
 		})
 	}

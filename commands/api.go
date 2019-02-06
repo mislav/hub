@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"encoding/csv"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -248,12 +249,16 @@ func readFile(file string) (content []byte) {
 
 func readArray(input string) []interface{} {
 	input = strings.TrimRight(strings.TrimLeft(input, "["), "]")
-	values := []interface{}{}
-	for _, v := range strings.Split(input, ",") {
-		v = strings.TrimSpace(v)
-		if v != "" {
-			values = append(values, magicValue(v))
-		}
+	r := csv.NewReader(strings.NewReader(input))
+	r.TrimLeadingSpace = true
+	r.LazyQuotes = true
+	parts, err := r.Read()
+	if err != nil && err != io.EOF {
+		utils.Check(fmt.Errorf("invalid array value %q: %v", input, err))
+	}
+	values := make([]interface{}, len(parts))
+	for i, v := range parts {
+		values[i] = magicValue(v)
 	}
 	return values
 }
