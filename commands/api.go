@@ -16,20 +16,21 @@ import (
 
 var cmdApi = &Command{
 	Run:   apiCommand,
-	Usage: "api [-t] [-X <METHOD>] [--cache <TTL>] <ENDPOINT> [-F <KEY-VALUE>]",
+	Usage: "api [-it] [-X <METHOD>] [-H <HEADER>] [--cache <TTL>] <ENDPOINT> [-F <FIELD>|--input <FILE>]",
 	Long: `Low-level GitHub API request interface.
 
 ## Options:
 	-X, --method <METHOD>
 		The HTTP method to use for the request (default: "GET"). The method is
-		automatically set to "POST" if '--field' or '--raw-field' are used.
+		automatically set to "POST" if '--field', '--raw-field', or '--input' are
+		used.
 
 		Use '-XGET' to force serializing fields into the query string for the GET
 		request instead of JSON body of the POST request.
 
-	-F, --field <KEY-VALUE>
-		Send data in 'KEY=VALUE' format. The <VALUE> part has some magic handling;
-		see '--raw-field' for passing arbitrary strings.
+	-F, --field <KEY>=<VALUE>
+		Data to serialize with the request. <VALUE> has some magic handling; use
+		'--raw-field' for sending arbitrary string values.
 
 		If <VALUE> starts with "@", the rest of the value is interpreted as a
 		filename to read the value from. Use "@-" to read from standard input.
@@ -37,18 +38,26 @@ var cmdApi = &Command{
 		If <VALUE> is "true", "false", "null", or looks like a number, an
 		appropriate JSON type is used instead of a string.
 
+		It is not possible to serialize <VALUE> as a nested JSON array or hash.
+		Instead, construct the request payload externally and pass it via
+		'--input'.
+
 		Unless '-XGET' was used, all fields are sent serialized as JSON within the
 		request body. When <ENDPOINT> is "graphql", all fields other than "query"
 		are grouped under "variables". See
 		<https://graphql.org/learn/queries/#variables>
 
-	-f, --raw-field <KEY-VALUE>
+	-f, --raw-field <KEY>=<VALUE>
 		Same as '--field', except that it allows values starting with "@", literal
 		strings "true", "false", and "null", as well as strings that look like
 		numbers.
 
-	-H, --header <KEY-VALUE>
-		An HTTP request header in 'KEY: VALUE' format.
+	--input <FILE>
+		The filename to read the raw request body from. Use "-" to read from standard
+		input. Use this when you want to manually construct the request payload.
+
+	-H, --header <KEY>:<VALUE>
+		Set an HTTP request header.
 
 	-i, --include
 		Include HTTP response headers in the output.
@@ -107,7 +116,7 @@ func apiCommand(cmd *Command, args *Args) {
 	method := "GET"
 	if args.Flag.HasReceived("--method") {
 		method = args.Flag.Value("--method")
-	} else if args.Flag.HasReceived("--field") || args.Flag.HasReceived("--raw-field") {
+	} else if args.Flag.HasReceived("--field") || args.Flag.HasReceived("--raw-field") || args.Flag.HasReceived("--input") {
 		method = "POST"
 	}
 	cacheTTL := args.Flag.Int("--cache")
@@ -174,8 +183,23 @@ func apiCommand(cmd *Command, args *Args) {
 		path = strings.Replace(path, "{repo}", repo, 1)
 	}
 
+	var body interface{}
+	if args.Flag.HasReceived("--input") {
+		fn := args.Flag.Value("--input")
+		if fn == "-" {
+			body = os.Stdin
+		} else {
+			fi, err := os.Open(fn)
+			utils.Check(err)
+			body = fi
+			defer fi.Close()
+		}
+	} else {
+		body = params
+	}
+
 	gh := github.NewClient(host)
-	response, err := gh.GenericAPIRequest(method, path, params, headers, cacheTTL)
+	response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
 	utils.Check(err)
 	defer response.Body.Close()
 
