@@ -274,3 +274,28 @@ Feature: hub create
       < Location: http://disney.com
       {"full_name":"mislav/dotfiles"}\n
       """
+
+  Scenario: Create Enterprise repo
+    Given I am "nsartor" on git.my.org with OAuth token "FITOKEN"
+    Given the GitHub API server:
+      """
+      post('/api/v3/user/repos', :host_name => 'git.my.org') {
+        assert :private => false
+        status 201
+        json :full_name => 'nsartor/dotfiles'
+      }
+      """
+    And $GITHUB_HOST is "git.my.org"
+    When I successfully run `hub create`
+    Then the url for "origin" should be "git@git.my.org:nsartor/dotfiles.git"
+    And the output should contain exactly "https://git.my.org/nsartor/dotfiles\n"
+
+  Scenario: Invalid GITHUB_HOST
+    Given I am "nsartor" on {} with OAuth token "FITOKEN"
+    And $GITHUB_HOST is "{}"
+    When I run `hub create`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      invalid hostname: "{}"\n
+      """

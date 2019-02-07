@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -39,6 +40,13 @@ type Config struct {
 func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	token := c.DetectToken()
 	tokenFromEnv := token != ""
+
+	if host != GitHubHost {
+		if _, e := url.Parse("https://" + host); e != nil {
+			err = fmt.Errorf("invalid hostname: %q", host)
+			return
+		}
+	}
 
 	h = c.Find(host)
 	if h != nil {

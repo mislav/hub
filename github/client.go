@@ -992,8 +992,10 @@ func (client *Client) apiClient() *simpleClient {
 }
 
 func (client *Client) absolute(host string) *url.URL {
-	u, _ := url.Parse("https://" + host + "/")
-	if client.Host != nil && client.Host.Protocol != "" {
+	u, err := url.Parse("https://" + host + "/")
+	if err != nil {
+		panic(err)
+	} else if client.Host != nil && client.Host.Protocol != "" {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
