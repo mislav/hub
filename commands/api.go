@@ -22,7 +22,8 @@ var cmdApi = &Command{
 ## Options:
 	-X, --method <METHOD>
 		The HTTP method to use for the request (default: "GET"). The method is
-		automatically set to "POST" if '--field' or '--raw-field' are used.
+		automatically set to "POST" if '--field', '--raw-field', or '--input' are
+		used.
 
 		Use '-XGET' to force serializing fields into the query string for the GET
 		request instead of JSON body of the POST request.
@@ -46,6 +47,10 @@ var cmdApi = &Command{
 		Same as '--field', except that it allows values starting with "@", literal
 		strings "true", "false", and "null", as well as strings that look like
 		numbers.
+
+	--input <FILE>
+		The filename to read the raw request body from. Use "-" to read from standard
+		input. Use this when you want to manually construct the request payload.
 
 	-H, --header <KEY-VALUE>
 		An HTTP request header in 'KEY: VALUE' format.
@@ -107,7 +112,7 @@ func apiCommand(cmd *Command, args *Args) {
 	method := "GET"
 	if args.Flag.HasReceived("--method") {
 		method = args.Flag.Value("--method")
-	} else if args.Flag.HasReceived("--field") || args.Flag.HasReceived("--raw-field") {
+	} else if args.Flag.HasReceived("--field") || args.Flag.HasReceived("--raw-field") || args.Flag.HasReceived("--input") {
 		method = "POST"
 	}
 	cacheTTL := args.Flag.Int("--cache")
@@ -174,8 +179,23 @@ func apiCommand(cmd *Command, args *Args) {
 		path = strings.Replace(path, "{repo}", repo, 1)
 	}
 
+	var body interface{}
+	if args.Flag.HasReceived("--input") {
+		fn := args.Flag.Value("--input")
+		if fn == "-" {
+			body = os.Stdin
+		} else {
+			fi, err := os.Open(fn)
+			utils.Check(err)
+			body = fi
+			defer fi.Close()
+		}
+	} else {
+		body = params
+	}
+
 	gh := github.NewClient(host)
-	response, err := gh.GenericAPIRequest(method, path, params, headers, cacheTTL)
+	response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
 	utils.Check(err)
 	defer response.Body.Close()
 

@@ -812,7 +812,7 @@ func (client *Client) FetchMilestones(project *Project) (milestones []Milestone,
 	return
 }
 
-func (client *Client) GenericAPIRequest(method, path string, params map[string]interface{}, headers map[string]string, ttl int) (*simpleResponse, error) {
+func (client *Client) GenericAPIRequest(method, path string, data interface{}, headers map[string]string, ttl int) (*simpleResponse, error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return nil, err
@@ -820,33 +820,19 @@ func (client *Client) GenericAPIRequest(method, path string, params map[string]i
 	api.CacheTTL = ttl
 
 	var body io.Reader
-	if len(params) > 0 {
+	switch d := data.(type) {
+	case map[string]interface{}:
 		if method == "GET" {
-			query := url.Values{}
-			for key, value := range params {
-				switch v := value.(type) {
-				case string:
-					query.Add(key, v)
-				case nil:
-					query.Add(key, "")
-				case int:
-					query.Add(key, fmt.Sprintf("%d", v))
-				case bool:
-					query.Add(key, fmt.Sprintf("%v", v))
-				}
-			}
-			sep := "?"
-			if strings.Contains(path, sep) {
-				sep = "&"
-			}
-			path += sep + query.Encode()
-		} else {
-			json, err := json.Marshal(params)
+			path = addQuery(path, d)
+		} else if len(d) > 0 {
+			json, err := json.Marshal(d)
 			if err != nil {
 				return nil, err
 			}
 			body = bytes.NewBuffer(json)
 		}
+	case io.Reader:
+		body = d
 	}
 
 	return api.performRequest(method, path, body, func(req *http.Request) {
@@ -1110,4 +1096,30 @@ func perPage(limit, max int) int {
 		}
 	}
 	return max
+}
+
+func addQuery(path string, params map[string]interface{}) string {
+	if len(params) == 0 {
+		return path
+	}
+
+	query := url.Values{}
+	for key, value := range params {
+		switch v := value.(type) {
+		case string:
+			query.Add(key, v)
+		case nil:
+			query.Add(key, "")
+		case int:
+			query.Add(key, fmt.Sprintf("%d", v))
+		case bool:
+			query.Add(key, fmt.Sprintf("%v", v))
+		}
+	}
+
+	sep := "?"
+	if strings.Contains(path, sep) {
+		sep = "&"
+	}
+	return path + sep + query.Encode()
 }

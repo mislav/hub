@@ -193,6 +193,40 @@ Feature: hub api
       .query	query {\n  repository\n}\n\n
       """
 
+  Scenario: POST body from file
+    Given the GitHub API server:
+      """
+      post('/create') {
+        params[:obj].inspect
+      }
+      """
+    Given a file named "payload.json" with:
+      """
+      {"obj": ["one", 2, null]}
+      """
+    When I successfully run `hub api create --input payload.json`
+    Then the output should contain exactly:
+      """
+      ["one", 2, nil]
+      """
+
+  Scenario: POST body from stdin
+    Given the GitHub API server:
+      """
+      post('/create') {
+        params[:obj].inspect
+      }
+      """
+    When I run `hub api create --input -` interactively
+    And I pass in:
+      """
+      {"obj": {"name": "Ein", "datadog": true}}
+      """
+    Then the output should contain exactly:
+      """
+      {"name"=>"Ein", "datadog"=>true}
+      """
+
   Scenario: Pass extra GraphQL variables
     Given the GitHub API server:
       """
