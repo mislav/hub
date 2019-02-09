@@ -128,7 +128,13 @@ func create(command *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	originName := "origin"
+        var originName string
+        if flagOriginRemoteName := args.Flag.Value("--remote-name"); flagOriginRemoteName != "" {
+                originName = flagOriginRemoteName
+        } else {
+                originName = "origin"
+        }
+
 	if originRemote, err := localRepo.RemoteByName(originName); err == nil {
 		originProject, err := originRemote.Project()
 		if err != nil || !originProject.SameAs(project) {
