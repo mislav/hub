@@ -309,13 +309,32 @@ Feature: hub api
       .count	2\n
       """
 
-  Scenario: Avoid caching unsucessful response
+  Scenario: Cache client error response
     Given the GitHub API server:
       """
       count = 0
       get('/count') {
         count += 1
-        status 400 if count == 1
+        status 404 if count == 1
+        json :count => count
+      }
+      """
+    When I run `hub api -t count --cache 5`
+    And I run `hub api -t count --cache 5`
+    Then the output should contain exactly:
+      """
+      .count	1
+      .count	1\n
+      """
+    And the exit status should be 22
+
+  Scenario: Avoid caching server error response
+    Given the GitHub API server:
+      """
+      count = 0
+      get('/count') {
+        count += 1
+        status 500 if count == 1
         json :count => count
       }
       """

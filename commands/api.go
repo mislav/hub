@@ -201,7 +201,6 @@ func apiCommand(cmd *Command, args *Args) {
 	gh := github.NewClient(host)
 	response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
 	utils.Check(err)
-	defer response.Body.Close()
 
 	args.NoForward()
 
@@ -226,6 +225,7 @@ func apiCommand(cmd *Command, args *Args) {
 	} else {
 		io.Copy(out, response.Body)
 	}
+	response.Body.Close()
 
 	if !success {
 		os.Exit(22)

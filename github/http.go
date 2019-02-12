@@ -327,7 +327,7 @@ func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Respo
 }
 
 func (c *simpleClient) cacheWrite(key string, res *http.Response) {
-	if c.CacheTTL > 0 && canCache(res.Request) && res.StatusCode < 300 && res.Body != nil {
+	if c.CacheTTL > 0 && canCache(res.Request) && res.StatusCode < 500 && res.StatusCode != 403 {
 		bodyCopy := &bytes.Buffer{}
 		bodyReplacement := readCloserCallback{
 			Reader: io.TeeReader(res.Body, bodyCopy),
