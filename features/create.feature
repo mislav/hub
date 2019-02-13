@@ -27,17 +27,18 @@ Feature: hub create
       """
     When I successfully run `hub create -p`
     Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
-  Scenario: Create repo with new remote name specified
+
+  Scenario: Alternate origin remote name
     Given the GitHub API server:
-    """
-    post('/user/repos') {
-      assert :private => false
-      status 201
-      json :full_name => 'mislav/dotfiles'
-    }
-    """
-    When I sucessfully run `hub create --remote-name=work`
+      """
+      post('/user/repos') {
+        status 201
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I successfully run `hub create --remote-name=work`
     Then the url for "work" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no "origin" remote
 
   Scenario: HTTPS is preferred
     Given the GitHub API server:

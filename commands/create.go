@@ -27,6 +27,9 @@ var cmdCreate = &Command{
 		A URL with more information about the repository. Use this, for example, if
 		your project has an external website.
 
+	--remote-name <REMOTE>
+		Set the name for the new git remote (default: "origin").
+
 	-o, --browse
 		Open the new repository in a web browser.
 
@@ -128,12 +131,10 @@ func create(command *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-        var originName string
-        if flagOriginRemoteName := args.Flag.Value("--remote-name"); flagOriginRemoteName != "" {
-                originName = flagOriginRemoteName
-        } else {
-                originName = "origin"
-        }
+	originName := args.Flag.Value("--remote-name")
+	if originName == "" {
+		originName = "origin"
+	}
 
 	if originRemote, err := localRepo.RemoteByName(originName); err == nil {
 		originProject, err := originRemote.Project()
