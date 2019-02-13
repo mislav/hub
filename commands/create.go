@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -71,12 +70,10 @@ func create(command *Command, args *Args) {
 		utils.Check(err)
 		newRepoName = github.SanitizeProjectName(dirName)
 	} else {
-		reg := regexp.MustCompile("^[^-]")
-		if !reg.MatchString(args.FirstParam()) {
-			err = fmt.Errorf("invalid argument: %s", args.FirstParam())
-			utils.Check(err)
-		}
 		newRepoName = args.FirstParam()
+		if newRepoName == "" {
+			utils.Check(command.UsageError(""))
+		}
 	}
 
 	config := github.CurrentConfig()
