@@ -88,9 +88,21 @@ a:link, a:hover, a:visited { color: blue }
 
 <dl>
 <dt>-v, --verbose</dt>
-<dd>Print detailed report of all status checks and their URLs.</dd>
+<dd><p>Print detailed report of all status checks and their URLs.</p></dd>
+<dt>-f, --format <var>FORMAT</var></dt>
+<dd><p>Pretty print all status checks using <var>FORMAT</var> (implies <code>--verbose</code>). See the
+&quot;PRETTY FORMATS&quot; section of git-log(1) for some additional details on how
+placeholders are used in format. The available placeholders for issues are:</p>
+
+<p>%U: the URL of this status check</p>
+
+<p>%S: check state (e.g. &quot;success&quot;, &quot;failure&quot;)</p>
+
+<p>%sC: set color to red, green, or yellow, depending on state</p>
+
+<p>%t: name of the status check</p></dd>
 <dt><var>COMMIT</var></dt>
-<dd>A commit SHA or branch name (default: &quot;HEAD&quot;).</dd>
+<dd><p>A commit SHA or branch name (default: &quot;HEAD&quot;).</p></dd>
 </dl>
 
 <p>Possible outputs and exit statuses:</p>
@@ -109,8 +121,8 @@ a:link, a:hover, a:visited { color: blue }
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.8.4</li>
-    <li class="tc">28 Jan 2019</li>
+    <li class="tl">hub version 2.9.0</li>
+    <li class="tc">13 Feb 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

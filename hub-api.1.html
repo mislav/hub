@@ -82,20 +82,21 @@ a:link, a:hover, a:visited { color: blue }
   
 <h2 id="synopsis">Synopsis</h2>
 
-<p><code>hub api</code> [-t] [-X <var>METHOD</var>] [--cache <var>TTL</var>] <var>ENDPOINT</var> [-F <var>KEY-VALUE</var>]</p>
+<p><code>hub api</code> [-it] [-X <var>METHOD</var>] [-H <var>HEADER</var>] [--cache <var>TTL</var>] <var>ENDPOINT</var> [-F <var>FIELD</var>|--input <var>FILE</var>]</p>
 
 <h2 id="options">Options</h2>
 
 <dl>
 <dt>-X, --method <var>METHOD</var></dt>
 <dd><p>The HTTP method to use for the request (default: &quot;GET&quot;). The method is
-automatically set to &quot;POST&quot; if <code>--field</code> or <code>--raw-field</code> are used.</p>
+automatically set to &quot;POST&quot; if <code>--field</code>, <code>--raw-field</code>, or <code>--input</code> are
+used.</p>
 
 <p>Use <code>-XGET</code> to force serializing fields into the query string for the GET
 request instead of JSON body of the POST request.</p></dd>
-<dt>-F, --field <var>KEY-VALUE</var></dt>
-<dd><p>Send data in <code>KEY=VALUE</code> format. The <var>VALUE</var> part has some magic handling;
-see <code>--raw-field</code> for passing arbitrary strings.</p>
+<dt>-F, --field <var>KEY</var>=<var>VALUE</var></dt>
+<dd><p>Data to serialize with the request. <var>VALUE</var> has some magic handling; use
+<code>--raw-field</code> for sending arbitrary string values.</p>
 
 <p>If <var>VALUE</var> starts with &quot;@&quot;, the rest of the value is interpreted as a
 filename to read the value from. Use &quot;@-&quot; to read from standard input.</p>
@@ -103,16 +104,23 @@ filename to read the value from. Use &quot;@-&quot; to read from standard input.
 <p>If <var>VALUE</var> is &quot;true&quot;, &quot;false&quot;, &quot;null&quot;, or looks like a number, an
 appropriate JSON type is used instead of a string.</p>
 
+<p>It is not possible to serialize <var>VALUE</var> as a nested JSON array or hash.
+Instead, construct the request payload externally and pass it via
+<code>--input</code>.</p>
+
 <p>Unless <code>-XGET</code> was used, all fields are sent serialized as JSON within the
 request body. When <var>ENDPOINT</var> is &quot;graphql&quot;, all fields other than &quot;query&quot;
 are grouped under &quot;variables&quot;. See
 <a href="https://graphql.org/learn/queries/#variables">https://graphql.org/learn/queries/#variables</a></p></dd>
-<dt>-f, --raw-field <var>KEY-VALUE</var></dt>
+<dt>-f, --raw-field <var>KEY</var>=<var>VALUE</var></dt>
 <dd><p>Same as <code>--field</code>, except that it allows values starting with &quot;@&quot;, literal
 strings &quot;true&quot;, &quot;false&quot;, and &quot;null&quot;, as well as strings that look like
 numbers.</p></dd>
-<dt>-H, --header <var>KEY-VALUE</var></dt>
-<dd><p>An HTTP request header in <code>KEY: VALUE</code> format.</p></dd>
+<dt>--input <var>FILE</var></dt>
+<dd><p>The filename to read the raw request body from. Use &quot;-&quot; to read from standard
+input. Use this when you want to manually construct the request payload.</p></dd>
+<dt>-H, --header <var>KEY</var>:<var>VALUE</var></dt>
+<dd><p>Set an HTTP request header.</p></dd>
 <dt>-i, --include</dt>
 <dd><p>Include HTTP response headers in the output.</p></dd>
 <dt>-t, --flat</dt>
@@ -158,8 +166,8 @@ $ hub api graphql -F query=@path/to/myquery.graphql
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.8.4</li>
-    <li class="tc">28 Jan 2019</li>
+    <li class="tl">hub version 2.9.0</li>
+    <li class="tc">13 Feb 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>
