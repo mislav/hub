@@ -95,7 +95,7 @@ func (p *ArgsParser) Parse(args []string) ([]string, error) {
 	for i = 0; i < len(args); i++ {
 		arg = args[i]
 
-		if p.HasTerminated || arg == "-" {
+		if p.HasTerminated || len(arg) == 0 || arg == "-" {
 		} else if arg == "--" {
 			if !p.HasTerminated {
 				p.HasTerminated = true

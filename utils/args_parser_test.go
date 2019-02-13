@@ -70,6 +70,14 @@ func TestArgsParser_UnknownFlag(t *testing.T) {
 	equal(t, true, p.Bool("--yes"))
 }
 
+func TestArgsParser_BlankArgs(t *testing.T) {
+	p := NewArgsParser()
+	rest, err := p.Parse([]string{"", ""})
+	equal(t, nil, err)
+	equal(t, []string{"", ""}, rest)
+	equal(t, []int{0, 1}, p.PositionalIndices)
+}
+
 func TestArgsParser_Values(t *testing.T) {
 	p := NewArgsParser()
 	p.RegisterValue("--origin", "-o")
