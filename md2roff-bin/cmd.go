@@ -65,6 +65,7 @@ func generateFromFile(mdFile string) error {
 		Flags: blackfriday.HTMLFlagsNone,
 	})
 	roff := &md2roff.RoffRenderer{
+		Manual:  flagManual,
 		Version: flagVersion,
 		Date:    flagDate,
 	}
