@@ -91,8 +91,9 @@ func TestArgsParser_Values(t *testing.T) {
 func TestArgsParser_Bool(t *testing.T) {
 	p := NewArgsParser()
 	p.RegisterBool("--noop")
+	p.RegisterBool("--color")
 	p.RegisterBool("--draft", "-d")
-	args := []string{"-d", "--draft=false"}
+	args := []string{"-d", "--draft=false", "--color=auto"}
 	rest, err := p.Parse(args)
 	equal(t, nil, err)
 	equal(t, []string{}, rest)
@@ -101,6 +102,8 @@ func TestArgsParser_Bool(t *testing.T) {
 	equal(t, false, p.HasReceived("-d"))
 	equal(t, false, p.HasReceived("--noop"))
 	equal(t, false, p.Bool("--noop"))
+	equal(t, true, p.HasReceived("--color"))
+	equal(t, "auto", p.Value("--color"))
 }
 
 func TestArgsParser_BoolValue(t *testing.T) {

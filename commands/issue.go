@@ -109,6 +109,10 @@ With no arguments, show a list of open issues.
 
 		%%: a literal %
 
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
+
 	-m, --message <MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the issue
 		title, and the rest is used as issue description in Markdown format.
@@ -173,6 +177,7 @@ hub-pr(1), hub(1)
 		-^, --sort-ascending
 		--include-pulls
 		-L, --limit N
+		--color
 `,
 	}
 
@@ -196,6 +201,7 @@ hub-pr(1), hub(1)
 		Run: showIssue,
 		KnownFlags: `
 		-f, --format FMT
+		--color
 `,
 	}
 
@@ -285,7 +291,7 @@ func listIssues(cmd *Command, args *Args) {
 			}
 		}
 
-		colorize := ui.IsTerminal(os.Stdout)
+		colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 		for _, issue := range issues {
 			ui.Print(formatIssue(issue, flagIssueFormat, colorize))
 		}
@@ -445,7 +451,7 @@ func showIssue(cmd *Command, args *Args) {
 
 	args.NoForward()
 
-	colorize := ui.IsTerminal(os.Stdout)
+	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	if args.Flag.HasReceived("--format") {
 		flagShowIssueFormat := args.Flag.Value("--format")
 		ui.Print(formatIssue(*issue, flagShowIssueFormat, colorize))
@@ -583,9 +589,19 @@ func listLabels(cmd *Command, args *Args) {
 	labels, err := gh.FetchLabels(project)
 	utils.Check(err)
 
-	flagLabelsColorize := args.Flag.Bool("--color")
+	flagLabelsColorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	for _, label := range labels {
 		ui.Print(formatLabel(label, flagLabelsColorize))
+	}
+}
+
+func colorizeOutput(colorSet bool, when string) bool {
+	if !colorSet || when == "auto" {
+		return ui.IsTerminal(os.Stdout)
+	} else if when == "never" {
+		return false
+	} else {
+		return true // "always"
 	}
 }
 

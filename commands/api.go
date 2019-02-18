@@ -66,6 +66,10 @@ var cmdApi = &Command{
 		Parse response JSON and output the data in a line-based key-value format
 		suitable for use in shell scripts.
 
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
+
 	--cache <TTL>
 		Cache successful responses to GET requests for <TTL> seconds.
 
@@ -205,7 +209,7 @@ func apiCommand(cmd *Command, args *Args) {
 	args.NoForward()
 
 	out := ui.Stdout
-	colorize := ui.IsTerminal(os.Stdout)
+	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	success := response.StatusCode < 300
 	parseJSON := args.Flag.Bool("--flat")
 

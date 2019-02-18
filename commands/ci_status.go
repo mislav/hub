@@ -33,6 +33,10 @@ var cmdCiStatus = &Command{
 
 		%t: name of the status check
 
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
+
 	<COMMIT>
 		A commit SHA or branch name (default: "HEAD").
 
@@ -122,7 +126,8 @@ func ciStatus(cmd *Command, args *Args) {
 
 		verbose := args.Flag.Bool("--verbose") || args.Flag.HasReceived("--format")
 		if verbose && len(response.Statuses) > 0 {
-			verboseFormat(response.Statuses, args.Flag.Value("--format"))
+			colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
+			ciVerboseFormat(response.Statuses, args.Flag.Value("--format"), colorize)
 		} else {
 			if state != "" {
 				ui.Println(state)
@@ -135,9 +140,7 @@ func ciStatus(cmd *Command, args *Args) {
 	}
 }
 
-func verboseFormat(statuses []github.CIStatus, formatString string) {
-	colorize := ui.IsTerminal(os.Stdout)
-
+func ciVerboseFormat(statuses []github.CIStatus, formatString string, colorize bool) {
 	contextWidth := 0
 	for _, status := range statuses {
 		if len(status.Context) > contextWidth {
