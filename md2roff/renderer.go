@@ -37,6 +37,7 @@ func escape(src []byte, re *regexp.Regexp) []byte {
 }
 
 type RoffRenderer struct {
+	Manual  string
 	Version string
 	Date    string
 	Title   string
@@ -171,10 +172,15 @@ func (r *RoffRenderer) renderHeading(buf io.Writer, node *blackfriday.Node) {
 			num,
 			escape([]byte(r.Date), headingEscape),
 			escape([]byte(r.Version), headingEscape),
-			escape(text, headingEscape),
+			escape([]byte(r.Manual), headingEscape),
 		)
 		io.WriteString(buf, ".nh\n")   // disable hyphenation
 		io.WriteString(buf, ".ad l\n") // disable justification
+		io.WriteString(buf, ".SH \"NAME\"\n")
+		fmt.Fprintf(buf, "%s \\- %s\n",
+			escape(name, roffEscape),
+			escape(text, roffEscape),
+		)
 	case 2:
 		fmt.Fprintf(buf, ".SH \"%s\"\n", strings.ToUpper(string(escape(text, headingEscape))))
 	case 3:
