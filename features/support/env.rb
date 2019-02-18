@@ -58,6 +58,8 @@ Before do
 
   # increase process exit timeout from the default of 3 seconds
   @aruba_timeout_seconds = 10
+  # don't be "helpful"
+  @aruba_keep_ansi = true
 end
 
 After do

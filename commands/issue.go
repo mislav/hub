@@ -385,7 +385,30 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 	}
 }
 
-func formatPullRequestPlaceholders(pr github.PullRequest) map[string]string {
+func formatPullRequestPlaceholders(pr github.PullRequest, colorize bool) map[string]string {
+	prState := pr.State
+	if prState == "open" && pr.Draft {
+		prState = "draft"
+	} else if !pr.MergedAt.IsZero() {
+		prState = "merged"
+	}
+
+	var stateColorSwitch string
+	var prColor int
+	if colorize {
+		switch prState {
+		case "draft":
+			prColor = 37
+		case "merged":
+			prColor = 35
+		case "closed":
+			prColor = 31
+		default:
+			prColor = 32
+		}
+		stateColorSwitch = fmt.Sprintf("\033[%dm", prColor)
+	}
+
 	base := pr.Base.Ref
 	head := pr.Head.Label
 	if pr.IsSameRepo() {
@@ -410,6 +433,8 @@ func formatPullRequestPlaceholders(pr github.PullRequest) map[string]string {
 	}
 
 	return map[string]string{
+		"pS": prState,
+		"pC": stateColorSwitch,
 		"B":  base,
 		"H":  head,
 		"sB": pr.Base.Sha,

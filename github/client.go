@@ -58,7 +58,7 @@ func (client *Client) FetchPullRequests(project *Project, filterParams map[strin
 	var res *simpleResponse
 
 	for path != "" {
-		res, err = api.Get(path)
+		res, err = api.GetFile(path, draftsType)
 		if err = checkStatus(200, "fetching pull requests", res, err); err != nil {
 			return
 		}
@@ -563,6 +563,7 @@ type Issue struct {
 
 	MergeCommitSha      string `json:"merge_commit_sha"`
 	MaintainerCanModify bool   `json:"maintainer_can_modify"`
+	Draft               bool   `json:"draft"`
 
 	Comments  int          `json:"comments"`
 	Labels    []IssueLabel `json:"labels"`
