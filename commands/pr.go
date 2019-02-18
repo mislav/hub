@@ -42,7 +42,7 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 	-f, --format <FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:
-		"%sC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
+		"%pC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
 		git-log(1) for some additional details on how placeholders are used in
 		format. The available placeholders are:
 
@@ -54,7 +54,11 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%S: state ("open" or "closed")
 
-		%sC: set color to red or green, depending on pull request state.
+		%pS: pull request state ("open", "draft", "merged", or "closed")
+
+		%sC: set color to red or green, depending on state
+
+		%pC: set color according to pull request state
 
 		%t: title
 
@@ -206,7 +210,7 @@ func listPulls(cmd *Command, args *Args) {
 	flagPullRequestLimit := args.Flag.Int("--limit")
 	flagPullRequestFormat := args.Flag.Value("--format")
 	if !args.Flag.HasReceived("--format") {
-		flagPullRequestFormat = "%sC%>(8)%i%Creset  %t%  l%n"
+		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t%  l%n"
 	}
 
 	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
@@ -253,7 +257,7 @@ func checkoutPr(command *Command, args *Args) {
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {
 	placeholders := formatIssuePlaceholders(github.Issue(pr), colorize)
-	for key, value := range formatPullRequestPlaceholders(pr) {
+	for key, value := range formatPullRequestPlaceholders(pr, colorize) {
 		placeholders[key] = value
 	}
 	return ui.Expand(format, placeholders, colorize)
