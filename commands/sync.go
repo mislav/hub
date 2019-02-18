@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -14,7 +13,7 @@ import (
 
 var cmdSync = &Command{
 	Run:   sync,
-	Usage: "sync",
+	Usage: "sync [--color]",
 	Long: `Fetch git objects from upstream and update local branches.
 
 - If the local branch is outdated, fast-forward it;
@@ -23,6 +22,11 @@ var cmdSync = &Command{
 
 If a local branch does not have any upstream configuration, but has a
 same-named branch on the remote, treat that as its upstream branch.
+
+## Options:
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
 
 ## See also:
 
@@ -71,7 +75,8 @@ func sync(cmd *Command, args *Args) {
 		lightRed,
 		resetColor string
 
-	if ui.IsTerminal(os.Stdout) {
+	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
+	if colorize {
 		green = "\033[32m"
 		lightGreen = "\033[32;1m"
 		red = "\033[31m"

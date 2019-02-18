@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -117,6 +116,10 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 		%%: a literal %
 
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
+
 	-o, --sort <KEY>
 		Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".
 
@@ -133,8 +136,9 @@ hub-issue(1), hub-pull-request(1), hub(1)
 	}
 
 	cmdCheckoutPr = &Command{
-		Key: "checkout",
-		Run: checkoutPr,
+		Key:        "checkout",
+		Run:        checkoutPr,
+		KnownFlags: "\n",
 	}
 
 	cmdListPulls = &Command{
@@ -210,7 +214,7 @@ func listPulls(cmd *Command, args *Args) {
 	})
 	utils.Check(err)
 
-	colorize := ui.IsTerminal(os.Stdout)
+	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	for _, pr := range pulls {
 		ui.Print(formatPullRequest(pr, flagPullRequestFormat, colorize))
 	}

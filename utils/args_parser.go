@@ -192,12 +192,12 @@ func NewArgsParser() *ArgsParser {
 
 func NewArgsParserWithUsage(usage string) *ArgsParser {
 	p := NewArgsParser()
-	f := `(-[a-zA-Z0-9@^]|--[a-z][a-z0-9-]+)(?:[ =]([a-zA-Z_<>:=-]+))?`
+	f := `(-[a-zA-Z0-9@^]|--[a-z][a-z0-9-]+)(?:\[?[ =]([a-zA-Z_<>:=-]+\]?))?`
 	re := regexp.MustCompile(fmt.Sprintf(`(?m)^\s*%s(?:,\s*%s)?$`, f, f))
 	for _, match := range re.FindAllStringSubmatch(usage, -1) {
 		n1 := match[1]
 		n2 := match[3]
-		hasValue := match[2] != "" || match[4] != ""
+		hasValue := !(match[2] == "" || strings.HasSuffix(match[2], "]")) || match[4] != ""
 		var aliases []string
 		if len(n1) == 2 && len(n2) > 2 {
 			aliases = []string{n1}

@@ -140,6 +140,10 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 		%%: a literal %
 
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
+
 	<TAG>
 		The git tag name for this release.
 
@@ -152,6 +156,7 @@ hub(1), git-tag(1)
 		-p, --exclude-prereleases
 		-L, --limit N
 		-f, --format FMT
+		--color
 `,
 	}
 
@@ -161,6 +166,7 @@ hub(1), git-tag(1)
 		KnownFlags: `
 		-d, --show-downloads
 		-f, --format FMT
+		--color
 `,
 	}
 
@@ -236,7 +242,7 @@ func listReleases(cmd *Command, args *Args) {
 		})
 		utils.Check(err)
 
-		colorize := ui.IsTerminal(os.Stdout)
+		colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 		for _, release := range releases {
 			flagReleaseFormat := "%T%n"
 			if args.Flag.HasReceived("--format") {
@@ -331,7 +337,7 @@ func showRelease(cmd *Command, args *Args) {
 
 		body := strings.TrimSpace(release.Body)
 
-		colorize := ui.IsTerminal(os.Stdout)
+		colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 		if flagShowReleaseFormat := args.Flag.Value("--format"); flagShowReleaseFormat != "" {
 			ui.Print(formatRelease(*release, flagShowReleaseFormat, colorize))
 			return
