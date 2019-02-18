@@ -68,6 +68,15 @@ On Arch Linux you can install `hub` from official repository:
 $ sudo pacman -S hub
 ```
 
+#### FreeBSD
+
+On FreeBSD you can install a prebuilt `hub` package with
+[pkg(8)](http://man.freebsd.org/pkg/8):
+
+```console
+# pkg install hub
+```
+
 #### Standalone
 
 `hub` can be easily installed as an executable. Download the latest
