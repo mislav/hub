@@ -77,6 +77,14 @@ On FreeBSD you can install a prebuilt `hub` package with
 # pkg install hub
 ```
 
+#### Debian
+
+On Debian (versions sid and buster) you can install `hub` from official repository:
+
+```sh
+# apt install hub
+```
+
 #### Standalone
 
 `hub` can be easily installed as an executable. Download the latest
