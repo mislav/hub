@@ -54,7 +54,8 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		Download the assets attached to release for the specified <TAG>.
 
 	* _delete_:
-		Delete the release and associated assets for the specified <TAG>.
+		Delete the release and associated assets for the specified <TAG>. Note that
+		this does **not** remove the git tag <TAG>.
 
 ## Options:
 	-L, --limit
