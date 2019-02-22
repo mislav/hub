@@ -3,6 +3,23 @@
 # executed in testing. It logs commands to "~/.history" so afterwards it can be
 # asserted that they ran.
 
+global_args=()
+while [ $# -gt 0 ]; do
+  case "$1" in
+    "--git-dir="* )
+      global_args+=("$1")
+      shift 1
+      ;;
+    -c | -C )
+      global_args+=("$1" "$2")
+      shift 2
+      ;;
+    * )
+      break
+      ;;
+  esac
+done
+
 command="$1"
 [ "$command" = "config" ] || echo git "$@" >> "$HOME"/.history
 
@@ -12,7 +29,22 @@ case "$command" in
     echo branch
     echo commit
     ;;
-  "clone" | "fetch" | "pull" | "push" )
+  clone )
+    numargs="${#@}"
+    url="${@:$numargs:1}"
+    dir="$(basename "${url%.git}")"
+    [ "${url/:/}" != "$url" ] || url="${@:$numargs-1:1}"
+    origin_name="origin"
+    [ "$2" != "-o" ] || origin_name="$3"
+    printf "Cloning into '%s'...\n" "$dir"
+    mkdir -p "$dir" 2>/dev/null && ( cd "$dir"
+      "$HUB_SYSTEM_GIT" init --quiet
+      "$HUB_SYSTEM_GIT" commit --quiet --allow-empty -m 'initial commit'
+      "$HUB_SYSTEM_GIT" remote add "$origin_name" "$url"
+    )
+    true
+    ;;
+  fetch | pull | push )
     # don't actually execute these commands
     exit
     ;;
@@ -21,9 +53,9 @@ case "$command" in
     if [ "$command $2 $3" = "remote add -f" ]; then
       subcommand=$2
       shift 3
-      exec "$HUB_SYSTEM_GIT" $command $subcommand "$@"
+      exec "$HUB_SYSTEM_GIT" "${global_args[@]}" $command $subcommand "$@"
     else
-      exec "$HUB_SYSTEM_GIT" "$@"
+      exec "$HUB_SYSTEM_GIT" "${global_args[@]}" "$@"
     fi
     ;;
   esac
