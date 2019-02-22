@@ -2,6 +2,7 @@
 # A wrapper for system git that prevents commands such as `clone` or `fetch` to be
 # executed in testing. It logs commands to "~/.history" so afterwards it can be
 # asserted that they ran.
+set -e
 
 command="$1"
 [ "$command" = "config" ] || echo git "$@" >> "$HOME"/.history
@@ -12,7 +13,25 @@ case "$command" in
     echo branch
     echo commit
     ;;
-  "clone" | "fetch" | "pull" | "push" )
+  "fetch" )
+    refspec="$3"
+    dest="${refspec#*:}"
+    head="$(git rev-parse --verify -q HEAD || true)"
+    if [ -z "$head" ]; then
+      git commit --allow-empty -m "auto-commit"
+      head="$(git rev-parse --verify -q HEAD)"
+    fi
+    if [[ $dest == refs/remotes/* ]]; then
+      mkdir -p ".git/${dest%/*}"
+      cat >".git/${dest}" <<<"$head"
+      cat >".git/FETCH_HEAD" <<<"$head"
+    else
+      "$HUB_SYSTEM_GIT" checkout -b "${dest#refs/heads/}" HEAD
+      cat >".git/FETCH_HEAD" <<<"$head"
+    fi
+    exit
+    ;;
+  "clone" | "pull" | "push" )
     # don't actually execute these commands
     exit
     ;;

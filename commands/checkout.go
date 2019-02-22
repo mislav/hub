@@ -101,7 +101,9 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 			newArgs = append(newArgs, newBranchName)
 			args.After("git", "merge", "--ff-only", fmt.Sprintf("refs/remotes/%s", remoteBranch))
 		} else {
-			newArgs = append(newArgs, "-b", newBranchName, "--track", remoteBranch)
+			newArgs = append(newArgs, "-b", newBranchName, "--no-track", remoteBranch)
+			args.After("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), headRemote.Name)
+			args.After("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), "refs/heads/"+pullRequest.Head.Ref)
 		}
 		args.Before("git", "fetch", headRemote.Name, refSpec)
 	} else {
@@ -128,8 +130,8 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 			remote = project.GitURL("", "", true)
 			mergeRef = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
 		}
-		args.Before("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
-		args.Before("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
+		args.After("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
+		args.After("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
 	}
 	return
 }
