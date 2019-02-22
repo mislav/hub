@@ -58,6 +58,7 @@ __hub_setup_zsh_fns () {
       - set1 \
         '-m[message]' \
         '-F[file]' \
+        '--no-edit[use first commit message for pull request title/description]' \
         '-a[user]' \
         '-M[milestone]' \
         '-l[labels]' \
