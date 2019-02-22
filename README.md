@@ -62,7 +62,7 @@ hub version 2.2.9
 
 #### Arch Linux
 
-On Arch Linux you can install `hub` from official repository:
+On Arch Linux you can install `hub` from the official repository:
 
 ```sh
 $ sudo pacman -S hub
@@ -75,6 +75,14 @@ On FreeBSD you can install a prebuilt `hub` package with
 
 ```console
 # pkg install hub
+```
+
+#### Debian
+
+On Debian (versions sid and buster) you can install `hub` from the official repository:
+
+```sh
+$ sudo apt install hub
 ```
 
 #### Standalone
