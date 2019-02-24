@@ -14,6 +14,7 @@ case "$command" in
     echo commit
     ;;
   "fetch" )
+    [[ $2 != -* && $3 == *:* && $3 != -* ]] || exit 0
     refspec="$3"
     dest="${refspec#*:}"
     head="$(git rev-parse --verify -q HEAD || true)"
@@ -29,11 +30,11 @@ case "$command" in
       "$HUB_SYSTEM_GIT" checkout -b "${dest#refs/heads/}" HEAD
       cat >".git/FETCH_HEAD" <<<"$head"
     fi
-    exit
+    exit 0
     ;;
   "clone" | "pull" | "push" )
     # don't actually execute these commands
-    exit
+    exit 0
     ;;
   * )
     # note: `submodule add` also initiates a clone, but we work around it
