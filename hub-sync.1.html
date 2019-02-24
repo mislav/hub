@@ -7,7 +7,7 @@ body {
   margin: 0;
   font: 15px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
 }
-pre, code, var, dt, .man-head {
+pre, code, var, dt, .man-head, [id="synopsis"] + p {
   font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
 }
 header, footer {
@@ -56,9 +56,13 @@ dt {
 dd {
   margin-bottom: 1em;
 }
-pre {
+pre, [id="synopsis"] + p {
   background: #eee;
   padding: 1em 1.5em;
+}
+[id="synopsis"] + p {
+  white-space: nowrap;
+  overflow-x: auto;
 }
 pre code {
   color: inherit;
@@ -82,7 +86,7 @@ a:link, a:hover, a:visited { color: blue }
   
 <h2 id="synopsis">Synopsis</h2>
 
-<p><code>hub sync</code></p>
+<p><code>hub sync</code> [--color]</p>
 
 <ul>
 <li>If the local branch is outdated, fast-forward it;</li>
@@ -93,6 +97,14 @@ a:link, a:hover, a:visited { color: blue }
 <p>If a local branch does not have any upstream configuration, but has a
 same-named branch on the remote, treat that as its upstream branch.</p>
 
+<h2 id="options">Options</h2>
+
+<dl>
+<dt>--color[=<var>WHEN</var>]</dt>
+<dd>Enable colored output even if stdout is not a terminal. <var>WHEN</var> can be one
+of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or &quot;auto&quot; (default).</dd>
+</dl>
+
 <h2 id="see-also">See also</h2>
 
 <p><a href="./hub.1.html">hub(1)</a>, git-fetch(1)</p>
@@ -101,8 +113,8 @@ same-named branch on the remote, treat that as its upstream branch.</p>
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.9.0</li>
-    <li class="tc">13 Feb 2019</li>
+    <li class="tl">hub version 2.10.0</li>
+    <li class="tc">24 Feb 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

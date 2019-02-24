@@ -7,7 +7,7 @@ body {
   margin: 0;
   font: 15px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
 }
-pre, code, var, dt, .man-head {
+pre, code, var, dt, .man-head, [id="synopsis"] + p {
   font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
 }
 header, footer {
@@ -56,9 +56,13 @@ dt {
 dd {
   margin-bottom: 1em;
 }
-pre {
+pre, [id="synopsis"] + p {
   background: #eee;
   padding: 1em 1.5em;
+}
+[id="synopsis"] + p {
+  white-space: nowrap;
+  overflow-x: auto;
 }
 pre code {
   color: inherit;
@@ -101,6 +105,9 @@ placeholders are used in format. The available placeholders for issues are:</p>
 <p>%sC: set color to red, green, or yellow, depending on state</p>
 
 <p>%t: name of the status check</p></dd>
+<dt>--color[=<var>WHEN</var>]</dt>
+<dd><p>Enable colored output even if stdout is not a terminal. <var>WHEN</var> can be one
+of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or &quot;auto&quot; (default).</p></dd>
 <dt><var>COMMIT</var></dt>
 <dd><p>A commit SHA or branch name (default: &quot;HEAD&quot;).</p></dd>
 </dl>
@@ -121,8 +128,8 @@ placeholders are used in format. The available placeholders for issues are:</p>
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.9.0</li>
-    <li class="tc">13 Feb 2019</li>
+    <li class="tl">hub version 2.10.0</li>
+    <li class="tc">24 Feb 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>
