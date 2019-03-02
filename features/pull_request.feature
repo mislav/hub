@@ -660,6 +660,24 @@ Feature: hub pull-request
     And I successfully run `hub pull-request -f -m message`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Error when trying to create a pull request from an unpushed branch
+    Given I am on the "feature" branch
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/coral') {
+        status 200
+        json :name => 'coral', :owner => { :login => 'mislav' }
+      }
+      """
+    When I make 1 commit
+    And I run `hub pull-request`
+    Then the stderr should contain exactly:
+      """
+      Aborted: Branch not yet pushed
+      Make sure that mislav:feature exists before creating a pull request\n
+      """
+    And the exit status should be 1
+
   Scenario: Pull request fails on the server
     Given I am on the "feature" branch with upstream "origin/feature"
     Given the GitHub API server:
