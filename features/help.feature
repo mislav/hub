@@ -5,7 +5,7 @@ Feature: hub help
       """
       These GitHub commands are provided by hub:
 
-         browse         Open a GitHub page in the default browser
+         api            Low-level GitHub API request interface
       """
     And the output should contain "usage: git "
 
