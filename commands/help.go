@@ -195,6 +195,7 @@ func customCommands() []string {
 var helpText = `
 These GitHub commands are provided by hub:
 
+   api            Low-level GitHub API request interface
    browse         Open a GitHub page in the default browser
    ci-status      Show the status of GitHub checks for a commit
    compare        Open a compare page on GitHub
