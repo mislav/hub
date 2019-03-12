@@ -1,6 +1,6 @@
 # Installation instructions
 
-## Homebrew on macOS
+## Homebrew
 
 If you're using Homebrew, just run `brew install hub` and you should be all set
 with auto-completion. The extra steps to install hub completion scripts outlined
