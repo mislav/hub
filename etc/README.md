@@ -1,8 +1,13 @@
 # Installation instructions
 
-## bash + Homebrew
+## Homebrew on macOS
 
-If you're using Homebrew, just run `brew install hub` and you should be all set with auto-completion.
+If you're using Homebrew, just run `brew install hub` and you should be all set
+with auto-completion. The extra steps to install hub completion scripts outlined
+below are *not needed*.
+
+For bash/zsh, a one-time setup might be needed to [enable completion for all
+Homebrew programs](https://docs.brew.sh/Shell-Completion).
 
 ## bash
 
