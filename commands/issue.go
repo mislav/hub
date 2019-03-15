@@ -20,6 +20,7 @@ var (
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue comment [-m <MESSAGE>|-F <FILE>] [--edit]
 issue labels [--color]
 `,
 		Long: `Manage GitHub Issues for the current repository.
@@ -36,6 +37,9 @@ With no arguments, show a list of open issues.
 
 	* _labels_:
 		List the labels available in this repository.
+
+	* _comment_:
+    Adds a comment to the issue specified by <NUMBER>.
 
 ## Options:
 	-a, --assignee <ASSIGNEE>
@@ -213,12 +217,23 @@ hub-pr(1), hub(1)
 		--color
 `,
 	}
+
+	cmdAddComment = &Command{
+		Key: "comment",
+		Run: addComment,
+		KnownFlags: `
+    -m, --message MSG
+    -f, --file
+    -e, --edit
+    `,
+	}
 )
 
 func init() {
 	cmdIssue.Use(cmdShowIssue)
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
+	cmdIssue.Use(cmdAddComment)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -601,6 +616,58 @@ text is the title and the rest is the description.`, project))
 	}
 
 	messageBuilder.Cleanup()
+}
+
+func addComment(cmd *Command, args *Args) {
+	issueNumber := ""
+	if args.ParamsSize() > 0 {
+		issueNumber = args.GetParam(0)
+	}
+	if issueNumber == "" {
+		utils.Check(cmd.UsageError(""))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	commentBuilder := &github.CommentBuilder{
+		Filename: "ISSUE_EDITMSG",
+	}
+
+	flagIssueEdit := args.Flag.Bool("--edit")
+	flagIssueMessage := args.Flag.AllValues("--message")
+	if len(flagIssueMessage) > 0 {
+		commentBuilder.Message = strings.Join(flagIssueMessage, "\n\n")
+		commentBuilder.Edit = flagIssueEdit
+	} else if args.Flag.HasReceived("--file") {
+		commentBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
+		utils.Check(err)
+		commentBuilder.Edit = flagIssueEdit
+	} else {
+		commentBuilder.Edit = true
+	}
+
+	message, err := commentBuilder.Extract()
+	utils.Check(err)
+
+	args.NoForward()
+	if args.Noop {
+		ui.Printf("Would add a comment, to the issue %s: %s", issueNumber, message)
+	} else {
+		params := map[string]interface{}{
+			"body": message,
+		}
+
+		_, err = gh.CommentIssue(project, issueNumber, params)
+		utils.Check(err)
+	}
+
+	commentBuilder.Cleanup()
 }
 
 func listLabels(cmd *Command, args *Args) {
