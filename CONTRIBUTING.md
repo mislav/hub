@@ -1,6 +1,8 @@
 Contributing to hub
 ===================
 
+This is a contribution by me
+
 Contributions to this project are [released](https://help.github.com/articles/github-terms-of-service/#6-contributions-under-repository-license) to the public under the [project's open source license](LICENSE).
 
 This project adheres to a [Code of Conduct][code-of-conduct]. By participating, you are expected to uphold this code.
