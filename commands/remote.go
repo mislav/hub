@@ -56,9 +56,16 @@ func remote(command *Command, args *Args) {
 
 func transformRemoteArgs(args *Args) {
 	ownerWithName := args.LastParam()
-	owner, name := parseRepoNameOwner(ownerWithName)
-	if owner == "" {
+
+	re := regexp.MustCompile(fmt.Sprintf(`^%s(/%s)?$`, OwnerRe, NameRe))
+	if !re.MatchString(ownerWithName) {
 		return
+	}
+	owner := ownerWithName
+	name := ""
+	if strings.Contains(ownerWithName, "/") {
+		parts := strings.SplitN(ownerWithName, "/", 2)
+		owner, name = parts[0], parts[1]
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -140,14 +147,4 @@ func parseRemotePrivateFlag(args *Args) bool {
 	}
 
 	return false
-}
-
-func parseRepoNameOwner(nameWithOwner string) (owner, name string) {
-	nameWithOwnerRe := fmt.Sprintf("^(%s)(?:\\/(%s))?$", OwnerRe, NameRe)
-	nameWithOwnerRegexp := regexp.MustCompile(nameWithOwnerRe)
-	if nameWithOwnerRegexp.MatchString(nameWithOwner) {
-		result := nameWithOwnerRegexp.FindStringSubmatch(nameWithOwner)
-		owner, name = result[1], result[2]
-	}
-	return
 }

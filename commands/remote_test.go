@@ -10,16 +10,6 @@ import (
 	"github.com/github/hub/github"
 )
 
-func TestParseRepoNameOwner(t *testing.T) {
-	owner, repo := parseRepoNameOwner("jingweno")
-	assert.Equal(t, "jingweno", owner)
-	assert.Equal(t, "", repo)
-
-	owner, repo = parseRepoNameOwner("jingweno/gh")
-	assert.Equal(t, "jingweno", owner)
-	assert.Equal(t, "gh", repo)
-}
-
 func TestTransformRemoteArgs(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
