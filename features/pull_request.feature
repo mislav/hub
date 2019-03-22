@@ -1148,6 +1148,27 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
     And "git push --set-upstream origin HEAD:topic" should not be run
 
+  Scenario: Triangular workflow with --push
+    Given the "upstream" remote has url "git://github.com/github/coral.git"
+    And I am on the "master" branch pushed to "upstream/master"
+    # TODO: head should be "mislav:topic"
+    Given the GitHub API server:
+      """
+      post('/repos/github/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'github:topic',
+               :title => 'hereyougo'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit with message "Fork commit"
+    When I successfully run `hub pull-request -p -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+    # TODO: the push should be to the "origin" remote instead
+    And "git push --set-upstream upstream HEAD:topic" should be run
+
   Scenario: Automatically retry when --push resulted in 422
     Given The default aruba timeout is 7 seconds
     And the text editor adds:
