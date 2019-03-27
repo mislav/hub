@@ -29,6 +29,7 @@ const patchMediaType = "application/vnd.github.v3.patch;charset=utf-8"
 const textMediaType = "text/plain;charset=utf-8"
 const checksType = "application/vnd.github.antiope-preview+json;charset=utf-8"
 const draftsType = "application/vnd.github.shadow-cat-preview+json;charset=utf-8"
+const cacheVersion = 2
 
 var inspectHeaders = []string{
 	"Authorization",
@@ -339,7 +340,7 @@ func (c *simpleClient) cacheWrite(key string, res *http.Response) {
 				if err != nil {
 					return
 				}
-				cf, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE, 0600)
+				cf, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 				if err != nil {
 					return
 				}
@@ -378,6 +379,7 @@ func cacheKey(req *http.Request) string {
 		host = req.URL.Host
 	}
 	hash := md5.New()
+	fmt.Fprintf(hash, "%d:", cacheVersion)
 	io.WriteString(hash, req.Header.Get("Accept"))
 	io.WriteString(hash, req.Header.Get("Authorization"))
 	queryParts := strings.Split(req.URL.RawQuery, "&")
