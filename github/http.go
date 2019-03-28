@@ -409,6 +409,7 @@ func (c *simpleClient) jsonRequest(method, path string, body interface{}, config
 
 	return c.performRequest(method, path, buf, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		req.Header.Set("Accept", "application/vnd.github.shadow-cat-preview")
 		if configure != nil {
 			configure(req)
 		}
