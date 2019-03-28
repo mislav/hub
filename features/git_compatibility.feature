@@ -31,3 +31,8 @@ Feature: git-hub compatibility
   Scenario: Doesn't sabotage --exec-path
     When I successfully run `hub --exec-path`
     Then the output should not contain "These GitHub commands"
+
+  Scenario: Shows help with --git-dir
+    When I run `hub --git-dir=.git`
+    Then the exit status should be 1
+    And the output should contain "usage: git "
