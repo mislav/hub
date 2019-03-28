@@ -313,16 +313,13 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 	var labelStrings []string
 	var rawLabels []string
 	for _, label := range issue.Labels {
-		if !colorize {
-			labelStrings = append(labelStrings, fmt.Sprintf(" %s ", label.Name))
-			continue
-		}
-		color, err := utils.NewColor(label.Color)
-		if err != nil {
+		if colorize {
+			color, err := utils.NewColor(label.Color)
 			utils.Check(err)
+			labelStrings = append(labelStrings, colorizeLabel(label, color))
+		} else {
+			labelStrings = append(labelStrings, fmt.Sprintf(" %s ", label.Name))
 		}
-
-		labelStrings = append(labelStrings, colorizeLabel(label, color))
 		rawLabels = append(rawLabels, label.Name)
 	}
 

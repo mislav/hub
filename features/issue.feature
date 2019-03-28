@@ -247,6 +247,38 @@ Feature: hub issue
       13,mislav\n
       """
 
+  Scenario: Custom format with no-color labels
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "morganwahl" },
+          :labels => [
+            { :name => 'Has Migration',
+              :color => 'cfcfcf' },
+            { :name => 'Maintenance Window',
+              :color => '888888' },
+          ]
+        },
+        { :number => 201,
+          :title => "No labels",
+          :state => "open",
+          :user => { :login => "octocat" },
+          :labels => []
+        },
+      ]
+    }
+    """
+    When I successfully run `hub issue -f "%I: %L%n" --color=never`
+    Then the output should contain exactly:
+      """
+      102: Has Migration, Maintenance Window
+      201: \n
+      """
+
   Scenario: List all assignees
     Given the GitHub API server:
     """
