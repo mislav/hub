@@ -119,7 +119,7 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 		return
 	}
 
-	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/pulls", project.Owner, project.Name), params)
+	res, err := api.PostJSONPreview(fmt.Sprintf("repos/%s/%s/pulls", project.Owner, project.Name), params, draftsType)
 	if err = checkStatus(201, "creating pull request", res, err); err != nil {
 		if res != nil && res.StatusCode == 404 {
 			projectUrl := strings.SplitN(project.WebURL("", "", ""), "://", 2)[1]

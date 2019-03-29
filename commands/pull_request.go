@@ -16,7 +16,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-focp] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-focpd] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE> [--edit]
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
@@ -86,6 +86,9 @@ pull-request -i <ISSUE>
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request. Labels will be
 		created if they do not already exist.
+	
+	-d, --draft
+		Create the pull request as a draft.
 
 ## Examples:
 		$ hub pull-request
@@ -315,8 +318,9 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		params := map[string]interface{}{
-			"base": base,
-			"head": fullHead,
+			"base":  base,
+			"head":  fullHead,
+			"draft": args.Flag.Bool("--draft"),
 		}
 
 		if title != "" {

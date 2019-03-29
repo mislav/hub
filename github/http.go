@@ -433,6 +433,12 @@ func (c *simpleClient) PostJSON(path string, payload interface{}) (*simpleRespon
 	return c.jsonRequest("POST", path, payload, nil)
 }
 
+func (c *simpleClient) PostJSONPreview(path string, payload interface{}, mimeType string) (*simpleResponse, error) {
+	return c.jsonRequest("POST", path, payload, func(req *http.Request) {
+		req.Header.Set("Accept", mimeType)
+	})
+}
+
 func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleResponse, error) {
 	return c.jsonRequest("PATCH", path, payload, nil)
 }
