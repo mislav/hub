@@ -318,9 +318,12 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		params := map[string]interface{}{
-			"base":  base,
-			"head":  fullHead,
-			"draft": args.Flag.Bool("--draft"),
+			"base": base,
+			"head": fullHead,
+		}
+
+		if args.Flag.Bool("--draft") {
+			params["draft"] = true
 		}
 
 		if title != "" {

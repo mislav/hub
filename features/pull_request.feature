@@ -14,7 +14,7 @@ Feature: hub pull-request
                :body => nil,
                :base => 'master',
                :head => 'mislav:master',
-               :draft => false,
+               :draft => nil,
                :issue => nil
         status 201
         json :html_url => "the://url"
