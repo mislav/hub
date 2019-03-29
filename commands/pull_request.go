@@ -16,7 +16,7 @@ import (
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-focp] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>] [--draft]
+pull-request [-focpd] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE> [--edit]
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
@@ -312,19 +312,16 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 	}
 
-	draft := args.Flag.Bool("--draft")
-
 	var pullRequestURL string
 	if args.Noop {
 		args.Before(fmt.Sprintf("Would request a pull request to %s from %s", fullBase, fullHead), "")
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		params := map[string]interface{}{
-			"base": base,
-			"head": fullHead,
+			"base":  base,
+			"head":  fullHead,
+			"draft": args.Flag.Bool("--draft"),
 		}
-
-		params["draft"] = draft
 
 		if title != "" {
 			params["title"] = title

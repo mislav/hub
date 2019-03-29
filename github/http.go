@@ -409,7 +409,6 @@ func (c *simpleClient) jsonRequest(method, path string, body interface{}, config
 
 	return c.performRequest(method, path, buf, func(req *http.Request) {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
-		req.Header.Set("Accept", "application/vnd.github.shadow-cat-preview")
 		if configure != nil {
 			configure(req)
 		}
@@ -432,6 +431,12 @@ func (c *simpleClient) Delete(path string) (*simpleResponse, error) {
 
 func (c *simpleClient) PostJSON(path string, payload interface{}) (*simpleResponse, error) {
 	return c.jsonRequest("POST", path, payload, nil)
+}
+
+func (c *simpleClient) PostJSONPreview(path string, payload interface{}, mimeType string) (*simpleResponse, error) {
+	return c.jsonRequest("POST", path, payload, func(req *http.Request) {
+		req.Header.Set("Accept", mimeType)
+	})
 }
 
 func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleResponse, error) {

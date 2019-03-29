@@ -4,6 +4,25 @@ Feature: hub pull-request
     And I am "mislav" on github.com with OAuth token "OTOKEN"
     And the git commit editor is "vim"
 
+  Scenario: Basic pull request
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.shadow-cat-preview+json;charset=utf-8'
+        halt 400 if (params.keys - %w[title body base head draft issue]).any?
+        assert :title => 'hello',
+               :body => nil,
+               :base => 'master',
+               :head => 'mislav:master',
+               :draft => false,
+               :issue => nil
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hello`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Detached HEAD
     Given I am in detached HEAD
     When I run `hub pull-request`
@@ -1232,3 +1251,16 @@ Feature: hub pull-request
       """
     And the output should match /Given up after retrying for 5\.\d seconds\./
     And a file named ".git/PULLREQ_EDITMSG" should exist
+
+  Scenario: Draft pull request
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.shadow-cat-preview+json;charset=utf-8'
+        assert :draft => true
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -d -m wip`
+    Then the output should contain exactly "the://url\n"
