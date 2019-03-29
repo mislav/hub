@@ -65,7 +65,10 @@ func (r *Runner) Execute(cliArgs []string) error {
 		return err
 	}
 
-	gitArgs := []string{args.Command}
+	gitArgs := []string{}
+	if args.Command != "" {
+		gitArgs = append(gitArgs, args.Command)
+	}
 	gitArgs = append(gitArgs, args.Params...)
 
 	return git.Run(gitArgs...)
