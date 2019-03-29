@@ -86,7 +86,7 @@ a:link, a:hover, a:visited { color: blue }
   
 <h2 id="synopsis">Synopsis</h2>
 
-<p><code>hub pull-request</code> [-focp] [-b <var>BASE</var>] [-h <var>HEAD</var>] [-r <var>REVIEWERS</var> ] [-a <var>ASSIGNEES</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>]<br>
+<p><code>hub pull-request</code> [-focpd] [-b <var>BASE</var>] [-h <var>HEAD</var>] [-r <var>REVIEWERS</var> ] [-a <var>ASSIGNEES</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>]<br>
 <code>hub pull-request</code> -m <var>MESSAGE</var> [--edit]<br>
 <code>hub pull-request</code> -F <var>FILE</var> [--edit]<br>
 <code>hub pull-request</code> -i <var>ISSUE</var></p>
@@ -142,6 +142,8 @@ is deprecated.</p></dd>
 <dt>-l, --labels <var>LABELS</var></dt>
 <dd><p>Add a comma-separated list of labels to this pull request. Labels will be
 created if they do not already exist.</p></dd>
+<dt>-d, --draft</dt>
+<dd><p>Create the pull request as a draft.</p></dd>
 </dl>
 
 <h2 id="examples">Examples</h2>
@@ -175,7 +177,7 @@ $ hub pull-request -F - --edit &lt; path/to/message-template.md
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.10.2</li>
+    <li class="tl">hub version 2.11.0</li>
     <li class="tc">29 Mar 2019</li>
     <li class="tr"></li>
   </ol>
