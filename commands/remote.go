@@ -101,19 +101,19 @@ func transformRemoteArgs(args *Args) {
 	p := utils.NewArgsParser()
 	p.RegisterValue("-t")
 	p.RegisterValue("-m")
-	p.Parse(args.Params)
+	params, _ := p.Parse(args.Params)
+	if len(params) > 3 {
+		return
+	}
 
-	numWord := 0
-	for _, i := range p.PositionalIndices {
-		p := args.Params[i]
-		numWord += 1
-		if numWord == 2 && strings.Contains(p, "/") {
-			args.ReplaceParam(i, owner)
-		} else if numWord == 3 {
-			args.RemoveParam(i)
+	for i, pi := range p.PositionalIndices {
+		if i == 1 && strings.Contains(params[i], "/") {
+			args.ReplaceParam(pi, owner)
+		} else if i == 2 {
+			args.RemoveParam(pi)
 		}
 	}
-	if numWord == 2 && owner == "origin" {
+	if len(params) == 2 && owner == "origin" {
 		owner = hostConfig.User
 	}
 

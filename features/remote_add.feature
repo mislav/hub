@@ -225,3 +225,7 @@ Feature: hub remote add
     When I successfully run `hub remote add ec evilchelu/dotfilez.js`
     Then the url for "ec" should be "git@github.com:EvilChelu/dotfilez.js.git"
     And there should be no output
+
+  Scenario: Avoid crash in argument parsing
+    When I successfully run `hub --noop remote add a b evilchelu`
+    Then the output should contain exactly "git remote add a b evilchelu\n"
