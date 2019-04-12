@@ -24,8 +24,9 @@ var (
 	backslash     = []byte{'\\'}
 	enterVar      = []byte("<var>")
 	closeVar      = []byte("</var>")
+	tilde         = []byte(`\(ti`)
 	htmlEscape    = regexp.MustCompile(`<([A-Za-z][A-Za-z0-9_-]*)>`)
-	roffEscape    = regexp.MustCompile(`[&\~_-]`)
+	roffEscape    = regexp.MustCompile(`[&\_-]`)
 	headingEscape = regexp.MustCompile(`["]`)
 	titleRe       = regexp.MustCompile(`(?P<name>[A-Za-z][A-Za-z0-9_-]+)\((?P<num>\d)\) -- (?P<title>.+)`)
 )
@@ -34,6 +35,10 @@ func escape(src []byte, re *regexp.Regexp) []byte {
 	return re.ReplaceAllFunc(src, func(c []byte) []byte {
 		return append(backslash, c...)
 	})
+}
+
+func roffText(src []byte) []byte {
+	return bytes.ReplaceAll(escape(src, roffEscape), []byte{'~'}, tilde)
 }
 
 type RoffRenderer struct {
@@ -107,7 +112,7 @@ func (r *RoffRenderer) RenderNode(buf io.Writer, node *blackfriday.Node, enterin
 		} else if bytes.Compare(node.Literal, closeVar) == 0 {
 			io.WriteString(buf, `\fP`)
 		} else {
-			buf.Write(escape(node.Literal, roffEscape))
+			buf.Write(roffText(node.Literal))
 		}
 	}
 
@@ -178,8 +183,8 @@ func (r *RoffRenderer) renderHeading(buf io.Writer, node *blackfriday.Node) {
 		io.WriteString(buf, ".ad l\n") // disable justification
 		io.WriteString(buf, ".SH \"NAME\"\n")
 		fmt.Fprintf(buf, "%s \\- %s\n",
-			escape(name, roffEscape),
-			escape(text, roffEscape),
+			roffText(name),
+			roffText(text),
 		)
 	case 2:
 		fmt.Fprintf(buf, ".SH \"%s\"\n", strings.ToUpper(string(escape(text, headingEscape))))
