@@ -38,7 +38,7 @@ func escape(src []byte, re *regexp.Regexp) []byte {
 }
 
 func roffText(src []byte) []byte {
-	return bytes.ReplaceAll(escape(src, roffEscape), []byte{'~'}, tilde)
+	return bytes.Replace(escape(src, roffEscape), []byte{'~'}, tilde, -1)
 }
 
 type RoffRenderer struct {
