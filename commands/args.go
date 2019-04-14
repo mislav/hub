@@ -59,13 +59,28 @@ func (a *Args) Replace(executable, command string, params ...string) {
 }
 
 func (a *Args) Commands() []*cmd.Cmd {
-	result := a.beforeChain
+	result := []*cmd.Cmd{}
+	appendFromChain := func(c *cmd.Cmd) {
+		if c.Name == "git" {
+			ga := []string{c.Name}
+			ga = append(ga, a.GlobalFlags...)
+			ga = append(ga, c.Args...)
+			result = append(result, cmd.NewWithArray(ga))
+		} else {
+			result = append(result, c)
+		}
+	}
 
+	for _, c := range a.beforeChain {
+		appendFromChain(c)
+	}
 	if !a.noForward {
 		result = append(result, a.ToCmd())
 	}
+	for _, c := range a.afterChain {
+		appendFromChain(c)
+	}
 
-	result = append(result, a.afterChain...)
 	return result
 }
 
