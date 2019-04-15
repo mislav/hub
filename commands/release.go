@@ -19,7 +19,7 @@ var (
 		Usage: `
 release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>] [-f <FORMAT>]
 release show [-f <FORMAT>] <TAG>
-release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
+release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG> [<FILE>...]
 release edit [<options>] <TAG>
 release download <TAG> [-i <PATTERN>]
 release delete <TAG>
@@ -75,6 +75,9 @@ With no arguments, shows a list of existing releases.
 
 		If <FILE> is in the "<filename>#<text>" format, the text after the "#"
 		character is taken as asset label.
+
+		Note multiple files can be specified with multiple <FILE> options,
+		or multiple <FILE> arguments after the <TAG> argument.
 
 	-m, --message <MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the release
@@ -453,7 +456,11 @@ func createRelease(cmd *Command, args *Args) {
 		return
 	}
 
-	assetsToUpload, close, err := openAssetFiles(args.Flag.AllValues("--attach"))
+	filenames := args.Flag.AllValues("--attach")
+	if args.ParamsSize() > 1 {
+		filenames = append(filenames, args.Params[1:]...)
+	}
+	assetsToUpload, close, err := openAssetFiles(filenames)
 	utils.Check(err)
 	defer close()
 
@@ -550,7 +557,11 @@ func editRelease(cmd *Command, args *Args) {
 		return
 	}
 
-	assetsToUpload, close, err := openAssetFiles(args.Flag.AllValues("--attach"))
+	filenames := args.Flag.AllValues("--attach")
+	if args.ParamsSize() > 1 {
+		filenames = append(filenames, args.Params[1:]...)
+	}
+	assetsToUpload, close, err := openAssetFiles(filenames)
 	utils.Check(err)
 	defer close()
 
