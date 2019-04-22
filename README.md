@@ -5,7 +5,7 @@ This repository and its issue tracker is **not for reporting problems with
 GitHub.com** web interface. If you have a problem with GitHub itself, please
 [contact Support](https://github.com/contact).
 
-Usage
+Usage2
 -----
 
 ``` sh
