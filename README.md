@@ -49,6 +49,12 @@ hub version 2.2.3
 > scoop install hub
 ```
 
+or alternatively `hub` can be installed through [Chocolatey](https://chocolatey.org/):
+
+``` sh
+> choco install hub
+```
+
 #### Fedora Linux
 
 On Fedora you can install `hub` through DNF:
