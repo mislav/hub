@@ -10,10 +10,5 @@ func IsHttpsProtocol() bool {
 		return true
 	}
 
-	httpClone, _ := git.Config("--bool hub.http-clone")
-	if httpClone == "true" {
-		return true
-	}
-
 	return false
 }
