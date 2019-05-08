@@ -187,8 +187,8 @@ func pullRequest(cmd *Command, args *Args) {
 
 	force := args.Flag.Bool("--force")
 	if !force && trackedBranch != nil {
-		remoteCommits, _ := git.RefList(trackedBranch.LongName(), "")
-		if len(remoteCommits) > 0 {
+		remoteCommits, err := git.RefList(trackedBranch.LongName(), "")
+		if err == nil && len(remoteCommits) > 0 {
 			err = fmt.Errorf("Aborted: %d commits are not yet pushed to %s", len(remoteCommits), trackedBranch.LongName())
 			err = fmt.Errorf("%s\n(use `-f` to force submit a pull request anyway)", err)
 			utils.Check(err)
