@@ -39,6 +39,15 @@ func (cmd *Cmd) WithArgs(args ...string) *Cmd {
 	return cmd
 }
 
+func (cmd *Cmd) Output() (string, error) {
+	verboseLog(cmd)
+	c := exec.Command(cmd.Name, cmd.Args...)
+	c.Stderr = cmd.Stderr
+	output, err := c.Output()
+
+	return string(output), err
+}
+
 func (cmd *Cmd) CombinedOutput() (string, error) {
 	verboseLog(cmd)
 	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
