@@ -123,6 +123,8 @@ func fork(cmd *Command, args *Args) {
 
 		args.Before("git", "remote", "add", "-f", newRemoteName, originURL)
 		args.Before("git", "remote", "set-url", newRemoteName, url)
+		args.Before("git", "config", "remote.pushDefault", newRemoteName)
+		args.Before("git", "config", "branch.master.remote", newRemoteName)
 
 		args.AfterFn(func() error {
 			ui.Printf("new remote: %s\n", newRemoteName)
