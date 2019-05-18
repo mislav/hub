@@ -16,6 +16,7 @@ var (
 		Usage: `
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
+pr show [-uc] [-h <HEAD>]
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
 
@@ -26,6 +27,9 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 	* _checkout_:
 		Check out the head of a pull request in a new branch.
+
+	* _show_:
+		Open the GitHub pull request page in a web browser.
 
 ## Options:
 
@@ -133,6 +137,12 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 	-L, --limit <LIMIT>
 		Display only the first <LIMIT> issues.
 
+	-u, --url
+		Print the URL instead of opening it.
+
+	-c, --copy
+		Put the URL in clipboard instead of opening it.
+
 ## See also:
 
 hub-issue(1), hub-pull-request(1), hub(1)
@@ -150,11 +160,22 @@ hub-issue(1), hub-pull-request(1), hub(1)
 		Run:  listPulls,
 		Long: cmdPr.Long,
 	}
+
+	cmdShowPr = &Command{
+		Key: "show",
+		Run: showPr,
+		KnownFlags: `
+		-h, --head HEAD
+		-u, --url
+		-c, --copy
+`,
+	}
 )
 
 func init() {
 	cmdPr.Use(cmdListPulls)
 	cmdPr.Use(cmdCheckoutPr)
+	cmdPr.Use(cmdShowPr)
 	CmdRunner.Use(cmdPr)
 }
 
@@ -253,6 +274,54 @@ func checkoutPr(command *Command, args *Args) {
 	utils.Check(err)
 
 	args.Replace(args.Executable, "checkout", newArgs...)
+}
+
+func showPr(command *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	filterParams := make(map[string]interface{})
+	filterParams["state"] = "open"
+
+	var owner, branch string
+
+	if args.Flag.HasReceived("--head") {
+		head := args.Flag.Value("--head")
+
+		if strings.Contains(head, ":") {
+			s := strings.Split(head, ":")
+			owner, branch = s[0], s[1]
+			// chagne the project in case of pull request from fork
+			repo, err := gh.Repository(project)
+			utils.Check(err)
+			parent := repo.Parent
+			project, err = github.NewProjectFromRepo(parent)
+			utils.Check(err)
+		} else {
+			owner, branch = project.Owner, head
+		}
+	} else {
+		owner = project.Owner
+		cb, err := localRepo.CurrentBranch()
+		utils.Check(err)
+		branch = cb.ShortName()
+	}
+
+	filterParams["head"] = fmt.Sprintf("%s:%s", owner, branch)
+	pulls, err := gh.FetchPullRequests(project, filterParams, 1, nil)
+
+	if len(pulls) == 1 {
+		pr := pulls[0]
+		args.NoForward()
+		flagBrowseURLPrint := args.Flag.Bool("--url")
+		flagBrowseURLCopy := args.Flag.Bool("--copy")
+		printBrowseOrCopy(args, pr.HtmlUrl, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
+	}
 }
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {
