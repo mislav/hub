@@ -14,6 +14,7 @@ find_source_files() {
 build_hub() {
   mkdir -p "$(dirname "$1")"
   go build \
+	  $MOD_VENDOR_ARG \
 	  -ldflags "-X github.com/github/hub/version.Version=`./script/version` $LDFLAGS" \
 	  -gcflags "$GCFLAGS" \
 	  -asmflags "$ASMFLAGS" \
