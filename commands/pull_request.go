@@ -123,8 +123,7 @@ func pullRequest(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	currentBranch, err := localRepo.CurrentBranch()
-	utils.Check(err)
+	currentBranch, currentBranchErr := localRepo.CurrentBranch()
 
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
@@ -135,8 +134,10 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 	client := github.NewClientWithHost(host)
 
-	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
-	utils.Check(err)
+	trackedBranch, headProject, _ := localRepo.RemoteBranchAndProject(host.User, false)
+	if headProject == nil {
+		utils.Check(err)
+	}
 
 	var (
 		base, head string
@@ -171,6 +172,7 @@ func pullRequest(cmd *Command, args *Args) {
 
 	if head == "" {
 		if trackedBranch == nil {
+			utils.Check(currentBranchErr)
 			head = currentBranch.ShortName()
 		} else {
 			head = trackedBranch.ShortName()

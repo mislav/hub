@@ -29,6 +29,19 @@ Feature: hub pull-request
     Then the stderr should contain "Aborted: not currently on any branch.\n"
     And the exit status should be 1
 
+  Scenario: Detached HEAD with explicit head
+    Given I am in detached HEAD
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :head => 'mislav:feature'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -h feature -m message`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Non-GitHub repo
     Given the "origin" remote has url "mygh:Manganeez/repo.git"
     When I run `hub pull-request`
