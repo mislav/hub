@@ -15,6 +15,6 @@ require (
 	github.com/russross/blackfriday v0.0.0-20180526075726-670777b536d3
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	golang.org/x/crypto v0.0.0-20180127211104-1875d0a70c90
-	golang.org/x/sys v0.0.0-20180126165840-ff2a66f350ce // indirect
+	golang.org/x/sys v0.0.0-20190531175056-4c3a928424d2 // indirect
 	gopkg.in/yaml.v2 v2.0.0-20190319135612-7b8349ac747c
 )
