@@ -86,7 +86,7 @@ pull-request -i <ISSUE>
 	-l, --labels <LABELS>
 		Add a comma-separated list of labels to this pull request. Labels will be
 		created if they do not already exist.
-	
+
 	-d, --draft
 		Create the pull request as a draft.
 
@@ -257,7 +257,6 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 
 		message := ""
-		commitLogs := ""
 
 		commits, _ := git.RefList(baseTracking, headForMessage)
 		if len(commits) == 1 {
@@ -267,12 +266,12 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			re := regexp.MustCompile(`\nSigned-off-by:\s.*$`)
 			message = re.ReplaceAllString(message, "")
 		} else if len(commits) > 1 {
-			commitLogs, err = git.Log(baseTracking, headForMessage)
+			commitLogs, err := git.Log(baseTracking, headForMessage)
 			utils.Check(err)
-		}
 
-		if commitLogs != "" {
-			messageBuilder.AddCommentedSection("\nChanges:\n\n" + strings.TrimSpace(commitLogs))
+			if commitLogs != "" {
+				messageBuilder.AddCommentedSection("\nChanges:\n\n" + strings.TrimSpace(commitLogs))
+			}
 		}
 
 		workdir, _ := git.WorkdirName()
