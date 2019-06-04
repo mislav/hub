@@ -237,11 +237,11 @@ func calculateProjectFromRFlag(rawRemote string) *github.Project {
 	}
 
 	if _, err := remote.Project(); err != nil {
- 		fmt.Fprintf(os.Stderr, "no project for: %s because %s", rawRemote, err)
+		fmt.Fprintf(os.Stderr, "no project for: %s because %s", rawRemote, err)
 		os.Exit(1)
 	}
 
-	validProject, _  := remote.Project()
+	validProject, _ := remote.Project()
 	return validProject
 }
 
