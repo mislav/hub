@@ -229,19 +229,19 @@ func init() {
 func calculateProjectFromRFlag(rawRemote string) *github.Project {
 	var remote *github.Remote
 
-	if remoteURL, ok := url.Parse(rawRemote); ok == nil {
+	if remoteURL, error := url.Parse(rawRemote); error == nil {
 		remote = &github.Remote{"origin", remoteURL, remoteURL}
 	} else {
 		fmt.Fprintf(os.Stderr, "invalid remote URL string: %s", rawRemote)
 		os.Exit(1)
 	}
 
-	if _, ok := remote.Project(); ok != nil {
+	if _, error := remote.Project(); ok != nil {
 		fmt.Fprintf(os.Stderr, "no project for: %s because %s", rawRemote, ok)
 		os.Exit(1)
 	}
 
-	var validProject, _ = remote.Project()
+	validProject, _  := remote.Project()
 	return validProject
 }
 
