@@ -226,7 +226,7 @@ func init() {
 	CmdRunner.Use(cmdIssue)
 }
 
-func calculateProjectFromRFlag(rawRemote string) (*github.Project) {
+func calculateProjectFromRFlag(rawRemote string) *github.Project {
 	var remote *github.Remote
 
 	if remoteURL, ok := url.Parse(rawRemote); ok == nil {

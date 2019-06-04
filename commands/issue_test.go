@@ -23,6 +23,10 @@ func testFormatIssue(t *testing.T, tests []formatIssueTest) {
 	}
 }
 
+func TestRepositoryURLOverride(t *testing.T){
+
+}
+
 func TestFormatIssue(t *testing.T) {
 	format := "%sC%>(8)%i%Creset  %t%  l%n"
 	testFormatIssue(t, []formatIssueTest{
