@@ -149,6 +149,13 @@ func (p *ArgsParser) RegisterBool(name string, aliases ...string) {
 	}
 }
 
+func (p *ArgsParser) UpdateValue(name, value string) {
+	if _, found := p.flagMap[name]; found {
+		newFlag := &argsFlag{true, []string{value}}
+		p.flagMap[name] = newFlag
+	}
+}
+
 func (p *ArgsParser) Value(name string) string {
 	if f, found := p.flagMap[name]; found {
 		return f.lastValue()

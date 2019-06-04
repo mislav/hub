@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bufio"
 	"fmt"
 	"net/url"
 	"os"
@@ -156,7 +157,7 @@ With no arguments, show a list of open issues.
 		Display only the first <LIMIT> issues.
 
 	-r, --remote-url <REMOTE_URL>
-		Avoid requiring a local clone in order to get issue data. Simply provide REMOTE_URL.
+		Avoid requiring a local clone in order to get issue data by providing a REMOTE_URL e.g. https://github.com/github/hub. Alternatively, use the literal STDIN and read in a list of URLs to repos.
 
 	--include-pulls
 		Include pull requests as well as issues.
@@ -237,19 +238,34 @@ func calculateProjectFromRFlag(rawRemote string) *github.Project {
 	}
 
 	if _, err := remote.Project(); err != nil {
- 		fmt.Fprintf(os.Stderr, "no project for: %s because %s", rawRemote, err)
+		fmt.Fprintf(os.Stderr, "no project for: %s because %s", rawRemote, err)
 		os.Exit(1)
 	}
 
-	validProject, _  := remote.Project()
+	validProject, _ := remote.Project()
 	return validProject
+}
+
+func fetchIssueStatusOnMultipleRepos(cmd *Command, args *Args) {
+	scanner := bufio.NewScanner(os.Stdin)
+	for scanner.Scan() {
+		remoteURL := strings.TrimSpace(scanner.Text())
+		if githubPresent := strings.Contains(remoteURL, "github"); githubPresent {
+			args.Flag.UpdateValue("--remote-url", remoteURL)
+			listIssues(cmd, args)
+		}
+	}
 }
 
 func listIssues(cmd *Command, args *Args) {
 	var project *github.Project
 
-	if rawRemote := args.Flag.Value("--remote-url"); args.Flag.HasReceived("--remote-url") {
-		project = calculateProjectFromRFlag(rawRemote)
+	if rawRemote := args.Flag.Value("--remote-url"); len(rawRemote) > 0 {
+		if rawRemote == "STDIN" {
+			fetchIssueStatusOnMultipleRepos(cmd, args)
+		} else {
+			project = calculateProjectFromRFlag(rawRemote)
+		}
 	}
 
 	if project == nil {
