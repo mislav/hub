@@ -139,7 +139,7 @@ Feature: hub create
     And the stdout should contain exactly "https://github.com/mislav/dotfiles\n"
     And the stderr should contain exactly:
       """
-      A git remote named "origin" already exists and is set to push to 'git://example.com/unrelated.git'.\n
+      A git remote named 'origin' already exists and is set to push to 'git://example.com/unrelated.git'.\n
       """
 
   Scenario: Another remote already exists

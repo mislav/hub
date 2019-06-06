@@ -136,7 +136,7 @@ func create(command *Command, args *Args) {
 	if originRemote, err := localRepo.RemoteByName(originName); err == nil {
 		originProject, err := originRemote.Project()
 		if err != nil || !originProject.SameAs(project) {
-			ui.Errorf(`A git remote named "%s" already exists and is set to push to '%s'.\n`, originRemote.Name, originRemote.PushURL)
+			ui.Errorf("A git remote named '%s' already exists and is set to push to '%s'.\n", originRemote.Name, originRemote.PushURL)
 		}
 	} else {
 		url := project.GitURL("", "", true)
