@@ -132,10 +132,11 @@ With no arguments, show a list of open issues.
 	-c, --copy
 		Put the URL of the new issue to clipboard instead of printing it.
 
-	-M, --milestone <ID>
-		Display only issues for a GitHub milestone with id <ID>.
+	-M, --milestone <NAME>
+		Display only issues for a GitHub milestone with the name <NAME>.
 
-		When opening an issue, add this issue to a GitHub milestone with id <ID>.
+		When opening an issue, add this issue to a GitHub milestone with the name <NAME>.
+		Passing the milestone number is deprecated.
 
 	-l, --labels <LABELS>
 		Display only issues with certain labels.
@@ -574,8 +575,18 @@ text is the title and the rest is the description.`, project))
 		params["assignees"] = flagIssueAssignees
 	}
 
-	if flagIssueMilestone := args.Flag.Int("--milestone"); flagIssueMilestone > 0 {
-		params["milestone"] = flagIssueMilestone
+	milestoneNumber := 0
+	if flagIssueMilestone := args.Flag.Value("--milestone"); flagIssueMilestone != "" {
+
+		// BC: Don't try to resolve milestone name if it's an integer
+		milestoneNumber, err = strconv.Atoi(flagIssueMilestone)
+		if err != nil {
+			milestones, err := gh.FetchMilestones(project)
+			utils.Check(err)
+			milestoneNumber, err = findMilestoneNumber(milestones, flagIssueMilestone)
+			params["milestone"] = milestoneNumber
+			utils.Check(err)
+		}
 	}
 
 	args.NoForward()
