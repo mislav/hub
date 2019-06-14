@@ -138,10 +138,10 @@ pr show [-uc] [-h <HEAD>]
 		Display only the first <LIMIT> issues.
 
 	-u, --url
-		Print the URL instead of opening it.
+		Print the pull request URL instead of opening it.
 
 	-c, --copy
-		Put the URL in clipboard instead of opening it.
+		Put the pull request URL to clipboard instead of opening it.
 
 ## See also:
 
@@ -280,52 +280,38 @@ func showPr(command *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	project, err := localRepo.MainProject()
+	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
 
-	gh := github.NewClient(project.Host)
+	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
+	utils.Check(err)
+	gh := github.NewClientWithHost(host)
 
-	filterParams := make(map[string]interface{})
-	filterParams["state"] = "open"
-
-	var owner, branch string
+	filterParams := map[string]interface{}{
+		"state": "open",
+	}
+	headWithOwner := ""
 
 	if args.Flag.HasReceived("--head") {
-		head := args.Flag.Value("--head")
-
-		if strings.Contains(head, ":") {
-			s := strings.Split(head, ":")
-			owner, branch = s[0], s[1]
-			// chagne the project in case of pull request from fork
-			repo, err := gh.Repository(project)
-			utils.Check(err)
-			parent := repo.Parent
-			if parent == nil {
-				utils.Check(fmt.Errorf("Aborting due to repository not having a parent"))
-			}
-			project, err = github.NewProjectFromRepo(parent)
-			utils.Check(err)
-		} else {
-			owner, branch = project.Owner, head
+		headWithOwner = args.Flag.Value("--head")
+		if !strings.Contains(headWithOwner, ":") {
+			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, headWithOwner)
 		}
 	} else {
-		if r, _ := localRepo.MainRemote(); r.Name == github.OriginNamesInLookupOrder[0] {
-			// look for origin's project owner
-			r, err := localRepo.RemoteByName("origin")
-			utils.Check(err)
-			p, err := r.Project()
-			utils.Check(err)
-			owner = p.Owner
-
+		trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
+		if err == nil && trackedBranch != nil && headProject != nil {
+			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, trackedBranch.ShortName())
 		} else {
-			owner = project.Owner
+			currentBranch, err := localRepo.CurrentBranch()
+			utils.Check(err)
+			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, currentBranch.ShortName())
 		}
-		cb, err := localRepo.CurrentBranch()
-		utils.Check(err)
-		branch = cb.ShortName()
 	}
-	filterParams["head"] = fmt.Sprintf("%s:%s", owner, branch)
-	pulls, err := gh.FetchPullRequests(project, filterParams, 1, nil)
+
+	filterParams["head"] = headWithOwner
+
+	pulls, err := gh.FetchPullRequests(baseProject, filterParams, 1, nil)
+	utils.Check(err)
 
 	if len(pulls) == 1 {
 		pr := pulls[0]

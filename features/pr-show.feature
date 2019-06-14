@@ -39,7 +39,7 @@ Feature: hub pr show
 
   Scenario: Current branch in fork
     Given the "upstream" remote has url "git@github.com:github/hub.git"
-    And I am on the "topic" branch
+    And I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       get('/repos/github/hub/pulls'){
