@@ -306,17 +306,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 	}
 
-	milestoneNumber := 0
-	if flagPullRequestMilestone := args.Flag.Value("--milestone"); flagPullRequestMilestone != "" {
-		// BC: Don't try to resolve milestone name if it's an integer
-		milestoneNumber, err = strconv.Atoi(flagPullRequestMilestone)
-		if err != nil {
-			milestones, err := client.FetchMilestones(baseProject)
-			utils.Check(err)
-			milestoneNumber, err = findMilestoneNumber(milestones, flagPullRequestMilestone)
-			utils.Check(err)
-		}
-	}
+	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), client, baseProject)
+	utils.Check(err)
 
 	var pullRequestURL string
 	if args.Noop {
@@ -461,16 +452,6 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
-}
-
-func findMilestoneNumber(milestones []github.Milestone, name string) (int, error) {
-	for _, milestone := range milestones {
-		if strings.EqualFold(milestone.Title, name) {
-			return milestone.Number, nil
-		}
-	}
-
-	return 0, fmt.Errorf("error: no milestone found with name '%s'", name)
 }
 
 func commaSeparated(l []string) []string {

@@ -44,14 +44,7 @@ func (client *Client) FetchPullRequests(project *Project, filterParams map[strin
 
 	path := fmt.Sprintf("repos/%s/%s/pulls?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 	if filterParams != nil {
-		query := url.Values{}
-		for key, value := range filterParams {
-			switch v := value.(type) {
-			case string:
-				query.Add(key, v)
-			}
-		}
-		path += "&" + query.Encode()
+		path = addQuery(path, filterParams)
 	}
 
 	pulls = []PullRequest{}
@@ -642,14 +635,7 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 
 	path := fmt.Sprintf("repos/%s/%s/issues?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 	if filterParams != nil {
-		query := url.Values{}
-		for key, value := range filterParams {
-			switch v := value.(type) {
-			case string:
-				query.Add(key, v)
-			}
-		}
-		path += "&" + query.Encode()
+		path = addQuery(path, filterParams)
 	}
 
 	issues = []Issue{}
