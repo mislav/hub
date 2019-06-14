@@ -17,6 +17,7 @@ var (
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
 pr show [-uc] [-h <HEAD>]
+pr show [-uc] <PR-NUMBER>
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
 
@@ -29,7 +30,7 @@ pr show [-uc] [-h <HEAD>]
 		Check out the head of a pull request in a new branch.
 
 	* _show_:
-		Open the GitHub pull request page in a web browser.
+		Open a pull request page in a web browser.
 
 ## Options:
 
@@ -283,6 +284,27 @@ func showPr(command *Command, args *Args) {
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
 
+	words := args.Words()
+	openUrl := ""
+	if len(words) > 0 {
+		if prNumber, err := strconv.Atoi(words[0]); err == nil {
+			openUrl = baseProject.WebURL("", "", fmt.Sprintf("pull/%d", prNumber))
+		} else {
+			utils.Check(fmt.Errorf("invalid pull request number: '%s'", words[0]))
+		}
+	} else {
+		pr, err := findCurrentPullRequest(localRepo, baseProject, args.Flag.Value("--head"))
+		utils.Check(err)
+		openUrl = pr.HtmlUrl
+	}
+
+	args.NoForward()
+	printUrl := args.Flag.Bool("--url")
+	copyUrl := args.Flag.Bool("--copy")
+	printBrowseOrCopy(args, openUrl, !printUrl && !copyUrl, copyUrl)
+}
+
+func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Project, headArg string) (*github.PullRequest, error) {
 	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
 	utils.Check(err)
 	gh := github.NewClientWithHost(host)
@@ -292,8 +314,8 @@ func showPr(command *Command, args *Args) {
 	}
 	headWithOwner := ""
 
-	if args.Flag.HasReceived("--head") {
-		headWithOwner = args.Flag.Value("--head")
+	if headArg != "" {
+		headWithOwner = headArg
 		if !strings.Contains(headWithOwner, ":") {
 			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, headWithOwner)
 		}
@@ -311,16 +333,12 @@ func showPr(command *Command, args *Args) {
 	filterParams["head"] = headWithOwner
 
 	pulls, err := gh.FetchPullRequests(baseProject, filterParams, 1, nil)
-	utils.Check(err)
-
-	if len(pulls) == 1 {
-		pr := pulls[0]
-		args.NoForward()
-		flagBrowseURLPrint := args.Flag.Bool("--url")
-		flagBrowseURLCopy := args.Flag.Bool("--copy")
-		printBrowseOrCopy(args, pr.HtmlUrl, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
+	if err != nil {
+		return nil, err
+	} else if len(pulls) == 1 {
+		return &pulls[0], nil
 	} else {
-		utils.Check(fmt.Errorf("no open pull requests found for branch '%s'", headWithOwner))
+		return nil, fmt.Errorf("no open pull requests found for branch '%s'", headWithOwner)
 	}
 }
 

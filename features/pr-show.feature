@@ -94,3 +94,15 @@ Feature: hub pr show
       """
       no open pull requests found for branch 'ashemesh:topic'\n
       """
+
+  Scenario: Show pull request by number
+    When I successfully run `hub pr show 102`
+    Then "open https://github.com/ashemesh/hub/pull/102" should be run
+
+  Scenario: Show pull request by invalid number
+    When I run `hub pr show XYZ`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      invalid pull request number: 'XYZ'\n
+      """
