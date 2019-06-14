@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
@@ -16,6 +17,8 @@ var (
 		Usage: `
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
+pr show [-uc] [-h <HEAD>]
+pr show [-uc] <PR-NUMBER>
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
 
@@ -26,6 +29,9 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 
 	* _checkout_:
 		Check out the head of a pull request in a new branch.
+
+	* _show_:
+		Open a pull request page in a web browser.
 
 ## Options:
 
@@ -133,6 +139,12 @@ pr checkout <PR-NUMBER> [<BRANCH>]
 	-L, --limit <LIMIT>
 		Display only the first <LIMIT> issues.
 
+	-u, --url
+		Print the pull request URL instead of opening it.
+
+	-c, --copy
+		Put the pull request URL to clipboard instead of opening it.
+
 ## See also:
 
 hub-issue(1), hub-pull-request(1), hub(1)
@@ -150,11 +162,22 @@ hub-issue(1), hub-pull-request(1), hub(1)
 		Run:  listPulls,
 		Long: cmdPr.Long,
 	}
+
+	cmdShowPr = &Command{
+		Key: "show",
+		Run: showPr,
+		KnownFlags: `
+		-h, --head HEAD
+		-u, --url
+		-c, --copy
+`,
+	}
 )
 
 func init() {
 	cmdPr.Use(cmdListPulls)
 	cmdPr.Use(cmdCheckoutPr)
+	cmdPr.Use(cmdShowPr)
 	CmdRunner.Use(cmdPr)
 }
 
@@ -253,6 +276,113 @@ func checkoutPr(command *Command, args *Args) {
 	utils.Check(err)
 
 	args.Replace(args.Executable, "checkout", newArgs...)
+}
+
+func showPr(command *Command, args *Args) {
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	baseProject, err := localRepo.MainProject()
+	utils.Check(err)
+
+	words := args.Words()
+	openUrl := ""
+	if len(words) > 0 {
+		if prNumber, err := strconv.Atoi(words[0]); err == nil {
+			openUrl = baseProject.WebURL("", "", fmt.Sprintf("pull/%d", prNumber))
+		} else {
+			utils.Check(fmt.Errorf("invalid pull request number: '%s'", words[0]))
+		}
+	} else {
+		pr, err := findCurrentPullRequest(localRepo, baseProject, args.Flag.Value("--head"))
+		utils.Check(err)
+		openUrl = pr.HtmlUrl
+	}
+
+	args.NoForward()
+	printUrl := args.Flag.Bool("--url")
+	copyUrl := args.Flag.Bool("--copy")
+	printBrowseOrCopy(args, openUrl, !printUrl && !copyUrl, copyUrl)
+}
+
+func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Project, headArg string) (*github.PullRequest, error) {
+	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
+	utils.Check(err)
+	gh := github.NewClientWithHost(host)
+
+	filterParams := map[string]interface{}{
+		"state": "open",
+	}
+	headWithOwner := ""
+
+	if headArg != "" {
+		headWithOwner = headArg
+		if !strings.Contains(headWithOwner, ":") {
+			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, headWithOwner)
+		}
+	} else {
+		currentBranch, err := localRepo.CurrentBranch()
+		utils.Check(err)
+		if headBranch, headProject, err := findPushTarget(currentBranch); err == nil {
+			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, headBranch.ShortName())
+		} else if headProject, err := deducePushTarget(currentBranch, host.User); err == nil {
+			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, currentBranch.ShortName())
+		} else {
+			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, currentBranch.ShortName())
+		}
+	}
+
+	filterParams["head"] = headWithOwner
+
+	pulls, err := gh.FetchPullRequests(baseProject, filterParams, 1, nil)
+	if err != nil {
+		return nil, err
+	} else if len(pulls) == 1 {
+		return &pulls[0], nil
+	} else {
+		return nil, fmt.Errorf("no open pull requests found for branch '%s'", headWithOwner)
+	}
+}
+
+func findPushTarget(branch *github.Branch) (*github.Branch, *github.Project, error) {
+	branchRemote, _ := git.Config(fmt.Sprintf("branch.%s.remote", branch.ShortName()))
+	if branchRemote == "" || branchRemote == "." {
+		return nil, nil, fmt.Errorf("branch has no upstream configuration")
+	}
+	branchMerge, err := git.Config(fmt.Sprintf("branch.%s.merge", branch.ShortName()))
+	if err != nil {
+		return nil, nil, err
+	}
+	headBranch := &github.Branch{
+		Repo: branch.Repo,
+		Name: branchMerge,
+	}
+
+	if headRemote, err := branch.Repo.RemoteByName(branchRemote); err == nil {
+		headProject, err := headRemote.Project()
+		if err != nil {
+			return nil, nil, err
+		}
+		return headBranch, headProject, nil
+	}
+
+	remoteUrl, err := git.ParseURL(branchRemote)
+	if err != nil {
+		return nil, nil, err
+	}
+	headProject, err := github.NewProjectFromURL(remoteUrl)
+	if err != nil {
+		return nil, nil, err
+	}
+	return headBranch, headProject, nil
+}
+
+func deducePushTarget(branch *github.Branch, owner string) (*github.Project, error) {
+	remote := branch.Repo.RemoteForBranch(branch, owner)
+	if remote == nil {
+		return nil, fmt.Errorf("no remote found for branch %s", branch.ShortName())
+	}
+	return remote.Project()
 }
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {

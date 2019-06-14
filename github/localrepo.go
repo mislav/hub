@@ -156,6 +156,17 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (
 	return
 }
 
+// duplicates logic from PushTarget()
+func (r *GitHubRepo) RemoteForBranch(branch *Branch, owner string) *Remote {
+	branchName := branch.ShortName()
+	for _, remote := range r.remotesForPublish(owner) {
+		if git.HasFile("refs", "remotes", remote.Name, branchName) {
+			return &remote
+		}
+	}
+	return nil
+}
+
 func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
 	if err := r.loadRemotes(); err != nil {
 		return nil, err
