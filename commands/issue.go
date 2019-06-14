@@ -169,7 +169,7 @@ hub-pr(1), hub(1)
 		-a, --assignee USER
 		-s, --state STATE
 		-f, --format FMT
-		-M, --milestone M
+		-M, --milestone NAME
 		-c, --creator USER
 		-@, --mentioned USER
 		-l, --labels LIST
@@ -188,7 +188,7 @@ hub-pr(1), hub(1)
 		KnownFlags: `
 		-m, --message MSG
 		-F, --file FILE
-		-M, --milestone M
+		-M, --milestone NAME
 		-l, --labels LIST
 		-a, --assign USER
 		-o, --browse
@@ -242,7 +242,16 @@ func listIssues(cmd *Command, args *Args) {
 			filters["assignee"] = args.Flag.Value("--assignee")
 		}
 		if args.Flag.HasReceived("--milestone") {
-			filters["milestone"] = args.Flag.Value("--milestone")
+			milestoneValue := args.Flag.Value("--milestone")
+			if milestoneValue == "none" {
+				filters["milestone"] = milestoneValue
+			} else {
+				milestoneNumber, err := milestoneValueToNumber(milestoneValue, gh, project)
+				utils.Check(err)
+				if milestoneNumber > 0 {
+					filters["milestone"] = milestoneNumber
+				}
+			}
 		}
 		if args.Flag.HasReceived("--creator") {
 			filters["creator"] = args.Flag.Value("--creator")
@@ -575,18 +584,10 @@ text is the title and the rest is the description.`, project))
 		params["assignees"] = flagIssueAssignees
 	}
 
-	milestoneNumber := 0
-	if flagIssueMilestone := args.Flag.Value("--milestone"); flagIssueMilestone != "" {
-
-		// BC: Don't try to resolve milestone name if it's an integer
-		milestoneNumber, err = strconv.Atoi(flagIssueMilestone)
-		if err != nil {
-			milestones, err := gh.FetchMilestones(project)
-			utils.Check(err)
-			milestoneNumber, err = findMilestoneNumber(milestones, flagIssueMilestone)
-			params["milestone"] = milestoneNumber
-			utils.Check(err)
-		}
+	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
+	utils.Check(err)
+	if milestoneNumber > 0 {
+		params["milestone"] = milestoneNumber
 	}
 
 	args.NoForward()
@@ -683,4 +684,26 @@ func pickHighContrastTextColor(color *utils.Color) *utils.Color {
 		}
 	}
 	return utils.Black
+}
+
+func milestoneValueToNumber(value string, client *github.Client, project *github.Project) (int, error) {
+	if value == "" {
+		return 0, nil
+	}
+
+	if milestoneNumber, err := strconv.Atoi(value); err == nil {
+		return milestoneNumber, nil
+	}
+
+	milestones, err := client.FetchMilestones(project)
+	if err != nil {
+		return 0, err
+	}
+	for _, milestone := range milestones {
+		if strings.EqualFold(milestone.Title, value) {
+			return milestone.Number, nil
+		}
+	}
+
+	return 0, fmt.Errorf("error: no milestone found with name '%s'", value)
 }
