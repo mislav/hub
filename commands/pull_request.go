@@ -90,6 +90,11 @@ pull-request -i <ISSUE>
 	-d, --draft
 		Create the pull request as a draft.
 
+	--no-maintainer-edits
+		When creating a pull request from a fork, this disallows projects
+		maintainers from being able to push to the head branch of this fork.
+		Maintainer edits are allowed by default.
+
 ## Examples:
 		$ hub pull-request
 		[ opens a text editor for writing title and message ]
@@ -313,17 +318,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 	}
 
-	milestoneNumber := 0
-	if flagPullRequestMilestone := args.Flag.Value("--milestone"); flagPullRequestMilestone != "" {
-		// BC: Don't try to resolve milestone name if it's an integer
-		milestoneNumber, err = strconv.Atoi(flagPullRequestMilestone)
-		if err != nil {
-			milestones, err := client.FetchMilestones(baseProject)
-			utils.Check(err)
-			milestoneNumber, err = findMilestoneNumber(milestones, flagPullRequestMilestone)
-			utils.Check(err)
-		}
-	}
+	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), client, baseProject)
+	utils.Check(err)
 
 	var pullRequestURL string
 	if args.Noop {
@@ -331,8 +327,9 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		params := map[string]interface{}{
-			"base": base,
-			"head": fullHead,
+			"base":                  base,
+			"head":                  fullHead,
+			"maintainer_can_modify": !args.Flag.Bool("--no-maintainer-edits"),
 		}
 
 		if args.Flag.Bool("--draft") {
@@ -467,16 +464,6 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
-}
-
-func findMilestoneNumber(milestones []github.Milestone, name string) (int, error) {
-	for _, milestone := range milestones {
-		if strings.EqualFold(milestone.Title, name) {
-			return milestone.Number, nil
-		}
-	}
-
-	return 0, fmt.Errorf("error: no milestone found with name '%s'", name)
 }
 
 func commaSeparated(l []string) []string {

@@ -116,6 +116,34 @@ Feature: hub issue
     """
     When I successfully run `hub issue -M none`
 
+  Scenario: Fetch issues assigned to milestone by number
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues') {
+        assert :milestone => "12"
+        json []
+      }
+      """
+    When I successfully run `hub issue -M 12`
+
+  Scenario: Fetch issues assigned to milestone by name
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 1337, :title => "v1" },
+          { :number => 41319, :title => "Hello World!" }
+        ]
+      }
+      get('/repos/github/hub/issues') {
+        assert :milestone => "1337"
+        json []
+      }
+      """
+    When I successfully run `hub issue -M v1`
+
   Scenario: Fetch issues created by a given user
     Given the GitHub API server:
     """
@@ -376,6 +404,29 @@ Feature: hub issue
       }
       """
     When I successfully run `hub issue create -m "hello" -M 12 --assign mislav,josh -apcorpet`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Create an issue with milestone by name
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 1337, :title => "v1" },
+          { :number => 41319, :title => "Hello World!" }
+        ]
+      }
+      post('/repos/github/hub/issues') {
+        assert :milestone => 41319
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create -m "hello" -M "hello world!"`
     Then the output should contain exactly:
       """
       https://github.com/github/hub/issues/1337\n
