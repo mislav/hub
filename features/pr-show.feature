@@ -53,6 +53,53 @@ Feature: hub pr show
     When I successfully run `hub pr show`
     Then "open https://github.com/github/hub/pull/102" should be run
 
+  Scenario: Differently named branch in fork
+    Given the "upstream" remote has url "git@github.com:github/hub.git"
+    And I am on the "local-topic" branch with upstream "origin/remote-topic"
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/pulls'){
+        assert :head => "ashemesh:remote-topic"
+        json [
+          { :html_url => "https://github.com/github/hub/pull/102" },
+        ]
+      }
+      """
+    When I successfully run `hub pr show`
+    Then "open https://github.com/github/hub/pull/102" should be run
+
+  Scenario: Upstream configuration with HTTPS URL
+    Given I am on the "local-topic" branch
+    When I successfully run `git config branch.local-topic.remote https://github.com/octocat/hub.git`
+    When I successfully run `git config branch.local-topic.merge refs/remotes/remote-topic`
+    Given the GitHub API server:
+      """
+      get('/repos/ashemesh/hub/pulls'){
+        assert :head => "octocat:remote-topic"
+        json [
+          { :html_url => "https://github.com/github/hub/pull/102" },
+        ]
+      }
+      """
+    When I successfully run `hub pr show`
+    Then "open https://github.com/github/hub/pull/102" should be run
+
+  Scenario: Upstream configuration with SSH URL
+    Given I am on the "local-topic" branch
+    When I successfully run `git config branch.local-topic.remote git@github.com:octocat/hub.git`
+    When I successfully run `git config branch.local-topic.merge refs/remotes/remote-topic`
+    Given the GitHub API server:
+      """
+      get('/repos/ashemesh/hub/pulls'){
+        assert :head => "octocat:remote-topic"
+        json [
+          { :html_url => "https://github.com/github/hub/pull/102" },
+        ]
+      }
+      """
+    When I successfully run `hub pr show`
+    Then "open https://github.com/github/hub/pull/102" should be run
+
   Scenario: Explicit head branch
     Given the GitHub API server:
       """

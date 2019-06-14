@@ -23,6 +23,7 @@ func (b *Branch) LongName() string {
 	return reg.ReplaceAllString(b.Name, "")
 }
 
+// see also RemoteForBranch()
 func (b *Branch) PushTarget(owner string, preferUpstream bool) (branch *Branch) {
 	var err error
 	pushDefault, _ := git.Config("push.default")

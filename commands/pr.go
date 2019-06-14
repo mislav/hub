@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
@@ -320,12 +321,13 @@ func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Pr
 			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, headWithOwner)
 		}
 	} else {
-		trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
-		if err == nil && trackedBranch != nil && headProject != nil {
-			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, trackedBranch.ShortName())
+		currentBranch, err := localRepo.CurrentBranch()
+		utils.Check(err)
+		if headBranch, headProject, err := findPushTarget(currentBranch); err == nil {
+			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, headBranch.ShortName())
+		} else if headProject, err := deducePushTarget(currentBranch, host.User); err == nil {
+			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, currentBranch.ShortName())
 		} else {
-			currentBranch, err := localRepo.CurrentBranch()
-			utils.Check(err)
 			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, currentBranch.ShortName())
 		}
 	}
@@ -340,6 +342,47 @@ func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Pr
 	} else {
 		return nil, fmt.Errorf("no open pull requests found for branch '%s'", headWithOwner)
 	}
+}
+
+func findPushTarget(branch *github.Branch) (*github.Branch, *github.Project, error) {
+	branchRemote, _ := git.Config(fmt.Sprintf("branch.%s.remote", branch.ShortName()))
+	if branchRemote == "" || branchRemote == "." {
+		return nil, nil, fmt.Errorf("branch has no upstream configuration")
+	}
+	branchMerge, err := git.Config(fmt.Sprintf("branch.%s.merge", branch.ShortName()))
+	if err != nil {
+		return nil, nil, err
+	}
+	headBranch := &github.Branch{
+		Repo: branch.Repo,
+		Name: branchMerge,
+	}
+
+	if headRemote, err := branch.Repo.RemoteByName(branchRemote); err == nil {
+		headProject, err := headRemote.Project()
+		if err != nil {
+			return nil, nil, err
+		}
+		return headBranch, headProject, nil
+	}
+
+	remoteUrl, err := git.ParseURL(branchRemote)
+	if err != nil {
+		return nil, nil, err
+	}
+	headProject, err := github.NewProjectFromURL(remoteUrl)
+	if err != nil {
+		return nil, nil, err
+	}
+	return headBranch, headProject, nil
+}
+
+func deducePushTarget(branch *github.Branch, owner string) (*github.Project, error) {
+	remote := branch.Repo.RemoteForBranch(branch, owner)
+	if remote == nil {
+		return nil, fmt.Errorf("no remote found for branch %s", branch.ShortName())
+	}
+	return remote.Project()
 }
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {
