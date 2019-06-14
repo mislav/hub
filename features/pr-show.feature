@@ -80,3 +80,17 @@ Feature: hub pr show
       """
     When I successfully run `hub pr show --head github:topic`
     Then "open https://github.com/ashemesh/hub/pull/102" should be run
+
+  Scenario: No pull request found
+    Given the GitHub API server:
+      """
+      get('/repos/ashemesh/hub/pulls'){
+        json []
+      }
+      """
+    When I run `hub pr show --head topic`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      no open pull requests found for branch 'ashemesh:topic'\n
+      """

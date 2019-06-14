@@ -319,6 +319,8 @@ func showPr(command *Command, args *Args) {
 		flagBrowseURLPrint := args.Flag.Bool("--url")
 		flagBrowseURLCopy := args.Flag.Bool("--copy")
 		printBrowseOrCopy(args, pr.HtmlUrl, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
+	} else {
+		utils.Check(fmt.Errorf("no open pull requests found for branch '%s'", headWithOwner))
 	}
 }
 
