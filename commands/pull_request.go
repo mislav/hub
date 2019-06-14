@@ -90,6 +90,11 @@ pull-request -i <ISSUE>
 	-d, --draft
 		Create the pull request as a draft.
 
+	--no-maintainer-edits
+		When creating a pull request from a fork, this disallows projects
+		maintainers from being able to push to the head branch of this fork.
+		Maintainer edits are allowed by default.
+
 ## Examples:
 		$ hub pull-request
 		[ opens a text editor for writing title and message ]
@@ -319,8 +324,9 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		params := map[string]interface{}{
-			"base": base,
-			"head": fullHead,
+			"base":                  base,
+			"head":                  fullHead,
+			"maintainer_can_modify": !args.Flag.Bool("--no-maintainer-edits"),
 		}
 
 		if args.Flag.Bool("--draft") {

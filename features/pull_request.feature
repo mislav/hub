@@ -7,13 +7,15 @@ Feature: hub pull-request
   Scenario: Basic pull request
     Given the GitHub API server:
       """
+      KNOWN_PARAMS = %w[title body base head draft issue maintainer_can_modify]
       post('/repos/mislav/coral/pulls') {
         halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.shadow-cat-preview+json;charset=utf-8'
-        halt 400 if (params.keys - %w[title body base head draft issue]).any?
+        halt 400 if (params.keys - KNOWN_PARAMS).any?
         assert :title => 'hello',
                :body => nil,
                :base => 'master',
                :head => 'mislav:master',
+               :maintainer_can_modify => true,
                :draft => nil,
                :issue => nil
         status 201
@@ -1276,4 +1278,16 @@ Feature: hub pull-request
       }
       """
     When I successfully run `hub pull-request -d -m wip`
+    Then the output should contain exactly "the://url\n"
+
+  Scenario: Disallow edits from maintainers
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :maintainer_can_modify => false
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hello --no-maintainer-edits`
     Then the output should contain exactly "the://url\n"
