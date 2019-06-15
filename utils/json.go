@@ -29,10 +29,7 @@ func stateKey(s *state) string {
 	}
 }
 
-func printValue(token json.Token) {
-}
-
-func JSONPath(out io.Writer, src io.Reader, colorize bool) {
+func JSONPath(out io.Writer, src io.Reader, colorize bool) (hasNextPage bool, endCursor string) {
 	dec := json.NewDecoder(src)
 	dec.UseNumber()
 
@@ -84,12 +81,18 @@ func JSONPath(out io.Writer, src io.Reader, colorize bool) {
 				switch tt := token.(type) {
 				case string:
 					fmt.Fprintf(out, "%s\n", strings.Replace(tt, "\n", "\\n", -1))
+					if strings.HasSuffix(k, ".pageInfo.endCursor") {
+						endCursor = tt
+					}
 				case json.Number:
 					fmt.Fprintf(out, "%s\n", color("0;35", tt))
 				case nil:
 					fmt.Fprintf(out, "\n")
 				case bool:
 					fmt.Fprintf(out, "%s\n", color("1;33", fmt.Sprintf("%v", tt)))
+					if strings.HasSuffix(k, ".pageInfo.hasNextPage") {
+						hasNextPage = tt
+					}
 				default:
 					panic("unknown type")
 				}
@@ -97,4 +100,5 @@ func JSONPath(out io.Writer, src io.Reader, colorize bool) {
 			}
 		}
 	}
+	return
 }

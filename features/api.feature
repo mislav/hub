@@ -127,6 +127,28 @@ Feature: hub api
       [{"page":3}]
       """
 
+  Scenario: Paginate GraphQL
+    Given the GitHub API server:
+      """
+      post('/graphql') {
+        variables = params[:variables] || {}
+        page = (variables["endCursor"] || 1).to_i
+        json :data => {
+          :pageInfo => {
+            :hasNextPage => page < 3,
+            :endCursor => (page+1).to_s
+          }
+        }
+      }
+      """
+    When I successfully run `hub api --paginate graphql -f query=QUERY`
+    Then the output should contain exactly:
+      """
+      {"data":{"pageInfo":{"hasNextPage":true,"endCursor":"2"}}}
+      {"data":{"pageInfo":{"hasNextPage":true,"endCursor":"3"}}}
+      {"data":{"pageInfo":{"hasNextPage":false,"endCursor":"4"}}}
+      """
+
   Scenario: Avoid leaking token to a 3rd party
     Given the GitHub API server:
       """

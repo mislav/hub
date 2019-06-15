@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -189,7 +190,8 @@ func apiCommand(cmd *Command, args *Args) {
 		host = defHost.Host
 	}
 
-	if path == "graphql" && params["query"] != nil {
+	isGraphQL := path == "graphql"
+	if isGraphQL && params["query"] != nil {
 		query := params["query"].(string)
 		query = strings.Replace(query, quote("{owner}"), quote(owner), 1)
 		query = strings.Replace(query, quote("{repo}"), quote(repo), 1)
@@ -253,8 +255,15 @@ func apiCommand(cmd *Command, args *Args) {
 			fmt.Fprintf(out, "\r\n")
 		}
 
+		endCursor := ""
+		hasNextPage := false
+
 		if parseJSON && jsonType {
-			utils.JSONPath(out, response.Body, colorize)
+			hasNextPage, endCursor = utils.JSONPath(out, response.Body, colorize)
+		} else if paginate && isGraphQL {
+			bodyCopy := &bytes.Buffer{}
+			io.Copy(out, io.TeeReader(response.Body, bodyCopy))
+			hasNextPage, endCursor = utils.JSONPath(ioutil.Discard, bodyCopy, false)
 		} else {
 			io.Copy(out, response.Body)
 		}
@@ -266,7 +275,16 @@ func apiCommand(cmd *Command, args *Args) {
 
 		requestLoop = false
 		if paginate {
-			if nextLink := response.Link("next"); nextLink != "" {
+			if isGraphQL && hasNextPage && endCursor != "" {
+				if v, ok := params["variables"]; ok {
+					variables := v.(map[string]interface{})
+					variables["endCursor"] = endCursor
+				} else {
+					variables := map[string]interface{}{"endCursor": endCursor}
+					params["variables"] = variables
+				}
+				requestLoop = true
+			} else if nextLink := response.Link("next"); nextLink != "" {
 				path = nextLink
 				requestLoop = true
 			}
