@@ -176,10 +176,21 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 
 	force := args.Flag.Bool("--force")
+	flagPullRequestPush := args.Flag.Bool("--push")
 
 	if head == "" {
 		if trackedBranch == nil {
 			utils.Check(currentBranchErr)
+			if !force && !flagPullRequestPush {
+				branchRemote, branchMerge, err := branchTrackingInformation(currentBranch)
+				if err != nil || (baseRemote != nil && branchRemote == baseRemote.Name && branchMerge.ShortName() == base) {
+					if localRepo.RemoteForBranch(currentBranch, host.User) == nil {
+						err = fmt.Errorf("Aborted: the current branch seems not yet pushed to a remote")
+						err = fmt.Errorf("%s\n(use `-p` to push the branch or `-f` to skip this check)", err)
+						utils.Check(err)
+					}
+				}
+			}
 			head = currentBranch.ShortName()
 		} else {
 			head = trackedBranch.ShortName()
@@ -189,17 +200,6 @@ func pullRequest(cmd *Command, args *Args) {
 	if headRepo, err := client.Repository(headProject); err == nil {
 		headProject.Owner = headRepo.Owner.Login
 		headProject.Name = headRepo.Name
-
-		remoteBranchName := currentBranch.RemoteName()
-		if remoteBranchName == "" {
-			remoteBranchName = "origin"
-		}
-
-		if !force && !git.Quiet("rev-parse", "--verify", "@{u}") && !git.HasFile("refs", "remotes", remoteBranchName, head) {
-			err = fmt.Errorf("Aborted: Branch not yet pushed")
-			err = fmt.Errorf("%s\nMake sure that %s:%s exists before creating a pull request", err, headRepo.Owner.Login, head)
-			utils.Check(err)
-		}
 	}
 
 	fullBase := fmt.Sprintf("%s:%s", baseProject.Owner, base)
@@ -233,7 +233,6 @@ func pullRequest(cmd *Command, args *Args) {
 		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
 	}
 
-	flagPullRequestPush := args.Flag.Bool("--push")
 	if flagPullRequestPush && remote == nil {
 		utils.Check(fmt.Errorf("Can't find remote for %s", head))
 	}

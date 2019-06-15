@@ -5,16 +5,18 @@ Feature: hub pull-request
     And the git commit editor is "vim"
 
   Scenario: Basic pull request
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       KNOWN_PARAMS = %w[title body base head draft issue maintainer_can_modify]
       post('/repos/mislav/coral/pulls') {
         halt 400 unless request.env['HTTP_ACCEPT'] == 'application/vnd.github.shadow-cat-preview+json;charset=utf-8'
+        halt 400 unless request.user_agent.include?('Hub')
         halt 400 if (params.keys - KNOWN_PARAMS).any?
         assert :title => 'hello',
                :body => nil,
                :base => 'master',
-               :head => 'mislav:master',
+               :head => 'mislav:topic',
                :maintainer_can_modify => true,
                :draft => nil,
                :issue => nil
@@ -56,11 +58,12 @@ Feature: hub pull-request
   Scenario: Create pull request respecting "insteadOf" configuration
     Given the "origin" remote has url "mygh:Manganeez/repo.git"
     When I successfully run `git config url."git@github.com:".insteadOf mygh:`
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/Manganeez/repo/pulls') {
         assert :base  => 'master',
-               :head  => 'Manganeez:master',
+               :head  => 'Manganeez:topic',
                :title => 'here we go'
         status 201
         json :html_url => "https://github.com/Manganeez/repo/pull/12"
@@ -70,6 +73,7 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/Manganeez/repo/pull/12\n"
 
   Scenario: With Unicode characters
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -271,7 +275,8 @@ Feature: hub pull-request
   Scenario: No commits with "--no-edit"
     Given I am on the "master" branch pushed to "origin/master"
     When I successfully run `git checkout --quiet -b topic`
-    And I run `hub pull-request --no-edit`
+    Given the "topic" branch is pushed to "origin/topic"
+    When I run `hub pull-request --no-edit`
     Then the exit status should be 1
     And the stderr should contain exactly:
       """
@@ -330,7 +335,7 @@ Feature: hub pull-request
       """
       post('/repos/origin/coral/pulls') { 404 }
       """
-    When I run `hub pull-request -b origin:master -m here`
+    When I run `hub pull-request -b origin:master -h topic -m here`
     Then the exit status should be 1
     Then the stderr should contain:
       """
@@ -338,19 +343,8 @@ Feature: hub pull-request
       Are you sure that github.com/origin/coral exists?
       """
 
-  Scenario: Supplies User-Agent string to API calls
-    Given the GitHub API server:
-      """
-      post('/repos/mislav/coral/pulls') {
-        halt 400 unless request.user_agent.include?('Hub')
-        status 201
-        json :html_url => "the://url"
-      }
-      """
-    When I successfully run `hub pull-request -m useragent`
-    Then the output should contain exactly "the://url\n"
-
   Scenario: Text editor adds title and body
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the text editor adds:
       """
       This title comes from vim!
@@ -371,6 +365,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Text editor adds title and body with multiple lines
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the text editor adds:
       """
 
@@ -399,6 +394,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Text editor with custom commentchar
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given git "core.commentchar" is set to "/"
     And the text editor adds:
       """
@@ -421,6 +417,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Failed pull request preserves previous message
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the text editor adds:
       """
       This title will fail
@@ -449,6 +446,7 @@ Feature: hub pull-request
     Then the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Text editor fails
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the text editor exits with error status
     And an empty file named ".git/PULLREQ_EDITMSG"
     When I run `hub pull-request`
@@ -457,6 +455,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from file
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -479,6 +478,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Edit title and body from file
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -502,6 +502,7 @@ Feature: hub pull-request
     Then the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from stdin
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -523,6 +524,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from command-line argument
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -537,6 +539,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Title and body from multiple command-line arguments
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -585,11 +588,12 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Explicit base
-    Given I am on the "feature" branch
+    Given I am on the "feature" branch pushed to "origin/feature"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
-        assert :base => 'develop'
+        assert :base => 'develop',
+               :head => 'mislav:feature'
         status 201
         json :html_url => "the://url"
       }
@@ -599,7 +603,7 @@ Feature: hub pull-request
 
   Scenario: Implicit base by detecting main branch
     Given the default branch for "origin" is "develop"
-    And I make a commit
+    And the "master" branch is pushed to "origin/master"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -613,7 +617,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Explicit base with owner
-    Given I am on the "master" branch
+    Given I am on the "master" branch pushed to "origin/master"
     Given the GitHub API server:
       """
       post('/repos/mojombo/coral/pulls') {
@@ -626,7 +630,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Explicit base with owner and repo name
-    Given I am on the "master" branch
+    Given I am on the "master" branch pushed to "origin/master"
     Given the GitHub API server:
       """
       post('/repos/mojombo/coralify/pulls') {
@@ -662,23 +666,25 @@ Feature: hub pull-request
     And I successfully run `hub pull-request -f -m message`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Error when trying to create a pull request from an unpushed branch
+  Scenario: Error from an unpushed branch
     Given I am on the "feature" branch
-    Given the GitHub API server:
+    When I run `hub pull-request -m hello`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
       """
-      get('/repos/mislav/coral') {
-        status 200
-        json :name => 'coral', :owner => { :login => 'mislav' }
-      }
+      Aborted: the current branch seems not yet pushed to a remote
+      (use `-p` to push the branch or `-f` to skip this check)\n
       """
-    When I make 1 commit
-    And I run `hub pull-request`
-    Then the stderr should contain exactly:
+
+  Scenario: Error from an unpushed branch with upstream same as base branch
+    Given I am on the "feature" branch with upstream "origin/master"
+    When I run `hub pull-request -m hello`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
       """
-      Aborted: Branch not yet pushed
-      Make sure that mislav:feature exists before creating a pull request\n
+      Aborted: the current branch seems not yet pushed to a remote
+      (use `-p` to push the branch or `-f` to skip this check)\n
       """
-    And the exit status should be 1
 
   Scenario: Pull request fails on the server
     Given I am on the "feature" branch with upstream "origin/feature"
@@ -744,11 +750,12 @@ Feature: hub pull-request
     Given the "origin" remote has url "git@git.my.org:mislav/coral.git"
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
+    And I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/api/v3/repos/mislav/coral/pulls', :host_name => 'git.my.org') {
         assert :base => 'master',
-               :head => 'mislav:master'
+               :head => 'mislav:topic'
         status 201
         json :html_url => "the://url"
       }
@@ -893,6 +900,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Open pull request in web browser
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -905,8 +913,9 @@ Feature: hub pull-request
 
   Scenario: Current branch is tracking local branch
     Given git "push.default" is set to "upstream"
-    And I make a commit
-    And I am on the "feature" branch with upstream "refs/heads/master"
+    And I am on the "feature" branch pushed to "origin/feature"
+    When I successfully run `git config branch.feature.remote .`
+    When I successfully run `git config branch.feature.merge refs/heads/master`
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -1286,6 +1295,7 @@ Feature: hub pull-request
     And a file named ".git/PULLREQ_EDITMSG" should exist
 
   Scenario: Draft pull request
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -1299,6 +1309,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Disallow edits from maintainers
+    Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
