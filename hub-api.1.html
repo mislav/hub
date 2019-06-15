@@ -130,11 +130,18 @@ input. Use this when you want to manually construct the request payload.</p></dd
 <dt>-t, --flat</dt>
 <dd><p>Parse response JSON and output the data in a line-based key-value format
 suitable for use in shell scripts.</p></dd>
+<dt>--paginate</dt>
+<dd><p>Automatically request and output the next page of results until all
+resources have been listed. For GET requests, this follows the <code>&lt;var&gt;next&lt;/var&gt;</code>
+resource as indicated in the &quot;Link&quot; response header. For GraphQL queries,
+this utilizes <code>pageInfo</code> that must be present in the query; see EXAMPLES.</p>
+
+<p>Note that multiple JSON documents will be output as a result.</p></dd>
 <dt>--color[=<var>WHEN</var>]</dt>
 <dd><p>Enable colored output even if stdout is not a terminal. <var>WHEN</var> can be one
 of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or &quot;auto&quot; (default).</p></dd>
 <dt>--cache <var>TTL</var></dt>
-<dd><p>Cache successful responses to GET requests for <var>TTL</var> seconds.</p>
+<dd><p>Cache valid responses to GET requests for <var>TTL</var> seconds.</p>
 
 <p>When using &quot;graphql&quot; as <var>ENDPOINT</var>, caching will apply to responses to POST
 requests as well. Just make sure to not use <code>--cache</code> for any GraphQL
@@ -163,6 +170,22 @@ $ hub api repos/{owner}/{repo}/issues/23/comments --raw-field &quot;body=Nice jo
 
 # perform a GraphQL query read from a file
 $ hub api graphql -F query=@path/to/myquery.graphql
+
+# perform pagination with GraphQL
+$ hub api --paginate graphql -f query='
+  query($endCursor: String) {
+    repositoryOwner(login: &quot;USER&quot;) {
+      repositories(first: 100, after: $endCursor) {
+        nodes {
+          nameWithOwner
+        }
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+      }
+    }
+  }'
 </code></pre>
 
 <h2 id="see-also">See also</h2>
@@ -173,8 +196,8 @@ $ hub api graphql -F query=@path/to/myquery.graphql
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.11.2</li>
-    <li class="tc">14 Apr 2019</li>
+    <li class="tl">hub version 2.12.0</li>
+    <li class="tc">15 Jun 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>
