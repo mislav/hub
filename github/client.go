@@ -29,11 +29,12 @@ func NewClient(h string) *Client {
 }
 
 func NewClientWithHost(host *Host) *Client {
-	return &Client{host}
+	return &Client{Host: host}
 }
 
 type Client struct {
-	Host *Host
+	Host         *Host
+	cachedClient *simpleClient
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
@@ -936,6 +937,11 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 		return
 	}
 
+	if client.cachedClient != nil {
+		c = client.cachedClient
+		return
+	}
+
 	c = client.apiClient()
 	c.PrepareRequest = func(req *http.Request) {
 		clientDomain := normalizeHost(client.Host.Host)
@@ -947,6 +953,8 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 			req.Header.Set("Authorization", "token "+client.Host.AccessToken)
 		}
 	}
+
+	client.cachedClient = c
 	return
 }
 
