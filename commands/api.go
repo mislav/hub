@@ -66,12 +66,20 @@ var cmdApi = &Command{
 		Parse response JSON and output the data in a line-based key-value format
 		suitable for use in shell scripts.
 
+	--paginate
+		Automatically request and output the next page of results until all
+		resources have been listed. For GET requests, this follows the '<next>'
+		resource as indicated in the "Link" response header. For GraphQL queries,
+		this utilizes 'pageInfo' that must be present in the query; see EXAMPLES.
+
+		Note that multiple JSON documents will be output as a result.
+
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
 		of "always" (default for '--color'), "never", or "auto" (default).
 
 	--cache <TTL>
-		Cache successful responses to GET requests for <TTL> seconds.
+		Cache valid responses to GET requests for <TTL> seconds.
 
 		When using "graphql" as <ENDPOINT>, caching will apply to responses to POST
 		requests as well. Just make sure to not use '--cache' for any GraphQL
@@ -100,6 +108,22 @@ var cmdApi = &Command{
 
 		# perform a GraphQL query read from a file
 		$ hub api graphql -F query=@path/to/myquery.graphql
+
+		# perform pagination with GraphQL
+		$ hub api --paginate graphql -f query=''
+		  query($endCursor: String) {
+		    repositoryOwner(login: "USER") {
+		      repositories(first: 100, after: $endCursor) {
+		        nodes {
+		          nameWithOwner
+		        }
+		        pageInfo {
+		          hasNextPage
+		          endCursor
+		        }
+		      }
+		    }
+		  }''
 
 ## See also:
 
@@ -203,36 +227,53 @@ func apiCommand(cmd *Command, args *Args) {
 	}
 
 	gh := github.NewClient(host)
-	response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
-	utils.Check(err)
-
-	args.NoForward()
 
 	out := ui.Stdout
 	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
-	success := response.StatusCode < 300
 	parseJSON := args.Flag.Bool("--flat")
+	includeHeaders := args.Flag.Bool("--include")
+	paginate := args.Flag.Bool("--paginate")
 
-	if !success {
-		jsonType, _ := regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
-		parseJSON = parseJSON && jsonType
-	}
+	args.NoForward()
 
-	if args.Flag.Bool("--include") {
-		fmt.Fprintf(out, "%s %s\r\n", response.Proto, response.Status)
-		response.Header.Write(out)
-		fmt.Fprintf(out, "\r\n")
-	}
+	requestLoop := true
+	for requestLoop {
+		response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
+		utils.Check(err)
+		success := response.StatusCode < 300
 
-	if parseJSON {
-		utils.JSONPath(out, response.Body, colorize)
-	} else {
-		io.Copy(out, response.Body)
-	}
-	response.Body.Close()
+		jsonType := true
+		if !success {
+			jsonType, _ = regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
+		}
 
-	if !success {
-		os.Exit(22)
+		if includeHeaders {
+			fmt.Fprintf(out, "%s %s\r\n", response.Proto, response.Status)
+			response.Header.Write(out)
+			fmt.Fprintf(out, "\r\n")
+		}
+
+		if parseJSON && jsonType {
+			utils.JSONPath(out, response.Body, colorize)
+		} else {
+			io.Copy(out, response.Body)
+		}
+		response.Body.Close()
+
+		if !success {
+			os.Exit(22)
+		}
+
+		requestLoop = false
+		if paginate {
+			if nextLink := response.Link("next"); nextLink != "" {
+				path = nextLink
+				requestLoop = true
+			}
+		}
+		if requestLoop && !parseJSON {
+			fmt.Fprintf(out, "\n")
+		}
 	}
 }
 
