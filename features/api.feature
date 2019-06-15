@@ -109,6 +109,46 @@ Feature: hub api
       {"name":"Faye"}
       """
 
+  Scenario: Paginate REST
+    Given the GitHub API server:
+      """
+      get('/comments') {
+        assert :per_page => "6"
+        page = (params[:page] || 1).to_i
+        response.headers["Link"] = %(<#{request.url}&page=#{page+1}>; rel="next") if page < 3
+        json [{:page => page}]
+      }
+      """
+    When I successfully run `hub api --paginate comments?per_page=6`
+    Then the output should contain exactly:
+      """
+      [{"page":1}]
+      [{"page":2}]
+      [{"page":3}]
+      """
+
+  Scenario: Paginate GraphQL
+    Given the GitHub API server:
+      """
+      post('/graphql') {
+        variables = params[:variables] || {}
+        page = (variables["endCursor"] || 1).to_i
+        json :data => {
+          :pageInfo => {
+            :hasNextPage => page < 3,
+            :endCursor => (page+1).to_s
+          }
+        }
+      }
+      """
+    When I successfully run `hub api --paginate graphql -f query=QUERY`
+    Then the output should contain exactly:
+      """
+      {"data":{"pageInfo":{"hasNextPage":true,"endCursor":"2"}}}
+      {"data":{"pageInfo":{"hasNextPage":true,"endCursor":"3"}}}
+      {"data":{"pageInfo":{"hasNextPage":false,"endCursor":"4"}}}
+      """
+
   Scenario: Avoid leaking token to a 3rd party
     Given the GitHub API server:
       """
