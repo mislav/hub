@@ -344,18 +344,29 @@ func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Pr
 	}
 }
 
-func findPushTarget(branch *github.Branch) (*github.Branch, *github.Project, error) {
-	branchRemote, _ := git.Config(fmt.Sprintf("branch.%s.remote", branch.ShortName()))
-	if branchRemote == "" || branchRemote == "." {
-		return nil, nil, fmt.Errorf("branch has no upstream configuration")
+func branchTrackingInformation(branch *github.Branch) (string, *github.Branch, error) {
+	branchRemote, err := git.Config(fmt.Sprintf("branch.%s.remote", branch.ShortName()))
+	if branchRemote == "." {
+		err = fmt.Errorf("branch is tracking another local branch")
+	}
+	if err != nil {
+		return "", nil, err
 	}
 	branchMerge, err := git.Config(fmt.Sprintf("branch.%s.merge", branch.ShortName()))
 	if err != nil {
-		return nil, nil, err
+		return "", nil, err
 	}
-	headBranch := &github.Branch{
+	trackingBranch := &github.Branch{
 		Repo: branch.Repo,
 		Name: branchMerge,
+	}
+	return branchRemote, trackingBranch, nil
+}
+
+func findPushTarget(branch *github.Branch) (*github.Branch, *github.Project, error) {
+	branchRemote, headBranch, err := branchTrackingInformation(branch)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	if headRemote, err := branch.Repo.RemoteByName(branchRemote); err == nil {

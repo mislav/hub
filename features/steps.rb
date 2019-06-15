@@ -120,10 +120,8 @@ Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/)
   empty_commit
 
   if upstream
-    unless upstream == 'refs/heads/master'
-      full_upstream = upstream.start_with?('refs/') ? upstream : "refs/remotes/#{upstream}"
-      run_silent %(git update-ref #{shell_escape full_upstream} HEAD)
-    end
+    full_upstream = upstream.start_with?('refs/') ? upstream : "refs/remotes/#{upstream}"
+    run_silent %(git update-ref #{shell_escape full_upstream} HEAD)
 
     if type == 'with upstream'
       run_silent %(git branch --set-upstream-to #{shell_escape upstream})
