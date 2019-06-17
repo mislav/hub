@@ -8,6 +8,10 @@ export LDFLAGS := -extldflags '$(LDFLAGS)'
 export GCFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
 export ASMFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
 
+ifneq ($(MOD_VENDOR_ARG),)
+	unexport GOPATH
+endif
+
 MIN_COVERAGE = 89.4
 
 HELP_CMD = \
