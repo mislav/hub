@@ -263,6 +263,7 @@ func listIssues(cmd *Command, args *Args) {
 	if rawRemote := args.Flag.Value("--remote-url"); len(rawRemote) > 0 {
 		if rawRemote == "STDIN" {
 			fetchIssueStatusOnMultipleRepos(cmd, args)
+			return
 		} else {
 			project = calculateProjectFromRFlag(rawRemote)
 		}
