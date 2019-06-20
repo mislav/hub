@@ -15,7 +15,7 @@ type Branch struct {
 
 func (b *Branch) ShortName() string {
 	reg := regexp.MustCompile("^refs/(remotes/)?.+?/")
-	return reg.ReplaceAllString(b.Name, "")
+	return reg.ReplaceAllString(b.Name, "ll")
 }
 
 func (b *Branch) LongName() string {
