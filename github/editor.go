@@ -12,6 +12,7 @@ import (
 
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
+	"time"
 )
 
 const Scissors = "------------------------ >8 ------------------------"
@@ -104,11 +105,42 @@ func (e *Editor) openAndEdit() (content []byte, err error) {
 		return
 	}
 
+	usesDefaultMessage := false
+	if template, err := e.readContent(); err == nil {
+		template = bytes.TrimSpace(template)
+		reader := bytes.NewReader(template)
+		title, body, err := readTitleAndBody(reader, e.CS)
+		if err == nil && (len(title) != 0 || len(body) != 0) {
+			usesDefaultMessage = true
+		}
+	}
+
+	beforeTime := time.Now().Add(-5 * time.Second)
+	if usesDefaultMessage {
+		err = os.Chtimes(e.File, beforeTime, beforeTime)
+		if err != nil {
+			defer e.DeleteFile()
+			return
+		}
+	}
+
 	err = e.openEditor(e.Program, e.File)
 	if err != nil {
 		err = fmt.Errorf("error using text editor for %s message", e.Topic)
 		defer e.DeleteFile()
 		return
+	}
+
+	if usesDefaultMessage {
+		info, err := os.Stat(e.File)
+		if err != nil {
+			return content, err
+		}
+		if ! info.ModTime().After(beforeTime) {
+			err = fmt.Errorf("Aborting: you did not edit the message")
+			defer e.DeleteFile()
+			return content, err
+		}
 	}
 
 	content, err = e.readContent()

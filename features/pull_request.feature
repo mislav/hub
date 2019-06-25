@@ -141,7 +141,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Single-commit with pull request template
-    Given the git commit editor is "true"
+    Given the git commit editor is "touch"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
@@ -560,6 +560,29 @@ Feature: hub pull-request
       Aborted: head branch is the same as base ("master")
       (use `-h <branch>` to specify an explicit pull request head)\n
       """
+
+  Scenario: Editor does not touch message file, with default message
+    Given I am on the "master" branch pushed to "origin/master"
+    And the git commit editor is "true"
+    When I successfully run `git checkout --quiet -b topic`
+    Given I make a commit
+    And the "topic" branch is pushed to "origin/topic"
+    When I run `hub pull-request`
+    Then the stderr should contain exactly:
+      """
+      Aborting: you did not edit the message\n
+      """
+    And the exit status should be 1
+
+  Scenario: Editor does not touch message file, without default message
+    Given I am on the "master" branch
+    And the git commit editor is "true"
+    When I run `hub pull-request`
+    Then the stderr should contain exactly:
+      """
+      Aborting due to empty pull request title\n
+      """
+    And the exit status should be 1
 
   Scenario: Explicit head
     Given I am on the "master" branch
@@ -1198,7 +1221,7 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Default message with --push
-    Given the git commit editor is "true"
+    Given the git commit editor is "touch"
     Given the GitHub API server:
       """
       post('/repos/mislav/coral/pulls') {
