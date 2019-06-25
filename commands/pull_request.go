@@ -141,7 +141,7 @@ func pullRequest(cmd *Command, args *Args) {
 
 	trackedBranch, headProject, _ := localRepo.RemoteBranchAndProject(host.User, false)
 	if headProject == nil {
-		utils.Check(err)
+		utils.Check(fmt.Errorf("could not determine project for head branch"))
 	}
 
 	var (

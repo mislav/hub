@@ -48,6 +48,9 @@ func (b *Branch) PushTarget(owner string, preferUpstream bool) (branch *Branch) 
 		}
 
 		for _, remote := range remotesInOrder {
+			if _, err := remote.Project(); err != nil {
+				continue
+			}
 			if git.HasFile("refs", "remotes", remote.Name, shortName) {
 				name := fmt.Sprintf("refs/remotes/%s/%s", remote.Name, shortName)
 				branch = &Branch{b.Repo, name}
