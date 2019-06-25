@@ -74,18 +74,20 @@ pull-request -i <ISSUE>
 		checked out branch.
 
 	-r, --reviewer <USERS>
-		A comma-separated list of GitHub handles to request a review from.
+		A comma-separated list (no spaces around the comma) of GitHub handles to
+		request a review from.
 
 	-a, --assign <USERS>
-		A comma-separated list of GitHub handles to assign to this pull request.
+		A comma-separated list (no spaces around the comma) of GitHub handles to
+		assign to this pull request.
 
 	-M, --milestone <NAME>
 		The milestone name to add to this pull request. Passing the milestone number
 		is deprecated.
 
 	-l, --labels <LABELS>
-		Add a comma-separated list of labels to this pull request. Labels will be
-		created if they do not already exist.
+		A comma-separated list (no spaces around the comma) of labels to add to
+		this pull request. Labels will be created if they do not already exist.
 
 	-d, --draft
 		Create the pull request as a draft.
