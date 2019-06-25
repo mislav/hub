@@ -899,6 +899,24 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Create pull request to "github" remote when "origin" is non-GitHub
+    Given the "github" remote has url "git@github.com:sam-hart-swanson/debug.git"
+    Given the "origin" remote has url "ssh://git@private.server.com/path/to/repo.git"
+    And I am on the "feat/123-some-branch" branch pushed to "github/feat/123-some-branch"
+    And an empty file named ".git/refs/remotes/origin/feat/123-some-branch"
+    Given the GitHub API server:
+      """
+      post('/repos/sam-hart-swanson/debug/pulls') {
+        assert :base  => 'master',
+               :head  => 'sam-hart-swanson:feat/123-some-branch',
+               :title => 'hereyougo'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Open pull request in web browser
     Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
