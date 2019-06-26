@@ -21,8 +21,8 @@ remote set-url [-p] [<OPTIONS>] <NAME> <USER>[/<REPOSITORY>]
 
 ## Options:
 	-p
-		(Deprecated) Use the 'ssh:' protocol instead of 'git:' for the remote URL.
-		The writeable 'ssh:' protocol is automatically used for own repos, GitHub
+		(Deprecated) Use the ''ssh:'' protocol instead of ''git:'' for the remote URL.
+		The writeable ''ssh:'' protocol is automatically used for own repos, GitHub
 		Enterprise remotes, and private or pushable repositories.
 
 	<USER>[/<REPOSITORY>]

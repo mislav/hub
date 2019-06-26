@@ -26,7 +26,7 @@ same-named branch on the remote, treat that as its upstream branch.
 ## Options:
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
-		of "always" (default for '--color'), "never", or "auto" (default).
+		of "always" (default for ''--color''), "never", or "auto" (default).
 
 ## See also:
 

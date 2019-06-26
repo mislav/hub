@@ -31,13 +31,13 @@ help hub-<COMMAND> [--plain-text]
 
 ## Lookup mechanism:
 
-On systems that have 'man', help pages are looked up in these directories
+On systems that have ''man'', help pages are looked up in these directories
 relative to the hub install prefix:
 
 * man/<command>.1
 * share/man/man1/<command>.1
 
-On systems without 'man', help pages are looked up using the ".txt" extension.
+On systems without ''man'', help pages are looked up using the ".txt" extension.
 
 ## See also:
 

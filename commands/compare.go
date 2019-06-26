@@ -32,7 +32,7 @@ compare [-uc] [-b <BASE>]
 		Branch names, tag names, or commit SHAs specifying the range to compare.
 		<END> defaults to the current branch name.
 
-		If a range with two dots ('A..B') is given, it will be transformed into a
+		If a range with two dots (''A..B'') is given, it will be transformed into a
 		range with three dots.
 
 ## Examples:

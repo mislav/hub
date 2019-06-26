@@ -113,8 +113,8 @@ pull-request -i <ISSUE>
 
 ## Configuration:
 
-	* 'HUB_RETRY_TIMEOUT':
-		The maximum time to keep retrying after HTTP 422 on '--push' (default: 9).
+	* ''HUB_RETRY_TIMEOUT'':
+		The maximum time to keep retrying after HTTP 422 on ''--push'' (default: 9).
 
 ## See also:
 

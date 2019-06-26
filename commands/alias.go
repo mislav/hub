@@ -18,7 +18,7 @@ var cmdAlias = &Command{
 
 ## Options
 	-s
-		Output shell script suitable for 'eval'.
+		Output shell script suitable for ''eval''.
 
 	<SHELL>
 		Specify the type of shell (default: "$SHELL" environment variable).
