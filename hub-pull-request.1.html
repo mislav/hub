@@ -133,15 +133,17 @@ selects the defaults in case of multiple git remotes.</p></dd>
 <dd><p>The head branch in &quot;[<var>OWNER</var>:]<var>BRANCH</var>&quot; format. Defaults to the currently
 checked out branch.</p></dd>
 <dt>-r, --reviewer <var>USERS</var></dt>
-<dd><p>A comma-separated list of GitHub handles to request a review from.</p></dd>
+<dd><p>A comma-separated list (no spaces around the comma) of GitHub handles to
+request a review from.</p></dd>
 <dt>-a, --assign <var>USERS</var></dt>
-<dd><p>A comma-separated list of GitHub handles to assign to this pull request.</p></dd>
+<dd><p>A comma-separated list (no spaces around the comma) of GitHub handles to
+assign to this pull request.</p></dd>
 <dt>-M, --milestone <var>NAME</var></dt>
 <dd><p>The milestone name to add to this pull request. Passing the milestone number
 is deprecated.</p></dd>
 <dt>-l, --labels <var>LABELS</var></dt>
-<dd><p>Add a comma-separated list of labels to this pull request. Labels will be
-created if they do not already exist.</p></dd>
+<dd><p>A comma-separated list (no spaces around the comma) of labels to add to
+this pull request. Labels will be created if they do not already exist.</p></dd>
 <dt>-d, --draft</dt>
 <dd><p>Create the pull request as a draft.</p></dd>
 <dt>--no-maintainer-edits</dt>
@@ -181,8 +183,8 @@ $ hub pull-request -F - --edit &lt; path/to/message-template.md
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.12.0</li>
-    <li class="tc">15 Jun 2019</li>
+    <li class="tl">hub version 2.12.1</li>
+    <li class="tc">28 Jun 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>
