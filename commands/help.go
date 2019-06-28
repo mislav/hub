@@ -10,6 +10,7 @@ import (
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/kballard/go-shellquote"
 )
 
 var cmdHelp = &Command{
@@ -120,12 +121,21 @@ func runListCmds(cmd *Command, args *Args) {
 }
 
 func displayManPage(manPage string, args *Args) error {
+	var manArgs []string
 	manProgram, _ := utils.CommandPath("man")
-	if manProgram == "" {
+	if manProgram != "" {
+		manArgs = []string{manProgram}
+	} else {
 		manPage += ".txt"
 		manProgram = os.Getenv("PAGER")
-		if manProgram == "" {
-			manProgram = "less -R"
+		if manProgram != "" {
+			var err error
+			manArgs, err = shellquote.Split(manProgram)
+			if err != nil {
+				return err
+			}
+		} else {
+			manArgs = []string{"less", "-R"}
 		}
 	}
 
@@ -140,8 +150,8 @@ func displayManPage(manPage string, args *Args) error {
 		return err
 	}
 
-	man := cmd.New(manProgram)
-	man.WithArg(manFile)
+	manArgs = append(manArgs, manFile)
+	man := cmd.NewWithArray(manArgs)
 	if err = man.Run(); err == nil {
 		os.Exit(0)
 	} else {
