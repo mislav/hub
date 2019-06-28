@@ -9,8 +9,6 @@ import (
 	"syscall"
 
 	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
-	"github.com/kballard/go-shellquote"
 )
 
 type Cmd struct {
@@ -123,14 +121,14 @@ func (cmd *Cmd) Exec() error {
 	return syscall.Exec(binary, args, os.Environ())
 }
 
-func New(cmd string) *Cmd {
-	cmds, err := shellquote.Split(cmd)
-	utils.Check(err)
-
-	name := cmds[0]
-	args := cmds[1:]
-
-	return &Cmd{Name: name, Args: args, Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
+func New(name string) *Cmd {
+	return &Cmd{
+		Name:   name,
+		Args:   []string{},
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+	}
 }
 
 func NewWithArray(cmd []string) *Cmd {
