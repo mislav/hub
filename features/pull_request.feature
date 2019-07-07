@@ -947,11 +947,12 @@ Feature: hub pull-request
     Then the output should contain exactly "the://url\n"
 
   Scenario: Current branch is pushed to remote without upstream configuration
-    Given git "push.default" is set to "upstream"
+    Given the "upstream" remote has url "git://github.com/lestephane/coral.git"
     And I am on the "feature" branch pushed to "origin/feature"
+    And git "push.default" is set to "upstream"
     Given the GitHub API server:
       """
-      post('/repos/mislav/coral/pulls') {
+      post('/repos/lestephane/coral/pulls') {
         assert :base  => 'master',
                :head  => 'mislav:feature'
         status 201
