@@ -140,23 +140,55 @@ func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (
 		return
 	}
 
-	if project != nil {
-		branch = branch.PushTarget(owner, preferUpstream)
-		if branch != nil && branch.IsRemote() {
-			remote, e := r.RemoteByName(branch.RemoteName())
+	if project == nil {
+		return
+	}
+
+	pushDefault, _ := git.Config("push.default")
+	if pushDefault == "upstream" || pushDefault == "tracking" {
+		upstream, e := branch.Upstream()
+		if e == nil && upstream.IsRemote() {
+			remote, e := r.RemoteByName(upstream.RemoteName())
 			if e == nil {
-				project, err = remote.Project()
-				if err != nil {
+				p, e := remote.Project()
+				if e == nil {
+					branch = upstream
+					project = p
 					return
 				}
 			}
 		}
 	}
 
+	shortName := branch.ShortName()
+	remotes := r.remotesForPublish(owner)
+	if preferUpstream {
+		// reverse the remote lookup order; see OriginNamesInLookupOrder
+		remotesInOrder := []Remote{}
+		for i := len(remotes) - 1; i >= 0; i-- {
+			remotesInOrder = append(remotesInOrder, remotes[i])
+		}
+		remotes = remotesInOrder
+	}
+
+	for _, remote := range remotes {
+		p, e := remote.Project()
+		if e != nil {
+			continue
+		}
+		// NOTE: this is similar RemoteForBranch
+		if git.HasFile("refs", "remotes", remote.Name, shortName) {
+			name := fmt.Sprintf("refs/remotes/%s/%s", remote.Name, shortName)
+			branch = &Branch{r, name}
+			project = p
+			return
+		}
+	}
+
+	branch = nil
 	return
 }
 
-// duplicates logic from PushTarget()
 func (r *GitHubRepo) RemoteForBranch(branch *Branch, owner string) *Remote {
 	branchName := branch.ShortName()
 	for _, remote := range r.remotesForPublish(owner) {
