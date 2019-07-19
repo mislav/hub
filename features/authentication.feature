@@ -241,6 +241,54 @@ Feature: OAuth authentication
     And the output should not contain "github.com username"
     And the file "../home/.config/hub" should not exist
 
+  Scenario: Credentials from GITHUB_TOKEN when obtaining username fails
+    Given I am in "git://github.com/monalisa/playground.git" git repo
+    Given the GitHub API server:
+      """
+      get('/user') {
+        status 403
+        json :message => "Resource not accessible by integration",
+             :documentation_url => "https://developer.github.com/v3/users/#get-the-authenticated-user"
+      }
+      """
+    Given $GITHUB_TOKEN is "OTOKEN"
+    Given $GITHUB_USER is ""
+    When I run `hub release show v1.2.0`
+    Then the output should not contain "github.com password"
+    And the output should not contain "github.com username"
+    And the file "../home/.config/hub" should not exist
+    And the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Error getting current user: Forbidden (HTTP 403)
+      Resource not accessible by integration
+      You must specify GITHUB_USER via environment variable.\n
+      """
+
+  Scenario: Credentials from GITHUB_TOKEN and GITHUB_USER
+    Given I am in "git://github.com/monalisa/playground.git" git repo
+    Given the GitHub API server:
+      """
+      get('/user') {
+        status 403
+        json :message => "Resource not accessible by integration",
+             :documentation_url => "https://developer.github.com/v3/users/#get-the-authenticated-user"
+      }
+      get('/repos/monalisa/playground/releases') {
+        halt 401 unless request.env["HTTP_AUTHORIZATION"] == "token OTOKEN"
+        json [
+          { tag_name: 'v1.2.0',
+          }
+        ]
+      }
+      """
+    Given $GITHUB_TOKEN is "OTOKEN"
+    Given $GITHUB_USER is "hubot"
+    When I successfully run `hub release show v1.2.0`
+    Then the output should not contain "github.com password"
+    And the output should not contain "github.com username"
+    And the file "../home/.config/hub" should not exist
+
   Scenario: Credentials from GITHUB_TOKEN override those from config file
     Given I am "mislav" on github.com with OAuth token "OTOKEN"
     Given the GitHub API server:

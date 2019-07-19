@@ -921,14 +921,15 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	return
 }
 
-func (client *Client) ensureAccessToken() (err error) {
+func (client *Client) ensureAccessToken() error {
 	if client.Host.AccessToken == "" {
 		host, err := CurrentConfig().PromptForHost(client.Host.Host)
-		if err == nil {
-			client.Host = host
+		if err != nil {
+			return err
 		}
+		client.Host = host
 	}
-	return
+	return nil
 }
 
 func (client *Client) simpleApi() (c *simpleClient, err error) {
@@ -1043,6 +1044,9 @@ func FormatError(action string, err error) (ee error) {
 			errorMessage = strings.Join(errorSentences, "\n")
 		} else {
 			errorMessage = e.Message
+			if action == "getting current user" && e.Message == "Resource not accessible by integration" {
+				errorMessage = errorMessage + "\nYou must specify GITHUB_USER via environment variable."
+			}
 		}
 
 		if errorMessage != "" {
