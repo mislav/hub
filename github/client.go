@@ -921,14 +921,15 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	return
 }
 
-func (client *Client) ensureAccessToken() (err error) {
+func (client *Client) ensureAccessToken() error {
 	if client.Host.AccessToken == "" {
 		host, err := CurrentConfig().PromptForHost(client.Host.Host)
-		if err == nil {
-			client.Host = host
+		if err != nil {
+			return err
 		}
+		client.Host = host
 	}
-	return
+	return nil
 }
 
 func (client *Client) simpleApi() (c *simpleClient, err error) {
