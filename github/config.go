@@ -87,11 +87,17 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		}
 	}
 
-	currentUser, err := client.CurrentUser()
-	if err != nil {
-		return
+	userFromEnv := os.Getenv("GITHUB_USER")
+	if tokenFromEnv && userFromEnv != "" {
+		h.User = userFromEnv
+	} else {
+		var currentUser *User
+		currentUser, err = client.CurrentUser()
+		if err != nil {
+			return
+		}
+		h.User = currentUser.Login
 	}
-	h.User = currentUser.Login
 
 	if !tokenFromEnv {
 		err = newConfigService().Save(configsFile(), c)

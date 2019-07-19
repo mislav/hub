@@ -1044,6 +1044,9 @@ func FormatError(action string, err error) (ee error) {
 			errorMessage = strings.Join(errorSentences, "\n")
 		} else {
 			errorMessage = e.Message
+			if action == "getting current user" && e.Message == "Resource not accessible by integration" {
+				errorMessage = errorMessage + "\nYou must specify GITHUB_USER via environment variable."
+			}
 		}
 
 		if errorMessage != "" {
