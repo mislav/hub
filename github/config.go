@@ -192,7 +192,7 @@ func getPassword() (string, error) {
 	}
 
 	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		s := <-c
 		terminal.Restore(stdin, initialTermState)
