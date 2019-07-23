@@ -516,8 +516,6 @@ func showIssue(cmd *Command, args *Args) {
 			ui.Printf("\n### comment by @%s on %s\n\n%s\n", comment.User.Login, comment.CreatedAt.String(), comment.Body)
 		}
 	}
-
-	return
 }
 
 func createIssue(cmd *Command, args *Args) {

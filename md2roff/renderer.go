@@ -107,9 +107,9 @@ func (r *RoffRenderer) RenderNode(buf io.Writer, node *blackfriday.Node, enterin
 
 	leaf := len(node.Literal) > 0
 	if leaf {
-		if bytes.Compare(node.Literal, enterVar) == 0 {
+		if bytes.Equal(node.Literal, enterVar) {
 			io.WriteString(buf, `\fI`)
-		} else if bytes.Compare(node.Literal, closeVar) == 0 {
+		} else if bytes.Equal(node.Literal, closeVar) {
 			io.WriteString(buf, `\fP`)
 		} else {
 			buf.Write(roffText(node.Literal))

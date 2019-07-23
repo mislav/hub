@@ -197,7 +197,7 @@ func customCommands() []string {
 		}
 	}
 
-	sort.Sort(sort.StringSlice(cmds))
+	sort.Strings(cmds)
 
 	return cmds
 }
