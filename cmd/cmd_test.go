@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"os"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -17,4 +18,32 @@ func TestWithArg(t *testing.T) {
 	execCmd.WithArg("command").WithArg("--amend").WithArg("-m").WithArg(`""`)
 	assert.Equal(t, "git", execCmd.Name)
 	assert.Equal(t, 4, len(execCmd.Args))
+}
+
+func TestInvokingShell(t *testing.T) {
+	sh := NewWithShell([]string{"$FOO", "hello"})
+	sh.WithArg("happy world")
+	defer func() {
+		os.Unsetenv("FOO")
+	}()
+
+	os.Setenv("FOO", "echo")
+
+	output, err := sh.Output()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "hello happy world\n", output)
+}
+
+func TestInvokingShellComplex(t *testing.T) {
+	sh := NewWithShell([]string{"$FOO hey", "hello"})
+	sh.WithArg("happy world")
+	defer func() {
+		os.Unsetenv("FOO")
+	}()
+
+	os.Setenv("FOO", "echo")
+
+	output, err := sh.Output()
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "hey hello happy world\n", output)
 }

@@ -29,17 +29,12 @@ func TestGitEditor(t *testing.T) {
 		if err := os.Setenv("GIT_EDITOR", editor); err != nil {
 			t.Fatal(err)
 		}
-		os.Unsetenv("FOO")
-		os.Unsetenv("BAR")
 	}()
 
-	os.Setenv("FOO", "hello")
-	os.Setenv("BAR", "happy world")
-
-	SetGlobalConfig("core.editor", `$FOO "${BAR}"`)
+	SetGlobalConfig("core.editor", "foo")
 	gitEditor, err := Editor()
 	assert.Equal(t, nil, err)
-	assert.Equal(t, `hello "happy world"`, gitEditor)
+	assert.Equal(t, "foo", gitEditor)
 }
 
 func TestGitLog(t *testing.T) {

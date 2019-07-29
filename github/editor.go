@@ -142,9 +142,9 @@ func openTextEditor(program, file string) error {
 	if err != nil {
 		return err
 	}
-	editCmd := cmd.NewWithArray(programArgs)
+	editCmd := cmd.NewWithShell([]string{program})
 	r := regexp.MustCompile(`\b(?:[gm]?vim)(?:\.exe)?$`)
-	if r.MatchString(editCmd.Name) {
+	if r.MatchString(programArgs[0]) {
 		editCmd.WithArg("--cmd")
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}

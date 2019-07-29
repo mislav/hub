@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -17,6 +18,7 @@ type Cmd struct {
 	Stdin  *os.File
 	Stdout *os.File
 	Stderr *os.File
+	Shell  bool
 }
 
 func (cmd Cmd) String() string {
@@ -135,9 +137,58 @@ func NewWithArray(cmd []string) *Cmd {
 	return &Cmd{Name: cmd[0], Args: cmd[1:], Stdin: os.Stdin, Stdout: os.Stdout, Stderr: os.Stderr}
 }
 
+func NewWithShell(cmd []string) *Cmd {
+	args := []string{"-c", fmt.Sprintf(`%s "$@"`, cmd[0])}
+	for _, arg := range cmd {
+		args = append(args, arg)
+	}
+	return &Cmd{
+		Name:   findShellPath(),
+		Args:   args,
+		Stdin:  os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+		Shell:  true,
+	}
+}
+
+// findShellPath returns the location of the `sh` binary, or `sh` if it is
+// likely to be found in the PATH.
+func findShellPath() string {
+	// If this is not Windows, we presume that it's a Unix system and the
+	// user has sh in the PATH already.
+	if runtime.GOOS != "windows" {
+		return "sh"
+	}
+
+	path := os.Getenv("PATH")
+	dirs := strings.Split(path, ";")
+
+	// Assume this is Cygwin or some Unix environment and our path is
+	// already set appropriately.
+	if len(dirs) == 1 {
+		return "sh"
+	}
+
+	for _, dir := range dirs {
+		// Git for Windows and PortableGit put the Git binary in the
+		// `cmd` directory, which is in the PATH, but sh.exe is in the
+		// `bin` directory next to it. If we found git.exe, put the
+		// directory with sh at the end of PATH so we can invoke it.
+		shPath := filepath.Join(dir, "..", "bin", "sh.exe")
+		if _, err := os.Stat(shPath); err == nil {
+			return shPath
+		}
+	}
+	return "sh"
+}
+
 func verboseLog(cmd *Cmd) {
 	if os.Getenv("HUB_VERBOSE") != "" {
 		msg := fmt.Sprintf("$ %s %s", cmd.Name, strings.Join(cmd.Args, " "))
+		if cmd.Shell {
+			msg = fmt.Sprintf("$ %s", strings.Join(cmd.Args[2:], " "))
+		}
 		if ui.IsTerminal(os.Stderr) {
 			msg = fmt.Sprintf("\033[35m%s\033[0m", msg)
 		}
