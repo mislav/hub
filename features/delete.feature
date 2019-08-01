@@ -23,7 +23,7 @@ Feature: hub delete
     Then the exit status should be 0
     And the output should contain:
       """
-      Really delete repository 'andreasbaumann/my-repo' (yes/N)?
+      Really delete repository 'andreasbaumann/my-repo'? (yes/N)
       """
     And the output should contain:
       """
@@ -42,7 +42,7 @@ Feature: hub delete
     Then the exit status should be 0
     And the output should contain:
       """
-      Really delete repository 'our-org/my-repo' (yes/N)?
+      Really delete repository 'our-org/my-repo'? (yes/N)
       """
     And the output should contain:
       """
@@ -55,7 +55,7 @@ Feature: hub delete
     Then the exit status should be 1
     And the output should contain:
       """
-      Really delete repository 'andreasbaumann/my-repo' (yes/N)?
+      Really delete repository 'andreasbaumann/my-repo'? (yes/N)
       """
     And the stderr should contain exactly:
       """
