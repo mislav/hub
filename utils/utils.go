@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"os"
@@ -116,4 +117,15 @@ func TimeAgo(t time.Time) string {
 		plural = "s"
 	}
 	return fmt.Sprintf("%d %s%s ago", val, unit, plural)
+}
+
+func Confirm(prompt string, args ...interface{}) bool {
+	ui.Printf(prompt+" (yes/N) ", args...)
+	answer := ""
+	scanner := bufio.NewScanner(os.Stdin)
+	if scanner.Scan() {
+		answer = strings.TrimSpace(scanner.Text())
+	}
+	Check(scanner.Err())
+	return answer == "yes"
 }

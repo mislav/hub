@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -69,14 +67,8 @@ func deleteRepo(command *Command, args *Args) {
 	gh := github.NewClient(project.Host)
 
 	if !args.Flag.Bool("--yes") {
-		ui.Printf("Really delete repository '%s' (yes/N)? ", project)
-		answer := ""
-		scanner := bufio.NewScanner(os.Stdin)
-		if scanner.Scan() {
-			answer = strings.TrimSpace(scanner.Text())
-		}
-		utils.Check(scanner.Err())
-		if answer != "yes" {
+		confirmed := utils.Confirm("Really delete repository '%s'?", project)
+		if !confirmed {
 			utils.Check(fmt.Errorf("Please type 'yes' for confirmation."))
 		}
 	}

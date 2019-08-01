@@ -54,3 +54,10 @@ Feature: hub sync
       """
       warning: `feature' was deleted on origin, but appears not merged into master\n
       """
+  
+  Scenario: Deletes local branch whose upstream was deleted but not merged to master when --force-delete was provided
+    Given I am on the "feature" branch with upstream "origin/feature"
+    And I successfully run `rm .git/refs/remotes/origin/feature`
+    And I successfully run `git update-ref refs/remotes/origin/master master`
+    When I successfully run `hub sync --delete-all --yes`
+    Then the output should contain "Deleted branch feature"

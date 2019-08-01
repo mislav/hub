@@ -13,7 +13,7 @@ import (
 
 var cmdSync = &Command{
 	Run:   sync,
-	Usage: "sync [--color]",
+	Usage: "sync [--color] [--delete-all] [--yes]",
 	Long: `Fetch git objects from upstream and update local branches.
 
 - If the local branch is outdated, fast-forward it;
@@ -27,6 +27,12 @@ same-named branch on the remote, treat that as its upstream branch.
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
 		of "always" (default for '--color'), "never", or "auto" (default).
+	--delete-all
+		Delete local branches whose upstream branch was deleted after confirmation,
+		even if it does not look merged. This will allow deleting branches merged
+		by squashing.
+	-y, --yes
+		Skip the confirmation prompt and immediately delete all branches.
 
 ## See also:
 
@@ -127,6 +133,16 @@ func sync(cmd *Command, args *Args) {
 				}
 				git.Quiet("branch", "-D", branch)
 				ui.Printf("%sDeleted branch %s%s%s (was %s).\n", red, lightRed, branch, resetColor, diff.A[0:7])
+			} else if args.Flag.HasReceived("--delete-all") {
+				confirmed := args.Flag.Bool("--yes") || utils.Confirm("Really delete branch '%s'?", branch)
+				if confirmed {
+					if branch == currentBranch {
+						git.Quiet("checkout", "--quiet", defaultBranch)
+						currentBranch = defaultBranch
+					}
+					git.Quiet("branch", "-D", branch)
+					ui.Printf("%sDeleted branch %s%s%s (was %s).\n", red, lightRed, branch, resetColor, diff.A[0:7])
+				}
 			} else {
 				ui.Errorf("warning: `%s' was deleted on %s, but appears not merged into %s\n", branch, remote.Name, defaultBranch)
 			}
