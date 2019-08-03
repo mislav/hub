@@ -32,7 +32,7 @@ The `hub` executable has no dependencies, but since it was designed to wrap
 
 #### Homebrew
 
-`hub` can be installed through [Homebrew/Linuxbrew](https://docs.brew.sh/Installation):
+`hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS or Linux:
 
 ``` sh
 $ brew install hub
