@@ -122,6 +122,9 @@ func executeCommands(cmds []*cmd.Cmd, execFinal bool) error {
 
 func expandAlias(args *Args) {
 	cmd := args.Command
+	if cmd == "" {
+		return
+	}
 	expandedCmd, err := git.Alias(cmd)
 
 	if err == nil && expandedCmd != "" && !git.IsBuiltInGitCommand(cmd) {
