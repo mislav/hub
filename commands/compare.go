@@ -67,17 +67,34 @@ func compare(command *Command, args *Args) {
 
 	flagCompareBase := args.Flag.Value("--base")
 
+	// Without any flags, try to figure out something sensible to do
 	if args.IsParamsEmpty() {
-		branch, project, err = localRepo.RemoteBranchAndProject("", false)
+		// First, check we're on a branch
+		localBranch, err := localRepo.CurrentBranch()
 		utils.Check(err)
 
-		if branch == nil ||
-			(branch.IsMaster() && flagCompareBase == "") ||
-			(flagCompareBase == branch.ShortName()) {
-			utils.Check(command.UsageError(""))
+		// If that branch has an explicit upstream, follow it
+		branch, err = localBranch.Upstream()
+		if err == nil {
+			// Look at the matching remote
+			remote, err := localRepo.RemoteByName(branch.RemoteName())
+			utils.Check(err)
+
+			// And match it to a project
+			project, err = remote.Project()
+			utils.Check(err)
 		} else {
-			r = branch.ShortName()
-			if flagCompareBase != "" {
+			// Otherwise assume a simple push strategy, that we're
+			// pushing to the same named branch on the default remote
+			branch = localBranch
+		}
+
+		r = branch.ShortName()
+
+		if flagCompareBase != "" {
+			if r == flagCompareBase {
+				utils.Check(command.UsageError(""))
+			} else {
 				r = parseCompareRange(flagCompareBase + "..." + r)
 			}
 		}
@@ -98,7 +115,7 @@ func compare(command *Command, args *Args) {
 				}
 				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), projectName, projectHost)
 				if project.Name == "" {
-					utils.Check(fmt.Errorf("error: missing project name (owner: %q)\n", project.Owner))
+					utils.Check(fmt.Errorf("Error: missing project name (owner: %q)\n", project.Owner))
 				}
 			}
 		}
