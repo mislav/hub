@@ -538,6 +538,65 @@ Feature: hub pull-request
     Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
+  Scenario: Title and body from commit
+    Given I am on the "topic" branch
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Solid feature implemented',
+               :body => 'And no bugs were introduced'
+        status 201
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    Given I make a commit with message:
+      """
+      Solid feature implemented
+
+      And no bugs were introduced
+      """
+    And I make a commit with message "Two on topic"
+    Given the "topic" branch is pushed to "origin/topic"
+    When I successfully run `hub pull-request -C HEAD^`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    Then the file ".git/PULLREQ_EDITMSG" should not exist
+
+  Scenario: Title and body from commit when PR template exists
+    Given I am on the "topic" branch
+    Given a file named "pull_request_template.md" with:
+      """
+      PR Template
+
+      With useful stuff
+      """
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        assert :title => 'Solid feature implemented',
+               :body => <<BODY.chomp
+      And no bugs were introduced
+
+
+      PR Template
+
+      With useful stuff
+      BODY
+        status 201
+        json :html_url => "https://github.com/mislav/coral/pull/12"
+      }
+      """
+    Given I make a commit with message:
+      """
+      Solid feature implemented
+
+      And no bugs were introduced
+      """
+    And I make a commit with message "Two on topic"
+    Given the "topic" branch is pushed to "origin/topic"
+    When I successfully run `hub pull-request -C HEAD^`
+    Then the output should contain exactly "https://github.com/mislav/coral/pull/12\n"
+    Then the file ".git/PULLREQ_EDITMSG" should not exist
+
   Scenario: Title and body from multiple command-line arguments
     Given I am on the "topic" branch pushed to "origin/topic"
     Given the GitHub API server:
