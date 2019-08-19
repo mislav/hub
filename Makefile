@@ -3,12 +3,13 @@ SOURCE_DATE_EPOCH ?= $(shell date +%s)
 BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
 HUB_VERSION = $(shell bin/hub version | tail -1)
 FLAGS_ALL = $(shell go version | grep -q 'go1.[89]' || echo 'all=')
-export MOD_VENDOR_ARG := $(shell go version | grep -q 'go1.1[^0]' && echo '-mod=vendor')
+export MOD_VENDOR_ARG := $(shell go version | grep -q 'go1.1[^01]' && echo '-mod=vendor')
 export LDFLAGS := -extldflags '$(LDFLAGS)'
 export GCFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
 export ASMFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
 
 ifneq ($(MOD_VENDOR_ARG),)
+	export GO111MODULE=on
 	unexport GOPATH
 endif
 
