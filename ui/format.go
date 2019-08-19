@@ -254,9 +254,9 @@ func (p *padder) truncate(s string, numReduce int) string {
 
 	switch p.truncing {
 	case truncRight:
-		return ".." + s[len(s)-numLeft:len(s)]
+		return ".." + s[len(s)-numLeft:]
 	case truncMiddle:
-		return s[:numLeft/2] + ".." + s[len(s)-(numLeft+1)/2:len(s)]
+		return s[:numLeft/2] + ".." + s[len(s)-(numLeft+1)/2:]
 	}
 
 	// Trunc left by default.

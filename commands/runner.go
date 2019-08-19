@@ -134,7 +134,7 @@ func expandAlias(args *Args) {
 }
 
 func isBuiltInHubCommand(command string) bool {
-	for hubCommand, _ := range CmdRunner.All() {
+	for hubCommand := range CmdRunner.All() {
 		if hubCommand == command {
 			return true
 		}

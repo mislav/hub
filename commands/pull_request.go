@@ -371,7 +371,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 					numRetries += 1
 				} else {
 					if numRetries > 0 {
-						duration := time.Now().Sub(startedAt)
+						duration := time.Since(startedAt)
 						err = fmt.Errorf("%s\nGiven up after retrying for %.1f seconds.", err, duration.Seconds())
 					}
 					break
