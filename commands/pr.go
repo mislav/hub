@@ -394,15 +394,12 @@ func deducePushTarget(branch *github.Branch, owner string) (*github.Project, err
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {
 	placeholders := formatIssuePlaceholders(github.Issue(pr), colorize)
-	deletePlaceholders(placeholders, []string{"NC", "Nc"})
+	delete(placeholders, "NC")
+	delete(placeholders, "Nc")
+
 	for key, value := range formatPullRequestPlaceholders(pr, colorize) {
 		placeholders[key] = value
 	}
 	return ui.Expand(format, placeholders, colorize)
 }
 
-func deletePlaceholders(placeholders map[string]string, keys []string) {
-	for _, key := range keys {
-		delete(placeholders, key)
-	}
-}
