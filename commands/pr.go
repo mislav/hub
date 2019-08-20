@@ -94,10 +94,6 @@ pr show [-uc] <PR-NUMBER>
 
 		%Mt: milestone title
 
-		%NC: number of comments
-
-		%Nc: number of comments wrapped in parentheses, or blank string if zero.
-
 		%cD: created date-only (no time of day)
 
 		%cr: created date, relative
@@ -398,6 +394,9 @@ func deducePushTarget(branch *github.Branch, owner string) (*github.Project, err
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {
 	placeholders := formatIssuePlaceholders(github.Issue(pr), colorize)
+	delete(placeholders, "NC")
+	delete(placeholders, "Nc")
+
 	for key, value := range formatPullRequestPlaceholders(pr, colorize) {
 		placeholders[key] = value
 	}
