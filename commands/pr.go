@@ -402,4 +402,3 @@ func formatPullRequest(pr github.PullRequest, format string, colorize bool) stri
 	}
 	return ui.Expand(format, placeholders, colorize)
 }
-
