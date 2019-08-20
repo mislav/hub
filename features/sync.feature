@@ -52,5 +52,5 @@ Feature: hub sync
     When I successfully run `hub sync`
     Then the stderr should contain exactly:
       """
-      warning: 'feature' was deleted on origin, but appears not merged into master\n
+      warning: 'feature' was deleted on origin, but appears not merged into 'master'\n
       """

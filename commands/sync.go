@@ -128,7 +128,7 @@ func sync(cmd *Command, args *Args) {
 				git.Quiet("branch", "-D", branch)
 				ui.Printf("%sDeleted branch %s%s%s (was %s).\n", red, lightRed, branch, resetColor, diff.A[0:7])
 			} else {
-				ui.Errorf("warning: '%s' was deleted on %s, but appears not merged into %s\n", branch, remote.Name, defaultBranch)
+				ui.Errorf("warning: '%s' was deleted on %s, but appears not merged into '%s'\n", branch, remote.Name, defaultBranch)
 			}
 		}
 	}
