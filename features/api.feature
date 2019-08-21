@@ -230,7 +230,7 @@ Feature: hub api
       """
     Then the output should contain exactly:
       """
-      .query	query {\n  repository\n}\n\n
+      .query	query {\n  repository\n}\n
       """
 
   Scenario: POST body from file
@@ -309,7 +309,7 @@ Feature: hub api
       """
     Then the output should contain exactly:
       """
-      .query	repository(owner: "octocat", name: "Hello-World")\n\n
+      .query	repository(owner: "octocat", name: "Hello-World")\n
       """
 
   Scenario: Cache response
@@ -321,13 +321,10 @@ Feature: hub api
         json :count => count
       }
       """
-    When I successfully run `hub api -t 'count?a=1&b=2' --cache 5`
-    And I successfully run `hub api -t 'count?b=2&a=1' --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	1\n
-      """
+    When I run `hub api -t 'count?a=1&b=2' --cache 5`
+    Then it should pass with ".count	1"
+    When I run `hub api -t 'count?b=2&a=1' --cache 5`
+    Then it should pass with ".count	1"
 
   Scenario: Cache graphql response
     Given the GitHub API server:
@@ -339,15 +336,12 @@ Feature: hub api
         json :count => count
       }
       """
-    When I successfully run `hub api -t graphql -F query=Q1 --cache 5`
-    And I successfully run `hub api -t graphql -F query=Q1 --cache 5`
-    And I successfully run `hub api -t graphql -F query=Q2 --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	1
-      .count	2\n
-      """
+    When I run `hub api -t graphql -F query=Q1 --cache 5`
+    Then it should pass with ".count	1"
+    When I run `hub api -t graphql -F query=Q1 --cache 5`
+    Then it should pass with ".count	1"
+    When I run `hub api -t graphql -F query=Q2 --cache 5`
+    Then it should pass with ".count	2"
 
   Scenario: Cache client error response
     Given the GitHub API server:
@@ -360,12 +354,9 @@ Feature: hub api
       }
       """
     When I run `hub api -t count --cache 5`
-    And I run `hub api -t count --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	1\n
-      """
+    Then it should fail with ".count	1"
+    When I run `hub api -t count --cache 5`
+    Then it should fail with ".count	1"
     And the exit status should be 22
 
   Scenario: Avoid caching server error response
@@ -379,14 +370,11 @@ Feature: hub api
       }
       """
     When I run `hub api -t count --cache 5`
-    And I successfully run `hub api -t count --cache 5`
-    And I successfully run `hub api -t count --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	2
-      .count	2\n
-      """
+    Then it should fail with ".count	1"
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	2"
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	2"
 
   Scenario: Avoid caching response if the OAuth token changes
     Given the GitHub API server:
@@ -397,11 +385,8 @@ Feature: hub api
         json :count => count
       }
       """
-    When I successfully run `hub api -t count --cache 5`
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	1"
     Given I am "octocat" on github.com with OAuth token "TOKEN2"
-    When I successfully run `hub api -t count --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	2\n
-      """
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	2"

@@ -359,7 +359,7 @@ MARKDOWN
       ### Hello to my release
 
       Here is what's broken:
-      - everything\n\n
+      - everything\n
       """
 
   Scenario: Show release no tag
@@ -479,7 +479,7 @@ MARKDOWN
       KITTENS EVERYWHERE
       """
     When I successfully run `hub release edit --draft=false v1.2.0`
-    Then there should be no output
+    Then the output should not contain anything
 
   Scenario: Edit existing release when there is a fork
     Given the "doge" remote has url "git://github.com/doge/will_paginate.git"
@@ -498,7 +498,7 @@ MARKDOWN
       }
       """
     When I successfully run `hub release edit -m "" v1.2.0`
-    Then there should be no output
+    Then the output should not contain anything
 
   Scenario: Edit existing release no title
     Given the GitHub API server:
@@ -632,7 +632,7 @@ MARKDOWN
       }
       """
     When I successfully run `hub release delete v1.2.0`
-    Then there should be no output
+    Then the output should not contain anything
 
   Scenario: Release not found
     Given the GitHub API server:

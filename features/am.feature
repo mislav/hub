@@ -16,7 +16,7 @@ Feature: hub am
       }
       """
     When I successfully run `hub am -q -3 https://github.com/mislav/dotfiles/pull/387`
-    Then there should be no output
+    Then the output should not contain anything
     Then the latest commit message should be "Create a README"
 
   Scenario: Apply commits when TMPDIR is empty

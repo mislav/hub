@@ -33,9 +33,9 @@ Feature: OAuth authentication
     Then the output should contain "github.com username:"
     And the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "user: MiSlAv"
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-    And the file "../home/.config/hub" should have mode "0600"
+    And the file "~/.config/hub" should contain "user: MiSlAv"
+    And the file "~/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "~/.config/hub" should have mode "0600"
 
   Scenario: Prompt for username & password, receive personal access token
     Given the GitHub API server:
@@ -194,10 +194,10 @@ Feature: OAuth authentication
     And $XDG_CONFIG_HOME is "$HOME/.xdg"
     When I successfully run `hub create`
     Then the file "../home/.xdg/hub" should contain "oauth_token: OTOKEN"
-    And the stderr should contain exactly:
+    And the stderr with expanded variables should contain exactly:
       """
-      Notice: config file found but not respected at: $HOME/.config/hub
-      You might want to move it to `$HOME/.xdg/hub' to avoid re-authenticating.\n
+      Notice: config file found but not respected at: <$HOME>/.config/hub
+      You might want to move it to `<$HOME>/.xdg/hub' to avoid re-authenticating.\n
       """
 
   Scenario: XDG: config from secondary directories
@@ -489,9 +489,9 @@ Feature: OAuth authentication
   Scenario: Config file is not writeable on default location, should exit before asking for credentials
       Given a directory named "../home/.config" with mode "600"
       When I run `hub create` interactively
-      Then the output should contain:
+      Then the output with expanded variables should contain:
         """
-        $HOME/.config/hub: permission denied\n
+        <$HOME>/.config/hub: permission denied\n
         """
       And the exit status should be 1
       And the file "../home/.config/hub" should not exist
