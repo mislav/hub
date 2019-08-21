@@ -192,10 +192,6 @@ Then(/^"([^"]+)" should not be run$/) do |pattern|
   history.each { |h| expect(h).to_not include(pattern) }
 end
 
-Then(/^there should be no output$/) do
-  expect(all_output).to eq('')
-end
-
 Then(/^the git command should be unchanged$/) do
   expect(@commands).to_not be_empty
   assert_command_run @commands.last.sub(/^hub\b/, 'git')

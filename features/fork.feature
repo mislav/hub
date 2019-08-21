@@ -93,7 +93,7 @@ Feature: hub fork
       }
       """
     When I successfully run `hub fork --no-remote`
-    Then there should be no output
+    Then the output should not contain anything
     And there should be no "mislav" remote
 
   Scenario: Fork failed
