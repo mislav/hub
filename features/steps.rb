@@ -284,7 +284,7 @@ end
 
 When(/^I pass in:$/) do |input|
   type(input)
-  @interactive.stdin.close
+  close_input
 end
 
 Given(/^the git commit editor is "([^"]+)"$/) do |cmd|
