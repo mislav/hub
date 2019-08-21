@@ -80,39 +80,6 @@ RSpec::Matchers.define :be_successfully_executed do
   end
 end
 
-class SimpleCommand
-  attr_reader :output
-
-  def initialize cmd
-    @cmd = cmd
-  end
-
-  def to_s
-    @cmd
-  end
-
-  def self.run cmd
-    command = new(cmd)
-    command.run
-    command
-  end
-
-  def run
-    @output = `#{@cmd} 2>&1`.chomp
-    @status = $?
-    $?.success?
-  end
-
-  def stop
-  end
-  alias stderr output
-  alias commandline to_s
-
-  def exit_status
-    @status.exitstatus
-  end
-end
-
 World Module.new {
   # If there are multiple inputs, e.g., type in username and then type in password etc.,
   # the Go program will freeze on the second input. Giving it a small time interval
@@ -156,20 +123,12 @@ World Module.new {
     }
   end
 
-  def run_silent cmd
-    cd('.') do
-      command = SimpleCommand.run(cmd)
-      expect(command).to be_successfully_executed
-      command.output
-    end
-  end
-
   def empty_commit(message = nil)
     unless message
       @empty_commit_count = defined?(@empty_commit_count) ? @empty_commit_count + 1 : 1
       message = "empty #{@empty_commit_count}"
     end
-    run_silent "git commit --quiet -m '#{message}' --allow-empty"
+    run_command_and_stop "git commit --quiet -m '#{message}' --allow-empty"
   end
 
   # Aruba unnecessarily creates new Announcer instance on each invocation
