@@ -150,7 +150,7 @@ PATCH
           end
 
           Timeout.timeout(5) { @server_thread.join(0.01) until responsive? }
-        rescue TimeoutError
+        rescue Timeout::Error
           tries += 1
           retry if tries < 3
           raise "Rack application timed out during boot after #{tries} tries"
