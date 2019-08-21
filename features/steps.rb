@@ -218,13 +218,6 @@ Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
   expect(mode.to_s(8)).to match(/#{expected_mode}$/)
 end
 
-Given(/^the file named "(.+?)" is older than hub source$/) do |file|
-  prep_for_fs_check do
-    time = File.mtime(File.expand_path('../../lib/hub/commands.rb', __FILE__)) - 60
-    File.utime(time, time, file)
-  end
-end
-
 Given(/^the remote commit states of "(.*?)" "(.*?)" are:$/) do |proj, ref, json_value|
   if ref == 'HEAD'
     empty_commit
