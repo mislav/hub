@@ -67,23 +67,21 @@ After do
   FileUtils.rm_f("#{bin_dir}/vim")
 end
 
-RSpec::Matchers.define :be_successful_command do
+RSpec::Matchers.define :be_successfully_executed do
   match do |cmd|
-    cmd.success?
+    expect(cmd).to have_exit_status(0)
   end
 
   failure_message do |cmd|
-    %(command "#{cmd}" exited with status #{cmd.status}:) <<
-      cmd.output.gsub(/^/, ' ' * 2)
+    msg = %(command `#{cmd.commandline}` exited with status #{cmd.exit_status})
+    stderr = cmd.stderr
+    msg << ":\n" << stderr.gsub(/^/, '  ') unless stderr.empty?
+    msg
   end
 end
 
 class SimpleCommand
   attr_reader :output
-  extend Forwardable
-
-  def_delegator :@status, :exitstatus, :status
-  def_delegators :@status, :success?
 
   def initialize cmd
     @cmd = cmd
@@ -103,6 +101,15 @@ class SimpleCommand
     @output = `#{@cmd} 2>&1`.chomp
     @status = $?
     $?.success?
+  end
+
+  def stop
+  end
+  alias stderr output
+  alias commandline to_s
+
+  def exit_status
+    @status.exitstatus
   end
 end
 
@@ -150,9 +157,9 @@ World Module.new {
   end
 
   def run_silent cmd
-    in_current_dir do
+    in_current_directory do
       command = SimpleCommand.run(cmd)
-      expect(command).to be_successful_command
+      expect(command).to be_successfully_executed
       command.output
     end
   end

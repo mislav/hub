@@ -55,23 +55,22 @@ Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
 end
 
 Given(/^a (bare )?git repo in "([^"]*)"$/) do |bare, dir_name|
-  step %(a directory named "#{dir_name}")
-  dirs << dir_name
-  step %(I successfully run `git init --quiet #{"--bare" if bare}`)
-  dirs.pop
+  cmd = SimpleCommand.run(%(git init --quiet #{"--bare" if bare} '#{expand_path(dir_name)}'))
+  expect(cmd).to be_successfully_executed
 end
 
 Given(/^a git bundle named "([^"]*)"$/) do |file|
-  in_current_dir do
-    FileUtils.mkdir_p File.dirname(file)
-    dest = File.expand_path(file)
+  dest = expand_path(file)
+  FileUtils.mkdir_p(File.dirname(dest))
 
-    Dir.mktmpdir do |tmpdir|
-      dirs << tmpdir
-      run_silent %(git init --quiet)
-      empty_commit
-      run_silent %(git bundle create "#{dest}" master)
-      dirs.pop
+  Dir.mktmpdir do |tmpdir|
+    Dir.chdir(tmpdir) do
+      cmd = SimpleCommand.run(%(git init --quiet))
+      expect(cmd).to be_successfully_executed
+      cmd = SimpleCommand.run(%(git commit --quiet -m 'empty' --allow-empty))
+      expect(cmd).to be_successfully_executed
+      cmd = SimpleCommand.run(%(git bundle create "#{dest}" master))
+      expect(cmd).to be_successfully_executed
     end
   end
 end
@@ -86,7 +85,7 @@ end
 Given(/^there is a git FETCH_HEAD$/) do
   empty_commit
   empty_commit
-  in_current_dir do
+  in_current_directory do
     File.open(".git/FETCH_HEAD", "w") do |fetch_head|
       fetch_head.puts "%s\t\t'refs/heads/made-up' of git://github.com/made/up.git" % `git rev-parse HEAD`.chomp
     end
@@ -110,7 +109,7 @@ end
 
 Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
   full_upstream = ".git/refs/remotes/#{upstream}"
-  in_current_dir do
+  in_current_directory do
     FileUtils.mkdir_p File.dirname(full_upstream)
     FileUtils.cp ".git/refs/heads/#{name}", full_upstream
   end
@@ -131,7 +130,7 @@ Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/)
 end
 
 Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|
-  in_current_dir do
+  in_current_directory do
     ref_file = ".git/refs/remotes/#{remote}/#{branch}"
     unless File.exist? ref_file
       empty_commit unless File.exist? '.git/refs/heads/master'
@@ -149,15 +148,8 @@ Given(/^I am in detached HEAD$/) do
 end
 
 Given(/^the current dir is not a repo$/) do
-  in_current_dir do
+  in_current_directory do
     FileUtils.rm_rf '.git'
-  end
-end
-
-When(/^I move the file named "([^"]+)" to "([^"]+)"?$/) do |source, dest|
-  in_current_dir do
-    FileUtils.mkdir_p(File.dirname(dest))
-    FileUtils.mv(source, dest)
   end
 end
 
@@ -176,7 +168,7 @@ Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|
 end
 
 Then(/^shell$/) do
-  in_current_dir do
+  in_current_directory do
     system '/bin/bash -i'
   end
 end
@@ -315,7 +307,7 @@ Given(/^the SSH config:$/) do |config_lines|
 end
 
 Given(/^the SHAs and timestamps are normalized in "([^"]+)"$/) do |file|
-  in_current_dir do
+  in_current_directory do
     contents = File.read(file)
     contents.gsub!(/[0-9a-f]{7} \(Hub, \d seconds? ago\)/, "SHA1SHA (Hub, 0 seconds ago)")
     File.open(file, "w") { |f| f.write(contents) }
