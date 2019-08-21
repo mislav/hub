@@ -202,10 +202,10 @@ end
 
 Then(/^"([^"]*)" should merge "([^"]*)" from remote "([^"]*)"$/) do |name, merge, remote|
   run_command_and_stop %(git config --get-all branch.#{name}.remote)
-  expect(last_command_started).to have_output(actual_remote)
+  expect(last_command_started).to have_output(remote)
 
   run_command_and_stop %(git config --get-all branch.#{name}.merge)
-  expect(last_command_started).to have_output(actual_merge)
+  expect(last_command_started).to have_output(merge)
 end
 
 Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
