@@ -55,11 +55,6 @@ Before do
   set_environment_variable 'HUB_PROTOCOL', nil
 
   FileUtils.mkdir_p(expand_path('~'))
-
-  # increase process exit timeout from the default of 3 seconds
-  @aruba_timeout_seconds = 10
-  # don't be "helpful"
-  @aruba_keep_ansi = true
 end
 
 After do
@@ -129,11 +124,6 @@ World Module.new {
       message = "empty #{@empty_commit_count}"
     end
     run_command_and_stop "git commit --quiet -m '#{message}' --allow-empty"
-  end
-
-  # Aruba unnecessarily creates new Announcer instance on each invocation
-  def announcer
-    @announcer ||= super
   end
 
   def shell_escape(message)
