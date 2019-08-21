@@ -40,7 +40,8 @@ Given(/^I am "([^"]*)" on ([\S]+)(?: with OAuth token "([^"]*)")?$/) do |name, h
 end
 
 Given(/^\$(\w+) is "([^"]*)"$/) do |name, value|
-  set_env name, value.gsub(/\$([A-Z_]+)/) { ENV.fetch($1) }
+  expanded_value = value.gsub(/\$([A-Z_]+)/) { aruba.environment[$1] }
+  set_environment_variable(name, expanded_value)
 end
 
 Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
@@ -165,13 +166,13 @@ Given(/^the GitHub API server:$/) do |endpoints_str|
     eval endpoints_str, binding
   end
   # hit our Sinatra server instead of github.com
-  set_env 'HUB_TEST_HOST', "http://127.0.0.1:#{@server.port}"
+  set_environment_variable 'HUB_TEST_HOST', "http://127.0.0.1:#{@server.port}"
 end
 
 Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|
   address ||= 'localhost:8888'
-  set_env 'HTTP_PROXY', address
-  set_env 'HTTPS_PROXY', address
+  set_environment_variable 'HTTP_PROXY', address
+  set_environment_variable 'HTTPS_PROXY', address
 end
 
 Then(/^shell$/) do
@@ -304,11 +305,11 @@ When(/^I pass in:$/) do |input|
 end
 
 Given(/^the git commit editor is "([^"]+)"$/) do |cmd|
-  set_env('GIT_EDITOR', cmd)
+  set_environment_variable('GIT_EDITOR', cmd)
 end
 
 Given(/^the SSH config:$/) do |config_lines|
-  ssh_config = "#{ENV['HOME']}/.ssh/config"
+  ssh_config = expand_path('~/.ssh/config')
   FileUtils.mkdir_p(File.dirname(ssh_config))
   File.open(ssh_config, 'w') {|f| f << config_lines }
 end

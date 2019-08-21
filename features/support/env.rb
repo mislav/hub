@@ -10,51 +10,51 @@ raise 'hub build failed' unless system("./script/build -o #{hub_dir}/hub")
 
 Before do
   # speed up load time by skipping RubyGems
-  set_env 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
+  set_environment_variable 'RUBYOPT', '--disable-gems' if RUBY_VERSION > '1.9'
   # put fakebin on the PATH
-  set_env 'PATH', "#{hub_dir}:#{bin_dir}:#{ENV['PATH']}"
+  set_environment_variable 'PATH', "#{hub_dir}:#{bin_dir}:#{ENV['PATH']}"
   # clear out GIT if it happens to be set
-  set_env 'GIT', nil
+  set_environment_variable 'GIT', nil
   # exclude this project's git directory from use in testing
-  set_env 'GIT_CEILING_DIRECTORIES', File.expand_path('../../..', __FILE__)
+  set_environment_variable 'GIT_CEILING_DIRECTORIES', File.expand_path('../../..', __FILE__)
   # sabotage git commands that might try to access a remote host
-  set_env 'GIT_PROXY_COMMAND', 'echo'
+  set_environment_variable 'GIT_PROXY_COMMAND', 'echo'
   # avoids reading from current user's "~/.gitconfig"
-  set_env 'HOME', File.expand_path(File.join(current_dir, 'home'))
-  set_env 'TMPDIR', File.expand_path(File.join(current_dir, 'tmp'))
+  set_environment_variable 'HOME', expand_path('home')
+  set_environment_variable 'TMPDIR', expand_path('tmp')
   # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
-  set_env 'XDG_CONFIG_HOME', nil
-  set_env 'XDG_CONFIG_DIRS', nil
+  set_environment_variable 'XDG_CONFIG_HOME', nil
+  set_environment_variable 'XDG_CONFIG_DIRS', nil
   # used in fakebin/git
-  set_env 'HUB_SYSTEM_GIT', system_git
+  set_environment_variable 'HUB_SYSTEM_GIT', system_git
   # ensure that api.github.com is actually never hit in tests
-  set_env 'HUB_TEST_HOST', 'http://127.0.0.1:0'
+  set_environment_variable 'HUB_TEST_HOST', 'http://127.0.0.1:0'
   # ensure we use fakebin `open` to test browsing
-  set_env 'BROWSER', 'open'
+  set_environment_variable 'BROWSER', 'open'
   # sabotage opening a commit message editor interactively
-  set_env 'GIT_EDITOR', 'false'
+  set_environment_variable 'GIT_EDITOR', 'false'
   # reset current localization settings
-  set_env 'LANG', nil
-  set_env 'LANGUAGE', nil
-  set_env 'LC_ALL', 'en_US.UTF-8'
+  set_environment_variable 'LANG', nil
+  set_environment_variable 'LANGUAGE', nil
+  set_environment_variable 'LC_ALL', 'en_US.UTF-8'
   # ignore current user's token
-  set_env 'GITHUB_TOKEN', nil
-  set_env 'GITHUB_USER', nil
-  set_env 'GITHUB_PASSWORD', nil
-  set_env 'GITHUB_HOST', nil
+  set_environment_variable 'GITHUB_TOKEN', nil
+  set_environment_variable 'GITHUB_USER', nil
+  set_environment_variable 'GITHUB_PASSWORD', nil
+  set_environment_variable 'GITHUB_HOST', nil
 
   author_name  = "Hub"
   author_email = "hub@test.local"
-  set_env 'GIT_AUTHOR_NAME',     author_name
-  set_env 'GIT_COMMITTER_NAME',  author_name
-  set_env 'GIT_AUTHOR_EMAIL',    author_email
-  set_env 'GIT_COMMITTER_EMAIL', author_email
+  set_environment_variable 'GIT_AUTHOR_NAME',     author_name
+  set_environment_variable 'GIT_COMMITTER_NAME',  author_name
+  set_environment_variable 'GIT_AUTHOR_EMAIL',    author_email
+  set_environment_variable 'GIT_COMMITTER_EMAIL', author_email
 
-  set_env 'HUB_VERSION', 'dev'
-  set_env 'HUB_REPORT_CRASH', 'never'
-  set_env 'HUB_PROTOCOL', nil
+  set_environment_variable 'HUB_VERSION', 'dev'
+  set_environment_variable 'HUB_REPORT_CRASH', 'never'
+  set_environment_variable 'HUB_PROTOCOL', nil
 
-  FileUtils.mkdir_p ENV['HOME']
+  FileUtils.mkdir_p(expand_path('~'))
 
   # increase process exit timeout from the default of 3 seconds
   @aruba_timeout_seconds = 10
@@ -116,7 +116,7 @@ World Module.new {
   end
 
   def history
-    histfile = File.join(ENV['HOME'], '.history')
+    histfile = expand_path('~/.history')
     if File.exist? histfile
       File.readlines histfile
     else
@@ -130,7 +130,7 @@ World Module.new {
   end
 
   def edit_hub_config
-    config = File.join(ENV['HOME'], '.config/hub')
+    config = expand_path('~/.config/hub')
     FileUtils.mkdir_p File.dirname(config)
     if File.exist? config
       data = YAML.load File.read(config)
@@ -176,7 +176,7 @@ World Module.new {
 
   %w[output_from stdout_from stderr_from all_stdout all_stderr].each do |m|
     define_method(m) do |*args|
-      home = ENV['HOME'].to_s
+      home = aruba.environment['HOME'].to_s
       output = super(*args)
       if home.empty?
         output
