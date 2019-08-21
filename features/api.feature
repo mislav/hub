@@ -294,6 +294,20 @@ Feature: hub api
       {"commits":12}
       """
 
+  Scenario: Multiple string interpolation
+    Given I am in "git://github.com/octocat/Hello-World.git" git repo
+    Given the GitHub API server:
+      """
+      get('/repos/octocat/Hello-World/pulls') {
+        json(params)
+      }
+      """
+    When I successfully run `hub api repos/{owner}/{repo}/pulls?head={owner}:{repo}`
+    Then the output should contain exactly:
+      """
+      {"head":"octocat:Hello-World"}
+      """
+
   Scenario: Repo context in graphql
     Given I am in "git://github.com/octocat/Hello-World.git" git repo
     Given the GitHub API server:
@@ -305,11 +319,11 @@ Feature: hub api
     When I run `hub api -t -F query=@- graphql` interactively
     And I pass in:
       """
-      repository(owner: "{owner}", name: "{repo}")
+      repository(owner: "{owner}", name: "{repo}", nameWithOwner: "{owner}/{repo}")
       """
     Then the output should contain exactly:
       """
-      .query	repository(owner: "octocat", name: "Hello-World")\n
+      .query	repository(owner: "octocat", name: "Hello-World", nameWithOwner: "octocat/Hello-World")\n
       """
 
   Scenario: Cache response

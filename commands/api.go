@@ -193,8 +193,8 @@ func apiCommand(cmd *Command, args *Args) {
 	isGraphQL := path == "graphql"
 	if isGraphQL && params["query"] != nil {
 		query := params["query"].(string)
-		query = strings.Replace(query, quote("{owner}"), quote(owner), 1)
-		query = strings.Replace(query, quote("{repo}"), quote(repo), 1)
+		query = strings.Replace(query, "{owner}", owner, -1)
+		query = strings.Replace(query, "{repo}", repo, -1)
 
 		variables := make(map[string]interface{})
 		for key, value := range params {
@@ -209,8 +209,8 @@ func apiCommand(cmd *Command, args *Args) {
 
 		params["query"] = query
 	} else {
-		path = strings.Replace(path, "{owner}", owner, 1)
-		path = strings.Replace(path, "{repo}", repo, 1)
+		path = strings.Replace(path, "{owner}", owner, -1)
+		path = strings.Replace(path, "{repo}", repo, -1)
 	}
 
 	var body interface{}
@@ -329,8 +329,4 @@ func readFile(file string) (content []byte) {
 	}
 	utils.Check(err)
 	return
-}
-
-func quote(s string) string {
-	return fmt.Sprintf("%q", s)
 }
