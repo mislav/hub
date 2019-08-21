@@ -107,6 +107,11 @@ Then(/^the latest commit message should be "([^"]+)"$/) do |subject|
   step %(the output should contain exactly "#{subject}\\n")
 end
 
+# expand `<$HOME>` etc. in matched text
+Then(/^(the (?:output|stderr|stdout)) with expanded variables( should contain(?: exactly)?:)/) do |prefix, postfix, text|
+  step %(#{prefix}#{postfix}), text.gsub(/<\$(\w+)>/) { aruba.environment[$1] }
+end
+
 Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
   full_upstream = ".git/refs/remotes/#{upstream}"
   cd('.') do

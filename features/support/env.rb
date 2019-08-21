@@ -180,16 +180,4 @@ World Module.new {
   def shell_escape(message)
     message.to_s.gsub(/['"\\ $]/) { |m| "\\#{m}" }
   end
-
-  %w[output_from stdout_from stderr_from all_output all_stdout all_stderr].each do |m|
-    define_method(m) do |*args|
-      home = aruba.environment['HOME'].to_s
-      output = super(*args)
-      if home.empty?
-        output
-      else
-        output.gsub(home, '$HOME')
-      end
-    end
-  end
 }
