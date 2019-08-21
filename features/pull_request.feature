@@ -1265,7 +1265,7 @@ Feature: hub pull-request
     And "git push --set-upstream upstream HEAD:topic" should be run
 
   Scenario: Automatically retry when --push resulted in 422
-    Given The default aruba exit timeout is 7 seconds
+    Given the default aruba exit timeout is 7 seconds
     And the text editor adds:
       """
       hello!
@@ -1300,7 +1300,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Eventually give up on retries for --push
-    Given The default aruba exit timeout is 7 seconds
+    Given the default aruba exit timeout is 7 seconds
     And the text editor adds:
       """
       hello!
