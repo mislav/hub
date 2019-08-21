@@ -359,7 +359,7 @@ MARKDOWN
       ### Hello to my release
 
       Here is what's broken:
-      - everything\n\n
+      - everything\n
       """
 
   Scenario: Show release no tag
