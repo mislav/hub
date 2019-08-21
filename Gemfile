@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
 
-gem 'aruba', '~> 0.5.3'
-gem 'cucumber', '~> 1.3.9'
+gem 'aruba', '~> 0.5'
+gem 'cucumber', '~> 2.4'
 gem 'sinatra'
