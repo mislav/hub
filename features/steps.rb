@@ -190,7 +190,7 @@ Then(/^"([^"]+)" should not be run$/) do |pattern|
 end
 
 Then(/^there should be no output$/) do
-  assert_exact_output('', all_output)
+  expect(all_output).to eq('')
 end
 
 Then(/^the git command should be unchanged$/) do
@@ -222,10 +222,8 @@ Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
 end
 
 Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
-  prep_for_fs_check do
-    mode = File.stat(file).mode
-    expect(mode.to_s(8)).to match(/#{expected_mode}$/)
-  end
+  mode = File.stat(expand_path(file)).mode
+  expect(mode.to_s(8)).to match(/#{expected_mode}$/)
 end
 
 Given(/^the file named "(.+?)" is older than hub source$/) do |file|

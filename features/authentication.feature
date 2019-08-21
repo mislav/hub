@@ -33,9 +33,9 @@ Feature: OAuth authentication
     Then the output should contain "github.com username:"
     And the output should contain "github.com password for mislav (never stored):"
     And the exit status should be 0
-    And the file "../home/.config/hub" should contain "user: MiSlAv"
-    And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-    And the file "../home/.config/hub" should have mode "0600"
+    And the file "~/.config/hub" should contain "user: MiSlAv"
+    And the file "~/.config/hub" should contain "oauth_token: OTOKEN"
+    And the file "~/.config/hub" should have mode "0600"
 
   Scenario: Prompt for username & password, receive personal access token
     Given the GitHub API server:
