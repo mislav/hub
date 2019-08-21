@@ -157,7 +157,7 @@ World Module.new {
   end
 
   def run_silent cmd
-    in_current_directory do
+    cd('.') do
       command = SimpleCommand.run(cmd)
       expect(command).to be_successfully_executed
       command.output

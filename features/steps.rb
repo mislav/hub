@@ -85,7 +85,7 @@ end
 Given(/^there is a git FETCH_HEAD$/) do
   empty_commit
   empty_commit
-  in_current_directory do
+  cd('.') do
     File.open(".git/FETCH_HEAD", "w") do |fetch_head|
       fetch_head.puts "%s\t\t'refs/heads/made-up' of git://github.com/made/up.git" % `git rev-parse HEAD`.chomp
     end
@@ -109,7 +109,7 @@ end
 
 Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
   full_upstream = ".git/refs/remotes/#{upstream}"
-  in_current_directory do
+  cd('.') do
     FileUtils.mkdir_p File.dirname(full_upstream)
     FileUtils.cp ".git/refs/heads/#{name}", full_upstream
   end
@@ -130,7 +130,7 @@ Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/)
 end
 
 Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|
-  in_current_directory do
+  cd('.') do
     ref_file = ".git/refs/remotes/#{remote}/#{branch}"
     unless File.exist? ref_file
       empty_commit unless File.exist? '.git/refs/heads/master'
@@ -148,9 +148,7 @@ Given(/^I am in detached HEAD$/) do
 end
 
 Given(/^the current dir is not a repo$/) do
-  in_current_directory do
-    FileUtils.rm_rf '.git'
-  end
+  FileUtils.rm_rf(expand_path('.git'))
 end
 
 Given(/^the GitHub API server:$/) do |endpoints_str|
@@ -168,7 +166,7 @@ Given(/^I use a debugging proxy(?: at "(.+?)")?$/) do |address|
 end
 
 Then(/^shell$/) do
-  in_current_directory do
+  cd('.') do
     system '/bin/bash -i'
   end
 end
@@ -305,9 +303,8 @@ Given(/^the SSH config:$/) do |config_lines|
 end
 
 Given(/^the SHAs and timestamps are normalized in "([^"]+)"$/) do |file|
-  in_current_directory do
-    contents = File.read(file)
-    contents.gsub!(/[0-9a-f]{7} \(Hub, \d seconds? ago\)/, "SHA1SHA (Hub, 0 seconds ago)")
-    File.open(file, "w") { |f| f.write(contents) }
-  end
+  file = expand_path(file)
+  contents = File.read(file)
+  contents.gsub!(/[0-9a-f]{7} \(Hub, \d seconds? ago\)/, "SHA1SHA (Hub, 0 seconds ago)")
+  File.open(file, "w") { |f| f.write(contents) }
 end
