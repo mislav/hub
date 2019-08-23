@@ -36,9 +36,6 @@ The `hub` executable has no dependencies, but since it was designed to wrap
 
 ``` sh
 $ brew install hub
-$ hub version
-git version 1.7.6
-hub version 2.2.3
 ```
 
 #### Windows
@@ -61,9 +58,6 @@ On Fedora you can install `hub` through DNF:
 
 ``` sh
 $ sudo dnf install hub
-$ hub version
-git version 2.9.3
-hub version 2.2.9
 ```
 
 #### Arch Linux
