@@ -91,15 +91,15 @@ On Debian (versions sid and buster) you can install `hub` from the official repo
 $ sudo apt install hub
 ```
 
-#### Ubuntu Linux
+#### Ubuntu
 
-On Ubuntu you can install `hub` through [Snap](https://github.com/snapcore/snapcraft) :
+On Ubuntu you can install `hub` through [Snap](https://snapcraft.io):
 
 ```sh
 $ snap install hub --classic
 ```
 
-## Standalone
+#### Standalone
 
 `hub` can be easily installed as an executable. Download the latest
 [compiled binaries](https://github.com/github/hub/releases) and put it anywhere
