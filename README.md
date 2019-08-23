@@ -12,7 +12,7 @@ Usage
 $ hub clone rtomayko/tilt
 
 # expands to:
-$ git clone git://github.com/rtomayko/tilt.git
+#=> git clone git://github.com/rtomayko/tilt.git
 ```
 
 hub can be safely [aliased](#aliasing) as `git` so you can type `$ git
@@ -30,66 +30,16 @@ Installation
 The `hub` executable has no dependencies, but since it was designed to wrap
 `git`, it's recommended to have at least **git 1.7.3** or newer.
 
-#### Homebrew
-
-`hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS or Linux:
-
-``` sh
-$ brew install hub
-$ hub version
-git version 1.7.6
-hub version 2.2.3
-```
-
-#### Windows
-
-`hub` can be installed through [Scoop](http://scoop.sh/) on Windows:
-
-``` sh
-> scoop install hub
-```
-
-or alternatively `hub` can be installed through [Chocolatey](https://chocolatey.org/):
-
-``` sh
-> choco install hub
-```
-
-#### Fedora Linux
-
-On Fedora you can install `hub` through DNF:
-
-``` sh
-$ sudo dnf install hub
-$ hub version
-git version 2.9.3
-hub version 2.2.9
-```
-
-#### Arch Linux
-
-On Arch Linux you can install `hub` from the official repository:
-
-```sh
-$ sudo pacman -S hub
-```
-
-#### FreeBSD
-
-On FreeBSD you can install a prebuilt `hub` package with
-[pkg(8)](http://man.freebsd.org/pkg/8):
-
-```console
-# pkg install hub
-```
-
-#### Debian
-
-On Debian (versions sid and buster) you can install `hub` from the official repository:
-
-```sh
-$ sudo apt install hub
-```
+platform | manager | command to run
+---------|---------|---------------
+macOS, Linux | [Homebrew](https://docs.brew.sh/Installation) | `brew install hub`
+Windows | [Scoop](http://scoop.sh/) | `scoop install hub`
+Windows | [Chocolatey](https://chocolatey.org/) | `choco install hub`
+Fedora Linux | [DNF](https://fedoraproject.org/wiki/DNF) | `sudo dnf install hub`
+Arch Linux | [pacman](https://wiki.archlinux.org/index.php/pacman) | `sudo pacman -S hub`
+FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
+Debian | apt | `sudo apt install hub`
+Ubuntu | [Snap](https://snapcraft.io) | `snap install hub --classic`
 
 #### Standalone
 
@@ -99,23 +49,28 @@ in your executable path.
 
 #### Source
 
-With your [GOPATH](https://github.com/golang/go/wiki/GOPATH) already set up:
+Prerequisites for building from source are:
+
+* `make`
+* [Go 1.9+](https://golang.org/doc/install)
+
+Clone this repository and run `make install`:
 
 ```sh
-mkdir -p "$GOPATH"/src/github.com/github
 git clone \
   --config transfer.fsckobjects=false \
   --config receive.fsckobjects=false \
   --config fetch.fsckobjects=false \
-  https://github.com/github/hub.git "$GOPATH"/src/github.com/github/hub
-cd "$GOPATH"/src/github.com/github/hub
+  https://github.com/github/hub.git
+
+cd hub
 make install prefix=/usr/local
 ```
 
-Prerequisites for compilation are:
-
-* `make`
-* [Go 1.9+](http://golang.org/doc/install)
+This assumes support for [Go 1.11+
+modules](https://github.com/golang/go/wiki/Modules). If you are building on an
+older version of Go, you will need to clone the repository into
+`$GOPATH/src/github.com/github/hub`.
 
 Aliasing
 --------
