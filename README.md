@@ -101,23 +101,28 @@ in your executable path.
 
 #### Source
 
-With your [GOPATH](https://github.com/golang/go/wiki/GOPATH) already set up:
+Prerequisites for building from source are:
+
+* `make`
+* [Go 1.9+](https://golang.org/doc/install)
+
+Clone this repository and run `make install`:
 
 ```sh
-mkdir -p "$GOPATH"/src/github.com/github
 git clone \
   --config transfer.fsckobjects=false \
   --config receive.fsckobjects=false \
   --config fetch.fsckobjects=false \
-  https://github.com/github/hub.git "$GOPATH"/src/github.com/github/hub
-cd "$GOPATH"/src/github.com/github/hub
+  https://github.com/github/hub.git
+
+cd hub
 make install prefix=/usr/local
 ```
 
-Prerequisites for compilation are:
-
-* `make`
-* [Go 1.9+](http://golang.org/doc/install)
+This assumes support for [Go 1.11+
+modules](https://github.com/golang/go/wiki/Modules). If you are building on an
+older version of Go, you will need to clone the repository into
+`$GOPATH/src/github.com/github/hub`.
 
 Aliasing
 --------
