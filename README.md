@@ -30,68 +30,16 @@ Installation
 The `hub` executable has no dependencies, but since it was designed to wrap
 `git`, it's recommended to have at least **git 1.7.3** or newer.
 
-#### Homebrew
-
-`hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS or Linux:
-
-``` sh
-$ brew install hub
-```
-
-#### Windows
-
-`hub` can be installed through [Scoop](http://scoop.sh/) on Windows:
-
-``` sh
-> scoop install hub
-```
-
-or alternatively `hub` can be installed through [Chocolatey](https://chocolatey.org/):
-
-``` sh
-> choco install hub
-```
-
-#### Fedora Linux
-
-On Fedora you can install `hub` through DNF:
-
-``` sh
-$ sudo dnf install hub
-```
-
-#### Arch Linux
-
-On Arch Linux you can install `hub` from the official repository:
-
-```sh
-$ sudo pacman -S hub
-```
-
-#### FreeBSD
-
-On FreeBSD you can install a prebuilt `hub` package with
-[pkg(8)](http://man.freebsd.org/pkg/8):
-
-```console
-# pkg install hub
-```
-
-#### Debian
-
-On Debian (versions sid and buster) you can install `hub` from the official repository:
-
-```sh
-$ sudo apt install hub
-```
-
-#### Ubuntu
-
-On Ubuntu you can install `hub` through [Snap](https://snapcraft.io):
-
-```sh
-$ snap install hub --classic
-```
+platform | manager | command to run
+---------|---------|---------------
+macOS, Linux | [Homebrew](https://docs.brew.sh/Installation) | `brew install hub`
+Windows | [Scoop](http://scoop.sh/) | `scoop install hub`
+Windows | [Chocolatey](https://chocolatey.org/) | `choco install hub`
+Fedora Linux | [DNF](https://fedoraproject.org/wiki/DNF) | `sudo dnf install hub`
+Arch Linux | [pacman](https://wiki.archlinux.org/index.php/pacman) | `sudo pacman -S hub`
+FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
+Debian | apt | `sudo apt install hub`
+Ubuntu | [Snap](https://snapcraft.io) | `snap install hub --classic`
 
 #### Standalone
 
