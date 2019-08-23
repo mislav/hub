@@ -12,7 +12,7 @@ Usage
 $ hub clone rtomayko/tilt
 
 # expands to:
-$ git clone git://github.com/rtomayko/tilt.git
+#=> git clone git://github.com/rtomayko/tilt.git
 ```
 
 hub can be safely [aliased](#aliasing) as `git` so you can type `$ git
