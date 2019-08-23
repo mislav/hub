@@ -2,60 +2,21 @@ package commands
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"strings"
-	"syscall"
 
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
 	"github.com/kballard/go-shellquote"
-	flag "github.com/ogier/pflag"
 )
-
-type ExecError struct {
-	Err      error
-	Ran      bool
-	ExitCode int
-}
-
-func (execError *ExecError) Error() string {
-	return execError.Err.Error()
-}
-
-func newExecError(err error) ExecError {
-	exitCode := 0
-	ran := true
-
-	if err != nil {
-		exitCode = 1
-		switch e := err.(type) {
-		case *exec.ExitError:
-			if status, ok := e.Sys().(syscall.WaitStatus); ok {
-				exitCode = status.ExitStatus()
-			}
-		case *exec.Error:
-			ran = false
-		}
-	}
-
-	return ExecError{
-		Err:      err,
-		Ran:      ran,
-		ExitCode: exitCode,
-	}
-}
 
 type Runner struct {
 	commands map[string]*Command
-	execute  func([]*cmd.Cmd, bool) error
 }
 
 func NewRunner() *Runner {
 	return &Runner{
 		commands: make(map[string]*Command),
-		execute:  executeCommands,
 	}
 }
 
@@ -74,9 +35,9 @@ func (r *Runner) Lookup(name string) *Command {
 	return r.commands[name]
 }
 
-func (r *Runner) Execute() ExecError {
-	args := NewArgs(os.Args[1:])
-	args.ProgramPath = os.Args[0]
+func (r *Runner) Execute(cliArgs []string) error {
+	args := NewArgs(cliArgs[1:])
+	args.ProgramPath = cliArgs[0]
 	forceFail := false
 
 	if args.Command == "" && len(args.GlobalFlags) == 0 {
@@ -97,46 +58,42 @@ func (r *Runner) Execute() ExecError {
 
 	cmd := r.Lookup(cmdName)
 	if cmd != nil && cmd.Runnable() {
-		execErr := r.Call(cmd, args)
-		if execErr.ExitCode == 0 && forceFail {
-			execErr = newExecError(fmt.Errorf(""))
+		err := callRunnableCommand(cmd, args)
+		if err == nil && forceFail {
+			err = fmt.Errorf("")
 		}
-		return execErr
+		return err
 	}
 
-	gitArgs := []string{args.Command}
+	gitArgs := []string{}
+	if args.Command != "" {
+		gitArgs = append(gitArgs, args.Command)
+	}
 	gitArgs = append(gitArgs, args.Params...)
 
-	err := git.Run(gitArgs...)
-	return newExecError(err)
+	return git.Run(gitArgs...)
 }
 
-func (r *Runner) Call(cmd *Command, args *Args) ExecError {
+func callRunnableCommand(cmd *Command, args *Args) error {
 	err := cmd.Call(args)
 	if err != nil {
-		if err == flag.ErrHelp {
-			err = nil
-		}
-		return newExecError(err)
+		return err
 	}
 
 	cmds := args.Commands()
 	if args.Noop {
 		printCommands(cmds)
-	} else {
-		err = r.execute(cmds, len(args.Callbacks) == 0)
+	} else if err = executeCommands(cmds, len(args.Callbacks) == 0); err != nil {
+		return err
 	}
 
-	if err == nil {
-		for _, fn := range args.Callbacks {
-			err = fn()
-			if err != nil {
-				break
-			}
+	for _, fn := range args.Callbacks {
+		if err = fn(); err != nil {
+			return err
 		}
 	}
 
-	return newExecError(err)
+	return nil
 }
 
 func printCommands(cmds []*cmd.Cmd) {
@@ -165,6 +122,9 @@ func executeCommands(cmds []*cmd.Cmd, execFinal bool) error {
 
 func expandAlias(args *Args) {
 	cmd := args.Command
+	if cmd == "" {
+		return
+	}
 	expandedCmd, err := git.Alias(cmd)
 
 	if err == nil && expandedCmd != "" && !git.IsBuiltInGitCommand(cmd) {
@@ -177,7 +137,7 @@ func expandAlias(args *Args) {
 }
 
 func isBuiltInHubCommand(command string) bool {
-	for hubCommand, _ := range CmdRunner.All() {
+	for hubCommand := range CmdRunner.All() {
 		if hubCommand == command {
 			return true
 		}

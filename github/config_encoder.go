@@ -23,16 +23,19 @@ type yamlConfigEncoder struct {
 }
 
 func (y *yamlConfigEncoder) Encode(w io.Writer, c *Config) error {
-	yc := make(yamlConfig)
+	yc := yaml.MapSlice{}
 	for _, h := range c.Hosts {
-		yc[h.Host] = []yamlHost{
-			{
-				User:       h.User,
-				OAuthToken: h.AccessToken,
-				Protocol:   h.Protocol,
-				UnixSocket: h.UnixSocket,
+		yc = append(yc, yaml.MapItem{
+			Key: h.Host,
+			Value: []yamlHost{
+				{
+					User:       h.User,
+					OAuthToken: h.AccessToken,
+					Protocol:   h.Protocol,
+					UnixSocket: h.UnixSocket,
+				},
 			},
-		}
+		})
 	}
 
 	d, err := yaml.Marshal(yc)

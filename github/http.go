@@ -2,6 +2,8 @@ package github
 
 import (
 	"bytes"
+	"context"
+	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,7 +12,11 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path"
+	"path/filepath"
 	"regexp"
+	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -22,6 +28,8 @@ const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
 const patchMediaType = "application/vnd.github.v3.patch;charset=utf-8"
 const textMediaType = "text/plain;charset=utf-8"
 const checksType = "application/vnd.github.antiope-preview+json;charset=utf-8"
+const draftsType = "application/vnd.github.shadow-cat-preview+json;charset=utf-8"
+const cacheVersion = 2
 
 var inspectHeaders = []string{
 	"Authorization",
@@ -145,8 +153,11 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 		dialFunc := func(network, addr string) (net.Conn, error) {
 			return net.Dial("unix", unixSocket)
 		}
+		dialContext := func(_ context.Context, _, _ string) (net.Conn, error) {
+			return net.Dial("unix", unixSocket)
+		}
 		httpTransport = &http.Transport{
-			Dial:                  dialFunc,
+			DialContext:           dialContext,
 			DialTLS:               dialFunc,
 			ResponseHeaderTimeout: 30 * time.Second,
 			ExpectContinueTimeout: 10 * time.Second,
@@ -155,10 +166,10 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 	} else {
 		httpTransport = &http.Transport{
 			Proxy: proxyFromEnvironment,
-			Dial: (&net.Dialer{
+			DialContext: (&net.Dialer{
 				Timeout:   30 * time.Second,
 				KeepAlive: 30 * time.Second,
-			}).Dial,
+			}).DialContext,
 			TLSHandshakeTimeout: 10 * time.Second,
 		}
 	}
@@ -214,6 +225,7 @@ type simpleClient struct {
 	httpClient     *http.Client
 	rootUrl        *url.URL
 	PrepareRequest func(*http.Request)
+	CacheTTL       int
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
@@ -241,10 +253,10 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		configure(req)
 	}
 
-	var bodyBackup io.ReadWriter
-	if req.Body != nil {
-		bodyBackup = &bytes.Buffer{}
-		req.Body = ioutil.NopCloser(io.TeeReader(req.Body, bodyBackup))
+	key := cacheKey(req)
+	if cachedResponse := c.cacheRead(key, req); cachedResponse != nil {
+		res = &simpleResponse{cachedResponse}
+		return
 	}
 
 	httpResponse, err := c.httpClient.Do(req)
@@ -252,9 +264,140 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 		return
 	}
 
+	c.cacheWrite(key, httpResponse)
 	res = &simpleResponse{httpResponse}
 
 	return
+}
+
+func isGraphQL(req *http.Request) bool {
+	return req.URL.Path == "/graphql"
+}
+
+func canCache(req *http.Request) bool {
+	return strings.EqualFold(req.Method, "GET") || isGraphQL(req)
+}
+
+func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Response) {
+	if c.CacheTTL > 0 && canCache(req) {
+		f := cacheFile(key)
+		cacheInfo, err := os.Stat(f)
+		if err != nil {
+			return
+		}
+		if time.Since(cacheInfo.ModTime()).Seconds() > float64(c.CacheTTL) {
+			return
+		}
+		cf, err := os.Open(f)
+		if err != nil {
+			return
+		}
+		defer cf.Close()
+
+		cb, err := ioutil.ReadAll(cf)
+		if err != nil {
+			return
+		}
+		parts := strings.SplitN(string(cb), "\r\n\r\n", 2)
+		if len(parts) < 2 {
+			return
+		}
+
+		res = &http.Response{
+			Body:   ioutil.NopCloser(bytes.NewBufferString(parts[1])),
+			Header: http.Header{},
+		}
+		headerLines := strings.Split(parts[0], "\r\n")
+		if len(headerLines) < 1 {
+			return
+		}
+		if proto := strings.SplitN(headerLines[0], " ", 3); len(proto) >= 3 {
+			res.Proto = proto[0]
+			res.Status = fmt.Sprintf("%s %s", proto[1], proto[2])
+			if code, _ := strconv.Atoi(proto[1]); code > 0 {
+				res.StatusCode = code
+			}
+		}
+		for _, line := range headerLines[1:] {
+			kv := strings.SplitN(line, ":", 2)
+			if len(kv) >= 2 {
+				res.Header.Add(kv[0], strings.TrimLeft(kv[1], " "))
+			}
+		}
+	}
+	return
+}
+
+func (c *simpleClient) cacheWrite(key string, res *http.Response) {
+	if c.CacheTTL > 0 && canCache(res.Request) && res.StatusCode < 500 && res.StatusCode != 403 {
+		bodyCopy := &bytes.Buffer{}
+		bodyReplacement := readCloserCallback{
+			Reader: io.TeeReader(res.Body, bodyCopy),
+			Closer: res.Body,
+			Callback: func() {
+				f := cacheFile(key)
+				err := os.MkdirAll(filepath.Dir(f), 0771)
+				if err != nil {
+					return
+				}
+				cf, err := os.OpenFile(f, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+				if err != nil {
+					return
+				}
+				defer cf.Close()
+				fmt.Fprintf(cf, "%s %s\r\n", res.Proto, res.Status)
+				res.Header.Write(cf)
+				fmt.Fprintf(cf, "\r\n")
+				io.Copy(cf, bodyCopy)
+			},
+		}
+		res.Body = &bodyReplacement
+	}
+}
+
+type readCloserCallback struct {
+	Callback func()
+	Closer   io.Closer
+	io.Reader
+}
+
+func (rc *readCloserCallback) Close() error {
+	err := rc.Closer.Close()
+	if err == nil {
+		rc.Callback()
+	}
+	return err
+}
+
+func cacheKey(req *http.Request) string {
+	path := strings.Replace(req.URL.EscapedPath(), "/", "-", -1)
+	if len(path) > 1 {
+		path = strings.TrimPrefix(path, "-")
+	}
+	host := req.Host
+	if host == "" {
+		host = req.URL.Host
+	}
+	hash := md5.New()
+	fmt.Fprintf(hash, "%d:", cacheVersion)
+	io.WriteString(hash, req.Header.Get("Accept"))
+	io.WriteString(hash, req.Header.Get("Authorization"))
+	queryParts := strings.Split(req.URL.RawQuery, "&")
+	sort.Strings(queryParts)
+	for _, q := range queryParts {
+		fmt.Fprintf(hash, "%s&", q)
+	}
+	if isGraphQL(req) && req.Body != nil {
+		if b, err := ioutil.ReadAll(req.Body); err == nil {
+			req.Body = ioutil.NopCloser(bytes.NewBuffer(b))
+			hash.Write(b)
+		}
+	}
+	return fmt.Sprintf("%s/%s_%x", host, path, hash.Sum(nil))
+}
+
+func cacheFile(key string) string {
+	return path.Join(os.TempDir(), "hub", "api", key)
 }
 
 func (c *simpleClient) jsonRequest(method, path string, body interface{}, configure func(*http.Request)) (*simpleResponse, error) {
@@ -288,6 +431,12 @@ func (c *simpleClient) Delete(path string) (*simpleResponse, error) {
 
 func (c *simpleClient) PostJSON(path string, payload interface{}) (*simpleResponse, error) {
 	return c.jsonRequest("POST", path, payload, nil)
+}
+
+func (c *simpleClient) PostJSONPreview(path string, payload interface{}, mimeType string) (*simpleResponse, error) {
+	return c.jsonRequest("POST", path, payload, func(req *http.Request) {
+		req.Header.Set("Accept", mimeType)
+	})
 }
 
 func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleResponse, error) {

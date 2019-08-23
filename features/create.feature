@@ -28,6 +28,18 @@ Feature: hub create
     When I successfully run `hub create -p`
     Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
+  Scenario: Alternate origin remote name
+    Given the GitHub API server:
+      """
+      post('/user/repos') {
+        status 201
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    When I successfully run `hub create --remote-name=work`
+    Then the url for "work" should be "git@github.com:mislav/dotfiles.git"
+    And there should be no "origin" remote
+
   Scenario: HTTPS is preferred
     Given the GitHub API server:
       """
@@ -111,6 +123,7 @@ Feature: hub create
     And the "origin" remote has url "git://github.com/mislav/dotfiles.git"
     When I successfully run `hub create`
     Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
+    And the output should contain exactly "https://github.com/mislav/dotfiles\n"
 
   Scenario: Unrelated origin remote already exists
     Given the GitHub API server:
@@ -122,8 +135,12 @@ Feature: hub create
       """
     And the "origin" remote has url "git://example.com/unrelated.git"
     When I successfully run `hub create`
-    Then the output should contain exactly "https://github.com/mislav/dotfiles\n"
-    And the url for "origin" should be "git://example.com/unrelated.git"
+    Then the url for "origin" should be "git://example.com/unrelated.git"
+    And the stdout should contain exactly "https://github.com/mislav/dotfiles\n"
+    And the stderr should contain exactly:
+      """
+      A git remote named 'origin' already exists and is set to push to 'git://example.com/unrelated.git'.\n
+      """
 
   Scenario: Another remote already exists
     Given the GitHub API server:
@@ -145,7 +162,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create`
-    Then the output should contain "Existing repository detected. Updating git remote\n"
+    Then the output should contain "Existing repository detected\n"
     And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
   Scenario: GitHub repo already exists and is not private
@@ -268,4 +285,29 @@ Feature: hub create
       < HTTP 201
       < Location: http://disney.com
       {"full_name":"mislav/dotfiles"}\n
+      """
+
+  Scenario: Create Enterprise repo
+    Given I am "nsartor" on git.my.org with OAuth token "FITOKEN"
+    Given the GitHub API server:
+      """
+      post('/api/v3/user/repos', :host_name => 'git.my.org') {
+        assert :private => false
+        status 201
+        json :full_name => 'nsartor/dotfiles'
+      }
+      """
+    And $GITHUB_HOST is "git.my.org"
+    When I successfully run `hub create`
+    Then the url for "origin" should be "git@git.my.org:nsartor/dotfiles.git"
+    And the output should contain exactly "https://git.my.org/nsartor/dotfiles\n"
+
+  Scenario: Invalid GITHUB_HOST
+    Given I am "nsartor" on {} with OAuth token "FITOKEN"
+    And $GITHUB_HOST is "{}"
+    When I run `hub create`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      invalid hostname: "{}"\n
       """

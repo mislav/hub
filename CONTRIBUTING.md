@@ -9,7 +9,7 @@ This project adheres to a [Code of Conduct][code-of-conduct]. By participating, 
 
 You will need:
 
-1. Go 1.8+
+1. Go 1.9+
 1. Ruby 1.9+ with Bundler
 2. git 1.8+
 3. tmux & zsh (optional) - for running shell completion tests
@@ -43,8 +43,8 @@ feature is a good idea for hub if it improves some workflow for a GitHub user.
 8. Open a pull request describing your changes:
     `bin/hub pull-request`
 
-Vendored Go dependencies are managed with [`dep`](https://golang.github.io/dep/docs/daily-dep.html).
-Check `dep help ensure` for information on how to add or update a vendored
+Vendored Go dependencies are managed with [`go mod`](https://github.com/golang/go/wiki/Modules).
+Check `go help mod` for information on how to add or update a vendored
 dependency.
 
 ## How to write tests

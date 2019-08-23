@@ -3,6 +3,7 @@ package commands
 import (
 	"io/ioutil"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -73,16 +74,12 @@ func TestArgsForSubCommand(t *testing.T) {
 }
 
 func TestFlagsAfterArguments(t *testing.T) {
-	c := &Command{Usage: "foo -m MESSAGE ARG1"}
-
-	var flag string
-	c.Flag.StringVarP(&flag, "message", "m", "", "MESSAGE")
+	c := &Command{Long: "-m, --message MSG"}
 
 	args := NewArgs([]string{"foo", "bar", "-m", "baz"})
-
-	c.parseArguments(args)
-	assert.Equal(t, "baz", flag)
-
+	err := c.parseArguments(args)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "baz", args.Flag.Value("--message"))
 	assert.Equal(t, 1, len(args.Params))
 	assert.Equal(t, "bar", args.LastParam())
 }
@@ -126,4 +123,24 @@ func TestSubCommandCall(t *testing.T) {
 
 	c.Call(args)
 	assert.Equal(t, "baz", result)
+}
+
+func Test_NameWithOwnerRe(t *testing.T) {
+	re := regexp.MustCompile(NameWithOwnerRe)
+
+	assert.Equal(t, true, re.MatchString("o/n"))
+	assert.Equal(t, true, re.MatchString("own-er/my-project.git"))
+	assert.Equal(t, true, re.MatchString("my-project.git"))
+	assert.Equal(t, true, re.MatchString("my_project"))
+	assert.Equal(t, true, re.MatchString("-dash"))
+	assert.Equal(t, true, re.MatchString(".dotfiles"))
+
+	assert.Equal(t, false, re.MatchString(""))
+	assert.Equal(t, false, re.MatchString("/"))
+	assert.Equal(t, false, re.MatchString(" "))
+	assert.Equal(t, false, re.MatchString("owner/na me"))
+	assert.Equal(t, false, re.MatchString("owner/na/me"))
+	assert.Equal(t, false, re.MatchString("own.er/name"))
+	assert.Equal(t, false, re.MatchString("own_er/name"))
+	assert.Equal(t, false, re.MatchString("-owner/name"))
 }

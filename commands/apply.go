@@ -3,6 +3,7 @@ package commands
 import (
 	"io"
 	"io/ioutil"
+	"os"
 	"regexp"
 
 	"github.com/github/hub/github"
@@ -69,7 +70,7 @@ func transformApplyArgs(args *Args) {
 	gistRegexp := regexp.MustCompile("^https?://gist\\.github\\.com/([\\w.-]+/)?([a-f0-9]+)")
 	commitRegexp := regexp.MustCompile("^(commit|pull/[0-9]+/commits)/([0-9a-f]+)")
 	pullRegexp := regexp.MustCompile("^pull/([0-9]+)")
-	for _, arg := range args.Params {
+	for idx, arg := range args.Params {
 		var (
 			patch    io.ReadCloser
 			apiError error
@@ -96,8 +97,10 @@ func transformApplyArgs(args *Args) {
 			continue
 		}
 
-		idx := args.IndexOfParam(arg)
-		patchFile, err := ioutil.TempFile("", "hub")
+		tempDir := os.TempDir()
+		err = os.MkdirAll(tempDir, 0775)
+		utils.Check(err)
+		patchFile, err := ioutil.TempFile(tempDir, "hub")
 		utils.Check(err)
 
 		_, err = io.Copy(patchFile, patch)
@@ -106,6 +109,6 @@ func transformApplyArgs(args *Args) {
 		patchFile.Close()
 		patch.Close()
 
-		args.Params[idx] = patchFile.Name()
+		args.ReplaceParam(idx, patchFile.Name())
 	}
 }

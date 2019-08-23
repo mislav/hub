@@ -10,6 +10,7 @@ import (
 	"github.com/github/hub/cmd"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/kballard/go-shellquote"
 )
 
 var cmdHelp = &Command{
@@ -29,15 +30,15 @@ help hub-<COMMAND> [--plain-text]
 	--plain-text
 		Skip man page lookup mechanism and display plain help text.
 
-## Man lookup mechanism:
+## Lookup mechanism:
 
 On systems that have 'man', help pages are looked up in these directories
-relative to 'hub' install prefix:
+relative to the hub install prefix:
 
-* 'man/<command>.1'
-* 'share/man/man1/<command>.1'
+* man/<command>.1
+* share/man/man1/<command>.1
 
-On systems without 'man', same help pages are looked up with a '.txt' suffix.
+On systems without 'man', help pages are looked up using the ".txt" extension.
 
 ## See also:
 
@@ -65,7 +66,12 @@ func runHelp(helpCmd *Command, args *Args) {
 		return
 	}
 
-	if args.HasFlags("-a", "--all") {
+	p := utils.NewArgsParser()
+	p.RegisterBool("--all", "-a")
+	p.RegisterBool("--plain-text")
+	p.Parse(args.Params)
+
+	if p.Bool("--all") {
 		args.AfterFn(func() error {
 			ui.Printf("\nhub custom commands\n\n  %s\n", strings.Join(customCommands(), "  "))
 			return nil
@@ -83,7 +89,7 @@ func runHelp(helpCmd *Command, args *Args) {
 	}
 
 	if c := lookupCmd(command); c != nil {
-		if !args.HasFlags("--plain-text") {
+		if !p.Bool("--plain-text") {
 			manPage := fmt.Sprintf("hub-%s.1", c.Name())
 			err := displayManPage(manPage, args)
 			if err == nil {
@@ -115,12 +121,21 @@ func runListCmds(cmd *Command, args *Args) {
 }
 
 func displayManPage(manPage string, args *Args) error {
+	var manArgs []string
 	manProgram, _ := utils.CommandPath("man")
-	if manProgram == "" {
+	if manProgram != "" {
+		manArgs = []string{manProgram}
+	} else {
 		manPage += ".txt"
 		manProgram = os.Getenv("PAGER")
-		if manProgram == "" {
-			manProgram = "less -R"
+		if manProgram != "" {
+			var err error
+			manArgs, err = shellquote.Split(manProgram)
+			if err != nil {
+				return err
+			}
+		} else {
+			manArgs = []string{"less", "-R"}
 		}
 	}
 
@@ -135,8 +150,8 @@ func displayManPage(manPage string, args *Args) error {
 		return err
 	}
 
-	man := cmd.New(manProgram)
-	man.WithArg(manFile)
+	manArgs = append(manArgs, manFile)
+	man := cmd.NewWithArray(manArgs)
 	if err = man.Run(); err == nil {
 		os.Exit(0)
 	} else {
@@ -182,7 +197,7 @@ func customCommands() []string {
 		}
 	}
 
-	sort.Sort(sort.StringSlice(cmds))
+	sort.Strings(cmds)
 
 	return cmds
 }
@@ -190,6 +205,7 @@ func customCommands() []string {
 var helpText = `
 These GitHub commands are provided by hub:
 
+   api            Low-level GitHub API request interface
    browse         Open a GitHub page in the default browser
    ci-status      Show the status of GitHub checks for a commit
    compare        Open a compare page on GitHub

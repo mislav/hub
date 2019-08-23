@@ -56,9 +56,16 @@ func remote(command *Command, args *Args) {
 
 func transformRemoteArgs(args *Args) {
 	ownerWithName := args.LastParam()
-	owner, name := parseRepoNameOwner(ownerWithName)
-	if owner == "" {
+
+	re := regexp.MustCompile(fmt.Sprintf(`^%s(/%s)?$`, OwnerRe, NameRe))
+	if !re.MatchString(ownerWithName) {
 		return
+	}
+	owner := ownerWithName
+	name := ""
+	if strings.Contains(ownerWithName, "/") {
+		parts := strings.SplitN(ownerWithName, "/", 2)
+		owner, name = parts[0], parts[1]
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -91,18 +98,22 @@ func transformRemoteArgs(args *Args) {
 	}
 	host = hostConfig.Host
 
-	numWord := 0
-	for i, p := range args.Params {
-		if !looksLikeFlag(p) && (i < 1 || args.Params[i-1] != "-t") {
-			numWord += 1
-			if numWord == 2 && strings.Contains(p, "/") {
-				args.ReplaceParam(i, owner)
-			} else if numWord == 3 {
-				args.RemoveParam(i)
-			}
+	p := utils.NewArgsParser()
+	p.RegisterValue("-t")
+	p.RegisterValue("-m")
+	params, _ := p.Parse(args.Params)
+	if len(params) > 3 {
+		return
+	}
+
+	for i, pi := range p.PositionalIndices {
+		if i == 1 && strings.Contains(params[i], "/") {
+			args.ReplaceParam(pi, owner)
+		} else if i == 2 {
+			args.RemoveParam(pi)
 		}
 	}
-	if numWord == 2 && owner == "origin" {
+	if len(params) == 2 && owner == "origin" {
 		owner = hostConfig.User
 	}
 
@@ -136,14 +147,4 @@ func parseRemotePrivateFlag(args *Args) bool {
 	}
 
 	return false
-}
-
-func parseRepoNameOwner(nameWithOwner string) (owner, name string) {
-	nameWithOwnerRe := fmt.Sprintf("^(%s)(?:\\/(%s))?$", OwnerRe, NameRe)
-	nameWithOwnerRegexp := regexp.MustCompile(nameWithOwnerRe)
-	if nameWithOwnerRegexp.MatchString(nameWithOwner) {
-		result := nameWithOwnerRegexp.FindStringSubmatch(nameWithOwner)
-		owner, name = result[1], result[2]
-	}
-	return
 }

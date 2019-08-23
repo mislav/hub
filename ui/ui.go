@@ -10,6 +10,7 @@ import (
 )
 
 type UI interface {
+	Print(a ...interface{}) (n int, err error)
 	Printf(format string, a ...interface{}) (n int, err error)
 	Println(a ...interface{}) (n int, err error)
 	Errorf(format string, a ...interface{}) (n int, err error)
@@ -22,20 +23,49 @@ var (
 	Default UI = Console{Stdout: Stdout, Stderr: Stderr}
 )
 
-func Printf(format string, a ...interface{}) (n int, err error) {
-	return Default.Printf(format, a...)
+func Print(a ...interface{}) (n int) {
+	n, err := Default.Print(a...)
+	if err != nil {
+		// If something as basic as printing to stdout fails, just panic and exit
+		os.Exit(1)
+	}
+	return
 }
 
-func Println(a ...interface{}) (n int, err error) {
-	return Default.Println(a...)
+func Printf(format string, a ...interface{}) (n int) {
+	n, err := Default.Printf(format, a...)
+	if err != nil {
+		// If something as basic as printing to stdout fails, just panic and exit
+		os.Exit(1)
+	}
+	return
 }
 
-func Errorf(format string, a ...interface{}) (n int, err error) {
-	return Default.Errorf(format, a...)
+func Println(a ...interface{}) (n int) {
+	n, err := Default.Println(a...)
+	if err != nil {
+		// If something as basic as printing to stdout fails, just panic and exit
+		os.Exit(1)
+	}
+	return
 }
 
-func Errorln(a ...interface{}) (n int, err error) {
-	return Default.Errorln(a...)
+func Errorf(format string, a ...interface{}) (n int) {
+	n, err := Default.Errorf(format, a...)
+	if err != nil {
+		// If something as basic as printing to stderr fails, just panic and exit
+		os.Exit(1)
+	}
+	return
+}
+
+func Errorln(a ...interface{}) (n int) {
+	n, err := Default.Errorln(a...)
+	if err != nil {
+		// If something as basic as printing to stderr fails, just panic and exit
+		os.Exit(1)
+	}
+	return
 }
 
 func IsTerminal(f *os.File) bool {
@@ -45,6 +75,10 @@ func IsTerminal(f *os.File) bool {
 type Console struct {
 	Stdout io.Writer
 	Stderr io.Writer
+}
+
+func (c Console) Print(a ...interface{}) (n int, err error) {
+	return fmt.Fprint(c.Stdout, a...)
 }
 
 func (c Console) Printf(format string, a ...interface{}) (n int, err error) {

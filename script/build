@@ -13,7 +13,12 @@ find_source_files() {
 
 build_hub() {
   mkdir -p "$(dirname "$1")"
-  go build -ldflags "-X github.com/github/hub/version.Version=`./script/version`" -o "$1"
+  go build \
+	  $MOD_VENDOR_ARG \
+	  -ldflags "-X github.com/github/hub/version.Version=`./script/version` $LDFLAGS" \
+	  -gcflags "$GCFLAGS" \
+	  -asmflags "$ASMFLAGS" \
+	  -o "$1"
 }
 
 [ $# -gt 0 ] || set -- -o "bin/hub${windows:+.exe}"

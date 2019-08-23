@@ -1,0 +1,95 @@
+<!doctype html>
+<title>{{.Name}}({{.Section}}) - {{.Title}}</title>
+<meta charset="utf-8">
+
+<style>
+body {
+  margin: 0;
+  font: 15px/1.4 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;
+}
+pre, code, var, dt, .man-head, [id="synopsis"] + p {
+  font-family: SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace;
+}
+header, footer {
+  padding: .5em 2em;
+}
+.man-head {
+  color: #999;
+  padding: 0;
+  width: 100%;
+  float: left;
+  list-style-type: none;
+}
+header .man-head {
+  text-transform: uppercase;
+}
+.man-head li {
+  width: 33%;
+  float: left;
+}
+.tl { text-align: left }
+.tc { text-align: center }
+.tr { text-align: right; float: right }
+article {
+  max-width: 110ex;
+  margin: 4em auto 2em;
+}
+h1 {
+  font-size: 1em;
+  font-weight: normal;
+}
+h2 {
+  text-transform: uppercase;
+}
+code {
+  color: darkslategray;
+  font-weight: bold;
+}
+var {
+  color: orangered;
+  font-weight: normal;
+  font-style: normal;
+}
+dt {
+  margin: .5em 0;
+}
+dd {
+  margin-bottom: 1em;
+}
+pre, [id="synopsis"] + p {
+  background: #eee;
+  padding: 1em 1.5em;
+}
+[id="synopsis"] + p {
+  white-space: nowrap;
+  overflow-x: auto;
+}
+pre code {
+  color: inherit;
+  font-weight: inherit;
+}
+var::before { content: "<" }
+var::after { content: ">" }
+a:link, a:hover, a:visited { color: blue }
+</style>
+
+<header>
+  <ol class="man-head">
+    <li class="tl">{{.Name}}({{.Section}})</li>
+    <li class="tc">{{.Manual}}</li>
+    <li class="tr">{{.Name}}({{.Section}})</li>
+  </ol>
+</header>
+
+<article>
+  <h1>{{.Title}}</h1>
+  {{.Contents}}
+</article>
+
+<footer>
+  <ol class="man-head">
+    <li class="tl">{{.Version}}</li>
+    <li class="tc">{{.Date}}</li>
+    <li class="tr"></li>
+  </ol>
+</footer>

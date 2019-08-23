@@ -18,7 +18,7 @@ while read -r filename label; do
 done
 
 if hub release --include-drafts | grep -q "^v${version}\$"; then
-  hub release edit "v${version}" "${assets[@]}"
+  hub release edit "v${version}" -m "" "${assets[@]}"
 else
   { echo "${project_name} ${version}"
     echo

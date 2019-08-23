@@ -1,9 +1,23 @@
 SOURCES = $(shell script/build files)
+SOURCE_DATE_EPOCH ?= $(shell date +%s)
+BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
+HUB_VERSION = $(shell bin/hub version | tail -1)
+FLAGS_ALL = $(shell go version | grep -q 'go1.[89]' || echo 'all=')
+export MOD_VENDOR_ARG := $(shell go version | grep -q 'go1.1[^01]' && echo '-mod=vendor')
+export LDFLAGS := -extldflags '$(LDFLAGS)'
+export GCFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
+export ASMFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
+
+ifneq ($(MOD_VENDOR_ARG),)
+	export GO111MODULE=on
+	unexport GOPATH
+endif
 
 MIN_COVERAGE = 89.4
 
 HELP_CMD = \
 	share/man/man1/hub-alias.1 \
+	share/man/man1/hub-api.1 \
 	share/man/man1/hub-browse.1 \
 	share/man/man1/hub-ci-status.1 \
 	share/man/man1/hub-compare.1 \
@@ -37,6 +51,9 @@ TEXT_WIDTH = 87
 bin/hub: $(SOURCES)
 	script/build -o $@
 
+bin/md2roff: $(SOURCES)
+	go build $(MOD_VENDOR_ARG) -o $@ github.com/github/hub/md2roff-bin
+
 test:
 	go test ./...
 
@@ -47,26 +64,29 @@ else
 	script/test
 endif
 
-bin/ronn bin/cucumber:
+bin/cucumber:
 	script/bootstrap
 
 fmt:
 	go fmt ./...
 
-man-pages: $(HELP_ALL:=.ronn) $(HELP_ALL) $(HELP_ALL:=.txt)
+man-pages: $(HELP_ALL:=.md) $(HELP_ALL) $(HELP_ALL:=.txt)
 
-%.txt: %.ronn
+%.txt: %
 	groff -Wall -mtty-char -mandoc -Tutf8 -rLL=$(TEXT_WIDTH)n $< | col -b >$@
 
 $(HELP_ALL): share/man/.man-pages.stamp
-share/man/.man-pages.stamp: bin/ronn $(HELP_ALL:=.ronn)
-	bin/ronn --organization=GITHUB --manual="Hub Manual" share/man/man1/*.ronn
+share/man/.man-pages.stamp: $(HELP_ALL:=.md) ./man-template.html bin/md2roff
+	bin/md2roff --manual="hub manual" \
+		--date="$(BUILD_DATE)" --version="$(HUB_VERSION)" \
+		--template=./man-template.html \
+		share/man/man1/*.md
 	touch $@
 
-%.1.ronn: bin/hub
-	bin/hub help $(*F) --plain-text | script/format-ronn $(*F) $@
+%.1.md: bin/hub
+	bin/hub help $(*F) --plain-text >$@
 
-share/man/man1/hub.1.ronn:
+share/man/man1/hub.1.md:
 	true
 
 install: bin/hub man-pages

@@ -24,7 +24,7 @@ release edit [<options>] <TAG>
 release download <TAG>
 release delete <TAG>
 `,
-		Long: `Manage GitHub releases.
+		Long: `Manage GitHub Releases for the current repository.
 
 ## Commands:
 
@@ -40,7 +40,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
-		doesn't exist, it will be created at <TARGET> (default: current branch).
+		does not exist, it will be created at <TARGET> (default: current branch).
 
 	* _edit_:
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
@@ -51,10 +51,11 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		and body unchanged, pass '-m ""'.
 
 	* _download_:
-	  Download the assets attached to release for the specified <TAG>.
+		Download the assets attached to release for the specified <TAG>.
 
 	* _delete_:
-	  Delete the release and associated assets for the specified <TAG>.
+		Delete the release and associated assets for the specified <TAG>. Note that
+		this does **not** remove the git tag <TAG>.
 
 ## Options:
 	-L, --limit
@@ -93,7 +94,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	-t, --commitish <TARGET>
 		A commit SHA or branch name to attach the release to, only used if <TAG>
-		doesn't already exist (default: main branch).
+		does not already exist (default: main branch).
 
 	-f, --format <FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
@@ -136,28 +137,68 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 		%pI: published date, ISO 8601 format
 
+		%n: newline
+
+		%%: a literal %
+
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
+
 	<TAG>
 		The git tag name for this release.
 
 ## See also:
 
 hub(1), git-tag(1)
-	`,
+`,
+		KnownFlags: `
+		-d, --include-drafts
+		-p, --exclude-prereleases
+		-L, --limit N
+		-f, --format FMT
+		--color
+`,
 	}
 
 	cmdShowRelease = &Command{
 		Key: "show",
 		Run: showRelease,
+		KnownFlags: `
+		-d, --show-downloads
+		-f, --format FMT
+		--color
+`,
 	}
 
 	cmdCreateRelease = &Command{
 		Key: "create",
 		Run: createRelease,
+		KnownFlags: `
+		-e, --edit
+		-d, --draft
+		-p, --prerelease
+		-o, --browse
+		-c, --copy
+		-a, --attach FILE
+		-m, --message MSG
+		-F, --file FILE
+		-t, --commitish C
+`,
 	}
 
 	cmdEditRelease = &Command{
 		Key: "edit",
 		Run: editRelease,
+		KnownFlags: `
+		-e, --edit
+		-d, --draft
+		-p, --prerelease
+		-a, --attach FILE
+		-m, --message MSG
+		-F, --file FILE
+		-t, --commitish C
+`,
 	}
 
 	cmdDownloadRelease = &Command{
@@ -169,55 +210,9 @@ hub(1), git-tag(1)
 		Key: "delete",
 		Run: deleteRelease,
 	}
-
-	flagReleaseIncludeDrafts,
-	flagReleaseExcludePrereleases,
-	flagReleaseShowDownloads,
-	flagReleaseDraft,
-	flagReleaseEdit,
-	flagReleaseBrowse,
-	flagReleaseCopy,
-	flagReleasePrerelease bool
-
-	flagReleaseFile,
-	flagReleaseFormat,
-	flagShowReleaseFormat,
-	flagReleaseCommitish string
-
-	flagReleaseMessage messageBlocks
-
-	flagReleaseAssets stringSliceValue
-
-	flagReleaseLimit int
 )
 
 func init() {
-	cmdRelease.Flag.BoolVarP(&flagReleaseIncludeDrafts, "include-drafts", "d", false, "DRAFTS")
-	cmdRelease.Flag.BoolVarP(&flagReleaseExcludePrereleases, "exclude-prereleases", "p", false, "PRERELEASE")
-	cmdRelease.Flag.IntVarP(&flagReleaseLimit, "limit", "L", -1, "LIMIT")
-	cmdRelease.Flag.StringVarP(&flagReleaseFormat, "format", "f", "%T%n", "FORMAT")
-
-	cmdShowRelease.Flag.BoolVarP(&flagReleaseShowDownloads, "show-downloads", "d", false, "DRAFTS")
-	cmdShowRelease.Flag.StringVarP(&flagShowReleaseFormat, "format", "f", "", "FORMAT")
-
-	cmdCreateRelease.Flag.BoolVarP(&flagReleaseEdit, "edit", "e", false, "EDIT")
-	cmdCreateRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
-	cmdCreateRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
-	cmdCreateRelease.Flag.BoolVarP(&flagReleaseBrowse, "browse", "o", false, "BROWSE")
-	cmdCreateRelease.Flag.BoolVarP(&flagReleaseCopy, "copy", "c", false, "COPY")
-	cmdCreateRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
-	cmdCreateRelease.Flag.VarP(&flagReleaseMessage, "message", "m", "MESSAGE")
-	cmdCreateRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
-	cmdCreateRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "t", "", "COMMITISH")
-
-	cmdEditRelease.Flag.BoolVarP(&flagReleaseEdit, "edit", "e", false, "EDIT")
-	cmdEditRelease.Flag.BoolVarP(&flagReleaseDraft, "draft", "d", false, "DRAFT")
-	cmdEditRelease.Flag.BoolVarP(&flagReleasePrerelease, "prerelease", "p", false, "PRERELEASE")
-	cmdEditRelease.Flag.VarP(&flagReleaseAssets, "attach", "a", "ATTACH_ASSETS")
-	cmdEditRelease.Flag.VarP(&flagReleaseMessage, "message", "m", "MESSAGE")
-	cmdEditRelease.Flag.StringVarP(&flagReleaseFile, "file", "F", "", "FILE")
-	cmdEditRelease.Flag.StringVarP(&flagReleaseCommitish, "commitish", "t", "", "COMMITISH")
-
 	cmdRelease.Use(cmdShowRelease)
 	cmdRelease.Use(cmdCreateRelease)
 	cmdRelease.Use(cmdEditRelease)
@@ -235,6 +230,10 @@ func listReleases(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
+	flagReleaseLimit := args.Flag.Int("--limit")
+	flagReleaseIncludeDrafts := args.Flag.Bool("--include-drafts")
+	flagReleaseExcludePrereleases := args.Flag.Bool("--exclude-prereleases")
+
 	if args.Noop {
 		ui.Printf("Would request list of releases for %s\n", project)
 	} else {
@@ -244,9 +243,13 @@ func listReleases(cmd *Command, args *Args) {
 		})
 		utils.Check(err)
 
-		colorize := ui.IsTerminal(os.Stdout)
+		colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 		for _, release := range releases {
-			ui.Printf(formatRelease(release, flagReleaseFormat, colorize))
+			flagReleaseFormat := "%T%n"
+			if args.Flag.HasReceived("--format") {
+				flagReleaseFormat = args.Flag.Value("--format")
+			}
+			ui.Print(formatRelease(release, flagReleaseFormat, colorize))
 		}
 	}
 
@@ -309,9 +312,12 @@ func formatRelease(release github.Release, format string, colorize bool) string 
 }
 
 func showRelease(cmd *Command, args *Args) {
-	tagName := cmd.Arg(0)
+	tagName := ""
+	if args.ParamsSize() > 0 {
+		tagName = args.GetParam(0)
+	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -332,9 +338,9 @@ func showRelease(cmd *Command, args *Args) {
 
 		body := strings.TrimSpace(release.Body)
 
-		colorize := ui.IsTerminal(os.Stdout)
-		if flagShowReleaseFormat != "" {
-			ui.Printf(formatRelease(*release, flagShowReleaseFormat, colorize))
+		colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
+		if flagShowReleaseFormat := args.Flag.Value("--format"); flagShowReleaseFormat != "" {
+			ui.Print(formatRelease(*release, flagShowReleaseFormat, colorize))
 			return
 		}
 
@@ -342,7 +348,7 @@ func showRelease(cmd *Command, args *Args) {
 		if body != "" {
 			ui.Printf("\n%s\n", body)
 		}
-		if flagReleaseShowDownloads {
+		if args.Flag.Bool("--show-downloads") {
 			ui.Printf("\n## Downloads\n\n")
 			for _, asset := range release.Assets {
 				ui.Println(asset.DownloadUrl)
@@ -356,9 +362,12 @@ func showRelease(cmd *Command, args *Args) {
 }
 
 func downloadRelease(cmd *Command, args *Args) {
-	tagName := cmd.Arg(0)
+	tagName := ""
+	if args.ParamsSize() > 0 {
+		tagName = args.GetParam(0)
+	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 	}
 
 	localRepo, err := github.LocalRepo()
@@ -402,9 +411,12 @@ func downloadReleaseAsset(asset github.ReleaseAsset, gh *github.Client) (err err
 }
 
 func createRelease(cmd *Command, args *Args) {
-	tagName := cmd.Arg(0)
+	tagName := ""
+	if args.ParamsSize() > 0 {
+		tagName = args.GetParam(0)
+	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 		return
 	}
 
@@ -426,13 +438,14 @@ func createRelease(cmd *Command, args *Args) {
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project))
 
+	flagReleaseMessage := args.Flag.AllValues("--message")
 	if len(flagReleaseMessage) > 0 {
-		messageBuilder.Message = flagReleaseMessage.String()
-		messageBuilder.Edit = flagReleaseEdit
-	} else if cmd.FlagPassed("file") {
-		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
+		messageBuilder.Message = strings.Join(flagReleaseMessage, "\n\n")
+		messageBuilder.Edit = args.Flag.Bool("--edit")
+	} else if args.Flag.HasReceived("--file") {
+		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 		utils.Check(err)
-		messageBuilder.Edit = flagReleaseEdit
+		messageBuilder.Edit = args.Flag.Bool("--edit")
 	} else {
 		messageBuilder.Edit = true
 	}
@@ -446,11 +459,11 @@ text is the title and the rest is the description.`, tagName, project))
 
 	params := &github.Release{
 		TagName:         tagName,
-		TargetCommitish: flagReleaseCommitish,
+		TargetCommitish: args.Flag.Value("--commitish"),
 		Name:            title,
 		Body:            body,
-		Draft:           flagReleaseDraft,
-		Prerelease:      flagReleasePrerelease,
+		Draft:           args.Flag.Bool("--draft"),
+		Prerelease:      args.Flag.Bool("--prerelease"),
 	}
 
 	var release *github.Release
@@ -462,18 +475,24 @@ text is the title and the rest is the description.`, tagName, project))
 		release, err = gh.CreateRelease(project, params)
 		utils.Check(err)
 
+		flagReleaseBrowse := args.Flag.Bool("--browse")
+		flagReleaseCopy := args.Flag.Bool("--copy")
 		printBrowseOrCopy(args, release.HtmlUrl, flagReleaseBrowse, flagReleaseCopy)
 	}
 
 	messageBuilder.Cleanup()
 
+	flagReleaseAssets := args.Flag.AllValues("--attach")
 	uploadAssets(gh, release, flagReleaseAssets, args)
 }
 
 func editRelease(cmd *Command, args *Args) {
-	tagName := cmd.Arg(0)
+	tagName := ""
+	if args.ParamsSize() > 0 {
+		tagName = args.GetParam(0)
+	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 		return
 	}
 
@@ -489,17 +508,14 @@ func editRelease(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	params := map[string]interface{}{}
-
-	if cmd.FlagPassed("commitish") {
-		params["target_commitish"] = flagReleaseCommitish
+	if args.Flag.HasReceived("--commitish") {
+		params["target_commitish"] = args.Flag.Value("--commitish")
 	}
-
-	if cmd.FlagPassed("draft") {
-		params["draft"] = flagReleaseDraft
+	if args.Flag.HasReceived("--draft") {
+		params["draft"] = args.Flag.Bool("--draft")
 	}
-
-	if cmd.FlagPassed("prerelease") {
-		params["prerelease"] = flagReleasePrerelease
+	if args.Flag.HasReceived("--prerelease") {
+		params["prerelease"] = args.Flag.Bool("--prerelease")
 	}
 
 	messageBuilder := &github.MessageBuilder{
@@ -512,13 +528,14 @@ func editRelease(cmd *Command, args *Args) {
 Write a message for this release. The first block of
 text is the title and the rest is the description.`, tagName, project))
 
+	flagReleaseMessage := args.Flag.AllValues("--message")
 	if len(flagReleaseMessage) > 0 {
-		messageBuilder.Message = flagReleaseMessage.String()
-		messageBuilder.Edit = flagReleaseEdit
-	} else if cmd.FlagPassed("file") {
-		messageBuilder.Message, err = msgFromFile(flagReleaseFile)
+		messageBuilder.Message = strings.Join(flagReleaseMessage, "\n\n")
+		messageBuilder.Edit = args.Flag.Bool("--edit")
+	} else if args.Flag.HasReceived("--file") {
+		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 		utils.Check(err)
-		messageBuilder.Edit = flagReleaseEdit
+		messageBuilder.Edit = args.Flag.Bool("--edit")
 	} else {
 		messageBuilder.Edit = true
 		messageBuilder.Message = fmt.Sprintf("%s\n\n%s", release.Name, release.Body)
@@ -527,7 +544,7 @@ text is the title and the rest is the description.`, tagName, project))
 	title, body, err := messageBuilder.Extract()
 	utils.Check(err)
 
-	if title == "" && !cmd.FlagPassed("message") {
+	if title == "" && len(flagReleaseMessage) == 0 {
 		utils.Check(fmt.Errorf("Aborting editing due to empty release title"))
 	}
 
@@ -549,14 +566,18 @@ text is the title and the rest is the description.`, tagName, project))
 		messageBuilder.Cleanup()
 	}
 
+	flagReleaseAssets := args.Flag.AllValues("--attach")
 	uploadAssets(gh, release, flagReleaseAssets, args)
 	args.NoForward()
 }
 
 func deleteRelease(cmd *Command, args *Args) {
-	tagName := cmd.Arg(0)
+	tagName := ""
+	if args.ParamsSize() > 0 {
+		tagName = args.GetParam(0)
+	}
 	if tagName == "" {
-		utils.Check(fmt.Errorf(cmdRelease.Synopsis()))
+		utils.Check(cmd.UsageError(""))
 		return
 	}
 

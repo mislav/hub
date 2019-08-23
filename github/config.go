@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -24,8 +25,6 @@ type yamlHost struct {
 	UnixSocket string `yaml:"unix_socket,omitempty"`
 }
 
-type yamlConfig map[string][]yamlHost
-
 type Host struct {
 	Host        string `toml:"host"`
 	User        string `toml:"user"`
@@ -41,6 +40,13 @@ type Config struct {
 func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	token := c.DetectToken()
 	tokenFromEnv := token != ""
+
+	if host != GitHubHost {
+		if _, e := url.Parse("https://" + host); e != nil {
+			err = fmt.Errorf("invalid hostname: %q", host)
+			return
+		}
+	}
 
 	h = c.Find(host)
 	if h != nil {
@@ -81,11 +87,17 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		}
 	}
 
-	currentUser, err := client.CurrentUser()
-	if err != nil {
-		return
+	userFromEnv := os.Getenv("GITHUB_USER")
+	if tokenFromEnv && userFromEnv != "" {
+		h.User = userFromEnv
+	} else {
+		var currentUser *User
+		currentUser, err = client.CurrentUser()
+		if err != nil {
+			return
+		}
+		h.User = currentUser.Login
 	}
-	h.User = currentUser.Login
 
 	if !tokenFromEnv {
 		err = newConfigService().Save(configsFile(), c)
@@ -173,14 +185,14 @@ func (c *Config) scanLine() string {
 }
 
 func getPassword() (string, error) {
-	stdin := int(syscall.Stdin)
+	stdin := syscall.Stdin
 	initialTermState, err := terminal.GetState(stdin)
 	if err != nil {
 		return "", err
 	}
 
 	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		s := <-c
 		terminal.Restore(stdin, initialTermState)
@@ -323,6 +335,18 @@ func (c *Config) DefaultHost() (host *Host, err error) {
 	}
 
 	return
+}
+
+func (c *Config) DefaultHostNoPrompt() (*Host, error) {
+	if GitHubHostEnv != "" {
+		return c.PromptForHost(GitHubHostEnv)
+	} else if len(c.Hosts) > 0 {
+		host := c.Hosts[0]
+		// HACK: forces host to inherit GITHUB_TOKEN if applicable
+		return c.PromptForHost(host.Host)
+	} else {
+		return c.PromptForHost(GitHubHost)
+	}
 }
 
 // CheckWriteable checks if config file is writeable. This should

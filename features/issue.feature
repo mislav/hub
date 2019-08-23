@@ -116,6 +116,34 @@ Feature: hub issue
     """
     When I successfully run `hub issue -M none`
 
+  Scenario: Fetch issues assigned to milestone by number
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues') {
+        assert :milestone => "12"
+        json []
+      }
+      """
+    When I successfully run `hub issue -M 12`
+
+  Scenario: Fetch issues assigned to milestone by name
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 1337, :title => "v1" },
+          { :number => 41319, :title => "Hello World!" }
+        ]
+      }
+      get('/repos/github/hub/issues') {
+        assert :milestone => "1337"
+        json []
+      }
+      """
+    When I successfully run `hub issue -M v1`
+
   Scenario: Fetch issues created by a given user
     Given the GitHub API server:
     """
@@ -247,6 +275,38 @@ Feature: hub issue
       13,mislav\n
       """
 
+  Scenario: Custom format with no-color labels
+    Given the GitHub API server:
+    """
+    get('/repos/github/hub/issues') {
+      json [
+        { :number => 102,
+          :title => "First issue",
+          :state => "open",
+          :user => { :login => "morganwahl" },
+          :labels => [
+            { :name => 'Has Migration',
+              :color => 'cfcfcf' },
+            { :name => 'Maintenance Window',
+              :color => '888888' },
+          ]
+        },
+        { :number => 201,
+          :title => "No labels",
+          :state => "open",
+          :user => { :login => "octocat" },
+          :labels => []
+        },
+      ]
+    }
+    """
+    When I successfully run `hub issue -f "%I: %L%n" --color=never`
+    Then the output should contain exactly:
+      """
+      102: Has Migration, Maintenance Window
+      201: \n
+      """
+
   Scenario: List all assignees
     Given the GitHub API server:
     """
@@ -343,7 +403,30 @@ Feature: hub issue
         json :html_url => "https://github.com/github/hub/issues/1337"
       }
       """
-    When I successfully run `hub issue create -m "hello" -M 12 -a mislav,josh -apcorpet`
+    When I successfully run `hub issue create -m "hello" -M 12 --assign mislav,josh -apcorpet`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Create an issue with milestone by name
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 1337, :title => "v1" },
+          { :number => 41319, :title => "Hello World!" }
+        ]
+      }
+      post('/repos/github/hub/issues') {
+        assert :milestone => 41319
+        status 201
+        json :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      """
+    When I successfully run `hub issue create -m "hello" -M "hello world!"`
     Then the output should contain exactly:
       """
       https://github.com/github/hub/issues/1337\n
@@ -514,7 +597,12 @@ Feature: hub issue
     Given the GitHub API server:
     """
     get('/repos/github/hub/labels') {
+      response.headers["Link"] = %(<https://api.github.com/repositories/12345/labels?per_page=100&page=2>; rel="next")
+      assert :per_page => "100", :page => nil
       json [
+        { :name => "Discuss",
+          :color => "0000ff",
+        },
         { :name => "bug",
           :color => "ff0000",
         },
@@ -523,11 +611,21 @@ Feature: hub issue
         },
       ]
     }
+    get('/repositories/12345/labels') {
+      assert :per_page => "100", :page => "2"
+      json [
+        { :name => "affects",
+          :color => "ffffff",
+        },
+      ]
+    }
     """
     When I successfully run `hub issue labels`
     Then the output should contain exactly:
       """
+      affects
       bug
+      Discuss
       feature\n
       """
 
@@ -614,10 +712,30 @@ Feature: hub issue
       I want this feature\n
       """
 
+  Scenario: Format with literal % characters
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/102') {
+        json \
+          :number => 102,
+          :state => "open",
+          :title => "Feature request % hub",
+          :user => { :login => "alexfornuto" }
+      }
+      get('/repos/github/hub/issues/102/comments') {
+        json []
+      }
+      """
+    When I successfully run `hub issue show 102 --format='%t%%t%%n%n'`
+    Then the output should contain exactly:
+      """
+      Feature request % hub%t%n\n
+      """
+
   Scenario: Did not supply an issue number
     When I run `hub issue show`
     Then the exit status should be 1
-    Then the output should contain exactly "Usage: hub issue show <NUMBER>\n"
+    Then the stderr should contain "Usage: hub issue"
 
   Scenario: Show error message if http code is not 200 for issues endpoint
     Given the GitHub API server:

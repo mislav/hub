@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
+	"sort"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
@@ -16,8 +17,25 @@ var cmdCiStatus = &Command{
 	Long: `Display status of GitHub checks for a commit.
 
 ## Options:
-	-v
+	-v, --verbose
 		Print detailed report of all status checks and their URLs.
+
+	-f, --format <FORMAT>
+		Pretty print all status checks using <FORMAT> (implies '--verbose'). See the
+		"PRETTY FORMATS" section of git-log(1) for some additional details on how
+		placeholders are used in format. The available placeholders for issues are:
+
+		%U: the URL of this status check
+
+		%S: check state (e.g. "success", "failure")
+
+		%sC: set color to red, green, or yellow, depending on state
+
+		%t: name of the status check
+
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
 
 	<COMMIT>
 		A commit SHA or branch name (default: "HEAD").
@@ -34,12 +52,9 @@ hub-pull-request(1), hub(1)
 `,
 }
 
-var flagCiStatusVerbose bool
 var severityList []string
 
 func init() {
-	cmdCiStatus.Flag.BoolVarP(&flagCiStatusVerbose, "verbose", "v", false, "VERBOSE")
-
 	CmdRunner.Use(cmdCiStatus)
 
 	severityList = []string{
@@ -109,8 +124,10 @@ func ciStatus(cmd *Command, args *Args) {
 			exitCode = 3
 		}
 
-		if flagCiStatusVerbose && len(response.Statuses) > 0 {
-			verboseFormat(response.Statuses)
+		verbose := args.Flag.Bool("--verbose") || args.Flag.HasReceived("--format")
+		if verbose && len(response.Statuses) > 0 {
+			colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
+			ciVerboseFormat(response.Statuses, args.Flag.Value("--format"), colorize)
 		} else {
 			if state != "" {
 				ui.Println(state)
@@ -123,15 +140,17 @@ func ciStatus(cmd *Command, args *Args) {
 	}
 }
 
-func verboseFormat(statuses []github.CIStatus) {
-	colorize := ui.IsTerminal(os.Stdout)
-
+func ciVerboseFormat(statuses []github.CIStatus, formatString string, colorize bool) {
 	contextWidth := 0
 	for _, status := range statuses {
 		if len(status.Context) > contextWidth {
 			contextWidth = len(status.Context)
 		}
 	}
+
+	sort.SliceStable(statuses, func(a, b int) bool {
+		return stateRank(statuses[a].State) < stateRank(statuses[b].State)
+	})
 
 	for _, status := range statuses {
 		var color int
@@ -151,14 +170,36 @@ func verboseFormat(statuses []github.CIStatus) {
 			color = 33
 		}
 
-		if colorize {
-			stateMarker = fmt.Sprintf("\033[%dm%s\033[0m", color, stateMarker)
+		placeholders := map[string]string{
+			"S":  status.State,
+			"sC": "",
+			"t":  status.Context,
+			"U":  status.TargetUrl,
 		}
 
-		if status.TargetUrl == "" {
-			ui.Printf("%s\t%s\n", stateMarker, status.Context)
-		} else {
-			ui.Printf("%s\t%-*s\t%s\n", stateMarker, contextWidth, status.Context, status.TargetUrl)
+		if colorize {
+			placeholders["sC"] = fmt.Sprintf("\033[%dm", color)
 		}
+
+		format := formatString
+		if format == "" {
+			if status.TargetUrl == "" {
+				format = fmt.Sprintf("%%sC%s%%Creset\t%%t\n", stateMarker)
+			} else {
+				format = fmt.Sprintf("%%sC%s%%Creset\t%%<(%d)%%t\t%%U\n", stateMarker, contextWidth)
+			}
+		}
+		ui.Print(ui.Expand(format, placeholders, colorize))
+	}
+}
+
+func stateRank(state string) uint32 {
+	switch state {
+	case "failure", "error", "action_required", "cancelled", "timed_out":
+		return 1
+	case "success", "neutral":
+		return 3
+	default:
+		return 2
 	}
 }

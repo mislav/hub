@@ -5,10 +5,10 @@ before_install:
   - export PATH=~/bin:"$PATH"
 language: go
 go:
+  - 1.12.x
   - 1.11.x
   - 1.10.x
   - 1.9.x
-  - 1.8.x
 script: make test-all
 install: script/bootstrap
 after_success: script/publish-release

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 
@@ -14,15 +13,20 @@ import (
 
 var cmdSync = &Command{
 	Run:   sync,
-	Usage: "sync",
-	Long: `Fetch git objects from upstream and update branches.
+	Usage: "sync [--color]",
+	Long: `Fetch git objects from upstream and update local branches.
 
 - If the local branch is outdated, fast-forward it;
 - If the local branch contains unpushed work, warn about it;
 - If the branch seems merged and its upstream branch was deleted, delete it.
 
-If a local branch doesn't have any upstream configuration, but has a
+If a local branch does not have any upstream configuration, but has a
 same-named branch on the remote, treat that as its upstream branch.
+
+## Options:
+	--color[=<WHEN>]
+		Enable colored output even if stdout is not a terminal. <WHEN> can be one
+		of "always" (default for '--color'), "never", or "auto" (default).
 
 ## See also:
 
@@ -41,7 +45,7 @@ func sync(cmd *Command, args *Args) {
 	remote, err := localRepo.MainRemote()
 	utils.Check(err)
 
-	defaultBranch := localRepo.MasterBranch().ShortName()
+	defaultBranch := localRepo.DefaultBranch(remote).ShortName()
 	fullDefaultBranch := fmt.Sprintf("refs/remotes/%s/%s", remote.Name, defaultBranch)
 	currentBranch := ""
 	if curBranch, err := localRepo.CurrentBranch(); err == nil {
@@ -71,7 +75,8 @@ func sync(cmd *Command, args *Args) {
 		lightRed,
 		resetColor string
 
-	if ui.IsTerminal(os.Stdout) {
+	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
+	if colorize {
 		green = "\033[32m"
 		lightGreen = "\033[32;1m"
 		red = "\033[31m"
@@ -109,7 +114,7 @@ func sync(cmd *Command, args *Args) {
 				}
 				ui.Printf("%sUpdated branch %s%s%s (was %s).\n", green, lightGreen, branch, resetColor, diff.A[0:7])
 			} else {
-				ui.Errorf("warning: `%s' seems to contain unpushed commits\n", branch)
+				ui.Errorf("warning: '%s' seems to contain unpushed commits\n", branch)
 			}
 		} else if gone {
 			diff, err := git.NewRange(fullBranch, fullDefaultBranch)
@@ -123,7 +128,7 @@ func sync(cmd *Command, args *Args) {
 				git.Quiet("branch", "-D", branch)
 				ui.Printf("%sDeleted branch %s%s%s (was %s).\n", red, lightRed, branch, resetColor, diff.A[0:7])
 			} else {
-				ui.Errorf("warning: `%s' was deleted on %s, but appears not merged into %s\n", branch, remote.Name, defaultBranch)
+				ui.Errorf("warning: '%s' was deleted on %s, but appears not merged into '%s'\n", branch, remote.Name, defaultBranch)
 			}
 		}
 	}

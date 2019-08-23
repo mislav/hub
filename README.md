@@ -1,8 +1,12 @@
-git + hub = github
-==================
-
 hub is a command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
+
+This repository and its issue tracker is **not for reporting problems with
+GitHub.com** web interface. If you have a problem with GitHub itself, please
+[contact Support](https://github.com/contact).
+
+Usage
+-----
 
 ``` sh
 $ hub clone rtomayko/tilt
@@ -11,22 +15,24 @@ $ hub clone rtomayko/tilt
 $ git clone git://github.com/rtomayko/tilt.git
 ```
 
-hub is best aliased as `git`, so you can type `$ git <command>` in the shell and
-get all the usual `hub` features. See "Aliasing" below.
+hub can be safely [aliased](#aliasing) as `git` so you can type `$ git
+<command>` in the shell and get all the usual `hub` features.
 
 See [Usage documentation](https://hub.github.com/hub.1.html) for the list of all
 commands and their arguments.
 
+Hub can also be used to make shell scripts that [manually interface with the
+GitHub API](https://hub.github.com/hub-api.1.html).
+
 Installation
 ------------
 
-Dependencies:
-
-* **git 1.7.3** or newer
+The `hub` executable has no dependencies, but since it was designed to wrap
+`git`, it's recommended to have at least **git 1.7.3** or newer.
 
 #### Homebrew
 
-`hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS:
+`hub` can be installed through [Homebrew](https://docs.brew.sh/Installation) on macOS or Linux:
 
 ``` sh
 $ brew install hub
@@ -43,6 +49,12 @@ hub version 2.2.3
 > scoop install hub
 ```
 
+or alternatively `hub` can be installed through [Chocolatey](https://chocolatey.org/):
+
+``` sh
+> choco install hub
+```
+
 #### Fedora Linux
 
 On Fedora you can install `hub` through DNF:
@@ -56,10 +68,27 @@ hub version 2.2.9
 
 #### Arch Linux
 
-On Arch Linux you can install `hub` from official repository:
+On Arch Linux you can install `hub` from the official repository:
 
 ```sh
 $ sudo pacman -S hub
+```
+
+#### FreeBSD
+
+On FreeBSD you can install a prebuilt `hub` package with
+[pkg(8)](http://man.freebsd.org/pkg/8):
+
+```console
+# pkg install hub
+```
+
+#### Debian
+
+On Debian (versions sid and buster) you can install `hub` from the official repository:
+
+```sh
+$ sudo apt install hub
 ```
 
 #### Ubuntu Linux
@@ -94,13 +123,12 @@ make install prefix=/usr/local
 Prerequisites for compilation are:
 
 * `make`
-* [Go 1.8+](http://golang.org/doc/install)
-* Ruby 1.9+ with Bundler - for generating man pages
+* [Go 1.9+](http://golang.org/doc/install)
 
 Aliasing
 --------
 
-Using hub feels best when it's aliased as `git`. This is not dangerous; your
+Some hub features feel best when it's aliased as `git`. This is not dangerous; your
 _normal git commands will all work_. hub merely adds some sugar.
 
 `hub alias` displays instructions for the current shell. With the `-s` flag, it

@@ -25,7 +25,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
         :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
-    When I run `hub pr checkout 77`
+    When I successfully run `hub pr checkout 77`
     Then "git fetch origin refs/pull/77/head:fixes" should be run
     And "git checkout fixes" should be run
     And "fixes" should merge "refs/pull/77/head" from remote "origin"
@@ -51,7 +51,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
         :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
-    When I run `hub pr checkout 77 fixes-from-mislav`
+    When I successfully run `hub pr checkout 77 fixes-from-mislav`
     Then "git fetch origin refs/pull/77/head:fixes-from-mislav" should be run
     And "git checkout fixes-from-mislav" should be run
     And "fixes-from-mislav" should merge "refs/pull/77/head" from remote "origin"
@@ -76,6 +76,7 @@ Feature: hub pr checkout <PULLREQ-NUMBER>
         :html_url => 'https://github.com/mojombo/jekyll/pull/77'
       }
       """
-    When I run `hub pr checkout 77`
+    When I successfully run `hub pr checkout 77`
     Then "git fetch origin +refs/heads/fixes:refs/remotes/origin/fixes" should be run
-    And "git checkout -b fixes --track origin/fixes" should be run
+    And "git checkout -b fixes --no-track origin/fixes" should be run
+    And "fixes" should merge "refs/heads/fixes" from remote "origin"

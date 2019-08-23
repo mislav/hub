@@ -1,6 +1,8 @@
 package github
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -8,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -26,11 +29,12 @@ func NewClient(h string) *Client {
 }
 
 func NewClientWithHost(host *Host) *Client {
-	return &Client{host}
+	return &Client{Host: host}
 }
 
 type Client struct {
-	Host *Host
+	Host         *Host
+	cachedClient *simpleClient
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
@@ -41,21 +45,14 @@ func (client *Client) FetchPullRequests(project *Project, filterParams map[strin
 
 	path := fmt.Sprintf("repos/%s/%s/pulls?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 	if filterParams != nil {
-		query := url.Values{}
-		for key, value := range filterParams {
-			switch v := value.(type) {
-			case string:
-				query.Add(key, v)
-			}
-		}
-		path += "&" + query.Encode()
+		path = addQuery(path, filterParams)
 	}
 
 	pulls = []PullRequest{}
 	var res *simpleResponse
 
 	for path != "" {
-		res, err = api.Get(path)
+		res, err = api.GetFile(path, draftsType)
 		if err = checkStatus(200, "fetching pull requests", res, err); err != nil {
 			return
 		}
@@ -116,7 +113,7 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 		return
 	}
 
-	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/pulls", project.Owner, project.Name), params)
+	res, err := api.PostJSONPreview(fmt.Sprintf("repos/%s/%s/pulls", project.Owner, project.Name), params, draftsType)
 	if err = checkStatus(201, "creating pull request", res, err); err != nil {
 		if res != nil && res.StatusCode == 404 {
 			projectUrl := strings.SplitN(project.WebURL("", "", ""), "://", 2)[1]
@@ -460,6 +457,20 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 
+	sortStatuses := func() {
+		sort.Slice(status.Statuses, func(a, b int) bool {
+			sA := status.Statuses[a]
+			sB := status.Statuses[b]
+			cmp := strings.Compare(strings.ToLower(sA.Context), strings.ToLower(sB.Context))
+			if cmp == 0 {
+				return strings.Compare(sA.TargetUrl, sB.TargetUrl) < 0
+			} else {
+				return cmp < 0
+			}
+		})
+	}
+	sortStatuses()
+
 	res, err = api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s/check-runs", project.Owner, project.Name, sha), checksType)
 	if err == nil && (res.StatusCode == 403 || res.StatusCode == 404 || res.StatusCode == 422) {
 		return
@@ -485,6 +496,8 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		}
 		status.Statuses = append(status.Statuses, checkStatus)
 	}
+
+	sortStatuses()
 
 	return
 }
@@ -542,7 +555,9 @@ type Issue struct {
 	Head        *PullRequestSpec `json:"head"`
 	Base        *PullRequestSpec `json:"base"`
 
-	MaintainerCanModify bool `json:"maintainer_can_modify"`
+	MergeCommitSha      string `json:"merge_commit_sha"`
+	MaintainerCanModify bool   `json:"maintainer_can_modify"`
+	Draft               bool   `json:"draft"`
 
 	Comments  int          `json:"comments"`
 	Labels    []IssueLabel `json:"labels"`
@@ -550,6 +565,7 @@ type Issue struct {
 	Milestone *Milestone   `json:"milestone"`
 	CreatedAt time.Time    `json:"created_at"`
 	UpdatedAt time.Time    `json:"updated_at"`
+	MergedAt  time.Time    `json:"merged_at"`
 
 	RequestedReviewers []User `json:"requested_reviewers"`
 	RequestedTeams     []Team `json:"requested_teams"`
@@ -620,14 +636,7 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 
 	path := fmt.Sprintf("repos/%s/%s/issues?per_page=%d", project.Owner, project.Name, perPage(limit, 100))
 	if filterParams != nil {
-		query := url.Values{}
-		for key, value := range filterParams {
-			switch v := value.(type) {
-			case string:
-				query.Add(key, v)
-			}
-		}
-		path += "&" + query.Encode()
+		path = addQuery(path, filterParams)
 	}
 
 	issues = []Issue{}
@@ -721,6 +730,18 @@ func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[
 	return
 }
 
+type sortedLabels []IssueLabel
+
+func (s sortedLabels) Len() int {
+	return len(s)
+}
+func (s sortedLabels) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+func (s sortedLabels) Less(i, j int) bool {
+	return strings.Compare(strings.ToLower(s[i].Name), strings.ToLower(s[j].Name)) < 0
+}
+
 func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -745,6 +766,8 @@ func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err er
 		}
 		labels = append(labels, labelsPage...)
 	}
+
+	sort.Sort(sortedLabels(labels))
 
 	return
 }
@@ -775,6 +798,39 @@ func (client *Client) FetchMilestones(project *Project) (milestones []Milestone,
 	}
 
 	return
+}
+
+func (client *Client) GenericAPIRequest(method, path string, data interface{}, headers map[string]string, ttl int) (*simpleResponse, error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return nil, err
+	}
+	api.CacheTTL = ttl
+
+	var body io.Reader
+	switch d := data.(type) {
+	case map[string]interface{}:
+		if method == "GET" {
+			path = addQuery(path, d)
+		} else if len(d) > 0 {
+			json, err := json.Marshal(d)
+			if err != nil {
+				return nil, err
+			}
+			body = bytes.NewBuffer(json)
+		}
+	case io.Reader:
+		body = d
+	}
+
+	return api.performRequest(method, path, body, func(req *http.Request) {
+		if body != nil {
+			req.Header.Set("Content-Type", "application/json; charset=utf-8")
+		}
+		for key, value := range headers {
+			req.Header.Set(key, value)
+		}
+	})
 }
 
 func (client *Client) CurrentUser() (user *User, err error) {
@@ -865,14 +921,15 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	return
 }
 
-func (client *Client) ensureAccessToken() (err error) {
+func (client *Client) ensureAccessToken() error {
 	if client.Host.AccessToken == "" {
 		host, err := CurrentConfig().PromptForHost(client.Host.Host)
-		if err == nil {
-			client.Host = host
+		if err != nil {
+			return err
 		}
+		client.Host = host
 	}
-	return
+	return nil
 }
 
 func (client *Client) simpleApi() (c *simpleClient, err error) {
@@ -881,10 +938,24 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 		return
 	}
 
+	if client.cachedClient != nil {
+		c = client.cachedClient
+		return
+	}
+
 	c = client.apiClient()
 	c.PrepareRequest = func(req *http.Request) {
-		req.Header.Set("Authorization", "token "+client.Host.AccessToken)
+		clientDomain := normalizeHost(client.Host.Host)
+		if strings.HasPrefix(clientDomain, "api.github.") {
+			clientDomain = strings.TrimPrefix(clientDomain, "api.")
+		}
+		requestHost := strings.ToLower(req.URL.Host)
+		if requestHost == clientDomain || strings.HasSuffix(requestHost, "."+clientDomain) {
+			req.Header.Set("Authorization", "token "+client.Host.AccessToken)
+		}
 	}
+
+	client.cachedClient = c
 	return
 }
 
@@ -903,8 +974,10 @@ func (client *Client) apiClient() *simpleClient {
 }
 
 func (client *Client) absolute(host string) *url.URL {
-	u, _ := url.Parse("https://" + host + "/")
-	if client.Host != nil && client.Host.Protocol != "" {
+	u, err := url.Parse("https://" + host + "/")
+	if err != nil {
+		panic(err)
+	} else if client.Host != nil && client.Host.Protocol != "" {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
@@ -971,6 +1044,9 @@ func FormatError(action string, err error) (ee error) {
 			errorMessage = strings.Join(errorSentences, "\n")
 		} else {
 			errorMessage = e.Message
+			if action == "getting current user" && e.Message == "Resource not accessible by integration" {
+				errorMessage = errorMessage + "\nYou must specify GITHUB_USER via environment variable."
+			}
 		}
 
 		if errorMessage != "" {
@@ -1019,4 +1095,30 @@ func perPage(limit, max int) int {
 		}
 	}
 	return max
+}
+
+func addQuery(path string, params map[string]interface{}) string {
+	if len(params) == 0 {
+		return path
+	}
+
+	query := url.Values{}
+	for key, value := range params {
+		switch v := value.(type) {
+		case string:
+			query.Add(key, v)
+		case nil:
+			query.Add(key, "")
+		case int:
+			query.Add(key, fmt.Sprintf("%d", v))
+		case bool:
+			query.Add(key, fmt.Sprintf("%v", v))
+		}
+	}
+
+	sep := "?"
+	if strings.Contains(path, sep) {
+		sep = "&"
+	}
+	return path + sep + query.Encode()
 }

@@ -8,9 +8,8 @@ import (
 
 func TestNew(t *testing.T) {
 	execCmd := New("vim --noplugin")
-	assert.Equal(t, "vim", execCmd.Name)
-	assert.Equal(t, 1, len(execCmd.Args))
-	assert.Equal(t, "--noplugin", execCmd.Args[0])
+	assert.Equal(t, "vim --noplugin", execCmd.Name)
+	assert.Equal(t, 0, len(execCmd.Args))
 }
 
 func TestWithArg(t *testing.T) {

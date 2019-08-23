@@ -10,19 +10,18 @@ import (
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 )
 
 var cmdPullRequest = &Command{
 	Run: pullRequest,
 	Usage: `
-pull-request [-focp] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
+pull-request [-focpd] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE> [--edit]
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
 `,
-	Long: `Create a GitHub pull request.
+	Long: `Create a GitHub Pull Request.
 
 ## Options:
 	-f, --force
@@ -46,8 +45,13 @@ pull-request -i <ISSUE>
 	-e, --edit
 		Further edit the contents of <FILE> in a text editor before submitting.
 
-	-i, --issue <ISSUE>, <ISSUE-URL>
-		(Deprecated) Convert <ISSUE> to a pull request.
+	-i, --issue <ISSUE>
+		Convert <ISSUE> (referenced by its number) to a pull request.
+
+		You can only convert issues authored by you or that which you have admin
+		rights over. In most workflows it is not necessary to convert issues to
+		pull requests; you can simply reference the original issue in the body of
+		the new pull request.
 
 	-o, --browse
 		Open the new pull request in a web browser.
@@ -59,25 +63,39 @@ pull-request -i <ISSUE>
 		Push the current branch to <HEAD> before creating the pull request.
 
 	-b, --base <BASE>
-		The base branch in "[OWNER:]BRANCH" format. Defaults to the default branch
-		(usually "master").
+		The base branch in the "[<OWNER>:]<BRANCH>" format. Defaults to the default
+		branch of the upstream repository (usually "master").
+
+		See the "CONVENTIONS" section of hub(1) for more information on how hub
+		selects the defaults in case of multiple git remotes.
 
 	-h, --head <HEAD>
-		The head branch in "[OWNER:]BRANCH" format. Defaults to the current branch.
+		The head branch in "[<OWNER>:]<BRANCH>" format. Defaults to the currently
+		checked out branch.
 
 	-r, --reviewer <USERS>
-		A comma-separated list of GitHub handles to request a review from.
+		A comma-separated list (no spaces around the comma) of GitHub handles to
+		request a review from.
 
 	-a, --assign <USERS>
-		A comma-separated list of GitHub handles to assign to this pull request.
+		A comma-separated list (no spaces around the comma) of GitHub handles to
+		assign to this pull request.
 
 	-M, --milestone <NAME>
 		The milestone name to add to this pull request. Passing the milestone number
 		is deprecated.
 
 	-l, --labels <LABELS>
-		Add a comma-separated list of labels to this pull request. Labels will be
-		created if they don't already exist.
+		A comma-separated list (no spaces around the comma) of labels to add to
+		this pull request. Labels will be created if they do not already exist.
+
+	-d, --draft
+		Create the pull request as a draft.
+
+	--no-maintainer-edits
+		When creating a pull request from a fork, this disallows projects
+		maintainers from being able to push to the head branch of this fork.
+		Maintainer edits are allowed by default.
 
 ## Examples:
 		$ hub pull-request
@@ -95,7 +113,7 @@ pull-request -i <ISSUE>
 
 ## Configuration:
 
-	HUB_RETRY_TIMEOUT=<SECONDS>
+	* 'HUB_RETRY_TIMEOUT':
 		The maximum time to keep retrying after HTTP 422 on '--push' (default: 9).
 
 ## See also:
@@ -104,44 +122,7 @@ hub(1), hub-merge(1), hub-checkout(1)
 `,
 }
 
-var (
-	flagPullRequestBase,
-	flagPullRequestHead,
-	flagPullRequestIssue,
-	flagPullRequestMilestone,
-	flagPullRequestFile string
-
-	flagPullRequestMessage messageBlocks
-
-	flagPullRequestBrowse,
-	flagPullRequestCopy,
-	flagPullRequestEdit,
-	flagPullRequestPush,
-	flagPullRequestForce,
-	flagPullRequestNoEdit bool
-
-	flagPullRequestAssignees,
-	flagPullRequestReviewers,
-	flagPullRequestLabels listFlag
-)
-
 func init() {
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestBase, "base", "b", "", "BASE")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestHead, "head", "h", "", "HEAD")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestIssue, "issue", "i", "", "ISSUE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestBrowse, "browse", "o", false, "BROWSE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestCopy, "copy", "c", false, "COPY")
-	cmdPullRequest.Flag.VarP(&flagPullRequestMessage, "message", "m", "MESSAGE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestEdit, "edit", "e", false, "EDIT")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestPush, "push", "p", false, "PUSH")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestForce, "force", "f", false, "FORCE")
-	cmdPullRequest.Flag.BoolVarP(&flagPullRequestNoEdit, "no-edit", "", false, "NO-EDIT")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestFile, "file", "F", "", "FILE")
-	cmdPullRequest.Flag.VarP(&flagPullRequestAssignees, "assign", "a", "USERS")
-	cmdPullRequest.Flag.VarP(&flagPullRequestReviewers, "reviewer", "r", "USERS")
-	cmdPullRequest.Flag.StringVarP(&flagPullRequestMilestone, "milestone", "M", "", "MILESTONE")
-	cmdPullRequest.Flag.VarP(&flagPullRequestLabels, "labels", "l", "LABELS")
-
 	CmdRunner.Use(cmdPullRequest)
 }
 
@@ -149,8 +130,7 @@ func pullRequest(cmd *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	currentBranch, err := localRepo.CurrentBranch()
-	utils.Check(err)
+	currentBranch, currentBranchErr := localRepo.CurrentBranch()
 
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
@@ -161,32 +141,26 @@ func pullRequest(cmd *Command, args *Args) {
 	}
 	client := github.NewClientWithHost(host)
 
-	trackedBranch, headProject, err := localRepo.RemoteBranchAndProject(host.User, false)
-	utils.Check(err)
+	trackedBranch, headProject, _ := localRepo.RemoteBranchAndProject(host.User, false)
+	if headProject == nil {
+		utils.Check(fmt.Errorf("could not determine project for head branch"))
+	}
 
 	var (
 		base, head string
-		force      bool
 	)
 
-	force = flagPullRequestForce
-
-	if flagPullRequestBase != "" {
+	if flagPullRequestBase := args.Flag.Value("--base"); flagPullRequestBase != "" {
 		baseProject, base = parsePullRequestProject(baseProject, flagPullRequestBase)
 	}
 
-	if flagPullRequestHead != "" {
+	if flagPullRequestHead := args.Flag.Value("--head"); flagPullRequestHead != "" {
 		headProject, head = parsePullRequestProject(headProject, flagPullRequestHead)
 	}
 
-	if args.ParamsSize() == 1 {
-		arg := args.RemoveParam(0)
-		flagPullRequestIssue = parsePullRequestIssueNumber(arg)
-	}
-
-	if base == "" {
-		masterBranch := localRepo.MasterBranch()
-		base = masterBranch.ShortName()
+	baseRemote, _ := localRepo.RemoteForProject(baseProject)
+	if base == "" && baseRemote != nil {
+		base = localRepo.DefaultBranch(baseRemote).ShortName()
 	}
 
 	if head == "" && trackedBranch != nil {
@@ -203,8 +177,22 @@ func pullRequest(cmd *Command, args *Args) {
 		}
 	}
 
+	force := args.Flag.Bool("--force")
+	flagPullRequestPush := args.Flag.Bool("--push")
+
 	if head == "" {
 		if trackedBranch == nil {
+			utils.Check(currentBranchErr)
+			if !force && !flagPullRequestPush {
+				branchRemote, branchMerge, err := branchTrackingInformation(currentBranch)
+				if err != nil || (baseRemote != nil && branchRemote == baseRemote.Name && branchMerge.ShortName() == base) {
+					if localRepo.RemoteForBranch(currentBranch, host.User) == nil {
+						err = fmt.Errorf("Aborted: the current branch seems not yet pushed to a remote")
+						err = fmt.Errorf("%s\n(use `-p` to push the branch or `-f` to skip this check)", err)
+						utils.Check(err)
+					}
+				}
+			}
 			head = currentBranch.ShortName()
 		} else {
 			head = trackedBranch.ShortName()
@@ -220,8 +208,8 @@ func pullRequest(cmd *Command, args *Args) {
 	fullHead := fmt.Sprintf("%s:%s", headProject.Owner, head)
 
 	if !force && trackedBranch != nil {
-		remoteCommits, _ := git.RefList(trackedBranch.LongName(), "")
-		if len(remoteCommits) > 0 {
+		remoteCommits, err := git.RefList(trackedBranch.LongName(), "")
+		if err == nil && len(remoteCommits) > 0 {
 			err = fmt.Errorf("Aborted: %d commits are not yet pushed to %s", len(remoteCommits), trackedBranch.LongName())
 			err = fmt.Errorf("%s\n(use `-f` to force submit a pull request anyway)", err)
 			utils.Check(err)
@@ -236,12 +224,12 @@ func pullRequest(cmd *Command, args *Args) {
 	baseTracking := base
 	headTracking := head
 
-	remote := gitRemoteForProject(baseProject)
+	remote := baseRemote
 	if remote != nil {
 		baseTracking = fmt.Sprintf("%s/%s", remote.Name, base)
 	}
 	if remote == nil || !baseProject.SameAs(headProject) {
-		remote = gitRemoteForProject(headProject)
+		remote, _ = localRepo.RemoteForProject(headProject)
 	}
 	if remote != nil {
 		headTracking = fmt.Sprintf("%s/%s", remote.Name, head)
@@ -256,14 +244,21 @@ func pullRequest(cmd *Command, args *Args) {
 Write a message for this pull request. The first block
 of text is the title and the rest is the description.`, fullBase, fullHead))
 
+	flagPullRequestMessage := args.Flag.AllValues("--message")
+	flagPullRequestEdit := args.Flag.Bool("--edit")
+	flagPullRequestIssue := args.Flag.Value("--issue")
+	if !args.Flag.HasReceived("--issue") && args.ParamsSize() > 0 {
+		flagPullRequestIssue = parsePullRequestIssueNumber(args.GetParam(0))
+	}
+
 	if len(flagPullRequestMessage) > 0 {
-		messageBuilder.Message = flagPullRequestMessage.String()
+		messageBuilder.Message = strings.Join(flagPullRequestMessage, "\n\n")
 		messageBuilder.Edit = flagPullRequestEdit
-	} else if cmd.FlagPassed("file") {
-		messageBuilder.Message, err = msgFromFile(flagPullRequestFile)
+	} else if args.Flag.HasReceived("--file") {
+		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 		utils.Check(err)
 		messageBuilder.Edit = flagPullRequestEdit
-	} else if flagPullRequestNoEdit {
+	} else if args.Flag.Bool("--no-edit") {
 		commits, _ := git.RefList(baseTracking, head)
 		if len(commits) == 0 {
 			utils.Check(fmt.Errorf("Aborted: no commits detected between %s and %s", baseTracking, head))
@@ -280,7 +275,6 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 
 		message := ""
-		commitLogs := ""
 
 		commits, _ := git.RefList(baseTracking, headForMessage)
 		if len(commits) == 1 {
@@ -290,12 +284,12 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			re := regexp.MustCompile(`\nSigned-off-by:\s.*$`)
 			message = re.ReplaceAllString(message, "")
 		} else if len(commits) > 1 {
-			commitLogs, err = git.Log(baseTracking, headForMessage)
+			commitLogs, err := git.Log(baseTracking, headForMessage)
 			utils.Check(err)
-		}
 
-		if commitLogs != "" {
-			messageBuilder.AddCommentedSection("\nChanges:\n\n" + strings.TrimSpace(commitLogs))
+			if commitLogs != "" {
+				messageBuilder.AddCommentedSection("\nChanges:\n\n" + strings.TrimSpace(commitLogs))
+			}
 		}
 
 		workdir, _ := git.WorkdirName()
@@ -325,17 +319,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 	}
 
-	milestoneNumber := 0
-	if flagPullRequestMilestone != "" {
-		// BC: Don't try to resolve milestone name if it's an integer
-		milestoneNumber, err = strconv.Atoi(flagPullRequestMilestone)
-		if err != nil {
-			milestones, err := client.FetchMilestones(baseProject)
-			utils.Check(err)
-			milestoneNumber, err = findMilestoneNumber(milestones, flagPullRequestMilestone)
-			utils.Check(err)
-		}
-	}
+	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), client, baseProject)
+	utils.Check(err)
 
 	var pullRequestURL string
 	if args.Noop {
@@ -343,8 +328,13 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		pullRequestURL = "PULL_REQUEST_URL"
 	} else {
 		params := map[string]interface{}{
-			"base": base,
-			"head": fullHead,
+			"base":                  base,
+			"head":                  fullHead,
+			"maintainer_can_modify": !args.Flag.Bool("--no-maintainer-edits"),
+		}
+
+		if args.Flag.Bool("--draft") {
+			params["draft"] = true
 		}
 
 		if title != "" {
@@ -381,7 +371,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 					numRetries += 1
 				} else {
 					if numRetries > 0 {
-						duration := time.Now().Sub(startedAt)
+						duration := time.Since(startedAt)
 						err = fmt.Errorf("%s\nGiven up after retrying for %.1f seconds.", err, duration.Seconds())
 					}
 					break
@@ -400,9 +390,11 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		pullRequestURL = pr.HtmlUrl
 
 		params = map[string]interface{}{}
+		flagPullRequestLabels := commaSeparated(args.Flag.AllValues("--labels"))
 		if len(flagPullRequestLabels) > 0 {
 			params["labels"] = flagPullRequestLabels
 		}
+		flagPullRequestAssignees := commaSeparated(args.Flag.AllValues("--assign"))
 		if len(flagPullRequestAssignees) > 0 {
 			params["assignees"] = flagPullRequestAssignees
 		}
@@ -415,6 +407,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			utils.Check(err)
 		}
 
+		flagPullRequestReviewers := commaSeparated(args.Flag.AllValues("--reviewer"))
 		if len(flagPullRequestReviewers) > 0 {
 			userReviewers := []string{}
 			teamReviewers := []string{}
@@ -438,12 +431,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		}
 	}
 
-	if flagPullRequestIssue != "" {
-		ui.Errorln("Warning: Issue to pull request conversion is deprecated and might not work in the future.")
-	}
-
 	args.NoForward()
-	printBrowseOrCopy(args, pullRequestURL, flagPullRequestBrowse, flagPullRequestCopy)
+	printBrowseOrCopy(args, pullRequestURL, args.Flag.Bool("--browse"), args.Flag.Bool("--copy"))
 }
 
 func parsePullRequestProject(context *github.Project, s string) (p *github.Project, ref string) {
@@ -478,12 +467,10 @@ func parsePullRequestIssueNumber(url string) string {
 	return ""
 }
 
-func findMilestoneNumber(milestones []github.Milestone, name string) (int, error) {
-	for _, milestone := range milestones {
-		if strings.EqualFold(milestone.Title, name) {
-			return milestone.Number, nil
-		}
+func commaSeparated(l []string) []string {
+	res := []string{}
+	for _, i := range l {
+		res = append(res, strings.Split(i, ",")...)
 	}
-
-	return 0, fmt.Errorf("error: no milestone found with name '%s'", name)
+	return res
 }
