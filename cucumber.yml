@@ -1,3 +1,4 @@
 default: --format progress -t 'not @completion'
 completion: --format pretty -t @completion
 all: --format progress
+upps
