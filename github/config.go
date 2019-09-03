@@ -88,6 +88,13 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 	}
 
 	userFromEnv := os.Getenv("GITHUB_USER")
+	repoFromEnv := os.Getenv("GITHUB_REPOSITORY")
+	if userFromEnv == "" && repoFromEnv != "" {
+		repoParts := strings.SplitN(repoFromEnv, "/", 2)
+		if len(repoParts) > 0 {
+			userFromEnv = repoParts[0]
+		}
+	}
 	if tokenFromEnv && userFromEnv != "" {
 		h.User = userFromEnv
 	} else {
