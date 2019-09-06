@@ -178,6 +178,11 @@ this can be affected with the `GITHUB_HOST` environment variable:
 `GITHUB_TOKEN`
 :   OAuth token to use for GitHub API requests.
 
+`GITHUB_REPOSITORY`
+:   A value in "OWNER/REPO" format that specifies the repository that API
+    operations should be performed against. Currently only used to infer the
+    default value of `GITHUB_USER` for API requests.
+
 ## Bugs
 
 <https://github.com/github/hub/issues>
