@@ -1,6 +1,3 @@
-hub is a command line tool that wraps `git` in order to extend it with extra
-features and commands that make working with GitHub easier.
-
 This repository and its issue tracker is **not for reporting problems with
 GitHub.com** web interface. If you have a problem with GitHub itself, please
 [contact Support](https://github.com/contact).
