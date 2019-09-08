@@ -330,6 +330,61 @@ Feature: hub pull-request
 
       """
 
+  Scenario: Message using file template should include git log summary between base and head
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/coral/pulls') {
+        status 500
+      }
+      """
+    Given I am on the "master" branch
+    And I make a commit with message "One on master"
+    And I make a commit with message "Two on master"
+    And the "master" branch is pushed to "origin/master"
+    Given I successfully run `git reset --hard HEAD~2`
+    And I successfully run `git checkout --quiet -B topic origin/master`
+    Given I make a commit with message "One on topic"
+    And I make a commit with message "Two on topic"
+    Given the "topic" branch is pushed to "origin/topic"
+    And I successfully run `git reset --hard HEAD~1`
+    And a file named "pullreq-msg" with:
+      """
+      Title from file
+
+      Body from file as well.
+      """
+    And the text editor adds:
+      """
+      Hello from editor
+      """
+    When I run `hub pull-request -F pullreq-msg --edit`
+    Given the SHAs and timestamps are normalized in ".git/PULLREQ_EDITMSG"
+    Then the file ".git/PULLREQ_EDITMSG" should contain exactly:
+      """
+      Hello from editor
+
+      Title from file
+
+      Body from file as well.
+      # ------------------------ >8 ------------------------
+      # Do not modify or remove the line above.
+      # Everything below it will be ignored.
+
+      Requesting a pull to mislav:master from mislav:topic
+
+      Write a message for this pull request. The first block
+      of text is the title and the rest is the description.
+
+      Changes:
+
+      SHA1SHA (Hub, 0 seconds ago)
+         Two on topic
+
+      SHA1SHA (Hub, 0 seconds ago)
+         One on topic
+
+      """
+
   Scenario: Non-existing base
     Given the GitHub API server:
       """

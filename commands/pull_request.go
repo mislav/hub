@@ -257,6 +257,18 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 	} else if args.Flag.HasReceived("--file") {
 		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 		utils.Check(err)
+		headForMessage := headTracking
+
+		commits, _ := git.RefList(baseTracking, headForMessage)
+
+		if len(commits) >= 1 {
+			commitLogs, err := git.Log(baseTracking, headForMessage)
+			utils.Check(err)
+
+			if commitLogs != "" {
+				messageBuilder.AddCommentedSection("\nChanges:\n\n" + strings.TrimSpace(commitLogs))
+			}
+		}
 		messageBuilder.Edit = flagPullRequestEdit
 	} else if args.Flag.Bool("--no-edit") {
 		commits, _ := git.RefList(baseTracking, head)
