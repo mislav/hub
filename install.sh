@@ -48,10 +48,22 @@ verifySupported() {
 }
 
 # checkDesiredVersion checks if the desired version is available.
-latest_release() {
-	TAG=$(curl --silent "https://api.github.com/repos/github/hub/releases/latest" | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
-	VERSION=$(echo $TAG | sed 's/v//')
-	echo "Latest version $VERSION"
+checkDesiredVersion() {
+	if [ "x$DESIRED_VERSION" == "x" ]; then
+		local latest_release_url="https://api.github.com/repos/github/hub/releases/latest"
+		if type "curl" > /dev/null; then
+      TAG=$(curl --silent $latest_release_url | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+    elif type "wget" > /dev/null; then
+      TAG=$(wget -O - $latest_release_url | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+    fi
+		
+		VERSION=$(echo $TAG | sed 's/v//')
+		echo "Latest version $VERSION"
+	else 
+		TAG="v$DESIRED_VERSION"
+		VERSION="$DESIRED_VERSION"
+
+	fi
 }
 
 # checkHubInstalledVersion checks which version of hub is installed and
@@ -145,7 +157,7 @@ help () {
   echo "Accepted cli arguments are:"
   echo -e "\t[--help|-h ] ->> prints this help"
   echo -e "\t[--version|-v <desired_version>] . When not defined it defaults to latest"
-  echo -e "\te.g. --version v2.4.0  or -v latest"
+  echo -e "\te.g. --version 2.4.0  or -v latest"
   echo -e "\t[--no-sudo]  ->> install without sudo"
 }
 
@@ -192,7 +204,7 @@ set +u
 initArch
 initOS
 verifySupported
-latest_release
+checkDesiredVersion
 if ! checkHubInstalledVersion; then
   downloadFile
   installFile
