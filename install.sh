@@ -83,7 +83,7 @@ checkHubInstalledVersion() {
 # for that binary.
 downloadFile() {
   HUB_DIST="hub-$OS-$ARCH-$TAG.tgz"
-	DOWNLOAD_URL=$(curl -s https://api.github.com/repos/github/hub/releases/tags/$TAG | grep -E 'browser_download_url": ".+linux-amd64.+\.tgz"' | sed 's/.+(https://[^"]+).+/\1/' | sed -E 's|.+(https://[^"]+).+|\1|')
+	DOWNLOAD_URL=$(curl -s https://api.github.com/repos/github/hub/releases/tags/$TAG | grep -E 'browser_download_url": ".+linux-amd64.+\.tgz"' | sed -E 's|.+(https://[^"]+).+|\1|')
 
   HUB_TMP_ROOT="$(mktemp -dt helm-installer-XXXXXX)"
   HUB_TMP_FILE="$HUB_TMP_ROOT/$HUB_DIST"
