@@ -3,7 +3,7 @@
 PROJECT_NAME="hub"
 
 : ${USE_SUDO:="true"}
-: ${HUB_INSTALL_DIR:="/usr/local/bin"}
+: ${HUB_INSTALL_DIR:="/usr/local"}
 
 # initArch discovers the architecture for this system.
 initArch() {
