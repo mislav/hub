@@ -105,7 +105,7 @@ installFile() {
   mkdir -p "$HUB_TMP"
   tar xf "$HUB_TMP_FILE" -C "$HUB_TMP"
 	HUB_DIST="hub-$OS-$ARCH-$VERSION"
-  HUB_INSTALL_FILE="$HUB_TMP/$HUB_DIST/$PROJECT_NAME/install"
+  HUB_INSTALL_FILE="$HUB_TMP/$HUB_DIST/install"
 
   echo "Preparing to install $PROJECT_NAME into ${HUB_INSTALL_DIR}"
 	runAsRoot prefix=$HUB_INSTALL_DIR $HUB_INSTALL_FILE
