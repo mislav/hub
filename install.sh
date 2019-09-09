@@ -109,7 +109,7 @@ installFile() {
   HUB_INSTALL_FILE="$HUB_TMP/$HUB_DIST/install"
 
   echo "Preparing to install $PROJECT_NAME into ${HUB_INSTALL_DIR}"
-	runAsRoot prefix=$HUB_INSTALL_DIR $HUB_INSTALL_FILE
+	runAsRoot $HUB_INSTALL_FILE
 }
 
 # fail_trap is executed if an error occurs.
