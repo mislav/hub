@@ -58,18 +58,8 @@ verifySupported() {
 }
 
 # checkDesiredVersion checks if the desired version is available.
-checkDesiredVersion() {
-  if [ "x$DESIRED_VERSION" == "x" ]; then
-    # Get tag from release URL
-    local latest_release_url="https://github.com/github/hub/releases"
-    if type "curl" > /dev/null; then
-      TAG=$(curl -Ls -o /dev/null -w %{url_effective} $latest_release_url | grep -oE "[^/]+$" )
-    elif type "wget" > /dev/null; then
-      TAG=$(wget $latest_release_url --server-response -O /dev/null 2>&1 | awk '/^  Location: /{DEST=$2} END{ print DEST}' | grep -oE "[^/]+$")
-    fi
-  else
-    TAG=$DESIRED_VERSION
-  fi
+latest_release() {
+	TAG=$(curl --silent "https://api.github.com/repos/github/hub/releases/latest" | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 }
 
 # checkHubInstalledVersion checks which version of helm is installed and
@@ -93,11 +83,8 @@ checkHubInstalledVersion() {
 # for that binary.
 downloadFile() {
   HUB_DIST="hub-$OS-$ARCH-$TAG.tgz"
-	DOWNLOAD_URL=$(
-    curl -s https://api.github.com/repos/github/hub/releases/tags/$TAG | \
-    jq -r '.assets[] | select(.name | test("'$OS'-'$ARCH'$")) | .browser_download_url'
-  )
-  
+	DOWNLOAD_URL=$(curl -s https://api.github.com/repos/github/hub/releases/tags/$TAG | grep -E 'browser_download_url": ".+linux-amd64.+\.tgz"' | sed 's/.+(https://[^"]+).+/\1/' | sed -E 's|.+(https://[^"]+).+|\1|')
+
   HUB_TMP_ROOT="$(mktemp -dt helm-installer-XXXXXX)"
   HUB_TMP_FILE="$HUB_TMP_ROOT/$HUB_DIST"
   
@@ -203,7 +190,7 @@ set +u
 initArch
 initOS
 verifySupported
-checkDesiredVersion
+latest_release
 if ! checkHubInstalledVersion; then
   downloadFile
   installFile
