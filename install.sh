@@ -47,7 +47,7 @@ verifySupported() {
   local supported="darwin-386\ndarwin-amd64\nfreebsd-386\nfreebas-amd64\nlinux-386\nlinux-amd64\nlinux-arm\nlinux-arm64\nlinux-ppc64le\nwindows-386\nwindows-amd64"
   if ! echo "${supported}" | grep -q "${OS}-${ARCH}"; then
     echo "No prebuilt binary for ${OS}-${ARCH}."
-    echo "To build from source, go to https://github.com/helm/helm"
+    echo "To build from source, go to https://github.com/github/hub"
     exit 1
   fi
 
@@ -60,9 +60,10 @@ verifySupported() {
 # checkDesiredVersion checks if the desired version is available.
 latest_release() {
 	TAG=$(curl --silent "https://api.github.com/repos/github/hub/releases/latest" | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
+	VERSION=$(echo $TAG | sed 's/v//')
 }
 
-# checkHubInstalledVersion checks which version of helm is installed and
+# checkHubInstalledVersion checks which version of hub is installed and
 # if it needs to be changed.
 checkHubInstalledVersion() {
   if [[ -f "${HUB_INSTALL_DIR}/${PROJECT_NAME}" ]]; then
@@ -85,7 +86,7 @@ downloadFile() {
   HUB_DIST="hub-$OS-$ARCH-$TAG.tgz"
 	DOWNLOAD_URL=$(curl -s https://api.github.com/repos/github/hub/releases/tags/$TAG | grep -E "browser_download_url\": \".+$OS-$ARCH.+\.tgz\"" | sed -E 's|.+(https://[^"]+).+|\1|')
 
-  HUB_TMP_ROOT="$(mktemp -dt helm-installer-XXXXXX)"
+  HUB_TMP_ROOT="$(mktemp -dt hub-installer-XXXXXX)"
   HUB_TMP_FILE="$HUB_TMP_ROOT/$HUB_DIST"
   
   echo "Downloading $DOWNLOAD_URL"
@@ -103,7 +104,7 @@ installFile() {
 
   mkdir -p "$HUB_TMP"
   tar xf "$HUB_TMP_FILE" -C "$HUB_TMP"
-	HUB_DIST="hub-$OS-$ARCH-$TAG"
+	HUB_DIST="hub-$OS-$ARCH-$VERSION"
   HUB_INSTALL_FILE="$HUB_TMP/$HUB_DIST/$PROJECT_NAME/install"
 
   echo "Preparing to install $PROJECT_NAME into ${HUB_INSTALL_DIR}"
@@ -146,7 +147,6 @@ help () {
   echo -e "\t[--no-sudo]  ->> install without sudo"
 }
 
-# cleanup temporary files to avoid https://github.com/helm/helm/issues/2977
 cleanup() {
   if [[ -d "${HUB_TMP_ROOT:-}" ]]; then
     rm -rf "$HUB_TMP_ROOT"
