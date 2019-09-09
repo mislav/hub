@@ -51,6 +51,7 @@ verifySupported() {
 latest_release() {
 	TAG=$(curl --silent "https://api.github.com/repos/github/hub/releases/latest" | grep "tag_name" | sed -E 's/.*"([^"]+)".*/\1/')
 	VERSION=$(echo $TAG | sed 's/v//')
+	echo "Latest version $VERSION"
 }
 
 # checkHubInstalledVersion checks which version of hub is installed and
