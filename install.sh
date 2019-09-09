@@ -125,7 +125,7 @@ testVersion() {
     exit 1
   fi
   set -e
-  echo "Run '$PROJECT_NAME init' to configure $PROJECT_NAME."
+  echo "Ready to run $PROJECT_NAME"
 }
 
 # help provides possible cli installation arguments
