@@ -87,6 +87,17 @@ downloadFile() {
   fi
 }
 
+# runs the given command as root (detects if we are root already)
+runAsRoot() {
+  local CMD="$*"
+
+  if { [ $EUID -ne 0 ] && [ $USE_SUDO = "true" ];}; then
+    CMD="sudo $CMD"
+  fi
+
+  $CMD
+}
+
 # installFile verifies the SHA256 for the file, then unpacks and
 # installs it.
 installFile() {
@@ -98,7 +109,7 @@ installFile() {
   HUB_INSTALL_FILE="$HUB_TMP/$HUB_DIST/install"
 
   echo "Preparing to install $PROJECT_NAME into ${HUB_INSTALL_DIR}"
-	prefix=$HUB_INSTALL_DIR $HUB_INSTALL_FILE
+	runAsRoot prefix=$HUB_INSTALL_DIR $HUB_INSTALL_FILE
 }
 
 # fail_trap is executed if an error occurs.
