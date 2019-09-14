@@ -873,7 +873,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	params := map[string]interface{}{
-		"scopes":   []string{"repo"},
+		"scopes":   []string{"repo", "gist"},
 		"note_url": OAuthAppURL,
 	}
 
