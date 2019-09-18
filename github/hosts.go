@@ -22,14 +22,18 @@ func (e *GithubHostError) Error() string {
 	return fmt.Sprintf("Invalid GitHub URL: %s", e.url)
 }
 
-func knownGitHubHostsInclude(host string) bool {
-	for _, hh := range knownGitHubHosts() {
-		if hh == host {
-			return true
+func getKnownHost(host string) (foundHost string, err error) {
+	for _, knownHost := range knownGitHubHosts() {
+		// origin url may include ssh alias : instead of github.com we can have github.com-username
+		// -username is used to resolve proper openssh key, host github.com-username does not exist
+		// attempts to resolve will fail. -username part must be discarded
+		if (host == knownHost || strings.HasPrefix(host, knownHost + "-")) {
+			foundHost = knownHost
+			return 
 		}
 	}
-
-	return false
+	err = fmt.Errorf("Not a known host")			
+	return
 }
 
 func knownGitHubHosts() []string {

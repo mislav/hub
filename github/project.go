@@ -114,9 +114,13 @@ func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	if !knownGitHubHostsInclude(url.Host) {
+	tmpHost, err1 := getKnownHost(url.Host) 
+
+	if err1 != nil {
 		err = &GithubHostError{url}
 		return
+	} else {
+		url.Host = tmpHost
 	}
 
 	parts := strings.SplitN(url.Path, "/", 4)
