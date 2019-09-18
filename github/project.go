@@ -114,7 +114,7 @@ func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
 }
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
-	tmpHost, err1 := getKnownHost(url.Host) 
+	tmpHost, err1 := getKnownHost(url.Host)
 
 	if err1 != nil {
 		err = &GithubHostError{url}

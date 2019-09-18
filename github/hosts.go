@@ -27,12 +27,12 @@ func getKnownHost(host string) (foundHost string, err error) {
 		// origin url may include ssh alias : instead of github.com we can have github.com-username
 		// -username is used to resolve proper openssh key, host github.com-username does not exist
 		// attempts to resolve will fail. -username part must be discarded
-		if (host == knownHost || strings.HasPrefix(host, knownHost + "-")) {
+		if host == knownHost || strings.HasPrefix(host, knownHost+"-") {
 			foundHost = knownHost
-			return 
+			return
 		}
 	}
-	err = fmt.Errorf("Not a known host")			
+	err = fmt.Errorf("Not a known host")
 	return
 }
 
