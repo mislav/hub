@@ -11,6 +11,14 @@ go:
   - 1.9.x
 script: make test-all
 install: script/bootstrap
+addons:
+  apt:
+    sources:
+      - sourceline: 'ppa:fish-shell/release-2'
+    packages:
+      - tmux
+      - zsh
+      - fish
 after_success: script/publish-release
 env:
   global:

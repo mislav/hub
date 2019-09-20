@@ -21,11 +21,12 @@ check_warnings() {
   fi
 }
 
-if [ -z "$TRAVIS" ] && tmux -V; then
+if tmux -V; then
   if [ -n "$CI" ]; then
     git --version
     bash --version | head -1
     zsh --version
+    fish --version
     echo
   fi
   profile="all"
