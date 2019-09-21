@@ -18,4 +18,4 @@ if [ -z "$previous_tag" ]; then
 fi
 
 git log --no-merges --format='%C(auto,green)* %s%C(auto,reset)%n%w(0,2,2)%+b' \
-  --reverse "${previous_tag}..${head}" -- `script/build files`
+  --reverse "${previous_tag}..${head}" -- `script/build files` etc share
