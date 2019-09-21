@@ -192,7 +192,7 @@ func (c *Config) scanLine() string {
 }
 
 func getPassword() (string, error) {
-	stdin := syscall.Stdin
+	stdin := 0 // syscall.Stdin
 	initialTermState, err := terminal.GetState(stdin)
 	if err != nil {
 		return "", err
