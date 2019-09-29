@@ -32,18 +32,23 @@ pull-request -i <ISSUE>
 		request title, and the rest is used as pull request description in Markdown
 		format.
 
-		If multiple <MESSAGE> options are given, their values are concatenated as
-		separate paragraphs.
+		When multiple '--message' are passed, their values are concatenated with a
+		blank line in-between.
+
+		When neither '--message' nor '--file' were supplied, a text editor will open
+		to author the title and description in.
 
 	--no-edit
 		Use the message from the first commit on the branch as pull request title
 		and description without opening a text editor.
 
 	-F, --file <FILE>
-		Read the pull request title and description from <FILE>.
+		Read the pull request title and description from <FILE>. Pass "-" to read
+		from standard input instead. See '--message' for the formatting rules.
 
 	-e, --edit
-		Further edit the contents of <FILE> in a text editor before submitting.
+		Open the pull request title and description in a text editor before
+		submitting. This can be used in combination with '--message' or '--file'.
 
 	-i, --issue <ISSUE>
 		Convert <ISSUE> (referenced by its number) to a pull request.

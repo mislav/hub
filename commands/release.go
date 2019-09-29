@@ -46,9 +46,9 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
 		options as _create_ command. Publish a draft with '--draft=false'.
 
-		When <MESSAGE> or <FILE> are not specified, a text editor will open
-		pre-populated with current release title and body. To re-use existing title
-		and body unchanged, pass '-m ""'.
+		Without '--message' or '--file', a text editor will open pre-populated with
+		the current release title and body. To re-use existing title and body
+		unchanged, pass '-m ""'.
 
 	* _download_:
 		Download the assets attached to release for the specified <TAG>.
@@ -77,14 +77,19 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		The text up to the first blank line in <MESSAGE> is treated as the release
 		title, and the rest is used as release description in Markdown format.
 
-		If multiple <MESSAGE> options are given, their values are concatenated as
-		separate paragraphs.
+		When multiple '--message' are passed, their values are concatenated with a
+		blank line in-between.
+
+		When neither '--message' nor '--file' were supplied to 'release create', a
+		text editor will open to author the title and description in.
 
 	-F, --file <FILE>
-		Read the release title and description from <FILE>.
+		Read the release title and description from <FILE>. Pass "-" to read from
+		standard input instead. See '--message' for the formatting rules.
 
 	-e, --edit
-		Further edit the contents of <FILE> in a text editor before submitting.
+		Open the release title and description in a text editor before submitting.
+		This can be used in combination with '--message' or '--file'.
 
 	-o, --browse
 		Open the new release in a web browser.

@@ -117,14 +117,19 @@ With no arguments, show a list of open issues.
 		The text up to the first blank line in <MESSAGE> is treated as the issue
 		title, and the rest is used as issue description in Markdown format.
 
-		If multiple <MESSAGE> options are given, their values are concatenated as
-		separate paragraphs.
+		When multiple '--message' are passed, their values are concatenated with a
+		blank line in-between.
+
+		When neither '--message' nor '--file' were supplied to 'issue create', a
+		text editor will open to author the title and description in.
 
 	-F, --file <FILE>
-		Read the issue title and description from <FILE>.
+		Read the issue title and description from <FILE>. Pass "-" to read from
+		standard input instead. See '--message' for the formatting rules.
 
 	-e, --edit
-		Further edit the contents of <FILE> in a text editor before submitting.
+		Open the issue title and description in a text editor before submitting.
+		This can be used in combination with '--message' or '--file'.
 
 	-o, --browse
 		Open the new issue in a web browser.
