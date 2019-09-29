@@ -387,6 +387,32 @@ MARKDOWN
       https://github.com/mislav/will_paginate/releases/v1.2.0\n
       """
 
+  Scenario: Create a release from file
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/will_paginate/releases') {
+        assert :name => "Epic New Version",
+               :body => "body\ngoes\n\nhere"
+
+        status 201
+        json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0"
+      }
+      """
+    And a file named "message.txt" with:
+      """
+      Epic New Version
+
+      body
+      goes
+
+      here
+      """
+    When I successfully run `hub release create -F message.txt v1.2.0`
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/will_paginate/releases/v1.2.0\n
+      """
+
   Scenario: Create a release with target commitish
     Given the GitHub API server:
       """
