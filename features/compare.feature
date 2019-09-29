@@ -19,20 +19,9 @@ Feature: hub compare
     And "open https://github.com/mislav/dotfiles/compare/my%23branch!with.special%2Bchars" should be run
 
   Scenario: No args, no upstream
-    When I run `hub compare`
-    Then the exit status should be 1
-    And the stderr should contain:
-      """
-      Usage: hub compare [-uc] [<USER>] [[<START>...]<END>]
-             hub compare [-uc] [-b <BASE>]
-      """
-
-  Scenario: Can't compare default branch to self
-    Given the default branch for "origin" is "develop"
-    And I am on the "develop" branch with upstream "origin/develop"
-    When I run `hub compare`
-    Then the exit status should be 1
-    And the stderr should contain "Usage: hub compare"
+    When I successfully run `hub compare`
+    Then there should be no output
+    And "open https://github.com/mislav/dotfiles/compare/master" should be run
 
   Scenario: No args, has upstream branch
     Given I am on the "feature" branch with upstream "origin/experimental"
@@ -40,6 +29,14 @@ Feature: hub compare
     When I successfully run `hub compare`
     Then the output should not contain anything
     And "open https://github.com/mislav/dotfiles/compare/experimental" should be run
+
+  Scenario: No args, upstream is a fork
+    Given the "origin" remote has url "git://github.com/github/hub.git"
+    And the "sj26" remote has url "git://github.com/sj26/hub.git"
+    And I am on the "feature" branch with upstream "sj26/experimental"
+    When I successfully run `hub compare`
+    Then there should be no output
+    And "open https://github.com/sj26/hub/compare/experimental" should be run
 
   Scenario: Current branch has funky characters
     Given I am on the "feature" branch with upstream "origin/my#branch!with.special+chars"
