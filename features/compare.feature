@@ -115,6 +115,11 @@ Feature: hub compare
     Then the output should not contain anything
     And "open https://github.com/mislav/dotfiles/compare/henrahmagix:master...2b10927" should be run
 
+  Scenario: Compare 2-dots range with slashes in branch names
+    When I successfully run `hub compare one/foo..two/bar/baz`
+    Then the output should not contain anything
+    And "open https://github.com/mislav/dotfiles/compare/one/foo...two/bar/baz" should be run
+
   Scenario: Complex range is unchanged
     When I successfully run `hub compare @{a..b}..@{c..d}`
     Then the output should not contain anything
