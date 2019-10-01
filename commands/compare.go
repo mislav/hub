@@ -59,58 +59,60 @@ func compare(command *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	var (
-		branch  *github.Branch
-		project *github.Project
-		r       string
-	)
+	mainProject, err := localRepo.MainProject()
+	utils.Check(err)
 
+	host, err := github.CurrentConfig().PromptForHost(mainProject.Host)
+	utils.Check(err)
+
+	var r string
 	flagCompareBase := args.Flag.Value("--base")
 
 	if args.IsParamsEmpty() {
-		branch, project, err = localRepo.RemoteBranchAndProject("", false)
-		utils.Check(err)
+		currentBranch, err := localRepo.CurrentBranch()
+		if err != nil {
+			utils.Check(command.UsageError(err.Error()))
+		}
 
-		if branch == nil ||
-			(branch.IsMaster() && flagCompareBase == "") ||
-			(flagCompareBase == branch.ShortName()) {
-			utils.Check(command.UsageError(""))
-		} else {
-			r = branch.ShortName()
-			if flagCompareBase != "" {
-				r = parseCompareRange(flagCompareBase + "..." + r)
+		var remoteBranch *github.Branch
+		var remoteProject *github.Project
+
+		remoteBranch, remoteProject, err = findPushTarget(currentBranch)
+		if err != nil {
+			if remoteProject, err = deducePushTarget(currentBranch, host.User); err == nil {
+				remoteBranch = currentBranch
+			} else {
+				utils.Check(fmt.Errorf("the current branch '%s' doesn't seem pushed to a remote", currentBranch.ShortName()))
 			}
+		}
+
+		r = remoteBranch.ShortName()
+		if remoteProject.SameAs(mainProject) {
+			if flagCompareBase == "" && remoteBranch.IsMaster() {
+				utils.Check(fmt.Errorf("the branch to compare '%s' is the default branch", remoteBranch.ShortName()))
+			}
+		} else {
+			r = fmt.Sprintf("%s:%s", remoteProject.Owner, r)
+		}
+
+		if flagCompareBase == r {
+			utils.Check(fmt.Errorf("the branch to compare '%s' is the same as --base", r))
+		} else if flagCompareBase != "" {
+			r = fmt.Sprintf("%s...%s", flagCompareBase, r)
 		}
 	} else {
 		if flagCompareBase != "" {
 			utils.Check(command.UsageError(""))
 		} else {
 			r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
-			project, err = localRepo.CurrentProject()
-			if args.IsParamsEmpty() {
-				utils.Check(err)
-			} else {
-				projectName := ""
-				projectHost := ""
-				if err == nil {
-					projectName = project.Name
-					projectHost = project.Host
-				}
-				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), projectName, projectHost)
-				if project.Name == "" {
-					utils.Check(fmt.Errorf("error: missing project name (owner: %q)\n", project.Owner))
-				}
+			if !args.IsParamsEmpty() {
+				owner := args.RemoveParam(args.ParamsSize() - 1)
+				mainProject = github.NewProject(owner, mainProject.Name, mainProject.Host)
 			}
 		}
 	}
 
-	if project == nil {
-		project, err = localRepo.CurrentProject()
-		utils.Check(err)
-	}
-
-	subpage := utils.ConcatPaths("compare", rangeQueryEscape(r))
-	url := project.WebURL("", "", subpage)
+	url := mainProject.WebURL("", "", "compare/"+rangeQueryEscape(r))
 
 	args.NoForward()
 	flagCompareURLOnly := args.Flag.Bool("--url")
