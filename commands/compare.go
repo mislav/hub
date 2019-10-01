@@ -13,8 +13,8 @@ import (
 var cmdCompare = &Command{
 	Run: compare,
 	Usage: `
-compare [-uc] [<USER>] [[<START>...]<END>]
 compare [-uc] [-b <BASE>]
+compare [-uc] [<OWNER>] [<BASE>...]<HEAD>
 `,
 	Long: `Open a GitHub compare page in a web browser.
 
@@ -28,22 +28,31 @@ compare [-uc] [-b <BASE>]
 	-b, --base <BASE>
 		Base branch to compare against in case no explicit arguments were given.
 
-	[<START>...]<END>
+	[<BASE>...]<HEAD>
 		Branch names, tag names, or commit SHAs specifying the range to compare.
-		<END> defaults to the current branch name.
-
 		If a range with two dots ('A..B') is given, it will be transformed into a
 		range with three dots.
 
+		The <BASE> portion defaults to the default branch of the repository.
+
+		The <HEAD> argument defaults to the current branch. If the current branch
+		is not pushed to a remote, the command will error.
+
+	<OWNER>
+		Optionally specify the owner of the repository for the compare page URL.
+
 ## Examples:
+		$ hub compare
+		> open https://github.com/OWNER/REPO/compare/BRANCH
+
 		$ hub compare refactor
-		> open https://github.com/USER/REPO/compare/refactor
+		> open https://github.com/OWNER/REPO/compare/refactor
 
 		$ hub compare v1.0..v1.1
-		> open https://github.com/USER/REPO/compare/v1.0...v1.1
+		> open https://github.com/OWNER/REPO/compare/v1.0...v1.1
 
 		$ hub compare -u jingweno feature
-		> echo https://github.com/jingweno/REPO/compare/feature
+		https://github.com/jingweno/REPO/compare/feature
 
 ## See also:
 
