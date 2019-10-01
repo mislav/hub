@@ -21,18 +21,14 @@ Feature: hub compare
   Scenario: No args, no upstream
     When I run `hub compare`
     Then the exit status should be 1
-    And the stderr should contain:
-      """
-      Usage: hub compare [-uc] [<USER>] [[<START>...]<END>]
-             hub compare [-uc] [-b <BASE>]
-      """
+    And the stderr should contain exactly "the current branch 'master' doesn't seem pushed to a remote"
 
   Scenario: Can't compare default branch to self
     Given the default branch for "origin" is "develop"
     And I am on the "develop" branch with upstream "origin/develop"
     When I run `hub compare`
     Then the exit status should be 1
-    And the stderr should contain "Usage: hub compare"
+    And the stderr should contain exactly "the branch to compare 'develop' is the default branch"
 
   Scenario: No args, has upstream branch
     Given I am on the "feature" branch with upstream "origin/experimental"
@@ -47,6 +43,20 @@ Feature: hub compare
     When I successfully run `hub compare`
     Then the output should not contain anything
     And "open https://github.com/mislav/dotfiles/compare/my%23branch!with.special%2Bchars" should be run
+
+  Scenario: Current branch pushed to fork
+    Given I am "monalisa" on github.com with OAuth token "MONATOKEN"
+    And the "monalisa" remote has url "git@github.com:monalisa/dotfiles.git"
+    And I am on the "topic" branch pushed to "monalisa/topic"
+    When I successfully run `hub compare`
+    Then "open https://github.com/mislav/dotfiles/compare/monalisa:topic" should be run
+
+  Scenario: Current branch with full URL in upstream configuration
+    Given I am on the "local-topic" branch
+    When I successfully run `git config branch.local-topic.remote https://github.com/monalisa/dotfiles.git`
+    When I successfully run `git config branch.local-topic.merge refs/remotes/remote-topic`
+    When I successfully run `hub compare`
+    Then "open https://github.com/mislav/dotfiles/compare/monalisa:remote-topic" should be run
 
   Scenario: Compare range
     When I successfully run `hub compare 1.0...fix`
@@ -81,7 +91,7 @@ Feature: hub compare
     When I run `hub compare -b experimental`
     Then "open https://github.com/mislav/dotfiles/compare/experimental...experimental" should not be run
     And the exit status should be 1
-    And the stderr should contain "Usage: hub compare"
+    And the stderr should contain exactly "the branch to compare 'experimental' is the same as --base\n"
 
   Scenario: Compare base with parameters
     Given I am on the "master" branch with upstream "origin/master"
@@ -104,6 +114,11 @@ Feature: hub compare
     When I successfully run `hub compare henrahmagix:master..2b10927`
     Then the output should not contain anything
     And "open https://github.com/mislav/dotfiles/compare/henrahmagix:master...2b10927" should be run
+
+  Scenario: Compare 2-dots range with slashes in branch names
+    When I successfully run `hub compare one/foo..two/bar/baz`
+    Then the output should not contain anything
+    And "open https://github.com/mislav/dotfiles/compare/one/foo...two/bar/baz" should be run
 
   Scenario: Complex range is unchanged
     When I successfully run `hub compare @{a..b}..@{c..d}`
