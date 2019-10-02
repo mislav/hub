@@ -22,6 +22,7 @@ import (
 
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"golang.org/x/net/http/httpproxy"
 )
 
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
@@ -197,28 +198,13 @@ func cloneRequest(req *http.Request) *http.Request {
 	return dup
 }
 
-// An implementation of http.ProxyFromEnvironment that isn't broken
+var proxyFunc func(*url.URL) (*url.URL, error)
+
 func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
-	proxy := os.Getenv("http_proxy")
-	if proxy == "" {
-		proxy = os.Getenv("HTTP_PROXY")
+	if proxyFunc == nil {
+		proxyFunc = httpproxy.FromEnvironment().ProxyFunc()
 	}
-	if proxy == "" {
-		return nil, nil
-	}
-
-	proxyURL, err := url.Parse(proxy)
-	if err != nil || !strings.HasPrefix(proxyURL.Scheme, "http") {
-		if proxyURL, err := url.Parse("http://" + proxy); err == nil {
-			return proxyURL, nil
-		}
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("invalid proxy address %q: %v", proxy, err)
-	}
-
-	return proxyURL, nil
+	return proxyFunc(req.URL)
 }
 
 type simpleClient struct {
