@@ -229,6 +229,11 @@ type simpleClient struct {
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
+	if path == "graphql" {
+		// FIXME: This dirty workaround cancels out the "v3" portion of the
+		// "/api/v3" prefix used for Enterprise. Find a better place for this.
+		path = "../graphql"
+	}
 	url, err := url.Parse(path)
 	if err == nil {
 		url = c.rootUrl.ResolveReference(url)

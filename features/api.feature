@@ -280,6 +280,22 @@ Feature: hub api
       {"name":"Jet","size":2}
       """
 
+  Scenario: Enterprise GraphQL
+    Given I am "octokitten" on git.my.org with OAuth token "FITOKEN"
+    Given the GitHub API server:
+      """
+      post('/api/graphql', :host_name => 'git.my.org') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
+        json :name => "Ed"
+      }
+      """
+    And $GITHUB_HOST is "git.my.org"
+    When I successfully run `hub api graphql -f query=QUERY`
+    Then the output should contain exactly:
+      """
+      {"name":"Ed"}
+      """
+
   Scenario: Repo context
     Given I am in "git://github.com/octocat/Hello-World.git" git repo
     Given the GitHub API server:
