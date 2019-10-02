@@ -33,7 +33,8 @@ trap "exit 1" INT
 
 check_formatting() {
   [[ "$(go version)" != *" go1.8."* ]] || return 0
-  make fmt >/dev/null
+  gofmt -l -w . >/dev/null
+  git checkout -- vendor
   if ! git diff -U1 --exit-code; then
     echo
     echo "Some go code was not formatted properly." >&2
