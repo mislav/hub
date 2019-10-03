@@ -224,12 +224,18 @@ EOF
     while [ $c -lt $cword ]; do
       i="${words[c]}"
       case "$i" in
-        --remote-name|--org)
+        --org)
           ((c++))
           flags=${flags/$i/}
           ;;
+        --remote-name)
+          ((c++))
+          flags=${flags/$i/}
+          flags=${flags/--no-remote/}
+          ;;
         --no-remote)
           flags=${flags/$i/}
+          flags=${flags/--remote-name/}
           ;;
       esac
       ((c++))
