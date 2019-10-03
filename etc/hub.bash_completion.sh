@@ -218,21 +218,19 @@ EOF
     esac
   }
 
-  # hub fork [--no-remote]
+  # hub fork [--no-remote] [--remote-name]
   _git_fork() {
-    local i c=2 remote=yes
+    local i c=2 flags="--no-remote --remote-name"
     while [ $c -lt $cword ]; do
       i="${words[c]}"
       case "$i" in
-        --no-remote)
-          unset remote
+        --no-remote|--remote-name)
+          flags=${flags/$i/}
           ;;
       esac
       ((c++))
     done
-    if [ -n "$remote" ]; then
-      __gitcomp "--no-remote"
-    fi
+    __gitcomp "$flags"
   }
 
   # hub pull-request [-f] [-m <MESSAGE>|-F <FILE>|-i <ISSUE>|<ISSUE-URL>] [-b <BASE>] [-h <HEAD>] [-a <USER>] [-M <MILESTONE>] [-l <LABELS>]
