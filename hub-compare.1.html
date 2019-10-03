@@ -86,8 +86,8 @@ a:link, a:hover, a:visited { color: blue }
   
 <h2 id="synopsis">Synopsis</h2>
 
-<p><code>hub compare</code> [-uc] [<var>USER</var>] [[<var>START</var>...]<var>END</var>]<br>
-<code>hub compare</code> [-uc] [-b <var>BASE</var>]</p>
+<p><code>hub compare</code> [-uc] [-b <var>BASE</var>]<br>
+<code>hub compare</code> [-uc] [<var>OWNER</var>] [<var>BASE</var>...]<var>HEAD</var></p>
 
 <h2 id="options">Options</h2>
 
@@ -98,24 +98,32 @@ a:link, a:hover, a:visited { color: blue }
 <dd><p>Put the URL to clipboard instead of opening it.</p></dd>
 <dt>-b, --base <var>BASE</var></dt>
 <dd><p>Base branch to compare against in case no explicit arguments were given.</p></dd>
-<dt>[<var>START</var>...]<var>END</var></dt>
+<dt>[<var>BASE</var>...]<var>HEAD</var></dt>
 <dd><p>Branch names, tag names, or commit SHAs specifying the range to compare.
-<var>END</var> defaults to the current branch name.</p>
+If a range with two dots (<code>A..B</code>) is given, it will be transformed into a
+range with three dots.</p>
 
-<p>If a range with two dots (<code>A..B</code>) is given, it will be transformed into a
-range with three dots.</p></dd>
+<p>The <var>BASE</var> portion defaults to the default branch of the repository.</p>
+
+<p>The <var>HEAD</var> argument defaults to the current branch. If the current branch
+is not pushed to a remote, the command will error.</p></dd>
+<dt><var>OWNER</var></dt>
+<dd><p>Optionally specify the owner of the repository for the compare page URL.</p></dd>
 </dl>
 
 <h2 id="examples">Examples</h2>
 
-<pre><code>$ hub compare refactor
-&gt; open https://github.com/USER/REPO/compare/refactor
+<pre><code>$ hub compare
+&gt; open https://github.com/OWNER/REPO/compare/BRANCH
+
+$ hub compare refactor
+&gt; open https://github.com/OWNER/REPO/compare/refactor
 
 $ hub compare v1.0..v1.1
-&gt; open https://github.com/USER/REPO/compare/v1.0...v1.1
+&gt; open https://github.com/OWNER/REPO/compare/v1.0...v1.1
 
 $ hub compare -u jingweno feature
-&gt; echo https://github.com/jingweno/REPO/compare/feature
+https://github.com/jingweno/REPO/compare/feature
 </code></pre>
 
 <h2 id="see-also">See also</h2>
@@ -126,8 +134,8 @@ $ hub compare -u jingweno feature
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.12.7</li>
-    <li class="tc">23 Sep 2019</li>
+    <li class="tl">hub version 2.12.8</li>
+    <li class="tc">03 Oct 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

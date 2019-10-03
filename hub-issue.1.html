@@ -179,12 +179,17 @@ of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or 
 <dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the issue
 title, and the rest is used as issue description in Markdown format.</p>
 
-<p>If multiple <var>MESSAGE</var> options are given, their values are concatenated as
-separate paragraphs.</p></dd>
+<p>When multiple <code>--message</code> are passed, their values are concatenated with a
+blank line in-between.</p>
+
+<p>When neither <code>--message</code> nor <code>--file</code> were supplied to <code>issue create</code>, a
+text editor will open to author the title and description in.</p></dd>
 <dt>-F, --file <var>FILE</var></dt>
-<dd><p>Read the issue title and description from <var>FILE</var>.</p></dd>
+<dd><p>Read the issue title and description from <var>FILE</var>. Pass &quot;-&quot; to read from
+standard input instead. See <code>--message</code> for the formatting rules.</p></dd>
 <dt>-e, --edit</dt>
-<dd><p>Further edit the contents of <var>FILE</var> in a text editor before submitting.</p></dd>
+<dd><p>Open the issue title and description in a text editor before submitting.
+This can be used in combination with <code>--message</code> or <code>--file</code>.</p></dd>
 <dt>-o, --browse</dt>
 <dd><p>Open the new issue in a web browser.</p></dd>
 <dt>-c, --copy</dt>
@@ -220,8 +225,8 @@ Passing the milestone number is deprecated.</p></dd>
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.12.7</li>
-    <li class="tc">23 Sep 2019</li>
+    <li class="tl">hub version 2.12.8</li>
+    <li class="tc">03 Oct 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>
