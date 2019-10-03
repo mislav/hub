@@ -218,13 +218,13 @@ EOF
     esac
   }
 
-  # hub fork [--no-remote] [--remote-name]
+  # hub fork [--no-remote] [--remote-name] [--org]
   _git_fork() {
-    local i c=2 flags="--no-remote --remote-name"
+    local i c=2 flags="--no-remote --remote-name --org"
     while [ $c -lt $cword ]; do
       i="${words[c]}"
       case "$i" in
-        --no-remote|--remote-name)
+        --no-remote|--remote-name|--org)
           flags=${flags/$i/}
           ;;
       esac
