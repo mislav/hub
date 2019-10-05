@@ -3,17 +3,21 @@ package github
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 	"time"
 
+	"github.com/github/hub/utils"
 	"github.com/github/hub/version"
 )
 
@@ -35,6 +39,24 @@ func NewClientWithHost(host *Host) *Client {
 type Client struct {
 	Host         *Host
 	cachedClient *simpleClient
+}
+
+type Gist struct {
+	Files       map[string]GistFile `json:"files"`
+	Description string              `json:"description,omitempty"`
+	Id          string              `json:"id,omitempty"`
+	Public      bool                `json:"public"`
+}
+
+type GistFile struct {
+	Type     string `json:"type,omitempty"`
+	Language string `json:"language,omitempty"`
+	Content  string `json:"content"`
+	RawUrl   string `json:"raw_url"`
+}
+
+type GistResponse struct {
+	HtmlUrl string `json:"html_url"`
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
@@ -155,13 +177,6 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 	}
 
 	return res.Body, nil
-}
-
-type Gist struct {
-	Files map[string]GistFile `json:"files"`
-}
-type GistFile struct {
-	RawUrl string `json:"raw_url"`
 }
 
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
@@ -981,6 +996,56 @@ func (client *Client) absolute(host string) *url.URL {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
+}
+
+func (client *Client) FetchGist(id string, filename string) (gist Gist, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	response, err := api.Get(fmt.Sprintf("gists/%s", id))
+	if err = checkStatus(200, "getting gist", response, err); err != nil {
+		return
+	}
+
+	response.Unmarshal(&gist)
+	response.Body.Close()
+	return
+}
+
+func (client *Client) Gist(file string, public bool) (gist GistResponse, err error) {
+	api, err := client.simpleApi()
+	var content, name []byte
+	if file == "-" {
+		content, err = ioutil.ReadAll(os.Stdin)
+		name = []byte("hub_gist.txt")
+	} else {
+		content, err = ioutil.ReadFile(file)
+		name = []byte(path.Base(file))
+	}
+	utils.Check(err)
+	strcont := string(content)
+	gf := GistFile{Content: strcont}
+	gp := make(map[string]GistFile)
+	gp[string(name)] = gf
+	g := Gist{Files: gp, Public: public}
+	mybytes, _ := json.Marshal(g)
+	body := string(mybytes)
+	reader := strings.NewReader(body)
+
+	response, err := api.PostJSON("gists", reader)
+	utils.Check(err)
+	buf := new(bytes.Buffer)
+	buf.ReadFrom(response.Body)
+	response.Body.Close()
+	if response.StatusCode > 299 {
+		err = errors.New(buf.String())
+		return
+	}
+
+	json.Unmarshal(buf.Bytes(), &gist)
+	return
 }
 
 func normalizeHost(host string) string {

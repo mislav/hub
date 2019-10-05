@@ -1,15 +1,10 @@
 package commands
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
-	"io/ioutil"
 	"os"
-	"path"
-	"strings"
 )
 
 var cmdGist = &Command{
@@ -83,32 +78,9 @@ func init() {
 	CmdRunner.Use(cmdGist)
 }
 
-type Gist struct {
-	Files       map[string]GistFile `json:"files"`
-	Description string              `json:"description,omitempty"`
-	Id          string              `json:"id,omitempty"`
-	Public      bool                `json:"public"`
-}
-type GistFile struct {
-	Type     string `json:"type,omitempty"`
-	Language string `json:"language,omitempty"`
-	Content  string `json:"content"`
-}
-type GistResponse struct {
-	HtmlUrl string `json:"html_url"`
-}
-
 func getGist(gh *github.Client, id string, filename string, no_headers bool) {
-	path := "gists/" + id
-	var headers map[string]string
-	cacheTTL := 0
-
-	response, err := gh.GenericAPIRequest("GET", path, "", headers, cacheTTL)
+	gist, err := gh.FetchGist(id, filename)
 	utils.Check(err)
-
-	gist := Gist{}
-	response.Unmarshal(&gist)
-	response.Body.Close()
 	if filename != "" {
 		if val, err := gist.Files[filename]; err {
 			fmt.Printf("%s\n", val.Content)
@@ -136,41 +108,11 @@ func getGist(gh *github.Client, id string, filename string, no_headers bool) {
 }
 
 func putGist(gh *github.Client, file string, public bool) {
-	var content, name []byte
-	var err error
-	if file == "-" {
-		content, err = ioutil.ReadAll(os.Stdin)
-		name = []byte("hub_gist.txt")
-	} else {
-		content, err = ioutil.ReadFile(file)
-		name = []byte(path.Base(file))
+	response, err := gh.Gist(file, public)
+	if err != nil {
+		fmt.Printf("ERROR: Unable to create gist. The most likely problem is your token doesn't have the 'gist' scope. Go to `github.com/settings/token`, edit the scopes and add 'gist'.\nFull error:\n\t%s", err)
 	}
-	utils.Check(err)
-	strcont := string(content)
-	gf := GistFile{Content: strcont}
-	gp := make(map[string]GistFile)
-	gp[string(name)] = gf
-	g := Gist{Files: gp, Public: public}
-	mybytes, _ := json.Marshal(g)
-	body := string(mybytes)
-	reader := strings.NewReader(body)
-
-	var headers map[string]string
-	cacheTTL := 0
-
-	response, err := gh.GenericAPIRequest("POST", "gists", reader, headers, cacheTTL)
-	utils.Check(err)
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
-	response.Body.Close()
-	if response.StatusCode > 299 {
-		fmt.Printf("ERROR: Unable to create gist: %s\n", buf.String())
-		return
-	}
-
-	gist_resp := GistResponse{}
-	json.Unmarshal(buf.Bytes(), &gist_resp)
-	fmt.Printf("%s\n", gist_resp.HtmlUrl)
+	fmt.Printf("%s\n", response.HtmlUrl)
 }
 
 func gist(cmd *Command, args *Args) {
