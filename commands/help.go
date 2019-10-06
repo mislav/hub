@@ -82,7 +82,7 @@ func runHelp(helpCmd *Command, args *Args) {
 	command := args.FirstParam()
 
 	if command == "hub" {
-		err := displayManPage("hub.1", args)
+		err := displayManPage("hub", args)
 		if err != nil {
 			utils.Check(err)
 		}
@@ -90,7 +90,7 @@ func runHelp(helpCmd *Command, args *Args) {
 
 	if c := lookupCmd(command); c != nil {
 		if !p.Bool("--plain-text") {
-			manPage := fmt.Sprintf("hub-%s.1", c.Name())
+			manPage := fmt.Sprintf("hub-%s", c.Name())
 			err := displayManPage(manPage, args)
 			if err == nil {
 				return
@@ -126,10 +126,10 @@ func displayManPage(manPage string, args *Args) error {
 	if manProgram != "" {
 		manArgs = []string{manProgram}
 	} else {
-		manPage += ".txt"
+		var err error
+		manPage += ".1.txt"
 		manProgram = os.Getenv("PAGER")
 		if manProgram != "" {
-			var err error
 			manArgs, err = shellquote.Split(manProgram)
 			if err != nil {
 				return err
@@ -137,22 +137,17 @@ func displayManPage(manPage string, args *Args) error {
 		} else {
 			manArgs = []string{"less", "-R"}
 		}
+
+		manPage, err = localManPage(manPage, args.ProgramPath)
+		if err != nil {
+			return err
+		}
 	}
 
-	programPath, err := utils.CommandPath(args.ProgramPath)
-	if err != nil {
-		return err
-	}
-
-	installPrefix := filepath.Join(filepath.Dir(programPath), "..")
-	manFile, err := localManPage(manPage, installPrefix)
-	if err != nil {
-		return err
-	}
-
-	manArgs = append(manArgs, manFile)
+	manArgs = append(manArgs, manPage)
 	man := cmd.NewWithArray(manArgs)
-	if err = man.Run(); err == nil {
+
+	if err := man.Run(); err == nil {
 		os.Exit(0)
 	} else {
 		os.Exit(1)
@@ -160,16 +155,21 @@ func displayManPage(manPage string, args *Args) error {
 	return nil
 }
 
-func localManPage(name, installPrefix string) (string, error) {
+func localManPage(name, programPath string) (string, error) {
+	programPath, err := utils.CommandPath(programPath)
+	if err != nil {
+		return "", err
+	}
+
+	installPrefix := filepath.Join(filepath.Dir(programPath), "..")
+
 	manPath := filepath.Join(installPrefix, "man", name)
-	_, err := os.Stat(manPath)
-	if err == nil {
+	if _, err = os.Stat(manPath); err == nil {
 		return manPath, nil
 	}
 
 	manPath = filepath.Join(installPrefix, "share", "man", "man1", name)
-	_, err = os.Stat(manPath)
-	if err == nil {
+	if _, err = os.Stat(manPath); err == nil {
 		return manPath, nil
 	} else {
 		return "", err
