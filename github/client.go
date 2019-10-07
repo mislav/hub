@@ -3,7 +3,6 @@ package github
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,7 +16,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/utils"
 	"github.com/github/hub/version"
 )
 
@@ -46,6 +44,7 @@ type Gist struct {
 	Description string              `json:"description,omitempty"`
 	Id          string              `json:"id,omitempty"`
 	Public      bool                `json:"public"`
+	HtmlUrl     string              `json:"html_url"`
 }
 
 type GistFile struct {
@@ -53,10 +52,6 @@ type GistFile struct {
 	Language string `json:"language,omitempty"`
 	Content  string `json:"content"`
 	RawUrl   string `json:"raw_url"`
-}
-
-type GistResponse struct {
-	HtmlUrl string `json:"html_url"`
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
@@ -998,7 +993,7 @@ func (client *Client) absolute(host string) *url.URL {
 	return u
 }
 
-func (client *Client) FetchGist(id string, filename string) (gist Gist, err error) {
+func (client *Client) FetchGist(id string, filename string) (gist *Gist, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
@@ -1010,41 +1005,44 @@ func (client *Client) FetchGist(id string, filename string) (gist Gist, err erro
 	}
 
 	response.Unmarshal(&gist)
-	response.Body.Close()
 	return
 }
 
-func (client *Client) Gist(file string, public bool) (gist GistResponse, err error) {
+func (client *Client) CreateGist(file string, public bool) (gist *Gist, err error) {
 	api, err := client.simpleApi()
-	var content, name []byte
-	if file == "-" {
-		content, err = ioutil.ReadAll(os.Stdin)
-		name = []byte("hub_gist.txt")
-	} else {
-		content, err = ioutil.ReadFile(file)
-		name = []byte(path.Base(file))
-	}
-	utils.Check(err)
-	strcont := string(content)
-	gf := GistFile{Content: strcont}
-	gp := make(map[string]GistFile)
-	gp[string(name)] = gf
-	g := Gist{Files: gp, Public: public}
-	mybytes, _ := json.Marshal(g)
-	body := string(mybytes)
-	reader := strings.NewReader(body)
-
-	response, err := api.PostJSON("gists", reader)
-	utils.Check(err)
-	buf := new(bytes.Buffer)
-	buf.ReadFrom(response.Body)
-	response.Body.Close()
-	if response.StatusCode > 299 {
-		err = errors.New(buf.String())
+	if err != nil {
 		return
 	}
 
-	json.Unmarshal(buf.Bytes(), &gist)
+	var content []byte
+	basename := "gistfile1.txt"
+	if file == "-" {
+		content, err = ioutil.ReadAll(os.Stdin)
+	} else {
+		content, err = ioutil.ReadFile(file)
+		basename = path.Base(file)
+	}
+	if err != nil {
+		return
+	}
+
+	gf := GistFile{Content: string(content)}
+	files := map[string]GistFile{}
+	files[basename] = gf
+	g := Gist{
+		Files:  files,
+		Public: public,
+	}
+
+	res, err := api.PostJSON("gists", &g)
+	if err = checkStatus(201, "creating gist", res, err); err != nil {
+		if res != nil && res.StatusCode == 404 && !strings.Contains(res.Header.Get("x-oauth-scopes"), "gist") {
+			err = fmt.Errorf("%s\nGo to https://%s/settings/tokens and enable the 'gist' scope for hub", err, client.Host.Host)
+		}
+		return
+	}
+
+	err = res.Unmarshal(&gist)
 	return
 }
 

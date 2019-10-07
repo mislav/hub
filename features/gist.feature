@@ -106,6 +106,7 @@ more content is here
     Given the GitHub API server:
       """
       post('/gists') {
+        status 201
         json({
           :html_url => 'http://gists.github.com/somehash',
         })

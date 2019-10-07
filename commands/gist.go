@@ -2,9 +2,11 @@ package commands
 
 import (
 	"fmt"
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
 	"os"
+
+	"github.com/github/hub/github"
+	"github.com/github/hub/ui"
+	"github.com/github/hub/utils"
 )
 
 var cmdGist = &Command{
@@ -107,14 +109,6 @@ func getGist(gh *github.Client, id string, filename string, no_headers bool) {
 	}
 }
 
-func putGist(gh *github.Client, file string, public bool) {
-	response, err := gh.Gist(file, public)
-	if err != nil {
-		fmt.Printf("ERROR: Unable to create gist. The most likely problem is your token doesn't have the 'gist' scope. Go to `github.com/settings/token`, edit the scopes and add 'gist'.\nFull error:\n\t%s", err)
-	}
-	fmt.Printf("%s\n", response.HtmlUrl)
-}
-
 func gist(cmd *Command, args *Args) {
 	args.NoForward()
 
@@ -132,12 +126,14 @@ func gist(cmd *Command, args *Args) {
 		if args.ParamsSize() > 1 {
 			filename = args.GetParam(1)
 		}
-		getGist(gh, id, filename, args.Flag.HasReceived("--no-headers"))
+		getGist(gh, id, filename, args.Flag.Bool("--no-headers"))
 	} else {
 		file := "-"
 		if args.Flag.HasReceived("--file") {
 			file = args.Flag.Value("--file")
 		}
-		putGist(gh, file, args.Flag.HasReceived("--public"))
+		g, err := gh.CreateGist(file, args.Flag.Bool("--public"))
+		utils.Check(err)
+		ui.Println(g.HtmlUrl)
 	}
 }
