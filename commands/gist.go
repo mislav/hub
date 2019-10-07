@@ -112,13 +112,9 @@ func getGist(gh *github.Client, id string, filename string, no_headers bool) {
 func gist(cmd *Command, args *Args) {
 	args.NoForward()
 
-	localRepo, err := github.LocalRepo()
+	host, err := github.CurrentConfig().DefaultHost()
 	utils.Check(err)
-
-	project, err := localRepo.MainProject()
-	utils.Check(err)
-
-	gh := github.NewClient(project.Host)
+	gh := github.NewClient(host.Host)
 
 	if !args.IsParamsEmpty() {
 		id := args.GetParam(0)

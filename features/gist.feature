@@ -1,6 +1,5 @@
 Feature: hub gist
   Background:
-    Given I am in "git://github.com/octocat/Hello-World.git" git repo
     Given I am "octokitten" on github.com with OAuth token "OTOKEN"
 
   Scenario: Fetch a gist with a single file
