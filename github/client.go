@@ -993,7 +993,7 @@ func (client *Client) absolute(host string) *url.URL {
 	return u
 }
 
-func (client *Client) FetchGist(id string, filename string) (gist *Gist, err error) {
+func (client *Client) FetchGist(id string) (gist *Gist, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return

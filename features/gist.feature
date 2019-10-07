@@ -96,10 +96,11 @@ more content is here
       }
       """
     When I successfully run `hub gist myhash --no-headers`
-    # can't do "exactly" since the ordering of JSON hashes
-    # is not gauranteed, so just check for both lines
-    Then the output should contain "my content is here"
-    And the stdout should contain "more content is here"
+    Then the output should contain exactly:
+      """
+      my content is here
+      more content is here
+      """
 
   Scenario: Creates a gist
     Given the GitHub API server:

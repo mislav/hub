@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"os"
+	"sort"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -80,33 +80,42 @@ func init() {
 	CmdRunner.Use(cmdGist)
 }
 
-func getGist(gh *github.Client, id string, filename string, no_headers bool) {
-	gist, err := gh.FetchGist(id, filename)
-	utils.Check(err)
+func getGist(gh *github.Client, id string, filename string, no_headers bool) error {
+	gist, err := gh.FetchGist(id)
+	if err != nil {
+		return err
+	}
+
 	if filename != "" {
-		if val, err := gist.Files[filename]; err {
-			fmt.Printf("%s\n", val.Content)
+		if val, ok := gist.Files[filename]; ok {
+			ui.Println(val.Content)
 		} else {
-			fmt.Printf("No such file in that Gist\n")
-			os.Exit(1)
+			return fmt.Errorf("no such file in gist")
 		}
 	} else {
 		print_hdrs := len(gist.Files) != 1 && !no_headers
 		if print_hdrs {
-			fmt.Printf("GIST: %s (%s)\n\n", gist.Description, gist.Id)
+			ui.Printf("GIST: %s (%s)\n\n", gist.Description, gist.Id)
 		}
-		for name, file := range gist.Files {
+
+		filenames := []string{}
+		for name := range gist.Files {
+			filenames = append(filenames, name)
+		}
+		sort.Strings(filenames)
+
+		for _, name := range filenames {
+			file := gist.Files[name]
 			if print_hdrs {
-				fmt.Printf("==== BEGIN " + name + " ====>\n")
+				ui.Printf("==== BEGIN %s ====>\n", name)
 			}
-			// yes, the printf is necessary to prevent it interpolating
-			// '%'s in the string as part of a format string.
-			fmt.Printf("%s\n", file.Content)
+			ui.Println(file.Content)
 			if print_hdrs {
-				fmt.Printf("<=== END " + name + " =======\n")
+				ui.Printf("<=== END %s =======\n", name)
 			}
 		}
 	}
+	return nil
 }
 
 func gist(cmd *Command, args *Args) {
