@@ -80,7 +80,7 @@ func init() {
 	CmdRunner.Use(cmdGist)
 }
 
-func getGist(gh *github.Client, id string, filename string, no_headers bool) error {
+func getGist(gh *github.Client, id string, filename string, includeHeaders bool) error {
 	gist, err := gh.FetchGist(id)
 	if err != nil {
 		return err
@@ -93,8 +93,8 @@ func getGist(gh *github.Client, id string, filename string, no_headers bool) err
 			return fmt.Errorf("no such file in gist")
 		}
 	} else {
-		print_hdrs := len(gist.Files) != 1 && !no_headers
-		if print_hdrs {
+		includeHeaders := includeHeaders && len(gist.Files) > 1
+		if includeHeaders {
 			ui.Printf("GIST: %s (%s)\n\n", gist.Description, gist.Id)
 		}
 
@@ -106,11 +106,11 @@ func getGist(gh *github.Client, id string, filename string, no_headers bool) err
 
 		for _, name := range filenames {
 			file := gist.Files[name]
-			if print_hdrs {
+			if includeHeaders {
 				ui.Printf("==== BEGIN %s ====>\n", name)
 			}
 			ui.Println(file.Content)
-			if print_hdrs {
+			if includeHeaders {
 				ui.Printf("<=== END %s =======\n", name)
 			}
 		}
@@ -131,7 +131,7 @@ func gist(cmd *Command, args *Args) {
 		if args.ParamsSize() > 1 {
 			filename = args.GetParam(1)
 		}
-		getGist(gh, id, filename, args.Flag.Bool("--no-headers"))
+		getGist(gh, id, filename, !args.Flag.Bool("--no-headers"))
 	} else {
 		file := "-"
 		if args.Flag.HasReceived("--file") {
