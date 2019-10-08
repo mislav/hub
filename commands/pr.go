@@ -17,7 +17,7 @@ var (
 		Usage: `
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
-pr show [-uc] [-h <HEAD>]
+pr show [-uc] [-h <HEAD>] [-f <FORMAT>]
 pr show [-uc] <PR-NUMBER>
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
@@ -160,13 +160,9 @@ hub-issue(1), hub-pull-request(1), hub(1)
 	}
 
 	cmdShowPr = &Command{
-		Key: "show",
-		Run: showPr,
-		KnownFlags: `
-		-h, --head HEAD
-		-u, --url
-		-c, --copy
-`,
+		Key:  "show",
+		Run:  showPr,
+		Long: cmdPr.Long,
 	}
 )
 
@@ -283,8 +279,9 @@ func showPr(command *Command, args *Args) {
 
 	words := args.Words()
 	openUrl := ""
+	prNumber := 0
 	if len(words) > 0 {
-		if prNumber, err := strconv.Atoi(words[0]); err == nil {
+		if prNumber, err = strconv.Atoi(words[0]); err == nil {
 			openUrl = baseProject.WebURL("", "", fmt.Sprintf("pull/%d", prNumber))
 		} else {
 			utils.Check(fmt.Errorf("invalid pull request number: '%s'", words[0]))
@@ -293,12 +290,26 @@ func showPr(command *Command, args *Args) {
 		pr, err := findCurrentPullRequest(localRepo, baseProject, args.Flag.Value("--head"))
 		utils.Check(err)
 		openUrl = pr.HtmlUrl
+		prNumber = pr.Number
 	}
 
 	args.NoForward()
-	printUrl := args.Flag.Bool("--url")
-	copyUrl := args.Flag.Bool("--copy")
-	printBrowseOrCopy(args, openUrl, !printUrl && !copyUrl, copyUrl)
+	if format := args.Flag.Value("--format"); format != "" {
+		host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
+		utils.Check(err)
+		client := github.NewClientWithHost(host)
+		pr, err := client.PullRequest(baseProject, strconv.Itoa(prNumber))
+		utils.Check(err)
+
+		// ui.Println(pr.Number)
+		colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
+		ui.Println(formatPullRequest(*pr, format, colorize))
+	} else {
+		printUrl := args.Flag.Bool("--url")
+		copyUrl := args.Flag.Bool("--copy")
+
+		printBrowseOrCopy(args, openUrl, !printUrl && !copyUrl, copyUrl)
+	}
 }
 
 func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Project, headArg string) (*github.PullRequest, error) {
