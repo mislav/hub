@@ -31,7 +31,10 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 		Check out the head of a pull request in a new branch.
 
 	* _show_:
-		Open a pull request page in a web browser.
+		Open a pull request page in a web browser. When no <PR-NUMBER> is
+		specified, <HEAD> is used to look up open pull requests and defaults to
+		the current branch name. With '--format', print information about the
+		pull request instead of opening it.
 
 ## Options:
 
