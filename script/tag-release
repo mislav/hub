@@ -1,0 +1,28 @@
+#!/bin/bash
+set -e
+
+version_file="version/version.go"
+
+if git diff --exit-code >/dev/null -- "$version_file"; then
+  echo "Update the version in $version_file and try again." >&2
+  exit 1
+fi
+
+version="$(grep -w 'Version =' "$version_file" | cut -d'"' -f2)"
+
+git commit -m "hub $version" -- "$version_file"
+
+notes_file="$(mktemp)"
+{ echo "hub $version"
+  echo
+  script/changelog
+} >"$notes_file"
+
+git tag "v${version}" -F "$notes_file" --edit
+rm -f "$notes_file"
+
+git push origin HEAD "v${version}"
+
+if [ "$(git symbolic-ref refs/remotes/origin/HEAD)" = "refs/remotes/origin/$(git branch --show-current)" ]; then
+  script/brew-publish hub github/hub "v${version}"
+fi
