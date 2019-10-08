@@ -35,6 +35,41 @@ Feature: hub pr show
     And the output should contain exactly:
       """
       https://github.com/ashemesh/hub/pull/102\n
+      """ 
+
+  Scenario: Format Current branch output URL
+    Given I am on the "topic" branch
+    Given the GitHub API server:
+      """
+      get('/repos/ashemesh/hub/pulls'){
+        assert :state => "open",
+               :head => "ashemesh:topic"
+        json [{
+          :number => 102,
+          :state => "open",
+          :base => {
+            :ref => "master",
+            :label => "github:master",
+            :repo => { :owner => { :login => "github" } }
+          },
+          :head => { :ref => "patch-1", :label => "octocat:patch-1" },
+          :user => { :login => "octocat" },
+          :requested_reviewers => [
+            { :login => "rey" },
+          ],
+          :requested_teams => [
+            { :slug => "troopers" },
+            { :slug => "cantina-band" },
+          ],
+          :html_url => "https://github.com/ashemesh/hub/pull/102",
+        }]
+      }
+      """
+    When I successfully run `hub pr show -f "%sC%>(8)%i %rs%n"`
+    Then "open https://github.com/ashemesh/hub/pull/102" should not be run
+    And the output should contain exactly:
+      """
+          #102 rey, github/troopers, github/cantina-band\n
       """
 
   Scenario: Current branch in fork
@@ -145,6 +180,36 @@ Feature: hub pr show
   Scenario: Show pull request by number
     When I successfully run `hub pr show 102`
     Then "open https://github.com/ashemesh/hub/pull/102" should be run
+
+  Scenario: Format pull request by number
+    Given the GitHub API server:
+      """
+      get('/repos/ashemesh/hub/pulls/102') {
+        json :number => 102,
+          :title => "First",
+          :state => "open",
+          :base => {
+            :ref => "master",
+            :label => "github:master",
+            :repo => { :owner => { :login => "github" } }
+          },
+          :head => { :ref => "patch-1", :label => "octocat:patch-1" },
+          :user => { :login => "octocat" },
+          :requested_reviewers => [
+            { :login => "rey" },
+          ],
+          :requested_teams => [
+            { :slug => "troopers" },
+            { :slug => "cantina-band" },
+          ]
+      }
+      """
+    When I successfully run `hub pr show 102 -f "%sC%>(8)%i %rs%n"`
+    Then "open https://github.com/ashemesh/hub/pull/102" should not be run
+    And the output should contain exactly:
+      """
+          #102 rey, github/troopers, github/cantina-band\n
+      """
 
   Scenario: Show pull request by invalid number
     When I run `hub pr show XYZ`
