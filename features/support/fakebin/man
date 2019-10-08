@@ -1,2 +1,15 @@
-#!/bin/sh
+#!/bin/bash
 echo man "$@" >> "$HOME"/.history
+
+# Requires man-pages to be built
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd)"
+MAN_DIR="$DIR/../../../share/man/man1/"
+
+if [ "$1" = "" ]; then
+  echo "What manual page do you want?"
+elif [ -f "$MAN_DIR/$1.1.md" ]; then
+  cat "$MAN_DIR/$1.1.md"
+else
+  echo "No manual entry for $1"
+  exit 1
+fi

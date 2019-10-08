@@ -54,6 +54,7 @@ install_test() {
 
 [ -z "$HUB_COVERAGE" ] || script/coverage prepare
 script/build
+make man-pages
 go test ./... || STATUS="$?"
 script/ruby-test "$@" || STATUS="$?"
 [ -z "$HUB_COVERAGE" ] || script/coverage summarize "$min_coverage" || STATUS="$?"

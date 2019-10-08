@@ -19,6 +19,10 @@ Feature: hub help
     When I successfully run `hub help -a`
     Then the output should contain "pull-request"
 
+  Scenario: Shows help for the hub command
+    When I successfully run `hub help hub`
+    Then the output should contain "hub(1) -- make git easier with GitHub"
+
   Scenario: Shows help for a subcommand
     When I successfully run `hub help hub-help`
-    Then the output should contain "`hub help` hub-<COMMAND>"
+    Then the output should contain "`hub help` hub-<COMMAND> [--plain-text]"
