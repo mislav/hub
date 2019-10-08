@@ -44,17 +44,8 @@ Feature: hub pr show
       get('/repos/ashemesh/hub/pulls'){
         assert :state => "open",
                :head => "ashemesh:topic"
-        json [
-          { 
-            :html_url => "https://github.com/ashemesh/hub/pull/102",
-            :number => 102
-          },
-        ]
-      }
-
-      get('/repos/ashemesh/hub/pulls/102') {
-        json :number => 999,
-          :title => "First",
+        json [{
+          :number => 102,
           :state => "open",
           :base => {
             :ref => "master",
@@ -69,14 +60,16 @@ Feature: hub pr show
           :requested_teams => [
             { :slug => "troopers" },
             { :slug => "cantina-band" },
-          ]
+          ],
+          :html_url => "https://github.com/ashemesh/hub/pull/102",
+        }]
       }
       """
     When I successfully run `hub pr show -f "%sC%>(8)%i %rs%n"`
     Then "open https://github.com/ashemesh/hub/pull/102" should not be run
     And the output should contain exactly:
       """
-          #999 rey, github/troopers, github/cantina-band\n
+          #102 rey, github/troopers, github/cantina-band\n
       """
 
   Scenario: Current branch in fork
@@ -192,7 +185,7 @@ Feature: hub pr show
     Given the GitHub API server:
       """
       get('/repos/ashemesh/hub/pulls/102') {
-        json :number => 999,
+        json :number => 102,
           :title => "First",
           :state => "open",
           :base => {
@@ -215,7 +208,7 @@ Feature: hub pr show
     Then "open https://github.com/ashemesh/hub/pull/102" should not be run
     And the output should contain exactly:
       """
-          #999 rey, github/troopers, github/cantina-band\n
+          #102 rey, github/troopers, github/cantina-band\n
       """
 
   Scenario: Show pull request by invalid number

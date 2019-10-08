@@ -17,8 +17,8 @@ var (
 		Usage: `
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
-pr show [-uc] [-h <HEAD>] [-f <FORMAT>]
-pr show [-uc] <PR-NUMBER>
+pr show [-uc] [-f <FORMAT>] [-h <HEAD>]
+pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
 
@@ -160,9 +160,15 @@ hub-issue(1), hub-pull-request(1), hub(1)
 	}
 
 	cmdShowPr = &Command{
-		Key:  "show",
-		Run:  showPr,
-		Long: cmdPr.Long,
+		Key: "show",
+		Run: showPr,
+		KnownFlags: `
+		-h, --head HEAD
+		-u, --url
+		-c, --copy
+		-f, --format FORMAT
+		--color
+`,
 	}
 )
 
@@ -277,9 +283,15 @@ func showPr(command *Command, args *Args) {
 	baseProject, err := localRepo.MainProject()
 	utils.Check(err)
 
+	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
+	utils.Check(err)
+	gh := github.NewClientWithHost(host)
+
 	words := args.Words()
 	openUrl := ""
 	prNumber := 0
+	var pr *github.PullRequest
+
 	if len(words) > 0 {
 		if prNumber, err = strconv.Atoi(words[0]); err == nil {
 			openUrl = baseProject.WebURL("", "", fmt.Sprintf("pull/%d", prNumber))
@@ -287,36 +299,29 @@ func showPr(command *Command, args *Args) {
 			utils.Check(fmt.Errorf("invalid pull request number: '%s'", words[0]))
 		}
 	} else {
-		pr, err := findCurrentPullRequest(localRepo, baseProject, args.Flag.Value("--head"))
+		pr, err = findCurrentPullRequest(localRepo, gh, baseProject, args.Flag.Value("--head"))
 		utils.Check(err)
 		openUrl = pr.HtmlUrl
-		prNumber = pr.Number
 	}
 
 	args.NoForward()
 	if format := args.Flag.Value("--format"); format != "" {
-		host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
-		utils.Check(err)
-		client := github.NewClientWithHost(host)
-		pr, err := client.PullRequest(baseProject, strconv.Itoa(prNumber))
-		utils.Check(err)
-
-		// ui.Println(pr.Number)
+		if pr == nil {
+			pr, err = gh.PullRequest(baseProject, strconv.Itoa(prNumber))
+			utils.Check(err)
+		}
 		colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 		ui.Println(formatPullRequest(*pr, format, colorize))
-	} else {
-		printUrl := args.Flag.Bool("--url")
-		copyUrl := args.Flag.Bool("--copy")
-
-		printBrowseOrCopy(args, openUrl, !printUrl && !copyUrl, copyUrl)
+		return
 	}
+
+	printUrl := args.Flag.Bool("--url")
+	copyUrl := args.Flag.Bool("--copy")
+
+	printBrowseOrCopy(args, openUrl, !printUrl && !copyUrl, copyUrl)
 }
 
-func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Project, headArg string) (*github.PullRequest, error) {
-	host, err := github.CurrentConfig().PromptForHost(baseProject.Host)
-	utils.Check(err)
-	gh := github.NewClientWithHost(host)
-
+func findCurrentPullRequest(localRepo *github.GitHubRepo, gh *github.Client, baseProject *github.Project, headArg string) (*github.PullRequest, error) {
 	filterParams := map[string]interface{}{
 		"state": "open",
 	}
@@ -332,7 +337,7 @@ func findCurrentPullRequest(localRepo *github.GitHubRepo, baseProject *github.Pr
 		utils.Check(err)
 		if headBranch, headProject, err := findPushTarget(currentBranch); err == nil {
 			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, headBranch.ShortName())
-		} else if headProject, err := deducePushTarget(currentBranch, host.User); err == nil {
+		} else if headProject, err := deducePushTarget(currentBranch, gh.Host.User); err == nil {
 			headWithOwner = fmt.Sprintf("%s:%s", headProject.Owner, currentBranch.ShortName())
 		} else {
 			headWithOwner = fmt.Sprintf("%s:%s", baseProject.Owner, currentBranch.ShortName())
