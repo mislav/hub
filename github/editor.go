@@ -78,7 +78,6 @@ func (e *Editor) EditContent() (content string, err error) {
 		return
 	}
 
-	b = bytes.TrimSpace(b)
 	reader := bytes.NewReader(b)
 	scanner := bufio.NewScanner(reader)
 	unquotedLines := []string{}
