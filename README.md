@@ -21,7 +21,7 @@ hub can be safely [aliased](#aliasing) as `git` so you can type `$ git
 See [Usage documentation](https://hub.github.com/hub.1.html) for the list of all
 commands and their arguments.
 
-Hub can also be used to make shell scripts that [manually interface with the
+hub can also be used to make shell scripts that [manually interface with the
 GitHub API](https://hub.github.com/hub-api.1.html).
 
 Installation
