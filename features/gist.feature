@@ -97,6 +97,8 @@ Feature: hub gist
     Given the GitHub API server:
       """
       post('/gists') {
+        halt 400 unless params[:files]["testfile.txt"]["content"]
+        halt 400 unless params[:files]["testfile2.txt"]["content"]
         status 201
         json({
           :html_url => 'http://gists.github.com/somehash',
