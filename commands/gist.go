@@ -169,7 +169,6 @@ func showGist(cmd *Command, args *Args) {
 	gh := github.NewClient(host.Host)
 
 	id := args.GetParam(0)
-	ui.Println("id is %s", id)
 	filename := ""
 	if args.ParamsSize() > 1 {
 		filename = args.GetParam(1)
