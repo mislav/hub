@@ -73,14 +73,12 @@ Feature: hub gist
       my content is here
       """
 
-  Scenario: Creates a gist
+  Scenario: Create a gist from file
     Given the GitHub API server:
       """
       post('/gists') {
         status 201
-        json({
-          :html_url => 'http://gists.github.com/somehash',
-        })
+        json :html_url => 'http://gists.github.com/somehash'
       }
       """
     Given a file named "testfile.txt" with:
@@ -109,7 +107,7 @@ Feature: hub gist
     Then the output should contain exactly ""
     And "open http://gists.github.com/somehash" should be run
 
-  Scenario: Creates a gist with multiple files
+  Scenario: Create a gist with multiple files
     Given the GitHub API server:
       """
       post('/gists') {
@@ -130,6 +128,25 @@ Feature: hub gist
       this is another test file
       """
     When I successfully run `hub gist create testfile.txt testfile2.txt`
+    Then the output should contain exactly:
+      """
+      http://gists.github.com/somehash
+      """
+
+  Scenario: Create a gist from stdin
+    Given the GitHub API server:
+      """
+      post('/gists') {
+        halt 400 unless params[:files]["gistfile1.txt"]["content"] == "hello\n"
+        status 201
+        json :html_url => 'http://gists.github.com/somehash'
+      }
+      """
+    When I run `hub gist create` interactively
+    And I pass in:
+      """
+      hello
+      """
     Then the output should contain exactly:
       """
       http://gists.github.com/somehash
