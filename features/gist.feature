@@ -40,13 +40,16 @@ Feature: hub gist
         })
       }
       """
-    When I successfully run `hub gist show myhash --json`
-    Then the output should contain exactly:
+    When I run `hub gist show myhash`
+    Then the exit status should be 1
+    Then the output should contain:
       """
-      {"hub_gist1.txt":{"content":"my content is here","raw_url":""},"hub_gist2.txt":{"content":"more content is here","raw_url":""}}
+      the gist contains multiple files, you must specify one:\n
       """
+    And the output should contain "hub_gist1.txt"
+    And the output should contain "hub_gist2.txt"
 
-  Scenario: Fetch a gist with many files while specifying a single one
+  Scenario: Fetch a single file from gist
     Given the GitHub API server:
       """
       get('/gists/myhash') {

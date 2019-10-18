@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -14,7 +14,7 @@ var (
 		Run: printGistHelp,
 		Usage: `
 gist create [--public] [<FILES>...]
-gist show [--json] <ID> [<FILENAME>]
+gist show <ID> [<FILENAME>]
 `,
 		Long: `Create and print GitHub Gists
 
@@ -26,16 +26,12 @@ gist show [--json] <ID> [<FILENAME>]
 
     * _show_:
 		Print the contents of a gist. If the gist contains multiple files, the
-		operation will error out unless either <FILENAME> is specified or the
-		'--json' flag is used.
+		operation will error out unless <FILENAME> is specified.
 
 ## Options:
 
     --public
         Make the new gist public (default: false).
-
-    --json
-        Print all files in the gist and emit them in JSON.
 
 ## Examples:
 
@@ -56,7 +52,7 @@ hub(1), hub-api(1)
 	cmdShowGist = &Command{
 		Key:        "show",
 		Run:        showGist,
-		KnownFlags: "--json",
+		KnownFlags: "\n",
 	}
 
 	cmdCreateGist = &Command{
@@ -72,33 +68,27 @@ func init() {
 	CmdRunner.Use(cmdGist)
 }
 
-func getGist(gh *github.Client, id string, filename string, emitJson bool) error {
+func getGist(gh *github.Client, id string, filename string) error {
 	gist, err := gh.FetchGist(id)
 	if err != nil {
 		return err
 	}
 
-	if len(gist.Files) > 1 && !emitJson && filename == "" {
-		return fmt.Errorf("There are multiple files, you must specify one, or use --json")
+	if len(gist.Files) > 1 && filename == "" {
+		filenames := []string{}
+		for name := range gist.Files {
+			filenames = append(filenames, name)
+		}
+		return fmt.Errorf("the gist contains multiple files, you must specify one:\n%s", strings.Join(filenames, "\n"))
 	}
 
-	if emitJson {
-		data, err := json.Marshal(gist.Files)
-		if err != nil {
-			return err
-		}
-		fmt.Printf("%s\n", data)
-	} else if filename != "" {
+	if filename != "" {
 		if val, ok := gist.Files[filename]; ok {
 			ui.Println(val.Content)
 		} else {
 			return fmt.Errorf("no such file in gist")
 		}
 	} else {
-		/*
-		 * There's only one, but we don't know the name so a
-		 * loop us fine.
-		 */
 		for name := range gist.Files {
 			file := gist.Files[name]
 			ui.Println(file.Content)
@@ -131,16 +121,18 @@ func createGist(cmd *Command, args *Args) {
 
 func showGist(cmd *Command, args *Args) {
 	args.NoForward()
-
-	host, err := github.CurrentConfig().DefaultHostNoPrompt()
-	utils.Check(err)
-	gh := github.NewClient(host.Host)
-
+	if args.ParamsSize() < 1 {
+		utils.Check(cmd.UsageError("you must specify a gist ID"))
+	}
 	id := args.GetParam(0)
 	filename := ""
 	if args.ParamsSize() > 1 {
 		filename = args.GetParam(1)
 	}
-	err = getGist(gh, id, filename, args.Flag.Bool("--json"))
+
+	host, err := github.CurrentConfig().DefaultHostNoPrompt()
+	utils.Check(err)
+	gh := github.NewClient(host.Host)
+	err = getGist(gh, id, filename)
 	utils.Check(err)
 }
