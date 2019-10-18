@@ -13,7 +13,7 @@ var (
 	cmdGist = &Command{
 		Run: printGistHelp,
 		Usage: `
-gist create [--public] [<FILES>...]
+gist create [-oc] [--public] [<FILES>...]
 gist show <ID> [<FILENAME>]
 `,
 		Long: `Create and print GitHub Gists
