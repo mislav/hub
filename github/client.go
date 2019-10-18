@@ -1008,27 +1008,31 @@ func (client *Client) FetchGist(id string) (gist *Gist, err error) {
 	return
 }
 
-func (client *Client) CreateGist(file string, public bool) (gist *Gist, err error) {
+func (client *Client) CreateGist(filenames []string, public bool) (gist *Gist, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
-
-	var content []byte
-	basename := "gistfile1.txt"
-	if file == "-" {
-		content, err = ioutil.ReadAll(os.Stdin)
-	} else {
-		content, err = ioutil.ReadFile(file)
-		basename = path.Base(file)
-	}
-	if err != nil {
-		return
-	}
-
-	gf := GistFile{Content: string(content)}
 	files := map[string]GistFile{}
-	files[basename] = gf
+	var basename string
+	var content []byte
+	var gf GistFile
+
+	for _, file := range filenames {
+		if file == "-" {
+			content, err = ioutil.ReadAll(os.Stdin)
+			basename = "gistfile1.txt"
+		} else {
+			content, err = ioutil.ReadFile(file)
+			basename = path.Base(file)
+		}
+		if err != nil {
+			return
+		}
+		gf = GistFile{Content: string(content)}
+		files[basename] = gf
+	}
+
 	g := Gist{
 		Files:  files,
 		Public: public,
