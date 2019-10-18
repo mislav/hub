@@ -114,7 +114,7 @@ func printGistHelp(command *Command, args *Args) {
 func createGist(cmd *Command, args *Args) {
 	args.NoForward()
 
-	host, err := github.CurrentConfig().DefaultHost()
+	host, err := github.CurrentConfig().DefaultHostNoPrompt()
 	utils.Check(err)
 	gh := github.NewClient(host.Host)
 
@@ -132,7 +132,7 @@ func createGist(cmd *Command, args *Args) {
 func showGist(cmd *Command, args *Args) {
 	args.NoForward()
 
-	host, err := github.CurrentConfig().DefaultHost()
+	host, err := github.CurrentConfig().DefaultHostNoPrompt()
 	utils.Check(err)
 	gh := github.NewClient(host.Host)
 
