@@ -114,3 +114,44 @@ Feature: hub gist
       http://gists.github.com/somehash
       """
 
+  Scenario: Insufficient OAuth scopes
+    Given the GitHub API server:
+      """
+      post('/gists') {
+        status 404
+        response.headers['x-oauth-scopes'] = 'repos'
+        json({})
+      }
+      """
+    Given a file named "testfile.txt" with:
+      """
+      this is a test file
+      """
+    When I run `hub gist create testfile.txt`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Error creating gist: Not Found (HTTP 404)
+      Go to https://github.com/settings/tokens and enable the 'gist' scope for hub\n
+      """
+
+  Scenario: Create error
+    Given the GitHub API server:
+      """
+      post('/gists') {
+        status 404
+        response.headers['x-oauth-scopes'] = 'repos, gist'
+        json({})
+      }
+      """
+    Given a file named "testfile.txt" with:
+      """
+      this is a test file
+      """
+    When I run `hub gist create testfile.txt`
+    Then the exit status should be 1
+    And the stderr should contain exactly:
+      """
+      Error creating gist: Not Found (HTTP 404)\n
+      """
+
