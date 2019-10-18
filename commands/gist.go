@@ -13,62 +13,38 @@ var (
 	cmdGist = &Command{
 		Run: printGistHelp,
 		Usage: `
-gist show <GistID> [--json] [<filename>]
-gist create [--public] <file1> [<file2> ..]
-cat <file> | gist create [--public]
+gist create [--public] [<FILES>...]
+gist show [--json] <ID> [<FILENAME>]
 `,
-		Long: `Create a GitHub Gist
+		Long: `Create and print GitHub Gists
 
 ## Commands:
 
-    * _show_:
-        Show the gist <GistID>. If the gist has more than one file in it,
-        either a file must be specified, or --json must be used. When --json
-        is specified, filenames are ignored.
+	* _create_:
+		Create a new gist. If no <FILES> are specified, the content is read from
+		standard input.
 
-    * _create_:
-        Create a gist. If no files are specified, the file is content
-        is read from stdin. You may specify as many files as you want.
+    * _show_:
+		Print the contents of a gist. If the gist contains multiple files, the
+		operation will error out unless either <FILENAME> is specified or the
+		'--json' flag is used.
 
 ## Options:
 
     --public
-        The gist should be marked as public.
+        Make the new gist public (default: false).
 
     --json
         Print all files in the gist and emit them in JSON.
 
 ## Examples:
 
-    # Retrieve the contents of a gist with a single file
-    $ hub gist show 87560fa4ebcc8683f68ec04d9100ab1c
-    this is test content in testfile.txt in test gist
+	$ echo hello | hub gist create --public
 
-    # Retrieve same gist, but specify a single file
-    $ hub gist show 6188fb16b1a7df0f51a51e03b3a2b4e8 testfile1.txt
-    test content in testfile1.txt inside of test gist 2
+	$ hub gist create <file1> <file2>
 
-    # Retrieve same gist, with all files, using JSON
-    $ hub gist show --json 6188fb16b1a7df0f51a51e03b3a2b4e8
-    test content in testfile1.txt inside of test gist 2
-    more test content in testfile2.txt inside of test gist 2
-
-    # Create a gist:
-    $ cat /tmp/testfile | hub gist create
-    https://gist.github.com/bdf551042f77bb8431b99f13c1105168
-
-    # Or a public one:
-    $ cat /tmp/testfile | hub gist create --public
-    https://gist.github.com/6c925133a295f0c5ad61eafcf05fee30
-
-    # You can also specify a file directly
-    $ hub gist create /tmp/testfile
-    https://gist.github.com/bdf551042f77bb8431b99f13c1105168
-
-    # Or with multiple files
-    $ hub gist create /tmp/testfile /tmp/testfile2
-    https://gist.github.com/bdf551042f77bb8431b99f13c1105168
-
+    # print a specific file within a gist:
+    $ hub gist show <ID> testfile1.txt
 
 ## See also:
 
