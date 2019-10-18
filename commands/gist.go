@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/github/hub/github"
@@ -20,7 +21,7 @@ gist show <ID> [<FILENAME>]
 
 ## Commands:
 
-	* _create_:
+    * _create_:
 		Create a new gist. If no <FILES> are specified, the content is read from
 		standard input.
 
@@ -33,20 +34,23 @@ gist show <ID> [<FILENAME>]
     --public
         Make the new gist public (default: false).
 
-	-o, --browse
+    -o, --browse
 		Open the new gist in a web browser.
 
-	-c, --copy
+    -c, --copy
 		Put the URL of the new gist to clipboard instead of printing it.
 
 ## Examples:
 
-	$ echo hello | hub gist create --public
+    $ echo hello | hub gist create --public
 
-	$ hub gist create <file1> <file2>
+    $ hub gist create <file1> <file2>
 
     # print a specific file within a gist:
     $ hub gist show <ID> testfile1.txt
+
+    # print the only file in a gist
+    $ hub gist show <ID>
 
 ## See also:
 
@@ -87,7 +91,8 @@ func getGist(gh *github.Client, id string, filename string) error {
 		for name := range gist.Files {
 			filenames = append(filenames, name)
 		}
-		return fmt.Errorf("the gist contains multiple files, you must specify one:\n%s", strings.Join(filenames, "\n"))
+		sort.Strings(filenames)
+		return fmt.Errorf("This gist contains multiple files, you must specify one:\n  %s", strings.Join(filenames, "\n  "))
 	}
 
 	if filename != "" {
@@ -141,18 +146,17 @@ func createGist(cmd *Command, args *Args) {
 
 func showGist(cmd *Command, args *Args) {
 	args.NoForward()
-	if args.ParamsSize() < 1 {
-		utils.Check(cmd.UsageError("you must specify a gist ID"))
-	}
+
+	host, err := github.CurrentConfig().DefaultHostNoPrompt()
+	utils.Check(err)
+	gh := github.NewClient(host.Host)
+
 	id := args.GetParam(0)
 	filename := ""
 	if args.ParamsSize() > 1 {
 		filename = args.GetParam(1)
 	}
 
-	host, err := github.CurrentConfig().DefaultHostNoPrompt()
-	utils.Check(err)
-	gh := github.NewClient(host.Host)
 	err = getGist(gh, id, filename)
 	utils.Check(err)
 }

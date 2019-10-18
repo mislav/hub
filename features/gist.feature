@@ -44,10 +44,10 @@ Feature: hub gist
     Then the exit status should be 1
     Then the stderr should contain:
       """
-      the gist contains multiple files, you must specify one:\n
+      This gist contains multiple files, you must specify one:
+        hub_gist1.txt
+        hub_gist2.txt
       """
-    And the stderr should contain "hub_gist1.txt"
-    And the stderr should contain "hub_gist2.txt"
 
   Scenario: Fetch a single file from gist
     Given the GitHub API server:
