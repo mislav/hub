@@ -42,12 +42,12 @@ Feature: hub gist
       """
     When I run `hub gist show myhash`
     Then the exit status should be 1
-    Then the output should contain:
+    Then the stderr should contain:
       """
       the gist contains multiple files, you must specify one:\n
       """
-    And the output should contain "hub_gist1.txt"
-    And the output should contain "hub_gist2.txt"
+    And the stderr should contain "hub_gist1.txt"
+    And the stderr should contain "hub_gist2.txt"
 
   Scenario: Fetch a single file from gist
     Given the GitHub API server:
