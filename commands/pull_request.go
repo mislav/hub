@@ -286,7 +286,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			message, err = git.Show(commits[0])
 			utils.Check(err)
 
-			re := regexp.MustCompile(`\nSigned-off-by:\s.*$`)
+			re := regexp.MustCompile(`\n\(Co-authored\|Signed-off\)-by:\s.*$`)
 			message = re.ReplaceAllString(message, "")
 		} else if len(commits) > 1 {
 			commitLogs, err := git.Log(baseTracking, headForMessage)
