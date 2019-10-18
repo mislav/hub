@@ -93,6 +93,22 @@ Feature: hub gist
       http://gists.github.com/somehash
       """
 
+  Scenario: Open the new gist in a browser
+    Given the GitHub API server:
+      """
+      post('/gists') {
+        status 201
+        json :html_url => 'http://gists.github.com/somehash'
+      }
+      """
+    Given a file named "testfile.txt" with:
+      """
+      this is a test file
+      """
+    When I successfully run `hub gist create -o testfile.txt`
+    Then the output should contain exactly ""
+    And "open http://gists.github.com/somehash" should be run
+
   Scenario: Creates a gist with multiple files
     Given the GitHub API server:
       """

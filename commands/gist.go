@@ -33,6 +33,12 @@ gist show <ID> [<FILENAME>]
     --public
         Make the new gist public (default: false).
 
+	-o, --browse
+		Open the new gist in a web browser.
+
+	-c, --copy
+		Put the URL of the new gist to clipboard instead of printing it.
+
 ## Examples:
 
 	$ echo hello | hub gist create --public
@@ -46,19 +52,21 @@ gist show <ID> [<FILENAME>]
 
 hub(1), hub-api(1)
 `,
-		KnownFlags: "\n",
 	}
 
 	cmdShowGist = &Command{
-		Key:        "show",
-		Run:        showGist,
-		KnownFlags: "\n",
+		Key: "show",
+		Run: showGist,
 	}
 
 	cmdCreateGist = &Command{
-		Key:        "create",
-		Run:        createGist,
-		KnownFlags: "--public",
+		Key: "create",
+		Run: createGist,
+		KnownFlags: `
+		--public
+		-o, --browse
+		-c, --copy
+`,
 	}
 )
 
@@ -114,9 +122,21 @@ func createGist(cmd *Command, args *Args) {
 	} else {
 		filenames = args.Params
 	}
-	g, err := gh.CreateGist(filenames, args.Flag.Bool("--public"))
-	utils.Check(err)
-	ui.Println(g.HtmlUrl)
+
+	var gist *github.Gist
+	if args.Noop {
+		ui.Println("Would create gist")
+		gist = &github.Gist{
+			HtmlUrl: fmt.Sprintf("https://gist.%s/%s", gh.Host.Host, "ID"),
+		}
+	} else {
+		gist, err = gh.CreateGist(filenames, args.Flag.Bool("--public"))
+		utils.Check(err)
+	}
+
+	flagIssueBrowse := args.Flag.Bool("--browse")
+	flagIssueCopy := args.Flag.Bool("--copy")
+	printBrowseOrCopy(args, gist.HtmlUrl, flagIssueBrowse, flagIssueCopy)
 }
 
 func showGist(cmd *Command, args *Args) {
