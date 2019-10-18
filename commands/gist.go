@@ -19,14 +19,6 @@ cat <file> | gist create [--public]
 `,
 		Long: `Create a GitHub Gist
 
-Can both create and retrieve gists. With no arguements, it takes a file on
-stdin and creates a gist. With multiple '--file' arguments, will create a
-mult-file gist.
-
-If gistid is passed in, if there is only one file in the gist, it will be
-printed, otherwise will error if a specific file is not requested. However, if
-'--json' is used, then multiple files can be retreived.
-
 ## Commands:
 
     * _show_:
