@@ -270,6 +270,7 @@ Feature: hub create
     When I successfully run `hub create`
     Then the stderr should contain:
       """
+      $ git config --get-all http.https://github.com.extraheader
       > GET https://api.github.com/repos/mislav/dotfiles
       > Authorization: token [REDACTED]
       > Accept: application/vnd.github.v3+json;charset=utf-8
@@ -277,6 +278,7 @@ Feature: hub create
       """
     And the stderr should contain:
       """
+      $ git config --get-all http.https://github.com.extraheader
       > POST https://api.github.com/user/repos
       > Authorization: token [REDACTED]
       """
