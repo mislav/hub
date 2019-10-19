@@ -28,11 +28,7 @@ const (
 var UserAgent = "Hub " + version.Version
 
 func init(){
-	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
-		UserAgent = userAgent
-	}else if userAgent, err := git.Config("hub.useragent"); err == nil {
-		UserAgent = userAgent
-	}
+	SetUserAgent();
 }
 
 func NewClient(h string) *Client {
@@ -46,6 +42,14 @@ func NewClientWithHost(host *Host) *Client {
 type Client struct {
 	Host         *Host
 	cachedClient *simpleClient
+}
+
+func SetUserAgent(){
+	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
+		UserAgent = userAgent
+	}else if userAgent, err := git.Config("hub.useragent"); err == nil {
+		UserAgent = userAgent
+	}
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
