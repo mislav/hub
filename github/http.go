@@ -210,11 +210,11 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 }
 
 type simpleClient struct {
-	httpClient       *http.Client
-	extraHeader		 func(r *http.Header)
-	rootUrl          *url.URL
-	PrepareRequest   func(*http.Request)
-	CacheTTL         int
+	httpClient     *http.Client
+	extraHeader    func(r *http.Header)
+	rootUrl        *url.URL
+	PrepareRequest func(*http.Request)
+	CacheTTL       int
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {

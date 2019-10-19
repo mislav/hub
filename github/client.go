@@ -27,8 +27,8 @@ const (
 
 var UserAgent = "Hub " + version.Version
 
-func init(){
-	SetUserAgent();
+func init() {
+	SetUserAgent()
 }
 
 func NewClient(h string) *Client {
@@ -44,10 +44,10 @@ type Client struct {
 	cachedClient *simpleClient
 }
 
-func SetUserAgent(){
+func SetUserAgent() {
 	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
 		UserAgent = userAgent
-	}else if userAgent, err := git.Config("hub.useragent"); err == nil {
+	} else if userAgent, err := git.Config("hub.useragent"); err == nil {
 		UserAgent = userAgent
 	}
 }
@@ -985,12 +985,12 @@ func (client *Client) apiClient() *simpleClient {
 	return &simpleClient{
 		httpClient: httpClient,
 		rootUrl:    apiRoot,
-		extraHeader: func(r *http.Header){
-			if headers, err := git.ConfigAll(fmt.Sprintf("http.%s://%s.extraheader", client.Host.Protocol, client.Host.Host)); err == nil{
+		extraHeader: func(r *http.Header) {
+			if headers, err := git.ConfigAll(fmt.Sprintf("http.%s://%s.extraheader", client.Host.Protocol, client.Host.Host)); err == nil {
 				url, _ := url.Parse(fmt.Sprintf("%s://%s", client.Host.Protocol, client.Host.Host))
 				cookies := []*http.Cookie{}
 
-				for  _, header:= range headers {
+				for _, header := range headers {
 					keyValue := strings.Split(header, ":")
 					key, value := strings.TrimSpace(keyValue[0]), strings.TrimSpace(keyValue[1])
 

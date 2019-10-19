@@ -49,20 +49,20 @@ func TestAuthTokenNote(t *testing.T) {
 
 }
 
-func TestUserAgent(t *testing.T){
-	t.Run("set from env", func(t *testing.T){
-		os.Setenv("HUB_USERAGENT","git/curl")
+func TestUserAgent(t *testing.T) {
+	t.Run("set from env", func(t *testing.T) {
+		os.Setenv("HUB_USERAGENT", "git/curl")
 		SetUserAgent()
 		assert.Equal(t, "git/curl", UserAgent)
 	})
 
 	t.Run("set from git", func(t *testing.T) {
-		dir, _ := ioutil.TempDir("","foo.bar")
+		dir, _ := ioutil.TempDir("", "foo.bar")
 		defer os.RemoveAll(dir)
 		os.Chdir(dir)
 
 		git.Run("init")
-		git.Run("config","hub.useragent","foo.bar")
+		git.Run("config", "hub.useragent", "foo.bar")
 
 		SetUserAgent()
 		assert.Equal(t, "foo.bar", UserAgent)
