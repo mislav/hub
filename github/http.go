@@ -38,6 +38,8 @@ var inspectHeaders = []string{
 	"Location",
 	"Link",
 	"Accept",
+	"Cookie",
+	"User-Agent",
 }
 
 type verboseTransport struct {
@@ -208,10 +210,11 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 }
 
 type simpleClient struct {
-	httpClient     *http.Client
-	rootUrl        *url.URL
-	PrepareRequest func(*http.Request)
-	CacheTTL       int
+	httpClient       *http.Client
+	extraHeader		 func(r *http.Header)
+	rootUrl          *url.URL
+	PrepareRequest   func(*http.Request)
+	CacheTTL         int
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
@@ -239,6 +242,10 @@ func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Re
 	}
 	req.Header.Set("User-Agent", UserAgent)
 	req.Header.Set("Accept", apiPayloadVersion)
+
+	if c.extraHeader != nil {
+		c.extraHeader(&req.Header)
+	}
 
 	if configure != nil {
 		configure(req)

@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/github/hub/git"
+	"golang.org/x/net/publicsuffix"
 	"io"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"os/exec"
@@ -23,6 +26,14 @@ const (
 )
 
 var UserAgent = "Hub " + version.Version
+
+func init(){
+	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
+		UserAgent = userAgent
+	}else if userAgent, err := git.Config("hub.useragent"); err == nil {
+		UserAgent = userAgent
+	}
+}
 
 func NewClient(h string) *Client {
 	return NewClientWithHost(&Host{Host: h})
@@ -970,6 +981,29 @@ func (client *Client) apiClient() *simpleClient {
 	return &simpleClient{
 		httpClient: httpClient,
 		rootUrl:    apiRoot,
+		extraHeader: func(r *http.Header){
+			if headers, err := git.ConfigAll(fmt.Sprintf("http.%s://%s.extraheader", client.Host.Protocol, client.Host.Host)); err == nil{
+				url, _ := url.Parse(fmt.Sprintf("%s://%s", client.Host.Protocol, client.Host.Host))
+				cookies := []*http.Cookie{}
+
+				for  _, header:= range headers {
+					keyValue := strings.Split(header, ":")
+					key, value := strings.TrimSpace(keyValue[0]), strings.TrimSpace(keyValue[1])
+
+					if strings.ToUpper(key) == "COOKIE" && strings.Contains(value, "=") {
+						cookieKV := strings.Split(value, "=")
+						cookieKey, cookieValue := strings.TrimSpace(cookieKV[0]), strings.TrimSpace(cookieKV[1])
+						cookies = append(cookies, &http.Cookie{Name: cookieKey, Value: cookieValue})
+						// r.Add(key,value)
+					}
+				}
+
+				if len(cookies) > 0 && httpClient.Jar == nil {
+					httpClient.Jar, _ = cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
+					httpClient.Jar.SetCookies(url, cookies)
+				}
+			}
+		},
 	}
 }
 
