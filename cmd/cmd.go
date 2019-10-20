@@ -88,7 +88,7 @@ func detectWSL() bool {
 		}
 		detectedWSL = true
 	}
-	return strings.Contains(detectedWSLContents, "Microsoft")
+	return strings.Contains(detectedWSLContents, "MICROSOFT")
 }
 
 // Spawn runs command with spawn(3)
