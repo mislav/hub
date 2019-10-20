@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -86,6 +87,15 @@ var cmdApi = &Command{
 		requests as well. Just make sure to not use '--cache' for any GraphQL
 		mutations.
 
+	--rate-limit
+		If the next '--paginate' request would exceed the rate limit allocation
+		as specified by the server, then print a message to standard error and
+		sleep until the time given in the rate limit reset header.
+
+		Without this flag, '--paginate' will continue to issue requests without
+		regard to the number of remaining rate limit slots, potentially
+		resulting in only partial pagination results.
+
 	<ENDPOINT>
 		The GitHub API endpoint to send the HTTP request to (default: "/").
 		
@@ -136,7 +146,7 @@ func init() {
 	CmdRunner.Use(cmdApi)
 }
 
-func apiCommand(cmd *Command, args *Args) {
+func apiCommand(_ *Command, args *Args) {
 	path := ""
 	if !args.IsParamsEmpty() {
 		path = args.GetParam(0)
@@ -228,6 +238,8 @@ func apiCommand(cmd *Command, args *Args) {
 		body = params
 	}
 
+	rateLimit := args.Flag.Bool("--rate-limit")
+
 	gh := github.NewClient(host)
 
 	out := ui.Stdout
@@ -292,13 +304,38 @@ func apiCommand(cmd *Command, args *Args) {
 		if requestLoop && !parseJSON {
 			fmt.Fprintf(out, "\n")
 		}
+
+		if requestLoop && rateLimit {
+			var rateLimitLeft = -1
+			var rateLimitResetMs = -1
+			var atoiErr error
+			if xRateLimitLeft := response.Header.Get(rateLimitRemainingHeader); len(xRateLimitLeft) != 0 {
+				if rateLimitLeft, atoiErr = strconv.Atoi(xRateLimitLeft); atoiErr != nil {
+					ui.Errorf("Unable to parse header \"%s\": \"%s\" as an int", rateLimitRemainingHeader, xRateLimitLeft)
+					rateLimitLeft = -1
+				}
+			}
+			if xRateLimitReset := response.Header.Get(rateLimitResetHeader); len(xRateLimitReset) != 0 {
+				if rateLimitResetMs, atoiErr = strconv.Atoi(xRateLimitReset); atoiErr != nil {
+					ui.Errorf("Unable to parse header \"%s\": \"%s\" as an int", rateLimitResetHeader, xRateLimitReset)
+					rateLimitResetMs = -1
+				}
+			}
+			if rateLimitResetMs != -1 && rateLimitLeft == 0 {
+				rollover := time.Unix(int64(rateLimitResetMs)+1, 0)
+				ui.Errorf("Pausing until %v for Rate Limit Reset ...\n", rollover)
+				time.Sleep(time.Until(rollover))
+			}
+		}
 	}
 }
 
 const (
-	trueVal  = "true"
-	falseVal = "false"
-	nilVal   = "null"
+	trueVal                  = "true"
+	falseVal                 = "false"
+	nilVal                   = "null"
+	rateLimitRemainingHeader = "X-Ratelimit-Remaining"
+	rateLimitResetHeader     = "X-Ratelimit-Reset"
 )
 
 func magicValue(value string) interface{} {

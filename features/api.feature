@@ -421,3 +421,76 @@ Feature: hub api
     Given I am "octocat" on github.com with OAuth token "TOKEN2"
     When I run `hub api -t count --cache 5`
     Then it should pass with ".count	2"
+
+  Scenario: Honor rate limit by sleeping
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        page = (params[:page] || 1).to_i
+        response.headers['X-Ratelimit-Remaining'] = '0'
+        # it doesn't matter, cucumber blanks the .sleep anyway
+        response.headers['X-Ratelimit-Reset'] = '1'
+        response.headers['Link'] = %(</hello?page=2>; rel="next") if page < 2
+        json [{}]
+      }
+      """
+    When I run `hub api --rate-limit --paginate hello`
+    Then the stderr should contain "Pausing until "
+
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        page = (params[:page] || 1).to_i
+        response.headers['X-Ratelimit-Remaining'] = '0'
+        # it doesn't matter, cucumber blanks the .sleep anyway
+        response.headers['X-Ratelimit-Reset'] = '9999999999'
+        response.headers['Link'] = %(</hello2>; rel="next")
+        json [{}]
+      }
+      get('/hello2') {
+        status 403
+      }
+      """
+    When I run `hub api --paginate hello`
+    Then the exit status should be 22
+    And the stderr should contain exactly ""
+
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        page = (params[:page] || 1).to_i
+        response.headers['X-Ratelimit-Remaining'] = 'hello world'
+        response.headers['X-Ratelimit-Reset'] = 'yankee doodle'
+        response.headers['Link'] = %(</hello2>; rel="next")
+        json [{:page => 1}]
+      }
+      get('/hello2') {
+        json [{:page => 2}]
+      }
+      """
+    When I run `hub api --rate-limit --paginate hello`
+    Then the stdout should contain exactly:
+      """
+      [{"page":1}]
+      [{"page":2}]
+      """
+    And the stderr should contain "Unable to parse"
+
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        response.headers['Link'] = %(</hello2>; rel="next")
+        json [{:page => 1}]
+      }
+      get('/hello2') {
+        json [{:page => 2}]
+      }
+      """
+    # rate-limit should behave rationally even when missing the headers
+    When I run `hub api --rate-limit --paginate hello`
+    Then the stdout should contain exactly:
+      """
+      [{"page":1}]
+      [{"page":2}]
+      """
+    And the stderr should contain exactly ""
