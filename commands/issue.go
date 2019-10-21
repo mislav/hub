@@ -114,8 +114,10 @@ With no arguments, show a list of open issues.
 		of "always" (default for '--color'), "never", or "auto" (default).
 
 	-m, --message <MESSAGE>
-		The text up to the first blank line in <MESSAGE> is treated as the issue
-		title, and the rest is used as issue description in Markdown format.
+		An issue title and an issue description will be read from <MESSAGE>.
+		These should be separated by a blank line (ie: a line with no contents).
+		Everything after the first blank line will be used as the issue description
+		and will be read in Markdown format.
 
 		When multiple '--message' are passed, their values are concatenated with a
 		blank line in-between.

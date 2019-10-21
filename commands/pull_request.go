@@ -28,9 +28,10 @@ pull-request -i <ISSUE>
 		Skip the check for unpushed commits.
 
 	-m, --message <MESSAGE>
-		The text up to the first blank line in <MESSAGE> is treated as the pull
-		request title, and the rest is used as pull request description in Markdown
-		format.
+		A pull request title and a pull request description will be read from <MESSAGE>.
+		These should be separated by a blank line (ie: a line with no contents).
+		Everything after the first blank line will be used as the pull request description
+		and will be read in Markdown format.
 
 		When multiple '--message' are passed, their values are concatenated with a
 		blank line in-between.
