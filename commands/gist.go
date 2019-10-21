@@ -44,13 +44,10 @@ gist show <ID> [<FILENAME>]
 
     $ echo hello | hub gist create --public
 
-    $ hub gist create <file1> <file2>
+    $ hub gist create file1.txt file2.txt
 
     # print a specific file within a gist:
-    $ hub gist show <ID> testfile1.txt
-
-    # print the only file in a gist
-    $ hub gist show <ID>
+    $ hub gist show ID testfile1.txt
 
 ## See also:
 
