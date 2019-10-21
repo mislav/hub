@@ -21,23 +21,23 @@ gist show <ID> [<FILENAME>]
 
 ## Commands:
 
-    * _create_:
+	* _create_:
 		Create a new gist. If no <FILES> are specified, the content is read from
 		standard input.
 
-    * _show_:
+	* _show_:
 		Print the contents of a gist. If the gist contains multiple files, the
 		operation will error out unless <FILENAME> is specified.
 
 ## Options:
 
-    --public
-        Make the new gist public (default: false).
+	--public
+		Make the new gist public (default: false).
 
-    -o, --browse
+	-o, --browse
 		Open the new gist in a web browser.
 
-    -c, --copy
+	-c, --copy
 		Put the URL of the new gist to clipboard instead of printing it.
 
 ## Examples:
