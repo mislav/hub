@@ -78,6 +78,9 @@ hub-delete(1)
 hub-fork(1)
 :   Fork the current repository on GitHub and add a git remote for it.
 
+hub-gist(1)
+:   Create and print GitHub Gists.
+
 hub-pull-request(1)
 :   Create a GitHub Pull Request.
 
