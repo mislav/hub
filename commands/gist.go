@@ -147,6 +147,10 @@ func createGist(cmd *Command, args *Args) {
 func showGist(cmd *Command, args *Args) {
 	args.NoForward()
 
+	if args.ParamsSize() < 1 {
+		utils.Check(cmd.UsageError("you must specify a gist ID"))
+	}
+
 	host, err := github.CurrentConfig().DefaultHostNoPrompt()
 	utils.Check(err)
 	gh := github.NewClient(host.Host)
