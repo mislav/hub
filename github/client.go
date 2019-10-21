@@ -5,10 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -35,6 +37,21 @@ func NewClientWithHost(host *Host) *Client {
 type Client struct {
 	Host         *Host
 	cachedClient *simpleClient
+}
+
+type Gist struct {
+	Files       map[string]GistFile `json:"files"`
+	Description string              `json:"description,omitempty"`
+	Id          string              `json:"id,omitempty"`
+	Public      bool                `json:"public"`
+	HtmlUrl     string              `json:"html_url"`
+}
+
+type GistFile struct {
+	Type     string `json:"type,omitempty"`
+	Language string `json:"language,omitempty"`
+	Content  string `json:"content"`
+	RawUrl   string `json:"raw_url"`
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
@@ -155,13 +172,6 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 	}
 
 	return res.Body, nil
-}
-
-type Gist struct {
-	Files map[string]GistFile `json:"files"`
-}
-type GistFile struct {
-	RawUrl string `json:"raw_url"`
 }
 
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
@@ -873,7 +883,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	params := map[string]interface{}{
-		"scopes":   []string{"repo"},
+		"scopes":   []string{"repo", "gist"},
 		"note_url": OAuthAppURL,
 	}
 
@@ -981,6 +991,63 @@ func (client *Client) absolute(host string) *url.URL {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
+}
+
+func (client *Client) FetchGist(id string) (gist *Gist, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	response, err := api.Get(fmt.Sprintf("gists/%s", id))
+	if err = checkStatus(200, "getting gist", response, err); err != nil {
+		return
+	}
+
+	response.Unmarshal(&gist)
+	return
+}
+
+func (client *Client) CreateGist(filenames []string, public bool) (gist *Gist, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+	files := map[string]GistFile{}
+	var basename string
+	var content []byte
+	var gf GistFile
+
+	for _, file := range filenames {
+		if file == "-" {
+			content, err = ioutil.ReadAll(os.Stdin)
+			basename = "gistfile1.txt"
+		} else {
+			content, err = ioutil.ReadFile(file)
+			basename = path.Base(file)
+		}
+		if err != nil {
+			return
+		}
+		gf = GistFile{Content: string(content)}
+		files[basename] = gf
+	}
+
+	g := Gist{
+		Files:  files,
+		Public: public,
+	}
+
+	res, err := api.PostJSON("gists", &g)
+	if err = checkStatus(201, "creating gist", res, err); err != nil {
+		if res != nil && res.StatusCode == 404 && !strings.Contains(res.Header.Get("x-oauth-scopes"), "gist") {
+			err = fmt.Errorf("%s\nGo to https://%s/settings/tokens and enable the 'gist' scope for hub", err, client.Host.Host)
+		}
+		return
+	}
+
+	err = res.Unmarshal(&gist)
+	return
 }
 
 func normalizeHost(host string) string {

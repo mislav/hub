@@ -24,6 +24,7 @@ HELP_CMD = \
 	share/man/man1/hub-create.1 \
 	share/man/man1/hub-delete.1 \
 	share/man/man1/hub-fork.1 \
+	share/man/man1/hub-gist.1 \
 	share/man/man1/hub-pr.1 \
 	share/man/man1/hub-pull-request.1 \
 	share/man/man1/hub-release.1 \

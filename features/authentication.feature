@@ -11,7 +11,7 @@ Feature: OAuth authentication
 
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        assert :scopes => ['repo'],
+        assert :scopes => ['repo', 'gist'],
                :note => "hub for #{machine_id}",
                :note_url => 'https://hub.github.com/'
         status 201

@@ -212,6 +212,7 @@ These GitHub commands are provided by hub:
    create         Create this repository on GitHub and add GitHub as origin
    delete         Delete a repository on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
+   gist           Make a gist
    issue          List or create GitHub issues
    pr             List or checkout GitHub pull requests
    pull-request   Open a pull request on GitHub
