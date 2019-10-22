@@ -33,6 +33,33 @@ Feature: hub checkout <PULLREQ-URL>
     And "git checkout -f fixes -q" should be run
     And "fixes" should merge "refs/pull/77/head" from remote "origin"
 
+  Scenario: Avoid overriding existing merge configuration
+    Given the GitHub API server:
+      """
+      get('/repos/mojombo/jekyll/pulls/77') {
+        json :number => 77, :head => {
+          :ref => "fixes",
+          :repo => {
+            :owner => { :login => "mislav" },
+            :name => "jekyll",
+            :private => false
+          }
+        }, :base => {
+          :repo => {
+            :name => 'jekyll',
+            :html_url => 'https://github.com/mojombo/jekyll',
+            :owner => { :login => "mojombo" },
+          }
+        }, :maintainer_can_modify => false
+      }
+      """
+    Given I successfully run `git config branch.fixes.remote ORIG_REMOTE`
+    Given I successfully run `git config branch.fixes.merge custom/ref/spec`
+    When I successfully run `hub checkout https://github.com/mojombo/jekyll/pull/77`
+    Then "git fetch origin refs/pull/77/head:fixes" should be run
+    And "git checkout fixes" should be run
+    And "fixes" should merge "custom/ref/spec" from remote "ORIG_REMOTE"
+
   Scenario: Head ref matches default branch
     Given the GitHub API server:
       """

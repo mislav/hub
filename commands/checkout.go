@@ -138,8 +138,11 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 			remote = project.GitURL("", "", true)
 			mergeRef = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
 		}
-		args.After("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
-		args.After("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
+
+		if mc, err := git.Config(fmt.Sprintf("branch.%s.merge", newBranchName)); err != nil || mc == "" {
+			args.After("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
+			args.After("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
+		}
 	}
 	return
 }
