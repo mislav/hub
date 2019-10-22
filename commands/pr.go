@@ -130,13 +130,13 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 		of "always" (default for '--color'), "never", or "auto" (default).
 
 	-o, --sort <KEY>
-		Sort displayed issues by "created" (default), "updated", "popularity", or "long-running".
+		Sort displayed pull requests by "created" (default), "updated", "popularity", or "long-running".
 
 	-^, --sort-ascending
 		Sort by ascending dates instead of descending.
 
 	-L, --limit <LIMIT>
-		Display only the first <LIMIT> issues.
+		Display only the first <LIMIT> pull requests.
 
 	-u, --url
 		Print the pull request URL instead of opening it.
