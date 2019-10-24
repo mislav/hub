@@ -636,7 +636,68 @@ MARKDOWN
           """
           ASSET_TARBALL
           """
-
+       
+    Scenario: Download release assets that match pattern.
+      Given the GitHub API server:
+        """
+        get('/repos/mislav/will_paginate/releases') {
+          json [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
+              tag_name: 'v1.2.0',
+              name: 'will_paginate 1.2.0',
+              draft: true,
+              prerelease: false,
+              assets: [
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.0.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
+                  name: 'hello-amd64-1.2.0.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
+                  name: 'hello-x86-1.2.0.tar.gz',
+                },
+              ],
+            },
+          ]
+        }
+        get('/repos/mislav/will_paginate/assets/9876') {
+          halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+          halt 415 unless request.accept?('application/octet-stream')
+          status 302
+          headers['Location'] = 'https://github-cloud.s3.amazonaws.com/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz'
+          ""
+        }
+        get('/repos/mislav/will_paginate/assets/9877') {
+          halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+          halt 415 unless request.accept?('application/octet-stream')
+          status 302
+          headers['Location'] = 'https://github-cloud.s3.amazonaws.com/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz'
+          ""
+        }
+        get('/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz', :host_name => 'github-cloud.s3.amazonaws.com') {
+          halt 400 unless request.env['HTTP_AUTHORIZATION'].nil?
+          halt 415 unless request.accept?('application/octet-stream')
+          headers['Content-Type'] = 'application/octet-stream'
+          "ASSET_TARBALL"
+        }
+        """
+        When I successfully run `hub release download v1.2.0 --include amd`
+        Then the output should contain exactly:
+          """
+          Downloading hello-amd32-1.2.0.tar.gz ...
+          Downloading hello-amd64-1.2.0.tar.gz ...\n
+          """
+        And the file "hello-amd64-1.2.0.tar.gz" should contain exactly:
+          """
+          ASSET_TARBALL
+          """
+        And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
+          """
+          ASSET_TARBALL
+          """
+    
   Scenario: Download release no tag
     When I run `hub release download`
     Then the exit status should be 1
