@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
@@ -103,8 +102,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		does not already exist (default: main branch).
 	
 	-i, --include <PATTERN>
-		Display the files that match the prodived glob when looking at the
-		release files.	
+		Filter the files in the release to those that match the <PATTERN>.
 
 	-f, --format <FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
@@ -394,14 +392,15 @@ func downloadRelease(cmd *Command, args *Args) {
 	release, err := gh.FetchRelease(project, tagName)
 	utils.Check(err)
 
-	include := args.Flag.Value("--include")
-	includeRe, err := regexp.Compile(include)
-	utils.Check(err)
-
+	pattern := args.Flag.Value("--include")
 	for _, asset := range release.Assets {
 		// if the include glob is not empty and it doesn't match the pattern
-		if include != "" && !includeRe.MatchString(asset.Name) {
-			continue
+		if pattern != "" {
+			isMatch, err := filepath.Match(pattern, asset.Name)
+			utils.Check(err)
+			if !isMatch {
+				continue
+			}
 		}
 
 		ui.Printf("Downloading %s ...\n", asset.Name)

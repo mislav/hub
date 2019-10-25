@@ -663,27 +663,15 @@ MARKDOWN
           ]
         }
         get('/repos/mislav/will_paginate/assets/9876') {
-          halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
-          halt 415 unless request.accept?('application/octet-stream')
-          status 302
-          headers['Location'] = 'https://github-cloud.s3.amazonaws.com/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz'
-          ""
+          headers['Content-Type'] = 'application/octet-stream'
+          "ASSET_TARBALL"
         }
         get('/repos/mislav/will_paginate/assets/9877') {
-          halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
-          halt 415 unless request.accept?('application/octet-stream')
-          status 302
-          headers['Location'] = 'https://github-cloud.s3.amazonaws.com/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz'
-          ""
-        }
-        get('/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz', :host_name => 'github-cloud.s3.amazonaws.com') {
-          halt 400 unless request.env['HTTP_AUTHORIZATION'].nil?
-          halt 415 unless request.accept?('application/octet-stream')
           headers['Content-Type'] = 'application/octet-stream'
           "ASSET_TARBALL"
         }
         """
-        When I successfully run `hub release download v1.2.0 --include amd`
+        When I successfully run `hub release download v1.2.0 --include *amd*`
         Then the output should contain exactly:
           """
           Downloading hello-amd32-1.2.0.tar.gz ...
@@ -694,6 +682,97 @@ MARKDOWN
           ASSET_TARBALL
           """
         And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
+          """
+          ASSET_TARBALL
+          """
+        And the file "hello-x86-1.2.0.tar.gz" should not exist
+    Scenario: Glob pattern should require exact match.
+      Given the GitHub API server:
+        """
+        get('/repos/mislav/will_paginate/releases') {
+          json [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
+              tag_name: 'v1.2.0',
+              name: 'will_paginate 1.2.0',
+              draft: true,
+              prerelease: false,
+              assets: [
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.0.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
+                  name: 'hello-amd64-1.2.0.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
+                  name: 'hello-x86-1.2.0.tar.gz',
+                },
+              ],
+            },
+          ]
+        }
+        get('/repos/mislav/will_paginate/assets/9876') {
+          headers['Content-Type'] = 'application/octet-stream'
+          "ASSET_TARBALL"
+        }
+        """
+        When I successfully run `hub release download v1.2.0 --include hello-amd32-1.2.0.tar.gz`
+        Then the output should contain exactly:
+          """
+          Downloading hello-amd32-1.2.0.tar.gz ...\n
+          """
+        And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
+          """
+          ASSET_TARBALL
+          """
+        And the file "hello-amd64-1.2.0.tar.gz" should not exist
+        And the file "hello-x86-1.2.0.tar.gz" should not exist
+    Scenario: Advanced Glob pattern should filter correctly.
+      Given the GitHub API server:
+        """
+        get('/repos/mislav/will_paginate/releases') {
+          json [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
+              tag_name: 'v1.2.0',
+              name: 'will_paginate 1.2.0',
+              draft: true,
+              prerelease: false,
+              assets: [
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.0.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.1.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.2.tar.gz',
+                },
+              ],
+            },
+          ]
+        }
+        get('/repos/mislav/will_paginate/assets/9876') {
+          headers['Content-Type'] = 'application/octet-stream'
+          "ASSET_TARBALL"
+        }
+        """
+        When I successfully run `hub release download v1.2.0 --include *amd32-?.?.?.tar.gz`
+        Then the output should contain exactly:
+          """
+          Downloading hello-amd32-1.2.0.tar.gz ...
+          Downloading hello-amd32-1.2.1.tar.gz ...
+          Downloading hello-amd32-1.2.2.tar.gz ...\n
+          """
+        And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
+          """
+          ASSET_TARBALL
+          """
+        And the file "hello-amd32-1.2.1.tar.gz" should contain exactly:
+          """
+          ASSET_TARBALL
+          """
+        And the file "hello-amd32-1.2.2.tar.gz" should contain exactly:
           """
           ASSET_TARBALL
           """
