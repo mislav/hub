@@ -65,6 +65,10 @@ After do
   FileUtils.rm_f("#{bin_dir}/vim")
 end
 
+After('@cache_clear') do
+  FileUtils.rm_rf("#{tmpdir}/hub/api")
+end
+
 RSpec::Matchers.define :be_successfully_executed do
   match do |cmd|
     expect(cmd).to have_exit_status(0)
