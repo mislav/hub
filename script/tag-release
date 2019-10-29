@@ -17,9 +17,9 @@ notes_file="$(mktemp)"
   echo
   script/changelog
 } >"$notes_file"
+trap "rm -f '$notes_file'" EXIT
 
 git tag "v${version}" -F "$notes_file" --edit
-rm -f "$notes_file"
 
 git push origin HEAD "v${version}"
 
