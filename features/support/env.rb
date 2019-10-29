@@ -47,7 +47,7 @@ Before do
     # reset current localization settings
     'LANG' => nil,
     'LANGUAGE' => nil,
-    'LC_ALL' => 'en_US.UTF-8',
+    'LC_ALL' => 'C.UTF-8',
     # ignore current user's token
     'GITHUB_TOKEN' => nil,
     'GITHUB_USER' => nil,
