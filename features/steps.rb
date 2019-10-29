@@ -62,7 +62,7 @@ Given(/^a git bundle named "([^"]*)"$/) do |file|
   Dir.mktmpdir do |tmpdir|
     Dir.chdir(tmpdir) do
       `git init --quiet`
-      `git commit --quiet -m 'empty' --allow-empty`
+      `GIT_COMMITTER_NAME=a GIT_COMMITTER_EMAIL=b git commit --quiet -m 'empty' --allow-empty --author='a <b>'`
       `git bundle create "#{dest}" master 2>&1`
     end
   end
