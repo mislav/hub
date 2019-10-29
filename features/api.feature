@@ -1,3 +1,4 @@
+@cache_clear
 Feature: hub api
   Background:
     Given I am "octokitten" on github.com with OAuth token "OTOKEN"
