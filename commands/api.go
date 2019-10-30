@@ -250,8 +250,7 @@ func apiCommand(_ *Command, args *Args) {
 
 	args.NoForward()
 
-	requestLoop := true
-	for requestLoop {
+	for {
 		response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
 		utils.Check(err)
 		success := response.StatusCode < 300
@@ -285,7 +284,6 @@ func apiCommand(_ *Command, args *Args) {
 			os.Exit(22)
 		}
 
-		requestLoop = false
 		if paginate {
 			if isGraphQL && hasNextPage && endCursor != "" {
 				if v, ok := params["variables"]; ok {
@@ -295,47 +293,32 @@ func apiCommand(_ *Command, args *Args) {
 					variables := map[string]interface{}{"endCursor": endCursor}
 					params["variables"] = variables
 				}
-				requestLoop = true
+				goto next
 			} else if nextLink := response.Link("next"); nextLink != "" {
 				path = nextLink
-				requestLoop = true
+				goto next
 			}
 		}
-		if requestLoop && !parseJSON {
+
+		break
+	next:
+		if !parseJSON {
 			fmt.Fprintf(out, "\n")
 		}
 
-		if requestLoop && rateLimit {
-			var rateLimitLeft = -1
-			var rateLimitResetMs = -1
-			var atoiErr error
-			if xRateLimitLeft := response.Header.Get(rateLimitRemainingHeader); len(xRateLimitLeft) != 0 {
-				if rateLimitLeft, atoiErr = strconv.Atoi(xRateLimitLeft); atoiErr != nil {
-					ui.Errorf("Unable to parse header \"%s\": \"%s\" as an int", rateLimitRemainingHeader, xRateLimitLeft)
-					rateLimitLeft = -1
-				}
-			}
-			if xRateLimitReset := response.Header.Get(rateLimitResetHeader); len(xRateLimitReset) != 0 {
-				if rateLimitResetMs, atoiErr = strconv.Atoi(xRateLimitReset); atoiErr != nil {
-					ui.Errorf("Unable to parse header \"%s\": \"%s\" as an int", rateLimitResetHeader, xRateLimitReset)
-					rateLimitResetMs = -1
-				}
-			}
-			if rateLimitResetMs != -1 && rateLimitLeft == 0 {
-				rollover := time.Unix(int64(rateLimitResetMs)+1, 0)
-				ui.Errorf("Pausing until %v for Rate Limit Reset ...\n", rollover)
-				time.Sleep(time.Until(rollover))
-			}
+		if rateLimit && response.RateLimitRemaining() == 0 {
+			resetAt := response.RateLimitReset()
+			rollover := time.Unix(int64(resetAt)+1, 0)
+			ui.Errorf("API rate limit reached; pausing until %v ...\n", rollover)
+			time.Sleep(time.Until(rollover))
 		}
 	}
 }
 
 const (
-	trueVal                  = "true"
-	falseVal                 = "false"
-	nilVal                   = "null"
-	rateLimitRemainingHeader = "X-Ratelimit-Remaining"
-	rateLimitResetHeader     = "X-Ratelimit-Reset"
+	trueVal  = "true"
+	falseVal = "false"
+	nilVal   = "null"
 )
 
 func magicValue(value string) interface{} {
