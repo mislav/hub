@@ -454,3 +454,15 @@ Feature: hub api
       """
     When I successfully run `hub api --rate-limit hello`
     Then the stderr should contain "API rate limit exceeded; pausing until "
+
+  Scenario: 403 unrelated to rate limit
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        response.headers['X-Ratelimit-Remaining'] = '1'
+        status 403
+      }
+      """
+    When I run `hub api --rate-limit hello`
+    Then the exit status should be 22
+    Then the stderr should not contain "API rate limit exceeded"
