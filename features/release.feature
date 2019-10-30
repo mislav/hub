@@ -776,7 +776,42 @@ MARKDOWN
           """
           ASSET_TARBALL
           """
-    
+    Scenario: When a nothing matches a glob the assets should be listed
+      Given the GitHub API server:
+        """
+        get('/repos/mislav/will_paginate/releases') {
+          json [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
+              tag_name: 'v1.2.0',
+              name: 'will_paginate 1.2.0',
+              draft: true,
+              prerelease: false,
+              assets: [
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.0.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.1.tar.gz',
+                },
+                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                  name: 'hello-amd32-1.2.2.tar.gz',
+                },
+              ],
+            },
+          ]
+        }
+        """
+        When I run `hub release download v1.2.0 --include somekindofweirdpattern`
+        Then the exit status should be 1
+        Then the stderr should contain exactly:
+          """
+          glob pattern 'somekindofweirdpattern' filters all files, possible assets are...
+          hello-amd32-1.2.0.tar.gz
+          hello-amd32-1.2.1.tar.gz
+          hello-amd32-1.2.2.tar.gz\n
+          """
+          
   Scenario: Download release no tag
     When I run `hub release download`
     Then the exit status should be 1

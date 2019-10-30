@@ -102,7 +102,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		does not already exist (default: main branch).
 	
 	-i, --include <PATTERN>
-		Filter the files in the release to those that match the <PATTERN>.
+		Filter the files in the release to those that match the glob <PATTERN>.
 
 	-f, --format <FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
@@ -393,6 +393,7 @@ func downloadRelease(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	pattern := args.Flag.Value("--include")
+	found := false
 	for _, asset := range release.Assets {
 		// if the include glob is not empty and it doesn't match the pattern
 		if pattern != "" {
@@ -403,9 +404,19 @@ func downloadRelease(cmd *Command, args *Args) {
 			}
 		}
 
+		found = true
 		ui.Printf("Downloading %s ...\n", asset.Name)
 		err := downloadReleaseAsset(asset, gh)
 		utils.Check(err)
+	}
+
+	if !found && pattern != "" {
+		errorMsg := fmt.Sprintf("glob pattern '%v' filters all files, possible assets are...\n", pattern)
+		for _, asset := range release.Assets {
+			errorMsg += fmt.Sprintf("%v\n", asset.Name)
+		}
+
+		utils.Check(fmt.Errorf(errorMsg))
 	}
 
 	args.NoForward()
