@@ -450,6 +450,10 @@ func createRelease(cmd *Command, args *Args) {
 		return
 	}
 
+	assetsToUpload, close, err := openAssetFiles(args.Flag.AllValues("--attach"))
+	utils.Check(err)
+	defer close()
+
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
@@ -512,8 +516,25 @@ text is the title and the rest is the description.`, tagName, project))
 
 	messageBuilder.Cleanup()
 
-	flagReleaseAssets := args.Flag.AllValues("--attach")
-	uploadAssets(gh, release, flagReleaseAssets, args)
+	numAssets := len(assetsToUpload)
+	if numAssets == 0 {
+		return
+	}
+	if args.Noop {
+		ui.Printf("Would attach %d %s\n", numAssets, pluralize(numAssets, "asset"))
+	} else {
+		ui.Errorf("Attaching %d %s...\n", numAssets, pluralize(numAssets, "asset"))
+		uploaded, err := gh.UploadReleaseAssets(release, assetsToUpload)
+		if err != nil {
+			failed := []string{}
+			for _, a := range assetsToUpload[len(uploaded):] {
+				failed = append(failed, fmt.Sprintf("-a %s", a.Name))
+			}
+			ui.Errorf("The release was created, but attaching %d %s failed. ", len(failed), pluralize(len(failed), "asset"))
+			ui.Errorf("You can retry with:\n%s release edit %s -m '' %s\n\n", "hub", release.TagName, strings.Join(failed, " "))
+			utils.Check(err)
+		}
+	}
 }
 
 func editRelease(cmd *Command, args *Args) {
@@ -525,6 +546,10 @@ func editRelease(cmd *Command, args *Args) {
 		utils.Check(cmd.UsageError(""))
 		return
 	}
+
+	assetsToUpload, close, err := openAssetFiles(args.Flag.AllValues("--attach"))
+	utils.Check(err)
+	defer close()
 
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -585,6 +610,7 @@ text is the title and the rest is the description.`, tagName, project))
 		params["body"] = body
 	}
 
+	args.NoForward()
 	if len(params) > 0 {
 		if args.Noop {
 			ui.Printf("Would edit release `%s'\n", tagName)
@@ -596,9 +622,24 @@ text is the title and the rest is the description.`, tagName, project))
 		messageBuilder.Cleanup()
 	}
 
-	flagReleaseAssets := args.Flag.AllValues("--attach")
-	uploadAssets(gh, release, flagReleaseAssets, args)
-	args.NoForward()
+	numAssets := len(assetsToUpload)
+	if numAssets == 0 {
+		return
+	}
+	if args.Noop {
+		ui.Printf("Would attach %d %s\n", numAssets, pluralize(numAssets, "asset"))
+	} else {
+		ui.Errorf("Attaching %d %s...\n", numAssets, pluralize(numAssets, "asset"))
+		uploaded, err := gh.UploadReleaseAssets(release, assetsToUpload)
+		if err != nil {
+			failed := []string{}
+			for _, a := range assetsToUpload[len(uploaded):] {
+				failed = append(failed, a.Name)
+			}
+			ui.Errorf("Attaching these assets failed:\n%s\n\n", strings.Join(failed, "\n"))
+			utils.Check(err)
+		}
+	}
 }
 
 func deleteRelease(cmd *Command, args *Args) {
@@ -633,32 +674,48 @@ func deleteRelease(cmd *Command, args *Args) {
 	args.NoForward()
 }
 
-func uploadAssets(gh *github.Client, release *github.Release, assets []string, args *Args) {
-	for _, asset := range assets {
+func openAssetFiles(args []string) ([]github.LocalAsset, func(), error) {
+	assets := []github.LocalAsset{}
+	files := []*os.File{}
+
+	for _, arg := range args {
 		var label string
-		parts := strings.SplitN(asset, "#", 2)
-		asset = parts[0]
+		parts := strings.SplitN(arg, "#", 2)
+		path := parts[0]
 		if len(parts) > 1 {
 			label = parts[1]
 		}
 
-		if args.Noop {
-			if label == "" {
-				ui.Errorf("Would attach release asset `%s'\n", asset)
-			} else {
-				ui.Errorf("Would attach release asset `%s' with label `%s'\n", asset, label)
-			}
-		} else {
-			for _, existingAsset := range release.Assets {
-				if existingAsset.Name == filepath.Base(asset) {
-					err := gh.DeleteReleaseAsset(&existingAsset)
-					utils.Check(err)
-					break
-				}
-			}
-			ui.Errorf("Attaching release asset `%s'...\n", asset)
-			_, err := gh.UploadReleaseAsset(release, asset, label)
-			utils.Check(err)
+		file, err := os.Open(path)
+		if err != nil {
+			return nil, nil, err
+		}
+		stat, err := file.Stat()
+		if err != nil {
+			return nil, nil, err
+		}
+		files = append(files, file)
+
+		assets = append(assets, github.LocalAsset{
+			Name:     path,
+			Label:    label,
+			Size:     stat.Size(),
+			Contents: file,
+		})
+	}
+
+	close := func() {
+		for _, f := range files {
+			f.Close()
 		}
 	}
+
+	return assets, close, nil
+}
+
+func pluralize(count int, label string) string {
+	if count == 1 {
+		return label
+	}
+	return fmt.Sprintf("%ss", label)
 }

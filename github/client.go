@@ -380,26 +380,53 @@ func (client *Client) DeleteRelease(release *Release) (err error) {
 	return
 }
 
-func (client *Client) UploadReleaseAsset(release *Release, filename, label string) (asset *ReleaseAsset, err error) {
+type LocalAsset struct {
+	Name     string
+	Label    string
+	Contents io.Reader
+	Size     int64
+}
+
+func (client *Client) UploadReleaseAssets(release *Release, assets []LocalAsset) (doneAssets []*ReleaseAsset, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	parts := strings.SplitN(release.UploadUrl, "{", 2)
-	uploadUrl := parts[0]
-	uploadUrl += "?name=" + url.QueryEscape(filepath.Base(filename))
-	if label != "" {
-		uploadUrl += "&label=" + url.QueryEscape(label)
+	idx := strings.Index(release.UploadUrl, "{")
+	uploadURL := release.UploadUrl[0:idx]
+
+	for _, asset := range assets {
+		for _, existingAsset := range release.Assets {
+			if existingAsset.Name == asset.Name {
+				if err = client.DeleteReleaseAsset(&existingAsset); err != nil {
+					return
+				}
+				break
+			}
+		}
+
+		params := map[string]interface{}{"name": filepath.Base(asset.Name)}
+		if asset.Label != "" {
+			params["label"] = asset.Label
+		}
+		uploadPath := addQuery(uploadURL, params)
+
+		// TODO: retry failed assets
+		var res *simpleResponse
+		res, err = api.PostFile(uploadPath, asset.Contents, asset.Size)
+		if err = checkStatus(201, "uploading release asset", res, err); err != nil {
+			return
+		}
+
+		newAsset := ReleaseAsset{}
+		err = res.Unmarshal(&newAsset)
+		if err != nil {
+			return
+		}
+		doneAssets = append(doneAssets, &newAsset)
 	}
 
-	res, err := api.PostFile(uploadUrl, filename)
-	if err = checkStatus(201, "uploading release asset", res, err); err != nil {
-		return
-	}
-
-	asset = &ReleaseAsset{}
-	err = res.Unmarshal(asset)
 	return
 }
 
