@@ -392,12 +392,11 @@ func downloadRelease(cmd *Command, args *Args) {
 	release, err := gh.FetchRelease(project, tagName)
 	utils.Check(err)
 
-	pattern := args.Flag.Value("--include")
+	hasPattern := args.Flag.HasReceived("--include")
 	found := false
 	for _, asset := range release.Assets {
-		// if the include glob is not empty and it doesn't match the pattern
-		if pattern != "" {
-			isMatch, err := filepath.Match(pattern, asset.Name)
+		if hasPattern {
+			isMatch, err := filepath.Match(args.Flag.Value("--include"), asset.Name)
 			utils.Check(err)
 			if !isMatch {
 				continue
@@ -410,13 +409,12 @@ func downloadRelease(cmd *Command, args *Args) {
 		utils.Check(err)
 	}
 
-	if !found && pattern != "" {
-		errorMsg := fmt.Sprintf("glob pattern '%v' filters all files, possible assets are...\n", pattern)
+	if !found && hasPattern {
+		names := []string{}
 		for _, asset := range release.Assets {
-			errorMsg += fmt.Sprintf("%v\n", asset.Name)
+			names = append(names, asset.Name)
 		}
-
-		utils.Check(fmt.Errorf(errorMsg))
+		utils.Check(fmt.Errorf("the `--include` pattern did not match any available assets:\n%s", strings.Join(names, "\n")))
 	}
 
 	args.NoForward()

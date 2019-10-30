@@ -802,11 +802,11 @@ MARKDOWN
           ]
         }
         """
-        When I run `hub release download v1.2.0 --include somekindofweirdpattern`
+        When I run `hub release download v1.2.0 --include amd32`
         Then the exit status should be 1
         Then the stderr should contain exactly:
           """
-          glob pattern 'somekindofweirdpattern' filters all files, possible assets are...
+          the `--include` pattern did not match any available assets:
           hello-amd32-1.2.0.tar.gz
           hello-amd32-1.2.1.tar.gz
           hello-amd32-1.2.2.tar.gz\n
