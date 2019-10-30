@@ -594,17 +594,12 @@ MARKDOWN
     Then the exit status should be 1
     Then the stderr should contain "hub release edit"
 
-    Scenario: Download a release asset.
+    Scenario: Download a release asset
       Given the GitHub API server:
         """
         get('/repos/mislav/will_paginate/releases') {
           json [
-            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
-              tag_name: 'v1.2.0',
-              name: 'will_paginate 1.2.0',
-              draft: true,
-              prerelease: false,
+            { tag_name: 'v1.2.0',
               assets: [
                 { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
                   name: 'hello-1.2.0.tar.gz',
@@ -637,17 +632,12 @@ MARKDOWN
           ASSET_TARBALL
           """
        
-    Scenario: Download release assets that match pattern.
+    Scenario: Download release assets that match pattern
       Given the GitHub API server:
         """
         get('/repos/mislav/will_paginate/releases') {
           json [
-            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
-              tag_name: 'v1.2.0',
-              name: 'will_paginate 1.2.0',
-              draft: true,
-              prerelease: false,
+            { tag_name: 'v1.2.0',
               assets: [
                 { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
                   name: 'hello-amd32-1.2.0.tar.gz',
@@ -662,41 +652,23 @@ MARKDOWN
             },
           ]
         }
-        get('/repos/mislav/will_paginate/assets/9876') {
-          headers['Content-Type'] = 'application/octet-stream'
-          "ASSET_TARBALL"
-        }
-        get('/repos/mislav/will_paginate/assets/9877') {
-          headers['Content-Type'] = 'application/octet-stream'
-          "ASSET_TARBALL"
-        }
+        get('/repos/mislav/will_paginate/assets/9876') { "TARBALL" }
+        get('/repos/mislav/will_paginate/assets/9877') { "TARBALL" }
         """
-        When I successfully run `hub release download v1.2.0 --include *amd*`
+        When I successfully run `hub release download v1.2.0 --include '*amd*'`
         Then the output should contain exactly:
           """
           Downloading hello-amd32-1.2.0.tar.gz ...
           Downloading hello-amd64-1.2.0.tar.gz ...\n
           """
-        And the file "hello-amd64-1.2.0.tar.gz" should contain exactly:
-          """
-          ASSET_TARBALL
-          """
-        And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
-          """
-          ASSET_TARBALL
-          """
         And the file "hello-x86-1.2.0.tar.gz" should not exist
-    Scenario: Glob pattern should require exact match.
+
+    Scenario: Glob pattern allows exact match
       Given the GitHub API server:
         """
         get('/repos/mislav/will_paginate/releases') {
           json [
-            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
-              tag_name: 'v1.2.0',
-              name: 'will_paginate 1.2.0',
-              draft: true,
-              prerelease: false,
+            { tag_name: 'v1.2.0',
               assets: [
                 { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
                   name: 'hello-amd32-1.2.0.tar.gz',
@@ -711,10 +683,7 @@ MARKDOWN
             },
           ]
         }
-        get('/repos/mislav/will_paginate/assets/9876') {
-          headers['Content-Type'] = 'application/octet-stream'
-          "ASSET_TARBALL"
-        }
+        get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
         """
         When I successfully run `hub release download v1.2.0 --include hello-amd32-1.2.0.tar.gz`
         Then the output should contain exactly:
@@ -727,17 +696,13 @@ MARKDOWN
           """
         And the file "hello-amd64-1.2.0.tar.gz" should not exist
         And the file "hello-x86-1.2.0.tar.gz" should not exist
-    Scenario: Advanced Glob pattern should filter correctly.
+
+    Scenario: Advanced glob pattern
       Given the GitHub API server:
         """
         get('/repos/mislav/will_paginate/releases') {
           json [
-            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
-              tag_name: 'v1.2.0',
-              name: 'will_paginate 1.2.0',
-              draft: true,
-              prerelease: false,
+            { tag_name: 'v1.2.0',
               assets: [
                 { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
                   name: 'hello-amd32-1.2.0.tar.gz',
@@ -752,41 +717,21 @@ MARKDOWN
             },
           ]
         }
-        get('/repos/mislav/will_paginate/assets/9876') {
-          headers['Content-Type'] = 'application/octet-stream'
-          "ASSET_TARBALL"
-        }
+        get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
         """
-        When I successfully run `hub release download v1.2.0 --include *amd32-?.?.?.tar.gz`
+        When I successfully run `hub release download v1.2.0 --include '*-amd32-?.?.[01].tar.gz'`
         Then the output should contain exactly:
           """
           Downloading hello-amd32-1.2.0.tar.gz ...
-          Downloading hello-amd32-1.2.1.tar.gz ...
-          Downloading hello-amd32-1.2.2.tar.gz ...\n
+          Downloading hello-amd32-1.2.1.tar.gz ...\n
           """
-        And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
-          """
-          ASSET_TARBALL
-          """
-        And the file "hello-amd32-1.2.1.tar.gz" should contain exactly:
-          """
-          ASSET_TARBALL
-          """
-        And the file "hello-amd32-1.2.2.tar.gz" should contain exactly:
-          """
-          ASSET_TARBALL
-          """
-    Scenario: When a nothing matches a glob the assets should be listed
+
+    Scenario: No matches for download pattern
       Given the GitHub API server:
         """
         get('/repos/mislav/will_paginate/releases') {
           json [
-            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-              upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
-              tag_name: 'v1.2.0',
-              name: 'will_paginate 1.2.0',
-              draft: true,
-              prerelease: false,
+            { tag_name: 'v1.2.0',
               assets: [
                 { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
                   name: 'hello-amd32-1.2.0.tar.gz',
