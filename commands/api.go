@@ -74,7 +74,10 @@ var cmdApi = &Command{
 		resource as indicated in the "Link" response header. For GraphQL queries,
 		this utilizes 'pageInfo' that must be present in the query; see EXAMPLES.
 
-		Note that multiple JSON documents will be output as a result.
+		Note that multiple JSON documents will be output as a result. If the API
+		rate limit has been reached, the final document that is output will be the
+		HTTP 403 notice, and the process will exit with a non-zero status. One way
+		this can be avoided is by enabling '--obey-ratelimit'.
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
@@ -87,14 +90,10 @@ var cmdApi = &Command{
 		requests as well. Just make sure to not use '--cache' for any GraphQL
 		mutations.
 
-	--rate-limit
-		If the next '--paginate' request would exceed the rate limit allocation
-		as specified by the server, then print a message to standard error and
-		sleep until the time given in the rate limit reset header.
-
-		Without this flag, '--paginate' will continue to issue requests without
-		regard to the number of remaining rate limit slots, potentially
-		resulting in only partial pagination results.
+	--obey-ratelimit
+		After exceeding the API rate limit, pause the process until the reset time
+		of the current rate limit window and retry the request. Note that this may
+		cause the process to hang for a long time (maximum of 1 hour).
 
 	<ENDPOINT>
 		The GitHub API endpoint to send the HTTP request to (default: "/").
@@ -238,8 +237,6 @@ func apiCommand(_ *Command, args *Args) {
 		body = params
 	}
 
-	rateLimitWait := args.Flag.Bool("--rate-limit")
-
 	gh := github.NewClient(host)
 
 	out := ui.Stdout
@@ -247,6 +244,7 @@ func apiCommand(_ *Command, args *Args) {
 	parseJSON := args.Flag.Bool("--flat")
 	includeHeaders := args.Flag.Bool("--include")
 	paginate := args.Flag.Bool("--paginate")
+	rateLimitWait := args.Flag.Bool("--obey-ratelimit")
 
 	args.NoForward()
 
