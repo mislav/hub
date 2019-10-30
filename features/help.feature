@@ -19,6 +19,10 @@ Feature: hub help
     When I successfully run `hub help -a`
     Then the output should contain "pull-request"
 
-  Scenario: Shows help for a subcommand
+  Scenario: Shows help for a hub extension
     When I successfully run `hub help hub-help`
-    Then the output should contain "`hub help` hub-<COMMAND>"
+    Then "man hub-help" should be run
+
+  Scenario: Shows help for a hub command
+    When I successfully run `hub help fork`
+    Then "man hub-fork" should be run
