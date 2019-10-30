@@ -594,169 +594,169 @@ MARKDOWN
     Then the exit status should be 1
     Then the stderr should contain "hub release edit"
 
-    Scenario: Download a release asset
-      Given the GitHub API server:
+  Scenario: Download a release asset
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            assets: [
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-1.2.0.tar.gz',
+              },
+            ],
+          },
+        ]
+      }
+      get('/repos/mislav/will_paginate/assets/9876') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        halt 415 unless request.accept?('application/octet-stream')
+        status 302
+        headers['Location'] = 'https://github-cloud.s3.amazonaws.com/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz'
+        ""
+      }
+      get('/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz', :host_name => 'github-cloud.s3.amazonaws.com') {
+        halt 400 unless request.env['HTTP_AUTHORIZATION'].nil?
+        halt 415 unless request.accept?('application/octet-stream')
+        headers['Content-Type'] = 'application/octet-stream'
+        "ASSET_TARBALL"
+      }
+      """
+      When I successfully run `hub release download v1.2.0`
+      Then the output should contain exactly:
         """
-        get('/repos/mislav/will_paginate/releases') {
-          json [
-            { tag_name: 'v1.2.0',
-              assets: [
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-1.2.0.tar.gz',
-                },
-              ],
-            },
-          ]
-        }
-        get('/repos/mislav/will_paginate/assets/9876') {
-          halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
-          halt 415 unless request.accept?('application/octet-stream')
-          status 302
-          headers['Location'] = 'https://github-cloud.s3.amazonaws.com/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz'
-          ""
-        }
-        get('/releases/12204602/22ea221a-cf2f-11e2-222a-b3a3c3b3aa3a.gz', :host_name => 'github-cloud.s3.amazonaws.com') {
-          halt 400 unless request.env['HTTP_AUTHORIZATION'].nil?
-          halt 415 unless request.accept?('application/octet-stream')
-          headers['Content-Type'] = 'application/octet-stream'
-          "ASSET_TARBALL"
-        }
+        Downloading hello-1.2.0.tar.gz ...\n
         """
-        When I successfully run `hub release download v1.2.0`
-        Then the output should contain exactly:
-          """
-          Downloading hello-1.2.0.tar.gz ...\n
-          """
-        And the file "hello-1.2.0.tar.gz" should contain exactly:
-          """
-          ASSET_TARBALL
-          """
-       
-    Scenario: Download release assets that match pattern
-      Given the GitHub API server:
+      And the file "hello-1.2.0.tar.gz" should contain exactly:
         """
-        get('/repos/mislav/will_paginate/releases') {
-          json [
-            { tag_name: 'v1.2.0',
-              assets: [
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.0.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
-                  name: 'hello-amd64-1.2.0.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
-                  name: 'hello-x86-1.2.0.tar.gz',
-                },
-              ],
-            },
-          ]
-        }
-        get('/repos/mislav/will_paginate/assets/9876') { "TARBALL" }
-        get('/repos/mislav/will_paginate/assets/9877') { "TARBALL" }
+        ASSET_TARBALL
         """
-        When I successfully run `hub release download v1.2.0 --include '*amd*'`
-        Then the output should contain exactly:
-          """
-          Downloading hello-amd32-1.2.0.tar.gz ...
-          Downloading hello-amd64-1.2.0.tar.gz ...\n
-          """
-        And the file "hello-x86-1.2.0.tar.gz" should not exist
 
-    Scenario: Glob pattern allows exact match
-      Given the GitHub API server:
+  Scenario: Download release assets that match pattern
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            assets: [
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.0.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
+                name: 'hello-amd64-1.2.0.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
+                name: 'hello-x86-1.2.0.tar.gz',
+              },
+            ],
+          },
+        ]
+      }
+      get('/repos/mislav/will_paginate/assets/9876') { "TARBALL" }
+      get('/repos/mislav/will_paginate/assets/9877') { "TARBALL" }
+      """
+      When I successfully run `hub release download v1.2.0 --include '*amd*'`
+      Then the output should contain exactly:
         """
-        get('/repos/mislav/will_paginate/releases') {
-          json [
-            { tag_name: 'v1.2.0',
-              assets: [
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.0.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
-                  name: 'hello-amd64-1.2.0.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
-                  name: 'hello-x86-1.2.0.tar.gz',
-                },
-              ],
-            },
-          ]
-        }
-        get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
+        Downloading hello-amd32-1.2.0.tar.gz ...
+        Downloading hello-amd64-1.2.0.tar.gz ...\n
         """
-        When I successfully run `hub release download v1.2.0 --include hello-amd32-1.2.0.tar.gz`
-        Then the output should contain exactly:
-          """
-          Downloading hello-amd32-1.2.0.tar.gz ...\n
-          """
-        And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
-          """
-          ASSET_TARBALL
-          """
-        And the file "hello-amd64-1.2.0.tar.gz" should not exist
-        And the file "hello-x86-1.2.0.tar.gz" should not exist
+      And the file "hello-x86-1.2.0.tar.gz" should not exist
 
-    Scenario: Advanced glob pattern
-      Given the GitHub API server:
+  Scenario: Glob pattern allows exact match
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            assets: [
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.0.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
+                name: 'hello-amd64-1.2.0.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
+                name: 'hello-x86-1.2.0.tar.gz',
+              },
+            ],
+          },
+        ]
+      }
+      get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
+      """
+      When I successfully run `hub release download v1.2.0 --include hello-amd32-1.2.0.tar.gz`
+      Then the output should contain exactly:
         """
-        get('/repos/mislav/will_paginate/releases') {
-          json [
-            { tag_name: 'v1.2.0',
-              assets: [
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.0.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.1.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.2.tar.gz',
-                },
-              ],
-            },
-          ]
-        }
-        get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
+        Downloading hello-amd32-1.2.0.tar.gz ...\n
         """
-        When I successfully run `hub release download v1.2.0 --include '*-amd32-?.?.[01].tar.gz'`
-        Then the output should contain exactly:
-          """
-          Downloading hello-amd32-1.2.0.tar.gz ...
-          Downloading hello-amd32-1.2.1.tar.gz ...\n
-          """
+      And the file "hello-amd32-1.2.0.tar.gz" should contain exactly:
+        """
+        ASSET_TARBALL
+        """
+      And the file "hello-amd64-1.2.0.tar.gz" should not exist
+      And the file "hello-x86-1.2.0.tar.gz" should not exist
 
-    Scenario: No matches for download pattern
-      Given the GitHub API server:
+  Scenario: Advanced glob pattern
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            assets: [
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.0.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.1.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.2.tar.gz',
+              },
+            ],
+          },
+        ]
+      }
+      get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
+      """
+      When I successfully run `hub release download v1.2.0 --include '*-amd32-?.?.[01].tar.gz'`
+      Then the output should contain exactly:
         """
-        get('/repos/mislav/will_paginate/releases') {
-          json [
-            { tag_name: 'v1.2.0',
-              assets: [
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.0.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.1.tar.gz',
-                },
-                { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                  name: 'hello-amd32-1.2.2.tar.gz',
-                },
-              ],
-            },
-          ]
-        }
+        Downloading hello-amd32-1.2.0.tar.gz ...
+        Downloading hello-amd32-1.2.1.tar.gz ...\n
         """
-        When I run `hub release download v1.2.0 --include amd32`
-        Then the exit status should be 1
-        Then the stderr should contain exactly:
-          """
-          the `--include` pattern did not match any available assets:
-          hello-amd32-1.2.0.tar.gz
-          hello-amd32-1.2.1.tar.gz
-          hello-amd32-1.2.2.tar.gz\n
-          """
-          
+
+  Scenario: No matches for download pattern
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { tag_name: 'v1.2.0',
+            assets: [
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.0.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.1.tar.gz',
+              },
+              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+                name: 'hello-amd32-1.2.2.tar.gz',
+              },
+            ],
+          },
+        ]
+      }
+      """
+      When I run `hub release download v1.2.0 --include amd32`
+      Then the exit status should be 1
+      Then the stderr should contain exactly:
+        """
+        the `--include` pattern did not match any available assets:
+        hello-amd32-1.2.0.tar.gz
+        hello-amd32-1.2.1.tar.gz
+        hello-amd32-1.2.2.tar.gz\n
+        """
+
   Scenario: Download release no tag
     When I run `hub release download`
     Then the exit status should be 1
