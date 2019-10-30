@@ -412,11 +412,28 @@ func (client *Client) UploadReleaseAssets(release *Release, assets []LocalAsset)
 		}
 		uploadPath := addQuery(uploadURL, params)
 
-		// TODO: retry failed assets
 		var res *simpleResponse
-		res, err = api.PostFile(uploadPath, asset.Contents, asset.Size)
-		if err = checkStatus(201, "uploading release asset", res, err); err != nil {
-			return
+		attempts := 0
+		maxAttempts := 3
+		body := asset.Contents
+		for {
+			res, err = api.PostFile(uploadPath, body, asset.Size)
+			if err == nil && res.StatusCode >= 500 && res.StatusCode < 600 && attempts < maxAttempts {
+				attempts++
+				time.Sleep(time.Second * time.Duration(attempts))
+				var f *os.File
+				f, err = os.Open(asset.Name)
+				if err != nil {
+					return
+				}
+				defer f.Close()
+				body = f
+				continue
+			}
+			if err = checkStatus(201, "uploading release asset", res, err); err != nil {
+				return
+			}
+			break
 		}
 
 		newAsset := ReleaseAsset{}

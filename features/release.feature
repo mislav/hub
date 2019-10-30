@@ -456,6 +456,33 @@ MARKDOWN
       Attaching 1 asset...\n
       """
 
+  Scenario: Retry attaching assets on 5xx errors
+    Given the GitHub API server:
+      """
+      attempt = 0
+      post('/repos/mislav/will_paginate/releases') {
+        status 201
+        json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0",
+             :upload_url => "https://uploads.github.com/uploads/assets{?name,label}"
+      }
+      post('/uploads/assets', :host_name => 'uploads.github.com') {
+        attempt += 1
+        halt 400 unless request.body.read.to_s == "TARBALL"
+        halt 502 if attempt == 1
+        status 201
+      }
+      """
+    And a file named "hello-1.2.0.tar.gz" with:
+      """
+      TARBALL
+      """
+    When I successfully run `hub release create -m "hello" v1.2.0 -a hello-1.2.0.tar.gz`
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/will_paginate/releases/v1.2.0
+      Attaching 1 asset...\n
+      """
+
   Scenario: Create a release with some assets failing
     Given the GitHub API server:
       """
