@@ -21,7 +21,7 @@ release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>] [-f <FORMAT>]
 release show [-f <FORMAT>] <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
-release download <TAG>
+release download <TAG> [-i <PATTERN>]
 release delete <TAG>
 `,
 		Long: `Manage GitHub Releases for the current repository.
@@ -100,6 +100,9 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	-t, --commitish <TARGET>
 		A commit SHA or branch name to attach the release to, only used if <TAG>
 		does not already exist (default: main branch).
+	
+	-i, --include <PATTERN>
+		Filter the files in the release to those that match the glob <PATTERN>.
 
 	-f, --format <FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
@@ -209,6 +212,9 @@ hub(1), git-tag(1)
 	cmdDownloadRelease = &Command{
 		Key: "download",
 		Run: downloadRelease,
+		KnownFlags: `
+		-i, --include PATTERN
+		`,
 	}
 
 	cmdDeleteRelease = &Command{
@@ -386,10 +392,29 @@ func downloadRelease(cmd *Command, args *Args) {
 	release, err := gh.FetchRelease(project, tagName)
 	utils.Check(err)
 
+	hasPattern := args.Flag.HasReceived("--include")
+	found := false
 	for _, asset := range release.Assets {
+		if hasPattern {
+			isMatch, err := filepath.Match(args.Flag.Value("--include"), asset.Name)
+			utils.Check(err)
+			if !isMatch {
+				continue
+			}
+		}
+
+		found = true
 		ui.Printf("Downloading %s ...\n", asset.Name)
 		err := downloadReleaseAsset(asset, gh)
 		utils.Check(err)
+	}
+
+	if !found && hasPattern {
+		names := []string{}
+		for _, asset := range release.Assets {
+			names = append(names, asset.Name)
+		}
+		utils.Check(fmt.Errorf("the `--include` pattern did not match any available assets:\n%s", strings.Join(names, "\n")))
 	}
 
 	args.NoForward()
