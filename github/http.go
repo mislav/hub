@@ -434,20 +434,11 @@ func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleRespo
 	return c.jsonRequest("PATCH", path, payload, nil)
 }
 
-func (c *simpleClient) PostFile(path, filename string) (*simpleResponse, error) {
-	stat, err := os.Stat(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	return c.performRequest("POST", path, file, func(req *http.Request) {
-		req.ContentLength = stat.Size()
+func (c *simpleClient) PostFile(path string, contents io.Reader, fileSize int64) (*simpleResponse, error) {
+	return c.performRequest("POST", path, contents, func(req *http.Request) {
+		if fileSize > 0 {
+			req.ContentLength = fileSize
+		}
 		req.Header.Set("Content-Type", "application/octet-stream")
 	})
 }

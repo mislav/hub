@@ -453,7 +453,79 @@ MARKDOWN
     Then the output should contain exactly:
       """
       https://github.com/mislav/will_paginate/releases/v1.2.0
-      Attaching release asset `./hello-1.2.0.tar.gz'...\n
+      Attaching 1 asset...\n
+      """
+
+  Scenario: Retry attaching assets on 5xx errors
+    Given the GitHub API server:
+      """
+      attempt = 0
+      post('/repos/mislav/will_paginate/releases') {
+        status 201
+        json :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0",
+             :upload_url => "https://uploads.github.com/uploads/assets{?name,label}"
+      }
+      post('/uploads/assets', :host_name => 'uploads.github.com') {
+        attempt += 1
+        halt 400 unless request.body.read.to_s == "TARBALL"
+        halt 502 if attempt == 1
+        status 201
+      }
+      """
+    And a file named "hello-1.2.0.tar.gz" with:
+      """
+      TARBALL
+      """
+    When I successfully run `hub release create -m "hello" v1.2.0 -a hello-1.2.0.tar.gz`
+    Then the output should contain exactly:
+      """
+      https://github.com/mislav/will_paginate/releases/v1.2.0
+      Attaching 1 asset...\n
+      """
+
+  Scenario: Create a release with some assets failing
+    Given the GitHub API server:
+      """
+      post('/repos/mislav/will_paginate/releases') {
+        status 201
+        json :tag_name => "v1.2.0",
+             :html_url => "https://github.com/mislav/will_paginate/releases/v1.2.0",
+             :upload_url => "https://uploads.github.com/uploads/assets{?name,label}"
+      }
+      post('/uploads/assets', :host_name => 'uploads.github.com') {
+        halt 422 if params[:name] == "two"
+        status 201
+      }
+      """
+    And a file named "one" with:
+      """
+      ONE
+      """
+    And a file named "two" with:
+      """
+      TWO
+      """
+    And a file named "three" with:
+      """
+      THREE
+      """
+    When I run `hub release create -m "m" v1.2.0 -a one -a two -a three`
+    Then the exit status should be 1
+    Then the stderr should contain exactly:
+      """
+      Attaching 3 assets...
+      The release was created, but attaching 2 assets failed. You can retry with:
+      hub release edit v1.2.0 -m '' -a two -a three
+      
+      Error uploading release asset: Unprocessable Entity (HTTP 422)\n
+      """
+
+  Scenario: Create a release with nonexistent asset
+    When I run `hub release create -m "hello" v1.2.0 -a "idontexis.tgz"`
+    Then the exit status should be 1
+    Then the stderr should contain exactly:
+      """
+      open idontexis.tgz: no such file or directory\n
       """
 
   Scenario: Open new release in web browser
@@ -586,7 +658,7 @@ MARKDOWN
     When I successfully run `hub release edit -m "" v1.2.0 -a hello-1.2.0.tar.gz`
     Then the output should contain exactly:
       """
-      Attaching release asset `hello-1.2.0.tar.gz'...\n
+      Attaching 1 asset...\n
       """
 
   Scenario: Edit release no tag
