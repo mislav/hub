@@ -321,7 +321,7 @@ func pauseUntil(timestamp int) {
 	rollover := time.Unix(int64(timestamp)+1, 0)
 	duration := time.Until(rollover)
 	if duration > 0 {
-		ui.Errorf("API rate limit reached; pausing until %v ...\n", rollover)
+		ui.Errorf("API rate limit exceeded; pausing until %v ...\n", rollover)
 		time.Sleep(duration)
 	}
 }

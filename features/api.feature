@@ -436,7 +436,7 @@ Feature: hub api
       }
       """
     When I successfully run `hub api --rate-limit --paginate hello`
-    Then the stderr should contain "API rate limit reached; pausing until "
+    Then the stderr should contain "API rate limit exceeded; pausing until "
 
   Scenario: Honor rate limit for 403s
     Given the GitHub API server:
@@ -453,4 +453,4 @@ Feature: hub api
       }
       """
     When I successfully run `hub api --rate-limit hello`
-    Then the stderr should contain "API rate limit reached; pausing until "
+    Then the stderr should contain "API rate limit exceeded; pausing until "
