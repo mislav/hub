@@ -238,7 +238,7 @@ func apiCommand(_ *Command, args *Args) {
 		body = params
 	}
 
-	rateLimit := args.Flag.Bool("--rate-limit")
+	rateLimitWait := args.Flag.Bool("--rate-limit")
 
 	gh := github.NewClient(host)
 
@@ -253,8 +253,13 @@ func apiCommand(_ *Command, args *Args) {
 	for {
 		response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
 		utils.Check(err)
-		success := response.StatusCode < 300
 
+		if rateLimitWait && response.StatusCode == 403 && response.RateLimitRemaining() == 0 {
+			pauseUntil(response.RateLimitReset())
+			continue
+		}
+
+		success := response.StatusCode < 300
 		jsonType := true
 		if !success {
 			jsonType, _ = regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
@@ -306,12 +311,18 @@ func apiCommand(_ *Command, args *Args) {
 			fmt.Fprintf(out, "\n")
 		}
 
-		if rateLimit && response.RateLimitRemaining() == 0 {
-			resetAt := response.RateLimitReset()
-			rollover := time.Unix(int64(resetAt)+1, 0)
-			ui.Errorf("API rate limit reached; pausing until %v ...\n", rollover)
-			time.Sleep(time.Until(rollover))
+		if rateLimitWait && response.RateLimitRemaining() == 0 {
+			pauseUntil(response.RateLimitReset())
 		}
+	}
+}
+
+func pauseUntil(timestamp int) {
+	rollover := time.Unix(int64(timestamp)+1, 0)
+	duration := time.Until(rollover)
+	if duration > 0 {
+		ui.Errorf("API rate limit reached; pausing until %v ...\n", rollover)
+		time.Sleep(duration)
 	}
 }
 

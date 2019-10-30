@@ -437,3 +437,20 @@ Feature: hub api
       """
     When I successfully run `hub api --rate-limit --paginate hello`
     Then the stderr should contain "API rate limit reached; pausing until "
+
+  Scenario: Honor rate limit for 403s
+    Given the GitHub API server:
+      """
+      count = 0
+      get('/hello') {
+        count += 1
+        if count == 1
+          response.headers['X-Ratelimit-Remaining'] = '0'
+          response.headers['X-Ratelimit-Reset'] = Time.now.utc.to_i.to_s
+          halt 403
+        end
+        json [{}]
+      }
+      """
+    When I successfully run `hub api --rate-limit hello`
+    Then the stderr should contain "API rate limit reached; pausing until "
