@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
 	"github.com/kballard/go-shellquote"
@@ -59,6 +60,8 @@ func runHelp(helpCmd *Command, args *Args) {
 	p := utils.NewArgsParser()
 	p.RegisterBool("--all", "-a")
 	p.RegisterBool("--plain-text")
+	p.RegisterBool("--man", "-m")
+	p.RegisterBool("--web", "-w")
 	p.Parse(args.Params)
 
 	if p.Bool("--all") {
@@ -69,12 +72,27 @@ func runHelp(helpCmd *Command, args *Args) {
 		return
 	}
 
-	cmdName := args.FirstParam()
+	isWeb := func() bool {
+		if p.Bool("--web") {
+			return true
+		}
+		if p.Bool("--man") {
+			return false
+		}
+		if f, err := git.Config("help.format"); err == nil {
+			return f == "web" || f == "html"
+		}
+		return false
+	}
+
+	cmdName := ""
+	if words := args.Words(); len(words) > 0 {
+		cmdName = words[0]
+	}
 
 	if cmdName == "hub" {
-		err := displayManPage("hub", args)
+		err := displayManPage("hub", args, isWeb())
 		utils.Check(err)
-		args.NoForward()
 		return
 	}
 
@@ -82,15 +100,14 @@ func runHelp(helpCmd *Command, args *Args) {
 	if foundCmd == nil {
 		return
 	}
-	args.NoForward()
 
 	if p.Bool("--plain-text") {
 		ui.Println(foundCmd.HelpText())
-		return
+		os.Exit(0)
 	}
 
 	manPage := fmt.Sprintf("hub-%s", foundCmd.Name())
-	err := displayManPage(manPage, args)
+	err := displayManPage(manPage, args, isWeb())
 	utils.Check(err)
 }
 
@@ -117,7 +134,19 @@ func runListCmds(cmd *Command, args *Args) {
 //
 // otherwise:
 //   less -R {PREFIX}/share/man/man1/<page>.1.txt
-func displayManPage(manPage string, args *Args) error {
+func displayManPage(manPage string, args *Args, isWeb bool) error {
+	programPath, err := utils.CommandPath(args.ProgramPath)
+	if err != nil {
+		return err
+	}
+
+	if isWeb {
+		manPage += ".1.html"
+		manFile := filepath.Join(programPath, "..", "..", "share", "doc", "hub-doc", manPage)
+		args.Replace(args.Executable, "web--browse", manFile)
+		return nil
+	}
+
 	var manArgs []string
 	manProgram, _ := utils.CommandPath("man")
 	if manProgram != "" {
@@ -135,11 +164,6 @@ func displayManPage(manPage string, args *Args) error {
 		}
 	}
 
-	programPath, err := utils.CommandPath(args.ProgramPath)
-	if err != nil {
-		return err
-	}
-
 	env := os.Environ()
 	if strings.HasSuffix(manPage, ".txt") {
 		manFile := filepath.Join(programPath, "..", "..", "share", "man", "man1", manPage)
@@ -154,7 +178,11 @@ func displayManPage(manPage string, args *Args) error {
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Env = env
-	return c.Run()
+	if err := c.Run(); err != nil {
+		return err
+	}
+	os.Exit(0)
+	return nil
 }
 
 func lookupCmd(name string) *Command {

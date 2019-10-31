@@ -26,3 +26,18 @@ Feature: hub help
   Scenario: Shows help for a hub command
     When I successfully run `hub help fork`
     Then "man hub-fork" should be run
+
+  Scenario: Show help in HTML format
+    When I successfully run `hub help -w fork`
+    Then "man hub-fork" should not be run
+    And "git web--browse PATH/hub-fork.1.html" should be run
+
+  Scenario: Show help in HTML format by default
+    Given I successfully run `git config --global help.format html`
+    When I successfully run `hub help fork`
+    Then "git web--browse PATH/hub-fork.1.html" should be run
+
+  Scenario: Override HTML format back to man
+    Given I successfully run `git config --global help.format html`
+    When I successfully run `hub help -m fork`
+    Then "man hub-fork" should be run
