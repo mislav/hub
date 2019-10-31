@@ -41,3 +41,12 @@ Feature: hub help
     Given I successfully run `git config --global help.format html`
     When I successfully run `hub help -m fork`
     Then "man hub-fork" should be run
+
+  Scenario: The --help flag opens man page
+    When I successfully run `hub fork --help`
+    Then "man hub-fork" should be run
+
+  Scenario: The --help flag expands alias first
+    Given I successfully run `git config --global alias.ci ci-status`
+    When I successfully run `hub ci --help`
+    Then "man hub-ci-status" should be run
