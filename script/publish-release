@@ -20,7 +20,7 @@ publish_documentation() {
   pushd "$doc_dir"
 
   git rm hub*.html >/dev/null
-  cp ../share/man/*/*.html .
+  cp ../share/doc/*/*.html .
   git add hub*.html
   GIT_COMMITTER_NAME='Travis CI' GIT_COMMITTER_EMAIL='travis@travis-ci.org' \
     GIT_AUTHOR_NAME='Mislav Marohnić' GIT_AUTHOR_EMAIL='mislav@github.com' \

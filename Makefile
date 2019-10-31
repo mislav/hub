@@ -82,6 +82,8 @@ share/man/.man-pages.stamp: $(HELP_ALL:=.md) ./man-template.html bin/md2roff
 		--date="$(BUILD_DATE)" --version="$(HUB_VERSION)" \
 		--template=./man-template.html \
 		share/man/man1/*.md
+	mkdir -p share/doc/hub-doc
+	mv share/man/*/*.html share/doc/hub-doc/
 	touch $@
 
 %.1.md: bin/hub
