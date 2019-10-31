@@ -44,6 +44,7 @@ check_formatting() {
 }
 
 install_test() {
+  mkdir -p share/doc/hub-doc
   touch share/man/man1/hub.1 share/doc/hub-doc/hub.1.html
   DESTDIR="$PWD/tmp/destdir" prefix=/my/prefix bash < script/install.sh
   test -x tmp/destdir/my/prefix/bin/hub
