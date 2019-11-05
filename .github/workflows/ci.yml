@@ -35,6 +35,10 @@ jobs:
       with:
         go-version: ${{ matrix.go }}
 
+    # - name: Install system packages
+    #   if: runner.os == 'Linux'
+    #   run: sudo apt-get install -y zsh fish
+
     - name: Run tests
       shell: bash
       run: |
@@ -43,3 +47,5 @@ jobs:
         ln -svf "$PWD" "$GOPATH"/src/github.com/github/hub
         cd "$GOPATH"/src/github.com/github/hub
         make test-all
+      env:
+        CI: true

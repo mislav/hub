@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-if [ -z "$TRAVIS" ] && tmux -V; then
+if [ -z "$TRAVIS" ] && [ -z "$GITHUB_ACTIONS" ] && tmux -V; then
   if [ -n "$CI" ]; then
     git --version
     bash --version | head -1
