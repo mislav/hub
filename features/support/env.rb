@@ -53,6 +53,7 @@ Before do
     'GITHUB_USER' => nil,
     'GITHUB_PASSWORD' => nil,
     'GITHUB_HOST' => nil,
+    'GITHUB_REPOSITORY' => nil,
 
     'GIT_AUTHOR_NAME' =>     author_name,
     'GIT_COMMITTER_NAME' =>  author_name,
