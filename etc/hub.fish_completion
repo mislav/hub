@@ -24,6 +24,10 @@ function  __fish_hub_using_command
   end
 end
 
+function __fish_hub_prs
+    command hub pr list -f %I\t%t%n 2>/dev/null
+end
+
 complete -f -c hub -n '__fish_hub_needs_command' -a alias -d "show shell instructions for wrapping git"
 complete -f -c hub -n '__fish_hub_needs_command' -a browse -d "browse the project on GitHub"
 complete -f -c hub -n '__fish_hub_needs_command' -a compare -d "lookup commit in GitHub Status API"
@@ -52,9 +56,10 @@ complete -f -c hub -n ' __fish_hub_using_command pull-request' -s a -d 'A comma-
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s M -d "The milestone name to add to this pull request. Passing the milestone number is deprecated."
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s l -d "Add a comma-separated list of labels to this pull request"
 # pr
+set -l pr_commands list checkout show
 complete -f -c hub -n ' __fish_hub_using_command pr' -l color -xa 'always never auto' -d 'enable colored output even if stdout is not a terminal. WHEN can be one of "always" (default for --color), "never", or "auto" (default).'
 ## pr list
-complete -f -c hub -n ' __fish_hub_using_command pr' -a list -d "list pull requests in the current repository"
+complete -f -c hub -n " __fish_hub_using_command pr; and not __fish_seen_subcommand_from $pr_commands" -a list -d "list pull requests in the current repository"
 complete -f -c hub -n ' __fish_hub_using_command pr list' -s s -l state -xa 'open closed merged all' -d 'filter pull requests by STATE. default: open'
 complete -f -c hub -n ' __fish_hub_using_command pr list' -s h -l head -d 'show pull requests started from the specified head BRANCH in "[OWNER:]BRANCH" format'
 complete -f -c hub -n ' __fish_hub_using_command pr list' -s b -l base -d 'show pull requests based off the specified BRANCH'
@@ -63,7 +68,13 @@ complete -f -c hub -n ' __fish_hub_using_command pr list' -s '^' -l sort-ascendi
 complete -f -c hub -n ' __fish_hub_using_command pr list' -s f -l format -d 'pretty print the list of pull requests using format FORMAT (default: "%pC%>(8)%i%Creset  %t%  l%n")'
 complete -f -c hub -n ' __fish_hub_using_command pr list' -s L -l limit -d 'display only the first LIMIT issues'
 ## pr checkout
-complete -f -c hub -n ' __fish_hub_using_command pr' -a checkout -d "check out the head of a pull request in a new branch"
+complete -f -c hub -n " __fish_hub_using_command pr; and not __fish_seen_subcommand_from $pr_commands" -a checkout -d "check out the head of a pull request in a new branch"
+complete -f -r -c hub -n ' __fish_hub_using_command pr checkout' -a '(__fish_hub_prs)'
+## pr show
+complete -f -c hub -n " __fish_hub_using_command pr; and not __fish_seen_subcommand_from $pr_commands" -a show -d "open a pull request page in a web browser"
+complete -f -c hub -n ' __fish_hub_using_command pr show' -a '(__fish_hub_prs)'
+complete -f -c hub -n ' __fish_hub_using_command pr show' -s u -d "print the pull request URL instead of opening it"
+complete -f -c hub -n ' __fish_hub_using_command pr show' -s c -d "put the pull request URL to clipboard instead of opening it"
 # fork
 complete -f -c hub -n ' __fish_hub_using_command fork' -l no-remote -d "Skip adding a git remote for the fork"
 # browse
