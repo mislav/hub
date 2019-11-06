@@ -40,7 +40,7 @@ case "$command" in
     fi
     exit 0
     ;;
-  "clone" | "pull" | "push" )
+  "clone" | "pull" | "push" | "web--browse" )
     # don't actually execute these commands
     exit 0
     ;;
