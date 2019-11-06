@@ -1,5 +1,5 @@
 <!doctype html>
-<title>hub-create(1) - Create a new repository on GitHub and add a git remote for it.</title>
+<title>hub-gist(1) - Create and print GitHub Gists</title>
 <meta charset="utf-8">
 
 <style>
@@ -75,56 +75,55 @@ a:link, a:hover, a:visited { color: blue }
 
 <header>
   <ol class="man-head">
-    <li class="tl">hub-create(1)</li>
+    <li class="tl">hub-gist(1)</li>
     <li class="tc">hub manual</li>
-    <li class="tr">hub-create(1)</li>
+    <li class="tr">hub-gist(1)</li>
   </ol>
 </header>
 
 <article>
-  <h1>Create a new repository on GitHub and add a git remote for it.</h1>
+  <h1>Create and print GitHub Gists</h1>
   
 <h2 id="synopsis">Synopsis</h2>
 
-<p><code>hub create</code> [-poc] [-d <var>DESCRIPTION</var>] [-h <var>HOMEPAGE</var>] [[<var>ORGANIZATION</var>/]<var>NAME</var>]</p>
+<p><code>hub gist</code> create [-oc] [--public] [<var>FILES</var>...]<br>
+<code>hub gist</code> show <var>ID</var> [<var>FILENAME</var>]</p>
+
+<h2 id="commands">Commands</h2>
+
+<dl>
+<dt><em>create</em></dt>
+<dd>Create a new gist. If no <var>FILES</var> are specified, the content is read from
+standard input.</dd>
+<dt><em>show</em></dt>
+<dd>Print the contents of a gist. If the gist contains multiple files, the
+operation will error out unless <var>FILENAME</var> is specified.</dd>
+</dl>
 
 <h2 id="options">Options</h2>
 
 <dl>
-<dt>-p, --private</dt>
-<dd><p>Create a private repository.</p></dd>
-<dt>-d, --description <var>DESCRIPTION</var></dt>
-<dd><p>A short description of the GitHub repository.</p></dd>
-<dt>-h, --homepage <var>HOMEPAGE</var></dt>
-<dd><p>A URL with more information about the repository. Use this, for example, if
-your project has an external website.</p></dd>
-<dt>--remote-name <var>REMOTE</var></dt>
-<dd><p>Set the name for the new git remote (default: &quot;origin&quot;).</p></dd>
+<dt>--public</dt>
+<dd>Make the new gist public (default: false).</dd>
 <dt>-o, --browse</dt>
-<dd><p>Open the new repository in a web browser.</p></dd>
+<dd>Open the new gist in a web browser.</dd>
 <dt>-c, --copy</dt>
-<dd><p>Put the URL of the new repository to clipboard instead of printing it.</p></dd>
-<dt>[<var>ORGANIZATION</var>/]<var>NAME</var></dt>
-<dd><p>The name for the repository on GitHub (default: name of the current working
-directory).</p>
-
-<p>Optionally, create the repository within <var>ORGANIZATION</var>.</p></dd>
+<dd>Put the URL of the new gist to clipboard instead of printing it.</dd>
 </dl>
 
 <h2 id="examples">Examples</h2>
 
-<pre><code>$ hub create
-[ repo created on GitHub ]
-&gt; git remote add -f origin git@github.com:USER/REPO.git
+<pre><code>$ echo hello | hub gist create --public
 
-$ hub create sinatra/recipes
-[ repo created in GitHub organization ]
-&gt; git remote add -f origin git@github.com:sinatra/recipes.git
+$ hub gist create file1.txt file2.txt
+
+# print a specific file within a gist:
+$ hub gist show ID testfile1.txt
 </code></pre>
 
 <h2 id="see-also">See also</h2>
 
-<p><a href="./hub-init.1.html">hub-init(1)</a>, <a href="./hub.1.html">hub(1)</a></p>
+<p><a href="./hub.1.html">hub(1)</a>, <a href="./hub-api.1.html">hub-api(1)</a></p>
 
 </article>
 

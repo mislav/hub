@@ -88,8 +88,8 @@ a:link, a:hover, a:visited { color: blue }
 
 <p><code>hub pr</code> list [-s <var>STATE</var>] [-h <var>HEAD</var>] [-b <var>BASE</var>] [-o <var>SORT_KEY</var> [<code>-^</code>]] [-f <var>FORMAT</var>] [-L <var>LIMIT</var>]<br>
 <code>hub pr</code> checkout <var>PR-NUMBER</var> [<var>BRANCH</var>]<br>
-<code>hub pr</code> show [-uc] [-h <var>HEAD</var>]<br>
-<code>hub pr</code> show [-uc] <var>PR-NUMBER</var></p>
+<code>hub pr</code> show [-uc] [-f <var>FORMAT</var>] [-h <var>HEAD</var>]<br>
+<code>hub pr</code> show [-uc] [-f <var>FORMAT</var>] <var>PR-NUMBER</var></p>
 
 <h2 id="commands">Commands</h2>
 
@@ -99,7 +99,10 @@ a:link, a:hover, a:visited { color: blue }
 <dt><em>checkout</em></dt>
 <dd>Check out the head of a pull request in a new branch.</dd>
 <dt><em>show</em></dt>
-<dd>Open a pull request page in a web browser.</dd>
+<dd>Open a pull request page in a web browser. When no <var>PR-NUMBER</var> is
+specified, <var>HEAD</var> is used to look up open pull requests and defaults to
+the current branch name. With <code>--format</code>, print information about the
+pull request instead of opening it.</dd>
 </dl>
 
 <h2 id="options">Options</h2>
@@ -192,11 +195,11 @@ format. The available placeholders are:</p>
 <dd><p>Enable colored output even if stdout is not a terminal. <var>WHEN</var> can be one
 of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or &quot;auto&quot; (default).</p></dd>
 <dt>-o, --sort <var>KEY</var></dt>
-<dd><p>Sort displayed issues by &quot;created&quot; (default), &quot;updated&quot;, &quot;popularity&quot;, or &quot;long-running&quot;.</p></dd>
+<dd><p>Sort displayed pull requests by &quot;created&quot; (default), &quot;updated&quot;, &quot;popularity&quot;, or &quot;long-running&quot;.</p></dd>
 <dt>-^, --sort-ascending</dt>
 <dd><p>Sort by ascending dates instead of descending.</p></dd>
 <dt>-L, --limit <var>LIMIT</var></dt>
-<dd><p>Display only the first <var>LIMIT</var> issues.</p></dd>
+<dd><p>Display only the first <var>LIMIT</var> pull requests.</p></dd>
 <dt>-u, --url</dt>
 <dd><p>Print the pull request URL instead of opening it.</p></dd>
 <dt>-c, --copy</dt>
@@ -211,8 +214,8 @@ of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or 
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.12.8</li>
-    <li class="tc">03 Oct 2019</li>
+    <li class="tl">hub version 2.13.0</li>
+    <li class="tc">06 Nov 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>

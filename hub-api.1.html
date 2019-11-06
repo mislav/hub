@@ -136,7 +136,10 @@ resources have been listed. For GET requests, this follows the <code>&lt;var&gt;
 resource as indicated in the &quot;Link&quot; response header. For GraphQL queries,
 this utilizes <code>pageInfo</code> that must be present in the query; see EXAMPLES.</p>
 
-<p>Note that multiple JSON documents will be output as a result.</p></dd>
+<p>Note that multiple JSON documents will be output as a result. If the API
+rate limit has been reached, the final document that is output will be the
+HTTP 403 notice, and the process will exit with a non-zero status. One way
+this can be avoided is by enabling <code>--obey-ratelimit</code>.</p></dd>
 <dt>--color[=<var>WHEN</var>]</dt>
 <dd><p>Enable colored output even if stdout is not a terminal. <var>WHEN</var> can be one
 of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or &quot;auto&quot; (default).</p></dd>
@@ -146,6 +149,10 @@ of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or 
 <p>When using &quot;graphql&quot; as <var>ENDPOINT</var>, caching will apply to responses to POST
 requests as well. Just make sure to not use <code>--cache</code> for any GraphQL
 mutations.</p></dd>
+<dt>--obey-ratelimit</dt>
+<dd><p>After exceeding the API rate limit, pause the process until the reset time
+of the current rate limit window and retry the request. Note that this may
+cause the process to hang for a long time (maximum of 1 hour).</p></dd>
 <dt><var>ENDPOINT</var></dt>
 <dd><p>The GitHub API endpoint to send the HTTP request to (default: &quot;/&quot;).</p>
 
@@ -196,8 +203,8 @@ $ hub api --paginate graphql -f query='
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.12.8</li>
-    <li class="tc">03 Oct 2019</li>
+    <li class="tl">hub version 2.13.0</li>
+    <li class="tc">06 Nov 2019</li>
     <li class="tr"></li>
   </ol>
 </footer>
