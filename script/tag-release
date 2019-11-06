@@ -22,7 +22,3 @@ trap "rm -f '$notes_file'" EXIT
 git tag "v${version}" -F "$notes_file" --edit
 
 git push origin HEAD "v${version}"
-
-if [ "$(git symbolic-ref refs/remotes/origin/HEAD)" = "refs/remotes/origin/$(git branch --show-current)" ]; then
-  script/brew-publish hub github/hub "v${version}"
-fi
