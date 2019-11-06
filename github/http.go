@@ -32,6 +32,11 @@ const checksType = "application/vnd.github.antiope-preview+json;charset=utf-8"
 const draftsType = "application/vnd.github.shadow-cat-preview+json;charset=utf-8"
 const cacheVersion = 2
 
+const (
+	rateLimitRemainingHeader = "X-Ratelimit-Remaining"
+	rateLimitResetHeader     = "X-Ratelimit-Reset"
+)
+
 var inspectHeaders = []string{
 	"Authorization",
 	"X-GitHub-OTP",
@@ -516,4 +521,22 @@ func (res *simpleResponse) Link(name string) string {
 		}
 	}
 	return ""
+}
+
+func (res *simpleResponse) RateLimitRemaining() int {
+	if v := res.Header.Get(rateLimitRemainingHeader); len(v) > 0 {
+		if num, err := strconv.Atoi(v); err == nil {
+			return num
+		}
+	}
+	return -1
+}
+
+func (res *simpleResponse) RateLimitReset() int {
+	if v := res.Header.Get(rateLimitResetHeader); len(v) > 0 {
+		if ts, err := strconv.Atoi(v); err == nil {
+			return ts
+		}
+	}
+	return -1
 }

@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/ui"
@@ -73,7 +74,10 @@ var cmdApi = &Command{
 		resource as indicated in the "Link" response header. For GraphQL queries,
 		this utilizes 'pageInfo' that must be present in the query; see EXAMPLES.
 
-		Note that multiple JSON documents will be output as a result.
+		Note that multiple JSON documents will be output as a result. If the API
+		rate limit has been reached, the final document that is output will be the
+		HTTP 403 notice, and the process will exit with a non-zero status. One way
+		this can be avoided is by enabling '--obey-ratelimit'.
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
@@ -85,6 +89,11 @@ var cmdApi = &Command{
 		When using "graphql" as <ENDPOINT>, caching will apply to responses to POST
 		requests as well. Just make sure to not use '--cache' for any GraphQL
 		mutations.
+
+	--obey-ratelimit
+		After exceeding the API rate limit, pause the process until the reset time
+		of the current rate limit window and retry the request. Note that this may
+		cause the process to hang for a long time (maximum of 1 hour).
 
 	<ENDPOINT>
 		The GitHub API endpoint to send the HTTP request to (default: "/").
@@ -136,7 +145,7 @@ func init() {
 	CmdRunner.Use(cmdApi)
 }
 
-func apiCommand(cmd *Command, args *Args) {
+func apiCommand(_ *Command, args *Args) {
 	path := ""
 	if !args.IsParamsEmpty() {
 		path = args.GetParam(0)
@@ -235,15 +244,20 @@ func apiCommand(cmd *Command, args *Args) {
 	parseJSON := args.Flag.Bool("--flat")
 	includeHeaders := args.Flag.Bool("--include")
 	paginate := args.Flag.Bool("--paginate")
+	rateLimitWait := args.Flag.Bool("--obey-ratelimit")
 
 	args.NoForward()
 
-	requestLoop := true
-	for requestLoop {
+	for {
 		response, err := gh.GenericAPIRequest(method, path, body, headers, cacheTTL)
 		utils.Check(err)
-		success := response.StatusCode < 300
 
+		if rateLimitWait && response.StatusCode == 403 && response.RateLimitRemaining() == 0 {
+			pauseUntil(response.RateLimitReset())
+			continue
+		}
+
+		success := response.StatusCode < 300
 		jsonType := true
 		if !success {
 			jsonType, _ = regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
@@ -273,7 +287,6 @@ func apiCommand(cmd *Command, args *Args) {
 			os.Exit(22)
 		}
 
-		requestLoop = false
 		if paginate {
 			if isGraphQL && hasNextPage && endCursor != "" {
 				if v, ok := params["variables"]; ok {
@@ -283,15 +296,31 @@ func apiCommand(cmd *Command, args *Args) {
 					variables := map[string]interface{}{"endCursor": endCursor}
 					params["variables"] = variables
 				}
-				requestLoop = true
+				goto next
 			} else if nextLink := response.Link("next"); nextLink != "" {
 				path = nextLink
-				requestLoop = true
+				goto next
 			}
 		}
-		if requestLoop && !parseJSON {
+
+		break
+	next:
+		if !parseJSON {
 			fmt.Fprintf(out, "\n")
 		}
+
+		if rateLimitWait && response.RateLimitRemaining() == 0 {
+			pauseUntil(response.RateLimitReset())
+		}
+	}
+}
+
+func pauseUntil(timestamp int) {
+	rollover := time.Unix(int64(timestamp)+1, 0)
+	duration := time.Until(rollover)
+	if duration > 0 {
+		ui.Errorf("API rate limit exceeded; pausing until %v ...\n", rollover)
+		time.Sleep(duration)
 	}
 }
 
