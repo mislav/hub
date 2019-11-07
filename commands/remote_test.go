@@ -10,6 +10,9 @@ import (
 	"github.com/github/hub/github"
 )
 
+var JingwenoGitRe = regexp.MustCompile("^git@github\\.com:jingweno/.+\\.git$")
+var MislavGitRe = regexp.MustCompile("^git@github\\.com:mislav/.+\\.git$")
+
 func TestTransformRemoteArgs(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
@@ -23,8 +26,7 @@ func TestTransformRemoteArgs(t *testing.T) {
 	assert.Equal(t, 3, args.ParamsSize())
 	assert.Equal(t, "add", args.FirstParam())
 	assert.Equal(t, "jingweno", args.GetParam(1))
-	reg := regexp.MustCompile("^git@github\\.com:jingweno/.+\\.git$")
-	assert.T(t, reg.MatchString(args.GetParam(2)))
+	assert.T(t, JingwenoGitRe.MatchString(args.GetParam(2)))
 
 	args = NewArgs([]string{"remote", "add", "-p", "mislav"})
 	transformRemoteArgs(args)
@@ -32,8 +34,7 @@ func TestTransformRemoteArgs(t *testing.T) {
 	assert.Equal(t, 3, args.ParamsSize())
 	assert.Equal(t, "add", args.FirstParam())
 	assert.Equal(t, "mislav", args.GetParam(1))
-	reg = regexp.MustCompile("^git@github\\.com:mislav/.+\\.git$")
-	assert.T(t, reg.MatchString(args.GetParam(2)))
+	assert.T(t, MislavGitRe.MatchString(args.GetParam(2)))
 
 	args = NewArgs([]string{"remote", "add", "origin"})
 	transformRemoteArgs(args)
@@ -41,8 +42,7 @@ func TestTransformRemoteArgs(t *testing.T) {
 	assert.Equal(t, 3, args.ParamsSize())
 	assert.Equal(t, "add", args.FirstParam())
 	assert.Equal(t, "origin", args.GetParam(1))
-	reg = regexp.MustCompile("^git@github\\.com:jingweno/.+\\.git$")
-	assert.T(t, reg.MatchString(args.GetParam(2)))
+	assert.T(t, JingwenoGitRe.MatchString(args.GetParam(2)))
 
 	args = NewArgs([]string{"remote", "add", "jingweno", "git@github.com:jingweno/gh.git"})
 	transformRemoteArgs(args)

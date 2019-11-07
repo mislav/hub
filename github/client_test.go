@@ -9,6 +9,10 @@ import (
 	"github.com/bmizerany/assert"
 )
 
+var Hub1Re = regexp.MustCompile("hub for (.+)@(.+)")
+
+var Hub2Re = regexp.MustCompile("hub for (.+)@(.+) 2")
+
 func TestClient_FormatError(t *testing.T) {
 	e := &errorInfo{
 		Response: &http.Response{
@@ -35,13 +39,11 @@ func TestAuthTokenNote(t *testing.T) {
 	note, err := authTokenNote(1)
 	assert.Equal(t, nil, err)
 
-	reg := regexp.MustCompile("hub for (.+)@(.+)")
-	assert.T(t, reg.MatchString(note))
+	assert.T(t, Hub1Re.MatchString(note))
 
 	note, err = authTokenNote(2)
 	assert.Equal(t, nil, err)
 
-	reg = regexp.MustCompile("hub for (.+)@(.+) 2")
-	assert.T(t, reg.MatchString(note))
+	assert.T(t, Hub2Re.MatchString(note))
 
 }
