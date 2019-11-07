@@ -11,7 +11,8 @@ import (
 var (
 	NameRe          = `[\w.-]+`
 	OwnerRe         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
-	NameWithOwnerRe = fmt.Sprintf(`^(%s/)?%s$`, OwnerRe, NameRe)
+	NameWithOwnerString = fmt.Sprintf(`^(%s/)?%s$`, OwnerRe, NameRe)
+	NameWithOwnerRe = regexp.MustCompile(NameWithOwnerString)
 
 	CmdRunner = NewRunner()
 )

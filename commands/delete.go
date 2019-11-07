@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/github/hub/github"
@@ -48,8 +47,7 @@ func deleteRepo(command *Command, args *Args) {
 		repoName = args.FirstParam()
 	}
 
-	re := regexp.MustCompile(NameWithOwnerRe)
-	if !re.MatchString(repoName) {
+	if !NameWithOwnerRe.MatchString(repoName) {
 		utils.Check(command.UsageError(""))
 	}
 

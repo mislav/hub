@@ -3,7 +3,6 @@ package commands
 import (
 	"io/ioutil"
 	"os"
-	"regexp"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -126,21 +125,19 @@ func TestSubCommandCall(t *testing.T) {
 }
 
 func Test_NameWithOwnerRe(t *testing.T) {
-	re := regexp.MustCompile(NameWithOwnerRe)
+	assert.Equal(t, true, NameWithOwnerRe.MatchString("o/n"))
+	assert.Equal(t, true, NameWithOwnerRe.MatchString("own-er/my-project.git"))
+	assert.Equal(t, true, NameWithOwnerRe.MatchString("my-project.git"))
+	assert.Equal(t, true, NameWithOwnerRe.MatchString("my_project"))
+	assert.Equal(t, true, NameWithOwnerRe.MatchString("-dash"))
+	assert.Equal(t, true, NameWithOwnerRe.MatchString(".dotfiles"))
 
-	assert.Equal(t, true, re.MatchString("o/n"))
-	assert.Equal(t, true, re.MatchString("own-er/my-project.git"))
-	assert.Equal(t, true, re.MatchString("my-project.git"))
-	assert.Equal(t, true, re.MatchString("my_project"))
-	assert.Equal(t, true, re.MatchString("-dash"))
-	assert.Equal(t, true, re.MatchString(".dotfiles"))
-
-	assert.Equal(t, false, re.MatchString(""))
-	assert.Equal(t, false, re.MatchString("/"))
-	assert.Equal(t, false, re.MatchString(" "))
-	assert.Equal(t, false, re.MatchString("owner/na me"))
-	assert.Equal(t, false, re.MatchString("owner/na/me"))
-	assert.Equal(t, false, re.MatchString("own.er/name"))
-	assert.Equal(t, false, re.MatchString("own_er/name"))
-	assert.Equal(t, false, re.MatchString("-owner/name"))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString(""))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString("/"))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString(" "))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString("owner/na me"))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString("owner/na/me"))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString("own.er/name"))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString("own_er/name"))
+	assert.Equal(t, false, NameWithOwnerRe.MatchString("-owner/name"))
 }

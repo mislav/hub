@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/github/hub/github"
@@ -75,10 +74,9 @@ func transformCloneArgs(args *Args) {
 	}
 	p.Parse(args.Params)
 
-	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
 	for _, i := range p.PositionalIndices {
 		a := args.Params[i]
-		if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
+		if NameWithOwnerRe.MatchString(a) && !isCloneable(a) {
 			url := getCloneUrl(a, isSSH, args.Command != "submodule")
 			args.ReplaceParam(i, url)
 		}
