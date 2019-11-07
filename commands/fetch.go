@@ -29,9 +29,9 @@ hub-remote(1), hub(1), git-fetch(1)
 }
 
 var (
-	ownerRegexp      = regexp.MustCompile(fmt.Sprintf("^%s$", OwnerRe))
-	commaPattern     = fmt.Sprintf("^%s(,%s)+$", OwnerRe, OwnerRe)
-	remoteNameRegexp = regexp.MustCompile(commaPattern)
+	ownerRe           = regexp.MustCompile(fmt.Sprintf("^%s$", OwnerReStr))
+	commaPatternReStr = fmt.Sprintf("^%s(,%s)+$", OwnerReStr, OwnerReStr)
+	remoteNameRe      = regexp.MustCompile(commaPatternReStr)
 )
 
 func init() {
@@ -55,7 +55,7 @@ func transformFetchArgs(args *Args) error {
 
 	projects := make(map[*github.Project]bool)
 	for _, name := range names {
-		if ownerRegexp.MatchString(name) && !isCloneable(name) {
+		if ownerRe.MatchString(name) && !isCloneable(name) {
 			_, err := localRepo.RemoteByName(name)
 			if err != nil {
 				utils.Check(currentProjectErr)
@@ -86,7 +86,7 @@ func parseRemoteNames(args *Args) (names []string) {
 		}
 	} else if len(words) > 0 {
 		remoteName := words[0]
-		if remoteNameRegexp.MatchString(remoteName) {
+		if remoteNameRe.MatchString(remoteName) {
 			i := args.IndexOfParam(remoteName)
 			args.RemoveParam(i)
 			names = strings.Split(remoteName, ",")

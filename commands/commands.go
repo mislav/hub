@@ -9,12 +9,12 @@ import (
 )
 
 var (
-	NameRe              = `[\w.-]+`
-	OwnerRe             = "[a-zA-Z0-9][a-zA-Z0-9-]*"
-	NameWithOwnerString = fmt.Sprintf(`^(%s/)?%s$`, OwnerRe, NameRe)
-	NameWithOwnerRe     = regexp.MustCompile(NameWithOwnerString)
+	NameReStr          = `[\w.-]+`
+	OwnerReStr         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
+	NameWithOwnerReStr = fmt.Sprintf(`^(%s/)?%s$`, OwnerReStr, NameReStr)
+	NameWithOwnerRe    = regexp.MustCompile(NameWithOwnerReStr)
 
-	pullURLRegex = regexp.MustCompile("^pull/(\\d+)")
+	pullURLRe = regexp.MustCompile("^pull/(\\d+)")
 
 	usageRe          = regexp.MustCompile(`(?m)^([a-z-]+)(.*)$`)
 	headingRe        = regexp.MustCompile(`(?m)^(## .+):$`)

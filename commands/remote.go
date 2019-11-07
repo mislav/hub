@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 
 	"github.com/github/hub/git"
@@ -42,8 +41,6 @@ hub-fork(1), hub(1), git-remote(1)
 `,
 }
 
-var OwnerAndNameRe = regexp.MustCompile(fmt.Sprintf(`^%s(/%s)?$`, OwnerRe, NameRe))
-
 func init() {
 	CmdRunner.Use(cmdRemote)
 }
@@ -59,7 +56,7 @@ func remote(command *Command, args *Args) {
 func transformRemoteArgs(args *Args) {
 	ownerWithName := args.LastParam()
 
-	if !OwnerAndNameRe.MatchString(ownerWithName) {
+	if !NameWithOwnerRe.MatchString(ownerWithName) {
 		return
 	}
 	owner := ownerWithName

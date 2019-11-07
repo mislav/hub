@@ -24,10 +24,10 @@ hub-am(1), hub(1), git-cherry-pick(1)
 }
 
 var (
-	shaRe              = "[a-f0-9]{7,40}"
-	commitRegex        = regexp.MustCompile(fmt.Sprintf("^commit/(%s)", shaRe))
-	pullRegex          = regexp.MustCompile(fmt.Sprintf(`^pull/(\d+)/commits/(%s)`, shaRe))
-	ownerWithShaRegexp = regexp.MustCompile(fmt.Sprintf("^(%s)@(%s)$", OwnerRe, shaRe))
+	shaReStr       = "[a-f0-9]{7,40}"
+	commitRegex    = regexp.MustCompile(fmt.Sprintf("^commit/(%s)", shaReStr))
+	pullRegex      = regexp.MustCompile(fmt.Sprintf(`^pull/(\d+)/commits/(%s)`, shaReStr))
+	ownerWithShaRe = regexp.MustCompile(fmt.Sprintf("^(%s)@(%s)$", OwnerReStr, shaReStr))
 )
 
 func init() {
@@ -68,7 +68,7 @@ func transformCherryPickArgs(args *Args) {
 			refspec = fmt.Sprintf("refs/pull/%s/head", pullId)
 		}
 	} else {
-		if matches := ownerWithShaRegexp.FindStringSubmatch(ref); len(matches) > 0 {
+		if matches := ownerWithShaRe.FindStringSubmatch(ref); len(matches) > 0 {
 			utils.Check(mainProjectErr)
 			project = mainProject
 			project.Owner = matches[1]

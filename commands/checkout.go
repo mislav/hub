@@ -49,7 +49,7 @@ func checkout(command *Command, args *Args) {
 	}
 
 	projectPath := url.ProjectPath()
-	if !pullURLRegex.MatchString(projectPath) {
+	if !pullURLRe.MatchString(projectPath) {
 		// not a valid PR URL
 		return
 	}
@@ -57,7 +57,7 @@ func checkout(command *Command, args *Args) {
 	err = sanitizeCheckoutFlags(args)
 	utils.Check(err)
 
-	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
+	id := pullURLRe.FindStringSubmatch(projectPath)[1]
 	gh := github.NewClient(url.Project.Host)
 	pullRequest, err := gh.PullRequest(url.Project, id)
 	utils.Check(err)

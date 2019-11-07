@@ -53,11 +53,11 @@ func transformMergeArgs(args *Args) error {
 	}
 
 	projectPath := url.ProjectPath()
-	if !pullURLRegex.MatchString(projectPath) {
+	if !pullURLRe.MatchString(projectPath) {
 		return nil
 	}
 
-	id := pullURLRegex.FindStringSubmatch(projectPath)[1]
+	id := pullURLRe.FindStringSubmatch(projectPath)[1]
 	gh := github.NewClient(url.Project.Host)
 	pullRequest, err := gh.PullRequest(url.Project, id)
 	if err != nil {

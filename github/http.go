@@ -45,8 +45,8 @@ var inspectHeaders = []string{
 	"Accept",
 }
 
-var BasicOrTokenRe = regexp.MustCompile("(?i)^(basic|token) (.+)")
-var RelRe = regexp.MustCompile(`<([^>]+)>; rel="([^"]+)"`)
+var basicOrTokenRe = regexp.MustCompile("(?i)^(basic|token) (.+)")
+var relRe = regexp.MustCompile(`<([^>]+)>; rel="([^"]+)"`)
 
 type verboseTransport struct {
 	Transport   *http.Transport
@@ -115,8 +115,8 @@ func (t *verboseTransport) dumpHeaders(header http.Header, indent string) {
 			for _, v := range vv {
 				if v != "" {
 
-					if BasicOrTokenRe.MatchString(v) {
-						v = BasicOrTokenRe.ReplaceAllString(v, "$1 [REDACTED]")
+					if basicOrTokenRe.MatchString(v) {
+						v = basicOrTokenRe.ReplaceAllString(v, "$1 [REDACTED]")
 					}
 
 					info := fmt.Sprintf("%s %s: %s", indent, name, v)
@@ -517,7 +517,7 @@ func (res *simpleResponse) ErrorInfo() (msg *errorInfo, err error) {
 
 func (res *simpleResponse) Link(name string) string {
 	linkVal := res.Header.Get("Link")
-	for _, match := range RelRe.FindAllStringSubmatch(linkVal, -1) {
+	for _, match := range relRe.FindAllStringSubmatch(linkVal, -1) {
 		if match[2] == name {
 			return match[1]
 		}

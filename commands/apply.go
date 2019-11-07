@@ -56,9 +56,9 @@ hub-apply(1), hub-cherry-pick(1), hub(1), git-am(1)
 }
 
 var (
-	gistRegexp   = regexp.MustCompile("^https?://gist\\.github\\.com/([\\w.-]+/)?([a-f0-9]+)")
-	commitRegexp = regexp.MustCompile("^(commit|pull/[0-9]+/commits)/([0-9a-f]+)")
-	pullRegexp   = regexp.MustCompile("^pull/([0-9]+)")
+	gistRe   = regexp.MustCompile("^https?://gist\\.github\\.com/([\\w.-]+/)?([a-f0-9]+)")
+	commitRe = regexp.MustCompile("^(commit|pull/[0-9]+/commits)/([0-9a-f]+)")
+	pullRe   = regexp.MustCompile("^pull/([0-9]+)")
 )
 
 func init() {
@@ -81,13 +81,13 @@ func transformApplyArgs(args *Args) {
 		projectURL, err := github.ParseURL(arg)
 		if err == nil {
 			gh := github.NewClient(projectURL.Project.Host)
-			if match := commitRegexp.FindStringSubmatch(projectURL.ProjectPath()); match != nil {
+			if match := commitRe.FindStringSubmatch(projectURL.ProjectPath()); match != nil {
 				patch, apiError = gh.CommitPatch(projectURL.Project, match[2])
-			} else if match := pullRegexp.FindStringSubmatch(projectURL.ProjectPath()); match != nil {
+			} else if match := pullRe.FindStringSubmatch(projectURL.ProjectPath()); match != nil {
 				patch, apiError = gh.PullRequestPatch(projectURL.Project, match[1])
 			}
 		} else {
-			match := gistRegexp.FindStringSubmatch(arg)
+			match := gistRe.FindStringSubmatch(arg)
 			if match != nil {
 				// TODO: support Enterprise gist
 				gh := github.NewClient(github.GitHubHost)

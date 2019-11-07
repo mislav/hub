@@ -61,9 +61,9 @@ hub-browse(1), hub(1)
 }
 
 var (
-	shaOrTag            = fmt.Sprintf("((?:%s:)?\\w(?:[\\w/.-]*\\w)?)", OwnerRe)
-	shaOrTagRange       = fmt.Sprintf("^%s\\.\\.%s$", shaOrTag, shaOrTag)
-	shaOrTagRangeRegexp = regexp.MustCompile(shaOrTagRange)
+	shaOrTagReStr      = fmt.Sprintf("((?:%s:)?\\w(?:[\\w/.-]*\\w)?)", OwnerReStr)
+	shaOrTagRangeReStr = fmt.Sprintf("^%s\\.\\.%s$", shaOrTagReStr, shaOrTagReStr)
+	shaOrTagRangeRe    = regexp.MustCompile(shaOrTagRangeReStr)
 )
 
 func init() {
@@ -136,7 +136,7 @@ func compare(command *Command, args *Args) {
 }
 
 func parseCompareRange(r string) string {
-	return shaOrTagRangeRegexp.ReplaceAllString(r, "$1...$2")
+	return shaOrTagRangeRe.ReplaceAllString(r, "$1...$2")
 }
 
 // characters we want to allow unencoded in compare views
