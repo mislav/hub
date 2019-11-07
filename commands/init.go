@@ -34,6 +34,8 @@ hub-create(1), hub(1), git-init(1)
 `,
 }
 
+var hasValueRegexp = regexp.MustCompile("^--(template|separate-git-dir|shared)$")
+
 func init() {
 	CmdRunner.Use(cmdInit)
 }
@@ -50,7 +52,6 @@ func transformInitArgs(args *Args) error {
 
 	var err error
 	dirToInit := "."
-	hasValueRegexp := regexp.MustCompile("^--(template|separate-git-dir|shared)$")
 
 	// Find the first argument that isn't related to any of the init flags.
 	// We assume this is the optional `directory` argument to git init.

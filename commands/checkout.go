@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/github/hub/git"
 	"github.com/github/hub/github"
@@ -49,7 +48,6 @@ func checkout(command *Command, args *Args) {
 		return
 	}
 
-	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
 	projectPath := url.ProjectPath()
 	if !pullURLRegex.MatchString(projectPath) {
 		// not a valid PR URL

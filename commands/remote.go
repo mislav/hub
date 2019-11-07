@@ -42,6 +42,8 @@ hub-fork(1), hub(1), git-remote(1)
 `,
 }
 
+var OwnerAndNameRe = regexp.MustCompile(fmt.Sprintf(`^%s(/%s)?$`, OwnerRe, NameRe))
+
 func init() {
 	CmdRunner.Use(cmdRemote)
 }
@@ -57,8 +59,7 @@ func remote(command *Command, args *Args) {
 func transformRemoteArgs(args *Args) {
 	ownerWithName := args.LastParam()
 
-	re := regexp.MustCompile(fmt.Sprintf(`^%s(/%s)?$`, OwnerRe, NameRe))
-	if !re.MatchString(ownerWithName) {
+	if !OwnerAndNameRe.MatchString(ownerWithName) {
 		return
 	}
 	owner := ownerWithName

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"regexp"
 
 	"github.com/github/hub/github"
 	"github.com/github/hub/utils"
@@ -53,7 +52,6 @@ func transformMergeArgs(args *Args) error {
 		return nil
 	}
 
-	pullURLRegex := regexp.MustCompile("^pull/(\\d+)")
 	projectPath := url.ProjectPath()
 	if !pullURLRegex.MatchString(projectPath) {
 		return nil

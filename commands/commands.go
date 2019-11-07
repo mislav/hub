@@ -9,10 +9,17 @@ import (
 )
 
 var (
-	NameRe          = `[\w.-]+`
-	OwnerRe         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
+	NameRe              = `[\w.-]+`
+	OwnerRe             = "[a-zA-Z0-9][a-zA-Z0-9-]*"
 	NameWithOwnerString = fmt.Sprintf(`^(%s/)?%s$`, OwnerRe, NameRe)
-	NameWithOwnerRe = regexp.MustCompile(NameWithOwnerString)
+	NameWithOwnerRe     = regexp.MustCompile(NameWithOwnerString)
+
+	pullURLRegex = regexp.MustCompile("^pull/(\\d+)")
+
+	usageRe          = regexp.MustCompile(`(?m)^([a-z-]+)(.*)$`)
+	headingRe        = regexp.MustCompile(`(?m)^(## .+):$`)
+	indentRe         = regexp.MustCompile(`(?m)^\t`)
+	definitionListRe = regexp.MustCompile(`(?m)^(\* )?([^#\s][^\n]*?):?\n\t`)
 
 	CmdRunner = NewRunner()
 )
@@ -111,7 +118,6 @@ func (c *Command) Synopsis() string {
 
 func (c *Command) HelpText() string {
 	usage := strings.Replace(c.Usage, "-^", "`-^`", 1)
-	usageRe := regexp.MustCompile(`(?m)^([a-z-]+)(.*)$`)
 	usage = usageRe.ReplaceAllString(usage, "`hub $1`$2  ")
 	usage = strings.TrimSpace(usage)
 
@@ -124,12 +130,9 @@ func (c *Command) HelpText() string {
 
 	long = strings.Replace(long, "'", "`", -1)
 	long = strings.Replace(long, "``", "'", -1)
-	headingRe := regexp.MustCompile(`(?m)^(## .+):$`)
 	long = headingRe.ReplaceAllString(long, "$1")
 
-	indentRe := regexp.MustCompile(`(?m)^\t`)
 	long = indentRe.ReplaceAllLiteralString(long, "")
-	definitionListRe := regexp.MustCompile(`(?m)^(\* )?([^#\s][^\n]*?):?\n\t`)
 	long = definitionListRe.ReplaceAllString(long, "$2\n:\t")
 
 	return fmt.Sprintf("hub-%s(1) -- %s\n===\n\n## Synopsis\n\n%s\n%s", c.Name(), desc, usage, long)

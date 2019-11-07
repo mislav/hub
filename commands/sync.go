@@ -34,6 +34,8 @@ hub(1), git-fetch(1)
 `,
 }
 
+var configRe = regexp.MustCompile(`^branch\.(.+?)\.remote (.+)`)
+
 func init() {
 	CmdRunner.Use(cmdSync)
 }
@@ -57,7 +59,6 @@ func sync(cmd *Command, args *Args) {
 
 	branchToRemote := map[string]string{}
 	if lines, err := git.ConfigAll("branch.*.remote"); err == nil {
-		configRe := regexp.MustCompile(`^branch\.(.+?)\.remote (.+)`)
 
 		for _, line := range lines {
 			if matches := configRe.FindStringSubmatch(line); len(matches) > 0 {
