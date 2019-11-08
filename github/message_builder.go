@@ -14,6 +14,8 @@ type MessageBuilder struct {
 	editor            *Editor
 }
 
+var newLineRe = regexp.MustCompile(`\r?\n`)
+
 func (b *MessageBuilder) AddCommentedSection(section string) {
 	b.commentedSections = append(b.commentedSections, section)
 }
@@ -34,8 +36,7 @@ func (b *MessageBuilder) Extract() (title, body string, err error) {
 			return
 		}
 	} else {
-		nl := regexp.MustCompile(`\r?\n`)
-		content = nl.ReplaceAllString(content, "\n")
+		content = newLineRe.ReplaceAllString(content, "\n")
 	}
 
 	parts := strings.SplitN(content, "\n\n", 2)

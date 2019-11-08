@@ -17,6 +17,8 @@ import (
 
 const Scissors = "------------------------ >8 ------------------------"
 
+var textEditorRe = regexp.MustCompile(`\b(?:[gm]?vim)(?:\.exe)?$`)
+
 func NewEditor(filename, topic, message string) (editor *Editor, err error) {
 	gitDir, err := git.Dir()
 	if err != nil {
@@ -143,8 +145,7 @@ func openTextEditor(program, file string) error {
 		return err
 	}
 	editCmd := cmd.NewWithArray(programArgs)
-	r := regexp.MustCompile(`\b(?:[gm]?vim)(?:\.exe)?$`)
-	if r.MatchString(editCmd.Name) {
+	if textEditorRe.MatchString(editCmd.Name) {
 		editCmd.WithArg("--cmd")
 		editCmd.WithArg("set ft=gitcommit tw=0 wrap lbr")
 	}

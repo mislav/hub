@@ -127,6 +127,9 @@ hub(1), hub-merge(1), hub-checkout(1)
 `,
 }
 
+var AuthorOrSignedRe = regexp.MustCompile(`\n(Co-authored-by|Signed-off-by):[^\n]+`)
+var issuesRe = regexp.MustCompile(`^issues\/(\d+)`)
+
 func init() {
 	CmdRunner.Use(cmdPullRequest)
 }
@@ -286,8 +289,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			message, err = git.Show(commits[0])
 			utils.Check(err)
 
-			re := regexp.MustCompile(`\n(Co-authored-by|Signed-off-by):[^\n]+`)
-			message = re.ReplaceAllString(message, "")
+			message = AuthorOrSignedRe.ReplaceAllString(message, "")
 		} else if len(commits) > 1 {
 			commitLogs, err := git.Log(baseTracking, headForMessage)
 			utils.Check(err)
@@ -463,10 +465,9 @@ func parsePullRequestIssueNumber(url string) string {
 		return ""
 	}
 
-	r := regexp.MustCompile(`^issues\/(\d+)`)
 	p := u.ProjectPath()
-	if r.MatchString(p) {
-		return r.FindStringSubmatch(p)[1]
+	if issuesRe.MatchString(p) {
+		return issuesRe.FindStringSubmatch(p)[1]
 	}
 
 	return ""

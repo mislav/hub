@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"strings"
 
 	"github.com/github/hub/ui"
@@ -115,8 +114,7 @@ end`
 			eval = `eval "$(hub alias -s)"`
 		}
 
-		indent := regexp.MustCompile(`(?m)^\t+`)
-		eval = indent.ReplaceAllStringFunc(eval, func(match string) string {
+		eval = indentRe.ReplaceAllStringFunc(eval, func(match string) string {
 			return strings.Repeat(" ", len(match)*4)
 		})
 

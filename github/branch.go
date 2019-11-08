@@ -13,20 +13,23 @@ type Branch struct {
 	Name string
 }
 
+var (
+	shortRemoteRe = regexp.MustCompile("^refs/(remotes/)?.+?/")
+	longRemoteRe  = regexp.MustCompile("^refs/(remotes/)?")
+	remoteRe      = regexp.MustCompile("^refs/remotes/([^/]+)")
+)
+
 func (b *Branch) ShortName() string {
-	reg := regexp.MustCompile("^refs/(remotes/)?.+?/")
-	return reg.ReplaceAllString(b.Name, "")
+	return shortRemoteRe.ReplaceAllString(b.Name, "")
 }
 
 func (b *Branch) LongName() string {
-	reg := regexp.MustCompile("^refs/(remotes/)?")
-	return reg.ReplaceAllString(b.Name, "")
+	return longRemoteRe.ReplaceAllString(b.Name, "")
 }
 
 func (b *Branch) RemoteName() string {
-	reg := regexp.MustCompile("^refs/remotes/([^/]+)")
-	if reg.MatchString(b.Name) {
-		return reg.FindStringSubmatch(b.Name)[1]
+	if remoteRe.MatchString(b.Name) {
+		return remoteRe.FindStringSubmatch(b.Name)[1]
 	}
 
 	return ""

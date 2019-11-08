@@ -16,6 +16,9 @@ const (
 
 type SSHConfig map[string]string
 
+var hostRe = regexp.MustCompile(hostReStr)
+var expandTokensRe = regexp.MustCompile(`%[%h]`)
+
 func newSSHConfigReader() *SSHConfigReader {
 	configFiles := []string{
 		"/etc/ssh_config",
@@ -36,7 +39,6 @@ type SSHConfigReader struct {
 
 func (r *SSHConfigReader) Read() SSHConfig {
 	config := make(SSHConfig)
-	hostRe := regexp.MustCompile(hostReStr)
 
 	for _, filename := range r.Files {
 		r.readFile(config, hostRe, filename)
@@ -77,8 +79,7 @@ func (r *SSHConfigReader) readFile(c SSHConfig, re *regexp.Regexp, f string) err
 }
 
 func expandTokens(text, host string) string {
-	re := regexp.MustCompile(`%[%h]`)
-	return re.ReplaceAllStringFunc(text, func(match string) string {
+	return expandTokensRe.ReplaceAllStringFunc(text, func(match string) string {
 		switch match {
 		case "%h":
 			return host
