@@ -85,8 +85,7 @@ func (a *Args) Commands() []*cmd.Cmd {
 }
 
 func (a *Args) ToCmd() *cmd.Cmd {
-	c := cmd.New(a.Executable)
-	c.WithArgs(a.GlobalFlags...)
+	c := cmd.NewWithArray(append([]string{a.Executable}, a.GlobalFlags...))
 
 	if a.Command != "" {
 		c.WithArg(a.Command)

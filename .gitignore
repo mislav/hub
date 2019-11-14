@@ -3,6 +3,7 @@
 /bin
 .bundle
 bundle/
+share/doc/*
 share/man/*
 !share/man/man1/hub.1.md
 tmp/

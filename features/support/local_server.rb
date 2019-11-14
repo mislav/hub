@@ -142,16 +142,21 @@ PATCH
       @port = self.class.ports[app.object_id]
 
       if not @port or not responsive?
-        @server_thread = start_handler(Identify.new(app)) do |server, host, port|
-          self.server = server
-          @port = self.class.ports[app.object_id] = port
-        end
+        tries = 0
+        begin
+          @server_thread = start_handler(Identify.new(app)) do |server, host, port|
+            self.server = server
+            @port = self.class.ports[app.object_id] = port
+          end
 
-        Timeout.timeout(60) { @server_thread.join(0.01) until responsive? }
+          Timeout.timeout(5) { @server_thread.join(0.01) until responsive? }
+        rescue Timeout::Error
+          tries += 1
+          retry if tries < 3
+          raise "Rack application timed out during boot after #{tries} tries"
+        end
       end
-    rescue TimeoutError
-      raise "Rack application timed out during boot"
-    else
+
       self
     end
 

@@ -87,11 +87,24 @@ func (c *Config) PromptForHost(host string) (h *Host, err error) {
 		}
 	}
 
-	currentUser, err := client.CurrentUser()
-	if err != nil {
-		return
+	userFromEnv := os.Getenv("GITHUB_USER")
+	repoFromEnv := os.Getenv("GITHUB_REPOSITORY")
+	if userFromEnv == "" && repoFromEnv != "" {
+		repoParts := strings.SplitN(repoFromEnv, "/", 2)
+		if len(repoParts) > 0 {
+			userFromEnv = repoParts[0]
+		}
 	}
-	h.User = currentUser.Login
+	if tokenFromEnv && userFromEnv != "" {
+		h.User = userFromEnv
+	} else {
+		var currentUser *User
+		currentUser, err = client.CurrentUser()
+		if err != nil {
+			return
+		}
+		h.User = currentUser.Login
+	}
 
 	if !tokenFromEnv {
 		err = newConfigService().Save(configsFile(), c)
@@ -186,7 +199,7 @@ func getPassword() (string, error) {
 	}
 
 	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, os.Kill)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		s := <-c
 		terminal.Restore(stdin, initialTermState)

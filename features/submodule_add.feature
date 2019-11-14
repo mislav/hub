@@ -4,6 +4,9 @@ Feature: hub submodule add
     Given I am in "dotfiles" git repo
     # make existing repo in subdirectory so git clone isn't triggered
     Given a git repo in "vendor/grit"
+    And I cd to "vendor/grit"
+    And I make 1 commit
+    And I cd to "../.."
 
   Scenario: Add public submodule
     Given the GitHub API server:

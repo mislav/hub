@@ -3,13 +3,15 @@ package commands
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
 
-	"github.com/github/hub/cmd"
+	"github.com/github/hub/git"
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"github.com/kballard/go-shellquote"
 )
 
 var cmdHelp = &Command{
@@ -27,17 +29,7 @@ help hub-<COMMAND> [--plain-text]
 		Use this format to view help for hub extensions to an existing git command.
 
 	--plain-text
-		Skip man page lookup mechanism and display plain help text.
-
-## Lookup mechanism:
-
-On systems that have ''man'', help pages are looked up in these directories
-relative to the hub install prefix:
-
-* man/<command>.1
-* share/man/man1/<command>.1
-
-On systems without ''man'', help pages are looked up using the ".txt" extension.
+		Skip man page lookup mechanism and display raw help text.
 
 ## See also:
 
@@ -68,6 +60,8 @@ func runHelp(helpCmd *Command, args *Args) {
 	p := utils.NewArgsParser()
 	p.RegisterBool("--all", "-a")
 	p.RegisterBool("--plain-text")
+	p.RegisterBool("--man", "-m")
+	p.RegisterBool("--web", "-w")
 	p.Parse(args.Params)
 
 	if p.Bool("--all") {
@@ -78,27 +72,43 @@ func runHelp(helpCmd *Command, args *Args) {
 		return
 	}
 
-	command := args.FirstParam()
-
-	if command == "hub" {
-		err := displayManPage("hub.1", args)
-		if err != nil {
-			utils.Check(err)
+	isWeb := func() bool {
+		if p.Bool("--web") {
+			return true
 		}
+		if p.Bool("--man") {
+			return false
+		}
+		if f, err := git.Config("help.format"); err == nil {
+			return f == "web" || f == "html"
+		}
+		return false
 	}
 
-	if c := lookupCmd(command); c != nil {
-		if !p.Bool("--plain-text") {
-			manPage := fmt.Sprintf("hub-%s.1", c.Name())
-			err := displayManPage(manPage, args)
-			if err == nil {
-				return
-			}
-		}
-
-		ui.Println(c.HelpText())
-		args.NoForward()
+	cmdName := ""
+	if words := args.Words(); len(words) > 0 {
+		cmdName = words[0]
 	}
+
+	if cmdName == "hub" {
+		err := displayManPage("hub", args, isWeb())
+		utils.Check(err)
+		return
+	}
+
+	foundCmd := lookupCmd(cmdName)
+	if foundCmd == nil {
+		return
+	}
+
+	if p.Bool("--plain-text") {
+		ui.Println(foundCmd.HelpText())
+		os.Exit(0)
+	}
+
+	manPage := fmt.Sprintf("hub-%s", foundCmd.Name())
+	err := displayManPage(manPage, args, isWeb())
+	utils.Check(err)
 }
 
 func runListCmds(cmd *Command, args *Args) {
@@ -119,51 +129,60 @@ func runListCmds(cmd *Command, args *Args) {
 	}
 }
 
-func displayManPage(manPage string, args *Args) error {
-	manProgram, _ := utils.CommandPath("man")
-	if manProgram == "" {
-		manPage += ".txt"
-		manProgram = os.Getenv("PAGER")
-		if manProgram == "" {
-			manProgram = "less -R"
-		}
-	}
-
+// On systems where `man` was found, invoke:
+//   MANPATH={PREFIX}/share/man:$MANPATH man <page>
+//
+// otherwise:
+//   less -R {PREFIX}/share/man/man1/<page>.1.txt
+func displayManPage(manPage string, args *Args, isWeb bool) error {
 	programPath, err := utils.CommandPath(args.ProgramPath)
 	if err != nil {
 		return err
 	}
 
-	installPrefix := filepath.Join(filepath.Dir(programPath), "..")
-	manFile, err := localManPage(manPage, installPrefix)
-	if err != nil {
+	if isWeb {
+		manPage += ".1.html"
+		manFile := filepath.Join(programPath, "..", "..", "share", "doc", "hub-doc", manPage)
+		args.Replace(args.Executable, "web--browse", manFile)
+		return nil
+	}
+
+	var manArgs []string
+	manProgram, _ := utils.CommandPath("man")
+	if manProgram != "" {
+		manArgs = []string{manProgram}
+	} else {
+		manPage += ".1.txt"
+		if manProgram = os.Getenv("PAGER"); manProgram != "" {
+			var err error
+			manArgs, err = shellquote.Split(manProgram)
+			if err != nil {
+				return err
+			}
+		} else {
+			manArgs = []string{"less", "-R"}
+		}
+	}
+
+	env := os.Environ()
+	if strings.HasSuffix(manPage, ".txt") {
+		manFile := filepath.Join(programPath, "..", "..", "share", "man", "man1", manPage)
+		manArgs = append(manArgs, manFile)
+	} else {
+		manArgs = append(manArgs, manPage)
+		manPath := filepath.Join(programPath, "..", "..", "share", "man")
+		env = append(env, fmt.Sprintf("MANPATH=%s:%s", manPath, os.Getenv("MANPATH")))
+	}
+
+	c := exec.Command(manArgs[0], manArgs[1:]...)
+	c.Stdout = os.Stdout
+	c.Stderr = os.Stderr
+	c.Env = env
+	if err := c.Run(); err != nil {
 		return err
 	}
-
-	man := cmd.New(manProgram)
-	man.WithArg(manFile)
-	if err = man.Run(); err == nil {
-		os.Exit(0)
-	} else {
-		os.Exit(1)
-	}
+	os.Exit(0)
 	return nil
-}
-
-func localManPage(name, installPrefix string) (string, error) {
-	manPath := filepath.Join(installPrefix, "man", name)
-	_, err := os.Stat(manPath)
-	if err == nil {
-		return manPath, nil
-	}
-
-	manPath = filepath.Join(installPrefix, "share", "man", "man1", name)
-	_, err = os.Stat(manPath)
-	if err == nil {
-		return manPath, nil
-	} else {
-		return "", err
-	}
 }
 
 func lookupCmd(name string) *Command {
@@ -187,7 +206,7 @@ func customCommands() []string {
 		}
 	}
 
-	sort.Sort(sort.StringSlice(cmds))
+	sort.Strings(cmds)
 
 	return cmds
 }
@@ -202,6 +221,7 @@ These GitHub commands are provided by hub:
    create         Create this repository on GitHub and add GitHub as origin
    delete         Delete a repository on GitHub
    fork           Make a fork of a remote repository on GitHub and add as remote
+   gist           Make a gist
    issue          List or create GitHub issues
    pr             List or checkout GitHub pull requests
    pull-request   Open a pull request on GitHub

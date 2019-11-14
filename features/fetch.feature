@@ -7,19 +7,19 @@ Feature: hub fetch
   Scenario: Fetch existing remote
     When I successfully run `hub fetch origin`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Fetch existing remote from non-GitHub source
     Given the "origin" remote has url "ssh://dev@codeserver.dev.xxx.drush.in/~/repository.git"
     When I successfully run `hub fetch origin`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Fetch from non-GitHub source via refspec
     Given the "origin" remote has url "ssh://dev@codeserver.dev.xxx.drush.in/~/repository.git"
     When I successfully run `hub fetch ssh://myusername@a.specific.server:1234/existing-project/gerrit-project-name refs/changes/16/6116/1`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Fetch from local bundle
     Given the GitHub API server:
@@ -32,7 +32,7 @@ Feature: hub fetch
     And a git bundle named "mislav"
     When I successfully run `hub fetch mislav`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
     And there should be no "mislav" remote
 
   Scenario: Creates new remote
@@ -46,7 +46,7 @@ Feature: hub fetch
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
     And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Owner name with dash
     Given the GitHub API server:
@@ -59,7 +59,7 @@ Feature: hub fetch
     When I successfully run `hub fetch ankit-maverick`
     Then "git fetch ankit-maverick" should be run
     And the url for "ankit-maverick" should be "git://github.com/ankit-maverick/dotfiles.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: HTTPS is preferred
     Given the GitHub API server:
@@ -85,7 +85,7 @@ Feature: hub fetch
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Writeable repo
     Given the GitHub API server:
@@ -98,7 +98,7 @@ Feature: hub fetch
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Fetch with options
     Given the GitHub API server:

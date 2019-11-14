@@ -9,7 +9,7 @@ Feature: hub browse
 
   Scenario: Project with owner
     When I successfully run `hub browse mislav/dotfiles`
-    Then there should be no output
+    Then the output should not contain anything
     And "open https://github.com/mislav/dotfiles" should be run
 
   Scenario: Project without owner
@@ -47,7 +47,7 @@ Feature: hub browse
   Scenario: Current project
     Given I am in "git://github.com/mislav/dotfiles.git" git repo
     When I successfully run `hub browse`
-    Then there should be no output
+    Then the output should not contain anything
     And "open https://github.com/mislav/dotfiles" should be run
 
   Scenario: Commit in current project
@@ -125,7 +125,7 @@ Feature: hub browse
     And the "mislav" remote has url "git@github.com:mislav/coffee-script.git"
     And I am on the "feature" branch pushed to "mislav/feature"
     When I successfully run `hub browse -- issues`
-    Then there should be no output
+    Then the output should not contain anything
     Then "open https://github.com/jashkenas/coffee-script/issues" should be run
 
   Scenario: Forward Slash Delimited branch

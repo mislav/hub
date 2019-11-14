@@ -115,8 +115,16 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 		}
 		newArgs = append(newArgs, newBranchName)
 
+		b, errB := repo.CurrentBranch()
+		isCurrentBranch := errB == nil && b.ShortName() == newBranchName
+
 		ref := fmt.Sprintf("refs/pull/%d/head", pullRequest.Number)
-		args.Before("git", "fetch", baseRemote.Name, fmt.Sprintf("%s:%s", ref, newBranchName))
+		if isCurrentBranch {
+			args.Before("git", "fetch", baseRemote.Name, ref)
+			args.After("git", "merge", "--ff-only", "FETCH_HEAD")
+		} else {
+			args.Before("git", "fetch", baseRemote.Name, fmt.Sprintf("%s:%s", ref, newBranchName))
+		}
 
 		remote := baseRemote.Name
 		mergeRef := ref
@@ -130,8 +138,11 @@ func transformCheckoutArgs(args *Args, pullRequest *github.PullRequest, newBranc
 			remote = project.GitURL("", "", true)
 			mergeRef = fmt.Sprintf("refs/heads/%s", pullRequest.Head.Ref)
 		}
-		args.After("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
-		args.After("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
+
+		if mc, err := git.Config(fmt.Sprintf("branch.%s.merge", newBranchName)); err != nil || mc == "" {
+			args.After("git", "config", fmt.Sprintf("branch.%s.remote", newBranchName), remote)
+			args.After("git", "config", fmt.Sprintf("branch.%s.merge", newBranchName), mergeRef)
+		}
 	}
 	return
 }

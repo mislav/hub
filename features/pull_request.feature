@@ -135,6 +135,7 @@ Feature: hub pull-request
 
       Hello
       Signed-off-by: NAME <email@example.com>
+      Co-authored-by: NAME <email@example.com>
       """
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`
@@ -946,6 +947,22 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
+  Scenario: Current branch is pushed to remote without upstream configuration
+    Given the "upstream" remote has url "git://github.com/lestephane/coral.git"
+    And I am on the "feature" branch pushed to "origin/feature"
+    And git "push.default" is set to "upstream"
+    Given the GitHub API server:
+      """
+      post('/repos/lestephane/coral/pulls') {
+        assert :base  => 'master',
+               :head  => 'mislav:feature'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I successfully run `hub pull-request -m hereyougo`
+    Then the output should contain exactly "the://url\n"
+
   Scenario: Branch with quotation mark in name
     Given I am on the "feat'ure" branch with upstream "origin/feat'ure"
     Given the GitHub API server:
@@ -1249,7 +1266,7 @@ Feature: hub pull-request
     And "git push --set-upstream upstream HEAD:topic" should be run
 
   Scenario: Automatically retry when --push resulted in 422
-    Given The default aruba timeout is 7 seconds
+    Given the default aruba exit timeout is 7 seconds
     And the text editor adds:
       """
       hello!
@@ -1284,7 +1301,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Eventually give up on retries for --push
-    Given The default aruba timeout is 7 seconds
+    Given the default aruba exit timeout is 7 seconds
     And the text editor adds:
       """
       hello!

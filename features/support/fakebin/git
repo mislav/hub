@@ -5,7 +5,15 @@
 set -e
 
 command="$1"
-[ "$command" = "config" ] || echo git "$@" >> "$HOME"/.history
+case "$command" in
+  "config" ) ;;
+  "web--browse" )
+    echo git web--browse PATH/$(basename "$2") >> "$HOME"/.history
+    ;;
+  * )
+    echo git "$@" >> "$HOME"/.history
+    ;;
+esac
 
 case "$command" in
   "--list-cmds="* )

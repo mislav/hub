@@ -45,9 +45,9 @@ func NewColor(hex string) (*Color, error) {
 }
 
 func (c *Color) Distance(other *Color) float64 {
-	return math.Sqrt(float64(math.Pow(float64(c.Red-other.Red), 2) +
+	return math.Sqrt(math.Pow(float64(c.Red-other.Red), 2) +
 		math.Pow(float64(c.Green-other.Green), 2) +
-		math.Pow(float64(c.Blue-other.Blue), 2)))
+		math.Pow(float64(c.Blue-other.Blue), 2))
 }
 
 func rgbComponentToBoldValue(component uint8) float64 {

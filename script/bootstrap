@@ -20,7 +20,7 @@ fi
   if [ -n "$TRAVIS" ]; then
     script/cached-bundle install --deployment --jobs=3 --retry=3 --path bundle
   else
-    bundle install --path bundle
+    bundle install
   fi
   bundle binstub cucumber --path bin
 } || {

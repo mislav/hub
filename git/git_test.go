@@ -85,11 +85,11 @@ func TestGitConfig(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	v, err := GlobalConfig("hub.test")
+	_, err := GlobalConfig("hub.test")
 	assert.NotEqual(t, nil, err)
 
 	SetGlobalConfig("hub.test", "1")
-	v, err = GlobalConfig("hub.test")
+	v, err := GlobalConfig("hub.test")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "1", v)
 
@@ -181,6 +181,6 @@ func TestCommentChar(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "@", char)
 
-	char, err = CommentChar("#\n;\n@\n!\n$\n%\n^\n&\n|\n:")
+	_, err = CommentChar("#\n;\n@\n!\n$\n%\n^\n&\n|\n:")
 	assert.Equal(t, "unable to select a comment character that is not used in the current message", err.Error())
 }

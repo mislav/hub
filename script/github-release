@@ -17,8 +17,12 @@ while read -r filename label; do
   assets+=( -a "${filename}#${label}" )
 done
 
+notes="$(git tag --list "v${version}" --format='%(contents:subject)%0a%0a%(contents:body)')"
+
 if hub release --include-drafts | grep -q "^v${version}\$"; then
   hub release edit "v${version}" -m "" "${assets[@]}"
+elif [ $(wc -l <<<"$notes") -gt 1 ]; then
+  hub release create ${pre:+--prerelease} -F - "v${version}" "${assets[@]}" <<<"$notes"
 else
   { echo "${project_name} ${version}"
     echo

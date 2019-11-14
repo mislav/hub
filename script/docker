@@ -1,0 +1,20 @@
+#!/bin/bash
+# Usage: script/docker [<cucumber-args>]
+set -e
+
+container=hub-test
+workdir=/home/app/workdir
+
+docker build -t "$container" .
+
+docker run -it --rm -v "$PWD":"$workdir" -w "$workdir" "$container" \
+  /bin/bash -c "
+# Enables running WEBrick server (see local_server.rb)
+# https://stackoverflow.com/a/45899937/11687
+cp /etc/hosts /tmp/hosts.new \
+	&& sed -i 's/::1\\tlocalhost/::1/' /tmp/hosts.new \
+	&& sudo cp -f /tmp/hosts.new /etc/hosts || exit 1
+
+go test ./...
+bundle exec cucumber $@
+"
