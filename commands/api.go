@@ -77,7 +77,7 @@ var cmdApi = &Command{
 		Note that multiple JSON documents will be output as a result. If the API
 		rate limit has been reached, the final document that is output will be the
 		HTTP 403 notice, and the process will exit with a non-zero status. One way
-		this can be avoided is by enabling '--obey-ratelimit'.
+		this can be avoided is by enabling ''--obey-ratelimit''.
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
