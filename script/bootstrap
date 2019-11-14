@@ -3,25 +3,8 @@ set -e
 
 STATUS=0
 
-if [ -n "$TRAVIS" ] && [ ! -x ~/bin/tmux ]; then
-  case "$TRAVIS_OS_NAME" in
-    linux ) cache_name="tmux-zsh.ubuntu" ;;
-    osx ) cache_name="tmux.osx" ;;
-    * )
-      echo "unknown OS: $TRAVIS_OS_NAME" >&2
-      exit 1
-      ;;
-  esac
-
-  curl -fsSL "https://${AMAZON_S3_BUCKET}.s3.amazonaws.com/${cache_name}.tgz" | tar -xz -C ~
-fi
-
 { ruby --version
-  if [ -n "$TRAVIS" ]; then
-    script/cached-bundle install --deployment --jobs=3 --retry=3 --path bundle
-  else
-    bundle install
-  fi
+  bundle install
   bundle binstub cucumber --path bin
 } || {
   echo "You need Ruby 1.9 or higher and Bundler to run hub tests" >&2
