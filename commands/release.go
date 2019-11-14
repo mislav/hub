@@ -30,9 +30,6 @@ release delete <TAG>
 
 With no arguments, shows a list of existing releases.
 
-With '--include-drafts', include draft releases in the listing.
-With '--exclude-prereleases', exclude non-stable releases from the listing.
-
 	* _show_:
 		Show GitHub release notes for <TAG>.
 
@@ -58,6 +55,12 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		this does **not** remove the git tag <TAG>.
 
 ## Options:
+	-d, --include-drafts
+		List drafts together with published releases.
+
+	-p, --exclude-prereleases
+		Exclude prereleases from the list.
+
 	-L, --limit
 		Display only the first <LIMIT> releases.
 
