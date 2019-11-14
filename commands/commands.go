@@ -121,8 +121,7 @@ func (c *Command) HelpText() string {
 		long = strings.Join(lines[1:], "\n")
 	}
 
-	long = strings.Replace(long, "'", "`", -1)
-	long = strings.Replace(long, "``", "'", -1)
+	long = strings.Replace(long, "''", "`", -1)
 	headingRe := regexp.MustCompile(`(?m)^(## .+):$`)
 	long = headingRe.ReplaceAllString(long, "$1")
 

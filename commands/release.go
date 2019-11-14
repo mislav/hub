@@ -30,13 +30,10 @@ release delete <TAG>
 
 With no arguments, shows a list of existing releases.
 
-With '--include-drafts', include draft releases in the listing.
-With '--exclude-prereleases', exclude non-stable releases from the listing.
-
 	* _show_:
 		Show GitHub release notes for <TAG>.
 
-		With '--show-downloads', include the "Downloads" section.
+		With ''--show-downloads'', include the "Downloads" section.
 
 	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
@@ -44,11 +41,11 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	* _edit_:
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
-		options as _create_ command. Publish a draft with '--draft=false'.
+		options as _create_ command. Publish a draft with ''--draft=false''.
 
-		Without '--message' or '--file', a text editor will open pre-populated with
+		Without ''--message'' or ''--file'', a text editor will open pre-populated with
 		the current release title and body. To re-use existing title and body
-		unchanged, pass '-m ""'.
+		unchanged, pass ''-m ""''.
 
 	* _download_:
 		Download the assets attached to release for the specified <TAG>.
@@ -58,6 +55,12 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		this does **not** remove the git tag <TAG>.
 
 ## Options:
+	-d, --include-drafts
+		List drafts together with published releases.
+
+	-p, --exclude-prereleases
+		Exclude prereleases from the list.
+
 	-L, --limit
 		Display only the first <LIMIT> releases.
 
@@ -70,26 +73,26 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	-a, --attach <FILE>
 		Attach a file as an asset for this release.
 
-		If <FILE> is in the "<filename>#<text>" format, the text after the '#'
+		If <FILE> is in the "<filename>#<text>" format, the text after the "#"
 		character is taken as asset label.
 
 	-m, --message <MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the release
 		title, and the rest is used as release description in Markdown format.
 
-		When multiple '--message' are passed, their values are concatenated with a
+		When multiple ''--message'' are passed, their values are concatenated with a
 		blank line in-between.
 
-		When neither '--message' nor '--file' were supplied to 'release create', a
+		When neither ''--message'' nor ''--file'' were supplied to ''release create'', a
 		text editor will open to author the title and description in.
 
 	-F, --file <FILE>
 		Read the release title and description from <FILE>. Pass "-" to read from
-		standard input instead. See '--message' for the formatting rules.
+		standard input instead. See ''--message'' for the formatting rules.
 
 	-e, --edit
 		Open the release title and description in a text editor before submitting.
-		This can be used in combination with '--message' or '--file'.
+		This can be used in combination with ''--message'' or ''--file''.
 
 	-o, --browse
 		Open the new release in a web browser.
@@ -151,7 +154,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
-		of "always" (default for '--color'), "never", or "auto" (default).
+		of "always" (default for ''--color''), "never", or "auto" (default).
 
 	<TAG>
 		The git tag name for this release.

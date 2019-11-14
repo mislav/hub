@@ -24,15 +24,15 @@ var cmdApi = &Command{
 ## Options:
 	-X, --method <METHOD>
 		The HTTP method to use for the request (default: "GET"). The method is
-		automatically set to "POST" if '--field', '--raw-field', or '--input' are
-		used.
+		automatically set to "POST" if ''--field'', ''--raw-field'', or ''--input''
+		are used.
 
-		Use '-XGET' to force serializing fields into the query string for the GET
+		Use ''-XGET'' to force serializing fields into the query string for the GET
 		request instead of JSON body of the POST request.
 
 	-F, --field <KEY>=<VALUE>
 		Data to serialize with the request. <VALUE> has some magic handling; use
-		'--raw-field' for sending arbitrary string values.
+		''--raw-field'' for sending arbitrary string values.
 
 		If <VALUE> starts with "@", the rest of the value is interpreted as a
 		filename to read the value from. Use "@-" to read from standard input.
@@ -42,15 +42,15 @@ var cmdApi = &Command{
 
 		It is not possible to serialize <VALUE> as a nested JSON array or hash.
 		Instead, construct the request payload externally and pass it via
-		'--input'.
+		''--input''.
 
-		Unless '-XGET' was used, all fields are sent serialized as JSON within the
-		request body. When <ENDPOINT> is "graphql", all fields other than "query"
-		are grouped under "variables". See
+		Unless ''-XGET'' was used, all fields are sent serialized as JSON within
+		the request body. When <ENDPOINT> is "graphql", all fields other than
+		"query" are grouped under "variables". See
 		<https://graphql.org/learn/queries/#variables>
 
 	-f, --raw-field <KEY>=<VALUE>
-		Same as '--field', except that it allows values starting with "@", literal
+		Same as ''--field'', except that it allows values starting with "@", literal
 		strings "true", "false", and "null", as well as strings that look like
 		numbers.
 
@@ -70,24 +70,24 @@ var cmdApi = &Command{
 
 	--paginate
 		Automatically request and output the next page of results until all
-		resources have been listed. For GET requests, this follows the '<next>'
+		resources have been listed. For GET requests, this follows the ''<next\>''
 		resource as indicated in the "Link" response header. For GraphQL queries,
-		this utilizes 'pageInfo' that must be present in the query; see EXAMPLES.
+		this utilizes ''pageInfo'' that must be present in the query; see EXAMPLES.
 
 		Note that multiple JSON documents will be output as a result. If the API
 		rate limit has been reached, the final document that is output will be the
 		HTTP 403 notice, and the process will exit with a non-zero status. One way
-		this can be avoided is by enabling '--obey-ratelimit'.
+		this can be avoided is by enabling ''--obey-ratelimit''.
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
-		of "always" (default for '--color'), "never", or "auto" (default).
+		of "always" (default for ''--color''), "never", or "auto" (default).
 
 	--cache <TTL>
 		Cache valid responses to GET requests for <TTL> seconds.
 
 		When using "graphql" as <ENDPOINT>, caching will apply to responses to POST
-		requests as well. Just make sure to not use '--cache' for any GraphQL
+		requests as well. Just make sure to not use ''--cache'' for any GraphQL
 		mutations.
 
 	--obey-ratelimit
@@ -99,7 +99,7 @@ var cmdApi = &Command{
 		The GitHub API endpoint to send the HTTP request to (default: "/").
 		
 		To learn about available endpoints, see <https://developer.github.com/v3/>.
-		To make GraphQL queries, use "graphql" as <ENDPOINT> and pass '-F query=QUERY'.
+		To make GraphQL queries, use "graphql" as <ENDPOINT> and pass ''-F query=QUERY''.
 
 		If the literal strings "{owner}" or "{repo}" appear in <ENDPOINT> or in the
 		GraphQL "query" field, fill in those placeholders with values read from the
@@ -114,13 +114,13 @@ var cmdApi = &Command{
 		$ hub api --flat users/octocat/repos
 
 		# post a comment to issue #23 of the current repository
-		$ hub api repos/{owner}/{repo}/issues/23/comments --raw-field "body=Nice job!"
+		$ hub api repos/{owner}/{repo}/issues/23/comments --raw-field 'body=Nice job!'
 
 		# perform a GraphQL query read from a file
 		$ hub api graphql -F query=@path/to/myquery.graphql
 
 		# perform pagination with GraphQL
-		$ hub api --paginate graphql -f query=''
+		$ hub api --paginate graphql -f query='
 		  query($endCursor: String) {
 		    repositoryOwner(login: "USER") {
 		      repositories(first: 100, after: $endCursor) {
@@ -133,7 +133,8 @@ var cmdApi = &Command{
 		        }
 		      }
 		    }
-		  }''
+		  }
+		'
 
 ## See also:
 

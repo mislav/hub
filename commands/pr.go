@@ -33,7 +33,7 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 	* _show_:
 		Open a pull request page in a web browser. When no <PR-NUMBER> is
 		specified, <HEAD> is used to look up open pull requests and defaults to
-		the current branch name. With '--format', print information about the
+		the current branch name. With ''--format'', print information about the
 		pull request instead of opening it.
 
 ## Options:
@@ -127,7 +127,7 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
-		of "always" (default for '--color'), "never", or "auto" (default).
+		of "always" (default for ''--color''), "never", or "auto" (default).
 
 	-o, --sort <KEY>
 		Sort displayed pull requests by "created" (default), "updated", "popularity", or "long-running".
