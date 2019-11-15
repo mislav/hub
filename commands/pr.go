@@ -51,7 +51,7 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 
 	-f, --format <FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:
-		"%pC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
+		"%pC%>(8)%i%Creset  %t %cC%cs %l%n"). See the "PRETTY FORMATS" section of
 		git-log(1) for some additional details on how placeholders are used in
 		format. The available placeholders are:
 
@@ -92,6 +92,10 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 		%as: comma-separated list of assignees
 
 		%rs: comma-separated list of requested reviewers
+
+		%cs: check status
+
+		%cC: set color of check status according to the state
 
 		%Mn: milestone number
 
@@ -234,13 +238,24 @@ func listPulls(cmd *Command, args *Args) {
 	flagPullRequestLimit := args.Flag.Int("--limit")
 	flagPullRequestFormat := args.Flag.Value("--format")
 	if !args.Flag.HasReceived("--format") {
-		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t%  l%n"
+		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t %cC%cs %l%n"
 	}
 
 	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 		return !(onlyMerged && pr.MergedAt.IsZero())
 	})
 	utils.Check(err)
+
+	checkStatus, err := gh.FetchPullRequestsCheckStatus(project, filters, flagPullRequestLimit)
+	utils.Check(err)
+
+	for _, checkStatusPR := range checkStatus.Data.Repository.PullRequests.Nodes {
+		for key, pr := range pulls {
+			if checkStatusPR.Number == pr.Number {
+				pulls[key].CheckStatus = checkStatusPR.Commits.Nodes[0].Commit.Status.State
+			}
+		}
+	}
 
 	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	for _, pr := range pulls {

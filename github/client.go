@@ -93,6 +93,57 @@ func (client *Client) FetchPullRequests(project *Project, filterParams map[strin
 	return
 }
 
+type PullRequestCheckStatus struct {
+	Data struct {
+		Repository struct {
+			PullRequests struct {
+				Nodes []struct {
+					Number  int `json:"number"`
+					Commits struct {
+						Nodes []struct {
+							Commit struct {
+								Status struct {
+									State string `json:"state"`
+								} `json:"status"`
+							} `json:"commit"`
+						} `json:"nodes"`
+					} `json:"commits"`
+				} `json:"nodes"`
+			} `json:"pullRequests"`
+		} `json:"repository"`
+	} `json:"data"`
+}
+
+func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParams map[string]interface{}, limit int) (checkStatus *PullRequestCheckStatus, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	query, err := FetchPullRequestsCheckStatusQuery(project, filterParams, limit)
+	if err != nil {
+		return
+	}
+
+	response, err := api.PostJSONPreview(fmt.Sprintf("/graphql"), query, checksType)
+	if err != nil {
+		return
+	}
+
+	queryResult, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return
+	}
+
+	checkStatus = &PullRequestCheckStatus{}
+	err = json.Unmarshal(queryResult, checkStatus)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -628,6 +679,8 @@ type Issue struct {
 	HtmlUrl string `json:"html_url"`
 
 	ClosedBy *User `json:"closed_by"`
+
+	CheckStatus string `json:"checkStatus"`
 }
 
 type PullRequest Issue
