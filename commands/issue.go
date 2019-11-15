@@ -219,16 +219,17 @@ hub-pr(1), hub(1)
 `,
 	}
 
-    cmdTransferIssue = &Command{
-        Key: "transfer",
-        Run: transferIssue,
-    }
+	cmdTransfer = &Command{
+		Key: "transfer",
+		Run: transferIssue,
+	}
 )
 
 func init() {
 	cmdIssue.Use(cmdShowIssue)
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
+	cmdIssue.Use(cmdTransfer)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -717,5 +718,6 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 }
 
 func transferIssue(cmd *Command, args *Args) {
-    ui.Println("transferring issue")
+	ui.Println("transferring issue")
+	args.NoForward()
 }
