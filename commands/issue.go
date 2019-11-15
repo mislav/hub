@@ -218,6 +218,11 @@ hub-pr(1), hub(1)
 		--color
 `,
 	}
+
+    cmdTransferIssue = &Command{
+        Key: "transfer",
+        Run: transferIssue,
+    }
 )
 
 func init() {
@@ -709,4 +714,8 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 	}
 
 	return 0, fmt.Errorf("error: no milestone found with name '%s'", value)
+}
+
+func transferIssue(cmd *Command, args *Args) {
+    ui.Println("transferring issue")
 }
