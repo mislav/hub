@@ -719,7 +719,7 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 
 func transferIssue(cmd *Command, args *Args) {
 	issueNumber := args.GetParam(0)
-	//targetRepo := args.GetParam(1)
+	targetRepo := args.GetParam(1)
 
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -730,30 +730,55 @@ func transferIssue(cmd *Command, args *Args) {
 	owner := project.Owner
 	currRepo := project.Name
 	host := project.Host
+	gh := github.NewClient(host)
 
-	query := fmt.Sprintf(`query($issue: Int = %s, $owner: String = "%s", $repo: String = "%s") {
-                 repository(owner: $owner, name: $repo) {
-                     issue(number: $issue) {
-                         id
-                     }
-                   }
-                 }`, issueNumber, owner, currRepo)
+	query := fmt.Sprintf(`
+        query($issue: Int = %s, $owner: String = "%s", $repo: String = "%s") {
+            repository(owner: $owner, name: $repo) {
+                issue(number: $issue) {
+                    id
+                }
+            }
+        }`, issueNumber, owner, currRepo)
 	body := make(map[string]interface{})
 	body["query"] = query
 
-	gh := github.NewClient(host)
 	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
 
-    responseData := make(map[string]interface{})
-    err = response.Unmarshal(&responseData)
-    utils.Check(err)
+    ui.Printf("status: %d\n", response.StatusCode)
 
-    data := responseData["data"].(map[string]interface{})
-    repository := data["repository"].(map[string]interface{})
-    issue := repository["issue"].(map[string]interface{})
-    issueID := issue["id"].(string)
-    ui.Printf("issueID: %s\n", issueID)
+	responseData := make(map[string]interface{})
+	err = response.Unmarshal(&responseData)
+	utils.Check(err)
+
+	data := responseData["data"].(map[string]interface{})
+	repository := data["repository"].(map[string]interface{})
+	issue := repository["issue"].(map[string]interface{})
+	issueID := issue["id"].(string)
+	ui.Printf("issueID: %s\n", issueID)
+
+	query = fmt.Sprintf(`
+        query($owner: String = "%s", $repo: String = "%s") {
+            repository(owner: $owner, name: $repo) {
+                id
+            }
+        }`, owner, targetRepo)
+    body["query"] = query
+
+	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
+	utils.Check(err)
+
+    ui.Printf("status: %d\n", response.StatusCode)
+
+	responseData = make(map[string]interface{})
+	err = response.Unmarshal(&responseData)
+	utils.Check(err)
+
+    data = responseData["data"].(map[string]interface{})
+    repository = data["repository"].(map[string]interface{})
+    repositoryID := repository["id"].(string)
+	ui.Printf("repositoryID: %s\n", repositoryID)
 
 	args.NoForward()
 }
