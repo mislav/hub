@@ -21,6 +21,7 @@ issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M 
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
+issue transfer <ISSUE_NUMBER> <TARGET_REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
 
@@ -36,6 +37,9 @@ With no arguments, show a list of open issues.
 
 	* _labels_:
 		List the labels available in this repository.
+
+	* _transfer_:
+		Transfer an issue to another repository.
 
 ## Options:
 	-a, --assignee <ASSIGNEE>
@@ -719,14 +723,14 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 
 func transferIssue(cmd *Command, args *Args) {
 	if args.ParamsSize() < 2 {
-		ui.Errorln("Error: expected two parameters")
+		ui.Errorln("Usage: hub issue transfer <ISSUE_NUMBER> <TARGET_REPO>")
 		os.Exit(1)
 	}
 
 	issueNumber := args.GetParam(0)
 	targetRepo := args.GetParam(1)
 
-    var issueID, repositoryID string
+	var issueID, repositoryID string
 
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -791,7 +795,7 @@ func transferIssue(cmd *Command, args *Args) {
 		repositoryID = repository["id"].(string)
 	}
 
-    query = fmt.Sprintf(`
+	query = fmt.Sprintf(`
         mutation($issue: ID = "%s", $repo: ID = "%s") {
             transferIssue(input: {issueId: $issue, repositoryId: $repo}) {
                 issue {
@@ -800,7 +804,7 @@ func transferIssue(cmd *Command, args *Args) {
             }
         }
     `, issueID, repositoryID)
-    body["query"] = query
+	body["query"] = query
 
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
@@ -813,7 +817,7 @@ func transferIssue(cmd *Command, args *Args) {
 		ui.Errorf("Error transferring the issue\n")
 		os.Exit(1)
 	} else {
-		ui.Printf("Transferred issue #%s to %s/%s\n", issueNumber,  owner, targetRepo)
+		ui.Printf("Transferred issue #%s to %s/%s\n", issueNumber, owner, targetRepo)
 	}
 
 	args.NoForward()
