@@ -718,6 +718,11 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 }
 
 func transferIssue(cmd *Command, args *Args) {
+	if args.ParamsSize() < 2 {
+		ui.Errorln("error: expected two parameters")
+		os.Exit(1)
+	}
+
 	issueNumber := args.GetParam(0)
 	targetRepo := args.GetParam(1)
 
@@ -746,17 +751,20 @@ func transferIssue(cmd *Command, args *Args) {
 	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
 
-    ui.Printf("status: %d\n", response.StatusCode)
-
 	responseData := make(map[string]interface{})
 	err = response.Unmarshal(&responseData)
 	utils.Check(err)
 
-	data := responseData["data"].(map[string]interface{})
-	repository := data["repository"].(map[string]interface{})
-	issue := repository["issue"].(map[string]interface{})
-	issueID := issue["id"].(string)
-	ui.Printf("issueID: %s\n", issueID)
+	if _, keyExists := responseData["errors"]; keyExists {
+		ui.Errorf("Error finding issue number: %s\n", issueNumber)
+		os.Exit(1)
+	} else {
+		data := responseData["data"].(map[string]interface{})
+		repository := data["repository"].(map[string]interface{})
+		issue := repository["issue"].(map[string]interface{})
+		issueID := issue["id"].(string)
+		ui.Printf("issueID: %s\n", issueID)
+	}
 
 	query = fmt.Sprintf(`
         query($owner: String = "%s", $repo: String = "%s") {
@@ -764,21 +772,24 @@ func transferIssue(cmd *Command, args *Args) {
                 id
             }
         }`, owner, targetRepo)
-    body["query"] = query
+	body["query"] = query
 
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
-
-    ui.Printf("status: %d\n", response.StatusCode)
 
 	responseData = make(map[string]interface{})
 	err = response.Unmarshal(&responseData)
 	utils.Check(err)
 
-    data = responseData["data"].(map[string]interface{})
-    repository = data["repository"].(map[string]interface{})
-    repositoryID := repository["id"].(string)
-	ui.Printf("repositoryID: %s\n", repositoryID)
+	if _, keyExists := responseData["errors"]; keyExists {
+		ui.Errorf("Error finding repository: %s\n", targetRepo)
+		os.Exit(1)
+	} else {
+		data := responseData["data"].(map[string]interface{})
+		repository := data["repository"].(map[string]interface{})
+		repositoryID := repository["id"].(string)
+		ui.Printf("repositoryID: %s\n", repositoryID)
+	}
 
 	args.NoForward()
 }
