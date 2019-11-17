@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -745,7 +744,16 @@ func transferIssue(cmd *Command, args *Args) {
 	gh := github.NewClient(host)
 	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
-	io.Copy(ui.Stdout, response.Body)
+
+    responseData := make(map[string]interface{})
+    err = response.Unmarshal(&responseData)
+    utils.Check(err)
+
+    data := responseData["data"].(map[string]interface{})
+    repository := data["repository"].(map[string]interface{})
+    issue := repository["issue"].(map[string]interface{})
+    issueID := issue["id"].(string)
+    ui.Printf("issueID: %s\n", issueID)
 
 	args.NoForward()
 }
