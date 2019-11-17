@@ -719,12 +719,14 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 
 func transferIssue(cmd *Command, args *Args) {
 	if args.ParamsSize() < 2 {
-		ui.Errorln("error: expected two parameters")
+		ui.Errorln("Error: expected two parameters")
 		os.Exit(1)
 	}
 
 	issueNumber := args.GetParam(0)
 	targetRepo := args.GetParam(1)
+
+    var issueID, repositoryID string
 
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -762,8 +764,7 @@ func transferIssue(cmd *Command, args *Args) {
 		data := responseData["data"].(map[string]interface{})
 		repository := data["repository"].(map[string]interface{})
 		issue := repository["issue"].(map[string]interface{})
-		issueID := issue["id"].(string)
-		ui.Printf("issueID: %s\n", issueID)
+		issueID = issue["id"].(string)
 	}
 
 	query = fmt.Sprintf(`
@@ -782,13 +783,37 @@ func transferIssue(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	if _, keyExists := responseData["errors"]; keyExists {
-		ui.Errorf("Error finding repository: %s\n", targetRepo)
+		ui.Errorf("Error finding repository: %s/%s\n", owner, targetRepo)
 		os.Exit(1)
 	} else {
 		data := responseData["data"].(map[string]interface{})
 		repository := data["repository"].(map[string]interface{})
-		repositoryID := repository["id"].(string)
-		ui.Printf("repositoryID: %s\n", repositoryID)
+		repositoryID = repository["id"].(string)
+	}
+
+    query = fmt.Sprintf(`
+        mutation($issue: ID = "%s", $repo: ID = "%s") {
+            transferIssue(input: {issueId: $issue, repositoryId: $repo}) {
+                issue {
+                    url
+                }
+            }
+        }
+    `, issueID, repositoryID)
+    body["query"] = query
+
+	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
+	utils.Check(err)
+
+	responseData = make(map[string]interface{})
+	err = response.Unmarshal(&responseData)
+	utils.Check(err)
+
+	if _, keyExists := responseData["errors"]; keyExists {
+		ui.Errorf("Error transferring the issue\n")
+		os.Exit(1)
+	} else {
+		ui.Printf("Transferred issue #%s to %s/%s\n", issueNumber,  owner, targetRepo)
 	}
 
 	args.NoForward()
