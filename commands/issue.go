@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -718,6 +719,33 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 }
 
 func transferIssue(cmd *Command, args *Args) {
-	ui.Println("transferring issue")
+	issueNumber := args.GetParam(0)
+	//targetRepo := args.GetParam(1)
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	owner := project.Owner
+	currRepo := project.Name
+	host := project.Host
+
+	query := fmt.Sprintf(`query($issue: Int = %s, $owner: String = "%s", $repo: String = "%s") {
+                 repository(owner: $owner, name: $repo) {
+                     issue(number: $issue) {
+                         id
+                     }
+                   }
+                 }`, issueNumber, owner, currRepo)
+	body := make(map[string]interface{})
+	body["query"] = query
+
+	gh := github.NewClient(host)
+	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
+	utils.Check(err)
+	io.Copy(ui.Stdout, response.Body)
+
 	args.NoForward()
 }
