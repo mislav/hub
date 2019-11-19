@@ -33,11 +33,12 @@ case "$command" in
     if [[ $dest == refs/remotes/* ]]; then
       mkdir -p ".git/${dest%/*}"
       cat >".git/${dest}" <<<"$head"
-      cat >".git/FETCH_HEAD" <<<"$head"
+    elif [ -e ".git/refs/heads/${dest#refs/heads/}" ]; then
+      "$HUB_SYSTEM_GIT" update-ref refs/heads/"${dest#refs/heads/}" "$head"
     else
-      "$HUB_SYSTEM_GIT" checkout -b "${dest#refs/heads/}" HEAD
-      cat >".git/FETCH_HEAD" <<<"$head"
+      "$HUB_SYSTEM_GIT" branch "${dest#refs/heads/}" "$head"
     fi
+    cat >".git/FETCH_HEAD" <<<"$head"
     exit 0
     ;;
   "clone" | "pull" | "push" | "web--browse" )
