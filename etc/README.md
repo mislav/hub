@@ -19,6 +19,8 @@ if [ -f /path/to/hub.bash_completion ]; then
 fi
 ```
 
+If you are using snap you can point to ``/snap/hub/current/go/src/github.com/github/hub/etc/hub.bash_completion.sh``
+
 ## zsh
 
 Copy the file `etc/hub.zsh_completion` from the location where you downloaded
