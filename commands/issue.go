@@ -224,8 +224,9 @@ hub-pr(1), hub(1)
 	}
 
 	cmdTransfer = &Command{
-		Key: "transfer",
-		Run: transferIssue,
+		Key:   "transfer",
+		Run:   transferIssue,
+		Usage: "Usage: hub issue transfer <ISSUE_NUMBER> <TARGET_REPO>",
 	}
 )
 
@@ -723,8 +724,7 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 
 func transferIssue(cmd *Command, args *Args) {
 	if args.ParamsSize() < 2 {
-		ui.Errorln("Usage: hub issue transfer <ISSUE_NUMBER> <TARGET_REPO>")
-		os.Exit(1)
+		utils.Check(cmd.UsageError(""))
 	}
 
 	issueNumber := args.GetParam(0)
