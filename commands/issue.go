@@ -21,7 +21,7 @@ issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M 
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
-issue transfer <ISSUE_NUMBER> <TARGET_REPO>
+issue transfer <ISSUE-NUMBER> <TARGET-REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
 
