@@ -774,8 +774,7 @@ func transferIssue(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	if len(responseData.Errors) > 0 {
-		ui.Errorf("Error finding issue number: %s\n", issueNumber)
-		os.Exit(1)
+		utils.Check(fmt.Errorf("Error finding issue number: %s\n", issueNumber))
 	} else {
 		issueID = responseData.Data.Repository.Issue.ID
 	}
@@ -795,8 +794,7 @@ func transferIssue(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	if len(responseData.Errors) > 0 {
-		ui.Errorf("Error finding repository: %s/%s\n", owner, targetRepo)
-		os.Exit(1)
+		utils.Check(fmt.Errorf("Error finding repository: %s/%s\n", owner, targetRepo))
 	} else {
 		repositoryID = responseData.Data.Repository.ID
 	}
@@ -819,8 +817,7 @@ func transferIssue(cmd *Command, args *Args) {
 	utils.Check(err)
 
 	if len(responseData.Errors) > 0 {
-		ui.Errorf("Error transferring the issue\n")
-		os.Exit(1)
+		utils.Check(fmt.Errorf("Error transferring the issue\n"))
 	} else {
 		ui.Printf("Transferred issue #%s to %s/%s\n", issueNumber, owner, targetRepo)
 	}
