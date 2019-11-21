@@ -757,18 +757,27 @@ func transferIssue(cmd *Command, args *Args) {
 	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
 
-	responseData := make(map[string]interface{})
-	err = response.Unmarshal(&responseData)
-	utils.Check(err)
+    responseData := struct {
+        Data struct {
+            Repository struct {
+                Issue struct {
+                    ID string `json:"id"`
+                }
+                ID string `json:"id"`
+            }
+        }
+        Errors []struct {
+            Message string
+        }
+    }{}
+    err = response.Unmarshal(&responseData)
+    utils.Check(err)
 
-	if _, keyExists := responseData["errors"]; keyExists {
+	if len(responseData.Errors) > 0 {
 		ui.Errorf("Error finding issue number: %s\n", issueNumber)
 		os.Exit(1)
 	} else {
-		data := responseData["data"].(map[string]interface{})
-		repository := data["repository"].(map[string]interface{})
-		issue := repository["issue"].(map[string]interface{})
-		issueID = issue["id"].(string)
+		issueID = responseData.Data.Repository.Issue.ID
 	}
 
 	query = fmt.Sprintf(`
@@ -782,17 +791,14 @@ func transferIssue(cmd *Command, args *Args) {
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
 
-	responseData = make(map[string]interface{})
 	err = response.Unmarshal(&responseData)
 	utils.Check(err)
 
-	if _, keyExists := responseData["errors"]; keyExists {
+	if len(responseData.Errors) > 0 {
 		ui.Errorf("Error finding repository: %s/%s\n", owner, targetRepo)
 		os.Exit(1)
 	} else {
-		data := responseData["data"].(map[string]interface{})
-		repository := data["repository"].(map[string]interface{})
-		repositoryID = repository["id"].(string)
+		repositoryID = responseData.Data.Repository.ID
 	}
 
 	query = fmt.Sprintf(`
@@ -809,11 +815,10 @@ func transferIssue(cmd *Command, args *Args) {
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
 
-	responseData = make(map[string]interface{})
 	err = response.Unmarshal(&responseData)
 	utils.Check(err)
 
-	if _, keyExists := responseData["errors"]; keyExists {
+	if len(responseData.Errors) > 0 {
 		ui.Errorf("Error transferring the issue\n")
 		os.Exit(1)
 	} else {
