@@ -115,25 +115,25 @@ With no arguments, show a list of open issues.
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
-		of "always" (default for '--color'), "never", or "auto" (default).
+		of "always" (default for ''--color''), "never", or "auto" (default).
 
 	-m, --message <MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the issue
 		title, and the rest is used as issue description in Markdown format.
 
-		When multiple '--message' are passed, their values are concatenated with a
+		When multiple ''--message'' are passed, their values are concatenated with a
 		blank line in-between.
 
-		When neither '--message' nor '--file' were supplied to 'issue create', a
+		When neither ''--message'' nor ''--file'' were supplied to ''issue create'', a
 		text editor will open to author the title and description in.
 
 	-F, --file <FILE>
 		Read the issue title and description from <FILE>. Pass "-" to read from
-		standard input instead. See '--message' for the formatting rules.
+		standard input instead. See ''--message'' for the formatting rules.
 
 	-e, --edit
 		Open the issue title and description in a text editor before submitting.
-		This can be used in combination with '--message' or '--file'.
+		This can be used in combination with ''--message'' or ''--file''.
 
 	-o, --browse
 		Open the new issue in a web browser.

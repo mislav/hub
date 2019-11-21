@@ -2,6 +2,7 @@
 # Displays hub's release version
 set -e
 
+export GIT_CEILING_DIRECTORIES=${PWD%/*}
 version="$(git describe --tags HEAD 2>/dev/null || true)"
 
 if [ -z "$version" ]; then

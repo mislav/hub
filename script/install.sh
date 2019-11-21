@@ -16,7 +16,7 @@ fi
 prefix="${PREFIX:-$prefix}"
 prefix="${prefix:-/usr/local}"
 
-for src in bin/hub share/man/*/*.1 share/vim/vimfiles/*/*.vim; do
+for src in bin/hub share/man/*/*.1 share/doc/*/*.html share/vim/vimfiles/*/*.vim; do
   dest="${DESTDIR}${prefix}/${src}"
   mkdir -p "${dest%/*}"
   [[ $src == share/* ]] && mode="644" || mode=755

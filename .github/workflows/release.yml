@@ -1,0 +1,31 @@
+name: Release
+on:
+  push:
+    tags: 'v*'
+
+jobs:
+  release:
+    name: Publish release
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: Set up Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: "1.13"
+    - name: Run tests
+      run: script/publish-release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  homebrew:
+    name: Bump Homebrew formula
+    runs-on: ubuntu-latest
+    steps:
+      - uses: mislav/bump-homebrew-formula-action@v1.4
+        if: "!contains(github.ref, '-')" # skip prereleases
+        with:
+          formula-name: hub
+        env:
+          COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
