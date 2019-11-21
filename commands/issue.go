@@ -757,21 +757,21 @@ func transferIssue(cmd *Command, args *Args) {
 	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
 
-    responseData := struct {
-        Data struct {
-            Repository struct {
-                Issue struct {
-                    ID string `json:"id"`
-                }
-                ID string `json:"id"`
-            }
-        }
-        Errors []struct {
-            Message string
-        }
-    }{}
-    err = response.Unmarshal(&responseData)
-    utils.Check(err)
+	responseData := struct {
+		Data struct {
+			Repository struct {
+				Issue struct {
+					ID string `json:"id"`
+				}
+				ID string `json:"id"`
+			}
+		}
+		Errors []struct {
+			Message string
+		}
+	}{}
+	err = response.Unmarshal(&responseData)
+	utils.Check(err)
 
 	if len(responseData.Errors) > 0 {
 		ui.Errorf("Error finding issue number: %s\n", issueNumber)
