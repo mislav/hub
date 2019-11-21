@@ -226,7 +226,7 @@ hub-pr(1), hub(1)
 	cmdTransfer = &Command{
 		Key:   "transfer",
 		Run:   transferIssue,
-		Usage: "Usage: hub issue transfer <ISSUE_NUMBER> <TARGET_REPO>",
+		Usage: "issue transfer <ISSUE_NUMBER> <TARGET_REPO>",
 	}
 )
 
