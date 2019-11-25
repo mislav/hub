@@ -730,7 +730,7 @@ func transferIssue(cmd *Command, args *Args) {
 	issueNumber := args.GetParam(0)
 	targetRepo := args.GetParam(1)
 
-    issueInt, err := strconv.ParseInt(issueNumber, 10, 64)
+	issueInt, err := strconv.ParseInt(issueNumber, 10, 64)
 	utils.Check(err)
 
 	var issueID, repositoryID string
@@ -754,15 +754,15 @@ func transferIssue(cmd *Command, args *Args) {
                 }
             }
         }`)
-    variables := map[string]interface{}{
-        "issue": issueInt,
-        "owner": owner,
-        "repo": currRepo,
-    }
-    body := make(map[string]interface{})
-    body["query"] = query
-    body["variables"] = variables
-    ui.Println(body)
+	variables := map[string]interface{}{
+		"issue": issueInt,
+		"owner": owner,
+		"repo":  currRepo,
+	}
+	body := make(map[string]interface{})
+	body["query"] = query
+	body["variables"] = variables
+	ui.Println(body)
 
 	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
@@ -795,12 +795,12 @@ func transferIssue(cmd *Command, args *Args) {
                 id
             }
         }`)
-    variables = map[string]interface{}{
-        "owner": owner,
-        "repo": targetRepo,
-    }
+	variables = map[string]interface{}{
+		"owner": owner,
+		"repo":  targetRepo,
+	}
 	body["query"] = query
-    body["variables"] = variables
+	body["variables"] = variables
 
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
@@ -823,12 +823,12 @@ func transferIssue(cmd *Command, args *Args) {
             }
         }
     `)
-    variables = map[string]interface{}{
-        "issue": issueID,
-        "repo": repositoryID,
-    }
+	variables = map[string]interface{}{
+		"issue": issueID,
+		"repo":  repositoryID,
+	}
 	body["query"] = query
-    body["variables"] = variables
+	body["variables"] = variables
 
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
