@@ -730,6 +730,9 @@ func transferIssue(cmd *Command, args *Args) {
 	issueNumber := args.GetParam(0)
 	targetRepo := args.GetParam(1)
 
+    issueInt, err := strconv.ParseInt(issueNumber, 10, 64)
+	utils.Check(err)
+
 	var issueID, repositoryID string
 
 	localRepo, err := github.LocalRepo()
@@ -744,15 +747,22 @@ func transferIssue(cmd *Command, args *Args) {
 	gh := github.NewClient(host)
 
 	query := fmt.Sprintf(`
-        query($issue: Int = %s, $owner: String = "%s", $repo: String = "%s") {
+        query($issue: Int!, $owner: String!, $repo: String!) {
             repository(owner: $owner, name: $repo) {
                 issue(number: $issue) {
                     id
                 }
             }
-        }`, issueNumber, owner, currRepo)
-	body := make(map[string]interface{})
-	body["query"] = query
+        }`)
+    variables := map[string]interface{}{
+        "issue": issueInt,
+        "owner": owner,
+        "repo": currRepo,
+    }
+    body := make(map[string]interface{})
+    body["query"] = query
+    body["variables"] = variables
+    ui.Println(body)
 
 	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
@@ -780,12 +790,17 @@ func transferIssue(cmd *Command, args *Args) {
 	}
 
 	query = fmt.Sprintf(`
-        query($owner: String = "%s", $repo: String = "%s") {
+        query($owner: String!, $repo: String!) {
             repository(owner: $owner, name: $repo) {
                 id
             }
-        }`, owner, targetRepo)
+        }`)
+    variables = map[string]interface{}{
+        "owner": owner,
+        "repo": targetRepo,
+    }
 	body["query"] = query
+    body["variables"] = variables
 
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
@@ -800,15 +815,20 @@ func transferIssue(cmd *Command, args *Args) {
 	}
 
 	query = fmt.Sprintf(`
-        mutation($issue: ID = "%s", $repo: ID = "%s") {
+        mutation($issue: ID!, $repo: ID!) {
             transferIssue(input: {issueId: $issue, repositoryId: $repo}) {
                 issue {
                     url
                 }
             }
         }
-    `, issueID, repositoryID)
+    `)
+    variables = map[string]interface{}{
+        "issue": issueID,
+        "repo": repositoryID,
+    }
 	body["query"] = query
+    body["variables"] = variables
 
 	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
 	utils.Check(err)
