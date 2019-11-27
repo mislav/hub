@@ -1,9 +1,11 @@
+# hub
+
 hub is a command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
 
 This repository and its issue tracker is **not for reporting problems with
-GitHub.com** web interface. If you have a problem with GitHub itself, please
-[contact Support](https://github.com/contact).
+GitHub.com** web interface, but instead reporting issues for the hub command-line tool. If you have a problem with GitHub itself, please
+[contact Support](https://github.com/contact), otherwise, open an issue if you need to report a bug with hub.
 
 Usage
 -----
@@ -113,7 +115,7 @@ New-Item -Type file -Force $PROFILE
 
 ### Shell tab-completion
 
-hub repository contains tab-completion scripts for bash, zsh and fish.
+The hub repository contains tab-completion scripts for bash, zsh and fish.
 These scripts complement existing completion scripts that ship with git.
 
 [Installation instructions](etc)
