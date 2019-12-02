@@ -634,6 +634,9 @@ func listLabels(cmd *Command, args *Args) {
 
 func colorizeOutput(colorSet bool, when string) bool {
 	if !colorSet || when == "auto" {
+		if value, _ := git.GlobalConfig("color.ui"); value == "false" {
+			return false
+		}
 		return ui.IsTerminal(os.Stdout)
 	} else if when == "never" {
 		return false
