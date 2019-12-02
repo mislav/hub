@@ -33,6 +33,8 @@ var cmdCiStatus = &Command{
 
 		%t: name of the status check
 
+		%sM: set status marker (e.g "✔︎", "✖︎")
+
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
 		of "always" (default for ''--color''), "never", or "auto" (default).
@@ -175,6 +177,7 @@ func ciVerboseFormat(statuses []github.CIStatus, formatString string, colorize b
 			"sC": "",
 			"t":  status.Context,
 			"U":  status.TargetUrl,
+			"sM": stateMarker,
 		}
 
 		if colorize {
