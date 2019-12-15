@@ -85,10 +85,12 @@ func (t *verboseTransport) dumpRequest(req *http.Request) {
 	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.URL.Host, req.URL.RequestURI())
 	t.verbosePrintln(info)
 	t.dumpHeaders(req.Header, ">")
-	body := t.dumpBody(req.Body)
-	if body != nil {
-		// reset body since it's been read
-		req.Body = body
+	if inspectableType(req.Header.Get("content-type")) {
+		body := t.dumpBody(req.Body)
+		if body != nil {
+			// reset body since it's been read
+			req.Body = body
+		}
 	}
 }
 
@@ -96,10 +98,12 @@ func (t *verboseTransport) dumpResponse(resp *http.Response) {
 	info := fmt.Sprintf("< HTTP %d", resp.StatusCode)
 	t.verbosePrintln(info)
 	t.dumpHeaders(resp.Header, "<")
-	body := t.dumpBody(resp.Body)
-	if body != nil {
-		// reset body since it's been read
-		resp.Body = body
+	if inspectableType(resp.Header.Get("content-type")) {
+		body := t.dumpBody(resp.Body)
+		if body != nil {
+			// reset body since it's been read
+			resp.Body = body
+		}
 	}
 }
 
@@ -147,6 +151,12 @@ func (t *verboseTransport) verbosePrintln(msg string) {
 	}
 
 	fmt.Fprintln(t.Out, msg)
+}
+
+var jsonTypeRE = regexp.MustCompile(`[/+]json($|;)`)
+
+func inspectableType(ct string) bool {
+	return strings.HasPrefix(ct, "text/") || jsonTypeRE.MatchString(ct)
 }
 
 func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Client {
