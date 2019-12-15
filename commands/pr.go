@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -51,7 +52,7 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 
 	-f, --format <FORMAT>
 		Pretty print the list of pull requests using format <FORMAT> (default:
-		"%pC%>(8)%i%Creset  %t %cC%cs %l%n"). See the "PRETTY FORMATS" section of
+		"%pC%>(8)%i%Creset  %t%  l%n"). See the "PRETTY FORMATS" section of
 		git-log(1) for some additional details on how placeholders are used in
 		format. The available placeholders are:
 
@@ -93,9 +94,11 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 
 		%rs: comma-separated list of requested reviewers
 
-		%cs: check status
+		%cs: checks status ("success", "failure", etc.)
+		
+		%ci: checks status icon
 
-		%cC: set color of check status according to the state
+		%cC: set color according to checks status
 
 		%Mn: milestone number
 
@@ -243,7 +246,7 @@ func listPulls(cmd *Command, args *Args) {
 	flagPullRequestLimit := args.Flag.Int("--limit")
 	flagPullRequestFormat := args.Flag.Value("--format")
 	if !args.Flag.HasReceived("--format") {
-		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t %cC%cs %l%n"
+		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t%  l%n"
 	}
 
 	pulls, err := gh.FetchPullRequests(project, filtersWithMerged, flagPullRequestLimit, func(pr *github.PullRequest) bool {
@@ -251,12 +254,15 @@ func listPulls(cmd *Command, args *Args) {
 	})
 	utils.Check(err)
 
-	prsWithStatus, err := gh.FetchPullRequestsCheckStatus(project, filters, flagPullRequestLimit)
-	utils.Check(err)
-	for _, prWithStatus := range prsWithStatus {
-		for i, pr := range pulls {
-			if prWithStatus.Number == pr.Number {
-				pulls[i].CheckStatus = prWithStatus.Status
+	statusInFormatRE := regexp.MustCompile(`%(cs|ci|cC)\b`)
+	if statusInFormatRE.MatchString(flagPullRequestFormat) {
+		prsWithStatus, err := gh.FetchPullRequestsCheckStatus(project, filters, flagPullRequestLimit)
+		utils.Check(err)
+		for _, prWithStatus := range prsWithStatus {
+			for i, pr := range pulls {
+				if prWithStatus.Number == pr.Number {
+					pulls[i].CheckStatus = prWithStatus.Status
+				}
 			}
 		}
 	}
