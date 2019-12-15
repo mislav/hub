@@ -769,6 +769,22 @@ func (client *Client) CreateIssue(project *Project, params interface{}) (issue *
 	return
 }
 
+func (client *Client) CommentIssue(project *Project, issueNumber string, params interface{}) (comment *Comment, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	res, err := api.PostJSON(fmt.Sprintf("repos/%s/%s/issues/%s/comments", project.Owner, project.Name, issueNumber), params)
+	if err = checkStatus(201, "creating issue", res, err); err != nil {
+		return
+	}
+
+	comment = &Comment{}
+	err = res.Unmarshal(comment)
+	return
+}
+
 func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[string]interface{}) (err error) {
 	api, err := client.simpleApi()
 	if err != nil {
