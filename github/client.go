@@ -887,6 +887,45 @@ func (client *Client) GenericAPIRequest(method, path string, data interface{}, h
 	})
 }
 
+// GraphQL facilitates performing a GraphQL request and parsing the response
+func (client *Client) GraphQL(query string, variables interface{}, data interface{}) error {
+	api, err := client.simpleApi()
+	if err != nil {
+		return err
+	}
+
+	payload := map[string]interface{}{
+		"query":     query,
+		"variables": variables,
+	}
+	resp, err := api.PostJSON("graphql", payload)
+	if err = checkStatus(200, "performing GraphQL", resp, err); err != nil {
+		return err
+	}
+
+	responseData := struct {
+		Data   interface{}
+		Errors []struct {
+			Message string
+		}
+	}{
+		Data: data,
+	}
+	err = resp.Unmarshal(&responseData)
+	if err != nil {
+		return err
+	}
+
+	if len(responseData.Errors) > 0 {
+		messages := []string{}
+		for _, e := range responseData.Errors {
+			messages = append(messages, e.Message)
+		}
+		return fmt.Errorf("API error: %s", strings.Join(messages, "; "))
+	}
+	return nil
+}
+
 func (client *Client) CurrentUser() (user *User, err error) {
 	api, err := client.simpleApi()
 	if err != nil {

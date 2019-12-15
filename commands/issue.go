@@ -21,7 +21,7 @@ issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M 
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
-issue transfer <ISSUE-NUMBER> <TARGET-REPO>
+issue transfer <NUMBER> <REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
 
@@ -224,9 +224,8 @@ hub-pr(1), hub(1)
 	}
 
 	cmdTransfer = &Command{
-		Key:   "transfer",
-		Run:   transferIssue,
-		Usage: "issue transfer <ISSUE_NUMBER> <TARGET_REPO>",
+		Key: "transfer",
+		Run: transferIssue,
 	}
 )
 
@@ -727,120 +726,73 @@ func transferIssue(cmd *Command, args *Args) {
 		utils.Check(cmd.UsageError(""))
 	}
 
-	issueNumber := args.GetParam(0)
-	targetRepo := args.GetParam(1)
-
-	issueInt, err := strconv.ParseInt(issueNumber, 10, 64)
-	utils.Check(err)
-
-	var issueID, repositoryID string
-
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
 	project, err := localRepo.MainProject()
 	utils.Check(err)
 
-	owner := project.Owner
-	currRepo := project.Name
-	host := project.Host
-	gh := github.NewClient(host)
-
-	query := fmt.Sprintf(`
-        query($issue: Int!, $owner: String!, $repo: String!) {
-            repository(owner: $owner, name: $repo) {
-                issue(number: $issue) {
-                    id
-                }
-            }
-        }`)
-	variables := map[string]interface{}{
-		"issue": issueInt,
-		"owner": owner,
-		"repo":  currRepo,
-	}
-	body := make(map[string]interface{})
-	body["query"] = query
-	body["variables"] = variables
-	ui.Println(body)
-
-	response, err := gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
+	issueNumber, err := strconv.Atoi(args.GetParam(0))
 	utils.Check(err)
+	targetOwner := project.Owner
+	targetRepo := args.GetParam(1)
+	if strings.Contains(targetRepo, "/") {
+		parts := strings.SplitN(targetRepo, "/", 2)
+		targetOwner = parts[0]
+		targetRepo = parts[1]
+	}
 
-	responseData := struct {
-		Data struct {
-			Repository struct {
-				Issue struct {
-					ID string `json:"id"`
-				}
-				ID string `json:"id"`
+	gh := github.NewClient(project.Host)
+
+	nodeIDsResponse := struct {
+		Source struct {
+			Issue struct {
+				ID string
 			}
 		}
-		Errors []struct {
-			Message string
+		Target struct {
+			ID string
 		}
 	}{}
-	err = response.Unmarshal(&responseData)
+	err = gh.GraphQL(`
+	query($issue: Int!, $sourceOwner: String!, $sourceRepo: String!, $targetOwner: String!, $targetRepo: String!) {
+		source: repository(owner: $sourceOwner, name: $sourceRepo) {
+			issue(number: $issue) {
+				id
+			}
+		}
+		target: repository(owner: $targetOwner, name: $targetRepo) {
+			id
+		}
+	}`, map[string]interface{}{
+		"issue":       issueNumber,
+		"sourceOwner": project.Owner,
+		"sourceRepo":  project.Name,
+		"targetOwner": targetOwner,
+		"targetRepo":  targetRepo,
+	}, &nodeIDsResponse)
 	utils.Check(err)
 
-	if len(responseData.Errors) > 0 {
-		utils.Check(fmt.Errorf("Error finding issue number: %s\n", issueNumber))
-	} else {
-		issueID = responseData.Data.Repository.Issue.ID
-	}
-
-	query = fmt.Sprintf(`
-        query($owner: String!, $repo: String!) {
-            repository(owner: $owner, name: $repo) {
-                id
-            }
-        }`)
-	variables = map[string]interface{}{
-		"owner": owner,
-		"repo":  targetRepo,
-	}
-	body["query"] = query
-	body["variables"] = variables
-
-	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
+	issueResponse := struct {
+		TransferIssue struct {
+			Issue struct {
+				URL string
+			}
+		}
+	}{}
+	err = gh.GraphQL(`
+	mutation($issue: ID!, $repo: ID!) {
+		transferIssue(input: {issueId: $issue, repositoryId: $repo}) {
+			issue {
+				url
+			}
+		}
+	}`, map[string]interface{}{
+		"issue": nodeIDsResponse.Source.Issue.ID,
+		"repo":  nodeIDsResponse.Target.ID,
+	}, &issueResponse)
 	utils.Check(err)
 
-	err = response.Unmarshal(&responseData)
-	utils.Check(err)
-
-	if len(responseData.Errors) > 0 {
-		utils.Check(fmt.Errorf("Error finding repository: %s/%s\n", owner, targetRepo))
-	} else {
-		repositoryID = responseData.Data.Repository.ID
-	}
-
-	query = fmt.Sprintf(`
-        mutation($issue: ID!, $repo: ID!) {
-            transferIssue(input: {issueId: $issue, repositoryId: $repo}) {
-                issue {
-                    url
-                }
-            }
-        }
-    `)
-	variables = map[string]interface{}{
-		"issue": issueID,
-		"repo":  repositoryID,
-	}
-	body["query"] = query
-	body["variables"] = variables
-
-	response, err = gh.GenericAPIRequest("POST", "graphql", body, nil, 0)
-	utils.Check(err)
-
-	err = response.Unmarshal(&responseData)
-	utils.Check(err)
-
-	if len(responseData.Errors) > 0 {
-		utils.Check(fmt.Errorf("Error transferring the issue\n"))
-	} else {
-		ui.Printf("Transferred issue #%s to %s/%s\n", issueNumber, owner, targetRepo)
-	}
-
+	ui.Println(issueResponse.TransferIssue.Issue.URL)
 	args.NoForward()
 }
