@@ -230,8 +230,13 @@ func listPulls(cmd *Command, args *Args) {
 	}
 
 	onlyMerged := false
+	filtersWithMerged := filters
 	if filters["state"] == "merged" {
-		filters["state"] = "closed"
+		filtersWithMerged = map[string]interface{}{}
+		for key, value := range filters {
+			filtersWithMerged[key] = value
+		}
+		filtersWithMerged["state"] = "closed"
 		onlyMerged = true
 	}
 
@@ -241,18 +246,17 @@ func listPulls(cmd *Command, args *Args) {
 		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t %cC%cs %l%n"
 	}
 
-	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+	pulls, err := gh.FetchPullRequests(project, filtersWithMerged, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 		return !(onlyMerged && pr.MergedAt.IsZero())
 	})
 	utils.Check(err)
 
-	checkStatus, err := gh.FetchPullRequestsCheckStatus(project, filters, flagPullRequestLimit)
+	prsWithStatus, err := gh.FetchPullRequestsCheckStatus(project, filters, flagPullRequestLimit)
 	utils.Check(err)
-
-	for _, checkStatusPR := range checkStatus.Data.Repository.PullRequests.Nodes {
-		for key, pr := range pulls {
-			if checkStatusPR.Number == pr.Number {
-				pulls[key].CheckStatus = checkStatusPR.Commits.Nodes[0].Commit.Status.State
+	for _, prWithStatus := range prsWithStatus {
+		for i, pr := range pulls {
+			if prWithStatus.Number == pr.Number {
+				pulls[i].CheckStatus = prWithStatus.Status
 			}
 		}
 	}

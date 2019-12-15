@@ -93,55 +93,146 @@ func (client *Client) FetchPullRequests(project *Project, filterParams map[strin
 	return
 }
 
-type PullRequestCheckStatus struct {
-	Data struct {
+type PRWithStatus struct {
+	Number int
+	Status string
+}
+
+func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParams map[string]interface{}, limit int) ([]PRWithStatus, error) {
+	responseData := struct {
 		Repository struct {
 			PullRequests struct {
 				Nodes []struct {
-					Number  int `json:"number"`
+					Number  int
 					Commits struct {
 						Nodes []struct {
 							Commit struct {
 								Status struct {
-									State string `json:"state"`
-								} `json:"status"`
-							} `json:"commit"`
-						} `json:"nodes"`
-					} `json:"commits"`
-				} `json:"nodes"`
-			} `json:"pullRequests"`
-		} `json:"repository"`
-	} `json:"data"`
-}
+									State string
+								}
+							}
+						}
+					}
+				}
+				PageInfo struct {
+					HasNextPage bool
+					EndCursor   string
+				}
+			}
+		}
+	}{}
 
-func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParams map[string]interface{}, limit int) (checkStatus *PullRequestCheckStatus, err error) {
-	api, err := client.simpleApi()
-	if err != nil {
-		return
+	states := []string{"OPEN"}
+	if state, ok := filterParams["state"].(string); ok {
+		switch state {
+		case "open":
+			states = []string{"OPEN"}
+		case "closed":
+			states = []string{"CLOSED", "MERGED"}
+		case "merged":
+			states = []string{"MERGED"}
+		case "all":
+			states = []string{"OPEN", "CLOSED", "MERGED"}
+		default:
+			return nil, fmt.Errorf("unsupported state: %q", state)
+		}
 	}
 
-	query, err := FetchPullRequestsCheckStatusQuery(project, filterParams, limit)
-	if err != nil {
-		return
+	perPage := limit
+	if limit < 0 {
+		perPage = 100
+	}
+	results := make([]PRWithStatus, 0, perPage)
+	if perPage > 100 {
+		perPage = 100
+	}
+	variables := map[string]interface{}{
+		"owner":   project.Owner,
+		"repo":    project.Name,
+		"states":  states,
+		"perPage": perPage,
 	}
 
-	response, err := api.PostJSONPreview(fmt.Sprintf("/graphql"), query, checksType)
-	if err != nil {
-		return
+	if sort, ok := filterParams["sort"].(string); ok {
+		switch sort {
+		case "created":
+			variables["orderField"] = "CREATED_AT"
+		case "updated":
+			variables["orderField"] = "UPDATED_AT"
+		case "popularity":
+			variables["orderField"] = "COMMENTS"
+		default:
+			return nil, fmt.Errorf("unsupported sort field: %q", sort)
+		}
 	}
 
-	queryResult, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return
+	if orderDirection, ok := filterParams["direction"].(string); ok && orderDirection == "asc" {
+		variables["orderDirection"] = "ASC"
 	}
 
-	checkStatus = &PullRequestCheckStatus{}
-	err = json.Unmarshal(queryResult, checkStatus)
-	if err != nil {
-		return
+	for {
+		err := client.GraphQL(`
+		query (
+			$owner: String!,
+			$repo: String!,
+			$states: [PullRequestState!],
+			$orderField: IssueOrderField = CREATED_AT,
+			$orderDirection: OrderDirection = DESC,
+			$perPage: Int!,
+			$endCursor: String
+		) {
+			repository(owner: $owner, name: $repo) {
+				pullRequests(
+					states: $states,
+					orderBy: {field: $orderField, direction: $orderDirection},
+					first: $perPage,
+					after: $endCursor
+				) {
+					nodes {
+						number
+						commits(last: 1) {
+							nodes {
+								commit {
+									status {
+										state
+									}
+								}
+							}
+						}
+					}
+					pageInfo {
+						hasNextPage
+						endCursor
+					}
+				}
+			}
+		}`, variables, &responseData)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, pr := range responseData.Repository.PullRequests.Nodes {
+			var status string
+			if len(pr.Commits.Nodes) > 0 {
+				status = pr.Commits.Nodes[0].Commit.Status.State
+			}
+			results = append(results, PRWithStatus{
+				Number: pr.Number,
+				Status: status,
+			})
+			if len(results) == limit {
+				break
+			}
+		}
+
+		if pageInfo := responseData.Repository.PullRequests.PageInfo; pageInfo.HasNextPage {
+			variables["endCursor"] = pageInfo.EndCursor
+			continue
+		}
+		break
 	}
 
-	return
+	return results, nil
 }
 
 func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest, err error) {
