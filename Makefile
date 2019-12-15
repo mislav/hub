@@ -13,7 +13,7 @@ ifneq ($(GOFLAGS),)
 	unexport GOPATH
 endif
 
-MIN_COVERAGE = 89.4
+MIN_COVERAGE = 90.2
 
 HELP_CMD = \
 	share/man/man1/hub-alias.1 \

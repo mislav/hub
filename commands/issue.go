@@ -21,6 +21,7 @@ issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M 
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
+issue transfer <NUMBER> <REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
 
@@ -36,6 +37,9 @@ With no arguments, show a list of open issues.
 
 	* _labels_:
 		List the labels available in this repository.
+
+	* _transfer_:
+		Transfer an issue to another repository.
 
 ## Options:
 	-a, --assignee <ASSIGNEE>
@@ -218,12 +222,18 @@ hub-pr(1), hub(1)
 		--color
 `,
 	}
+
+	cmdTransfer = &Command{
+		Key: "transfer",
+		Run: transferIssue,
+	}
 )
 
 func init() {
 	cmdIssue.Use(cmdShowIssue)
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
+	cmdIssue.Use(cmdTransfer)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -716,4 +726,80 @@ func milestoneValueToNumber(value string, client *github.Client, project *github
 	}
 
 	return 0, fmt.Errorf("error: no milestone found with name '%s'", value)
+}
+
+func transferIssue(cmd *Command, args *Args) {
+	if args.ParamsSize() < 2 {
+		utils.Check(cmd.UsageError(""))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	issueNumber, err := strconv.Atoi(args.GetParam(0))
+	utils.Check(err)
+	targetOwner := project.Owner
+	targetRepo := args.GetParam(1)
+	if strings.Contains(targetRepo, "/") {
+		parts := strings.SplitN(targetRepo, "/", 2)
+		targetOwner = parts[0]
+		targetRepo = parts[1]
+	}
+
+	gh := github.NewClient(project.Host)
+
+	nodeIDsResponse := struct {
+		Source struct {
+			Issue struct {
+				ID string
+			}
+		}
+		Target struct {
+			ID string
+		}
+	}{}
+	err = gh.GraphQL(`
+	query($issue: Int!, $sourceOwner: String!, $sourceRepo: String!, $targetOwner: String!, $targetRepo: String!) {
+		source: repository(owner: $sourceOwner, name: $sourceRepo) {
+			issue(number: $issue) {
+				id
+			}
+		}
+		target: repository(owner: $targetOwner, name: $targetRepo) {
+			id
+		}
+	}`, map[string]interface{}{
+		"issue":       issueNumber,
+		"sourceOwner": project.Owner,
+		"sourceRepo":  project.Name,
+		"targetOwner": targetOwner,
+		"targetRepo":  targetRepo,
+	}, &nodeIDsResponse)
+	utils.Check(err)
+
+	issueResponse := struct {
+		TransferIssue struct {
+			Issue struct {
+				URL string
+			}
+		}
+	}{}
+	err = gh.GraphQL(`
+	mutation($issue: ID!, $repo: ID!) {
+		transferIssue(input: {issueId: $issue, repositoryId: $repo}) {
+			issue {
+				url
+			}
+		}
+	}`, map[string]interface{}{
+		"issue": nodeIDsResponse.Source.Issue.ID,
+		"repo":  nodeIDsResponse.Target.ID,
+	}, &issueResponse)
+	utils.Check(err)
+
+	ui.Println(issueResponse.TransferIssue.Issue.URL)
+	args.NoForward()
 }
