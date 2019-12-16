@@ -98,22 +98,45 @@ type PRWithStatus struct {
 	Status string
 }
 
+type GraphQLPullRequest struct {
+	Number      int
+	HeadRefName string
+
+	IsCrossRepository   bool
+	HeadRepositoryOwner struct {
+		Login string
+	}
+
+	Commits struct {
+		Nodes []struct {
+			Commit struct {
+				Status struct {
+					State string
+				}
+			}
+		}
+	}
+}
+
+func (pr GraphQLPullRequest) Status() string {
+	if len(pr.Commits.Nodes) > 0 {
+		return pr.Commits.Nodes[0].Commit.Status.State
+	}
+	return ""
+}
+
+func (pr GraphQLPullRequest) HeadLabel(fullyQualified bool) string {
+	if fullyQualified || pr.IsCrossRepository {
+		return fmt.Sprintf("%s:%s", pr.HeadRepositoryOwner.Login, pr.HeadRefName)
+	}
+	return pr.HeadRefName
+}
+
 func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParams map[string]interface{}, limit int) ([]PRWithStatus, error) {
 	responseData := struct {
 		Repository struct {
 			PullRequests struct {
-				Nodes []struct {
-					Number  int
-					Commits struct {
-						Nodes []struct {
-							Commit struct {
-								Status struct {
-									State string
-								}
-							}
-						}
-					}
-				}
+				Nodes    []GraphQLPullRequest
 				PageInfo struct {
 					HasNextPage bool
 					EndCursor   string
@@ -170,12 +193,43 @@ func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParam
 		variables["orderDirection"] = "ASC"
 	}
 
+	if baseBranch, ok := filterParams["base"].(string); ok {
+		variables["baseRefName"] = baseBranch
+	}
+	headBranch, hasHeadFilter := filterParams["head"].(string)
+	if hasHeadFilter {
+		headBranchWithoutOwner := headBranch
+		if strings.Contains(headBranch, ":") {
+			headBranchWithoutOwner = headBranch[strings.Index(headBranch, ":")+1:]
+		}
+		variables["headRefName"] = headBranchWithoutOwner
+	}
+
 	for {
 		err := client.GraphQL(`
+		fragment pr on PullRequest {
+			number
+			headRefName
+			headRepositoryOwner {
+				login
+			}
+			isCrossRepository
+			commits(last: 1) {
+				nodes {
+					commit {
+						status {
+							state
+						}
+					}
+				}
+			}
+		}
 		query (
 			$owner: String!,
 			$repo: String!,
 			$states: [PullRequestState!],
+			$baseRefName: String,
+			$headRefName: String,
 			$orderField: IssueOrderField = CREATED_AT,
 			$orderDirection: OrderDirection = DESC,
 			$perPage: Int!,
@@ -185,20 +239,13 @@ func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParam
 				pullRequests(
 					states: $states,
 					orderBy: {field: $orderField, direction: $orderDirection},
+					baseRefName: $baseRefName,
+					headRefName: $headRefName,
 					first: $perPage,
 					after: $endCursor
 				) {
 					nodes {
-						number
-						commits(last: 1) {
-							nodes {
-								commit {
-									status {
-										state
-									}
-								}
-							}
-						}
+						...pr
 					}
 					pageInfo {
 						hasNextPage
@@ -212,13 +259,12 @@ func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParam
 		}
 
 		for _, pr := range responseData.Repository.PullRequests.Nodes {
-			var status string
-			if len(pr.Commits.Nodes) > 0 {
-				status = pr.Commits.Nodes[0].Commit.Status.State
+			if hasHeadFilter && !strings.EqualFold(pr.HeadLabel(true), headBranch) {
+				continue
 			}
 			results = append(results, PRWithStatus{
 				Number: pr.Number,
-				Status: status,
+				Status: pr.Status(),
 			})
 			if len(results) == limit {
 				goto done
