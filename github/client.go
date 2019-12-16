@@ -139,7 +139,7 @@ func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParam
 	}
 
 	perPage := limit
-	if limit < 0 {
+	if limit < 1 {
 		perPage = 100
 	}
 	results := make([]PRWithStatus, 0, perPage)
@@ -221,7 +221,7 @@ func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParam
 				Status: status,
 			})
 			if len(results) == limit {
-				break
+				goto done
 			}
 		}
 
@@ -229,6 +229,7 @@ func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParam
 			variables["endCursor"] = pageInfo.EndCursor
 			continue
 		}
+	done:
 		break
 	}
 
