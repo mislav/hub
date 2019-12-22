@@ -23,9 +23,9 @@ func (p Project) String() string {
 }
 
 func (p *Project) SameAs(other *Project) bool {
-	return strings.ToLower(p.Owner) == strings.ToLower(other.Owner) &&
-		strings.ToLower(p.Name) == strings.ToLower(other.Name) &&
-		strings.ToLower(p.Host) == strings.ToLower(other.Host)
+	return strings.EqualFold(p.Owner, other.Owner) &&
+		strings.EqualFold(p.Name, other.Name) &&
+		strings.EqualFold(p.Host, other.Host)
 }
 
 func (p *Project) WebURL(name, owner, path string) string {
