@@ -593,6 +593,270 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
+
+  Scenario: Edit an issue's title
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :body => "I want this feature",
+          :title => "Not workie!",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "Not workie, pls fix",
+               :body => "",
+               :milestone => :no,
+               :assignees => :no,
+               :labels => :no
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 -m "Not workie, pls fix"`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+    
+  Scenario: Edit an issue's labels
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :body => "I want this feature",
+          :title => "Not workie!",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => :no,
+               :assignees => :no,
+               :labels => ["bug", "important"]
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 -l bug,important`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Edit an issue's milestone
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :body => "I want this feature",
+          :title => "Not workie!",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => 42,
+               :assignees => :no,
+               :labels => :no
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 -M 42`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Create an issue with milestone by name
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 42, :title => "Hello World!" }
+        ]
+      }
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :body => "I want this feature",
+          :title => "Not workie!",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => 42,
+               :assignees => :no,
+               :labels => :no
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 -M "hello world!"`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Edit an issue's assignees
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :body => "I want this feature",
+          :title => "Not workie!",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => :no,
+               :assignees => ["Cornwe19"],
+               :labels => :no
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 -a Cornwe19`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Edit an issue's title, labels, milestone, and assignees
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :body => "I want this feature",
+          :title => "Not workie!",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "Not workie, pls fix",
+               :body => "",
+               :milestone => 42,
+               :assignees => ["Cornwe19"],
+               :labels => ["bug", "important"]
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337  -m "Not workie, pls fix" -M 42 -l bug,important -a Cornwe19`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Edit an issue and open in browser
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :body => "",
+          :title => "Not workie!",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 -m "Not workie, pls fix" -o`
+    Then the output should contain exactly ""
+    Then "open https://github.com/github/hub/issues/1337" should be run
+
+  Scenario: Edit an issue's title and body manually
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      My new title
+      """
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :title => "My old title",
+          :body => "My old body",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "My new title",
+               :body => "My old title\n\nMy old body",
+               :milestone => :no,
+               :assignees => :no,
+               :labels => :no
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 --edit`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
+  Scenario: Edit an issue's title and body via a file
+    Given a file named "my-issue.md" with:
+      """
+      My new title
+      
+      My new body
+      """
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :state => "open",
+          :title => "My old title",
+          :body => "My old body",
+          :created_at => "2017-04-14T16:00:49Z",
+          :html_url => "https://github.com/github/hub/issues/1337"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "My new title",
+               :body => "My new body",
+               :milestone => :no,
+               :assignees => :no,
+               :labels => :no
+        json ""
+        status 200
+      }
+      """
+    When I successfully run `hub issue edit 1337 -F my-issue.md`
+    Then the output should contain exactly:
+      """
+      https://github.com/github/hub/issues/1337\n
+      """
+
   Scenario: Fetch issue labels
     Given the GitHub API server:
     """

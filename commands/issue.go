@@ -21,6 +21,7 @@ issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M 
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
+issue edit <NUMBER> [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue transfer <NUMBER> <REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
@@ -227,6 +228,21 @@ hub-pr(1), hub(1)
 		Key: "transfer",
 		Run: transferIssue,
 	}
+
+	cmdEdit = &Command{
+		Key: "edit",
+		Run: editIssue,
+		KnownFlags: `
+		-m, --message MSG
+		-F, --file FILE
+		-M, --milestone NAME
+		-l, --labels LIST
+		-a, --assign USER
+		-o, --browse
+		-c, --copy
+		-e, --edit
+`,
+	}
 )
 
 func init() {
@@ -234,6 +250,7 @@ func init() {
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
 	cmdIssue.Use(cmdTransfer)
+	cmdIssue.Use(cmdEdit)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -608,6 +625,97 @@ text is the title and the rest is the description.`, project))
 		ui.Printf("Would create issue `%s' for %s\n", params["title"], project)
 	} else {
 		issue, err := gh.CreateIssue(project, params)
+		utils.Check(err)
+
+		flagIssueBrowse := args.Flag.Bool("--browse")
+		flagIssueCopy := args.Flag.Bool("--copy")
+		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, flagIssueCopy)
+	}
+
+	messageBuilder.Cleanup()
+}
+
+func editIssue(cmd *Command, args *Args) {
+	issueNumber := 0
+	if args.ParamsSize() > 0 {
+		issueNumber, _ = strconv.Atoi(args.GetParam(0))
+	}
+	if issueNumber == 0 {
+		utils.Check(cmd.UsageError(""))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	issue, err := gh.FetchIssue(project, strconv.Itoa(issueNumber))
+
+	utils.Check(err)
+
+	messageBuilder := &github.MessageBuilder{
+		Filename: "ISSUE_EDITMSG",
+		Title:    "issue",
+	}
+
+	messageBuilder.Message = fmt.Sprintf(`%s
+
+%s`, issue.Title, issue.Body)
+
+	messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing issue %d for %s
+
+Update the message for this issue. The first block of
+text is the title and the rest is the description.`, issue.Number, project))
+
+	updateIssueMessage := true
+	flagIssueEdit := args.Flag.Bool("--edit")
+	messageBuilder.Edit = flagIssueEdit
+	flagIssueMessage := args.Flag.AllValues("--message")
+	if len(flagIssueMessage) > 0 {
+		messageBuilder.Message = strings.Join(flagIssueMessage, "\n\n")
+	} else if args.Flag.HasReceived("--file") {
+		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
+		utils.Check(err)
+	} else {
+		updateIssueMessage = false
+	}
+
+	params := map[string]interface{}{}
+
+	if updateIssueMessage || flagIssueEdit {
+		title, body, err := messageBuilder.Extract()
+		utils.Check(err)
+		if title == "" {
+			utils.Check(fmt.Errorf("Aborting creation due to empty issue title"))
+		}
+		params["title"] = title
+		params["body"] = body
+	}
+
+	flagIssueLabels := commaSeparated(args.Flag.AllValues("--labels"))
+	if len(flagIssueLabels) > 0 {
+		params["labels"] = flagIssueLabels
+	}
+
+	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assign"))
+	if len(flagIssueAssignees) > 0 {
+		params["assignees"] = flagIssueAssignees
+	}
+
+	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
+	utils.Check(err)
+	if milestoneNumber > 0 {
+		params["milestone"] = milestoneNumber
+	}
+
+	args.NoForward()
+	if args.Noop {
+		ui.Printf("Would update issue #%i `%s' for %s\n", issueNumber, params["title"], project)
+	} else {
+		err := gh.UpdateIssue(project, issueNumber, params)
 		utils.Check(err)
 
 		flagIssueBrowse := args.Flag.Bool("--browse")
