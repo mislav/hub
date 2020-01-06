@@ -604,21 +604,11 @@ text is the title and the rest is the description.`, project))
 		"body":  body,
 	}
 
-	flagIssueLabels := commaSeparated(args.Flag.AllValues("--labels"))
-	if len(flagIssueLabels) > 0 {
-		params["labels"] = flagIssueLabels
-	}
+	setLabelsFromArgs(params, args)
 
-	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assign"))
-	if len(flagIssueAssignees) > 0 {
-		params["assignees"] = flagIssueAssignees
-	}
+	setAssigneesFromArgs(params, args)
 
-	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
-	utils.Check(err)
-	if milestoneNumber > 0 {
-		params["milestone"] = milestoneNumber
-	}
+	setMilestoneFromArgs(params, args, gh, project)
 
 	args.NoForward()
 	if args.Noop {
@@ -661,9 +651,7 @@ func editIssue(cmd *Command, args *Args) {
 		Title:    "issue",
 	}
 
-	messageBuilder.Message = fmt.Sprintf(`%s
-
-%s`, issue.Title, issue.Body)
+	messageBuilder.Message = fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body)
 
 	messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing issue %d for %s
 
@@ -695,21 +683,11 @@ text is the title and the rest is the description.`, issue.Number, project))
 		params["body"] = body
 	}
 
-	flagIssueLabels := commaSeparated(args.Flag.AllValues("--labels"))
-	if len(flagIssueLabels) > 0 {
-		params["labels"] = flagIssueLabels
-	}
+	setLabelsFromArgs(params, args)
 
-	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assign"))
-	if len(flagIssueAssignees) > 0 {
-		params["assignees"] = flagIssueAssignees
-	}
+	setAssigneesFromArgs(params, args)
 
-	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
-	utils.Check(err)
-	if milestoneNumber > 0 {
-		params["milestone"] = milestoneNumber
-	}
+	setMilestoneFromArgs(params, args, gh, project)
 
 	args.NoForward()
 	if args.Noop {
@@ -747,6 +725,28 @@ func listLabels(cmd *Command, args *Args) {
 	flagLabelsColorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	for _, label := range labels {
 		ui.Print(formatLabel(label, flagLabelsColorize))
+	}
+}
+
+func setLabelsFromArgs(params map[string]interface{}, args *Args) {
+	flagIssueLabels := commaSeparated(args.Flag.AllValues("--labels"))
+	if len(flagIssueLabels) > 0 {
+		params["labels"] = flagIssueLabels
+	}
+}
+
+func setAssigneesFromArgs(params map[string]interface{}, args *Args) {
+	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assign"))
+	if len(flagIssueAssignees) > 0 {
+		params["assignees"] = flagIssueAssignees
+	}
+}
+
+func setMilestoneFromArgs(params map[string]interface{}, args *Args, gh *github.Client, project *github.Project) {
+	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
+	utils.Check(err)
+	if milestoneNumber > 0 {
+		params["milestone"] = milestoneNumber
 	}
 }
 

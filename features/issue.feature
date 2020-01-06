@@ -612,8 +612,6 @@ Feature: hub issue
                :milestone => :no,
                :assignees => :no,
                :labels => :no
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337 -m "Not workie, pls fix"`
@@ -640,8 +638,6 @@ Feature: hub issue
                :milestone => :no,
                :assignees => :no,
                :labels => ["bug", "important"]
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337 -l bug,important`
@@ -668,8 +664,6 @@ Feature: hub issue
                :milestone => 42,
                :assignees => :no,
                :labels => :no
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337 -M 42`
@@ -678,7 +672,7 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
-  Scenario: Create an issue with milestone by name
+  Scenario: Edit an issue with milestone by name
     Given the GitHub API server:
       """
       get('/repos/github/hub/milestones') {
@@ -703,8 +697,6 @@ Feature: hub issue
                :milestone => 42,
                :assignees => :no,
                :labels => :no
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337 -M "hello world!"`
@@ -731,8 +723,6 @@ Feature: hub issue
                :milestone => :no,
                :assignees => ["Cornwe19"],
                :labels => :no
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337 -a Cornwe19`
@@ -759,8 +749,6 @@ Feature: hub issue
                :milestone => 42,
                :assignees => ["Cornwe19"],
                :labels => ["bug", "important"]
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337  -m "Not workie, pls fix" -M 42 -l bug,important -a Cornwe19`
@@ -781,10 +769,7 @@ Feature: hub issue
           :created_at => "2017-04-14T16:00:49Z",
           :html_url => "https://github.com/github/hub/issues/1337"
       }
-      patch('/repos/github/hub/issues/1337') {
-        json ""
-        status 200
-      }
+      patch('/repos/github/hub/issues/1337') {}
       """
     When I successfully run `hub issue edit 1337 -m "Not workie, pls fix" -o`
     Then the output should contain exactly ""
@@ -813,8 +798,6 @@ Feature: hub issue
                :milestone => :no,
                :assignees => :no,
                :labels => :no
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337 --edit`
@@ -847,8 +830,6 @@ Feature: hub issue
                :milestone => :no,
                :assignees => :no,
                :labels => :no
-        json ""
-        status 200
       }
       """
     When I successfully run `hub issue edit 1337 -F my-issue.md`
