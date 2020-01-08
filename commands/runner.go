@@ -56,6 +56,15 @@ func (r *Runner) Execute(cliArgs []string) error {
 		cmdName = args.Command
 	}
 
+	// make `<cmd> --help` equivalent to `help <cmd>`
+	if args.ParamsSize() == 1 && args.GetParam(0) == helpFlag {
+		if c := r.Lookup(cmdName); c != nil && !c.GitExtension {
+			args.ReplaceParam(0, cmdName)
+			args.Command = "help"
+			cmdName = args.Command
+		}
+	}
+
 	cmd := r.Lookup(cmdName)
 	if cmd != nil && cmd.Runnable() {
 		err := callRunnableCommand(cmd, args)

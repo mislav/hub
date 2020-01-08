@@ -1,27 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-STATUS=0
-TMPDIR="${TMPDIR:-/tmp}"
-warnings="${TMPDIR%/}/gh-warnings.$$"
-
-run() {
-  # Save warnings on stderr to a separate file
-  RUBYOPT="$RUBYOPT -w" bundle exec "$@" \
-    2> >(tee >(grep 'warning:' >>"$warnings") | grep -v 'warning:') || STATUS=$?
-}
-
-check_warnings() {
-  # Display Ruby warnings from this project's source files. Abort if any were found.
-  num="$(grep -F "$PWD" "$warnings" | grep -v "${PWD}/bundle" | sort | uniq -c | sort -rn | tee /dev/stderr | wc -l)"
-  rm -f "$warnings"
-  if [ "$num" -gt 0 ]; then
-    echo "FAILED: this test suite doesn't tolerate Ruby syntax warnings!" >&2
-    exit 1
-  fi
-}
-
-if [ -z "$TRAVIS" ] && tmux -V; then
+if [ -z "$GITHUB_ACTIONS" ] && tmux -V; then
   if [ -n "$CI" ]; then
     git --version
     bash --version | head -1
@@ -34,7 +14,4 @@ else
   profile="default"
 fi
 
-run cucumber -p "$profile" "$@"
-check_warnings
-
-exit $STATUS
+bin/cucumber -p "$profile" "$@"

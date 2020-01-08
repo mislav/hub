@@ -9,6 +9,53 @@ import (
 	"github.com/github/hub/fixtures"
 )
 
+func TestSameAs(t *testing.T) {
+	tests := []struct {
+		name     string
+		project1 *Project
+		project2 *Project
+		want     bool
+	}{
+		{
+			name: "same project",
+			project1: &Project{
+				Owner: "fOo",
+				Name:  "baR",
+				Host:  "gItHUb.com",
+			},
+			project2: &Project{
+				Owner: "FoO",
+				Name:  "BAr",
+				Host:  "GithUB.com",
+			},
+			want: true,
+		},
+		{
+			name: "different project",
+			project1: &Project{
+				Owner: "foo",
+				Name:  "bar",
+				Host:  "github.com",
+			},
+			project2: &Project{
+				Owner: "foo",
+				Name:  "baz",
+				Host:  "github.com",
+			},
+			want: false,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got := test.project1.SameAs(test.project2)
+			want := test.want
+
+			assert.Equal(t, want, got)
+		})
+	}
+}
+
 func TestProject_WebURL(t *testing.T) {
 	project := Project{
 		Name:     "foo",

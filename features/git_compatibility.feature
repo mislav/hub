@@ -21,6 +21,7 @@ Feature: git-hub compatibility
       create
       delete
       fork
+      gist
       issue
       pr
       pull-request

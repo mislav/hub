@@ -1,6 +1,7 @@
 package github
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -37,21 +38,35 @@ func (y *yamlConfigDecoder) Decode(r io.Reader, c *Config) error {
 	}
 
 	for _, hostEntry := range yc {
-		v := hostEntry.Value.([]interface{})
+		v, ok := hostEntry.Value.([]interface{})
+		if !ok {
+			return fmt.Errorf("value of host entry is must be array but got %#v", hostEntry.Value)
+		}
 		if len(v) < 1 {
 			continue
 		}
-		host := &Host{Host: hostEntry.Key.(string)}
+		hostName, ok := hostEntry.Key.(string)
+		if !ok {
+			return fmt.Errorf("host name is must be string but got %#v", hostEntry.Key)
+		}
+		host := &Host{Host: hostName}
 		for _, prop := range v[0].(yaml.MapSlice) {
-			switch prop.Key.(string) {
+			propName, ok := prop.Key.(string)
+			if !ok {
+				return fmt.Errorf("property name is must be string but got %#v", prop.Key)
+			}
+			switch propName {
 			case "user":
-				host.User = prop.Value.(string)
+				host.User, ok = prop.Value.(string)
 			case "oauth_token":
-				host.AccessToken = prop.Value.(string)
+				host.AccessToken, ok = prop.Value.(string)
 			case "protocol":
-				host.Protocol = prop.Value.(string)
+				host.Protocol, ok = prop.Value.(string)
 			case "unix_socket":
-				host.UnixSocket = prop.Value.(string)
+				host.UnixSocket, ok = prop.Value.(string)
+			}
+			if !ok {
+				return fmt.Errorf("%s is must be string but got %#v", propName, prop.Value)
 			}
 		}
 		c.Hosts = append(c.Hosts, host)

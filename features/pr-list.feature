@@ -155,12 +155,28 @@ Feature: hub pr list
     }
     """
     When I successfully run `hub pr list --format "%I %pC %pS %Creset%n" --color`
-    Then the output should contain exactly:
+    Then its output should contain exactly:
       """
       999 \e[37m draft \e[m
       102 \e[32m open \e[m
       42 \e[35m merged \e[m
       8 \e[31m closed \e[m\n
+      """
+    When I successfully run `hub -c color.ui=always pr list --format "%I %pC %pS %Creset%n"`
+    Then its output should contain exactly:
+      """
+      999 \e[37m draft \e[m
+      102 \e[32m open \e[m
+      42 \e[35m merged \e[m
+      8 \e[31m closed \e[m\n
+      """
+    When I successfully run `hub -c color.ui=false pr list --format "%I %pC%pS%Creset%n" --color=auto`
+    Then its output should contain exactly:
+      """
+      999 draft
+      102 open
+      42 merged
+      8 closed\n
       """
 
   Scenario: Sort by number of comments ascending

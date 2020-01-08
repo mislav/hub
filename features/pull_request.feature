@@ -135,6 +135,7 @@ Feature: hub pull-request
 
       Hello
       Signed-off-by: NAME <email@example.com>
+      Co-authored-by: NAME <email@example.com>
       """
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`

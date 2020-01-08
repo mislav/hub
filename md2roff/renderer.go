@@ -26,7 +26,7 @@ var (
 	closeVar      = []byte("</var>")
 	tilde         = []byte(`\(ti`)
 	htmlEscape    = regexp.MustCompile(`<([A-Za-z][A-Za-z0-9_-]*)>`)
-	roffEscape    = regexp.MustCompile(`[&\_-]`)
+	roffEscape    = regexp.MustCompile(`[&'\_-]`)
 	headingEscape = regexp.MustCompile(`["]`)
 	titleRe       = regexp.MustCompile(`(?P<name>[A-Za-z][A-Za-z0-9_-]+)\((?P<num>\d)\) -- (?P<title>.+)`)
 )

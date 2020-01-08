@@ -1,0 +1,52 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go: [ '1.9', '1.10', '1.11', '1.12', '1.13' ]
+
+    steps:
+    - uses: actions/checkout@v1
+
+    - name: Set up Ruby
+      uses: actions/setup-ruby@v1
+      with:
+        ruby-version: 2.6.x
+
+    - name: Cache gems
+      uses: actions/cache@v1
+      with:
+        path: vendor/bundle
+        key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-gem-
+
+    - name: Bundle install
+      run: |
+        bundle install --path vendor/bundle
+        bundle binstub cucumber --path bin
+
+    - name: Set up Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ matrix.go }}
+
+    # - name: Install system packages
+    #   if: runner.os == 'Linux'
+    #   run: sudo apt-get install -y zsh fish
+
+    - name: Run tests
+      shell: bash
+      run: |
+        export GOPATH="$HOME"/go
+        mkdir -p "$GOPATH"/src/github.com/github
+        ln -svf "$PWD" "$GOPATH"/src/github.com/github/hub
+        cd "$GOPATH"/src/github.com/github/hub
+        make test-all
+      env:
+        CI: true

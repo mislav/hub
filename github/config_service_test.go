@@ -94,6 +94,51 @@ func TestConfigService_YamlLoad_Unix_Socket(t *testing.T) {
 	assert.Equal(t, "/tmp/go.sock", host.UnixSocket)
 }
 
+func TestConfigService_YamlLoad_Invalid_HostName(t *testing.T) {
+	testConfigInvalidHostName := fixtures.SetupTestConfigsInvalidHostName()
+	defer testConfigInvalidHostName.TearDown()
+
+	cc := &Config{}
+	cs := &configService{
+		Encoder: &yamlConfigEncoder{},
+		Decoder: &yamlConfigDecoder{},
+	}
+
+	err := cs.Load(testConfigInvalidHostName.Path, cc)
+	assert.NotEqual(t, nil, err)
+	assert.Equal(t, "host name is must be string but got 123", err.Error())
+}
+
+func TestConfigService_YamlLoad_Invalid_HostEntry(t *testing.T) {
+	testConfigInvalidHostEntry := fixtures.SetupTestConfigsInvalidHostEntry()
+	defer testConfigInvalidHostEntry.TearDown()
+
+	cc := &Config{}
+	cs := &configService{
+		Encoder: &yamlConfigEncoder{},
+		Decoder: &yamlConfigDecoder{},
+	}
+
+	err := cs.Load(testConfigInvalidHostEntry.Path, cc)
+	assert.NotEqual(t, nil, err)
+	assert.Equal(t, "value of host entry is must be array but got \"hello\"", err.Error())
+}
+
+func TestConfigService_YamlLoad_Invalid_PropertyValue(t *testing.T) {
+	testConfigInvalidPropertyValue := fixtures.SetupTestConfigsInvalidPropertyValue()
+	defer testConfigInvalidPropertyValue.TearDown()
+
+	cc := &Config{}
+	cs := &configService{
+		Encoder: &yamlConfigEncoder{},
+		Decoder: &yamlConfigDecoder{},
+	}
+
+	err := cs.Load(testConfigInvalidPropertyValue.Path, cc)
+	assert.NotEqual(t, nil, err)
+	assert.Equal(t, "user is must be string but got <nil>", err.Error())
+}
+
 func TestConfigService_TomlSave(t *testing.T) {
 	file, _ := ioutil.TempFile("", "test-gh-config-")
 	defer os.RemoveAll(file.Name())

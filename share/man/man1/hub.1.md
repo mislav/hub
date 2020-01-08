@@ -78,6 +78,9 @@ hub-delete(1)
 hub-fork(1)
 :   Fork the current repository on GitHub and add a git remote for it.
 
+hub-gist(1)
+:   Create and print GitHub Gists.
+
 hub-pull-request(1)
 :   Create a GitHub Pull Request.
 
@@ -164,7 +167,8 @@ this can be affected with the `GITHUB_HOST` environment variable:
 ### Environment variables
 
 `HUB_VERBOSE`
-:   Enable verbose output from hub commands.
+:   If this environment variable is set, verbose logging will be printed to
+    stderr.
 
 `HUB_CONFIG`
 :   The file path where hub configuration is read from and stored. If

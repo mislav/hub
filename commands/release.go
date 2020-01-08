@@ -21,7 +21,7 @@ release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>] [-f <FORMAT>]
 release show [-f <FORMAT>] <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
-release download <TAG>
+release download <TAG> [-i <PATTERN>]
 release delete <TAG>
 `,
 		Long: `Manage GitHub Releases for the current repository.
@@ -30,13 +30,10 @@ release delete <TAG>
 
 With no arguments, shows a list of existing releases.
 
-With '--include-drafts', include draft releases in the listing.
-With '--exclude-prereleases', exclude non-stable releases from the listing.
-
 	* _show_:
 		Show GitHub release notes for <TAG>.
 
-		With '--show-downloads', include the "Downloads" section.
+		With ''--show-downloads'', include the "Downloads" section.
 
 	* _create_:
 		Create a GitHub release for the specified <TAG> name. If git tag <TAG>
@@ -44,11 +41,11 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	* _edit_:
 		Edit the GitHub release for the specified <TAG> name. Accepts the same
-		options as _create_ command. Publish a draft with '--draft=false'.
+		options as _create_ command. Publish a draft with ''--draft=false''.
 
-		Without '--message' or '--file', a text editor will open pre-populated with
+		Without ''--message'' or ''--file'', a text editor will open pre-populated with
 		the current release title and body. To re-use existing title and body
-		unchanged, pass '-m ""'.
+		unchanged, pass ''-m ""''.
 
 	* _download_:
 		Download the assets attached to release for the specified <TAG>.
@@ -58,6 +55,12 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 		this does **not** remove the git tag <TAG>.
 
 ## Options:
+	-d, --include-drafts
+		List drafts together with published releases.
+
+	-p, --exclude-prereleases
+		Exclude prereleases from the list.
+
 	-L, --limit
 		Display only the first <LIMIT> releases.
 
@@ -70,26 +73,26 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	-a, --attach <FILE>
 		Attach a file as an asset for this release.
 
-		If <FILE> is in the "<filename>#<text>" format, the text after the '#'
+		If <FILE> is in the "<filename>#<text>" format, the text after the "#"
 		character is taken as asset label.
 
 	-m, --message <MESSAGE>
 		The text up to the first blank line in <MESSAGE> is treated as the release
 		title, and the rest is used as release description in Markdown format.
 
-		When multiple '--message' are passed, their values are concatenated with a
+		When multiple ''--message'' are passed, their values are concatenated with a
 		blank line in-between.
 
-		When neither '--message' nor '--file' were supplied to 'release create', a
+		When neither ''--message'' nor ''--file'' were supplied to ''release create'', a
 		text editor will open to author the title and description in.
 
 	-F, --file <FILE>
 		Read the release title and description from <FILE>. Pass "-" to read from
-		standard input instead. See '--message' for the formatting rules.
+		standard input instead. See ''--message'' for the formatting rules.
 
 	-e, --edit
 		Open the release title and description in a text editor before submitting.
-		This can be used in combination with '--message' or '--file'.
+		This can be used in combination with ''--message'' or ''--file''.
 
 	-o, --browse
 		Open the new release in a web browser.
@@ -100,6 +103,9 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 	-t, --commitish <TARGET>
 		A commit SHA or branch name to attach the release to, only used if <TAG>
 		does not already exist (default: main branch).
+	
+	-i, --include <PATTERN>
+		Filter the files in the release to those that match the glob <PATTERN>.
 
 	-f, --format <FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
@@ -148,7 +154,7 @@ With '--exclude-prereleases', exclude non-stable releases from the listing.
 
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
-		of "always" (default for '--color'), "never", or "auto" (default).
+		of "always" (default for ''--color''), "never", or "auto" (default).
 
 	<TAG>
 		The git tag name for this release.
@@ -209,6 +215,9 @@ hub(1), git-tag(1)
 	cmdDownloadRelease = &Command{
 		Key: "download",
 		Run: downloadRelease,
+		KnownFlags: `
+		-i, --include PATTERN
+		`,
 	}
 
 	cmdDeleteRelease = &Command{
@@ -386,10 +395,29 @@ func downloadRelease(cmd *Command, args *Args) {
 	release, err := gh.FetchRelease(project, tagName)
 	utils.Check(err)
 
+	hasPattern := args.Flag.HasReceived("--include")
+	found := false
 	for _, asset := range release.Assets {
+		if hasPattern {
+			isMatch, err := filepath.Match(args.Flag.Value("--include"), asset.Name)
+			utils.Check(err)
+			if !isMatch {
+				continue
+			}
+		}
+
+		found = true
 		ui.Printf("Downloading %s ...\n", asset.Name)
 		err := downloadReleaseAsset(asset, gh)
 		utils.Check(err)
+	}
+
+	if !found && hasPattern {
+		names := []string{}
+		for _, asset := range release.Assets {
+			names = append(names, asset.Name)
+		}
+		utils.Check(fmt.Errorf("the `--include` pattern did not match any available assets:\n%s", strings.Join(names, "\n")))
 	}
 
 	args.NoForward()
@@ -424,6 +452,10 @@ func createRelease(cmd *Command, args *Args) {
 		utils.Check(cmd.UsageError(""))
 		return
 	}
+
+	assetsToUpload, close, err := openAssetFiles(args.Flag.AllValues("--attach"))
+	utils.Check(err)
+	defer close()
 
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -487,8 +519,25 @@ text is the title and the rest is the description.`, tagName, project))
 
 	messageBuilder.Cleanup()
 
-	flagReleaseAssets := args.Flag.AllValues("--attach")
-	uploadAssets(gh, release, flagReleaseAssets, args)
+	numAssets := len(assetsToUpload)
+	if numAssets == 0 {
+		return
+	}
+	if args.Noop {
+		ui.Printf("Would attach %d %s\n", numAssets, pluralize(numAssets, "asset"))
+	} else {
+		ui.Errorf("Attaching %d %s...\n", numAssets, pluralize(numAssets, "asset"))
+		uploaded, err := gh.UploadReleaseAssets(release, assetsToUpload)
+		if err != nil {
+			failed := []string{}
+			for _, a := range assetsToUpload[len(uploaded):] {
+				failed = append(failed, fmt.Sprintf("-a %s", a.Name))
+			}
+			ui.Errorf("The release was created, but attaching %d %s failed. ", len(failed), pluralize(len(failed), "asset"))
+			ui.Errorf("You can retry with:\n%s release edit %s -m '' %s\n\n", "hub", release.TagName, strings.Join(failed, " "))
+			utils.Check(err)
+		}
+	}
 }
 
 func editRelease(cmd *Command, args *Args) {
@@ -500,6 +549,10 @@ func editRelease(cmd *Command, args *Args) {
 		utils.Check(cmd.UsageError(""))
 		return
 	}
+
+	assetsToUpload, close, err := openAssetFiles(args.Flag.AllValues("--attach"))
+	utils.Check(err)
+	defer close()
 
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
@@ -560,6 +613,7 @@ text is the title and the rest is the description.`, tagName, project))
 		params["body"] = body
 	}
 
+	args.NoForward()
 	if len(params) > 0 {
 		if args.Noop {
 			ui.Printf("Would edit release `%s'\n", tagName)
@@ -571,9 +625,24 @@ text is the title and the rest is the description.`, tagName, project))
 		messageBuilder.Cleanup()
 	}
 
-	flagReleaseAssets := args.Flag.AllValues("--attach")
-	uploadAssets(gh, release, flagReleaseAssets, args)
-	args.NoForward()
+	numAssets := len(assetsToUpload)
+	if numAssets == 0 {
+		return
+	}
+	if args.Noop {
+		ui.Printf("Would attach %d %s\n", numAssets, pluralize(numAssets, "asset"))
+	} else {
+		ui.Errorf("Attaching %d %s...\n", numAssets, pluralize(numAssets, "asset"))
+		uploaded, err := gh.UploadReleaseAssets(release, assetsToUpload)
+		if err != nil {
+			failed := []string{}
+			for _, a := range assetsToUpload[len(uploaded):] {
+				failed = append(failed, a.Name)
+			}
+			ui.Errorf("Attaching these assets failed:\n%s\n\n", strings.Join(failed, "\n"))
+			utils.Check(err)
+		}
+	}
 }
 
 func deleteRelease(cmd *Command, args *Args) {
@@ -608,32 +677,48 @@ func deleteRelease(cmd *Command, args *Args) {
 	args.NoForward()
 }
 
-func uploadAssets(gh *github.Client, release *github.Release, assets []string, args *Args) {
-	for _, asset := range assets {
+func openAssetFiles(args []string) ([]github.LocalAsset, func(), error) {
+	assets := []github.LocalAsset{}
+	files := []*os.File{}
+
+	for _, arg := range args {
 		var label string
-		parts := strings.SplitN(asset, "#", 2)
-		asset = parts[0]
+		parts := strings.SplitN(arg, "#", 2)
+		path := parts[0]
 		if len(parts) > 1 {
 			label = parts[1]
 		}
 
-		if args.Noop {
-			if label == "" {
-				ui.Errorf("Would attach release asset `%s'\n", asset)
-			} else {
-				ui.Errorf("Would attach release asset `%s' with label `%s'\n", asset, label)
-			}
-		} else {
-			for _, existingAsset := range release.Assets {
-				if existingAsset.Name == filepath.Base(asset) {
-					err := gh.DeleteReleaseAsset(&existingAsset)
-					utils.Check(err)
-					break
-				}
-			}
-			ui.Errorf("Attaching release asset `%s'...\n", asset)
-			_, err := gh.UploadReleaseAsset(release, asset, label)
-			utils.Check(err)
+		file, err := os.Open(path)
+		if err != nil {
+			return nil, nil, err
+		}
+		stat, err := file.Stat()
+		if err != nil {
+			return nil, nil, err
+		}
+		files = append(files, file)
+
+		assets = append(assets, github.LocalAsset{
+			Name:     path,
+			Label:    label,
+			Size:     stat.Size(),
+			Contents: file,
+		})
+	}
+
+	close := func() {
+		for _, f := range files {
+			f.Close()
 		}
 	}
+
+	return assets, close, nil
+}
+
+func pluralize(count int, label string) string {
+	if count == 1 {
+		return label
+	}
+	return fmt.Sprintf("%ss", label)
 }

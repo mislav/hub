@@ -7,11 +7,13 @@ import (
 	"github.com/github/hub/git"
 	"golang.org/x/net/publicsuffix"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -50,6 +52,21 @@ func SetUserAgent() {
 	} else if userAgent, err := git.Config("hub.useragent"); err == nil {
 		UserAgent = userAgent
 	}
+}
+
+type Gist struct {
+	Files       map[string]GistFile `json:"files"`
+	Description string              `json:"description,omitempty"`
+	Id          string              `json:"id,omitempty"`
+	Public      bool                `json:"public"`
+	HtmlUrl     string              `json:"html_url"`
+}
+
+type GistFile struct {
+	Type     string `json:"type,omitempty"`
+	Language string `json:"language,omitempty"`
+	Content  string `json:"content"`
+	RawUrl   string `json:"raw_url"`
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
@@ -170,13 +187,6 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 	}
 
 	return res.Body, nil
-}
-
-type Gist struct {
-	Files map[string]GistFile `json:"files"`
-}
-type GistFile struct {
-	RawUrl string `json:"raw_url"`
 }
 
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
@@ -385,26 +395,70 @@ func (client *Client) DeleteRelease(release *Release) (err error) {
 	return
 }
 
-func (client *Client) UploadReleaseAsset(release *Release, filename, label string) (asset *ReleaseAsset, err error) {
+type LocalAsset struct {
+	Name     string
+	Label    string
+	Contents io.Reader
+	Size     int64
+}
+
+func (client *Client) UploadReleaseAssets(release *Release, assets []LocalAsset) (doneAssets []*ReleaseAsset, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	parts := strings.SplitN(release.UploadUrl, "{", 2)
-	uploadUrl := parts[0]
-	uploadUrl += "?name=" + url.QueryEscape(filepath.Base(filename))
-	if label != "" {
-		uploadUrl += "&label=" + url.QueryEscape(label)
+	idx := strings.Index(release.UploadUrl, "{")
+	uploadURL := release.UploadUrl[0:idx]
+
+	for _, asset := range assets {
+		for _, existingAsset := range release.Assets {
+			if existingAsset.Name == asset.Name {
+				if err = client.DeleteReleaseAsset(&existingAsset); err != nil {
+					return
+				}
+				break
+			}
+		}
+
+		params := map[string]interface{}{"name": filepath.Base(asset.Name)}
+		if asset.Label != "" {
+			params["label"] = asset.Label
+		}
+		uploadPath := addQuery(uploadURL, params)
+
+		var res *simpleResponse
+		attempts := 0
+		maxAttempts := 3
+		body := asset.Contents
+		for {
+			res, err = api.PostFile(uploadPath, body, asset.Size)
+			if err == nil && res.StatusCode >= 500 && res.StatusCode < 600 && attempts < maxAttempts {
+				attempts++
+				time.Sleep(time.Second * time.Duration(attempts))
+				var f *os.File
+				f, err = os.Open(asset.Name)
+				if err != nil {
+					return
+				}
+				defer f.Close()
+				body = f
+				continue
+			}
+			if err = checkStatus(201, "uploading release asset", res, err); err != nil {
+				return
+			}
+			break
+		}
+
+		newAsset := ReleaseAsset{}
+		err = res.Unmarshal(&newAsset)
+		if err != nil {
+			return
+		}
+		doneAssets = append(doneAssets, &newAsset)
 	}
 
-	res, err := api.PostFile(uploadUrl, filename)
-	if err = checkStatus(201, "uploading release asset", res, err); err != nil {
-		return
-	}
-
-	asset = &ReleaseAsset{}
-	err = res.Unmarshal(asset)
 	return
 }
 
@@ -848,6 +902,45 @@ func (client *Client) GenericAPIRequest(method, path string, data interface{}, h
 	})
 }
 
+// GraphQL facilitates performing a GraphQL request and parsing the response
+func (client *Client) GraphQL(query string, variables interface{}, data interface{}) error {
+	api, err := client.simpleApi()
+	if err != nil {
+		return err
+	}
+
+	payload := map[string]interface{}{
+		"query":     query,
+		"variables": variables,
+	}
+	resp, err := api.PostJSON("graphql", payload)
+	if err = checkStatus(200, "performing GraphQL", resp, err); err != nil {
+		return err
+	}
+
+	responseData := struct {
+		Data   interface{}
+		Errors []struct {
+			Message string
+		}
+	}{
+		Data: data,
+	}
+	err = resp.Unmarshal(&responseData)
+	if err != nil {
+		return err
+	}
+
+	if len(responseData.Errors) > 0 {
+		messages := []string{}
+		for _, e := range responseData.Errors {
+			messages = append(messages, e.Message)
+		}
+		return fmt.Errorf("API error: %s", strings.Join(messages, "; "))
+	}
+	return nil
+}
+
 func (client *Client) CurrentUser() (user *User, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -888,7 +981,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	params := map[string]interface{}{
-		"scopes":   []string{"repo"},
+		"scopes":   []string{"repo", "gist"},
 		"note_url": OAuthAppURL,
 	}
 
@@ -1019,6 +1112,63 @@ func (client *Client) absolute(host string) *url.URL {
 		u.Scheme = client.Host.Protocol
 	}
 	return u
+}
+
+func (client *Client) FetchGist(id string) (gist *Gist, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	response, err := api.Get(fmt.Sprintf("gists/%s", id))
+	if err = checkStatus(200, "getting gist", response, err); err != nil {
+		return
+	}
+
+	response.Unmarshal(&gist)
+	return
+}
+
+func (client *Client) CreateGist(filenames []string, public bool) (gist *Gist, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+	files := map[string]GistFile{}
+	var basename string
+	var content []byte
+	var gf GistFile
+
+	for _, file := range filenames {
+		if file == "-" {
+			content, err = ioutil.ReadAll(os.Stdin)
+			basename = "gistfile1.txt"
+		} else {
+			content, err = ioutil.ReadFile(file)
+			basename = path.Base(file)
+		}
+		if err != nil {
+			return
+		}
+		gf = GistFile{Content: string(content)}
+		files[basename] = gf
+	}
+
+	g := Gist{
+		Files:  files,
+		Public: public,
+	}
+
+	res, err := api.PostJSON("gists", &g)
+	if err = checkStatus(201, "creating gist", res, err); err != nil {
+		if res != nil && res.StatusCode == 404 && !strings.Contains(res.Header.Get("x-oauth-scopes"), "gist") {
+			err = fmt.Errorf("%s\nGo to https://%s/settings/tokens and enable the 'gist' scope for hub", err, client.Host.Host)
+		}
+		return
+	}
+
+	err = res.Unmarshal(&gist)
+	return
 }
 
 func normalizeHost(host string) string {
