@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -198,8 +199,33 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 	}
 
 	return &http.Client{
-		Transport: tr,
+		Transport:     tr,
+		CheckRedirect: checkRedirect,
 	}
+}
+
+func checkRedirect(req *http.Request, via []*http.Request) error {
+	var recommendedCode int
+	switch req.Response.StatusCode {
+	case 301:
+		recommendedCode = 308
+	case 302:
+		recommendedCode = 307
+	}
+
+	origMethod := via[len(via)-1].Method
+	if recommendedCode != 0 && !strings.EqualFold(req.Method, origMethod) {
+		return fmt.Errorf(
+			"refusing to follow HTTP %d redirect for a %s request\n"+
+				"Have your site admin use HTTP %d for this kind of redirect",
+			req.Response.StatusCode, origMethod, recommendedCode)
+	}
+
+	// inherited from stdlib defaultCheckRedirect
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	return nil
 }
 
 func cloneRequest(req *http.Request) *http.Request {
