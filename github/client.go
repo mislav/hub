@@ -3,6 +3,7 @@ package github
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -1150,63 +1151,60 @@ func checkStatus(expectedStatus int, action string, response *simpleResponse, er
 		return fmt.Errorf("Error %s: %s", action, err.Error())
 	} else if response.StatusCode != expectedStatus {
 		errInfo, err := response.ErrorInfo()
-		if err == nil {
-			return FormatError(action, errInfo)
-		} else {
+		if err != nil {
 			return fmt.Errorf("Error %s: %s (HTTP %d)", action, err.Error(), response.StatusCode)
 		}
-	} else {
-		return nil
+		return FormatError(action, errInfo)
 	}
+	return nil
 }
 
-func FormatError(action string, err error) (ee error) {
-	switch e := err.(type) {
-	default:
-		ee = err
-	case *errorInfo:
-		statusCode := e.Response.StatusCode
-		var reason string
-		if s := strings.SplitN(e.Response.Status, " ", 2); len(s) >= 2 {
-			reason = strings.TrimSpace(s[1])
-		}
+// FormatError annotates an HTTP response error with user-friendly messages
+func FormatError(action string, err error) error {
+	if e, ok := err.(*errorInfo); ok {
+		return formatError(action, e)
+	}
+	return err
+}
 
-		errStr := fmt.Sprintf("Error %s: %s (HTTP %d)", action, reason, statusCode)
-
-		var errorSentences []string
-		for _, err := range e.Errors {
-			switch err.Code {
-			case "custom":
-				errorSentences = append(errorSentences, err.Message)
-			case "missing_field":
-				errorSentences = append(errorSentences, fmt.Sprintf("Missing field: \"%s\"", err.Field))
-			case "already_exists":
-				errorSentences = append(errorSentences, fmt.Sprintf("Duplicate value for \"%s\"", err.Field))
-			case "invalid":
-				errorSentences = append(errorSentences, fmt.Sprintf("Invalid value for \"%s\"", err.Field))
-			case "unauthorized":
-				errorSentences = append(errorSentences, fmt.Sprintf("Not allowed to change field \"%s\"", err.Field))
-			}
-		}
-
-		var errorMessage string
-		if len(errorSentences) > 0 {
-			errorMessage = strings.Join(errorSentences, "\n")
-		} else {
-			errorMessage = e.Message
-			if action == "getting current user" && e.Message == "Resource not accessible by integration" {
-				errorMessage = errorMessage + "\nYou must specify GITHUB_USER via environment variable."
-			}
-		}
-
-		if errorMessage != "" {
-			errStr = fmt.Sprintf("%s\n%s", errStr, errorMessage)
-		}
-
-		ee = fmt.Errorf(errStr)
+func formatError(action string, e *errorInfo) error {
+	var reason string
+	if s := strings.SplitN(e.Response.Status, " ", 2); len(s) >= 2 {
+		reason = strings.TrimSpace(s[1])
 	}
 
-	return
+	errStr := fmt.Sprintf("Error %s: %s (HTTP %d)", action, reason, e.Response.StatusCode)
+
+	var errorSentences []string
+	for _, err := range e.Errors {
+		switch err.Code {
+		case "custom":
+			errorSentences = append(errorSentences, err.Message)
+		case "missing_field":
+			errorSentences = append(errorSentences, fmt.Sprintf("Missing field: \"%s\"", err.Field))
+		case "already_exists":
+			errorSentences = append(errorSentences, fmt.Sprintf("Duplicate value for \"%s\"", err.Field))
+		case "invalid":
+			errorSentences = append(errorSentences, fmt.Sprintf("Invalid value for \"%s\"", err.Field))
+		case "unauthorized":
+			errorSentences = append(errorSentences, fmt.Sprintf("Not allowed to change field \"%s\"", err.Field))
+		}
+	}
+
+	var errorMessage string
+	if len(errorSentences) > 0 {
+		errorMessage = strings.Join(errorSentences, "\n")
+	} else {
+		errorMessage = e.Message
+		if action == "getting current user" && e.Message == "Resource not accessible by integration" {
+			errorMessage = errorMessage + "\nYou must specify GITHUB_USER via environment variable."
+		}
+	}
+	if errorMessage != "" {
+		errStr = fmt.Sprintf("%s\n%s", errStr, errorMessage)
+	}
+
+	return errors.New(errStr)
 }
 
 func authTokenNote(num int) (string, error) {
