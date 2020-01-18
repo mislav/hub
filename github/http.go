@@ -41,6 +41,11 @@ const (
 var inspectHeaders = []string{
 	"Authorization",
 	"X-GitHub-OTP",
+	"X-GitHub-SSO",
+	"X-Oauth-Scopes",
+	"X-Accepted-Oauth-Scopes",
+	"X-Oauth-Client-Id",
+	"X-GitHub-Enterprise-Version",
 	"Location",
 	"Link",
 	"Accept",
