@@ -285,6 +285,10 @@ func apiCommand(_ *Command, args *Args) {
 		response.Body.Close()
 
 		if !success {
+			if scopeErr := github.ValidateSufficientOAuthScopes(response.Response); scopeErr != nil {
+				ui.Errorln()
+				ui.Errorln(scopeErr)
+			}
 			os.Exit(22)
 		}
 

@@ -491,3 +491,22 @@ Feature: hub api
     When I run `hub api --obey-ratelimit hello`
     Then the exit status should be 22
     Then the stderr should not contain "API rate limit exceeded"
+
+  Scenario: Warn about insufficient OAuth scopes
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        response.headers['X-Accepted-Oauth-Scopes'] = 'repo, admin'
+        response.headers['X-Oauth-Scopes'] = 'public_repo'
+        status 403
+        json({})
+      }
+      """
+    When I run `hub api hello`
+    Then the exit status should be 22
+    And the output should contain exactly:
+      """
+      {}
+      Your access token may have insufficient scopes. Visit http://github.com/settings/tokens
+      to edit the 'hub' token and enable one of the following scopes: admin, repo
+      """

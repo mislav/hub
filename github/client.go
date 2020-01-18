@@ -1124,9 +1124,6 @@ func (client *Client) CreateGist(filenames []string, public bool) (gist *Gist, e
 
 	res, err := api.PostJSON("gists", &g)
 	if err = checkStatus(201, "creating gist", res, err); err != nil {
-		if res != nil && res.StatusCode == 404 && !strings.Contains(res.Header.Get("x-oauth-scopes"), "gist") {
-			err = fmt.Errorf("%s\nGo to https://%s/settings/tokens and enable the 'gist' scope for hub", err, client.Host.Host)
-		}
 		return
 	}
 
@@ -1143,6 +1140,17 @@ func normalizeHost(host string) string {
 		return "api.github.localhost"
 	} else {
 		return strings.ToLower(host)
+	}
+}
+
+func reverseNormalizeHost(host string) string {
+	switch host {
+	case "api.github.com":
+		return GitHubHost
+	case "api.github.localhost":
+		return "github.localhost"
+	default:
+		return host
 	}
 }
 
@@ -1204,7 +1212,73 @@ func formatError(action string, e *errorInfo) error {
 		errStr = fmt.Sprintf("%s\n%s", errStr, errorMessage)
 	}
 
+	if scopeErr := ValidateSufficientOAuthScopes(e.Response); scopeErr != nil {
+		return fmt.Errorf("%s\n%s", errStr, scopeErr)
+	}
+
 	return errors.New(errStr)
+}
+
+// ValidateSufficientOAuthScopes warns about insufficient OAuth scopes
+func ValidateSufficientOAuthScopes(res *http.Response) error {
+	if res.StatusCode != 404 && res.StatusCode != 403 {
+		return nil
+	}
+
+	needScopes := newScopeSet(res.Header.Get("X-Accepted-Oauth-Scopes"))
+	if len(needScopes) == 0 && isGistWrite(res.Request) {
+		// compensate for a GitHub bug: gist APIs omit proper `X-Accepted-Oauth-Scopes` in responses
+		needScopes = newScopeSet("gist")
+	}
+
+	haveScopes := newScopeSet(res.Header.Get("X-Oauth-Scopes"))
+	if len(needScopes) == 0 || needScopes.Intersects(haveScopes) {
+		return nil
+	}
+
+	return fmt.Errorf("Your access token may have insufficient scopes. Visit %s://%s/settings/tokens\n"+
+		"to edit the 'hub' token and enable one of the following scopes: %s",
+		res.Request.URL.Scheme,
+		reverseNormalizeHost(res.Request.Host),
+		needScopes)
+}
+
+func isGistWrite(req *http.Request) bool {
+	if req.Method == "GET" {
+		return false
+	}
+	path := strings.TrimPrefix(req.URL.Path, "/v3")
+	return strings.HasPrefix(path, "/gists")
+}
+
+type scopeSet map[string]struct{}
+
+func (s scopeSet) String() string {
+	scopes := make([]string, 0, len(s))
+	for scope := range s {
+		scopes = append(scopes, scope)
+	}
+	sort.Sort(sort.StringSlice(scopes))
+	return strings.Join(scopes, ", ")
+}
+
+func (s scopeSet) Intersects(other scopeSet) bool {
+	for scope := range s {
+		if _, found := other[scope]; found {
+			return true
+		}
+	}
+	return false
+}
+
+func newScopeSet(s string) scopeSet {
+	scopes := scopeSet{}
+	for _, s := range strings.SplitN(s, ",", -1) {
+		if s = strings.TrimSpace(s); s != "" {
+			scopes[s] = struct{}{}
+		}
+	}
+	return scopes
 }
 
 func authTokenNote(num int) (string, error) {
