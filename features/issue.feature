@@ -838,6 +838,12 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
+  Scenario: Update an issue without specifying fields to update
+    When I run `hub issue update 1337`
+    Then the exit status should be 1
+    Then the stderr should contain "please specify fields to update"
+    Then the stderr should contain "Usage: hub issue"
+
   Scenario: Fetch issue labels
     Given the GitHub API server:
     """

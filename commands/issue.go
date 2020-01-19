@@ -634,6 +634,10 @@ func updateIssue(cmd *Command, args *Args) {
 		utils.Check(cmd.UsageError(""))
 	}
 
+	if !args.Flag.HasReceivedOneOf([]string{"--message", "--edit", "--file", "--labels", "--milestone", "--assign"}) {
+		utils.Check(cmd.UsageError("please specify fields to update"))
+	}
+
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
