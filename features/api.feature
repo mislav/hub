@@ -524,7 +524,7 @@ Feature: hub api
     Then the exit status should be 22
     And the stderr should contain exactly:
       """
-      
+
       You must authorize your token to access this organization:
       http://example.com?auth=HASH
       """

@@ -341,8 +341,9 @@ func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Respo
 		}
 
 		res = &http.Response{
-			Body:   ioutil.NopCloser(bytes.NewBufferString(parts[1])),
-			Header: http.Header{},
+			Body:    ioutil.NopCloser(bytes.NewBufferString(parts[1])),
+			Header:  http.Header{},
+			Request: req,
 		}
 		headerLines := strings.Split(parts[0], "\r\n")
 		if len(headerLines) < 1 {
