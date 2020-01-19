@@ -1212,11 +1212,30 @@ func formatError(action string, e *errorInfo) error {
 		errStr = fmt.Sprintf("%s\n%s", errStr, errorMessage)
 	}
 
+	if ssoErr := ValidateGitHubSSO(e.Response); ssoErr != nil {
+		return fmt.Errorf("%s\n%s", errStr, ssoErr)
+	}
+
 	if scopeErr := ValidateSufficientOAuthScopes(e.Response); scopeErr != nil {
 		return fmt.Errorf("%s\n%s", errStr, scopeErr)
 	}
 
 	return errors.New(errStr)
+}
+
+// ValidateGitHubSSO checks for the challenge via `X-Github-Sso` header
+func ValidateGitHubSSO(res *http.Response) error {
+	if res.StatusCode != 403 {
+		return nil
+	}
+
+	sso := res.Header.Get("X-Github-Sso")
+	if !strings.HasPrefix(sso, "required; url=") {
+		return nil
+	}
+
+	url := sso[strings.IndexByte(sso, '=')+1:]
+	return fmt.Errorf("You must authorize your token to access this organization:\n%s", url)
 }
 
 // ValidateSufficientOAuthScopes warns about insufficient OAuth scopes

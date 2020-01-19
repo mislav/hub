@@ -510,3 +510,21 @@ Feature: hub api
       Your access token may have insufficient scopes. Visit http://github.com/settings/tokens
       to edit the 'hub' token and enable one of the following scopes: admin, repo
       """
+
+  Scenario: Print the SSO challenge to stderr
+    Given the GitHub API server:
+      """
+      get('/orgs/acme') {
+        response.headers['X-GitHub-SSO'] = 'required; url=http://example.com?auth=HASH'
+        status 403
+        json({})
+      }
+      """
+    When I run `hub api orgs/acme`
+    Then the exit status should be 22
+    And the stderr should contain exactly:
+      """
+      
+      You must authorize your token to access this organization:
+      http://example.com?auth=HASH
+      """
