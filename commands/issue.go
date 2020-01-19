@@ -21,7 +21,7 @@ issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M 
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
-issue edit <NUMBER> [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue update <NUMBER> [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue transfer <NUMBER> <REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
@@ -229,9 +229,9 @@ hub-pr(1), hub(1)
 		Run: transferIssue,
 	}
 
-	cmdEdit = &Command{
-		Key: "edit",
-		Run: editIssue,
+	cmdUpdate = &Command{
+		Key: "update",
+		Run: updateIssue,
 		KnownFlags: `
 		-m, --message MSG
 		-F, --file FILE
@@ -250,7 +250,7 @@ func init() {
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
 	cmdIssue.Use(cmdTransfer)
-	cmdIssue.Use(cmdEdit)
+	cmdIssue.Use(cmdUpdate)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -625,7 +625,7 @@ text is the title and the rest is the description.`, project))
 	messageBuilder.Cleanup()
 }
 
-func editIssue(cmd *Command, args *Args) {
+func updateIssue(cmd *Command, args *Args) {
 	issueNumber := 0
 	if args.ParamsSize() > 0 {
 		issueNumber, _ = strconv.Atoi(args.GetParam(0))
