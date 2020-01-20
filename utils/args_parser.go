@@ -183,15 +183,6 @@ func (p *ArgsParser) HasReceived(name string) bool {
 	return found && len(f.values) > 0
 }
 
-func (p *ArgsParser) HasReceivedOneOf(names []string) bool {
-	for _, name := range names {
-		if p.HasReceived(name) {
-			return true
-		}
-	}
-	return false
-}
-
 func NewArgsParser() *ArgsParser {
 	return &ArgsParser{
 		flagMap:     make(map[string]*argsFlag),

@@ -634,7 +634,14 @@ func updateIssue(cmd *Command, args *Args) {
 		utils.Check(cmd.UsageError(""))
 	}
 
-	if !args.Flag.HasReceivedOneOf([]string{"--message", "--edit", "--file", "--labels", "--milestone", "--assign"}) {
+	flagsUpdatingFields := []string{"--message", "--edit", "--file", "--labels", "--milestone", "--assign"}
+	updatesFields := false
+	for _, name := range flagsUpdatingFields {
+		if args.Flag.HasReceived(name) {
+			updatesFields = true
+		}
+	}
+	if !updatesFields {
 		utils.Check(cmd.UsageError("please specify fields to update"))
 	}
 
