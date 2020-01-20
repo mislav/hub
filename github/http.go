@@ -41,6 +41,11 @@ const (
 var inspectHeaders = []string{
 	"Authorization",
 	"X-GitHub-OTP",
+	"X-GitHub-SSO",
+	"X-Oauth-Scopes",
+	"X-Accepted-Oauth-Scopes",
+	"X-Oauth-Client-Id",
+	"X-GitHub-Enterprise-Version",
 	"Location",
 	"Link",
 	"Accept",
@@ -336,8 +341,9 @@ func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Respo
 		}
 
 		res = &http.Response{
-			Body:   ioutil.NopCloser(bytes.NewBufferString(parts[1])),
-			Header: http.Header{},
+			Body:    ioutil.NopCloser(bytes.NewBufferString(parts[1])),
+			Header:  http.Header{},
+			Request: req,
 		}
 		headerLines := strings.Split(parts[0], "\r\n")
 		if len(headerLines) < 1 {
