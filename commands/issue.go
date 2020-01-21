@@ -660,7 +660,7 @@ func updateIssue(cmd *Command, args *Args) {
 			Filename: "ISSUE_EDITMSG",
 			Title:    "issue",
 			Edit:     args.Flag.Bool("--edit"),
-			Message:  fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body),
+			Message:  strings.Replace(fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body), "\r\n", "\n", -1),
 		}
 
 		messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing issue #%d for %s
