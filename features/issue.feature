@@ -597,15 +597,6 @@ Feature: hub issue
   Scenario: Update an issue's title
     Given the GitHub API server:
       """
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :body => "I want this feature",
-          :title => "Not workie!",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
       patch('/repos/github/hub/issues/1337') {
         assert :title => "Not workie, pls fix",
                :body => "",
@@ -619,15 +610,6 @@ Feature: hub issue
   Scenario: Update an issue's labels
     Given the GitHub API server:
       """
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :body => "I want this feature",
-          :title => "Not workie!",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
       patch('/repos/github/hub/issues/1337') {
         assert :title => :no,
                :body => :no,
@@ -641,15 +623,6 @@ Feature: hub issue
   Scenario: Update an issue's milestone
     Given the GitHub API server:
       """
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :body => "I want this feature",
-          :title => "Not workie!",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
       patch('/repos/github/hub/issues/1337') {
         assert :title => :no,
                :body => :no,
@@ -670,15 +643,6 @@ Feature: hub issue
           { :number => 42, :title => "Hello World!" }
         ]
       }
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :body => "I want this feature",
-          :title => "Not workie!",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
       patch('/repos/github/hub/issues/1337') {
         assert :title => :no,
                :body => :no,
@@ -692,15 +656,6 @@ Feature: hub issue
   Scenario: Update an issue's assignees
     Given the GitHub API server:
       """
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :body => "I want this feature",
-          :title => "Not workie!",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
       patch('/repos/github/hub/issues/1337') {
         assert :title => :no,
                :body => :no,
@@ -714,15 +669,6 @@ Feature: hub issue
   Scenario: Update an issue's title, labels, milestone, and assignees
     Given the GitHub API server:
       """
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :body => "I want this feature",
-          :title => "Not workie!",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
       patch('/repos/github/hub/issues/1337') {
         assert :title => "Not workie, pls fix",
                :body => "",
@@ -744,11 +690,8 @@ Feature: hub issue
       get('/repos/github/hub/issues/1337') {
         json \
           :number => 1337,
-          :state => "open",
           :title => "My old title",
-          :body => "My old body",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
+          :body => "My old body"
       }
       patch('/repos/github/hub/issues/1337') {
         assert :title => "My new title",
@@ -769,15 +712,6 @@ Feature: hub issue
       """
     Given the GitHub API server:
       """
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :title => "My old title",
-          :body => "My old body",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
       patch('/repos/github/hub/issues/1337') {
         assert :title => "My new title",
                :body => "My new body",

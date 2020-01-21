@@ -647,9 +647,6 @@ func updateIssue(cmd *Command, args *Args) {
 
 	gh := github.NewClient(project.Host)
 
-	issue, err := gh.FetchIssue(project, strconv.Itoa(issueNumber))
-	utils.Check(err)
-
 	params := map[string]interface{}{}
 	setLabelsFromArgs(params, args)
 	setAssigneesFromArgs(params, args)
@@ -659,21 +656,25 @@ func updateIssue(cmd *Command, args *Args) {
 		messageBuilder := &github.MessageBuilder{
 			Filename: "ISSUE_EDITMSG",
 			Title:    "issue",
-			Edit:     args.Flag.Bool("--edit"),
-			Message:  strings.Replace(fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body), "\r\n", "\n", -1),
 		}
 
 		messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing issue #%d for %s
 
 Update the message for this issue. The first block of
-text is the title and the rest is the description.`, issue.Number, project))
+text is the title and the rest is the description.`, issueNumber, project))
 
+		messageBuilder.Edit = args.Flag.Bool("--edit")
 		flagIssueMessage := args.Flag.AllValues("--message")
 		if len(flagIssueMessage) > 0 {
 			messageBuilder.Message = strings.Join(flagIssueMessage, "\n\n")
 		} else if args.Flag.HasReceived("--file") {
 			messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 			utils.Check(err)
+		} else {
+			issue, err := gh.FetchIssue(project, strconv.Itoa(issueNumber))
+			utils.Check(err)
+			existingMessage := fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body)
+			messageBuilder.Message = strings.Replace(existingMessage, "\r\n", "\n", -1)
 		}
 
 		title, body, err := messageBuilder.Extract()
