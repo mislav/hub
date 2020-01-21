@@ -1,4 +1,4 @@
 package version
 
 // Version represents the hub version number
-var Version = "2.14.0"
+var Version = "2.14.1"
