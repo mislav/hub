@@ -2,7 +2,7 @@
 set -e
 
 source_files() {
-  script/build files | grep -vE '^\./(coverage|fixtures)/'
+  script/build files | grep -vE '^\./(coverage|fixtures|version)/'
 }
 
 prepare() {
