@@ -21,7 +21,7 @@ issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M 
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue labels [--color]
-issue update <NUMBER> [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue update <NUMBER> [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue transfer <NUMBER> <REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
@@ -238,8 +238,6 @@ hub-pr(1), hub(1)
 		-M, --milestone NAME
 		-l, --labels LIST
 		-a, --assign USER
-		-o, --browse
-		-c, --copy
 		-e, --edit
 `,
 	}
@@ -706,10 +704,6 @@ text is the title and the rest is the description.`, issue.Number, project))
 	} else {
 		err := gh.UpdateIssue(project, issueNumber, params)
 		utils.Check(err)
-
-		flagIssueBrowse := args.Flag.Bool("--browse")
-		flagIssueCopy := args.Flag.Bool("--copy")
-		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, flagIssueCopy)
 	}
 
 	messageBuilder.Cleanup()

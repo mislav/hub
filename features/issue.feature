@@ -614,11 +614,7 @@ Feature: hub issue
                :labels => :no
       }
       """
-    When I successfully run `hub issue update 1337 -m "Not workie, pls fix"`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
+    Then I successfully run `hub issue update 1337 -m "Not workie, pls fix"`
     
   Scenario: Update an issue's labels
     Given the GitHub API server:
@@ -640,11 +636,7 @@ Feature: hub issue
                :labels => ["bug", "important"]
       }
       """
-    When I successfully run `hub issue update 1337 -l bug,important`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
+    Then I successfully run `hub issue update 1337 -l bug,important`
 
   Scenario: Update an issue's milestone
     Given the GitHub API server:
@@ -666,11 +658,7 @@ Feature: hub issue
                :labels => :no
       }
       """
-    When I successfully run `hub issue update 1337 -M 42`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
+    Then I successfully run `hub issue update 1337 -M 42`
 
   Scenario: Upate an issue's milestone by name
     Given the GitHub API server:
@@ -699,11 +687,7 @@ Feature: hub issue
                :labels => :no
       }
       """
-    When I successfully run `hub issue update 1337 -M "hello world!"`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
+    Then I successfully run `hub issue update 1337 -M "hello world!"`
 
   Scenario: Update an issue's assignees
     Given the GitHub API server:
@@ -725,11 +709,7 @@ Feature: hub issue
                :labels => :no
       }
       """
-    When I successfully run `hub issue update 1337 -a Cornwe19`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
+    Then I successfully run `hub issue update 1337 -a Cornwe19`
 
   Scenario: Update an issue's title, labels, milestone, and assignees
     Given the GitHub API server:
@@ -751,29 +731,7 @@ Feature: hub issue
                :labels => ["bug", "important"]
       }
       """
-    When I successfully run `hub issue update 1337  -m "Not workie, pls fix" -M 42 -l bug,important -a Cornwe19`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
-
-  Scenario: Update an issue and open in browser
-    Given the GitHub API server:
-      """
-      get('/repos/github/hub/issues/1337') {
-        json \
-          :number => 1337,
-          :state => "open",
-          :body => "",
-          :title => "Not workie!",
-          :created_at => "2017-04-14T16:00:49Z",
-          :html_url => "https://github.com/github/hub/issues/1337"
-      }
-      patch('/repos/github/hub/issues/1337') {}
-      """
-    When I successfully run `hub issue update 1337 -m "Not workie, pls fix" -o`
-    Then the output should contain exactly ""
-    Then "open https://github.com/github/hub/issues/1337" should be run
+    Then I successfully run `hub issue update 1337  -m "Not workie, pls fix" -M 42 -l bug,important -a Cornwe19`
 
   Scenario: Update an issue's title and body manually
     Given the git commit editor is "vim"
@@ -800,11 +758,7 @@ Feature: hub issue
                :labels => :no
       }
       """
-    When I successfully run `hub issue update 1337 --edit`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
+    Then I successfully run `hub issue update 1337 --edit`
 
   Scenario: Update an issue's title and body via a file
     Given a file named "my-issue.md" with:
@@ -832,11 +786,7 @@ Feature: hub issue
                :labels => :no
       }
       """
-    When I successfully run `hub issue update 1337 -F my-issue.md`
-    Then the output should contain exactly:
-      """
-      https://github.com/github/hub/issues/1337\n
-      """
+    Then I successfully run `hub issue update 1337 -F my-issue.md`
 
   Scenario: Update an issue without specifying fields to update
     When I run `hub issue update 1337`
