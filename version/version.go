@@ -1,17 +1,4 @@
 package version
 
-import (
-	"fmt"
-
-	"github.com/github/hub/git"
-)
-
+// Version represents the hub version number
 var Version = "2.13.0"
-
-func FullVersion() (string, error) {
-	gitVersion, err := git.Version()
-	if err != nil {
-		gitVersion = "git version (unavailable)"
-	}
-	return fmt.Sprintf("%s\nhub version %s", gitVersion, Version), err
-}
