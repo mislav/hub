@@ -20,8 +20,8 @@ var (
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
-issue labels [--color]
 issue update <NUMBER> [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue labels [--color]
 issue transfer <NUMBER> <REPO>
 `,
 		Long: `Manage GitHub Issues for the current repository.
@@ -35,6 +35,10 @@ With no arguments, show a list of open issues.
 
 	* _create_:
 		Open an issue in the current repository.
+
+	* _update_:
+		Update fields of an existing issue specified by <NUMBER>. Use ''--edit''
+		to edit the title and message interactively in the text editor.
 
 	* _labels_:
 		List the labels available in this repository.
@@ -631,15 +635,7 @@ func updateIssue(cmd *Command, args *Args) {
 	if issueNumber == 0 {
 		utils.Check(cmd.UsageError(""))
 	}
-
-	flagsUpdatingFields := []string{"--message", "--edit", "--file", "--labels", "--milestone", "--assign"}
-	updatesFields := false
-	for _, name := range flagsUpdatingFields {
-		if args.Flag.HasReceived(name) {
-			updatesFields = true
-		}
-	}
-	if !updatesFields {
+	if !hasField(args, "--message", "--file", "--labels", "--milestone", "--assign", "--edit") {
 		utils.Check(cmd.UsageError("please specify fields to update"))
 	}
 
@@ -652,37 +648,34 @@ func updateIssue(cmd *Command, args *Args) {
 	gh := github.NewClient(project.Host)
 
 	issue, err := gh.FetchIssue(project, strconv.Itoa(issueNumber))
-
 	utils.Check(err)
 
-	messageBuilder := &github.MessageBuilder{
-		Filename: "ISSUE_EDITMSG",
-		Title:    "issue",
-	}
+	params := map[string]interface{}{}
+	setLabelsFromArgs(params, args)
+	setAssigneesFromArgs(params, args)
+	setMilestoneFromArgs(params, args, gh, project)
 
-	messageBuilder.Message = fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body)
+	if hasField(args, "--message", "--file", "--edit") {
+		messageBuilder := &github.MessageBuilder{
+			Filename: "ISSUE_EDITMSG",
+			Title:    "issue",
+			Edit:     args.Flag.Bool("--edit"),
+			Message:  fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body),
+		}
 
-	messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing issue %d for %s
+		messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing issue #%d for %s
 
 Update the message for this issue. The first block of
 text is the title and the rest is the description.`, issue.Number, project))
 
-	updateIssueMessage := true
-	flagIssueEdit := args.Flag.Bool("--edit")
-	messageBuilder.Edit = flagIssueEdit
-	flagIssueMessage := args.Flag.AllValues("--message")
-	if len(flagIssueMessage) > 0 {
-		messageBuilder.Message = strings.Join(flagIssueMessage, "\n\n")
-	} else if args.Flag.HasReceived("--file") {
-		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
-		utils.Check(err)
-	} else {
-		updateIssueMessage = false
-	}
+		flagIssueMessage := args.Flag.AllValues("--message")
+		if len(flagIssueMessage) > 0 {
+			messageBuilder.Message = strings.Join(flagIssueMessage, "\n\n")
+		} else if args.Flag.HasReceived("--file") {
+			messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
+			utils.Check(err)
+		}
 
-	params := map[string]interface{}{}
-
-	if updateIssueMessage || flagIssueEdit {
 		title, body, err := messageBuilder.Extract()
 		utils.Check(err)
 		if title == "" {
@@ -690,23 +683,16 @@ text is the title and the rest is the description.`, issue.Number, project))
 		}
 		params["title"] = title
 		params["body"] = body
+		defer messageBuilder.Cleanup()
 	}
-
-	setLabelsFromArgs(params, args)
-
-	setAssigneesFromArgs(params, args)
-
-	setMilestoneFromArgs(params, args, gh, project)
 
 	args.NoForward()
 	if args.Noop {
-		ui.Printf("Would update issue #%i `%s' for %s\n", issueNumber, params["title"], project)
+		ui.Printf("Would update issue #%d for %s\n", issueNumber, project)
 	} else {
 		err := gh.UpdateIssue(project, issueNumber, params)
 		utils.Check(err)
 	}
-
-	messageBuilder.Cleanup()
 }
 
 func listLabels(cmd *Command, args *Args) {
@@ -731,6 +717,16 @@ func listLabels(cmd *Command, args *Args) {
 	for _, label := range labels {
 		ui.Print(formatLabel(label, flagLabelsColorize))
 	}
+}
+
+func hasField(args *Args, names ...string) bool {
+	found := false
+	for _, name := range names {
+		if args.Flag.HasReceived(name) {
+			found = true
+		}
+	}
+	return found
 }
 
 func setLabelsFromArgs(params map[string]interface{}, args *Args) {
