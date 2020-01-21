@@ -731,23 +731,28 @@ func hasField(args *Args, names ...string) bool {
 }
 
 func setLabelsFromArgs(params map[string]interface{}, args *Args) {
-	flagIssueLabels := commaSeparated(args.Flag.AllValues("--labels"))
-	if len(flagIssueLabels) > 0 {
-		params["labels"] = flagIssueLabels
+	if !args.Flag.HasReceived("--labels") {
+		return
 	}
+	params["labels"] = commaSeparated(args.Flag.AllValues("--labels"))
 }
 
 func setAssigneesFromArgs(params map[string]interface{}, args *Args) {
-	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assign"))
-	if len(flagIssueAssignees) > 0 {
-		params["assignees"] = flagIssueAssignees
+	if !args.Flag.HasReceived("--assign") {
+		return
 	}
+	params["assignees"] = commaSeparated(args.Flag.AllValues("--assign"))
 }
 
 func setMilestoneFromArgs(params map[string]interface{}, args *Args, gh *github.Client, project *github.Project) {
+	if !args.Flag.HasReceived("--milestone") {
+		return
+	}
 	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
 	utils.Check(err)
-	if milestoneNumber > 0 {
+	if milestoneNumber == 0 {
+		params["milestone"] = nil
+	} else {
 		params["milestone"] = milestoneNumber
 	}
 }

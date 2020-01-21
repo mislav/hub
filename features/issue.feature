@@ -679,6 +679,19 @@ Feature: hub issue
       """
     Then I successfully run `hub issue update 1337  -m "Not workie, pls fix" -M 42 -l bug,important -a Cornwe19`
 
+  Scenario: Clear existing issue labels, assignees, milestone
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => nil,
+               :assignees => [],
+               :labels => []
+      }
+      """
+    Then I successfully run `hub issue update 1337 --milestone= --assign= --labels=`
+
   Scenario: Update an issue's title and body manually
     Given the git commit editor is "vim"
     And the text editor adds:
