@@ -2,6 +2,11 @@
 # Displays hub's release version
 set -e
 
+if [ -n "$GITHUB_REF" ]; then
+  echo "${GITHUB_REF#refs/tags/v}"
+  exit
+fi
+
 export GIT_CEILING_DIRECTORIES=${PWD%/*}
 version="$(git describe --tags HEAD 2>/dev/null || true)"
 
