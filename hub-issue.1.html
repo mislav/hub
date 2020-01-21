@@ -89,7 +89,9 @@ a:link, a:hover, a:visited { color: blue }
 <p><code>hub issue</code> [-a <var>ASSIGNEE</var>] [-c <var>CREATOR</var>] [-@ <var>USER</var>] [-s <var>STATE</var>] [-f <var>FORMAT</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>] [-d <var>DATE</var>] [-o <var>SORT_KEY</var> [<code>-^</code>]] [-L <var>LIMIT</var>]<br>
 <code>hub issue</code> show [-f <var>FORMAT</var>] <var>NUMBER</var><br>
 <code>hub issue</code> create [-oc] [-m <var>MESSAGE</var>|-F <var>FILE</var>] [--edit] [-a <var>USERS</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>]<br>
-<code>hub issue</code> labels [--color]</p>
+<code>hub issue</code> update <var>NUMBER</var> [-m <var>MESSAGE</var>|-F <var>FILE</var>] [--edit] [-a <var>USERS</var>] [-M <var>MILESTONE</var>] [-l <var>LABELS</var>] [-s <var>STATE</var>]<br>
+<code>hub issue</code> labels [--color]<br>
+<code>hub issue</code> transfer <var>NUMBER</var> <var>REPO</var></p>
 
 <h2 id="commands">Commands</h2>
 
@@ -100,8 +102,13 @@ a:link, a:hover, a:visited { color: blue }
 <dd>Show an existing issue specified by <var>NUMBER</var>.</dd>
 <dt><em>create</em></dt>
 <dd>Open an issue in the current repository.</dd>
+<dt><em>update</em></dt>
+<dd>Update fields of an existing issue specified by <var>NUMBER</var>. Use <code>--edit</code>
+to edit the title and message interactively in the text editor.</dd>
 <dt><em>labels</em></dt>
 <dd>List the labels available in this repository.</dd>
+<dt><em>transfer</em></dt>
+<dd>Transfer an issue to another repository.</dd>
 </dl>
 
 <h2 id="options">Options</h2>
@@ -225,12 +232,11 @@ Passing the milestone number is deprecated.</p></dd>
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.13.0</li>
-    <li class="tc">16 Dec 2019</li>
+    <li class="tl">hub version 2.14.0</li>
+    <li class="tc">21 Jan 2020</li>
     <li class="tr"></li>
   </ol>
 </footer>
-
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-3769691-115"></script>
 <script>
   window.dataLayer = window.dataLayer || [];

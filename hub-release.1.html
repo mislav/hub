@@ -97,9 +97,6 @@ a:link, a:hover, a:visited { color: blue }
 
 <p>With no arguments, shows a list of existing releases.</p>
 
-<p>With <code>--include-drafts</code>, include draft releases in the listing.
-With <code>--exclude-prereleases</code>, exclude non-stable releases from the listing.</p>
-
 <dl>
 <dt><em>show</em></dt>
 <dd><p>Show GitHub release notes for <var>TAG</var>.</p>
@@ -125,6 +122,10 @@ this does <strong>not</strong> remove the git tag <var>TAG</var>.</p></dd>
 <h2 id="options">Options</h2>
 
 <dl>
+<dt>-d, --include-drafts</dt>
+<dd><p>List drafts together with published releases.</p></dd>
+<dt>-p, --exclude-prereleases</dt>
+<dd><p>Exclude prereleases from the list.</p></dd>
 <dt>-L, --limit</dt>
 <dd><p>Display only the first <var>LIMIT</var> releases.</p></dd>
 <dt>-d, --draft</dt>
@@ -134,7 +135,7 @@ this does <strong>not</strong> remove the git tag <var>TAG</var>.</p></dd>
 <dt>-a, --attach <var>FILE</var></dt>
 <dd><p>Attach a file as an asset for this release.</p>
 
-<p>If <var>FILE</var> is in the &quot;<var>filename</var>#<var>text</var>&quot; format, the text after the <code>#</code>
+<p>If <var>FILE</var> is in the &quot;<var>filename</var>#<var>text</var>&quot; format, the text after the &quot;#&quot;
 character is taken as asset label.</p></dd>
 <dt>-m, --message <var>MESSAGE</var></dt>
 <dd><p>The text up to the first blank line in <var>MESSAGE</var> is treated as the release
@@ -219,12 +220,11 @@ of &quot;always&quot; (default for <code>--color</code>), &quot;never&quot;, or 
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.13.0</li>
-    <li class="tc">16 Dec 2019</li>
+    <li class="tl">hub version 2.14.0</li>
+    <li class="tc">21 Jan 2020</li>
     <li class="tr"></li>
   </ol>
 </footer>
-
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-3769691-115"></script>
 <script>
   window.dataLayer = window.dataLayer || [];

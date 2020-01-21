@@ -237,7 +237,8 @@ this can be affected with the <code>GITHUB_HOST</code> environment variable:</p>
 
 <dl>
 <dt><code>HUB_VERBOSE</code></dt>
-<dd>Enable verbose output from hub commands.</dd>
+<dd>If this environment variable is set, verbose logging will be printed to
+stderr.</dd>
 <dt><code>HUB_CONFIG</code></dt>
 <dd>The file path where hub configuration is read from and stored. If
 <code>XDG_CONFIG_HOME</code> is present, the default is <code>$XDG_CONFIG_HOME/hub</code>;
@@ -278,12 +279,11 @@ default value of <code>GITHUB_USER</code> for API requests.</dd>
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.13.0</li>
-    <li class="tc">16 Dec 2019</li>
+    <li class="tl">hub version 2.14.0</li>
+    <li class="tc">21 Jan 2020</li>
     <li class="tr"></li>
   </ol>
 </footer>
-
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-3769691-115"></script>
 <script>
   window.dataLayer = window.dataLayer || [];

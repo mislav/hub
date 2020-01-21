@@ -93,8 +93,8 @@ a:link, a:hover, a:visited { color: blue }
 <dl>
 <dt>-X, --method <var>METHOD</var></dt>
 <dd><p>The HTTP method to use for the request (default: &quot;GET&quot;). The method is
-automatically set to &quot;POST&quot; if <code>--field</code>, <code>--raw-field</code>, or <code>--input</code> are
-used.</p>
+automatically set to &quot;POST&quot; if <code>--field</code>, <code>--raw-field</code>, or <code>--input</code>
+are used.</p>
 
 <p>Use <code>-XGET</code> to force serializing fields into the query string for the GET
 request instead of JSON body of the POST request.</p></dd>
@@ -112,9 +112,9 @@ appropriate JSON type is used instead of a string.</p>
 Instead, construct the request payload externally and pass it via
 <code>--input</code>.</p>
 
-<p>Unless <code>-XGET</code> was used, all fields are sent serialized as JSON within the
-request body. When <var>ENDPOINT</var> is &quot;graphql&quot;, all fields other than &quot;query&quot;
-are grouped under &quot;variables&quot;. See
+<p>Unless <code>-XGET</code> was used, all fields are sent serialized as JSON within
+the request body. When <var>ENDPOINT</var> is &quot;graphql&quot;, all fields other than
+&quot;query&quot; are grouped under &quot;variables&quot;. See
 <a href="https://graphql.org/learn/queries/#variables">https://graphql.org/learn/queries/#variables</a></p></dd>
 <dt>-f, --raw-field <var>KEY</var>=<var>VALUE</var></dt>
 <dd><p>Same as <code>--field</code>, except that it allows values starting with &quot;@&quot;, literal
@@ -132,7 +132,7 @@ input. Use this when you want to manually construct the request payload.</p></dd
 suitable for use in shell scripts.</p></dd>
 <dt>--paginate</dt>
 <dd><p>Automatically request and output the next page of results until all
-resources have been listed. For GET requests, this follows the <code>&lt;var&gt;next&lt;/var&gt;</code>
+resources have been listed. For GET requests, this follows the <code>&lt;next\&gt;</code>
 resource as indicated in the &quot;Link&quot; response header. For GraphQL queries,
 this utilizes <code>pageInfo</code> that must be present in the query; see EXAMPLES.</p>
 
@@ -173,7 +173,7 @@ $ hub api user
 $ hub api --flat users/octocat/repos
 
 # post a comment to issue #23 of the current repository
-$ hub api repos/{owner}/{repo}/issues/23/comments --raw-field &quot;body=Nice job!&quot;
+$ hub api repos/{owner}/{repo}/issues/23/comments --raw-field 'body=Nice job!'
 
 # perform a GraphQL query read from a file
 $ hub api graphql -F query=@path/to/myquery.graphql
@@ -192,7 +192,8 @@ $ hub api --paginate graphql -f query='
         }
       }
     }
-  }'
+  }
+'
 </code></pre>
 
 <h2 id="see-also">See also</h2>
@@ -203,12 +204,11 @@ $ hub api --paginate graphql -f query='
 
 <footer>
   <ol class="man-head">
-    <li class="tl">hub version 2.13.0</li>
-    <li class="tc">16 Dec 2019</li>
+    <li class="tl">hub version 2.14.0</li>
+    <li class="tc">21 Jan 2020</li>
     <li class="tr"></li>
   </ol>
 </footer>
-
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-3769691-115"></script>
 <script>
   window.dataLayer = window.dataLayer || [];
