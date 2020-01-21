@@ -593,7 +593,6 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
-
   Scenario: Update an issue's title
     Given the GitHub API server:
       """
@@ -602,10 +601,22 @@ Feature: hub issue
                :body => "",
                :milestone => :no,
                :assignees => :no,
-               :labels => :no
+               :labels => :no,
+               :state => :no
       }
       """
     Then I successfully run `hub issue update 1337 -m "Not workie, pls fix"`
+
+  Scenario: Update an issue's state
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :labels => :no,
+               :state => "closed"
+      }
+      """
+    Then I successfully run `hub issue update 1337 -s closed`
     
   Scenario: Update an issue's labels
     Given the GitHub API server:

@@ -20,7 +20,7 @@ var (
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
-issue update <NUMBER> [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue update <NUMBER> [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>] [-s <STATE>]
 issue labels [--color]
 issue transfer <NUMBER> <REPO>
 `,
@@ -243,6 +243,7 @@ hub-pr(1), hub(1)
 		-l, --labels LIST
 		-a, --assign USER
 		-e, --edit
+		-s, --state STATE
 `,
 	}
 )
@@ -635,7 +636,7 @@ func updateIssue(cmd *Command, args *Args) {
 	if issueNumber == 0 {
 		utils.Check(cmd.UsageError(""))
 	}
-	if !hasField(args, "--message", "--file", "--labels", "--milestone", "--assign", "--edit") {
+	if !hasField(args, "--message", "--file", "--labels", "--milestone", "--assign", "--state", "--edit") {
 		utils.Check(cmd.UsageError("please specify fields to update"))
 	}
 
@@ -651,6 +652,10 @@ func updateIssue(cmd *Command, args *Args) {
 	setLabelsFromArgs(params, args)
 	setAssigneesFromArgs(params, args)
 	setMilestoneFromArgs(params, args, gh, project)
+
+	if args.Flag.HasReceived("--state") {
+		params["state"] = args.Flag.Value("--state")
+	}
 
 	if hasField(args, "--message", "--file", "--edit") {
 		messageBuilder := &github.MessageBuilder{
