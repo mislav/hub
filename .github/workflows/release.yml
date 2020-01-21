@@ -22,7 +22,7 @@ jobs:
         GOFLAGS: -mod=vendor
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: mislav/bump-homebrew-formula-action@v1.4
+    - uses: mislav/bump-homebrew-formula-action@v1
       if: "!contains(github.ref, '-')" # skip prereleases
       with:
         formula-name: hub
