@@ -28,3 +28,4 @@ jobs:
         formula-name: hub
       env:
         COMMITTER_TOKEN: ${{ secrets.COMMITTER_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
