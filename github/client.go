@@ -3,15 +3,18 @@ package github
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/github/hub/git"
 	"golang.org/x/net/publicsuffix"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -44,12 +47,27 @@ type Client struct {
 	cachedClient *simpleClient
 }
 
+
 func SetUserAgent() {
 	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
 		UserAgent = userAgent
 	} else if userAgent, err := git.Config("hub.useragent"); err == nil {
 		UserAgent = userAgent
 	}
+
+type Gist struct {
+	Files       map[string]GistFile `json:"files"`
+	Description string              `json:"description,omitempty"`
+	Id          string              `json:"id,omitempty"`
+	Public      bool                `json:"public"`
+	HtmlUrl     string              `json:"html_url"`
+}
+
+type GistFile struct {
+	Type     string `json:"type,omitempty"`
+	Language string `json:"language,omitempty"`
+	Content  string `json:"content"`
+	RawUrl   string `json:"raw_url"`
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
@@ -170,13 +188,6 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 	}
 
 	return res.Body, nil
-}
-
-type Gist struct {
-	Files map[string]GistFile `json:"files"`
-}
-type GistFile struct {
-	RawUrl string `json:"raw_url"`
 }
 
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
@@ -385,26 +396,70 @@ func (client *Client) DeleteRelease(release *Release) (err error) {
 	return
 }
 
-func (client *Client) UploadReleaseAsset(release *Release, filename, label string) (asset *ReleaseAsset, err error) {
+type LocalAsset struct {
+	Name     string
+	Label    string
+	Contents io.Reader
+	Size     int64
+}
+
+func (client *Client) UploadReleaseAssets(release *Release, assets []LocalAsset) (doneAssets []*ReleaseAsset, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
 		return
 	}
 
-	parts := strings.SplitN(release.UploadUrl, "{", 2)
-	uploadUrl := parts[0]
-	uploadUrl += "?name=" + url.QueryEscape(filepath.Base(filename))
-	if label != "" {
-		uploadUrl += "&label=" + url.QueryEscape(label)
+	idx := strings.Index(release.UploadUrl, "{")
+	uploadURL := release.UploadUrl[0:idx]
+
+	for _, asset := range assets {
+		for _, existingAsset := range release.Assets {
+			if existingAsset.Name == asset.Name {
+				if err = client.DeleteReleaseAsset(&existingAsset); err != nil {
+					return
+				}
+				break
+			}
+		}
+
+		params := map[string]interface{}{"name": filepath.Base(asset.Name)}
+		if asset.Label != "" {
+			params["label"] = asset.Label
+		}
+		uploadPath := addQuery(uploadURL, params)
+
+		var res *simpleResponse
+		attempts := 0
+		maxAttempts := 3
+		body := asset.Contents
+		for {
+			res, err = api.PostFile(uploadPath, body, asset.Size)
+			if err == nil && res.StatusCode >= 500 && res.StatusCode < 600 && attempts < maxAttempts {
+				attempts++
+				time.Sleep(time.Second * time.Duration(attempts))
+				var f *os.File
+				f, err = os.Open(asset.Name)
+				if err != nil {
+					return
+				}
+				defer f.Close()
+				body = f
+				continue
+			}
+			if err = checkStatus(201, "uploading release asset", res, err); err != nil {
+				return
+			}
+			break
+		}
+
+		newAsset := ReleaseAsset{}
+		err = res.Unmarshal(&newAsset)
+		if err != nil {
+			return
+		}
+		doneAssets = append(doneAssets, &newAsset)
 	}
 
-	res, err := api.PostFile(uploadUrl, filename)
-	if err = checkStatus(201, "uploading release asset", res, err); err != nil {
-		return
-	}
-
-	asset = &ReleaseAsset{}
-	err = res.Unmarshal(asset)
 	return
 }
 
@@ -848,6 +903,45 @@ func (client *Client) GenericAPIRequest(method, path string, data interface{}, h
 	})
 }
 
+// GraphQL facilitates performing a GraphQL request and parsing the response
+func (client *Client) GraphQL(query string, variables interface{}, data interface{}) error {
+	api, err := client.simpleApi()
+	if err != nil {
+		return err
+	}
+
+	payload := map[string]interface{}{
+		"query":     query,
+		"variables": variables,
+	}
+	resp, err := api.PostJSON("graphql", payload)
+	if err = checkStatus(200, "performing GraphQL", resp, err); err != nil {
+		return err
+	}
+
+	responseData := struct {
+		Data   interface{}
+		Errors []struct {
+			Message string
+		}
+	}{
+		Data: data,
+	}
+	err = resp.Unmarshal(&responseData)
+	if err != nil {
+		return err
+	}
+
+	if len(responseData.Errors) > 0 {
+		messages := []string{}
+		for _, e := range responseData.Errors {
+			messages = append(messages, e.Message)
+		}
+		return fmt.Errorf("API error: %s", strings.Join(messages, "; "))
+	}
+	return nil
+}
+
 func (client *Client) CurrentUser() (user *User, err error) {
 	api, err := client.simpleApi()
 	if err != nil {
@@ -888,7 +982,7 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 	}
 
 	params := map[string]interface{}{
-		"scopes":   []string{"repo"},
+		"scopes":   []string{"repo", "gist"},
 		"note_url": OAuthAppURL,
 	}
 
@@ -1021,6 +1115,60 @@ func (client *Client) absolute(host string) *url.URL {
 	return u
 }
 
+func (client *Client) FetchGist(id string) (gist *Gist, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	response, err := api.Get(fmt.Sprintf("gists/%s", id))
+	if err = checkStatus(200, "getting gist", response, err); err != nil {
+		return
+	}
+
+	response.Unmarshal(&gist)
+	return
+}
+
+func (client *Client) CreateGist(filenames []string, public bool) (gist *Gist, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+	files := map[string]GistFile{}
+	var basename string
+	var content []byte
+	var gf GistFile
+
+	for _, file := range filenames {
+		if file == "-" {
+			content, err = ioutil.ReadAll(os.Stdin)
+			basename = "gistfile1.txt"
+		} else {
+			content, err = ioutil.ReadFile(file)
+			basename = path.Base(file)
+		}
+		if err != nil {
+			return
+		}
+		gf = GistFile{Content: string(content)}
+		files[basename] = gf
+	}
+
+	g := Gist{
+		Files:  files,
+		Public: public,
+	}
+
+	res, err := api.PostJSON("gists", &g)
+	if err = checkStatus(201, "creating gist", res, err); err != nil {
+		return
+	}
+
+	err = res.Unmarshal(&gist)
+	return
+}
+
 func normalizeHost(host string) string {
 	if host == "" {
 		return GitHubHost
@@ -1033,68 +1181,161 @@ func normalizeHost(host string) string {
 	}
 }
 
+func reverseNormalizeHost(host string) string {
+	switch host {
+	case "api.github.com":
+		return GitHubHost
+	case "api.github.localhost":
+		return "github.localhost"
+	default:
+		return host
+	}
+}
+
 func checkStatus(expectedStatus int, action string, response *simpleResponse, err error) error {
 	if err != nil {
 		return fmt.Errorf("Error %s: %s", action, err.Error())
 	} else if response.StatusCode != expectedStatus {
 		errInfo, err := response.ErrorInfo()
-		if err == nil {
-			return FormatError(action, errInfo)
-		} else {
+		if err != nil {
 			return fmt.Errorf("Error %s: %s (HTTP %d)", action, err.Error(), response.StatusCode)
 		}
-	} else {
-		return nil
+		return FormatError(action, errInfo)
 	}
+	return nil
 }
 
-func FormatError(action string, err error) (ee error) {
-	switch e := err.(type) {
-	default:
-		ee = err
-	case *errorInfo:
-		statusCode := e.Response.StatusCode
-		var reason string
-		if s := strings.SplitN(e.Response.Status, " ", 2); len(s) >= 2 {
-			reason = strings.TrimSpace(s[1])
-		}
+// FormatError annotates an HTTP response error with user-friendly messages
+func FormatError(action string, err error) error {
+	if e, ok := err.(*errorInfo); ok {
+		return formatError(action, e)
+	}
+	return err
+}
 
-		errStr := fmt.Sprintf("Error %s: %s (HTTP %d)", action, reason, statusCode)
-
-		var errorSentences []string
-		for _, err := range e.Errors {
-			switch err.Code {
-			case "custom":
-				errorSentences = append(errorSentences, err.Message)
-			case "missing_field":
-				errorSentences = append(errorSentences, fmt.Sprintf("Missing field: \"%s\"", err.Field))
-			case "already_exists":
-				errorSentences = append(errorSentences, fmt.Sprintf("Duplicate value for \"%s\"", err.Field))
-			case "invalid":
-				errorSentences = append(errorSentences, fmt.Sprintf("Invalid value for \"%s\"", err.Field))
-			case "unauthorized":
-				errorSentences = append(errorSentences, fmt.Sprintf("Not allowed to change field \"%s\"", err.Field))
-			}
-		}
-
-		var errorMessage string
-		if len(errorSentences) > 0 {
-			errorMessage = strings.Join(errorSentences, "\n")
-		} else {
-			errorMessage = e.Message
-			if action == "getting current user" && e.Message == "Resource not accessible by integration" {
-				errorMessage = errorMessage + "\nYou must specify GITHUB_USER via environment variable."
-			}
-		}
-
-		if errorMessage != "" {
-			errStr = fmt.Sprintf("%s\n%s", errStr, errorMessage)
-		}
-
-		ee = fmt.Errorf(errStr)
+func formatError(action string, e *errorInfo) error {
+	var reason string
+	if s := strings.SplitN(e.Response.Status, " ", 2); len(s) >= 2 {
+		reason = strings.TrimSpace(s[1])
 	}
 
-	return
+	errStr := fmt.Sprintf("Error %s: %s (HTTP %d)", action, reason, e.Response.StatusCode)
+
+	var errorSentences []string
+	for _, err := range e.Errors {
+		switch err.Code {
+		case "custom":
+			errorSentences = append(errorSentences, err.Message)
+		case "missing_field":
+			errorSentences = append(errorSentences, fmt.Sprintf("Missing field: \"%s\"", err.Field))
+		case "already_exists":
+			errorSentences = append(errorSentences, fmt.Sprintf("Duplicate value for \"%s\"", err.Field))
+		case "invalid":
+			errorSentences = append(errorSentences, fmt.Sprintf("Invalid value for \"%s\"", err.Field))
+		case "unauthorized":
+			errorSentences = append(errorSentences, fmt.Sprintf("Not allowed to change field \"%s\"", err.Field))
+		}
+	}
+
+	var errorMessage string
+	if len(errorSentences) > 0 {
+		errorMessage = strings.Join(errorSentences, "\n")
+	} else {
+		errorMessage = e.Message
+		if action == "getting current user" && e.Message == "Resource not accessible by integration" {
+			errorMessage = errorMessage + "\nYou must specify GITHUB_USER via environment variable."
+		}
+	}
+	if errorMessage != "" {
+		errStr = fmt.Sprintf("%s\n%s", errStr, errorMessage)
+	}
+
+	if ssoErr := ValidateGitHubSSO(e.Response); ssoErr != nil {
+		return fmt.Errorf("%s\n%s", errStr, ssoErr)
+	}
+
+	if scopeErr := ValidateSufficientOAuthScopes(e.Response); scopeErr != nil {
+		return fmt.Errorf("%s\n%s", errStr, scopeErr)
+	}
+
+	return errors.New(errStr)
+}
+
+// ValidateGitHubSSO checks for the challenge via `X-Github-Sso` header
+func ValidateGitHubSSO(res *http.Response) error {
+	if res.StatusCode != 403 {
+		return nil
+	}
+
+	sso := res.Header.Get("X-Github-Sso")
+	if !strings.HasPrefix(sso, "required; url=") {
+		return nil
+	}
+
+	url := sso[strings.IndexByte(sso, '=')+1:]
+	return fmt.Errorf("You must authorize your token to access this organization:\n%s", url)
+}
+
+// ValidateSufficientOAuthScopes warns about insufficient OAuth scopes
+func ValidateSufficientOAuthScopes(res *http.Response) error {
+	if res.StatusCode != 404 && res.StatusCode != 403 {
+		return nil
+	}
+
+	needScopes := newScopeSet(res.Header.Get("X-Accepted-Oauth-Scopes"))
+	if len(needScopes) == 0 && isGistWrite(res.Request) {
+		// compensate for a GitHub bug: gist APIs omit proper `X-Accepted-Oauth-Scopes` in responses
+		needScopes = newScopeSet("gist")
+	}
+
+	haveScopes := newScopeSet(res.Header.Get("X-Oauth-Scopes"))
+	if len(needScopes) == 0 || needScopes.Intersects(haveScopes) {
+		return nil
+	}
+
+	return fmt.Errorf("Your access token may have insufficient scopes. Visit %s://%s/settings/tokens\n"+
+		"to edit the 'hub' token and enable one of the following scopes: %s",
+		res.Request.URL.Scheme,
+		reverseNormalizeHost(res.Request.Host),
+		needScopes)
+}
+
+func isGistWrite(req *http.Request) bool {
+	if req.Method == "GET" {
+		return false
+	}
+	path := strings.TrimPrefix(req.URL.Path, "/v3")
+	return strings.HasPrefix(path, "/gists")
+}
+
+type scopeSet map[string]struct{}
+
+func (s scopeSet) String() string {
+	scopes := make([]string, 0, len(s))
+	for scope := range s {
+		scopes = append(scopes, scope)
+	}
+	sort.Sort(sort.StringSlice(scopes))
+	return strings.Join(scopes, ", ")
+}
+
+func (s scopeSet) Intersects(other scopeSet) bool {
+	for scope := range s {
+		if _, found := other[scope]; found {
+			return true
+		}
+	}
+	return false
+}
+
+func newScopeSet(s string) scopeSet {
+	scopes := scopeSet{}
+	for _, s := range strings.SplitN(s, ",", -1) {
+		if s = strings.TrimSpace(s); s != "" {
+			scopes[s] = struct{}{}
+		}
+	}
+	return scopes
 }
 
 func authTokenNote(num int) (string, error) {

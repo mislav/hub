@@ -5,6 +5,13 @@ require 'tmpdir'
 
 system_git = `which git 2>/dev/null`.chomp
 bin_dir = File.expand_path('../fakebin', __FILE__)
+
+tmpdir = Dir.mktmpdir('hub_test')
+tmp_bin_dir = "#{tmpdir}/bin"
+Aruba.configure do |aruba|
+  aruba.send(:find_option, :root_directory).value = tmpdir
+end
+
 hub_dir = Dir.mktmpdir('hub_build')
 raise 'hub build failed' unless system("./script/build -o #{hub_dir}/hub")
 
@@ -16,7 +23,7 @@ Before do
     # speed up load time by skipping RubyGems
     'RUBYOPT' => '--disable-gems',
     # put fakebin on the PATH
-    'PATH' => "#{hub_dir}:#{bin_dir}:#{ENV['PATH']}",
+    'PATH' => "#{hub_dir}:#{tmp_bin_dir}:#{bin_dir}:#{ENV['PATH']}",
     # clear out GIT if it happens to be set
     'GIT' => nil,
     # exclude this project's git directory from use in testing
@@ -25,7 +32,7 @@ Before do
     'GIT_PROXY_COMMAND' => 'echo',
     # avoids reading from current user's "~/.gitconfig"
     'HOME' => expand_path('home'),
-    'TMPDIR' => expand_path('tmp'),
+    'TMPDIR' => tmpdir,
     # https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html#variables
     'XDG_CONFIG_HOME' => nil,
     'XDG_CONFIG_DIRS' => nil,
@@ -40,12 +47,13 @@ Before do
     # reset current localization settings
     'LANG' => nil,
     'LANGUAGE' => nil,
-    'LC_ALL' => 'en_US.UTF-8',
+    'LC_ALL' => 'C.UTF-8',
     # ignore current user's token
     'GITHUB_TOKEN' => nil,
     'GITHUB_USER' => nil,
     'GITHUB_PASSWORD' => nil,
     'GITHUB_HOST' => nil,
+    'GITHUB_REPOSITORY' => nil,
 
     'GIT_AUTHOR_NAME' =>     author_name,
     'GIT_COMMITTER_NAME' =>  author_name,
@@ -62,7 +70,11 @@ end
 
 After do
   @server.stop if defined? @server and @server
-  FileUtils.rm_f("#{bin_dir}/vim")
+  FileUtils.rm_f("#{tmp_bin_dir}/vim")
+end
+
+After('@cache_clear') do
+  FileUtils.rm_rf("#{tmpdir}/hub/api")
 end
 
 RSpec::Matchers.define :be_successfully_executed do
@@ -114,7 +126,8 @@ World Module.new {
   end
 
   define_method(:text_editor_script) do |bash_code|
-    File.open("#{bin_dir}/vim", 'w', 0755) { |exe|
+    FileUtils.mkdir_p(tmp_bin_dir)
+    File.open("#{tmp_bin_dir}/vim", 'w', 0755) { |exe|
       exe.puts "#!/bin/bash"
       exe.puts "set -e"
       exe.puts bash_code

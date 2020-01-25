@@ -47,6 +47,32 @@ Ubuntu | [Snap](https://snapcraft.io) | `snap install hub --classic`
 [compiled binaries](https://github.com/github/hub/releases) and put it anywhere
 in your executable path.
 
+#### GitHub Actions
+
+hub can be used for automation through [GitHub Actions][] workflows:
+```yaml
+steps:
+- uses: actions/checkout@v2
+
+- name: hub example
+  shell: bash
+  run: |
+    curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
+    bin/hub pr list  # list pull requests in the current repo
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Note that the default GITHUB_TOKEN will only work for API operations within _the
+same repo that runs this workflow_. If you need to access or write to other
+repositories, [generate a Personal Access Token][pat] with `repo` scope and add
+it to your [repository secrets][].
+
+
+[github actions]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions
+[pat]: https://github.com/settings/tokens
+[repository secrets]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
+
 #### Source
 
 Prerequisites for building from source are:

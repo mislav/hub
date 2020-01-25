@@ -1,3 +1,4 @@
+@cache_clear
 Feature: hub api
   Background:
     Given I am "octokitten" on github.com with OAuth token "OTOKEN"
@@ -420,3 +421,110 @@ Feature: hub api
     Given I am "octocat" on github.com with OAuth token "TOKEN2"
     When I run `hub api -t count --cache 5`
     Then it should pass with ".count	2"
+
+  Scenario: Honor rate limit with pagination
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        page = (params[:page] || 1).to_i
+        if page < 2
+          response.headers['X-Ratelimit-Remaining'] = '0'
+          response.headers['X-Ratelimit-Reset'] = Time.now.utc.to_i.to_s
+          response.headers['Link'] = %(</hello?page=#{page+1}>; rel="next")
+        end
+        json [{}]
+      }
+      """
+    When I successfully run `hub api --obey-ratelimit --paginate hello`
+    Then the stderr should contain "API rate limit exceeded; pausing until "
+
+  Scenario: Succumb to rate limit with pagination
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        page = (params[:page] || 1).to_i
+        response.headers['X-Ratelimit-Remaining'] = '0'
+        response.headers['X-Ratelimit-Reset'] = Time.now.utc.to_i.to_s
+        if page == 2
+          status 403
+          json :message => "API rate limit exceeded"
+        else
+          response.headers['Link'] = %(</hello?page=#{page+1}>; rel="next")
+          json [{page:page}]
+        end
+      }
+      """
+    When I run `hub api --paginate -t hello`
+    Then the exit status should be 22
+    And the stderr should not contain "API rate limit exceeded"
+    And the stdout should contain exactly:
+      """
+      .[0].page	1
+      .message	API rate limit exceeded\n
+      """
+
+  Scenario: Honor rate limit for 403s
+    Given the GitHub API server:
+      """
+      count = 0
+      get('/hello') {
+        count += 1
+        if count == 1
+          response.headers['X-Ratelimit-Remaining'] = '0'
+          response.headers['X-Ratelimit-Reset'] = Time.now.utc.to_i.to_s
+          halt 403
+        end
+        json [{}]
+      }
+      """
+    When I successfully run `hub api --obey-ratelimit hello`
+    Then the stderr should contain "API rate limit exceeded; pausing until "
+
+  Scenario: 403 unrelated to rate limit
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        response.headers['X-Ratelimit-Remaining'] = '1'
+        status 403
+      }
+      """
+    When I run `hub api --obey-ratelimit hello`
+    Then the exit status should be 22
+    Then the stderr should not contain "API rate limit exceeded"
+
+  Scenario: Warn about insufficient OAuth scopes
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        response.headers['X-Accepted-Oauth-Scopes'] = 'repo, admin'
+        response.headers['X-Oauth-Scopes'] = 'public_repo'
+        status 403
+        json({})
+      }
+      """
+    When I run `hub api hello`
+    Then the exit status should be 22
+    And the output should contain exactly:
+      """
+      {}
+      Your access token may have insufficient scopes. Visit http://github.com/settings/tokens
+      to edit the 'hub' token and enable one of the following scopes: admin, repo
+      """
+
+  Scenario: Print the SSO challenge to stderr
+    Given the GitHub API server:
+      """
+      get('/orgs/acme') {
+        response.headers['X-GitHub-SSO'] = 'required; url=http://example.com?auth=HASH'
+        status 403
+        json({})
+      }
+      """
+    When I run `hub api orgs/acme`
+    Then the exit status should be 22
+    And the stderr should contain exactly:
+      """
+
+      You must authorize your token to access this organization:
+      http://example.com?auth=HASH
+      """

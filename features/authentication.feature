@@ -11,7 +11,7 @@ Feature: OAuth authentication
 
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        assert :scopes => ['repo'],
+        assert :scopes => ['repo', 'gist'],
                :note => "hub for #{machine_id}",
                :note_url => 'https://hub.github.com/'
         status 201
@@ -520,3 +520,21 @@ Feature: OAuth authentication
         """
       And the exit status should be 1
       And the file "../home/.config/hub" should not exist
+
+  Scenario: GitHub SSO challenge
+    Given I am "monalisa" on github.com with OAuth token "OTOKEN"
+    And I am in "git://github.com/acme/playground.git" git repo
+    Given the GitHub API server:
+      """
+      get('/repos/acme/playground/releases') {
+        response.headers['X-GitHub-SSO'] = 'required; url=http://example.com?auth=HASH'
+        status 403
+      }
+      """
+    When I run `hub release show v1.2.0`
+    Then the stderr should contain exactly:
+      """
+      Error fetching releases: Forbidden (HTTP 403)
+      You must authorize your token to access this organization:
+      http://example.com?auth=HASH
+      """

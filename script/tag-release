@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+
+version_file="version/version.go"
+
+if git diff --exit-code >/dev/null -- "$version_file"; then
+  echo "Update the version in $version_file and try again." >&2
+  exit 1
+fi
+
+version="$(grep -w 'Version =' "$version_file" | cut -d'"' -f2)"
+
+git commit -m "hub $version" -- "$version_file"
+
+notes_file="$(mktemp)"
+{ echo "hub $version"
+  echo
+  GITHUB_REF="refs/tags/v$version" script/changelog
+} >"$notes_file"
+trap "rm -f '$notes_file'" EXIT
+
+git tag "v${version}" -F "$notes_file" --edit
+
+git push origin HEAD "v${version}"

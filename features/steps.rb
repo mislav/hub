@@ -62,7 +62,7 @@ Given(/^a git bundle named "([^"]*)"$/) do |file|
   Dir.mktmpdir do |tmpdir|
     Dir.chdir(tmpdir) do
       `git init --quiet`
-      `git commit --quiet -m 'empty' --allow-empty`
+      `GIT_COMMITTER_NAME=a GIT_COMMITTER_EMAIL=b git commit --quiet -m 'empty' --allow-empty --author='a <b>'`
       `git bundle create "#{dest}" master 2>&1`
     end
   end
@@ -289,4 +289,29 @@ Given(/^the SHAs and timestamps are normalized in "([^"]+)"$/) do |file|
   contents = File.read(file)
   contents.gsub!(/[0-9a-f]{7} \(Hub, \d seconds? ago\)/, "SHA1SHA (Hub, 0 seconds ago)")
   File.open(file, "w") { |f| f.write(contents) }
+end
+
+Then(/^its (output|stderr|stdout) should( not)? contain( exactly)?:$/) do |channel, negated, exactly, expected|
+  matcher = case channel.to_sym
+            when :output
+              :have_output
+            when :stderr
+              :have_output_on_stderr
+            when :stdout
+              :have_output_on_stdout
+            end
+
+  commands = [last_command_started]
+
+  output_string_matcher = if exactly
+                            :an_output_string_being_eq
+                          else
+                            :an_output_string_including
+                          end
+
+  if negated
+    expect(commands).not_to include_an_object send(matcher, send(output_string_matcher, expected))
+  else
+    expect(commands).to include_an_object send(matcher, send(output_string_matcher, expected))
+  end
 end
