@@ -368,6 +368,9 @@ Maintaining a project is easier when you can <em>easily fetch from other forks</
 <span class=p></span><strong>hub pr checkout</strong> 134
 <span class="result">→ (creates a new branch with the contents of the pull request)</span>
 
+<span class="comment"># close an issue</span>
+<span class=p></span><strong>hub issue update</strong> 134 -s closed
+
 <span class="comment"># directly apply all commits from a pull request to the current branch</span>
 <span class=p></span><strong>hub am -3</strong> https://github.com/github/hub/pull/134
 
@@ -400,6 +403,9 @@ is supported.
 <pre>
 <span class="comment"># whitelist your GitHub Enterprise hostname</span>
 <span class=p></span>git config --global --add <strong>hub.host my.example.org</strong>
+
+<span class="comment"># transfer an issue to another repo</span>
+<span class=p></span><strong>hub issue transfer</strong> 123 NEWREPO
 
 <span class="comment"># open a pull request using a message generated from script, then put its URL to the clipboard</span>
 <span class=p></span>git push origin feature
