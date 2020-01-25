@@ -27,16 +27,18 @@ visit this project <a href="{{ site.github.repository_url }}">on GitHub</a>.</p>
 <span class=p></span>hub version
 git version 2.25.0
 hub version {{ site.github.latest_release.tag_name | replace_first: "v", "" }} <span class="comment"><span class="hidden">#</span> ← it works!</span>
+
+<span class="comment"># indicate that you prefer HTTPS to SSH git clone URLs</span>
+<span class=p></span>git config --global hub.protocol https
 </pre>
 </section>
 
-<section id=contributor>
-<h2>As a contributor to open-source</h2>
+<section id=developer>
+<h2>Staying productive on the command-line</h2>
 <p>
-Whether you are beginner or an experienced contributor to open-source, hub
-makes it easier to <em>fetch repositories</em>, <em>navigate project pages</em>,
-<em>fork repos</em> and even <em>submit pull&nbsp;requests</em>, all from the
-command-line.
+hub makes it easy to <em>clone or create repositories</em>, <em>browse project
+pages</em>, <em>list known issues</em>, ensure your local branches <em>stay up
+to date</em>, and <em>share logs or code snippets via Gist</em>.
 </p>
 
 <pre>
@@ -48,6 +50,13 @@ command-line.
 <span class=p></span><strong>hub clone</strong> github/hub
 <span class="result">→ git clone git://github.com/github/hub.git</span>
 
+<span class="comment"># fast-forward all local branches to match the latest state on the remote</span>
+<span class=p></span>cd myproject
+<span class=p></span><strong>hub sync</strong>
+
+<span class="comment"># list latest open issues in the current repository</span>
+<span class=p></span><strong>hub issue</strong> -L 10
+
 <span class="comment"># open the current project's issues page</span>
 <span class=p></span><strong>hub browse</strong> -- issues
 <span class="result">→ open https://github.com/github/hub/issues</span>
@@ -55,9 +64,35 @@ command-line.
 <span class="comment"># open another project's wiki</span>
 <span class=p></span><strong>hub browse</strong> rbenv/ruby-build wiki
 <span class="result">→ open https://github.com/rbenv/ruby-build/wiki</span>
+
+<span class="comment"># share log output via Gist</span>
+<span class=p></span><strong>hub gist create</strong> -c build.log
+<span class="result">→ (the URL of the new private gist copied to clipboard)</span>
 </pre>
 
-<h3>Example workflow for contributing to a project</h3>
+<p>
+Starting a new project has never been easier:
+</p>
+<pre>
+<span class="comment"># create a repo to host a new project on GitHub</span>
+<span class=p></span>git init
+<span class=p></span>git add .
+<span class=p></span>git commit -m "And so, it begins."
+<span class=p></span><strong>hub create</strong>
+<span class="result">→ (creates a new GitHub repository with the name of the current directory)</span>
+<span class=p></span>git push -u origin HEAD
+</pre>
+</section>
+
+<section id=contributor>
+<h2>Lowering the barrier to contributing to open-source</h2>
+<p>
+Whether you are beginner or an experienced contributor to open-source, hub makes
+it easier to <em>fork repositories</em>, check the <em>CI status of a
+branch</em>, and even <em>submit pull requests</em> from the same environment
+where you write &amp; commit your code.
+</p>
+
 <pre>
 <span class=p></span><strong>hub clone</strong> octocat/Spoon-Knife
 <span class=p></span>cd Spoon-Knife
@@ -73,18 +108,21 @@ command-line.
 
 <span class="comment"># push the changes to your new remote</span>
 <span class=p></span>git push origin feature
-<span class="comment"># open a pull request for the topic branch you've just pushed</span>
+
+<span class="comment"># check the CI status for this branch</span>
+<span class=p></span><strong>hub ci-status</strong> -v
+
+<span class="comment"># open a pull request for the branch you've just pushed</span>
 <span class=p></span><strong>hub pull-request</strong>
 <span class="result">→ (opens a text editor for your pull request message)</span>
 </pre>
 </section>
 
 <section id=scripting>
-<h2>As someone who loves automation</h2>
+<h2>Automating tasks for fun and profit</h2>
 <p>
-<em>Scripting your workflows</em> is much easier now that you can <em>list and create</em>
-issues, pull requests, and GitHub releases. Plenty of hub commands support defining the
-<code>--format</code> string to control which fields are included in the output.
+Scripting is much easier now that you can <em>list or create</em>
+issues, pull requests, and GitHub Releases in the <em>format of your choice</em>.
 </p>
 
 <pre>
@@ -94,8 +132,9 @@ issues, pull requests, and GitHub releases. Plenty of hub commands support defin
 <span class="comment"># List the URLs of at most 20 pull requests based on the "develop" branch:</span>
 <span class=p></span><strong>hub pr list</strong> -L 20 -b develop --format='%t [%H] | %U%n'
 
-<span class="comment"># Create a GitHub release with notes from a file and copy the URL to clipboard:</span>
+<span class="comment"># Create a GitHub Release from master using release notes from a file</span>
 <span class=p></span><strong>hub release create</strong> -c -F release-notes.txt v2.3.0
+<span class="result">→ (the URL of the new release copied to clipboard)</span>
 </pre>
 
 <h3>Drop down to the API level</h3>
@@ -132,11 +171,11 @@ See <a href="https://github.com/mislav/hub-api-utils">hub-api-utils</a> for more
 </section>
 
 <section id=maintainer>
-<h2>As an open-source maintainer</h2>
+<h2>Designed for open-source maintainers</h2>
 <p>
-Maintaining a project is easier when you can <em>easily fetch from other forks</em>,
-<em>review pull requests</em> and <em>cherry-pick URLs</em>. You can even
-<em>create a new repo</em> for your next thing.
+Maintaining a project is easier when you can easily <em>fetch from other forks</em>,
+<em>check out pull requests</em>, <em>close issues</em>, and even <em>cherry-pick
+commits by URL</em>.
 </p>
 
 <pre>
@@ -162,15 +201,8 @@ Maintaining a project is easier when you can <em>easily fetch from other forks</
 <span class="comment"># open the GitHub compare view between two releases</span>
 <span class=p></span><strong>hub compare</strong> v0.9..v1.0
 
-<span class="comment"># put compare URL for a topic branch to clipboard</span>
+<span class="comment"># put the compare URL for a topic branch to your clipboard</span>
 <span class=p></span><strong>hub compare -u</strong> feature | pbcopy
-
-<span class="comment"># create a repo for a new project</span>
-<span class=p></span>git init
-<span class=p></span>git add . &amp;&amp; git commit -m "It begins."
-<span class=p></span><strong>hub create</strong> -d "My new thing"
-<span class="result">→ (creates a new project on GitHub with the name of current directory)</span>
-<span class=p></span>git push -u origin HEAD
 </pre>
 </section>
 
@@ -184,20 +216,25 @@ is supported.
 
 <pre>
 <span class="comment"># have hub recognize your GitHub Enterprise hostname</span>
-<span class=p></span>git config --global --add <strong>hub.host my.example.org</strong>
+<span class=p></span>git config --global --add hub.host <strong>my.example.org</strong>
 
 <span class="comment"># transfer an issue to another repo</span>
 <span class=p></span><strong>hub issue transfer</strong> 123 NEWREPO
 
-<span class="comment"># open a pull request using a message generated from script, then put its URL to the clipboard</span>
+<span class="comment"># open a pull request with title &amp; body from a file</span>
 <span class=p></span>git push origin feature
 <span class=p></span><strong>hub pull-request</strong> -c -F prepared-message.md
-<span class="result">→ (URL ready for pasting in a chat room)</span>
+<span class="result">→ (the URL of the new pull request copied to clipboard)</span>
 
 <span class="comment"># push to multiple remotes</span>
 <span class=p></span><strong>hub push</strong> production,staging
 </pre>
+
+<p>
+See the <a href="hub.1.html#configuration">full reference documentation</a> to learn more.
+</p>
 </section>
+
 
 <footer>
 <p>made with &lt;3 at GitHub</p>
