@@ -238,11 +238,11 @@ helps you do everyday GitHub tasks without ever leaving the terminal.
 <p>Read the full documentation: <a href="hub.1.html">man hub</a>, or
 visit this project <a href="{{ site.github.repository_url }}">on GitHub</a>.</p>
 
-<pre><span class="comment"># Homebrew/Linuxbrew: install the latest release</span>
+<pre><span class="comment"># install with <a href="https://docs.brew.sh/Installation">Homebrew</a> (macOS, Linux)</span>
 <span class="comment"># or see <a href="{{ site.github.repository_url }}#installation">other installation options</a></span>
-$ <a href="https://docs.brew.sh/Installation">brew</a> install hub
+<span class=p></span>brew install hub
 
-$ hub version
+<span class=p></span>hub version
 git version 2.25.0
 hub version {{ site.github.latest_release.tag_name | replace_first: "v", "" }} <span class="comment"><span class="hidden">#</span> ← it works!</span>
 </pre>
@@ -259,20 +259,20 @@ command-line.
 
 <pre>
 <span class="comment"># clone your own project</span>
-$ <strong>hub clone</strong> dotfiles
+<span class=p></span><strong>hub clone</strong> dotfiles
 <span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
 
 <span class="comment"># clone another project</span>
-$ <strong>hub clone</strong> github/hub
+<span class=p></span><strong>hub clone</strong> github/hub
 <span class="result">→ git clone git://github.com/github/hub.git</span>
 
 <span class="comment"># open the current project's issues page</span>
-$ <strong>hub browse</strong> -- issues
+<span class=p></span><strong>hub browse</strong> -- issues
 <span class="result">→ open https://github.com/github/hub/issues</span>
 
 <span class="comment"># open another project's wiki</span>
-$ <strong>hub browse</strong> mojombo/jekyll wiki
-<span class="result">→ open https://github.com/mojombo/jekyll/wiki</span>
+<span class=p></span><strong>hub browse</strong> rbenv/ruby-build wiki
+<span class="result">→ open https://github.com/rbenv/ruby-build/wiki</span>
 </pre>
 
 <h3>Example workflow for contributing to a project</h3>
@@ -292,7 +292,7 @@ $ <strong>hub browse</strong> mojombo/jekyll wiki
 <span class="comment"># push the changes to your new remote</span>
 <span class=p></span>git push origin feature
 <span class="comment"># open a pull request for the topic branch you've just pushed</span>
-$ <strong>hub pull-request</strong>
+<span class=p></span><strong>hub pull-request</strong>
 <span class="result">→ (opens a text editor for your pull request message)</span>
 </pre>
 </section>
@@ -306,13 +306,13 @@ issues, pull requests, and GitHub releases.
 
 <pre>
 <span class="comment"># List issues assigned to you that are labeled "urgent"</span>
-$ <strong>hub issue</strong> -a YOUR_USER -l urgent
+<span class=p></span><strong>hub issue</strong> -a YOUR_USER -l urgent
 
-<span class="comment"># List the URLs of at most 20 PRs based on "develop" branch:</span>
-$ <strong>hub pr list</strong> -L 20 -b develop --format='%t [%H] | %U%n'
+<span class="comment"># List the URLs of at most 20 pull requests based on the "develop" branch:</span>
+<span class=p></span><strong>hub pr list</strong> -L 20 -b develop --format='%t [%H] | %U%n'
 
 <span class="comment"># Create a GitHub release with notes from a file and copy the URL to clipboard:</span>
-$ <strong>hub release create</strong> -c -F release-notes.txt v2.3.0
+<span class=p></span><strong>hub release create</strong> -c -F release-notes.txt v2.3.0
 </pre>
 
 <h3>Drop down to the API level</h3>
@@ -354,33 +354,33 @@ Maintaining a project is easier when you can <em>easily fetch from other forks</
 
 <pre>
 <span class="comment"># fetch from multiple trusted forks, even if they don't yet exist as remotes</span>
-$ <strong>hub fetch</strong> mislav,cehoffman
+<span class=p></span><strong>hub fetch</strong> mislav,cehoffman
 <span class="result">→ git remote add mislav git://github.com/mislav/hub.git</span>
 <span class="result">→ git remote add cehoffman git://github.com/cehoffman/hub.git</span>
 <span class="result">→ git fetch --multiple mislav cehoffman</span>
 
 <span class="comment"># check out a pull request for review</span>
-$ <strong>hub pr checkout</strong> 134
+<span class=p></span><strong>hub pr checkout</strong> 134
 <span class="result">→ (creates a new branch with the contents of the pull request)</span>
 
 <span class="comment"># directly apply all commits from a pull request to the current branch</span>
-$ <strong>hub am -3</strong> https://github.com/github/hub/pull/134
+<span class=p></span><strong>hub am -3</strong> https://github.com/github/hub/pull/134
 
 <span class="comment"># cherry-pick a GitHub URL</span>
-$ <strong>hub cherry-pick</strong> https://github.com/xoebus/hub/commit/177eeb8
+<span class=p></span><strong>hub cherry-pick</strong> https://github.com/xoebus/hub/commit/177eeb8
 
 <span class="comment"># open the GitHub compare view between two releases</span>
-$ <strong>hub compare</strong> v0.9..v1.0
+<span class=p></span><strong>hub compare</strong> v0.9..v1.0
 
 <span class="comment"># put compare URL for a topic branch to clipboard</span>
-$ <strong>hub compare -u</strong> feature | pbcopy
+<span class=p></span><strong>hub compare -u</strong> feature | pbcopy
 
 <span class="comment"># create a repo for a new project</span>
-$ git init
-$ git add . &amp;&amp; git commit -m "It begins."
-$ <strong>hub create</strong> -d "My new thing"
+<span class=p></span>git init
+<span class=p></span>git add . &amp;&amp; git commit -m "It begins."
+<span class=p></span><strong>hub create</strong> -d "My new thing"
 <span class="result">→ (creates a new project on GitHub with the name of current directory)</span>
-$ git push origin master
+<span class=p></span>git push -u origin HEAD
 </pre>
 </section>
 
@@ -394,15 +394,15 @@ is supported.
 
 <pre>
 <span class="comment"># whitelist your GitHub Enterprise hostname</span>
-$ git config --global --add <strong>hub.host my.example.org</strong>
+<span class=p></span>git config --global --add <strong>hub.host my.example.org</strong>
 
 <span class="comment"># open a pull request using a message generated from script, then put its URL to the clipboard</span>
-$ git push origin feature
-$ <strong>hub pull-request</strong> -c -F prepared-message.md
+<span class=p></span>git push origin feature
+<span class=p></span><strong>hub pull-request</strong> -c -F prepared-message.md
 <span class="result">→ (URL ready for pasting in a chat room)</span>
 
 <span class="comment"># push to multiple remotes</span>
-$ <strong>hub push</strong> production,staging
+<span class=p></span><strong>hub push</strong> production,staging
 </pre>
 </section>
 
