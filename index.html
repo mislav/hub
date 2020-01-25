@@ -72,6 +72,9 @@
     margin: 0;
     color: #444;
   }
+  h3 {
+    margin: 1.5em 0 0 0;
+  }
 
 
   p code,
@@ -110,6 +113,9 @@
     padding: 1em 1.5em;
     color: white;
   }
+  pre .p:before {
+    content: "$ ";
+  }
 
   pre .comment {
     color: #969896;
@@ -130,7 +136,9 @@
     color: #dada82;
     font-weight: 400;
   }
-
+  pre .value {
+    color:rgb(187, 169, 253);
+  }
 
   footer {
     text-align: center;
@@ -305,6 +313,34 @@ $ <strong>hub pr list</strong> -L 20 -b develop --format='%t [%H] | %U%n'
 
 <span class="comment"># Create a GitHub release with notes from a file and copy the URL to clipboard:</span>
 $ <strong>hub release create</strong> -c -F release-notes.txt v2.3.0
+</pre>
+
+<h3>Drop down to the API level</h3>
+<p>
+Even if hub doesn't support the exact feature you need, you can use
+<a href="/hub-api.1.html"><code>hub api</code></a> to manually make requests against any
+GitHub API—even <a href="https://developer.github.com/v4/#about-graphql">GraphQL</a>—and
+have hub handle authentication, JSON encoding/decoding, and pagination for you.
+</p>
+
+<pre>
+<span class="comment"># use contents of a file to post a comment on issue #123 of the current repo</span>
+<span class=p></span><strong>hub api</strong> repos/{owner}/{repo}/issues/123/comments -F body=<span class=value>@mycomment.txt</span>
+
+<span class="comment"># find a pull request that introduced a specific commit SHA into a repo</span>
+<span class=p></span>REPO="github/hub"
+<span class=p></span>SHA="b0db79db"
+<span class=p></span><strong>hub api graphql</strong> -t -f q="repo:<span class=value>$REPO</span> type:pr <span class=value>$SHA</span>" -f query=<span class=value>'
+  query($q: String!) {
+    search(query: $q, type: ISSUE, first: 3) {
+      nodes {
+        ... on PullRequest {
+          url
+        }
+      }
+    }
+  }
+'</span> | awk '/\.url/ { print $2 }'
 </pre>
 </section>
 
