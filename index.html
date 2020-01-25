@@ -1,3 +1,5 @@
+---
+---
 <!doctype html>
 <head>
 <title>hub · the command-line wrapper for git</title>
@@ -225,7 +227,7 @@
 
 <body>
 <header>
-<h1><a href="https://github.com/github/hub#readme">hub</a>: use GitHub from the command-line</h1>
+<h1><a href="{{ site.github.repository_url }}#readme">hub</a>: use GitHub from the command-line</h1>
 </header>
 
 <section id=install>
@@ -234,17 +236,15 @@
 helps you do everyday GitHub tasks without ever leaving the terminal.
 </p>
 <p>Read the full documentation: <a href="hub.1.html">man hub</a>, or
-visit this project <a href="https://github.com/github/hub">on GitHub</a>.</p>
+visit this project <a href="{{ site.github.repository_url }}">on GitHub</a>.</p>
 
 <pre><span class="comment"># Homebrew/Linuxbrew: install the latest release</span>
+<span class="comment"># or see <a href="{{ site.github.repository_url }}#installation">other installation options</a></span>
 $ <a href="https://docs.brew.sh/Installation">brew</a> install hub
 
-<span class="comment"># Other platforms: fetch a <a href="https://github.com/github/hub/releases">precompiled binary release</a>, or
-# <a href="https://github.com/github/hub#source">build your own from source</a>.</span>
-
 $ hub version
-git version 2.20.1
-hub version 2.7.0 <span class="comment"><span class="hidden">#</span> ← it works!</span>
+git version 2.25.0
+hub version {{ site.github.latest_release.tag_name | replace_first: "v", "" }} <span class="comment"><span class="hidden">#</span> ← it works!</span>
 </pre>
 </section>
 
