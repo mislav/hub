@@ -10,19 +10,23 @@ Usage
 
 ``` sh
 $ hub clone rtomayko/tilt
-
-# expands to:
 #=> git clone git://github.com/rtomayko/tilt.git
+
+# if you prefer HTTPS to git/SSH protocols:
+$ git config --global hub.protocol https
+$ hub clone rtomayko/tilt
+#=> git clone https://github.com/rtomayko/tilt.git
 ```
 
-hub can be safely [aliased](#aliasing) as `git` so you can type `$ git
-<command>` in the shell and get all the usual `hub` features.
+See [usage examples](https://hub.github.com/#developer) or the [full reference
+documentation](https://hub.github.com/hub.1.html) to see all available commands
+and flags.
 
-See [Usage documentation](https://hub.github.com/hub.1.html) for the list of all
-commands and their arguments.
+hub can also be used to make shell scripts that [directly interact with the
+GitHub API](https://hub.github.com/#scripting).
 
-hub can also be used to make shell scripts that [manually interface with the
-GitHub API](https://hub.github.com/hub-api.1.html).
+hub can be safely [aliased](#aliasing) as `git`, so you can type `$ git
+<command>` in the shell and have it expanded with `hub` features.
 
 Installation
 ------------
@@ -41,11 +45,14 @@ FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
 Debian | [apt(8)](https://manpages.debian.org/buster/apt/apt.8.en.html) | `sudo apt install hub`
 Ubuntu | [Snap](https://snapcraft.io) | `snap install hub --classic`
 
+Packages other than Homebrew are community-maintained (thank you!) and they
+are not guaranteed to match the [latest hub release][latest]. Check `hub
+version` after installing a community package.
+
 #### Standalone
 
-`hub` can be easily installed as an executable. Download the latest
-[compiled binaries](https://github.com/github/hub/releases) and put it anywhere
-in your executable path.
+`hub` can be easily installed as an executable. Download the [latest
+binary][latest] for your system and put it anywhere in your executable path.
 
 #### GitHub Actions
 
@@ -139,18 +146,15 @@ New-Item -Type file -Force $PROFILE
 
 ### Shell tab-completion
 
-hub repository contains tab-completion scripts for bash, zsh and fish.
+hub repository contains [tab-completion scripts](./etc) for bash, zsh and fish.
 These scripts complement existing completion scripts that ship with git.
-
-[Installation instructions](etc)
-
-* [hub bash completion](https://github.com/github/hub/blob/master/etc/hub.bash_completion.sh)
-* [hub zsh completion](https://github.com/github/hub/blob/master/etc/hub.zsh_completion)
-* [hub fish completion](https://github.com/github/hub/blob/master/etc/hub.fish_completion)
 
 Meta
 ----
 
-* Home: <https://github.com/github/hub>
 * Bugs: <https://github.com/github/hub/issues>
 * Authors: <https://github.com/github/hub/contributors>
+* Our [Code of Conduct](https://github.com/github/hub/blob/master/CODE_OF_CONDUCT.md)
+
+
+[latest]: https://github.com/github/hub/releases/latest
