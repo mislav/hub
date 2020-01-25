@@ -275,22 +275,22 @@ $ <strong>hub browse</strong> mojombo/jekyll wiki
 <span class="result">→ open https://github.com/mojombo/jekyll/wiki</span>
 </pre>
 
+<h3>Example workflow for contributing to a project</h3>
 <pre>
-<span class="comment"># Example workflow for contributing to a project:</span>
-$ hub clone github/hub
-$ cd hub
+<span class=p></span><strong>hub clone</strong> octocat/Spoon-Knife
+<span class=p></span>cd Spoon-Knife
 <span class="comment"># create a topic branch</span>
-$ git checkout -b feature
+<span class=p></span>git checkout -b feature
 <span class="comment"># make some changes...</span>
-$ git commit -m "done with feature"
+<span class=p></span>git commit -am "done with feature"
 
 <span class="comment"># It's time to fork the repo!</span>
-$ <strong>hub fork</strong> --remote-name=origin
+<span class=p></span><strong>hub fork</strong> --remote-name=origin
 <span class="result">→ (forking repo on GitHub...)</span>
-<span class="result">→ git remote add origin git@github.com:YOUR_USER/hub.git</span>
+<span class="result">→ git remote add origin git@github.com:YOUR_USER/Spoon-Knife.git</span>
 
 <span class="comment"># push the changes to your new remote</span>
-$ git push origin feature
+<span class=p></span>git push origin feature
 <span class="comment"># open a pull request for the topic branch you've just pushed</span>
 $ <strong>hub pull-request</strong>
 <span class="result">→ (opens a text editor for your pull request message)</span>
