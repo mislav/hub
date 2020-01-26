@@ -278,7 +278,6 @@ Feature: hub create
       """
     And the stderr should contain:
       """
-      $ git config --get-all http.https://github.com.extraheader
       > POST https://api.github.com/user/repos
       > Authorization: token [REDACTED]
       """
