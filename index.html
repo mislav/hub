@@ -55,7 +55,7 @@ to date</em>, and <em>share logs or code snippets via Gist</em>.
 <span class=p></span><strong>hub sync</strong>
 
 <span class="comment"># list latest open issues in the current repository</span>
-<span class=p></span><strong>hub issue</strong> -L 10
+<span class=p></span><strong>hub issue</strong> --limit 10
 
 <span class="comment"># open the current project's issues page</span>
 <span class=p></span><strong>hub browse</strong> -- issues
@@ -66,7 +66,7 @@ to date</em>, and <em>share logs or code snippets via Gist</em>.
 <span class="result">→ open https://github.com/rbenv/ruby-build/wiki</span>
 
 <span class="comment"># share log output via Gist</span>
-<span class=p></span><strong>hub gist create</strong> -c build.log
+<span class=p></span><strong>hub gist create</strong> --copy build.log
 <span class="result">→ (the URL of the new private gist copied to clipboard)</span>
 </pre>
 
@@ -102,7 +102,7 @@ where you write &amp; commit your code.
 <span class=p></span>git commit -am "done with feature"
 
 <span class="comment"># It's time to fork the repo!</span>
-<span class=p></span><strong>hub fork</strong> --remote-name=origin
+<span class=p></span><strong>hub fork</strong> --remote-name origin
 <span class="result">→ (forking repo on GitHub...)</span>
 <span class="result">→ git remote add origin git@github.com:YOUR_USER/Spoon-Knife.git</span>
 
@@ -110,7 +110,7 @@ where you write &amp; commit your code.
 <span class=p></span>git push origin feature
 
 <span class="comment"># check the CI status for this branch</span>
-<span class=p></span><strong>hub ci-status</strong> -v
+<span class=p></span><strong>hub ci-status</strong> --verbose
 
 <span class="comment"># open a pull request for the branch you've just pushed</span>
 <span class=p></span><strong>hub pull-request</strong>
@@ -127,13 +127,13 @@ issues, pull requests, and GitHub Releases in the <em>format of your choice</em>
 
 <pre>
 <span class="comment"># List issues assigned to you that are labeled "urgent"</span>
-<span class=p></span><strong>hub issue</strong> -a YOUR_USER -l urgent
+<span class=p></span><strong>hub issue</strong> --assignee YOUR_USER --labels urgent
 
 <span class="comment"># List the URLs of at most 20 pull requests based on the "develop" branch:</span>
-<span class=p></span><strong>hub pr list</strong> -L 20 -b develop --format='%t [%H] | %U%n'
+<span class=p></span><strong>hub pr list</strong> --limit 20 --base develop --format='%t [%H] | %U%n'
 
 <span class="comment"># Create a GitHub Release from master using release notes from a file</span>
-<span class=p></span><strong>hub release create</strong> -c -F release-notes.txt v2.3.0
+<span class=p></span><strong>hub release create</strong> --copy -F release-notes.txt v2.3.0
 <span class="result">→ (the URL of the new release copied to clipboard)</span>
 </pre>
 
@@ -147,12 +147,12 @@ have hub handle authentication, JSON encoding/decoding, and pagination for you.
 
 <pre>
 <span class="comment"># use contents of a file to post a comment on issue #123 of the current repo</span>
-<span class=p></span><strong>hub api</strong> repos/{owner}/{repo}/issues/123/comments -F body=<span class=value>@mycomment.txt</span>
+<span class=p></span><strong>hub api</strong> repos/{owner}/{repo}/issues/123/comments --field body=<span class=value>@mycomment.txt</span>
 
 <span class="comment"># find a pull request that introduced a specific commit SHA into a repo</span>
 <span class=p></span>REPO="github/hub"
 <span class=p></span>SHA="b0db79db"
-<span class=p></span><strong>hub api graphql</strong> -t -f q="repo:<span class=value>$REPO</span> type:pr <span class=value>$SHA</span>" -f query=<span class=value>'
+<span class=p></span><strong>hub api graphql</strong> --flat -f q="repo:<span class=value>$REPO</span> type:pr <span class=value>$SHA</span>" -f query=<span class=value>'
   query($q: String!) {
     search(query: $q, type: ISSUE, first: 3) {
       nodes {
@@ -190,7 +190,7 @@ commits by URL</em>.
 <span class="result">→ (creates a new branch with the contents of the pull request)</span>
 
 <span class="comment"># close an issue</span>
-<span class=p></span><strong>hub issue update</strong> 134 -s closed
+<span class=p></span><strong>hub issue update</strong> 134 --state closed
 
 <span class="comment"># directly apply all commits from a pull request to the current branch</span>
 <span class=p></span><strong>hub am -3</strong> https://github.com/github/hub/pull/134
@@ -202,7 +202,7 @@ commits by URL</em>.
 <span class=p></span><strong>hub compare</strong> v0.9..v1.0
 
 <span class="comment"># put the compare URL for a topic branch to your clipboard</span>
-<span class=p></span><strong>hub compare -u</strong> feature | pbcopy
+<span class=p></span><strong>hub compare --url</strong> feature | pbcopy
 </pre>
 </section>
 
@@ -223,7 +223,7 @@ is supported.
 
 <span class="comment"># open a pull request with title &amp; body from a file</span>
 <span class=p></span>git push origin feature
-<span class=p></span><strong>hub pull-request</strong> -c -F prepared-message.md
+<span class=p></span><strong>hub pull-request</strong> --copy -F prepared-message.md
 <span class="result">→ (the URL of the new pull request copied to clipboard)</span>
 
 <span class="comment"># push to multiple remotes</span>
