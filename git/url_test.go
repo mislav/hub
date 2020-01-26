@@ -55,8 +55,8 @@ func TestURLParser_ParseURL_GitURL(t *testing.T) {
 
 	var exp *url.URL
 	u, err = p.Parse(string(0x7f))
-	assert.Equal(t, exp, u)
 	assert.Equal(t, "parse \u007f: net/url: invalid control character in URL", err.Error())
+	assert.Equal(t, exp, u)
 }
 
 func TestURLParser_ParseURL_SSHURL(t *testing.T) {
