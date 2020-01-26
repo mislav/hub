@@ -33,11 +33,11 @@ func init() {
 	setUserAgent()
 }
 
-func setUserAgent(){
+func setUserAgent() {
 	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
 		UserAgent = userAgent
-	}else{
-		UserAgent = "Hub "+ version.Version
+	} else {
+		UserAgent = "Hub " + version.Version
 	}
 }
 
@@ -1084,18 +1084,18 @@ func (client *Client) apiClient() *simpleClient {
 	}
 }
 
-func (client Client) loadCookies(httpClient *http.Client){
+func (client Client) loadCookies(httpClient *http.Client) {
 	protocol := client.Host.Protocol
 	if protocol == "" {
 		protocol = "https"
 	}
 	if headers, err := git.ConfigAll(fmt.Sprintf("http.%s://%s.extraheader", protocol, client.Host.Host)); err == nil {
-		cookies := make([]*http.Cookie,0)
+		cookies := make([]*http.Cookie, 0)
 		for _, header := range headers {
 			keyValue := strings.Split(header, ":")
 			key, value := strings.TrimSpace(keyValue[0]), strings.TrimSpace(keyValue[1])
 
-			if strings.EqualFold(key, "COOKIE") && strings.Contains(value, "="){
+			if strings.EqualFold(key, "COOKIE") && strings.Contains(value, "=") {
 				cookieKV := strings.Split(value, "=")
 				cookieKey, cookieValue := strings.TrimSpace(cookieKV[0]), strings.TrimSpace(cookieKV[1])
 				cookies = append(cookies, &http.Cookie{Name: cookieKey, Value: cookieValue})
