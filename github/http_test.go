@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -68,6 +69,9 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 }
 
 func TestNewHttpClient_UnixSocket(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	sock := "/tmp/hub-go.sock"
 	s := setupTestServer(sock)
 	defer s.Close()
