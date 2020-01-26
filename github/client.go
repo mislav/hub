@@ -1085,7 +1085,11 @@ func (client *Client) apiClient() *simpleClient {
 }
 
 func (client Client) loadCookies(httpClient *http.Client){
-	if headers, err := git.ConfigAll(fmt.Sprintf("http.%s://%s.extraheader", client.Host.Protocol, client.Host.Host)); err == nil {
+	protocol := client.Host.Protocol
+	if protocol == "" {
+		protocol = "https"
+	}
+	if headers, err := git.ConfigAll(fmt.Sprintf("http.%s://%s.extraheader", protocol, client.Host.Host)); err == nil {
 		cookies := make([]*http.Cookie,0)
 		for _, header := range headers {
 			keyValue := strings.Split(header, ":")
