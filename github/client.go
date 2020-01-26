@@ -27,11 +27,17 @@ const (
 	OAuthAppURL string = "https://hub.github.com/"
 )
 
-var UserAgent = "Hub " + version.Version
+var UserAgent string
 
 func init() {
+	setUserAgent()
+}
+
+func setUserAgent(){
 	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
 		UserAgent = userAgent
+	}else{
+		UserAgent = "Hub "+ version.Version
 	}
 }
 
