@@ -60,5 +60,9 @@ func TestUserAgent(t *testing.T) {
 		setUserAgent()
 		assert.Equal(t, "Hub "+version.Version, UserAgent)
 	})
+}
 
+func TestNewClient(t *testing.T) {
+	client := NewClient("localhost")
+	assert.Equal(t, "localhost", client.Host.Host)
 }
