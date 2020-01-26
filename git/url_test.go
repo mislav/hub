@@ -1,6 +1,7 @@
 package git
 
 import (
+	"net/url"
 	"testing"
 
 	"github.com/bmizerany/assert"
@@ -34,6 +35,12 @@ func TestURLParser_ParseURL_GitURL(t *testing.T) {
 	assert.Equal(t, "git", u.Scheme)
 	assert.Equal(t, "/octokit/go-octokit.git", u.Path)
 
+	u, err = p.Parse("git+ssh://git.company.com/octokit/go-octokit.git")
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "ssh.git.company.com", u.Host)
+	assert.Equal(t, "ssh", u.Scheme)
+	assert.Equal(t, "/octokit/go-octokit.git", u.Path)
+
 	u, err = p.Parse("https://git.company.com/octokit/go-octokit.git")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "git.company.com", u.Host)
@@ -45,6 +52,11 @@ func TestURLParser_ParseURL_GitURL(t *testing.T) {
 	assert.Equal(t, "git.company.com", u.Host)
 	assert.Equal(t, "git", u.Scheme)
 	assert.Equal(t, "/octokit/go-octokit.git", u.Path)
+
+	var exp *url.URL
+	u, err = p.Parse(string(0x7f))
+	assert.Equal(t, exp, u)
+	assert.Equal(t, "parse \u007f: net/url: invalid control character in URL", err.Error())
 }
 
 func TestURLParser_ParseURL_SSHURL(t *testing.T) {
