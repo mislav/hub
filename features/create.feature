@@ -270,8 +270,6 @@ Feature: hub create
     When I successfully run `hub create`
     Then the stderr should contain:
       """
-      $ git config hub.useragent
-      $ git rev-parse -q --git-dir
       $ git config --get-all http.https://github.com.extraheader
       > GET https://api.github.com/repos/mislav/dotfiles
       > Authorization: token [REDACTED]

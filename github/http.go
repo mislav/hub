@@ -49,8 +49,6 @@ var inspectHeaders = []string{
 	"Location",
 	"Link",
 	"Accept",
-	"Cookie",
-	"User-Agent",
 }
 
 type verboseTransport struct {
