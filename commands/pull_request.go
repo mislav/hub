@@ -475,6 +475,9 @@ func parsePullRequestIssueNumber(url string) string {
 func commaSeparated(l []string) []string {
 	res := []string{}
 	for _, i := range l {
+		if i == "" {
+			continue
+		}
 		res = append(res, strings.Split(i, ",")...)
 	}
 	return res

@@ -596,7 +596,7 @@ text is the title and the rest is the description.`, tagName, project))
 		messageBuilder.Edit = args.Flag.Bool("--edit")
 	} else {
 		messageBuilder.Edit = true
-		messageBuilder.Message = fmt.Sprintf("%s\n\n%s", release.Name, release.Body)
+		messageBuilder.Message = strings.Replace(fmt.Sprintf("%s\n\n%s", release.Name, release.Body), "\r\n", "\n", -1)
 	}
 
 	title, body, err := messageBuilder.Extract()

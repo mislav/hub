@@ -15,7 +15,7 @@ git commit -m "hub $version" -- "$version_file"
 notes_file="$(mktemp)"
 { echo "hub $version"
   echo
-  script/changelog
+  GITHUB_REF="refs/tags/v$version" script/changelog
 } >"$notes_file"
 trap "rm -f '$notes_file'" EXIT
 

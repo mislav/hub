@@ -175,6 +175,7 @@ func displayManPage(manPage string, args *Args, isWeb bool) error {
 	}
 
 	c := exec.Command(manArgs[0], manArgs[1:]...)
+	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Env = env

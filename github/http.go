@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -40,6 +41,11 @@ const (
 var inspectHeaders = []string{
 	"Authorization",
 	"X-GitHub-OTP",
+	"X-GitHub-SSO",
+	"X-Oauth-Scopes",
+	"X-Accepted-Oauth-Scopes",
+	"X-Oauth-Client-Id",
+	"X-GitHub-Enterprise-Version",
 	"Location",
 	"Link",
 	"Accept",
@@ -200,8 +206,33 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 	}
 
 	return &http.Client{
-		Transport: tr,
+		Transport:     tr,
+		CheckRedirect: checkRedirect,
 	}
+}
+
+func checkRedirect(req *http.Request, via []*http.Request) error {
+	var recommendedCode int
+	switch req.Response.StatusCode {
+	case 301:
+		recommendedCode = 308
+	case 302:
+		recommendedCode = 307
+	}
+
+	origMethod := via[len(via)-1].Method
+	if recommendedCode != 0 && !strings.EqualFold(req.Method, origMethod) {
+		return fmt.Errorf(
+			"refusing to follow HTTP %d redirect for a %s request\n"+
+				"Have your site admin use HTTP %d for this kind of redirect",
+			req.Response.StatusCode, origMethod, recommendedCode)
+	}
+
+	// inherited from stdlib defaultCheckRedirect
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	return nil
 }
 
 func cloneRequest(req *http.Request) *http.Request {
@@ -317,8 +348,9 @@ func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Respo
 		}
 
 		res = &http.Response{
-			Body:   ioutil.NopCloser(bytes.NewBufferString(parts[1])),
-			Header: http.Header{},
+			Body:    ioutil.NopCloser(bytes.NewBufferString(parts[1])),
+			Header:  http.Header{},
+			Request: req,
 		}
 		headerLines := strings.Split(parts[0], "\r\n")
 		if len(headerLines) < 1 {

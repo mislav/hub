@@ -94,11 +94,14 @@ const crashReportTmpl = "Crash report - %v\n\n" +
 	"Error (%s): `%v`\n\n" +
 	"Stack:\n\n```\n%s\n```\n\n" +
 	"Runtime:\n\n```\n%s\n```\n\n" +
-	"Version:\n\n```\n%s\n```\n"
+	"Version:\n\n```\n%s\nhub version %s\n```\n"
 
 func reportTitleAndBody(reportedError error, stack string) (title, body string, err error) {
 	errType := reflect.TypeOf(reportedError).String()
-	fullVersion, _ := version.FullVersion()
+	gitVersion, gitErr := git.Version()
+	if gitErr != nil {
+		gitVersion = "git unavailable!"
+	}
 	message := fmt.Sprintf(
 		crashReportTmpl,
 		reportedError,
@@ -106,7 +109,8 @@ func reportTitleAndBody(reportedError error, stack string) (title, body string, 
 		reportedError,
 		stack,
 		runtimeInfo(),
-		fullVersion,
+		gitVersion,
+		version.Version,
 	)
 
 	messageBuilder := &MessageBuilder{
