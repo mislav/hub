@@ -22,10 +22,13 @@ fi
 
 ARCH="amd64"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+case "$OS" in
+mingw* | msys* ) OS=windows ;;
+esac
 
 download() {
   case "$OS" in
-  mingw* | msys* )
+  windows )
     zip="${1%.tgz}.zip"
     curl -fsSLO "$zip"
     unzip "$(basename "$zip")" bin/hub.exe
