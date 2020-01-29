@@ -32,7 +32,7 @@ download() {
     zip="${1%.tgz}.zip"
     curl -fsSLO "$zip"
     unzip "$(basename "$zip")" bin/hub.exe
-    rm -f "$zip"
+    rm -f "$(basename "$zip")"
     ;;
   darwin )
     curl -fsSL "$1" | tar xz --strip-components=1 '*/bin/hub'
