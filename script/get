@@ -22,19 +22,22 @@ fi
 
 ARCH="amd64"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
-[[ $OS != mingw* ]] || OS="windows"
 
 download() {
-  if [ "$OS" = windows ]; then
+  case "$OS" in
+  mingw* | msys* )
     zip="${1%.tgz}.zip"
     curl -fsSLO "$zip"
     unzip "$(basename "$zip")" bin/hub.exe
     rm -f "$zip"
-  elif [ "$OS" = darwin ]; then
+    ;;
+  darwin )
     curl -fsSL "$1" | tar xz --strip-components=1 '*/bin/hub'
-  else
+    ;;
+  * )
     curl -fsSL "$1" | tar xz --strip-components=1 --wildcards '*/bin/hub'
-  fi
+    ;;
+  esac
 }
 
 download "https://github.com/github/hub/releases/download/v$HUB_VERSION/hub-$OS-$ARCH-$HUB_VERSION.tgz"
