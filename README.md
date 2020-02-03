@@ -5,6 +5,9 @@ This repository and its issue tracker is **not for reporting problems with
 GitHub.com** web interface. If you have a problem with GitHub itself, please
 [contact Support](https://github.com/contact).
 
+>**Interested in GitHub on CLIs?** <br>
+> GitHub is trialing a new, official CLI tool over at [cli/cli](https://github.com/cli/cli).
+
 Usage
 -----
 
