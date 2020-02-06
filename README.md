@@ -70,15 +70,38 @@ steps:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
+##### Interacting with another Repository
+
 Note that the default GITHUB_TOKEN will only work for API operations within _the
 same repo that runs this workflow_. If you need to access or write to other
 repositories, [generate a Personal Access Token][pat] with `repo` scope and add
 it to your [repository secrets][].
 
-
 [github actions]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions
 [pat]: https://github.com/settings/tokens
 [repository secrets]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
+
+Additionally, in order to use git with this external repository you will need to make additional configuration
+changes to your actions execution enviroment.
+
+```bash
+# Configure hub to use https instead of the git protocol
+git config --global hub.protocol https
+
+# Configure the hub user
+mkdir ~/.config
+cat >>~/.config/hub <<EOF
+github.com:
+- user: $GITHUB_ACTOR
+EOF
+
+# Set the default basic-auth credentials for gits http access
+cat >>~/.netrc <<EOF
+machine github.com
+login $GITHUB_ACTOR
+password $GITHUB_TOKEN
+EOF
+```
 
 #### Source
 
