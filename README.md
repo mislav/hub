@@ -98,8 +98,8 @@ EOF
 # Set the default basic-auth credentials for gits http access
 cat >>~/.netrc <<EOF
 machine github.com
-login $GITHUB_ACTOR
-password $GITHUB_TOKEN
+  login $GITHUB_ACTOR
+  password $GITHUB_TOKEN
 EOF
 ```
 
