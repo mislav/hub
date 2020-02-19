@@ -23,7 +23,7 @@ var cmdCiStatus = &Command{
 	-f, --format <FORMAT>
 		Pretty print all status checks using <FORMAT> (implies ''--verbose''). See the
 		"PRETTY FORMATS" section of git-log(1) for some additional details on how
-		placeholders are used in format. The available placeholders for issues are:
+		placeholders are used in format. The available placeholders for checks are:
 
 		%U: the URL of this status check
 
