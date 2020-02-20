@@ -30,6 +30,8 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 	* _checkout_:
 		Check out the head of a pull request in a new branch.
 
+		To update the pull request with new commits, use ''git push''.
+
 	* _show_:
 		Open a pull request page in a web browser. When no <PR-NUMBER> is
 		specified, <HEAD> is used to look up open pull requests and defaults to
