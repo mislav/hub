@@ -27,12 +27,16 @@ func Dir() (string, error) {
 	if cachedDir != "" {
 		return cachedDir, nil
 	}
-
-	dirCmd := gitCmd("rev-parse", "-q", "--git-dir")
-	dirCmd.Stderr = nil
-	output, err := dirCmd.Output()
+	gitDir, err := CommondirName()
 	if err != nil {
-		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
+		// Fall back for older version of git prior to v2.7.0 (added worktrees)
+		dirCmd := gitCmd("rev-parse", "--git-dir")
+		dirCmd.Stderr = nil
+		output, err := dirCmd.Output()
+		if err != nil {
+			return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
+		}
+		gitDir = firstLine(output)
 	}
 
 	var chdir string
@@ -46,8 +50,6 @@ func Dir() (string, error) {
 			}
 		}
 	}
-
-	gitDir := firstLine(output)
 
 	if !filepath.IsAbs(gitDir) {
 		if chdir != "" {
@@ -73,6 +75,17 @@ func WorkdirName() (string, error) {
 	dir := firstLine(output)
 	if dir == "" {
 		return "", fmt.Errorf("unable to determine git working directory")
+	}
+	return dir, err
+}
+
+func CommondirName() (string, error) {
+	dirCmd := gitCmd("rev-parse", "--git-common-dir")
+	dirCmd.Stderr = nil
+	output, err := dirCmd.Output()
+	dir := firstLine(output)
+	if dir == "--git-common-dir" {
+		return "", fmt.Errorf("unable to determine git commondir directory")
 	}
 	return dir, err
 }
