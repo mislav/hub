@@ -84,7 +84,9 @@ func CommondirName() (string, error) {
 	dirCmd.Stderr = nil
 	output, err := dirCmd.Output()
 	dir := firstLine(output)
-	if dir == "--git-common-dir" {
+	if err != nil {
+		return "", fmt.Errorf("Not a git repository (or any of the parent directories): .git")
+	} else if dir == "--git-common-dir" {
 		return "", fmt.Errorf("unable to determine git commondir directory")
 	}
 	return dir, err
