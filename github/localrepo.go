@@ -113,14 +113,16 @@ func (r *GitHubRepo) MasterBranch() *Branch {
 }
 
 func (r *GitHubRepo) DefaultBranch(remote *Remote) *Branch {
-	var name string
+	b := Branch{
+		Repo: r,
+		Name: "refs/heads/master",
+	}
 	if remote != nil {
-		name, _ = git.BranchAtRef("refs", "remotes", remote.Name, "HEAD")
+		if name, err := git.SymbolicRef(fmt.Sprintf("refs/remotes/%s/HEAD", remote.Name)); err == nil {
+			b.Name = name
+		}
 	}
-	if name == "" {
-		name = "refs/heads/master"
-	}
-	return &Branch{r, name}
+	return &b
 }
 
 func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (branch *Branch, project *Project, err error) {
