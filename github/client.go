@@ -1156,7 +1156,11 @@ func reverseNormalizeHost(host string) string {
 
 func checkStatus(expectedStatus int, action string, response *simpleResponse, err error) error {
 	if err != nil {
-		return fmt.Errorf("Error %s: %s", action, err.Error())
+		errStr := err.Error()
+		if urlErr, isURLErr := err.(*url.Error); isURLErr {
+			errStr = fmt.Sprintf("%s %s: %s", urlErr.Op, urlErr.URL, urlErr.Err)
+		}
+		return fmt.Errorf("Error %s: %s", action, errStr)
 	} else if response.StatusCode != expectedStatus {
 		errInfo, err := response.ErrorInfo()
 		if err != nil {
