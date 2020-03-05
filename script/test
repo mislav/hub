@@ -32,7 +32,6 @@ STATUS=0
 trap "exit 1" INT
 
 check_formatting() {
-  [[ "$(go version)" != *" go1.8."* ]] || return 0
   gofmt -l -w . >/dev/null
   git checkout -- vendor
   if ! git diff -U1 --exit-code; then

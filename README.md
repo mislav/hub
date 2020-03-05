@@ -85,7 +85,7 @@ it to your [repository secrets][].
 Prerequisites for building from source are:
 
 * `make`
-* [Go 1.9+](https://golang.org/doc/install)
+* [Go 1.11+](https://golang.org/doc/install)
 
 Clone this repository and run `make install`:
 
