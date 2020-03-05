@@ -100,11 +100,6 @@ cd hub
 make install prefix=/usr/local
 ```
 
-This assumes support for [Go 1.11+
-modules](https://github.com/golang/go/wiki/Modules). If you are building on an
-older version of Go, you will need to clone the repository into
-`$GOPATH/src/github.com/github/hub`.
-
 Aliasing
 --------
 
