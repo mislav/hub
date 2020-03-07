@@ -43,7 +43,7 @@ Fedora Linux | [DNF](https://fedoraproject.org/wiki/DNF) | `sudo dnf install hub
 Arch Linux | [pacman](https://wiki.archlinux.org/index.php/pacman) | `sudo pacman -S hub`
 FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
 Debian | [apt(8)](https://manpages.debian.org/buster/apt/apt.8.en.html) | `sudo apt install hub`
-Ubuntu | [Snap](https://snapcraft.io) | `snap install hub --classic`
+Ubuntu | [Snap](https://snapcraft.io) | `sudo snap install hub --classic`
 
 Packages other than Homebrew are community-maintained (thank you!) and they
 are not guaranteed to match the [latest hub release][latest]. Check `hub
