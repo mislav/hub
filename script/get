@@ -6,7 +6,7 @@
 set -e
 
 latest-version() {
-  curl -fsi https://github.com/github/hub/releases/latest | awk -F/ '/^location:/ {print $(NF)}'
+  curl -fsi https://github.com/github/hub/releases/latest | awk -F/ 'tolower($1) ~ /^location:/ {print $(NF)}'
 }
 
 HUB_VERSION="${1#v}"
