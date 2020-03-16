@@ -18,6 +18,7 @@ var cmdPullRequest = &Command{
 	Usage: `
 pull-request [-focpd] [-b <BASE>] [-h <HEAD>] [-r <REVIEWERS> ] [-a <ASSIGNEES>] [-M <MILESTONE>] [-l <LABELS>]
 pull-request -m <MESSAGE> [--edit]
+pull-request -C <COMMIT> [--edit]
 pull-request -F <FILE> [--edit]
 pull-request -i <ISSUE>
 `,
@@ -37,6 +38,9 @@ pull-request -i <ISSUE>
 
 		When neither ''--message'' nor ''--file'' were supplied, a text editor will open
 		to author the title and description in.
+
+	-C, --reuse-message <COMMIT>
+		Use <COMMIT> commit message as pull request title and description.
 
 	--no-edit
 		Use the message from the first commit on the branch as pull request title
@@ -115,6 +119,9 @@ pull-request -i <ISSUE>
 
 		$ hub pull-request -F - --edit < path/to/message-template.md
 		[ further edit the title and message received on standard input ]
+
+		$ hub pull-request -C HEAD --edit
+		[ further edit the title and message based on HEAD commit message ]
 
 ## Configuration:
 
@@ -263,6 +270,10 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 		messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
 		utils.Check(err)
 		messageBuilder.Edit = flagPullRequestEdit
+	} else if args.Flag.HasReceived("--reuse-message") {
+		messageBuilder.Message, err = prepareMessageFromCommit(args.Flag.Value("--reuse-message"))
+		utils.Check(err)
+		messageBuilder.Edit = flagPullRequestEdit
 	} else if args.Flag.Bool("--no-edit") {
 		commits, _ := git.RefList(baseTracking, head)
 		if len(commits) == 0 {
@@ -297,13 +308,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			}
 		}
 
-		workdir, _ := git.WorkdirName()
-		if workdir != "" {
-			template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
-			if template != "" {
-				message = message + "\n\n\n" + template
-			}
-		}
+		message = appendPullRequestTemplate(message)
 
 		messageBuilder.Message = message
 	}
@@ -470,6 +475,33 @@ func parsePullRequestIssueNumber(url string) string {
 	}
 
 	return ""
+}
+
+func prepareMessageFromCommit(commit string) (string, error) {
+	message, err := git.Show(commit)
+	if err != nil {
+		return "", err
+	}
+	message = strings.Replace(string(message), "\r\n", "\n", -1)
+
+	message = appendPullRequestTemplate(message)
+
+	return message, nil
+}
+
+func appendPullRequestTemplate(message string) string {
+	workdir, _ := git.WorkdirName()
+
+	if workdir == "" {
+		return message
+	}
+
+	template, _ := github.ReadTemplate(github.PullRequestTemplate, workdir)
+	if template != "" {
+		message = message + "\n\n\n" + template
+	}
+
+	return message
 }
 
 func commaSeparated(l []string) []string {
