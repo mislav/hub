@@ -66,18 +66,15 @@ func isCloneable(file string) bool {
 		if err == nil {
 			gitf.Close()
 			return true
-		} else {
-			return git.IsGitDir(file)
 		}
-	} else {
-		reader := bufio.NewReader(f)
-		line, err := reader.ReadString('\n')
-		if err == nil {
-			return strings.Contains(line, "git bundle")
-		} else {
-			return false
-		}
+		return git.IsGitDir(file)
 	}
+	reader := bufio.NewReader(f)
+	line, err := reader.ReadString('\n')
+	if err == nil {
+		return strings.Contains(line, "git bundle")
+	}
+	return false
 }
 
 func isEmptyDir(path string) bool {

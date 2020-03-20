@@ -293,20 +293,20 @@ func showPr(command *Command, args *Args) {
 	gh := github.NewClientWithHost(host)
 
 	words := args.Words()
-	openUrl := ""
+	openURL := ""
 	prNumber := 0
 	var pr *github.PullRequest
 
 	if len(words) > 0 {
 		if prNumber, err = strconv.Atoi(words[0]); err == nil {
-			openUrl = baseProject.WebURL("", "", fmt.Sprintf("pull/%d", prNumber))
+			openURL = baseProject.WebURL("", "", fmt.Sprintf("pull/%d", prNumber))
 		} else {
 			utils.Check(fmt.Errorf("invalid pull request number: '%s'", words[0]))
 		}
 	} else {
 		pr, err = findCurrentPullRequest(localRepo, gh, baseProject, args.Flag.Value("--head"))
 		utils.Check(err)
-		openUrl = pr.HtmlUrl
+		openURL = pr.HtmlUrl
 	}
 
 	args.NoForward()
@@ -320,10 +320,10 @@ func showPr(command *Command, args *Args) {
 		return
 	}
 
-	printUrl := args.Flag.Bool("--url")
-	copyUrl := args.Flag.Bool("--copy")
+	printURL := args.Flag.Bool("--url")
+	copyURL := args.Flag.Bool("--copy")
 
-	printBrowseOrCopy(args, openUrl, !printUrl && !copyUrl, copyUrl)
+	printBrowseOrCopy(args, openURL, !printURL && !copyURL, copyURL)
 }
 
 func findCurrentPullRequest(localRepo *github.GitHubRepo, gh *github.Client, baseProject *github.Project, headArg string) (*github.PullRequest, error) {
@@ -394,11 +394,11 @@ func findPushTarget(branch *github.Branch) (*github.Branch, *github.Project, err
 		return headBranch, headProject, nil
 	}
 
-	remoteUrl, err := git.ParseURL(branchRemote)
+	remoteURL, err := git.ParseURL(branchRemote)
 	if err != nil {
 		return nil, nil, err
 	}
-	headProject, err := github.NewProjectFromURL(remoteUrl)
+	headProject, err := github.NewProjectFromURL(remoteURL)
 	if err != nil {
 		return nil, nil, err
 	}

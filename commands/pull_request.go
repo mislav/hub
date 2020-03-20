@@ -372,8 +372,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 				if retryAllowance > 0 {
 					retryAllowance -= retryDelay
 					time.Sleep(time.Duration(retryDelay) * time.Second)
-					retryDelay += 1
-					numRetries += 1
+					retryDelay++
+					numRetries++
 				} else {
 					if numRetries > 0 {
 						duration := time.Since(startedAt)
