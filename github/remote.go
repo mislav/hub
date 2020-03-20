@@ -25,7 +25,7 @@ func (remote *Remote) String() string {
 
 func (remote *Remote) Project() (*Project, error) {
 	p, err := NewProjectFromURL(remote.URL)
-	if _, ok := err.(*GithubHostError); ok {
+	if _, ok := err.(*HostError); ok {
 		return NewProjectFromURL(remote.PushURL)
 	}
 	return p, err

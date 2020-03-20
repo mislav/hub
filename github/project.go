@@ -90,9 +90,8 @@ func rawHost(host string) string {
 
 	if u.IsAbs() {
 		return u.Host
-	} else {
-		return u.Path
 	}
+	return u.Path
 }
 
 func preferredProtocol() string {
@@ -115,7 +114,7 @@ func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	if !knownGitHubHostsInclude(url.Host) {
-		err = &GithubHostError{url}
+		err = &HostError{url}
 		return
 	}
 

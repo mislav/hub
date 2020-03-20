@@ -107,9 +107,8 @@ func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 func (r *GitHubRepo) MasterBranch() *Branch {
 	if remote, err := r.MainRemote(); err == nil {
 		return r.DefaultBranch(remote)
-	} else {
-		return r.DefaultBranch(nil)
 	}
+	return r.DefaultBranch(nil)
 }
 
 func (r *GitHubRepo) DefaultBranch(remote *Remote) *Branch {
@@ -206,12 +205,12 @@ func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
 		return nil, err
 	}
 
-	repoUrl, err := url.Parse(repo.HtmlUrl)
+	repoURL, err := url.Parse(repo.HtmlUrl)
 	if err != nil {
 		return nil, err
 	}
 
-	project := NewProject(repo.Owner.Login, repo.Name, repoUrl.Host)
+	project := NewProject(repo.Owner.Login, repo.Name, repoURL.Host)
 
 	for _, remote := range r.remotes {
 		if rp, err := remote.Project(); err == nil {
@@ -242,9 +241,8 @@ func (r *GitHubRepo) MainRemote() (*Remote, error) {
 
 	if len(r.remotes) > 0 {
 		return &r.remotes[0], nil
-	} else {
-		return nil, fmt.Errorf("no git remotes found")
 	}
+	return nil, fmt.Errorf("no git remotes found")
 }
 
 func (r *GitHubRepo) MainProject() (*Project, error) {

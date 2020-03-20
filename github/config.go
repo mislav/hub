@@ -270,11 +270,11 @@ func configsFile() string {
 }
 
 func homeConfig() (string, error) {
-	if home, err := homedir.Dir(); err != nil {
+	home, err := homedir.Dir()
+	if err != nil {
 		return "", err
-	} else {
-		return filepath.Join(home, ".config"), nil
 	}
+	return filepath.Join(home, ".config"), nil
 }
 
 func determineConfigLocation() (string, error) {
