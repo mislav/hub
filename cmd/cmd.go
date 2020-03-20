@@ -11,6 +11,7 @@ import (
 	"github.com/github/hub/ui"
 )
 
+// Cmd is a project-wide struct that represents a command to be run in the console.
 type Cmd struct {
 	Name   string
 	Args   []string
@@ -64,9 +65,8 @@ func (cmd *Cmd) Success() bool {
 func (cmd *Cmd) Run() error {
 	if isWindows() {
 		return cmd.Spawn()
-	} else {
-		return cmd.Exec()
 	}
+	return cmd.Exec()
 }
 
 func isWindows() bool {

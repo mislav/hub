@@ -16,7 +16,7 @@ import (
 	"github.com/github/hub/utils"
 )
 
-var cmdApi = &Command{
+var cmdAPI = &Command{
 	Run:   apiCommand,
 	Usage: "api [-it] [-X <METHOD>] [-H <HEADER>] [--cache <TTL>] <ENDPOINT> [-F <FIELD>|--input <FILE>]",
 	Long: `Low-level GitHub API request interface.
@@ -97,7 +97,7 @@ var cmdApi = &Command{
 
 	<ENDPOINT>
 		The GitHub API endpoint to send the HTTP request to (default: "/").
-		
+
 		To learn about available endpoints, see <https://developer.github.com/v3/>.
 		To make GraphQL queries, use "graphql" as <ENDPOINT> and pass ''-F query=QUERY''.
 
@@ -143,7 +143,7 @@ hub(1)
 }
 
 func init() {
-	CmdRunner.Use(cmdApi)
+	CmdRunner.Use(cmdAPI)
 }
 
 func apiCommand(_ *Command, args *Args) {
