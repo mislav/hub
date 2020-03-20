@@ -62,16 +62,16 @@ func (c *Command) parseArguments(args *Args) error {
 	}
 	args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + knownFlags)
 
-	if rest, err := args.Flag.Parse(args.Params); err == nil {
-		if args.Flag.Bool("--help") {
-			return &ErrHelp{err: c.Synopsis()}
-		}
-		args.Params = rest
-		args.Terminator = args.Flag.HasTerminated
-		return nil
-	} else {
+	rest, err := args.Flag.Parse(args.Params)
+	if err != nil {
 		return fmt.Errorf("%s\n%s", err, c.Synopsis())
 	}
+	if args.Flag.Bool("--help") {
+		return &ErrHelp{err: c.Synopsis()}
+	}
+	args.Params = rest
+	args.Terminator = args.Flag.HasTerminated
+	return nil
 }
 
 func (c *Command) Use(subCommand *Command) {

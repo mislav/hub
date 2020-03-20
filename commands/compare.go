@@ -149,7 +149,6 @@ var compareUnescaper = strings.NewReplacer(
 func rangeQueryEscape(r string) string {
 	if strings.Contains(r, "..") {
 		return r
-	} else {
-		return compareUnescaper.Replace(url.QueryEscape(r))
 	}
+	return compareUnescaper.Replace(url.QueryEscape(r))
 }
