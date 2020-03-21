@@ -966,8 +966,14 @@ func (client *Client) FindOrCreateToken(user, password, twoFactorCode string) (t
 		return password, nil
 	}
 
+	return client.FindOrCreateTokenWithScope(user, password, twoFactorCode, []string{"repo", "gist"})
+}
+
+func (client *Client) FindOrCreateTokenWithScope(user, password, twoFactorCode string, scope []string) (token string, err error) {
+	api := client.apiClient()
+
 	params := map[string]interface{}{
-		"scopes":   []string{"repo", "gist"},
+		"scopes":   scope,
 		"note_url": OAuthAppURL,
 	}
 
