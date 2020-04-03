@@ -3,8 +3,8 @@ package commands
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
 	"github.com/github/hub/github"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestPullRequest_ParsePullRequestProject(t *testing.T) {
