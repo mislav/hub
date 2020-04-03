@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestDirIsNotEmpty(t *testing.T) {

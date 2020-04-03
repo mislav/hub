@@ -3,7 +3,7 @@ package github
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestBranch_ShortName(t *testing.T) {
