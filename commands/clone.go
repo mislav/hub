@@ -148,7 +148,7 @@ func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 
 	if !isSSH &&
 		allowSSH &&
-		!github.IsHttpsProtocol() {
+		!github.IsHTTPSProtocol() {
 		isSSH = repo.Private || repo.Permissions.Push
 	}
 

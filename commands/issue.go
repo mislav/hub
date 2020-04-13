@@ -403,7 +403,7 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 	return map[string]string{
 		"I":  fmt.Sprintf("%d", issue.Number),
 		"i":  fmt.Sprintf("#%d", issue.Number),
-		"U":  issue.HtmlUrl,
+		"U":  issue.HTMLURL,
 		"S":  issue.State,
 		"sC": stateColorSwitch,
 		"t":  issue.Title,
@@ -622,7 +622,7 @@ text is the title and the rest is the description.`, project))
 
 		flagIssueBrowse := args.Flag.Bool("--browse")
 		flagIssueCopy := args.Flag.Bool("--copy")
-		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, flagIssueCopy)
+		printBrowseOrCopy(args, issue.HTMLURL, flagIssueBrowse, flagIssueCopy)
 	}
 
 	messageBuilder.Cleanup()

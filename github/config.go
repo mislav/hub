@@ -388,7 +388,7 @@ func CheckWriteable(filename string) error {
 	return nil
 }
 
-// Public for testing purpose
+// CreateTestConfigs is public for testing purposes
 func CreateTestConfigs(user, token string) *Config {
 	f, _ := ioutil.TempFile("", "test-config")
 	os.Setenv("HUB_CONFIG", f.Name())

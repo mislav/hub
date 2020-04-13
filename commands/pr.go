@@ -306,7 +306,7 @@ func showPr(command *Command, args *Args) {
 	} else {
 		pr, err = findCurrentPullRequest(localRepo, gh, baseProject, args.Flag.Value("--head"))
 		utils.Check(err)
-		openURL = pr.HtmlUrl
+		openURL = pr.HTMLURL
 	}
 
 	args.NoForward()

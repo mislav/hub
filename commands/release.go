@@ -302,7 +302,7 @@ func formatRelease(release github.Release, format string, colorize bool) string 
 	}
 
 	placeholders := map[string]string{
-		"U":  release.HtmlURL,
+		"U":  release.HTMLURL,
 		"uT": release.TarballURL,
 		"uZ": release.ZipballURL,
 		"uA": release.UploadURL,
@@ -424,7 +424,7 @@ func downloadRelease(cmd *Command, args *Args) {
 }
 
 func downloadReleaseAsset(asset github.ReleaseAsset, gh *github.Client) (err error) {
-	assetReader, err := gh.DownloadReleaseAsset(asset.ApiURL)
+	assetReader, err := gh.DownloadReleaseAsset(asset.APIURL)
 	if err != nil {
 		return
 	}
@@ -514,7 +514,7 @@ text is the title and the rest is the description.`, tagName, project))
 
 		flagReleaseBrowse := args.Flag.Bool("--browse")
 		flagReleaseCopy := args.Flag.Bool("--copy")
-		printBrowseOrCopy(args, release.HtmlURL, flagReleaseBrowse, flagReleaseCopy)
+		printBrowseOrCopy(args, release.HTMLURL, flagReleaseBrowse, flagReleaseCopy)
 	}
 
 	messageBuilder.Cleanup()

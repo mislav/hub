@@ -205,7 +205,7 @@ func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
 		return nil, err
 	}
 
-	repoURL, err := url.Parse(repo.HtmlUrl)
+	repoURL, err := url.Parse(repo.HTMLURL)
 	if err != nil {
 		return nil, err
 	}

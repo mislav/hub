@@ -392,7 +392,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 
 		utils.Check(err)
 
-		pullRequestURL = pr.HtmlUrl
+		pullRequestURL = pr.HTMLURL
 
 		params = map[string]interface{}{}
 		flagPullRequestLabels := commaSeparated(args.Flag.AllValues("--labels"))

@@ -45,7 +45,7 @@ type Gist struct {
 	Description string              `json:"description,omitempty"`
 	ID          string              `json:"id,omitempty"`
 	Public      bool                `json:"public"`
-	HtmlUrl     string              `json:"html_url"`
+	HTMLURL     string              `json:"html_url"`
 }
 
 type GistFile struct {
@@ -269,9 +269,9 @@ type Release struct {
 	Assets          []ReleaseAsset `json:"assets"`
 	TarballURL      string         `json:"tarball_url"`
 	ZipballURL      string         `json:"zipball_url"`
-	HtmlURL         string         `json:"html_url"`
+	HTMLURL         string         `json:"html_url"`
 	UploadURL       string         `json:"upload_url"`
-	ApiURL          string         `json:"url"`
+	APIURL          string         `json:"url"`
 	CreatedAt       time.Time      `json:"created_at"`
 	PublishedAt     time.Time      `json:"published_at"`
 }
@@ -280,7 +280,7 @@ type ReleaseAsset struct {
 	Name        string `json:"name"`
 	Label       string `json:"label"`
 	DownloadURL string `json:"browser_download_url"`
-	ApiURL      string `json:"url"`
+	APIURL      string `json:"url"`
 }
 
 func (client *Client) FetchReleases(project *Project, limit int, filter func(*Release) bool) (releases []Release, err error) {
@@ -355,7 +355,7 @@ func (client *Client) EditRelease(release *Release, releaseParams map[string]int
 		return
 	}
 
-	res, err := api.PatchJSON(release.ApiURL, releaseParams)
+	res, err := api.PatchJSON(release.APIURL, releaseParams)
 	if err = checkStatus(200, "editing release", res, err); err != nil {
 		return
 	}
@@ -371,7 +371,7 @@ func (client *Client) DeleteRelease(release *Release) (err error) {
 		return
 	}
 
-	res, err := api.Delete(release.ApiURL)
+	res, err := api.Delete(release.APIURL)
 	if err = checkStatus(204, "deleting release", res, err); err != nil {
 		return
 	}
@@ -452,7 +452,7 @@ func (client *Client) DeleteReleaseAsset(asset *ReleaseAsset) (err error) {
 		return
 	}
 
-	res, err := api.Delete(asset.ApiURL)
+	res, err := api.Delete(asset.APIURL)
 	err = checkStatus(204, "deleting release asset", res, err)
 
 	return
@@ -491,7 +491,7 @@ type CheckRun struct {
 	Status     string `json:"status"`
 	Conclusion string `json:"conclusion"`
 	Name       string `json:"name"`
-	HtmlUrl    string `json:"html_url"`
+	HTMLURL    string `json:"html_url"`
 }
 
 func (client *Client) FetchCIStatus(project *Project, sha string) (status *CIStatusResponse, err error) {
@@ -544,7 +544,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		checkStatus := CIStatus{
 			State:     state,
 			Context:   checkRun.Name,
-			TargetURL: checkRun.HtmlUrl,
+			TargetURL: checkRun.HTMLURL,
 		}
 		status.Statuses = append(status.Statuses, checkStatus)
 	}
@@ -562,7 +562,7 @@ type Repository struct {
 	Private       bool                   `json:"private"`
 	HasWiki       bool                   `json:"has_wiki"`
 	Permissions   *RepositoryPermissions `json:"permissions"`
-	HtmlUrl       string                 `json:"html_url"`
+	HTMLURL       string                 `json:"html_url"`
 	DefaultBranch string                 `json:"default_branch"`
 }
 
@@ -622,8 +622,8 @@ type Issue struct {
 	RequestedReviewers []User `json:"requested_reviewers"`
 	RequestedTeams     []Team `json:"requested_teams"`
 
-	ApiUrl  string `json:"url"`
-	HtmlUrl string `json:"html_url"`
+	APIURL  string `json:"url"`
+	HTMLURL string `json:"html_url"`
 
 	ClosedBy *User `json:"closed_by"`
 }

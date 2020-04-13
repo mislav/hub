@@ -103,7 +103,7 @@ func preferredProtocol() string {
 }
 
 func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
-	url, err := url.Parse(repo.HtmlUrl)
+	url, err := url.Parse(repo.HTMLURL)
 	if err != nil {
 		return
 	}
