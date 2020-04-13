@@ -20,5 +20,4 @@ COPY Gemfile Gemfile.lock ./
 RUN bundle install
 
 ENV LANG C.UTF-8
-ENV GOFLAGS -mod=vendor
 ENV USER app

@@ -19,7 +19,6 @@ jobs:
     - name: Publish release script
       run: script/publish-release
       env:
-        GOFLAGS: -mod=vendor
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - uses: mislav/bump-homebrew-formula-action@v1
