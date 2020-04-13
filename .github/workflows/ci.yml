@@ -41,12 +41,6 @@ jobs:
     #   run: sudo apt-get install -y zsh fish
 
     - name: Run tests
-      shell: bash
-      run: |
-        export GOPATH="$HOME"/go
-        mkdir -p "$GOPATH"/src/github.com/github
-        ln -svf "$PWD" "$GOPATH"/src/github.com/github/hub
-        cd "$GOPATH"/src/github.com/github/hub
-        make test-all
+      run: make test-all
       env:
         CI: true
