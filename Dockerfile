@@ -6,7 +6,7 @@ RUN apt-get purge --auto-remove -y curl \
 	&& rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r app && useradd -r -g app -G sudo app \
-    && mkdir -p /home/app && chown -R app:app /home/app
+	&& mkdir -p /home/app && chown -R app:app /home/app
 RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
 
 USER app
