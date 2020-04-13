@@ -87,7 +87,7 @@ func report(reportedError error, stack string) {
 	issue, err := gh.CreateIssue(project, params)
 	utils.Check(err)
 
-	ui.Println(issue.HtmlUrl)
+	ui.Println(issue.HTMLURL)
 }
 
 const crashReportTmpl = "Crash report - %v\n\n" +

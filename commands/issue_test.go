@@ -124,7 +124,7 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 			{Name: "bug", Color: "880000"},
 			{Name: "feature", Color: "008800"},
 		},
-		HtmlUrl:  "the://url",
+		HTMLURL:  "the://url",
 		Comments: 12,
 		Milestone: &github.Milestone{
 			Number: 31,

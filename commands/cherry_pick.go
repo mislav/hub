@@ -57,11 +57,11 @@ func transformCherryPickArgs(args *Args) {
 			sha = matches[1]
 			project = url.Project
 		} else if matches := pullRegex.FindStringSubmatch(projectPath); len(matches) > 0 {
-			pullId := matches[1]
+			pullID := matches[1]
 			sha = matches[2]
 			utils.Check(mainProjectErr)
 			project = mainProject
-			refspec = fmt.Sprintf("refs/pull/%s/head", pullId)
+			refspec = fmt.Sprintf("refs/pull/%s/head", pullID)
 		}
 	} else {
 		ownerWithShaRegexp := regexp.MustCompile(fmt.Sprintf("^(%s)@(%s)$", OwnerRe, shaRe))

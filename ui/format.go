@@ -118,24 +118,24 @@ func (f *expander) expandSpecialChar(firstChar byte, format string) (expand stri
 			}
 		}
 	case '+':
-		if e, u := f.expandOneVar(format); e != "" {
+		e, u := f.expandOneVar(format)
+		if e != "" {
 			return "\n" + e, u, true
-		} else {
-			return "", u, true
 		}
+		return "", u, true
 	case ' ':
-		if e, u := f.expandOneVar(format); e != "" {
+		e, u := f.expandOneVar(format)
+		if e != "" {
 			return " " + e, u, true
-		} else {
-			return "", u, true
 		}
+		return "", u, true
 	case '-':
-		if e, u := f.expandOneVar(format); e != "" {
+		e, u := f.expandOneVar(format)
+		if e != "" {
 			return e, u, true
-		} else {
-			f.append(strings.TrimRight(f.crush(), "\n"))
-			return "", u, true
 		}
+		f.append(strings.TrimRight(f.crush(), "\n"))
+		return "", u, true
 	case '<', '>':
 		if m := paddingPattern.FindStringSubmatch(string(firstChar) + format); len(m) == 7 {
 			if p := padderFromConfig(m[1], m[2], m[3], m[4], m[5]); p != nil {

@@ -13,7 +13,7 @@ import (
 
 // https://github.com/russross/blackfriday/blob/v2/markdown.go
 const (
-	PARSER_EXTENSIONS = blackfriday.NoIntraEmphasis |
+	ParserExtensions = blackfriday.NoIntraEmphasis |
 		blackfriday.FencedCode |
 		blackfriday.SpaceHeadings |
 		blackfriday.AutoHeadingIDs |
@@ -210,7 +210,7 @@ func Opt(buffer io.Writer, renderer blackfriday.Renderer) *renderOption {
 }
 
 func Generate(src []byte, opts ...*renderOption) {
-	parser := blackfriday.New(blackfriday.WithExtensions(PARSER_EXTENSIONS))
+	parser := blackfriday.New(blackfriday.WithExtensions(ParserExtensions))
 	ast := parser.Parse(sanitizeInput(src))
 
 	for _, opt := range opts {

@@ -189,14 +189,12 @@ func displayManPage(manPage string, args *Args, isWeb bool) error {
 func lookupCmd(name string) *Command {
 	if strings.HasPrefix(name, "hub-") {
 		return CmdRunner.Lookup(strings.TrimPrefix(name, "hub-"))
-	} else {
-		cmd := CmdRunner.Lookup(name)
-		if cmd != nil && !cmd.GitExtension {
-			return cmd
-		} else {
-			return nil
-		}
 	}
+	cmd := CmdRunner.Lookup(name)
+	if cmd != nil && !cmd.GitExtension {
+		return cmd
+	}
+	return nil
 }
 
 func customCommands() []string {
