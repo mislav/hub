@@ -3,7 +3,7 @@ package github
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestStackRemoveSelfAndPanic(t *testing.T) {

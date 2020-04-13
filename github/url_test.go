@@ -3,8 +3,8 @@ package github
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
 	"github.com/github/hub/fixtures"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestParseURL(t *testing.T) {

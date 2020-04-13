@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/internal/assert"
 )
 
 func setupTestServer(unixSocket string) *testServer {

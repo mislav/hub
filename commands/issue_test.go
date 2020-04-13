@@ -16,6 +16,7 @@ type formatIssueTest struct {
 }
 
 func testFormatIssue(t *testing.T, tests []formatIssueTest) {
+	t.Helper()
 	for _, test := range tests {
 		if got := formatIssue(test.issue, test.format, test.colorize); got != test.expect {
 			t.Errorf("%s: formatIssue(..., %q, %t) = %q, want %q", test.name, test.format, test.colorize, got, test.expect)

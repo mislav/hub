@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bmizerany/assert"
 	"github.com/github/hub/fixtures"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestSameAs(t *testing.T) {
