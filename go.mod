@@ -10,7 +10,6 @@ require (
 	github.com/mattn/go-colorable v0.0.9
 	github.com/mattn/go-isatty v0.0.3
 	github.com/mitchellh/go-homedir v0.0.0-20161203194507-b8bc1bf76747
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/russross/blackfriday v0.0.0-20180526075726-670777b536d3
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
 	golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2
