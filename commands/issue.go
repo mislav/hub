@@ -20,6 +20,7 @@ var (
 issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
+issue update <NUMBER> [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>] [-s <STATE>]
 issue labels [--color]
 issue transfer <NUMBER> <REPO>
 `,
@@ -34,6 +35,10 @@ With no arguments, show a list of open issues.
 
 	* _create_:
 		Open an issue in the current repository.
+
+	* _update_:
+		Update fields of an existing issue specified by <NUMBER>. Use ''--edit''
+		to edit the title and message interactively in the text editor.
 
 	* _labels_:
 		List the labels available in this repository.
@@ -227,6 +232,20 @@ hub-pr(1), hub(1)
 		Key: "transfer",
 		Run: transferIssue,
 	}
+
+	cmdUpdate = &Command{
+		Key: "update",
+		Run: updateIssue,
+		KnownFlags: `
+		-m, --message MSG
+		-F, --file FILE
+		-M, --milestone NAME
+		-l, --labels LIST
+		-a, --assign USER
+		-e, --edit
+		-s, --state STATE
+`,
+	}
 )
 
 func init() {
@@ -234,6 +253,7 @@ func init() {
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)
 	cmdIssue.Use(cmdTransfer)
+	cmdIssue.Use(cmdUpdate)
 	CmdRunner.Use(cmdIssue)
 }
 
@@ -383,7 +403,7 @@ func formatIssuePlaceholders(issue github.Issue, colorize bool) map[string]strin
 	return map[string]string{
 		"I":  fmt.Sprintf("%d", issue.Number),
 		"i":  fmt.Sprintf("#%d", issue.Number),
-		"U":  issue.HtmlUrl,
+		"U":  issue.HTMLURL,
 		"S":  issue.State,
 		"sC": stateColorSwitch,
 		"t":  issue.Title,
@@ -608,21 +628,11 @@ text is the title and the rest is the description.`, project))
 		"body":  body,
 	}
 
-	flagIssueLabels := commaSeparated(args.Flag.AllValues("--labels"))
-	if len(flagIssueLabels) > 0 {
-		params["labels"] = flagIssueLabels
-	}
+	setLabelsFromArgs(params, args)
 
-	flagIssueAssignees := commaSeparated(args.Flag.AllValues("--assign"))
-	if len(flagIssueAssignees) > 0 {
-		params["assignees"] = flagIssueAssignees
-	}
+	setAssigneesFromArgs(params, args)
 
-	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
-	utils.Check(err)
-	if milestoneNumber > 0 {
-		params["milestone"] = milestoneNumber
-	}
+	setMilestoneFromArgs(params, args, gh, project)
 
 	args.NoForward()
 	if args.Noop {
@@ -633,10 +643,83 @@ text is the title and the rest is the description.`, project))
 
 		flagIssueBrowse := args.Flag.Bool("--browse")
 		flagIssueCopy := args.Flag.Bool("--copy")
-		printBrowseOrCopy(args, issue.HtmlUrl, flagIssueBrowse, flagIssueCopy)
+		printBrowseOrCopy(args, issue.HTMLURL, flagIssueBrowse, flagIssueCopy)
 	}
 
 	messageBuilder.Cleanup()
+}
+
+func updateIssue(cmd *Command, args *Args) {
+	issueNumber := 0
+	if args.ParamsSize() > 0 {
+		issueNumber, _ = strconv.Atoi(args.GetParam(0))
+	}
+	if issueNumber == 0 {
+		utils.Check(cmd.UsageError(""))
+	}
+	if !hasField(args, "--message", "--file", "--labels", "--milestone", "--assign", "--state", "--edit") {
+		utils.Check(cmd.UsageError("please specify fields to update"))
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	gh := github.NewClient(project.Host)
+
+	params := map[string]interface{}{}
+	setLabelsFromArgs(params, args)
+	setAssigneesFromArgs(params, args)
+	setMilestoneFromArgs(params, args, gh, project)
+
+	if args.Flag.HasReceived("--state") {
+		params["state"] = args.Flag.Value("--state")
+	}
+
+	if hasField(args, "--message", "--file", "--edit") {
+		messageBuilder := &github.MessageBuilder{
+			Filename: "ISSUE_EDITMSG",
+			Title:    "issue",
+		}
+
+		messageBuilder.AddCommentedSection(fmt.Sprintf(`Editing issue #%d for %s
+
+Update the message for this issue. The first block of
+text is the title and the rest is the description.`, issueNumber, project))
+
+		messageBuilder.Edit = args.Flag.Bool("--edit")
+		flagIssueMessage := args.Flag.AllValues("--message")
+		if len(flagIssueMessage) > 0 {
+			messageBuilder.Message = strings.Join(flagIssueMessage, "\n\n")
+		} else if args.Flag.HasReceived("--file") {
+			messageBuilder.Message, err = msgFromFile(args.Flag.Value("--file"))
+			utils.Check(err)
+		} else {
+			issue, err := gh.FetchIssue(project, strconv.Itoa(issueNumber))
+			utils.Check(err)
+			existingMessage := fmt.Sprintf("%s\n\n%s", issue.Title, issue.Body)
+			messageBuilder.Message = strings.Replace(existingMessage, "\r\n", "\n", -1)
+		}
+
+		title, body, err := messageBuilder.Extract()
+		utils.Check(err)
+		if title == "" {
+			utils.Check(fmt.Errorf("Aborting creation due to empty issue title"))
+		}
+		params["title"] = title
+		params["body"] = body
+		defer messageBuilder.Cleanup()
+	}
+
+	args.NoForward()
+	if args.Noop {
+		ui.Printf("Would update issue #%d for %s\n", issueNumber, project)
+	} else {
+		err := gh.UpdateIssue(project, issueNumber, params)
+		utils.Check(err)
+	}
 }
 
 func listLabels(cmd *Command, args *Args) {
@@ -660,6 +743,43 @@ func listLabels(cmd *Command, args *Args) {
 	flagLabelsColorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	for _, label := range labels {
 		ui.Print(formatLabel(label, flagLabelsColorize))
+	}
+}
+
+func hasField(args *Args, names ...string) bool {
+	found := false
+	for _, name := range names {
+		if args.Flag.HasReceived(name) {
+			found = true
+		}
+	}
+	return found
+}
+
+func setLabelsFromArgs(params map[string]interface{}, args *Args) {
+	if !args.Flag.HasReceived("--labels") {
+		return
+	}
+	params["labels"] = commaSeparated(args.Flag.AllValues("--labels"))
+}
+
+func setAssigneesFromArgs(params map[string]interface{}, args *Args) {
+	if !args.Flag.HasReceived("--assign") {
+		return
+	}
+	params["assignees"] = commaSeparated(args.Flag.AllValues("--assign"))
+}
+
+func setMilestoneFromArgs(params map[string]interface{}, args *Args, gh *github.Client, project *github.Project) {
+	if !args.Flag.HasReceived("--milestone") {
+		return
+	}
+	milestoneNumber, err := milestoneValueToNumber(args.Flag.Value("--milestone"), gh, project)
+	utils.Check(err)
+	if milestoneNumber == 0 {
+		params["milestone"] = nil
+	} else {
+		params["milestone"] = milestoneNumber
 	}
 }
 

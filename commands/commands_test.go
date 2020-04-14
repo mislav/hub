@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/internal/assert"
 	"github.com/github/hub/ui"
 )
 

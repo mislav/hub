@@ -8,7 +8,8 @@ import (
 )
 
 var (
-	Black, White *Color
+	Black *Color
+	White *Color
 )
 
 func init() {
@@ -54,9 +55,8 @@ func rgbComponentToBoldValue(component uint8) float64 {
 	srgb := float64(component) / 255
 	if srgb <= 0.03928 {
 		return srgb / 12.92
-	} else {
-		return math.Pow(((srgb + 0.055) / 1.055), 2.4)
 	}
+	return math.Pow(((srgb + 0.055) / 1.055), 2.4)
 }
 
 func (c *Color) Luminance() float64 {
@@ -134,8 +134,7 @@ func isTerm24bitColorCapable() bool {
 func RgbToTermColorCode(color *Color) string {
 	if isTerm24bitColorCapable() {
 		return fmt.Sprintf("2;%d;%d;%d", color.Red, color.Green, color.Blue)
-	} else {
-		intCode := ditherTo256ColorCode(color)
-		return fmt.Sprintf("5;%d", intCode)
 	}
+	intCode := ditherTo256ColorCode(color)
+	return fmt.Sprintf("5;%d", intCode)
 }

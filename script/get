@@ -1,0 +1,54 @@
+#!/bin/bash
+# Usage: curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s <HUB_VERSION>
+#
+# Downloads the hub binary into `bin/hub` within the current directory.
+
+set -e
+
+latest-version() {
+  curl -fsi https://github.com/github/hub/releases/latest | awk -F/ 'tolower($1) ~ /^location:/ {print $(NF)}'
+}
+
+HUB_VERSION="${1#v}"
+if [ -z "$HUB_VERSION" ]; then
+  latest=$(latest-version) || true
+  [ -n "$latest" ] || latest="v2.14.1"
+  cat <<MSG >&2
+Error: You must specify a version of hub via the first argument. Example:
+  curl -L <script> | bash -s ${latest#v}
+MSG
+  exit 1
+fi
+
+ARCH="amd64"
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+case "$OS" in
+mingw* | msys* ) OS=windows ;;
+esac
+
+download() {
+  case "$OS" in
+  windows )
+    zip="${1%.tgz}.zip"
+    curl -fsSLO "$zip"
+    unzip "$(basename "$zip")" bin/hub.exe
+    rm -f "$(basename "$zip")"
+    ;;
+  darwin )
+    curl -fsSL "$1" | tar xz --strip-components=1 '*/bin/hub'
+    ;;
+  * )
+    curl -fsSL "$1" | tar xz --strip-components=1 --wildcards '*/bin/hub'
+    ;;
+  esac
+}
+
+download "https://github.com/github/hub/releases/download/v$HUB_VERSION/hub-$OS-$ARCH-$HUB_VERSION.tgz"
+
+bin/hub version
+if [ -z "$GITHUB_TOKEN" ]; then
+  cat <<MSG >&2
+Warning: We recommend supplying the GITHUB_TOKEN environment variable to avoid
+being prompted for authentication.
+MSG
+fi

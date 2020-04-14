@@ -4,7 +4,7 @@ import (
 	"github.com/github/hub/git"
 )
 
-func IsHttpsProtocol() bool {
+func IsHTTPSProtocol() bool {
 	httpProtocol, _ := git.Config("hub.protocol")
 	return httpProtocol == "https"
 }

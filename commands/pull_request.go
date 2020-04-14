@@ -372,8 +372,8 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 				if retryAllowance > 0 {
 					retryAllowance -= retryDelay
 					time.Sleep(time.Duration(retryDelay) * time.Second)
-					retryDelay += 1
-					numRetries += 1
+					retryDelay++
+					numRetries++
 				} else {
 					if numRetries > 0 {
 						duration := time.Since(startedAt)
@@ -392,7 +392,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 
 		utils.Check(err)
 
-		pullRequestURL = pr.HtmlUrl
+		pullRequestURL = pr.HTMLURL
 
 		params = map[string]interface{}{}
 		flagPullRequestLabels := commaSeparated(args.Flag.AllValues("--labels"))
@@ -475,6 +475,9 @@ func parsePullRequestIssueNumber(url string) string {
 func commaSeparated(l []string) []string {
 	res := []string{}
 	for _, i := range l {
+		if i == "" {
+			continue
+		}
 		res = append(res, strings.Split(i, ",")...)
 	}
 	return res

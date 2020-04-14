@@ -3,7 +3,7 @@ package commands
 import (
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestRunner_splitAliasCmd(t *testing.T) {

@@ -1,17 +1,15 @@
-SOURCES = $(shell script/build files)
+SOURCES = $(shell go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}}\
+{{end}}' ./...)
 SOURCE_DATE_EPOCH ?= $(shell date +%s)
 BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
 HUB_VERSION = $(shell bin/hub version | tail -1)
-FLAGS_ALL = $(shell go version | grep -q 'go1.[89]' || echo 'all=')
-export GOFLAGS := $(shell go version | grep -q 'go1.1[^0]' && echo '-mod=vendor')
-export LDFLAGS := -extldflags '$(LDFLAGS)'
-export GCFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
-export ASMFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
 
-ifneq ($(GOFLAGS),)
-	export GO111MODULE=on
-	unexport GOPATH
-endif
+export GO111MODULE=on
+unexport GOPATH
+
+export LDFLAGS := -extldflags '$(LDFLAGS)'
+export GCFLAGS := all=-trimpath '$(PWD)'
+export ASMFLAGS := all=-trimpath '$(PWD)'
 
 MIN_COVERAGE = 90.2
 

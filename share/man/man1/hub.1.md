@@ -167,7 +167,8 @@ this can be affected with the `GITHUB_HOST` environment variable:
 ### Environment variables
 
 `HUB_VERBOSE`
-:   Enable verbose output from hub commands.
+:   If this environment variable is set, verbose logging will be printed to
+    stderr.
 
 `HUB_CONFIG`
 :   The file path where hub configuration is read from and stored. If
