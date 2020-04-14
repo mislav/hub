@@ -56,6 +56,15 @@ func (r *Runner) Execute(cliArgs []string) error {
 		cmdName = args.Command
 	}
 
+	// make `<cmd> --help` equivalent to `help <cmd>`
+	if args.ParamsSize() == 1 && args.GetParam(0) == helpFlag {
+		if c := r.Lookup(cmdName); c != nil && !c.GitExtension {
+			args.ReplaceParam(0, cmdName)
+			args.Command = "help"
+			cmdName = args.Command
+		}
+	}
+
 	cmd := r.Lookup(cmdName)
 	if cmd != nil && cmd.Runnable() {
 		err := callRunnableCommand(cmd, args)
@@ -122,6 +131,9 @@ func executeCommands(cmds []*cmd.Cmd, execFinal bool) error {
 
 func expandAlias(args *Args) {
 	cmd := args.Command
+	if cmd == "" {
+		return
+	}
 	expandedCmd, err := git.Alias(cmd)
 
 	if err == nil && expandedCmd != "" && !git.IsBuiltInGitCommand(cmd) {
@@ -134,7 +146,7 @@ func expandAlias(args *Args) {
 }
 
 func isBuiltInHubCommand(command string) bool {
-	for hubCommand, _ := range CmdRunner.All() {
+	for hubCommand := range CmdRunner.All() {
 		if hubCommand == command {
 			return true
 		}

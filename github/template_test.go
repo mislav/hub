@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bmizerany/assert"
 	"github.com/github/hub/fixtures"
+	"github.com/github/hub/internal/assert"
 )
 
 var prContent = `Description

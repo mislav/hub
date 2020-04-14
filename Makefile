@@ -1,18 +1,17 @@
-SOURCES = $(shell script/build files)
+SOURCES = $(shell go list -f '{{range .GoFiles}}{{$$.Dir}}/{{.}}\
+{{end}}' ./...)
 SOURCE_DATE_EPOCH ?= $(shell date +%s)
 BUILD_DATE = $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" '+%d %b %Y' 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" '+%d %b %Y')
 HUB_VERSION = $(shell bin/hub version | tail -1)
-FLAGS_ALL = $(shell go version | grep -q 'go1.[89]' || echo 'all=')
-export MOD_VENDOR_ARG := $(shell go version | grep -q 'go1.1[^0]' && echo '-mod=vendor')
+
+export GO111MODULE=on
+unexport GOPATH
+
 export LDFLAGS := -extldflags '$(LDFLAGS)'
-export GCFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
-export ASMFLAGS := $(FLAGS_ALL)-trimpath '$(PWD)'
+export GCFLAGS := all=-trimpath '$(PWD)'
+export ASMFLAGS := all=-trimpath '$(PWD)'
 
-ifneq ($(MOD_VENDOR_ARG),)
-	unexport GOPATH
-endif
-
-MIN_COVERAGE = 89.4
+MIN_COVERAGE = 90.2
 
 HELP_CMD = \
 	share/man/man1/hub-alias.1 \
@@ -23,6 +22,7 @@ HELP_CMD = \
 	share/man/man1/hub-create.1 \
 	share/man/man1/hub-delete.1 \
 	share/man/man1/hub-fork.1 \
+	share/man/man1/hub-gist.1 \
 	share/man/man1/hub-pr.1 \
 	share/man/man1/hub-pull-request.1 \
 	share/man/man1/hub-release.1 \
@@ -51,7 +51,7 @@ bin/hub: $(SOURCES)
 	script/build -o $@
 
 bin/md2roff: $(SOURCES)
-	go build $(MOD_VENDOR_ARG) -o $@ github.com/github/hub/md2roff-bin
+	go build -o $@ github.com/github/hub/md2roff-bin
 
 test:
 	go test ./...
@@ -80,6 +80,8 @@ share/man/.man-pages.stamp: $(HELP_ALL:=.md) ./man-template.html bin/md2roff
 		--date="$(BUILD_DATE)" --version="$(HUB_VERSION)" \
 		--template=./man-template.html \
 		share/man/man1/*.md
+	mkdir -p share/doc/hub-doc
+	mv share/man/*/*.html share/doc/hub-doc/
 	touch $@
 
 %.1.md: bin/hub

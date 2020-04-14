@@ -13,7 +13,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/rtomayko/ronn.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone a public repo with period in name
     Given the GitHub API server:
@@ -26,7 +26,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone hookio/hook.js`
     Then it should clone "git://github.com/hookio/hook.js.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone a public repo that starts with a period
     Given the GitHub API server:
@@ -39,7 +39,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone zhuangya/.vim`
     Then it should clone "git://github.com/zhuangya/.vim.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone a repo even if same-named directory exists
     Given the GitHub API server:
@@ -53,7 +53,7 @@ Feature: hub clone
     And a directory named "rtomayko/ronn"
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/rtomayko/ronn.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone a public repo with HTTPS
     Given HTTPS is preferred
@@ -67,7 +67,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "https://github.com/rtomayko/ronn.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone command aliased
     Given the GitHub API server:
@@ -81,7 +81,7 @@ Feature: hub clone
     When I successfully run `git config --global alias.c "clone --bare"`
     And I successfully run `hub c rtomayko/ronn`
     Then "git clone --bare git://github.com/rtomayko/ronn.git" should be run
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Unchanged public clone
     When I successfully run `hub clone git://github.com/rtomayko/ronn.git`
@@ -90,39 +90,39 @@ Feature: hub clone
   Scenario: Unchanged public clone with path
     When I successfully run `hub clone git://github.com/rtomayko/ronn.git ronnie`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Unchanged private clone
     When I successfully run `hub clone git@github.com:rtomayko/ronn.git`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Unchanged clone with complex arguments
     When I successfully run `hub clone --template=one/two git://github.com/defunkt/resque.git --origin master resquetastic`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Unchanged local clone
     When I successfully run `hub clone ./dotfiles`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Unchanged local clone with destination
     Given a directory named ".git"
     When I successfully run `hub clone -l . ../copy`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Unchanged local clone from bare repo
     Given a bare git repo in "rtomayko/ronn"
     When I successfully run `hub clone rtomayko/ronn`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Unchanged clone with host alias
     When I successfully run `hub clone shortcut:git/repo.git`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Preview cloning a private repo
     Given the GitHub API server:
@@ -148,7 +148,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone -p rtomayko/ronn`
     Then it should clone "git@github.com:rtomayko/ronn.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone my repo
     Given the GitHub API server:
@@ -161,7 +161,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone dotfiles`
     Then it should clone "git@github.com:mislav/dotfiles.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone my repo that doesn't exist
     Given the GitHub API server:
@@ -185,7 +185,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone --bare -o master dotfiles`
     Then "git clone --bare -o master git@github.com:mislav/dotfiles.git" should be run
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone repo to which I have push access to
     Given the GitHub API server:
@@ -198,7 +198,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone sstephenson/rbenv`
     Then "git clone git@github.com:sstephenson/rbenv.git" should be run
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Preview cloning a repo I have push access to
     Given the GitHub API server:
@@ -226,19 +226,19 @@ Feature: hub clone
       """
     When I successfully run `hub clone myorg/myrepo`
     Then it should clone "git@git.my.org:myorg/myrepo.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone from existing directory is a local clone
     Given a directory named "dotfiles/.git"
     When I successfully run `hub clone dotfiles`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone from git bundle is a local clone
     Given a git bundle named "my-bundle"
     When I successfully run `hub clone my-bundle`
     Then the git command should be unchanged
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone a wiki
     Given the GitHub API server:
@@ -252,7 +252,7 @@ Feature: hub clone
       """
     When I successfully run `hub clone rtomayko/ronn.wiki`
     Then it should clone "git://github.com/RTomayko/ronin.wiki.git"
-    And there should be no output
+    And the output should not contain anything
 
   Scenario: Clone a nonexisting wiki
     Given the GitHub API server:
@@ -285,4 +285,4 @@ Feature: hub clone
       """
     When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/RTomayko/ronin.git"
-    And there should be no output
+    And the output should not contain anything

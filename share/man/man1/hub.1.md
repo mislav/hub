@@ -78,6 +78,9 @@ hub-delete(1)
 hub-fork(1)
 :   Fork the current repository on GitHub and add a git remote for it.
 
+hub-gist(1)
+:   Create and print GitHub Gists.
+
 hub-pull-request(1)
 :   Create a GitHub Pull Request.
 
@@ -164,7 +167,8 @@ this can be affected with the `GITHUB_HOST` environment variable:
 ### Environment variables
 
 `HUB_VERBOSE`
-:   Enable verbose output from hub commands.
+:   If this environment variable is set, verbose logging will be printed to
+    stderr.
 
 `HUB_CONFIG`
 :   The file path where hub configuration is read from and stored. If
@@ -173,10 +177,26 @@ this can be affected with the `GITHUB_HOST` environment variable:
     searched for in `XDG_CONFIG_DIRS` per XDG Base Directory Specification.
 
 `HUB_PROTOCOL`
-:   Use one of "https|ssh|git" as preferred protocol for git clone/push.
+:   One of "https", "ssh", or "git" as preferred protocol for git clone/push.
+
+`GITHUB_HOST`
+:   The GitHub hostname to default to instead of "github.com".
 
 `GITHUB_TOKEN`
 :   OAuth token to use for GitHub API requests.
+
+`GITHUB_USER`
+:   The GitHub username of the actor of GitHub API operations.
+
+`GITHUB_PASSWORD`
+:   The GitHub password used to exchange user credentials for an OAuth token
+    that gets stored in hub configuration. If not set, it may be interactively
+    prompted for on first run.
+
+`GITHUB_REPOSITORY`
+:   A value in "OWNER/REPO" format that specifies the repository that API
+    operations should be performed against. Currently only used to infer the
+    default value of `GITHUB_USER` for API requests.
 
 ## Bugs
 

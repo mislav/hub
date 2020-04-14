@@ -32,7 +32,7 @@ Feature: hub sync
     When I successfully run `hub sync`
     Then the stderr should contain exactly:
       """
-      warning: `feature' seems to contain unpushed commits\n
+      warning: 'feature' seems to contain unpushed commits\n
       """
 
   Scenario: Deletes local branch that had its upstream deleted
@@ -52,7 +52,7 @@ Feature: hub sync
     When I successfully run `hub sync`
     Then the stderr should contain exactly:
       """
-      warning: `feature' was deleted on origin, but appears not merged into master\n
+      warning: 'feature' was deleted on origin, but appears not merged into 'master'\n
       """
   
   Scenario: Deletes local branch whose upstream was deleted but not merged to master when --delete-all --yes was provided

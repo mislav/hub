@@ -26,7 +26,7 @@ same-named branch on the remote, treat that as its upstream branch.
 ## Options:
 	--color[=<WHEN>]
 		Enable colored output even if stdout is not a terminal. <WHEN> can be one
-		of "always" (default for '--color'), "never", or "auto" (default).
+		of "always" (default for ''--color''), "never", or "auto" (default).
 	--delete-all
 		Delete local branches whose upstream branch was deleted after confirmation,
 		even if it does not look merged. This will allow deleting branches merged
@@ -120,7 +120,7 @@ func sync(cmd *Command, args *Args) {
 				}
 				ui.Printf("%sUpdated branch %s%s%s (was %s).\n", green, lightGreen, branch, resetColor, diff.A[0:7])
 			} else {
-				ui.Errorf("warning: `%s' seems to contain unpushed commits\n", branch)
+				ui.Errorf("warning: '%s' seems to contain unpushed commits\n", branch)
 			}
 		} else if gone {
 			diff, err := git.NewRange(fullBranch, fullDefaultBranch)
@@ -144,7 +144,7 @@ func sync(cmd *Command, args *Args) {
 					ui.Printf("%sDeleted branch %s%s%s (was %s).\n", red, lightRed, branch, resetColor, diff.A[0:7])
 				}
 			} else {
-				ui.Errorf("warning: `%s' was deleted on %s, but appears not merged into %s\n", branch, remote.Name, defaultBranch)
+				ui.Errorf("warning: '%s' was deleted on %s, but appears not merged into '%s'\n", branch, remote.Name, defaultBranch)
 			}
 		}
 	}

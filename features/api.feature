@@ -1,3 +1,4 @@
+@cache_clear
 Feature: hub api
   Background:
     Given I am "octokitten" on github.com with OAuth token "OTOKEN"
@@ -230,7 +231,7 @@ Feature: hub api
       """
     Then the output should contain exactly:
       """
-      .query	query {\n  repository\n}\n\n
+      .query	query {\n  repository\n}\n
       """
 
   Scenario: POST body from file
@@ -280,6 +281,22 @@ Feature: hub api
       {"name":"Jet","size":2}
       """
 
+  Scenario: Enterprise GraphQL
+    Given I am "octokitten" on git.my.org with OAuth token "FITOKEN"
+    Given the GitHub API server:
+      """
+      post('/api/graphql', :host_name => 'git.my.org') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token FITOKEN'
+        json :name => "Ed"
+      }
+      """
+    And $GITHUB_HOST is "git.my.org"
+    When I successfully run `hub api graphql -f query=QUERY`
+    Then the output should contain exactly:
+      """
+      {"name":"Ed"}
+      """
+
   Scenario: Repo context
     Given I am in "git://github.com/octocat/Hello-World.git" git repo
     Given the GitHub API server:
@@ -294,6 +311,20 @@ Feature: hub api
       {"commits":12}
       """
 
+  Scenario: Multiple string interpolation
+    Given I am in "git://github.com/octocat/Hello-World.git" git repo
+    Given the GitHub API server:
+      """
+      get('/repos/octocat/Hello-World/pulls') {
+        json(params)
+      }
+      """
+    When I successfully run `hub api repos/{owner}/{repo}/pulls?head={owner}:{repo}`
+    Then the output should contain exactly:
+      """
+      {"head":"octocat:Hello-World"}
+      """
+
   Scenario: Repo context in graphql
     Given I am in "git://github.com/octocat/Hello-World.git" git repo
     Given the GitHub API server:
@@ -305,11 +336,11 @@ Feature: hub api
     When I run `hub api -t -F query=@- graphql` interactively
     And I pass in:
       """
-      repository(owner: "{owner}", name: "{repo}")
+      repository(owner: "{owner}", name: "{repo}", nameWithOwner: "{owner}/{repo}")
       """
     Then the output should contain exactly:
       """
-      .query	repository(owner: "octocat", name: "Hello-World")\n\n
+      .query	repository(owner: "octocat", name: "Hello-World", nameWithOwner: "octocat/Hello-World")\n
       """
 
   Scenario: Cache response
@@ -321,13 +352,10 @@ Feature: hub api
         json :count => count
       }
       """
-    When I successfully run `hub api -t 'count?a=1&b=2' --cache 5`
-    And I successfully run `hub api -t 'count?b=2&a=1' --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	1\n
-      """
+    When I run `hub api -t 'count?a=1&b=2' --cache 5`
+    Then it should pass with ".count	1"
+    When I run `hub api -t 'count?b=2&a=1' --cache 5`
+    Then it should pass with ".count	1"
 
   Scenario: Cache graphql response
     Given the GitHub API server:
@@ -339,15 +367,12 @@ Feature: hub api
         json :count => count
       }
       """
-    When I successfully run `hub api -t graphql -F query=Q1 --cache 5`
-    And I successfully run `hub api -t graphql -F query=Q1 --cache 5`
-    And I successfully run `hub api -t graphql -F query=Q2 --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	1
-      .count	2\n
-      """
+    When I run `hub api -t graphql -F query=Q1 --cache 5`
+    Then it should pass with ".count	1"
+    When I run `hub api -t graphql -F query=Q1 --cache 5`
+    Then it should pass with ".count	1"
+    When I run `hub api -t graphql -F query=Q2 --cache 5`
+    Then it should pass with ".count	2"
 
   Scenario: Cache client error response
     Given the GitHub API server:
@@ -360,12 +385,9 @@ Feature: hub api
       }
       """
     When I run `hub api -t count --cache 5`
-    And I run `hub api -t count --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	1\n
-      """
+    Then it should fail with ".count	1"
+    When I run `hub api -t count --cache 5`
+    Then it should fail with ".count	1"
     And the exit status should be 22
 
   Scenario: Avoid caching server error response
@@ -379,14 +401,11 @@ Feature: hub api
       }
       """
     When I run `hub api -t count --cache 5`
-    And I successfully run `hub api -t count --cache 5`
-    And I successfully run `hub api -t count --cache 5`
-    Then the output should contain exactly:
-      """
-      .count	1
-      .count	2
-      .count	2\n
-      """
+    Then it should fail with ".count	1"
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	2"
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	2"
 
   Scenario: Avoid caching response if the OAuth token changes
     Given the GitHub API server:
@@ -397,11 +416,115 @@ Feature: hub api
         json :count => count
       }
       """
-    When I successfully run `hub api -t count --cache 5`
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	1"
     Given I am "octocat" on github.com with OAuth token "TOKEN2"
-    When I successfully run `hub api -t count --cache 5`
-    Then the output should contain exactly:
+    When I run `hub api -t count --cache 5`
+    Then it should pass with ".count	2"
+
+  Scenario: Honor rate limit with pagination
+    Given the GitHub API server:
       """
-      .count	1
-      .count	2\n
+      get('/hello') {
+        page = (params[:page] || 1).to_i
+        if page < 2
+          response.headers['X-Ratelimit-Remaining'] = '0'
+          response.headers['X-Ratelimit-Reset'] = Time.now.utc.to_i.to_s
+          response.headers['Link'] = %(</hello?page=#{page+1}>; rel="next")
+        end
+        json [{}]
+      }
+      """
+    When I successfully run `hub api --obey-ratelimit --paginate hello`
+    Then the stderr should contain "API rate limit exceeded; pausing until "
+
+  Scenario: Succumb to rate limit with pagination
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        page = (params[:page] || 1).to_i
+        response.headers['X-Ratelimit-Remaining'] = '0'
+        response.headers['X-Ratelimit-Reset'] = Time.now.utc.to_i.to_s
+        if page == 2
+          status 403
+          json :message => "API rate limit exceeded"
+        else
+          response.headers['Link'] = %(</hello?page=#{page+1}>; rel="next")
+          json [{page:page}]
+        end
+      }
+      """
+    When I run `hub api --paginate -t hello`
+    Then the exit status should be 22
+    And the stderr should not contain "API rate limit exceeded"
+    And the stdout should contain exactly:
+      """
+      .[0].page	1
+      .message	API rate limit exceeded\n
+      """
+
+  Scenario: Honor rate limit for 403s
+    Given the GitHub API server:
+      """
+      count = 0
+      get('/hello') {
+        count += 1
+        if count == 1
+          response.headers['X-Ratelimit-Remaining'] = '0'
+          response.headers['X-Ratelimit-Reset'] = Time.now.utc.to_i.to_s
+          halt 403
+        end
+        json [{}]
+      }
+      """
+    When I successfully run `hub api --obey-ratelimit hello`
+    Then the stderr should contain "API rate limit exceeded; pausing until "
+
+  Scenario: 403 unrelated to rate limit
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        response.headers['X-Ratelimit-Remaining'] = '1'
+        status 403
+      }
+      """
+    When I run `hub api --obey-ratelimit hello`
+    Then the exit status should be 22
+    Then the stderr should not contain "API rate limit exceeded"
+
+  Scenario: Warn about insufficient OAuth scopes
+    Given the GitHub API server:
+      """
+      get('/hello') {
+        response.headers['X-Accepted-Oauth-Scopes'] = 'repo, admin'
+        response.headers['X-Oauth-Scopes'] = 'public_repo'
+        status 403
+        json({})
+      }
+      """
+    When I run `hub api hello`
+    Then the exit status should be 22
+    And the output should contain exactly:
+      """
+      {}
+      Your access token may have insufficient scopes. Visit http://github.com/settings/tokens
+      to edit the 'hub' token and enable one of the following scopes: admin, repo
+      """
+
+  Scenario: Print the SSO challenge to stderr
+    Given the GitHub API server:
+      """
+      get('/orgs/acme') {
+        response.headers['X-GitHub-SSO'] = 'required; url=http://example.com?auth=HASH'
+        status 403
+        json({})
+      }
+      """
+    When I run `hub api orgs/acme`
+    Then the exit status should be 22
+    And the stderr should contain exactly:
+      """
+
+      You must authorize your token to access this organization:
+      http://example.com?auth=HASH
       """

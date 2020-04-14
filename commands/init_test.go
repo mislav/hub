@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/bmizerany/assert"
 	"github.com/github/hub/github"
+	"github.com/github/hub/internal/assert"
 )
 
 func setupInitContext() {

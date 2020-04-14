@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -22,6 +23,7 @@ import (
 
 	"github.com/github/hub/ui"
 	"github.com/github/hub/utils"
+	"golang.org/x/net/http/httpproxy"
 )
 
 const apiPayloadVersion = "application/vnd.github.v3+json;charset=utf-8"
@@ -31,9 +33,19 @@ const checksType = "application/vnd.github.antiope-preview+json;charset=utf-8"
 const draftsType = "application/vnd.github.shadow-cat-preview+json;charset=utf-8"
 const cacheVersion = 2
 
+const (
+	rateLimitRemainingHeader = "X-Ratelimit-Remaining"
+	rateLimitResetHeader     = "X-Ratelimit-Reset"
+)
+
 var inspectHeaders = []string{
 	"Authorization",
 	"X-GitHub-OTP",
+	"X-GitHub-SSO",
+	"X-Oauth-Scopes",
+	"X-Accepted-Oauth-Scopes",
+	"X-Oauth-Client-Id",
+	"X-GitHub-Enterprise-Version",
 	"Location",
 	"Link",
 	"Accept",
@@ -79,10 +91,12 @@ func (t *verboseTransport) dumpRequest(req *http.Request) {
 	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.URL.Host, req.URL.RequestURI())
 	t.verbosePrintln(info)
 	t.dumpHeaders(req.Header, ">")
-	body := t.dumpBody(req.Body)
-	if body != nil {
-		// reset body since it's been read
-		req.Body = body
+	if inspectableType(req.Header.Get("content-type")) {
+		body := t.dumpBody(req.Body)
+		if body != nil {
+			// reset body since it's been read
+			req.Body = body
+		}
 	}
 }
 
@@ -90,10 +104,12 @@ func (t *verboseTransport) dumpResponse(resp *http.Response) {
 	info := fmt.Sprintf("< HTTP %d", resp.StatusCode)
 	t.verbosePrintln(info)
 	t.dumpHeaders(resp.Header, "<")
-	body := t.dumpBody(resp.Body)
-	if body != nil {
-		// reset body since it's been read
-		resp.Body = body
+	if inspectableType(resp.Header.Get("content-type")) {
+		body := t.dumpBody(resp.Body)
+		if body != nil {
+			// reset body since it's been read
+			resp.Body = body
+		}
 	}
 }
 
@@ -143,7 +159,13 @@ func (t *verboseTransport) verbosePrintln(msg string) {
 	fmt.Fprintln(t.Out, msg)
 }
 
-func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Client {
+var jsonTypeRE = regexp.MustCompile(`[/+]json($|;)`)
+
+func inspectableType(ct string) bool {
+	return strings.HasPrefix(ct, "text/") || jsonTypeRE.MatchString(ct)
+}
+
+func newHTTPClient(testHost string, verbose bool, unixSocket string) *http.Client {
 	var testURL *url.URL
 	if testHost != "" {
 		testURL, _ = url.Parse(testHost)
@@ -182,8 +204,33 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 	}
 
 	return &http.Client{
-		Transport: tr,
+		Transport:     tr,
+		CheckRedirect: checkRedirect,
 	}
+}
+
+func checkRedirect(req *http.Request, via []*http.Request) error {
+	var recommendedCode int
+	switch req.Response.StatusCode {
+	case 301:
+		recommendedCode = 308
+	case 302:
+		recommendedCode = 307
+	}
+
+	origMethod := via[len(via)-1].Method
+	if recommendedCode != 0 && !strings.EqualFold(req.Method, origMethod) {
+		return fmt.Errorf(
+			"refusing to follow HTTP %d redirect for a %s request\n"+
+				"Have your site admin use HTTP %d for this kind of redirect",
+			req.Response.StatusCode, origMethod, recommendedCode)
+	}
+
+	// inherited from stdlib defaultCheckRedirect
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	return nil
 }
 
 func cloneRequest(req *http.Request) *http.Request {
@@ -197,48 +244,37 @@ func cloneRequest(req *http.Request) *http.Request {
 	return dup
 }
 
-// An implementation of http.ProxyFromEnvironment that isn't broken
+var proxyFunc func(*url.URL) (*url.URL, error)
+
 func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
-	proxy := os.Getenv("http_proxy")
-	if proxy == "" {
-		proxy = os.Getenv("HTTP_PROXY")
+	if proxyFunc == nil {
+		proxyFunc = httpproxy.FromEnvironment().ProxyFunc()
 	}
-	if proxy == "" {
-		return nil, nil
-	}
-
-	proxyURL, err := url.Parse(proxy)
-	if err != nil || !strings.HasPrefix(proxyURL.Scheme, "http") {
-		if proxyURL, err := url.Parse("http://" + proxy); err == nil {
-			return proxyURL, nil
-		}
-	}
-
-	if err != nil {
-		return nil, fmt.Errorf("invalid proxy address %q: %v", proxy, err)
-	}
-
-	return proxyURL, nil
+	return proxyFunc(req.URL)
 }
 
 type simpleClient struct {
 	httpClient     *http.Client
-	rootUrl        *url.URL
+	rootURL        *url.URL
 	PrepareRequest func(*http.Request)
 	CacheTTL       int
 }
 
 func (c *simpleClient) performRequest(method, path string, body io.Reader, configure func(*http.Request)) (*simpleResponse, error) {
+	if path == "graphql" {
+		// FIXME: This dirty workaround cancels out the "v3" portion of the
+		// "/api/v3" prefix used for Enterprise. Find a better place for this.
+		path = "../graphql"
+	}
 	url, err := url.Parse(path)
 	if err == nil {
-		url = c.rootUrl.ResolveReference(url)
-		return c.performRequestUrl(method, url, body, configure)
-	} else {
-		return nil, err
+		url = c.rootURL.ResolveReference(url)
+		return c.performRequestURL(method, url, body, configure)
 	}
+	return nil, err
 }
 
-func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
+func (c *simpleClient) performRequestURL(method string, url *url.URL, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
 	req, err := http.NewRequest(method, url.String(), body)
 	if err != nil {
 		return
@@ -304,8 +340,9 @@ func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Respo
 		}
 
 		res = &http.Response{
-			Body:   ioutil.NopCloser(bytes.NewBufferString(parts[1])),
-			Header: http.Header{},
+			Body:    ioutil.NopCloser(bytes.NewBufferString(parts[1])),
+			Header:  http.Header{},
+			Request: req,
 		}
 		headerLines := strings.Split(parts[0], "\r\n")
 		if len(headerLines) < 1 {
@@ -443,20 +480,11 @@ func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleRespo
 	return c.jsonRequest("PATCH", path, payload, nil)
 }
 
-func (c *simpleClient) PostFile(path, filename string) (*simpleResponse, error) {
-	stat, err := os.Stat(filename)
-	if err != nil {
-		return nil, err
-	}
-
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	return c.performRequest("POST", path, file, func(req *http.Request) {
-		req.ContentLength = stat.Size()
+func (c *simpleClient) PostFile(path string, contents io.Reader, fileSize int64) (*simpleResponse, error) {
+	return c.performRequest("POST", path, contents, func(req *http.Request) {
+		if fileSize > 0 {
+			req.ContentLength = fileSize
+		}
 		req.Header.Set("Content-Type", "application/octet-stream")
 	})
 }
@@ -534,4 +562,22 @@ func (res *simpleResponse) Link(name string) string {
 		}
 	}
 	return ""
+}
+
+func (res *simpleResponse) RateLimitRemaining() int {
+	if v := res.Header.Get(rateLimitRemainingHeader); len(v) > 0 {
+		if num, err := strconv.Atoi(v); err == nil {
+			return num
+		}
+	}
+	return -1
+}
+
+func (res *simpleResponse) RateLimitReset() int {
+	if v := res.Header.Get(rateLimitResetHeader); len(v) > 0 {
+		if ts, err := strconv.Atoi(v); err == nil {
+			return ts
+		}
+	}
+	return -1
 }

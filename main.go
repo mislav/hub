@@ -28,9 +28,8 @@ func handleError(err error) int {
 	case *exec.ExitError:
 		if status, ok := e.Sys().(syscall.WaitStatus); ok {
 			return status.ExitStatus()
-		} else {
-			return 1
 		}
+		return 1
 	case *commands.ErrHelp:
 		ui.Println(err)
 		return 0

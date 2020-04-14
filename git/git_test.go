@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bmizerany/assert"
 	"github.com/github/hub/fixtures"
+	"github.com/github/hub/internal/assert"
 )
 
 func TestGitDir(t *testing.T) {
@@ -85,11 +85,11 @@ func TestGitConfig(t *testing.T) {
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
-	v, err := GlobalConfig("hub.test")
+	_, err := GlobalConfig("hub.test")
 	assert.NotEqual(t, nil, err)
 
 	SetGlobalConfig("hub.test", "1")
-	v, err = GlobalConfig("hub.test")
+	v, err := GlobalConfig("hub.test")
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "1", v)
 
@@ -106,7 +106,7 @@ func TestRemotes(t *testing.T) {
 	type remote struct {
 		name    string
 		url     string
-		pushUrl string
+		pushURL string
 	}
 	testCases := map[string]remote{
 		"testremote1": {
@@ -127,7 +127,7 @@ func TestRemotes(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		repo.AddRemote(tc.name, tc.url, tc.pushUrl)
+		repo.AddRemote(tc.name, tc.url, tc.pushURL)
 	}
 
 	remotes, err := Remotes()
@@ -181,6 +181,6 @@ func TestCommentChar(t *testing.T) {
 	assert.Equal(t, nil, err)
 	assert.Equal(t, "@", char)
 
-	char, err = CommentChar("#\n;\n@\n!\n$\n%\n^\n&\n|\n:")
+	_, err = CommentChar("#\n;\n@\n!\n$\n%\n^\n&\n|\n:")
 	assert.Equal(t, "unable to select a comment character that is not used in the current message", err.Error())
 }

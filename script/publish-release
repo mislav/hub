@@ -1,33 +1,28 @@
 #!/usr/bin/env bash
 set -e
 
-# Asserts that this build runs in the context of the Go version that appears
-# first in build configuration.
-latest_go_version() {
-  local go_version="$(grep '^go:' -A1 .travis.yml | tail -1)"
-  go_version="${go_version#* - }"
-  go_version="${go_version%.x}"
-  [ -n "$go_version" ] && [[ "$(go version)" == *" go${go_version}".* ]]
-}
-
 publish_documentation() {
+  local version="$1"
   local doc_dir="site"
   local doc_branch="gh-pages"
-  local remote_url="$(git config remote.origin.url)"
 
   git fetch origin "${doc_branch}:${doc_branch}"
   git worktree add "$doc_dir" "$doc_branch"
   pushd "$doc_dir"
 
   git rm hub*.html >/dev/null
-  cp ../share/man/*/*.html .
+  cp ../share/doc/*/*.html .
+
+  local tracking="$(sed -n '/googletagmanager/,/^<\/script/p' index.html)"
+  local man_page
+  for man_page in hub*.html; do cat <<<"$tracking" >>"$man_page"; done
+
   git add hub*.html
-  GIT_COMMITTER_NAME='Travis CI' GIT_COMMITTER_EMAIL='travis@travis-ci.org' \
+  GIT_COMMITTER_NAME='GitHub Actions' GIT_COMMITTER_EMAIL='mislav+actions@github.com' \
     GIT_AUTHOR_NAME='Mislav Marohnić' GIT_AUTHOR_EMAIL='mislav@github.com' \
-    git commit -m "Update documentation for $TRAVIS_TAG"
+    git commit -m "Update documentation for $version"
 
-  git push "https://${GITHUB_OAUTH}@${remote_url#https://}" HEAD
-
+  git push origin HEAD
   popd
 }
 
@@ -36,11 +31,11 @@ in_default_branch() {
   git merge-base --is-ancestor "$1" FETCH_HEAD
 }
 
-if [[ $TRAVIS_TAG == v* ]] && [ "$TRAVIS_OS_NAME" = "linux" ] && latest_go_version && [ -n "$GITHUB_OAUTH" ]; then
-  version="${TRAVIS_TAG#v}"
-  make man-pages
-  script/cross-compile "$version" | \
-    PATH="bin:$PATH" script/github-release hub "$version"
+tag_name="${GITHUB_REF#refs/tags/}"
+make man-pages
+script/cross-compile "${tag_name#v}" | \
+  PATH="bin:$PATH" script/github-release "$tag_name"
 
-  in_default_branch "$TRAVIS_TAG" && publish_documentation || echo "skipping publishing documentation"
+if [[ $tag_name != *-* ]] && in_default_branch "$tag_name"; then
+  publish_documentation "$tag_name"
 fi

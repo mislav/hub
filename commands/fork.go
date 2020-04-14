@@ -82,7 +82,7 @@ func fork(cmd *Command, args *Args) {
 	if err == nil && existingRepo != nil {
 		var parentURL *github.URL
 		if parent := existingRepo.Parent; parent != nil {
-			parentURL, _ = github.ParseURL(parent.HtmlUrl)
+			parentURL, _ = github.ParseURL(parent.HTMLURL)
 		}
 		if parentURL == nil || !project.SameAs(parentURL.Project) {
 			err = fmt.Errorf("Error creating fork: %s already exists on %s",

@@ -13,8 +13,8 @@ import (
 var cmdCompare = &Command{
 	Run: compare,
 	Usage: `
-compare [-uc] [<USER>] [[<START>...]<END>]
 compare [-uc] [-b <BASE>]
+compare [-uc] [<OWNER>] [<BASE>...]<HEAD>
 `,
 	Long: `Open a GitHub compare page in a web browser.
 
@@ -28,22 +28,31 @@ compare [-uc] [-b <BASE>]
 	-b, --base <BASE>
 		Base branch to compare against in case no explicit arguments were given.
 
-	[<START>...]<END>
+	[<BASE>...]<HEAD>
 		Branch names, tag names, or commit SHAs specifying the range to compare.
-		<END> defaults to the current branch name.
-
-		If a range with two dots ('A..B') is given, it will be transformed into a
+		If a range with two dots (''A..B'') is given, it will be transformed into a
 		range with three dots.
 
+		The <BASE> portion defaults to the default branch of the repository.
+
+		The <HEAD> argument defaults to the current branch. If the current branch
+		is not pushed to a remote, the command will error.
+
+	<OWNER>
+		Optionally specify the owner of the repository for the compare page URL.
+
 ## Examples:
+		$ hub compare
+		> open https://github.com/OWNER/REPO/compare/BRANCH
+
 		$ hub compare refactor
-		> open https://github.com/USER/REPO/compare/refactor
+		> open https://github.com/OWNER/REPO/compare/refactor
 
 		$ hub compare v1.0..v1.1
-		> open https://github.com/USER/REPO/compare/v1.0...v1.1
+		> open https://github.com/OWNER/REPO/compare/v1.0...v1.1
 
 		$ hub compare -u jingweno feature
-		> echo https://github.com/jingweno/REPO/compare/feature
+		https://github.com/jingweno/REPO/compare/feature
 
 ## See also:
 
@@ -59,58 +68,60 @@ func compare(command *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	var (
-		branch  *github.Branch
-		project *github.Project
-		r       string
-	)
+	mainProject, err := localRepo.MainProject()
+	utils.Check(err)
 
+	host, err := github.CurrentConfig().PromptForHost(mainProject.Host)
+	utils.Check(err)
+
+	var r string
 	flagCompareBase := args.Flag.Value("--base")
 
 	if args.IsParamsEmpty() {
-		branch, project, err = localRepo.RemoteBranchAndProject("", false)
-		utils.Check(err)
+		currentBranch, err := localRepo.CurrentBranch()
+		if err != nil {
+			utils.Check(command.UsageError(err.Error()))
+		}
 
-		if branch == nil ||
-			(branch.IsMaster() && flagCompareBase == "") ||
-			(flagCompareBase == branch.ShortName()) {
-			utils.Check(command.UsageError(""))
-		} else {
-			r = branch.ShortName()
-			if flagCompareBase != "" {
-				r = parseCompareRange(flagCompareBase + "..." + r)
+		var remoteBranch *github.Branch
+		var remoteProject *github.Project
+
+		remoteBranch, remoteProject, err = findPushTarget(currentBranch)
+		if err != nil {
+			if remoteProject, err = deducePushTarget(currentBranch, host.User); err == nil {
+				remoteBranch = currentBranch
+			} else {
+				utils.Check(fmt.Errorf("the current branch '%s' doesn't seem pushed to a remote", currentBranch.ShortName()))
 			}
+		}
+
+		r = remoteBranch.ShortName()
+		if remoteProject.SameAs(mainProject) {
+			if flagCompareBase == "" && remoteBranch.IsMaster() {
+				utils.Check(fmt.Errorf("the branch to compare '%s' is the default branch", remoteBranch.ShortName()))
+			}
+		} else {
+			r = fmt.Sprintf("%s:%s", remoteProject.Owner, r)
+		}
+
+		if flagCompareBase == r {
+			utils.Check(fmt.Errorf("the branch to compare '%s' is the same as --base", r))
+		} else if flagCompareBase != "" {
+			r = fmt.Sprintf("%s...%s", flagCompareBase, r)
 		}
 	} else {
 		if flagCompareBase != "" {
 			utils.Check(command.UsageError(""))
 		} else {
 			r = parseCompareRange(args.RemoveParam(args.ParamsSize() - 1))
-			project, err = localRepo.CurrentProject()
-			if args.IsParamsEmpty() {
-				utils.Check(err)
-			} else {
-				projectName := ""
-				projectHost := ""
-				if err == nil {
-					projectName = project.Name
-					projectHost = project.Host
-				}
-				project = github.NewProject(args.RemoveParam(args.ParamsSize()-1), projectName, projectHost)
-				if project.Name == "" {
-					utils.Check(fmt.Errorf("error: missing project name (owner: %q)\n", project.Owner))
-				}
+			if !args.IsParamsEmpty() {
+				owner := args.RemoveParam(args.ParamsSize() - 1)
+				mainProject = github.NewProject(owner, mainProject.Name, mainProject.Host)
 			}
 		}
 	}
 
-	if project == nil {
-		project, err = localRepo.CurrentProject()
-		utils.Check(err)
-	}
-
-	subpage := utils.ConcatPaths("compare", rangeQueryEscape(r))
-	url := project.WebURL("", "", subpage)
+	url := mainProject.WebURL("", "", "compare/"+rangeQueryEscape(r))
 
 	args.NoForward()
 	flagCompareURLOnly := args.Flag.Bool("--url")
@@ -119,7 +130,7 @@ func compare(command *Command, args *Args) {
 }
 
 func parseCompareRange(r string) string {
-	shaOrTag := fmt.Sprintf("((?:%s:)?\\w(?:[\\w.-]*\\w)?)", OwnerRe)
+	shaOrTag := fmt.Sprintf("((?:%s:)?\\w(?:[\\w/.-]*\\w)?)", OwnerRe)
 	shaOrTagRange := fmt.Sprintf("^%s\\.\\.%s$", shaOrTag, shaOrTag)
 	shaOrTagRangeRegexp := regexp.MustCompile(shaOrTagRange)
 	return shaOrTagRangeRegexp.ReplaceAllString(r, "$1...$2")
@@ -138,7 +149,6 @@ var compareUnescaper = strings.NewReplacer(
 func rangeQueryEscape(r string) string {
 	if strings.Contains(r, "..") {
 		return r
-	} else {
-		return compareUnescaper.Replace(url.QueryEscape(r))
 	}
+	return compareUnescaper.Replace(url.QueryEscape(r))
 }

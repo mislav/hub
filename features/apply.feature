@@ -18,7 +18,7 @@ Feature: hub apply
       }
       """
     When I successfully run `hub apply -3 https://github.com/mislav/dotfiles/pull/387`
-    Then there should be no output
+    Then the output should not contain anything
     Then a file named "README.md" should exist
 
   Scenario: Apply commits when TMPDIR is empty

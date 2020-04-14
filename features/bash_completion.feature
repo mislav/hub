@@ -35,7 +35,8 @@ Feature: bash tab-completion
 
   Scenario: Completion of fork argument
     When I type "git fork -" and press <Tab>
-    Then the command should expand to "git fork --no-remote"
+    When I press <Tab> again
+    Then the completion menu should offer "--no-remote --remote-name --org" unsorted
 
   Scenario: Completion of user/repo in "browse"
   Scenario: Completion of branch names in "compare"

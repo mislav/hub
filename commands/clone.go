@@ -27,7 +27,7 @@ var cmdClone = &Command{
 
 ## Protocol used for cloning
 
-The 'git:' protocol will be used for cloning public repositories, while the SSH
+The ''git:'' protocol will be used for cloning public repositories, while the SSH
 protocol will be used for private repositories and those that you have push
 access to. Alternatively, hub can be configured to use HTTPS protocol for
 everything. See "HTTPS instead of git protocol" and "HUB_PROTOCOL" of hub(1).
@@ -79,7 +79,7 @@ func transformCloneArgs(args *Args) {
 	for _, i := range p.PositionalIndices {
 		a := args.Params[i]
 		if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
-			url := getCloneUrl(a, isSSH, args.Command != "submodule")
+			url := getCloneURL(a, isSSH, args.Command != "submodule")
 			args.ReplaceParam(i, url)
 		}
 		break
@@ -95,7 +95,7 @@ func parseClonePrivateFlag(args *Args) bool {
 	return false
 }
 
-func getCloneUrl(nameWithOwner string, isSSH, allowSSH bool) string {
+func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 	name := nameWithOwner
 	owner := ""
 	if strings.Contains(name, "/") {
@@ -148,7 +148,7 @@ func getCloneUrl(nameWithOwner string, isSSH, allowSSH bool) string {
 
 	if !isSSH &&
 		allowSSH &&
-		!github.IsHttpsProtocol() {
+		!github.IsHTTPSProtocol() {
 		isSSH = repo.Private || repo.Permissions.Push
 	}
 

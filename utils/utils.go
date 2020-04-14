@@ -65,7 +65,7 @@ func searchBrowserLauncher(goos string) (browser string) {
 }
 
 func CommandPath(cmd string) (string, error) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" && !strings.HasSuffix(cmd, ".exe") {
 		cmd = cmd + ".exe"
 	}
 

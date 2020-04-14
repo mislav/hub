@@ -135,6 +135,7 @@ Feature: hub pull-request
 
       Hello
       Signed-off-by: NAME <email@example.com>
+      Co-authored-by: NAME <email@example.com>
       """
     And the "topic" branch is pushed to "origin/topic"
     When I successfully run `hub pull-request`
@@ -1188,7 +1189,7 @@ Feature: hub pull-request
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
 
-  Scenario: Pull request with redirect
+  Scenario: Pull request with 307 redirect
     Given the "origin" remote has url "https://github.com/mislav/coral.git"
     And I am on the "feature" branch pushed to "origin/feature"
     Given the GitHub API server:
@@ -1212,6 +1213,36 @@ Feature: hub pull-request
       """
     When I successfully run `hub pull-request -m hereyougo`
     Then the output should contain exactly "the://url\n"
+
+  Scenario: Pull request with 301 redirect
+    Given the "origin" remote has url "https://github.com/mislav/coral.git"
+    And I am on the "feature" branch pushed to "origin/feature"
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/coral') {
+        redirect 'https://api.github.com/repositories/12345', 301
+      }
+      get('/repositories/12345') {
+        json :name => 'coralify', :owner => { :login => 'coral-org' }
+      }
+      post('/repos/mislav/coral/pulls') {
+        redirect 'https://api.github.com/repositories/12345/pulls', 301
+      }
+      post('/repositories/12345/pulls', :host_name => 'api.github.com') {
+        assert :base  => 'master',
+               :head  => 'coral-org:feature',
+               :title => 'hereyougo'
+        status 201
+        json :html_url => "the://url"
+      }
+      """
+    When I run `hub pull-request -m hereyougo`
+    Then the exit status should be 1
+    And stderr should contain exactly:
+      """
+      Error creating pull request: Post https://api.github.com/repositories/12345/pulls: refusing to follow HTTP 301 redirect for a POST request
+      Have your site admin use HTTP 308 for this kind of redirect
+      """
 
   Scenario: Default message with --push
     Given the git commit editor is "true"
@@ -1265,7 +1296,7 @@ Feature: hub pull-request
     And "git push --set-upstream upstream HEAD:topic" should be run
 
   Scenario: Automatically retry when --push resulted in 422
-    Given The default aruba timeout is 7 seconds
+    Given the default aruba exit timeout is 7 seconds
     And the text editor adds:
       """
       hello!
@@ -1300,7 +1331,7 @@ Feature: hub pull-request
     And the file ".git/PULLREQ_EDITMSG" should not exist
 
   Scenario: Eventually give up on retries for --push
-    Given The default aruba timeout is 7 seconds
+    Given the default aruba exit timeout is 7 seconds
     And the text editor adds:
       """
       hello!

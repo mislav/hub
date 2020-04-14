@@ -32,18 +32,23 @@ pull-request -i <ISSUE>
 		request title, and the rest is used as pull request description in Markdown
 		format.
 
-		If multiple <MESSAGE> options are given, their values are concatenated as
-		separate paragraphs.
+		When multiple ''--message'' are passed, their values are concatenated with a
+		blank line in-between.
+
+		When neither ''--message'' nor ''--file'' were supplied, a text editor will open
+		to author the title and description in.
 
 	--no-edit
 		Use the message from the first commit on the branch as pull request title
 		and description without opening a text editor.
 
 	-F, --file <FILE>
-		Read the pull request title and description from <FILE>.
+		Read the pull request title and description from <FILE>. Pass "-" to read
+		from standard input instead. See ''--message'' for the formatting rules.
 
 	-e, --edit
-		Further edit the contents of <FILE> in a text editor before submitting.
+		Open the pull request title and description in a text editor before
+		submitting. This can be used in combination with ''--message'' or ''--file''.
 
 	-i, --issue <ISSUE>
 		Convert <ISSUE> (referenced by its number) to a pull request.
@@ -113,8 +118,8 @@ pull-request -i <ISSUE>
 
 ## Configuration:
 
-	* 'HUB_RETRY_TIMEOUT':
-		The maximum time to keep retrying after HTTP 422 on '--push' (default: 9).
+	* ''HUB_RETRY_TIMEOUT'':
+		The maximum time to keep retrying after HTTP 422 on ''--push'' (default: 9).
 
 ## See also:
 
@@ -281,7 +286,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 			message, err = git.Show(commits[0])
 			utils.Check(err)
 
-			re := regexp.MustCompile(`\nSigned-off-by:\s.*$`)
+			re := regexp.MustCompile(`\n(Co-authored-by|Signed-off-by):[^\n]+`)
 			message = re.ReplaceAllString(message, "")
 		} else if len(commits) > 1 {
 			commitLogs, err := git.Log(baseTracking, headForMessage)
@@ -367,11 +372,11 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 				if retryAllowance > 0 {
 					retryAllowance -= retryDelay
 					time.Sleep(time.Duration(retryDelay) * time.Second)
-					retryDelay += 1
-					numRetries += 1
+					retryDelay++
+					numRetries++
 				} else {
 					if numRetries > 0 {
-						duration := time.Now().Sub(startedAt)
+						duration := time.Since(startedAt)
 						err = fmt.Errorf("%s\nGiven up after retrying for %.1f seconds.", err, duration.Seconds())
 					}
 					break
@@ -387,7 +392,7 @@ of text is the title and the rest is the description.`, fullBase, fullHead))
 
 		utils.Check(err)
 
-		pullRequestURL = pr.HtmlUrl
+		pullRequestURL = pr.HTMLURL
 
 		params = map[string]interface{}{}
 		flagPullRequestLabels := commaSeparated(args.Flag.AllValues("--labels"))
@@ -470,6 +475,9 @@ func parsePullRequestIssueNumber(url string) string {
 func commaSeparated(l []string) []string {
 	res := []string{}
 	for _, i := range l {
+		if i == "" {
+			continue
+		}
 		res = append(res, strings.Split(i, ",")...)
 	}
 	return res

@@ -143,9 +143,9 @@ func create(command *Command, args *Args) {
 		args.Before("git", "remote", "add", "-f", originName, url)
 	}
 
-	webUrl := project.WebURL("", "", "")
+	webURL := project.WebURL("", "", "")
 	args.NoForward()
 	flagCreateBrowse := args.Flag.Bool("--browse")
 	flagCreateCopy := args.Flag.Bool("--copy")
-	printBrowseOrCopy(args, webUrl, flagCreateBrowse, flagCreateCopy)
+	printBrowseOrCopy(args, webURL, flagCreateBrowse, flagCreateCopy)
 }
