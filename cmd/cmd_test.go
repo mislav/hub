@@ -3,7 +3,7 @@ package cmd
 import (
 	"testing"
 
-	"github.com/github/hub/internal/assert"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func TestNew(t *testing.T) {

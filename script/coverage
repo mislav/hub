@@ -18,7 +18,7 @@ prepare() {
     go tool cover -mode=set -var="LiveCoverage$((++n))" "$f" > "$f"~
     sed -E '
       /^package /a\
-      import "github.com/github/hub/coverage"
+      import "github.com/github/hub/v2/coverage"
       s/(LiveCoverage[0-9]+)\.Count\[([0-9]+)\][^;]+/coverage.Record(\1, \2)/g
     ' < "$f"~ > "$f"
     rm "$f"~
@@ -32,7 +32,7 @@ generate() {
   source_files | xargs git checkout --
 
   echo 'mode: count' > "$HUB_COVERAGE"~
-  sed -E 's!^.+/(github.com/github/hub/)!\1!' "$HUB_COVERAGE" | awk '
+  sed -E 's!^.+/(github.com/github/hub/v2/)!\1!' "$HUB_COVERAGE" | awk '
     { a[substr($0, 0, length()-2)] += $(NF) }
     END { for (k in a) print k, a[k] }
   ' >> "$HUB_COVERAGE"~

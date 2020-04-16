@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/github/hub/internal/assert"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func setupTestServer(unixSocket string) *testServer {

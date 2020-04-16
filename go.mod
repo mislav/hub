@@ -1,4 +1,4 @@
-module github.com/github/hub
+module github.com/github/hub/v2
 
 go 1.11
 

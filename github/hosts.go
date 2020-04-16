@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/github/hub/git"
+	"github.com/github/hub/v2/git"
 )
 
 var (

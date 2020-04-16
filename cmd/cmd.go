@@ -8,7 +8,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/github/hub/ui"
+	"github.com/github/hub/v2/ui"
 )
 
 // Cmd is a project-wide struct that represents a command to be run in the console.

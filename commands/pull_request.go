@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/git"
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/utils"
 )
 
 var cmdPullRequest = &Command{

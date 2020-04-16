@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"github.com/github/hub/internal/assert"
+	"github.com/github/hub/v2/internal/assert"
 	"testing"
 	"time"
 )
