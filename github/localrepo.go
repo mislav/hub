@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/github/hub/git"
+	"github.com/github/hub/v2/git"
 )
 
 func LocalRepo() (repo *GitHubRepo, err error) {

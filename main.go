@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/github/hub/commands"
-	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
+	"github.com/github/hub/v2/commands"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/ui"
 )
 
 func main() {

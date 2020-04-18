@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/version"
+	"github.com/github/hub/v2/version"
 )
 
 const (

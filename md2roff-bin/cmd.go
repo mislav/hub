@@ -11,8 +11,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/github/hub/md2roff"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/md2roff"
+	"github.com/github/hub/v2/utils"
 	"github.com/russross/blackfriday"
 )
 

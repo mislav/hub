@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/utils"
 )
 
 var (

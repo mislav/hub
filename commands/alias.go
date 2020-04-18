@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 )
 
 var cmdAlias = &Command{
