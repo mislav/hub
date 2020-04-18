@@ -132,6 +132,10 @@ With no arguments, shows a list of existing releases.
 
 		%as: the list of assets attached to this release
 
+		%au: the list of asset URLs attached to this release
+
+		%al: the list of asset labels attached to this release
+
 		%cD: created date-only (no time of day)
 
 		%cr: created date, relative
@@ -297,8 +301,12 @@ func formatRelease(release github.Release, format string, colorize bool) string 
 	}
 
 	assets := make([]string, len(release.Assets))
+	assetURLs := make([]string, len(release.Assets))
+	assetLabels := make([]string, len(release.Assets))
 	for i, asset := range release.Assets {
 		assets[i] = fmt.Sprintf("%s\t%s", asset.DownloadURL, asset.Label)
+		assetURLs[i] = fmt.Sprintf("%s", asset.DownloadURL)
+		assetLabels[i] = fmt.Sprintf("%s", asset.Label)
 	}
 
 	placeholders := map[string]string{
@@ -312,6 +320,8 @@ func formatRelease(release github.Release, format string, colorize bool) string 
 		"T":  release.TagName,
 		"b":  release.Body,
 		"as": strings.Join(assets, "\n"),
+		"au": strings.Join(assetURLs, "\n"),
+		"al": strings.Join(assetLabels, "\n"),
 		"cD": createdDate,
 		"cI": createdAtISO8601,
 		"ct": createdAtUnix,
