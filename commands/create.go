@@ -35,6 +35,10 @@ var cmdCreate = &Command{
 	-c, --copy
 		Put the URL of the new repository to clipboard instead of printing it.
 
+	--org <ORGANIZATION>
+		Specify organization when create repository. This will override the
+		<ORGANIZATION> in repository name.
+
 	[<ORGANIZATION>/]<NAME>
 		The name for the repository on GitHub (default: name of the current working
 		directory).
@@ -90,6 +94,11 @@ func create(command *Command, args *Args) {
 		split := strings.SplitN(newRepoName, "/", 2)
 		owner = split[0]
 		newRepoName = split[1]
+	}
+
+	flagOrg := args.Flag.Value("--org")
+	if len(flagOrg) > 0 {
+		owner = flagOrg
 	}
 
 	project := github.NewProject(owner, newRepoName, host.Host)
