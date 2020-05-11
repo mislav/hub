@@ -52,7 +52,7 @@ summarize() {
   echo "Code coverage: $total_coverage"
   local result="$(bc <<<"${total_coverage%\%} < $min_coverage")"
   if [ "$result" -eq 1 ]; then
-    echo "Error: coverage dropped below the minimum treshold of ${min_coverage}%!"
+    echo "Error: coverage dropped below the minimum threshold of ${min_coverage}%!"
     if [ -n "$CI" ]; then
       html_result="${HUB_COVERAGE%.out}.html"
       html_result="${html_result#$PWD/}"
