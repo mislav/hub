@@ -9,9 +9,9 @@ import (
 	"strings"
 
 	"github.com/atotto/clipboard"
-	"github.com/github/hub/git"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 )
 
 type stringSliceValue []string
@@ -66,18 +66,15 @@ func isCloneable(file string) bool {
 		if err == nil {
 			gitf.Close()
 			return true
-		} else {
-			return git.IsGitDir(file)
 		}
-	} else {
-		reader := bufio.NewReader(f)
-		line, err := reader.ReadString('\n')
-		if err == nil {
-			return strings.Contains(line, "git bundle")
-		} else {
-			return false
-		}
+		return git.IsGitDir(file)
 	}
+	reader := bufio.NewReader(f)
+	line, err := reader.ReadString('\n')
+	if err == nil {
+		return strings.Contains(line, "git bundle")
+	}
+	return false
 }
 
 func isEmptyDir(path string) bool {

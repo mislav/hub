@@ -34,7 +34,7 @@ in_default_branch() {
 tag_name="${GITHUB_REF#refs/tags/}"
 make man-pages
 script/cross-compile "${tag_name#v}" | \
-  PATH="bin:$PATH" script/github-release hub "$tag_name"
+  PATH="bin:$PATH" script/github-release "$tag_name"
 
 if [[ $tag_name != *-* ]] && in_default_branch "$tag_name"; then
   publish_documentation "$tag_name"

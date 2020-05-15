@@ -1,20 +1,9 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/v2/internal/assert"
 	"testing"
 )
-
-func testPush(t *testing.T) {
-	args := NewArgs([]string{"push", "origin,staging,qa", "bert_timeout"})
-	push(nil, args)
-
-	cmds := args.Commands()
-
-	assert.Equal(t, 3, len(cmds))
-	assert.Equal(t, "git push origin bert_timeout", cmds[0].String())
-	assert.Equal(t, "git push staging bert_timeout", cmds[1].String())
-}
 
 func TestTransformPushArgs(t *testing.T) {
 	args := NewArgs([]string{"push", "origin,staging,qa", "bert_timeout"})

@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/version"
+	"github.com/github/hub/v2/version"
 )
 
 const (
@@ -57,20 +57,20 @@ type Client struct {
 type Gist struct {
 	Files       map[string]GistFile `json:"files"`
 	Description string              `json:"description,omitempty"`
-	Id          string              `json:"id,omitempty"`
+	ID          string              `json:"id,omitempty"`
 	Public      bool                `json:"public"`
-	HtmlUrl     string              `json:"html_url"`
+	HTMLURL     string              `json:"html_url"`
 }
 
 type GistFile struct {
 	Type     string `json:"type,omitempty"`
 	Language string `json:"language,omitempty"`
 	Content  string `json:"content"`
-	RawUrl   string `json:"raw_url"`
+	RawURL   string `json:"raw_url"`
 }
 
 func (client *Client) FetchPullRequests(project *Project, filterParams map[string]interface{}, limit int, filter func(*PullRequest) bool) (pulls []PullRequest, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -109,7 +109,7 @@ func (client *Client) FetchPullRequests(project *Project, filterParams map[strin
 }
 
 func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -126,7 +126,7 @@ func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest,
 }
 
 func (client *Client) PullRequestPatch(project *Project, id string) (patch io.ReadCloser, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -140,7 +140,7 @@ func (client *Client) PullRequestPatch(project *Project, id string) (patch io.Re
 }
 
 func (client *Client) CreatePullRequest(project *Project, params map[string]interface{}) (pr *PullRequest, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -148,8 +148,8 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	res, err := api.PostJSONPreview(fmt.Sprintf("repos/%s/%s/pulls", project.Owner, project.Name), params, draftsType)
 	if err = checkStatus(201, "creating pull request", res, err); err != nil {
 		if res != nil && res.StatusCode == 404 {
-			projectUrl := strings.SplitN(project.WebURL("", "", ""), "://", 2)[1]
-			err = fmt.Errorf("%s\nAre you sure that %s exists?", err, projectUrl)
+			projectURL := strings.SplitN(project.WebURL("", "", ""), "://", 2)[1]
+			err = fmt.Errorf("%s\nAre you sure that %s exists?", err, projectURL)
 		}
 		return
 	}
@@ -161,7 +161,7 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 }
 
 func (client *Client) RequestReview(project *Project, prNumber int, params map[string]interface{}) (err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -176,7 +176,7 @@ func (client *Client) RequestReview(project *Project, prNumber int, params map[s
 }
 
 func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCloser, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -190,7 +190,7 @@ func (client *Client) CommitPatch(project *Project, sha string) (patch io.ReadCl
 }
 
 func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -204,13 +204,13 @@ func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
 	if err = res.Unmarshal(&gist); err != nil {
 		return
 	}
-	rawUrl := ""
+	rawURL := ""
 	for _, file := range gist.Files {
-		rawUrl = file.RawUrl
+		rawURL = file.RawURL
 		break
 	}
 
-	res, err = api.GetFile(rawUrl, textMediaType)
+	res, err = api.GetFile(rawURL, textMediaType)
 	if err = checkStatus(200, "getting gist patch", res, err); err != nil {
 		return
 	}
@@ -219,7 +219,7 @@ func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
 }
 
 func (client *Client) Repository(project *Project) (repo *Repository, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -247,7 +247,7 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 		"private":     isPrivate,
 	}
 
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -263,7 +263,7 @@ func (client *Client) CreateRepository(project *Project, description, homepage s
 }
 
 func (client *Client) DeleteRepository(project *Project) error {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return err
 	}
@@ -281,11 +281,11 @@ type Release struct {
 	Draft           bool           `json:"draft"`
 	Prerelease      bool           `json:"prerelease"`
 	Assets          []ReleaseAsset `json:"assets"`
-	TarballUrl      string         `json:"tarball_url"`
-	ZipballUrl      string         `json:"zipball_url"`
-	HtmlUrl         string         `json:"html_url"`
-	UploadUrl       string         `json:"upload_url"`
-	ApiUrl          string         `json:"url"`
+	TarballURL      string         `json:"tarball_url"`
+	ZipballURL      string         `json:"zipball_url"`
+	HTMLURL         string         `json:"html_url"`
+	UploadURL       string         `json:"upload_url"`
+	APIURL          string         `json:"url"`
 	CreatedAt       time.Time      `json:"created_at"`
 	PublishedAt     time.Time      `json:"published_at"`
 }
@@ -293,12 +293,12 @@ type Release struct {
 type ReleaseAsset struct {
 	Name        string `json:"name"`
 	Label       string `json:"label"`
-	DownloadUrl string `json:"browser_download_url"`
-	ApiUrl      string `json:"url"`
+	DownloadURL string `json:"browser_download_url"`
+	APIURL      string `json:"url"`
 }
 
 func (client *Client) FetchReleases(project *Project, limit int, filter func(*Release) bool) (releases []Release, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -338,19 +338,17 @@ func (client *Client) FetchRelease(project *Project, tagName string) (*Release, 
 		return release.TagName == tagName
 	})
 
-	if err == nil {
-		if len(releases) < 1 {
-			return nil, fmt.Errorf("Unable to find release with tag name `%s'", tagName)
-		} else {
-			return &releases[0], nil
-		}
-	} else {
+	if err != nil {
 		return nil, err
 	}
+	if len(releases) < 1 {
+		return nil, fmt.Errorf("Unable to find release with tag name `%s'", tagName)
+	}
+	return &releases[0], nil
 }
 
 func (client *Client) CreateRelease(project *Project, releaseParams *Release) (release *Release, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -366,12 +364,12 @@ func (client *Client) CreateRelease(project *Project, releaseParams *Release) (r
 }
 
 func (client *Client) EditRelease(release *Release, releaseParams map[string]interface{}) (updatedRelease *Release, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
 
-	res, err := api.PatchJSON(release.ApiUrl, releaseParams)
+	res, err := api.PatchJSON(release.APIURL, releaseParams)
 	if err = checkStatus(200, "editing release", res, err); err != nil {
 		return
 	}
@@ -382,12 +380,12 @@ func (client *Client) EditRelease(release *Release, releaseParams map[string]int
 }
 
 func (client *Client) DeleteRelease(release *Release) (err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
 
-	res, err := api.Delete(release.ApiUrl)
+	res, err := api.Delete(release.APIURL)
 	if err = checkStatus(204, "deleting release", res, err); err != nil {
 		return
 	}
@@ -403,13 +401,13 @@ type LocalAsset struct {
 }
 
 func (client *Client) UploadReleaseAssets(release *Release, assets []LocalAsset) (doneAssets []*ReleaseAsset, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
 
-	idx := strings.Index(release.UploadUrl, "{")
-	uploadURL := release.UploadUrl[0:idx]
+	idx := strings.Index(release.UploadURL, "{")
+	uploadURL := release.UploadURL[0:idx]
 
 	for _, asset := range assets {
 		for _, existingAsset := range release.Assets {
@@ -463,19 +461,19 @@ func (client *Client) UploadReleaseAssets(release *Release, assets []LocalAsset)
 }
 
 func (client *Client) DeleteReleaseAsset(asset *ReleaseAsset) (err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
 
-	res, err := api.Delete(asset.ApiUrl)
+	res, err := api.Delete(asset.APIURL)
 	err = checkStatus(204, "deleting release asset", res, err)
 
 	return
 }
 
 func (client *Client) DownloadReleaseAsset(url string) (asset io.ReadCloser, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -496,7 +494,7 @@ type CIStatusResponse struct {
 type CIStatus struct {
 	State     string `json:"state"`
 	Context   string `json:"context"`
-	TargetUrl string `json:"target_url"`
+	TargetURL string `json:"target_url"`
 }
 
 type CheckRunsResponse struct {
@@ -507,11 +505,11 @@ type CheckRun struct {
 	Status     string `json:"status"`
 	Conclusion string `json:"conclusion"`
 	Name       string `json:"name"`
-	HtmlUrl    string `json:"html_url"`
+	HTMLURL    string `json:"html_url"`
 }
 
 func (client *Client) FetchCIStatus(project *Project, sha string) (status *CIStatusResponse, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -532,10 +530,9 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 			sB := status.Statuses[b]
 			cmp := strings.Compare(strings.ToLower(sA.Context), strings.ToLower(sB.Context))
 			if cmp == 0 {
-				return strings.Compare(sA.TargetUrl, sB.TargetUrl) < 0
-			} else {
-				return cmp < 0
+				return strings.Compare(sA.TargetURL, sB.TargetURL) < 0
 			}
+			return cmp < 0
 		})
 	}
 	sortStatuses()
@@ -561,7 +558,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		checkStatus := CIStatus{
 			State:     state,
 			Context:   checkRun.Name,
-			TargetUrl: checkRun.HtmlUrl,
+			TargetURL: checkRun.HTMLURL,
 		}
 		status.Statuses = append(status.Statuses, checkStatus)
 	}
@@ -579,7 +576,7 @@ type Repository struct {
 	Private       bool                   `json:"private"`
 	HasWiki       bool                   `json:"has_wiki"`
 	Permissions   *RepositoryPermissions `json:"permissions"`
-	HtmlUrl       string                 `json:"html_url"`
+	HTMLURL       string                 `json:"html_url"`
 	DefaultBranch string                 `json:"default_branch"`
 }
 
@@ -590,7 +587,7 @@ type RepositoryPermissions struct {
 }
 
 func (client *Client) ForkRepository(project *Project, params map[string]interface{}) (repo *Repository, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -607,7 +604,7 @@ func (client *Client) ForkRepository(project *Project, params map[string]interfa
 }
 
 type Comment struct {
-	Id        int       `json:"id"`
+	ID        int       `json:"id"`
 	Body      string    `json:"body"`
 	User      *User     `json:"user"`
 	CreatedAt time.Time `json:"created_at"`
@@ -639,8 +636,8 @@ type Issue struct {
 	RequestedReviewers []User `json:"requested_reviewers"`
 	RequestedTeams     []Team `json:"requested_teams"`
 
-	ApiUrl  string `json:"url"`
-	HtmlUrl string `json:"html_url"`
+	APIURL  string `json:"url"`
+	HTMLURL string `json:"html_url"`
 
 	ClosedBy *User `json:"closed_by"`
 }
@@ -698,7 +695,7 @@ type Milestone struct {
 }
 
 func (client *Client) FetchIssues(project *Project, filterParams map[string]interface{}, limit int, filter func(*Issue) bool) (issues []Issue, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -737,7 +734,7 @@ func (client *Client) FetchIssues(project *Project, filterParams map[string]inte
 }
 
 func (client *Client) FetchIssue(project *Project, number string) (issue *Issue, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -753,7 +750,7 @@ func (client *Client) FetchIssue(project *Project, number string) (issue *Issue,
 }
 
 func (client *Client) FetchComments(project *Project, number string) (comments []Comment, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -769,7 +766,7 @@ func (client *Client) FetchComments(project *Project, number string) (comments [
 }
 
 func (client *Client) CreateIssue(project *Project, params interface{}) (issue *Issue, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -785,7 +782,7 @@ func (client *Client) CreateIssue(project *Project, params interface{}) (issue *
 }
 
 func (client *Client) UpdateIssue(project *Project, issueNumber int, params map[string]interface{}) (err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -812,7 +809,7 @@ func (s sortedLabels) Less(i, j int) bool {
 }
 
 func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -842,7 +839,7 @@ func (client *Client) FetchLabels(project *Project) (labels []IssueLabel, err er
 }
 
 func (client *Client) FetchMilestones(project *Project) (milestones []Milestone, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -870,7 +867,7 @@ func (client *Client) FetchMilestones(project *Project) (milestones []Milestone,
 }
 
 func (client *Client) GenericAPIRequest(method, path string, data interface{}, headers map[string]string, ttl int) (*simpleResponse, error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return nil, err
 	}
@@ -904,7 +901,7 @@ func (client *Client) GenericAPIRequest(method, path string, data interface{}, h
 
 // GraphQL facilitates performing a GraphQL request and parsing the response
 func (client *Client) GraphQL(query string, variables interface{}, data interface{}) error {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return err
 	}
@@ -942,7 +939,7 @@ func (client *Client) GraphQL(query string, variables interface{}, data interfac
 }
 
 func (client *Client) CurrentUser() (user *User, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -1040,7 +1037,7 @@ func (client *Client) ensureAccessToken() error {
 	return nil
 }
 
-func (client *Client) simpleApi() (c *simpleClient, err error) {
+func (client *Client) simpleAPI() (c *simpleClient, err error) {
 	err = client.ensureAccessToken()
 	if err != nil {
 		return
@@ -1069,7 +1066,7 @@ func (client *Client) simpleApi() (c *simpleClient, err error) {
 
 func (client *Client) apiClient() *simpleClient {
 	unixSocket := os.ExpandEnv(client.Host.UnixSocket)
-	httpClient := newHttpClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", unixSocket)
+	httpClient := newHTTPClient(os.Getenv("HUB_TEST_HOST"), os.Getenv("HUB_VERBOSE") != "", unixSocket)
 	apiRoot := client.absolute(normalizeHost(client.Host.Host))
 	if !strings.HasPrefix(apiRoot.Host, "api.github.") {
 		apiRoot.Path = "/api/v3/"
@@ -1080,7 +1077,7 @@ func (client *Client) apiClient() *simpleClient {
 
 	return &simpleClient{
 		httpClient: httpClient,
-		rootUrl:    apiRoot,
+		rootURL:    apiRoot,
 	}
 }
 
@@ -1121,7 +1118,7 @@ func (client *Client) absolute(host string) *url.URL {
 }
 
 func (client *Client) FetchGist(id string) (gist *Gist, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -1136,7 +1133,7 @@ func (client *Client) FetchGist(id string) (gist *Gist, err error) {
 }
 
 func (client *Client) CreateGist(filenames []string, public bool) (gist *Gist, err error) {
-	api, err := client.simpleApi()
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -1199,7 +1196,11 @@ func reverseNormalizeHost(host string) string {
 
 func checkStatus(expectedStatus int, action string, response *simpleResponse, err error) error {
 	if err != nil {
-		return fmt.Errorf("Error %s: %s", action, err.Error())
+		errStr := err.Error()
+		if urlErr, isURLErr := err.(*url.Error); isURLErr {
+			errStr = fmt.Sprintf("%s %s: %s", urlErr.Op, urlErr.URL, urlErr.Err)
+		}
+		return fmt.Errorf("Error %s: %s", action, errStr)
 	} else if response.StatusCode != expectedStatus {
 		errInfo, err := response.ErrorInfo()
 		if err != nil {

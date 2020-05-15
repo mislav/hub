@@ -6,7 +6,7 @@
 set -e
 
 latest-version() {
-  curl -fsi https://github.com/github/hub/releases/latest | awk -F/ '/^Location:/ {print $(NF)}'
+  curl -fsi https://github.com/github/hub/releases/latest | awk -F/ 'tolower($1) ~ /^location:/ {print $(NF)}'
 }
 
 HUB_VERSION="${1#v}"
@@ -22,19 +22,25 @@ fi
 
 ARCH="amd64"
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
-[[ $OS != mingw* ]] || OS="windows"
+case "$OS" in
+mingw* | msys* ) OS=windows ;;
+esac
 
 download() {
-  if [ "$OS" = windows ]; then
+  case "$OS" in
+  windows )
     zip="${1%.tgz}.zip"
     curl -fsSLO "$zip"
     unzip "$(basename "$zip")" bin/hub.exe
-    rm -f "$zip"
-  elif [ "$OS" = darwin ]; then
+    rm -f "$(basename "$zip")"
+    ;;
+  darwin )
     curl -fsSL "$1" | tar xz --strip-components=1 '*/bin/hub'
-  else
+    ;;
+  * )
     curl -fsSL "$1" | tar xz --strip-components=1 --wildcards '*/bin/hub'
-  fi
+    ;;
+  esac
 }
 
 download "https://github.com/github/hub/releases/download/v$HUB_VERSION/hub-$OS-$ARCH-$HUB_VERSION.tgz"

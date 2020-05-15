@@ -12,8 +12,8 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 	"github.com/mitchellh/go-homedir"
 	"golang.org/x/crypto/ssh/terminal"
 )
@@ -270,11 +270,11 @@ func configsFile() string {
 }
 
 func homeConfig() (string, error) {
-	if home, err := homedir.Dir(); err != nil {
+	home, err := homedir.Dir()
+	if err != nil {
 		return "", err
-	} else {
-		return filepath.Join(home, ".config"), nil
 	}
+	return filepath.Join(home, ".config"), nil
 }
 
 func determineConfigLocation() (string, error) {
@@ -388,7 +388,7 @@ func CheckWriteable(filename string) error {
 	return nil
 }
 
-// Public for testing purpose
+// CreateTestConfigs is public for testing purposes
 func CreateTestConfigs(user, token string) *Config {
 	f, _ := ioutil.TempFile("", "test-config")
 	os.Setenv("HUB_CONFIG", f.Name())

@@ -644,7 +644,7 @@ Feature: hub issue
       """
     Then I successfully run `hub issue update 1337 -M 42`
 
-  Scenario: Upate an issue's milestone by name
+  Scenario: Update an issue's milestone by name
     Given the GitHub API server:
       """
       get('/repos/github/hub/milestones') {

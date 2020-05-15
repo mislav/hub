@@ -21,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 	"golang.org/x/net/http/httpproxy"
 )
 
@@ -165,7 +165,7 @@ func inspectableType(ct string) bool {
 	return strings.HasPrefix(ct, "text/") || jsonTypeRE.MatchString(ct)
 }
 
-func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Client {
+func newHTTPClient(testHost string, verbose bool, unixSocket string) *http.Client {
 	var testURL *url.URL
 	if testHost != "" {
 		testURL, _ = url.Parse(testHost)
@@ -269,14 +269,13 @@ func (c *simpleClient) performRequest(method, path string, body io.Reader, confi
 	}
 	url, err := url.Parse(path)
 	if err == nil {
-		url = c.rootUrl.ResolveReference(url)
-		return c.performRequestUrl(method, url, body, configure)
-	} else {
-		return nil, err
+		url = c.rootURL.ResolveReference(url)
+		return c.performRequestURL(method, url, body, configure)
 	}
+	return nil, err
 }
 
-func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
+func (c *simpleClient) performRequestURL(method string, url *url.URL, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
 	req, err := http.NewRequest(method, url.String(), body)
 	if err != nil {
 		return

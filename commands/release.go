@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 )
 
 var (
@@ -103,7 +103,7 @@ With no arguments, shows a list of existing releases.
 	-t, --commitish <TARGET>
 		A commit SHA or branch name to attach the release to, only used if <TAG>
 		does not already exist (default: main branch).
-	
+
 	-i, --include <PATTERN>
 		Filter the files in the release to those that match the glob <PATTERN>.
 
@@ -298,14 +298,14 @@ func formatRelease(release github.Release, format string, colorize bool) string 
 
 	assets := make([]string, len(release.Assets))
 	for i, asset := range release.Assets {
-		assets[i] = fmt.Sprintf("%s\t%s", asset.DownloadUrl, asset.Label)
+		assets[i] = fmt.Sprintf("%s\t%s", asset.DownloadURL, asset.Label)
 	}
 
 	placeholders := map[string]string{
-		"U":  release.HtmlUrl,
-		"uT": release.TarballUrl,
-		"uZ": release.ZipballUrl,
-		"uA": release.UploadUrl,
+		"U":  release.HTMLURL,
+		"uT": release.TarballURL,
+		"uZ": release.ZipballURL,
+		"uA": release.UploadURL,
 		"S":  state,
 		"sC": stateColorSwitch,
 		"t":  release.Name,
@@ -365,11 +365,11 @@ func showRelease(cmd *Command, args *Args) {
 		if args.Flag.Bool("--show-downloads") {
 			ui.Printf("\n## Downloads\n\n")
 			for _, asset := range release.Assets {
-				ui.Println(asset.DownloadUrl)
+				ui.Println(asset.DownloadURL)
 			}
-			if release.ZipballUrl != "" {
-				ui.Println(release.ZipballUrl)
-				ui.Println(release.TarballUrl)
+			if release.ZipballURL != "" {
+				ui.Println(release.ZipballURL)
+				ui.Println(release.TarballURL)
 			}
 		}
 	}
@@ -424,7 +424,7 @@ func downloadRelease(cmd *Command, args *Args) {
 }
 
 func downloadReleaseAsset(asset github.ReleaseAsset, gh *github.Client) (err error) {
-	assetReader, err := gh.DownloadReleaseAsset(asset.ApiUrl)
+	assetReader, err := gh.DownloadReleaseAsset(asset.APIURL)
 	if err != nil {
 		return
 	}
@@ -514,7 +514,7 @@ text is the title and the rest is the description.`, tagName, project))
 
 		flagReleaseBrowse := args.Flag.Bool("--browse")
 		flagReleaseCopy := args.Flag.Bool("--copy")
-		printBrowseOrCopy(args, release.HtmlUrl, flagReleaseBrowse, flagReleaseCopy)
+		printBrowseOrCopy(args, release.HTMLURL, flagReleaseBrowse, flagReleaseCopy)
 	}
 
 	messageBuilder.Cleanup()
