@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
@@ -1302,31 +1301,17 @@ func newScopeSet(s string) scopeSet {
 }
 
 func authTokenNote(num int) (string, error) {
-	n := os.Getenv("USER")
+	m := os.Getenv("HUB_MACHINE")
 
-	if n == "" {
-		n = os.Getenv("USERNAME")
-	}
-
-	if n == "" {
-		whoami := exec.Command("whoami")
-		whoamiOut, err := whoami.Output()
-		if err != nil {
-			return "", err
-		}
-		n = strings.TrimSpace(string(whoamiOut))
-	}
-
-	h, err := os.Hostname()
-	if err != nil {
-		return "", err
+	if m == "" {
+		m = "<unidentified machine>"
 	}
 
 	if num > 1 {
-		return fmt.Sprintf("hub for %s@%s %d", n, h, num), nil
+		return fmt.Sprintf("hub for %s %d", m, num), nil
 	}
 
-	return fmt.Sprintf("hub for %s@%s", n, h), nil
+	return fmt.Sprintf("hub for %s", m), nil
 }
 
 func perPage(limit, max int) int {

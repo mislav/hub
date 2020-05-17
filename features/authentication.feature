@@ -7,7 +7,7 @@ Feature: OAuth authentication
       """
       require 'socket'
       require 'etc'
-      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
+      machine_id = "<unidentified machine>"
 
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
@@ -36,6 +36,35 @@ Feature: OAuth authentication
     And the file "~/.config/hub" should contain "user: MiSlAv"
     And the file "~/.config/hub" should contain "oauth_token: OTOKEN"
     And the file "~/.config/hub" should have mode "0600"
+
+  Scenario: Auth token note machine id from HUB_MACHINE
+    Given the GitHub API server:
+      """
+      machine_id = "mydevmachine"
+
+      post('/authorizations') {
+        assert_basic_auth 'mislav', 'kitty'
+        assert :scopes => ['repo', 'gist'],
+               :note => "hub for #{machine_id}",
+               :note_url => 'https://hub.github.com/'
+        status 201
+        json :token => 'OTOKEN'
+      }
+      get('/user') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        json :login => 'MiSlAv'
+      }
+      post('/user/repos') {
+        halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
+        status 201
+        json :full_name => 'mislav/dotfiles'
+      }
+      """
+    Given $HUB_MACHINE is "mydevmachine"
+    When I run `hub create` interactively
+    When I type "mislav"
+    And I type "kitty"
+    Then the exit status should be 0
 
   Scenario: Prompt for username & password, receive personal access token
     Given the GitHub API server:
@@ -90,7 +119,7 @@ Feature: OAuth authentication
       """
       require 'socket'
       require 'etc'
-      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
+      machine_id = "<unidentified machine>"
 
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'

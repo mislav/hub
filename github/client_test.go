@@ -3,7 +3,7 @@ package github
 import (
 	"fmt"
 	"net/http"
-	"regexp"
+	"os"
 	"testing"
 
 	"github.com/github/hub/v2/internal/assert"
@@ -35,13 +35,19 @@ func TestAuthTokenNote(t *testing.T) {
 	note, err := authTokenNote(1)
 	assert.Equal(t, nil, err)
 
-	reg := regexp.MustCompile("hub for (.+)@(.+)")
-	assert.T(t, reg.MatchString(note))
+	assert.Equal(t, "hub for <unidentified machine>", note)
 
 	note, err = authTokenNote(2)
 	assert.Equal(t, nil, err)
+	assert.Equal(t, "hub for <unidentified machine> 2", note)
 
-	reg = regexp.MustCompile("hub for (.+)@(.+) 2")
-	assert.T(t, reg.MatchString(note))
+	os.Setenv("HUB_MACHINE", "mydevmachine")
 
+	note, err = authTokenNote(1)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "hub for mydevmachine", note)
+
+	note, err = authTokenNote(2)
+	assert.Equal(t, nil, err)
+	assert.Equal(t, "hub for mydevmachine 2", note)
 }
