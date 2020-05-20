@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/github/hub/git"
+	"github.com/github/hub/v2/git"
 )
 
 var (
@@ -14,11 +14,11 @@ var (
 	cachedHosts   []string
 )
 
-type GithubHostError struct {
+type HostError struct {
 	url *url.URL
 }
 
-func (e *GithubHostError) Error() string {
+func (e *HostError) Error() string {
 	return fmt.Sprintf("Invalid GitHub URL: %s", e.url)
 }
 

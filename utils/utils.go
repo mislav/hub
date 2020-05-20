@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/ui"
+	"github.com/github/hub/v2/ui"
 	"github.com/kballard/go-shellquote"
 )
 
@@ -64,7 +64,7 @@ func searchBrowserLauncher(goos string) (browser string) {
 }
 
 func CommandPath(cmd string) (string, error) {
-	if runtime.GOOS == "windows" {
+	if runtime.GOOS == "windows" && !strings.HasSuffix(cmd, ".exe") {
 		cmd = cmd + ".exe"
 	}
 

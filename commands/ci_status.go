@@ -5,10 +5,10 @@ import (
 	"os"
 	"sort"
 
-	"github.com/github/hub/git"
-	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 )
 
 var cmdCiStatus = &Command{
@@ -23,7 +23,7 @@ var cmdCiStatus = &Command{
 	-f, --format <FORMAT>
 		Pretty print all status checks using <FORMAT> (implies ''--verbose''). See the
 		"PRETTY FORMATS" section of git-log(1) for some additional details on how
-		placeholders are used in format. The available placeholders for issues are:
+		placeholders are used in format. The available placeholders for checks are:
 
 		%U: the URL of this status check
 
@@ -186,7 +186,7 @@ func ciVerboseFormat(statuses []github.CIStatus, formatString string, colorize b
 
 		format := formatString
 		if format == "" {
-			if status.TargetUrl == "" {
+			if status.TargetURL == "" {
 				format = fmt.Sprintf("%%sC%s%%Creset\t%%t\n", stateMarker)
 			} else {
 				format = fmt.Sprintf("%%sC%s%%Creset\t%%<(%d)%%t\t%%U\n", stateMarker, contextWidth)

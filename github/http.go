@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/md5"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -20,8 +21,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 	"golang.org/x/net/http/httpproxy"
 )
 
@@ -40,6 +41,11 @@ const (
 var inspectHeaders = []string{
 	"Authorization",
 	"X-GitHub-OTP",
+	"X-GitHub-SSO",
+	"X-Oauth-Scopes",
+	"X-Accepted-Oauth-Scopes",
+	"X-Oauth-Client-Id",
+	"X-GitHub-Enterprise-Version",
 	"Location",
 	"Link",
 	"Accept",
@@ -85,10 +91,12 @@ func (t *verboseTransport) dumpRequest(req *http.Request) {
 	info := fmt.Sprintf("> %s %s://%s%s", req.Method, req.URL.Scheme, req.URL.Host, req.URL.RequestURI())
 	t.verbosePrintln(info)
 	t.dumpHeaders(req.Header, ">")
-	body := t.dumpBody(req.Body)
-	if body != nil {
-		// reset body since it's been read
-		req.Body = body
+	if inspectableType(req.Header.Get("content-type")) {
+		body := t.dumpBody(req.Body)
+		if body != nil {
+			// reset body since it's been read
+			req.Body = body
+		}
 	}
 }
 
@@ -96,10 +104,12 @@ func (t *verboseTransport) dumpResponse(resp *http.Response) {
 	info := fmt.Sprintf("< HTTP %d", resp.StatusCode)
 	t.verbosePrintln(info)
 	t.dumpHeaders(resp.Header, "<")
-	body := t.dumpBody(resp.Body)
-	if body != nil {
-		// reset body since it's been read
-		resp.Body = body
+	if inspectableType(resp.Header.Get("content-type")) {
+		body := t.dumpBody(resp.Body)
+		if body != nil {
+			// reset body since it's been read
+			resp.Body = body
+		}
 	}
 }
 
@@ -149,7 +159,13 @@ func (t *verboseTransport) verbosePrintln(msg string) {
 	fmt.Fprintln(t.Out, msg)
 }
 
-func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Client {
+var jsonTypeRE = regexp.MustCompile(`[/+]json($|;)`)
+
+func inspectableType(ct string) bool {
+	return strings.HasPrefix(ct, "text/") || jsonTypeRE.MatchString(ct)
+}
+
+func newHTTPClient(testHost string, verbose bool, unixSocket string) *http.Client {
 	var testURL *url.URL
 	if testHost != "" {
 		testURL, _ = url.Parse(testHost)
@@ -188,8 +204,33 @@ func newHttpClient(testHost string, verbose bool, unixSocket string) *http.Clien
 	}
 
 	return &http.Client{
-		Transport: tr,
+		Transport:     tr,
+		CheckRedirect: checkRedirect,
 	}
+}
+
+func checkRedirect(req *http.Request, via []*http.Request) error {
+	var recommendedCode int
+	switch req.Response.StatusCode {
+	case 301:
+		recommendedCode = 308
+	case 302:
+		recommendedCode = 307
+	}
+
+	origMethod := via[len(via)-1].Method
+	if recommendedCode != 0 && !strings.EqualFold(req.Method, origMethod) {
+		return fmt.Errorf(
+			"refusing to follow HTTP %d redirect for a %s request\n"+
+				"Have your site admin use HTTP %d for this kind of redirect",
+			req.Response.StatusCode, origMethod, recommendedCode)
+	}
+
+	// inherited from stdlib defaultCheckRedirect
+	if len(via) >= 10 {
+		return errors.New("stopped after 10 redirects")
+	}
+	return nil
 }
 
 func cloneRequest(req *http.Request) *http.Request {
@@ -214,7 +255,7 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 
 type simpleClient struct {
 	httpClient     *http.Client
-	rootUrl        *url.URL
+	rootURL        *url.URL
 	PrepareRequest func(*http.Request)
 	CacheTTL       int
 }
@@ -227,14 +268,13 @@ func (c *simpleClient) performRequest(method, path string, body io.Reader, confi
 	}
 	url, err := url.Parse(path)
 	if err == nil {
-		url = c.rootUrl.ResolveReference(url)
-		return c.performRequestUrl(method, url, body, configure)
-	} else {
-		return nil, err
+		url = c.rootURL.ResolveReference(url)
+		return c.performRequestURL(method, url, body, configure)
 	}
+	return nil, err
 }
 
-func (c *simpleClient) performRequestUrl(method string, url *url.URL, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
+func (c *simpleClient) performRequestURL(method string, url *url.URL, body io.Reader, configure func(*http.Request)) (res *simpleResponse, err error) {
 	req, err := http.NewRequest(method, url.String(), body)
 	if err != nil {
 		return
@@ -300,8 +340,9 @@ func (c *simpleClient) cacheRead(key string, req *http.Request) (res *http.Respo
 		}
 
 		res = &http.Response{
-			Body:   ioutil.NopCloser(bytes.NewBufferString(parts[1])),
-			Header: http.Header{},
+			Body:    ioutil.NopCloser(bytes.NewBufferString(parts[1])),
+			Header:  http.Header{},
+			Request: req,
 		}
 		headerLines := strings.Split(parts[0], "\r\n")
 		if len(headerLines) < 1 {

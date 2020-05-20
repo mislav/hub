@@ -5,7 +5,6 @@ publish_documentation() {
   local version="$1"
   local doc_dir="site"
   local doc_branch="gh-pages"
-  local remote_url="$(git config remote.origin.url)"
 
   git fetch origin "${doc_branch}:${doc_branch}"
   git worktree add "$doc_dir" "$doc_branch"
@@ -13,13 +12,17 @@ publish_documentation() {
 
   git rm hub*.html >/dev/null
   cp ../share/doc/*/*.html .
+
+  local tracking="$(sed -n '/googletagmanager/,/^<\/script/p' index.html)"
+  local man_page
+  for man_page in hub*.html; do cat <<<"$tracking" >>"$man_page"; done
+
   git add hub*.html
   GIT_COMMITTER_NAME='GitHub Actions' GIT_COMMITTER_EMAIL='mislav+actions@github.com' \
     GIT_AUTHOR_NAME='Mislav Marohnić' GIT_AUTHOR_EMAIL='mislav@github.com' \
     git commit -m "Update documentation for $version"
 
-  git push "https://${GITHUB_TOKEN}@${remote_url#https://}" HEAD
-
+  git push origin HEAD
   popd
 }
 
@@ -31,7 +34,7 @@ in_default_branch() {
 tag_name="${GITHUB_REF#refs/tags/}"
 make man-pages
 script/cross-compile "${tag_name#v}" | \
-  PATH="bin:$PATH" script/github-release hub "$tag_name"
+  PATH="bin:$PATH" script/github-release "$tag_name"
 
 if [[ $tag_name != *-* ]] && in_default_branch "$tag_name"; then
   publish_documentation "$tag_name"

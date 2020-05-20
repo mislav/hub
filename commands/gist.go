@@ -5,9 +5,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 )
 
 var (
@@ -129,7 +129,7 @@ func createGist(cmd *Command, args *Args) {
 	if args.Noop {
 		ui.Println("Would create gist")
 		gist = &github.Gist{
-			HtmlUrl: fmt.Sprintf("https://gist.%s/%s", gh.Host.Host, "ID"),
+			HTMLURL: fmt.Sprintf("https://gist.%s/%s", gh.Host.Host, "ID"),
 		}
 	} else {
 		gist, err = gh.CreateGist(filenames, args.Flag.Bool("--public"))
@@ -138,7 +138,7 @@ func createGist(cmd *Command, args *Args) {
 
 	flagIssueBrowse := args.Flag.Bool("--browse")
 	flagIssueCopy := args.Flag.Bool("--copy")
-	printBrowseOrCopy(args, gist.HtmlUrl, flagIssueBrowse, flagIssueCopy)
+	printBrowseOrCopy(args, gist.HTMLURL, flagIssueBrowse, flagIssueCopy)
 }
 
 func showGist(cmd *Command, args *Args) {

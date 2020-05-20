@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/utils"
 )
 
 var cmdCompare = &Command{
@@ -149,7 +149,6 @@ var compareUnescaper = strings.NewReplacer(
 func rangeQueryEscape(r string) string {
 	if strings.Contains(r, "..") {
 		return r
-	} else {
-		return compareUnescaper.Replace(url.QueryEscape(r))
 	}
+	return compareUnescaper.Replace(url.QueryEscape(r))
 }

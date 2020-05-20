@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/github/hub/git"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/utils"
 )
 
 type Project struct {
@@ -23,9 +23,9 @@ func (p Project) String() string {
 }
 
 func (p *Project) SameAs(other *Project) bool {
-	return strings.ToLower(p.Owner) == strings.ToLower(other.Owner) &&
-		strings.ToLower(p.Name) == strings.ToLower(other.Name) &&
-		strings.ToLower(p.Host) == strings.ToLower(other.Host)
+	return strings.EqualFold(p.Owner, other.Owner) &&
+		strings.EqualFold(p.Name, other.Name) &&
+		strings.EqualFold(p.Host, other.Host)
 }
 
 func (p *Project) WebURL(name, owner, path string) string {
@@ -90,9 +90,8 @@ func rawHost(host string) string {
 
 	if u.IsAbs() {
 		return u.Host
-	} else {
-		return u.Path
 	}
+	return u.Path
 }
 
 func preferredProtocol() string {
@@ -104,7 +103,7 @@ func preferredProtocol() string {
 }
 
 func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
-	url, err := url.Parse(repo.HtmlUrl)
+	url, err := url.Parse(repo.HTMLURL)
 	if err != nil {
 		return
 	}
@@ -115,7 +114,7 @@ func NewProjectFromRepo(repo *Repository) (p *Project, err error) {
 
 func NewProjectFromURL(url *url.URL) (p *Project, err error) {
 	if !knownGitHubHostsInclude(url.Host) {
-		err = &GithubHostError{url}
+		err = &HostError{url}
 		return
 	}
 
