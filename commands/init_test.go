@@ -57,13 +57,13 @@ func TestInitInAnotherDir(t *testing.T) {
 
 	commands := args.Commands()
 	assert.Equal(t, 2, len(commands))
-	assert.Equal(t, "git init --template mytpl --shared=umask my project", commands[0].String())
+	assert.Equal(t, "git init --template mytpl --shared=umask \"my project\"", commands[0].String())
 
 	currentDir, err := os.Getwd()
 	assert.Equal(t, nil, err)
 
 	expected := fmt.Sprintf(
-		"git --git-dir %s remote add origin git@github.com:jingweno/%s.git",
+		"git --git-dir \"%s\" remote add origin git@github.com:jingweno/%s.git",
 		filepath.Join(currentDir, "my project", ".git"),
 		"my-project",
 	)
