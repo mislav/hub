@@ -92,9 +92,7 @@ func (a *Args) ToCmd() *cmd.Cmd {
 	}
 
 	for _, arg := range a.Params {
-		if arg != "" {
-			c.WithArg(arg)
-		}
+		c.WithArg(arg)
 	}
 
 	return c

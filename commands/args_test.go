@@ -120,6 +120,12 @@ func TestArgs_GlobalFlags_Replaced(t *testing.T) {
 	assert.Equal(t, []string{"-a", "http://example.com"}, cmd.Args)
 }
 
+func TestArgs_ToCmd(t *testing.T) {
+	args := NewArgs([]string{"a", "", "b", ""})
+	cmd := args.ToCmd()
+	assert.Equal(t, []string{"a", "", "b", ""}, cmd.Args)
+}
+
 func TestArgs_GlobalFlags_BeforeAfterChain(t *testing.T) {
 	args := NewArgs([]string{"-c", "key=value", "-C", "dir", "status"})
 	args.Before("git", "remote", "add")
