@@ -18,3 +18,11 @@ func TestWithArg(t *testing.T) {
 	assert.Equal(t, "git", execCmd.Name)
 	assert.Equal(t, 4, len(execCmd.Args))
 }
+
+func Test_String(t *testing.T) {
+	c := Cmd{
+		Name: "echo",
+		Args: []string{"hi", "hello world", "don't", `"fake news"`},
+	}
+	assert.Equal(t, `echo hi "hello world" "don't" '"fake news"'`, c.String())
+}
