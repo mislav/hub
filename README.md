@@ -50,10 +50,21 @@ Packages other than Homebrew are community-maintained (thank you!) and they
 are not guaranteed to match the [latest hub release][latest]. Check `hub
 version` after installing a community package.
 
+Some package managers (for example `snap` for Ubuntu) may not available on WSL1 on Windows 10, then you should try the "Standalone" installation step below.
+
 #### Standalone
 
 `hub` can be easily installed as an executable. Download the [latest
 binary][latest] for your system and put it anywhere in your executable path.
+
+For example, if you have an executable directory `~/local/bin` on Ubuntu on WSL1 on Windows 10:
+
+```console
+$ cd /tmp
+$ wget https://github.com/github/hub/releases/download/v***/hub-linux-***-***.tgz
+$ unar hub*.tgz
+$ sudo mv hub*/bin/hub ~/local/bin/
+```
 
 #### GitHub Actions
 
