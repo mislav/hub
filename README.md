@@ -45,6 +45,7 @@ FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
 Debian | [apt(8)](https://manpages.debian.org/buster/apt/apt.8.en.html) | `sudo apt install hub`
 Ubuntu | [Snap](https://snapcraft.io) | `sudo snap install hub --classic`
 openSUSE | [Zypper](https://en.opensuse.org/SDB:Zypper_manual) | `sudo zypper install hub`
+macOS, Linux, Windows | [conda](https://docs.conda.io/en/latest/) | `conda install -c conda-forge hub`
 
 Packages other than Homebrew are community-maintained (thank you!) and they
 are not guaranteed to match the [latest hub release][latest]. Check `hub
