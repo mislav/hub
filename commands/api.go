@@ -40,6 +40,8 @@ var cmdAPI = &Command{
 		If <VALUE> is "true", "false", "null", or looks like a number, an
 		appropriate JSON type is used instead of a string.
 
+		If <VALUE> is "[]", an empty JSON array is used instead of a string.
+
 		It is not possible to serialize <VALUE> as a nested JSON array or hash.
 		Instead, construct the request payload externally and pass it via
 		''--input''.
@@ -334,9 +336,10 @@ func pauseUntil(timestamp int) {
 }
 
 const (
-	trueVal  = "true"
-	falseVal = "false"
-	nilVal   = "null"
+	trueVal       = "true"
+	falseVal      = "false"
+	nilVal        = "null"
+	emptyArrayVal = "[]"
 )
 
 func magicValue(value string) interface{} {
@@ -347,6 +350,8 @@ func magicValue(value string) interface{} {
 		return false
 	case nilVal:
 		return nil
+	case emptyArrayVal:
+		return []interface{}{}
 	default:
 		if strings.HasPrefix(value, "@") {
 			return string(readFile(value[1:]))
