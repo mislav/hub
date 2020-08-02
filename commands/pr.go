@@ -19,6 +19,7 @@ pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] 
 pr checkout <PR-NUMBER> [<BRANCH>]
 pr show [-uc] [-f <FORMAT>] [-h <HEAD>]
 pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
+pr merge [-d] [--squash | --rebase] <PR-NUMBER> [-m <MESSAGE> | -F <FILE>] [--head-sha <COMMIT-SHA>]
 `,
 		Long: `Manage GitHub Pull Requests for the current repository.
 
@@ -37,6 +38,11 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 		specified, <HEAD> is used to look up open pull requests and defaults to
 		the current branch name. With ''--format'', print information about the
 		pull request instead of opening it.
+
+	* _merge_:
+		Merge a pull request in the current repository remotely. Select an
+		alternate merge method with ''--squash'' or ''--rebase''. Change the
+		commit subject and body with ''--message'' or ''--file''.
 
 ## Options:
 
@@ -146,6 +152,29 @@ pr show [-uc] [-f <FORMAT>] <PR-NUMBER>
 	-c, --copy
 		Put the pull request URL to clipboard instead of opening it.
 
+	-m, --message <MESSAGE>
+		The text up to the first blank line in <MESSAGE> is treated as the commit
+		subject for the merge commit, and the rest is used as commit body.
+
+		When multiple ''--message'' are passed, their values are concatenated with a
+		blank line in-between.
+
+	-F, --file <FILE>
+		Read the subject and body for the merge commit from <FILE>. Pass "-" to read
+		from standard input instead. See ''--message'' for the formatting rules.
+
+	--head-sha <COMMIT-SHA>
+		Ensure that the head of the pull request matches the commit SHA when merging.
+
+	--squash
+		Squash commits instead of creating a merge commit when merging a pull request.
+
+	--rebase
+		Rebase commits on top of the base branch when merging a pull request.
+
+	-d, --delete-branch
+		Delete the head branch after successfully merging a pull request.
+
 ## See also:
 
 hub-issue(1), hub-pull-request(1), hub(1)
@@ -173,7 +202,20 @@ hub-issue(1), hub-pull-request(1), hub(1)
 		-c, --copy
 		-f, --format FORMAT
 		--color
-`,
+		`,
+	}
+
+	cmdMergePr = &Command{
+		Key: "merge",
+		Run: mergePr,
+		KnownFlags: `
+		-m, --message MESSAGE
+		-F, --file FILE
+		--head-sha COMMIT
+		--squash
+		--rebase
+		-d, --delete-branch
+		`,
 	}
 )
 
@@ -181,6 +223,7 @@ func init() {
 	cmdPr.Use(cmdListPulls)
 	cmdPr.Use(cmdCheckoutPr)
 	cmdPr.Use(cmdShowPr)
+	cmdPr.Use(cmdMergePr)
 	CmdRunner.Use(cmdPr)
 }
 
@@ -411,6 +454,70 @@ func deducePushTarget(branch *github.Branch, owner string) (*github.Project, err
 		return nil, fmt.Errorf("no remote found for branch %s", branch.ShortName())
 	}
 	return remote.Project()
+}
+
+func mergePr(command *Command, args *Args) {
+	words := args.Words()
+	if len(words) == 0 {
+		utils.Check(fmt.Errorf("Error: No pull request number given"))
+	}
+
+	prNumber, err := strconv.Atoi(words[0])
+	utils.Check(err)
+
+	params := map[string]interface{}{
+		"merge_method": "merge",
+	}
+	if args.Flag.Bool("--squash") {
+		params["merge_method"] = "squash"
+	}
+	if args.Flag.Bool("--rebase") {
+		params["merge_method"] = "rebase"
+	}
+
+	msgs := args.Flag.AllValues("--message")
+	if len(msgs) > 0 {
+		params["commit_title"] = msgs[0]
+		params["commit_message"] = strings.Join(msgs[1:], "\n\n")
+	} else if args.Flag.HasReceived("--file") {
+		content, err := msgFromFile(args.Flag.Value("--file"))
+		utils.Check(err)
+		params["commit_title"], params["commit_message"] = github.SplitTitleBody(content)
+	}
+
+	if headSHA := args.Flag.Value("--head-sha"); headSHA != "" {
+		params["sha"] = args.Flag.Value("--head-sha")
+	}
+
+	localRepo, err := github.LocalRepo()
+	utils.Check(err)
+
+	project, err := localRepo.MainProject()
+	utils.Check(err)
+
+	args.NoForward()
+	if args.Noop {
+		ui.Printf("Would merge pull request #%d for %s\n", prNumber, project)
+		return
+	}
+
+	gh := github.NewClient(project.Host)
+	_, err = gh.MergePullRequest(project, prNumber, params)
+	utils.Check(err)
+
+	if !args.Flag.Bool("--delete-branch") {
+		return
+	}
+
+	pr, err := gh.PullRequest(project, strconv.Itoa(prNumber))
+	utils.Check(err)
+	if !pr.IsSameRepo() {
+		return
+	}
+
+	branchName := pr.Head.Ref
+	err = gh.DeleteBranch(project, branchName)
+	utils.Check(err)
 }
 
 func formatPullRequest(pr github.PullRequest, format string, colorize bool) string {

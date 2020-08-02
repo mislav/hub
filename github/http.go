@@ -476,6 +476,10 @@ func (c *simpleClient) PostJSONPreview(path string, payload interface{}, mimeTyp
 	})
 }
 
+func (c *simpleClient) PutJSON(path string, payload interface{}) (*simpleResponse, error) {
+	return c.jsonRequest("PUT", path, payload, nil)
+}
+
 func (c *simpleClient) PatchJSON(path string, payload interface{}) (*simpleResponse, error) {
 	return c.jsonRequest("PATCH", path, payload, nil)
 }
