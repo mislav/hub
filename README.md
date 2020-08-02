@@ -1,6 +1,10 @@
 hub is a command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
 
+For an official, potentially more user-friendly command-line interface to GitHub,
+see [cli.github.com](https://cli.github.com) and
+[this comparison](https://github.com/cli/cli/blob/trunk/docs/gh-vs-hub.md).
+
 This repository and its issue tracker is **not for reporting problems with
 GitHub.com** web interface. If you have a problem with GitHub itself, please
 [contact Support](https://github.com/contact).
