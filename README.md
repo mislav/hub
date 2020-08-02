@@ -61,29 +61,26 @@ binary][latest] for your system and put it anywhere in your executable path.
 
 #### GitHub Actions
 
-hub can be used for automation through [GitHub Actions][] workflows:
+hub is ready to be used in your [GitHub Actions][] workflows:
 ```yaml
 steps:
 - uses: actions/checkout@v2
 
-- name: hub example
-  shell: bash
-  run: |
-    curl -fsSL https://github.com/github/hub/raw/master/script/get | bash -s 2.14.1
-    bin/hub pr list  # list pull requests in the current repo
+- name: List open pull requests
+  run: hub pr list
   env:
     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-Note that the default GITHUB_TOKEN will only work for API operations within _the
-same repo that runs this workflow_. If you need to access or write to other
-repositories, [generate a Personal Access Token][pat] with `repo` scope and add
-it to your [repository secrets][].
+Note that the default `secrets.GITHUB_TOKEN` will only work for API operations
+scoped to the repository that runs this workflow. If you need to interact with other
+repositories, [generate a Personal Access Token][pat] with at least the `repo` scope
+and add it to your [repository secrets][].
 
 
-[github actions]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions
+[github actions]: https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 [pat]: https://github.com/settings/tokens
-[repository secrets]: https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-and-using-encrypted-secrets
+[repository secrets]: https://docs.github.com/en/actions/configuring-and-managing-workflows/creating-and-storing-encrypted-secrets
 
 #### Source
 
