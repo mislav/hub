@@ -2,7 +2,9 @@ package github
 
 import (
 	"fmt"
+	"github.com/github/hub/version"
 	"net/http"
+	"os"
 	"regexp"
 	"testing"
 
@@ -44,4 +46,23 @@ func TestAuthTokenNote(t *testing.T) {
 	reg = regexp.MustCompile("hub for (.+)@(.+) 2")
 	assert.T(t, reg.MatchString(note))
 
+}
+
+func TestUserAgent(t *testing.T) {
+	t.Run("set from env", func(t *testing.T) {
+		os.Setenv("HUB_USERAGENT", "git/curl")
+		setUserAgent()
+		assert.Equal(t, "git/curl", UserAgent)
+	})
+
+	t.Run("set from git", func(t *testing.T) {
+		os.Unsetenv("HUB_USERAGENT")
+		setUserAgent()
+		assert.Equal(t, "Hub "+version.Version, UserAgent)
+	})
+}
+
+func TestNewClient(t *testing.T) {
+	client := NewClient("localhost")
+	assert.Equal(t, "localhost", client.Host.Host)
 }

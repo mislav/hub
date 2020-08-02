@@ -38,3 +38,22 @@ func TestBranch_IsRemote(t *testing.T) {
 	b := Branch{lp, "refs/remotes/origin/master"}
 	assert.T(t, b.IsRemote())
 }
+
+func TestBranch_IsMaster(t *testing.T) {
+	lp, _ := LocalRepo()
+	b := Branch{lp, "refs/remotes/origin/master"}
+	assert.T(t, b.IsMaster())
+
+	b = Branch{lp, "refs/remotes/origin/master1"}
+	assert.T(t, !b.IsMaster())
+}
+
+func TestBranch_Upstream(t *testing.T) {
+	lp, _ := LocalRepo()
+	b := Branch{lp, "refs/remotes/origin/master"}
+	branch, err := b.Upstream()
+	assert.Equal(t, nil, err)
+	assert.T(t, branch != nil)
+	assert.Equal(t, "refs/remotes/origin/master", branch.Name)
+	assert.Equal(t, &GitHubRepo{}, branch.Repo)
+}

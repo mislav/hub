@@ -255,7 +255,8 @@ func proxyFromEnvironment(req *http.Request) (*url.URL, error) {
 
 type simpleClient struct {
 	httpClient     *http.Client
-	rootURL        *url.URL
+	extraHeader    func(r *http.Header)
+	rootUrl        *url.URL
 	PrepareRequest func(*http.Request)
 	CacheTTL       int
 }
@@ -284,6 +285,10 @@ func (c *simpleClient) performRequestURL(method string, url *url.URL, body io.Re
 	}
 	req.Header.Set("User-Agent", UserAgent)
 	req.Header.Set("Accept", apiPayloadVersion)
+
+	if c.extraHeader != nil {
+		c.extraHeader(&req.Header)
+	}
 
 	if configure != nil {
 		configure(req)

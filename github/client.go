@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/github/hub/git"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"os/exec"
@@ -25,7 +27,19 @@ const (
 	OAuthAppURL string = "https://hub.github.com/"
 )
 
-var UserAgent = "Hub " + version.Version
+var UserAgent string
+
+func init() {
+	setUserAgent()
+}
+
+func setUserAgent() {
+	if userAgent := os.Getenv("HUB_USERAGENT"); userAgent != "" {
+		UserAgent = userAgent
+	} else {
+		UserAgent = "Hub " + version.Version
+	}
+}
 
 func NewClient(h string) *Client {
 	return NewClientWithHost(&Host{Host: h})
@@ -1057,10 +1071,39 @@ func (client *Client) apiClient() *simpleClient {
 	if !strings.HasPrefix(apiRoot.Host, "api.github.") {
 		apiRoot.Path = "/api/v3/"
 	}
+	// PR-2314 start
+	client.loadCookies(httpClient)
+	// PR-2314 end
 
 	return &simpleClient{
 		httpClient: httpClient,
 		rootURL:    apiRoot,
+	}
+}
+
+func (client Client) loadCookies(httpClient *http.Client) {
+	protocol := client.Host.Protocol
+	if protocol == "" {
+		protocol = "https"
+	}
+	if headers, err := git.ConfigAll(fmt.Sprintf("http.%s://%s.extraheader", protocol, client.Host.Host)); err == nil {
+		cookies := make([]*http.Cookie, 0)
+		for _, header := range headers {
+			keyValue := strings.Split(header, ":")
+			key, value := strings.TrimSpace(keyValue[0]), strings.TrimSpace(keyValue[1])
+
+			if strings.EqualFold(key, "COOKIE") && strings.Contains(value, "=") {
+				cookieKV := strings.Split(value, "=")
+				cookieKey, cookieValue := strings.TrimSpace(cookieKV[0]), strings.TrimSpace(cookieKV[1])
+				cookies = append(cookies, &http.Cookie{Name: cookieKey, Value: cookieValue})
+			} // key == COOKIE
+		} // range headers
+
+		if len(cookies) > 0 && httpClient.Jar == nil {
+			apiRoot := client.absolute(normalizeHost(client.Host.Host))
+			httpClient.Jar, _ = cookiejar.New(nil)
+			httpClient.Jar.SetCookies(apiRoot, cookies)
+		}
 	}
 }
 

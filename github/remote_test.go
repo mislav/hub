@@ -1,6 +1,7 @@
 package github
 
 import (
+	"runtime"
 	"testing"
 
 	"github.com/github/hub/v2/fixtures"
@@ -22,10 +23,14 @@ func TestGithubRemote_NoPush(t *testing.T) {
 	assert.Equal(t, remotes[0].URL.Host, "example.com")
 	assert.Equal(t, remotes[0].URL.Path, "/test/project.git")
 	assert.Equal(t, remotes[1].Name, "origin")
-	assert.Equal(t, remotes[1].URL.Path, repo.Remote)
+	assert.Equal(t, remote(repo), remotes[1].URL.Path)
 }
 
 func TestGithubRemote_GitPlusSsh(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		return
+	}
+
 	repo := fixtures.SetupTestRepo()
 	defer repo.TearDown()
 
@@ -40,7 +45,7 @@ func TestGithubRemote_GitPlusSsh(t *testing.T) {
 	assert.Equal(t, remotes[0].URL.Host, "github.com")
 	assert.Equal(t, remotes[0].URL.Path, "/frozencemetery/python-gssapi")
 	assert.Equal(t, remotes[1].Name, "origin")
-	assert.Equal(t, remotes[1].URL.Path, repo.Remote)
+	assert.Equal(t, remote(repo), remotes[1].URL.Path)
 }
 
 func TestGithubRemote_SshPort(t *testing.T) {
@@ -58,7 +63,7 @@ func TestGithubRemote_SshPort(t *testing.T) {
 	assert.Equal(t, remotes[0].URL.Host, "github.com")
 	assert.Equal(t, remotes[0].URL.Path, "/hakatashi/dotfiles.git")
 	assert.Equal(t, remotes[1].Name, "origin")
-	assert.Equal(t, remotes[1].URL.Path, repo.Remote)
+	assert.Equal(t, remote(repo), remotes[1].URL.Path)
 }
 
 func TestGithubRemote_ColonSlash(t *testing.T) {
@@ -76,5 +81,12 @@ func TestGithubRemote_ColonSlash(t *testing.T) {
 	assert.Equal(t, remotes[0].URL.Host, "github.com")
 	assert.Equal(t, remotes[0].URL.Path, "/fatso83/my-project.git")
 	assert.Equal(t, remotes[1].Name, "origin")
-	assert.Equal(t, remotes[1].URL.Path, repo.Remote)
+	assert.Equal(t, remote(repo), remotes[1].URL.Path)
+}
+
+func remote(repo *fixtures.TestRepo) string {
+	if runtime.GOOS == "windows" {
+		return ""
+	}
+	return repo.Remote
 }
