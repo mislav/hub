@@ -6,8 +6,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/bmizerany/assert"
-	"github.com/github/hub/ui"
+	"github.com/github/hub/v2/internal/assert"
+	"github.com/github/hub/v2/ui"
 )
 
 func TestMain(m *testing.M) {

@@ -12,7 +12,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func setupTestServer(unixSocket string) *testServer {
@@ -55,7 +55,7 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 		assert.Equal(t, "example.com", r.Host)
 	})
 
-	c := newHttpClient(s.URL.String(), false, "")
+	c := newHTTPClient(s.URL.String(), false, "")
 	c.Get("https://example.com/override")
 
 	s.HandleFunc("/not-override", func(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +63,7 @@ func TestNewHttpClient_OverrideURL(t *testing.T) {
 		assert.Equal(t, s.URL.Host, r.Host)
 	})
 
-	c = newHttpClient("", false, "")
+	c = newHTTPClient("", false, "")
 	c.Get(fmt.Sprintf("%s/not-override", s.URL.String()))
 }
 
@@ -75,7 +75,7 @@ func TestNewHttpClient_UnixSocket(t *testing.T) {
 	s.HandleFunc("/unix-socket", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("unix-socket-works"))
 	})
-	c := newHttpClient("", false, sock)
+	c := newHTTPClient("", false, sock)
 	resp, err := c.Get(fmt.Sprintf("%s/unix-socket", s.URL.String()))
 	assert.Equal(t, nil, err)
 	result, _ := ioutil.ReadAll(resp.Body)

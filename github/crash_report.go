@@ -10,10 +10,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/github/hub/git"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
-	"github.com/github/hub/version"
+	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
+	"github.com/github/hub/v2/version"
 )
 
 const (
@@ -87,18 +87,21 @@ func report(reportedError error, stack string) {
 	issue, err := gh.CreateIssue(project, params)
 	utils.Check(err)
 
-	ui.Println(issue.HtmlUrl)
+	ui.Println(issue.HTMLURL)
 }
 
 const crashReportTmpl = "Crash report - %v\n\n" +
 	"Error (%s): `%v`\n\n" +
 	"Stack:\n\n```\n%s\n```\n\n" +
 	"Runtime:\n\n```\n%s\n```\n\n" +
-	"Version:\n\n```\n%s\n```\n"
+	"Version:\n\n```\n%s\nhub version %s\n```\n"
 
 func reportTitleAndBody(reportedError error, stack string) (title, body string, err error) {
 	errType := reflect.TypeOf(reportedError).String()
-	fullVersion, _ := version.FullVersion()
+	gitVersion, gitErr := git.Version()
+	if gitErr != nil {
+		gitVersion = "git unavailable!"
+	}
 	message := fmt.Sprintf(
 		crashReportTmpl,
 		reportedError,
@@ -106,7 +109,8 @@ func reportTitleAndBody(reportedError error, stack string) (title, body string, 
 		reportedError,
 		stack,
 		runtimeInfo(),
-		fullVersion,
+		gitVersion,
+		version.Version,
 	)
 
 	messageBuilder := &MessageBuilder{

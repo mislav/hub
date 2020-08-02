@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func TestEditor_openAndEdit_deleteFileWhenOpeningEditorFails(t *testing.T) {

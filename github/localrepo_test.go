@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func TestGitHubRepo_remotesForPublish(t *testing.T) {

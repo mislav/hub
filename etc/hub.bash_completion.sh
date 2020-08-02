@@ -119,7 +119,7 @@ EOF
             # revision. For example:
             # $ hub compare -u upstream
             # > https://github.com/USER/REPO/compare/upstream
-            if __hub_github_repos '\p' | grep -Eqx "^$i(/[^/]+)?"; then
+            if __hub_github_repos '\p' | command grep -Eqx "^$i(/[^/]+)?"; then
               arg_repo=$i
             else
               rev=$i
@@ -344,7 +344,7 @@ EOF
       format=${format//\o/\3}
     fi
     command git config --get-regexp 'remote\.[^.]*\.url' |
-    grep -E ' ((https?|git)://|git@)github\.com[:/][^:/]+/[^/]+$' |
+    command grep -E ' ((https?|git)://|git@)github\.com[:/][^:/]+/[^/]+$' |
     sed -E 's#^remote\.([^.]+)\.url +.+[:/](([^/]+)/[^.]+)(\.git)?$#'"$format"'#'
   }
 

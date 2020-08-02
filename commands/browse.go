@@ -5,8 +5,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/utils"
 )
 
 var cmdBrowse = &Command{
@@ -20,7 +20,7 @@ var cmdBrowse = &Command{
 
 	-c, --copy
 		Put the URL in clipboard instead of opening it.
-	
+
 	[<USER>/]<REPOSITORY>
 		Defaults to repository in the current working directory.
 
@@ -118,12 +118,12 @@ func browse(command *Command, args *Args) {
 		path = subpage
 	}
 
-	pageUrl := project.WebURL("", "", path)
+	pageURL := project.WebURL("", "", path)
 
 	args.NoForward()
 	flagBrowseURLPrint := args.Flag.Bool("--url")
 	flagBrowseURLCopy := args.Flag.Bool("--copy")
-	printBrowseOrCopy(args, pageUrl, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
+	printBrowseOrCopy(args, pageURL, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
 }
 
 func branchInURL(branch *github.Branch) string {

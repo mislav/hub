@@ -593,6 +593,165 @@ Feature: hub issue
       https://github.com/github/hub/issues/1337\n
       """
 
+  Scenario: Update an issue's title
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "Not workie, pls fix",
+               :body => "",
+               :milestone => :no,
+               :assignees => :no,
+               :labels => :no,
+               :state => :no
+      }
+      """
+    Then I successfully run `hub issue update 1337 -m "Not workie, pls fix"`
+
+  Scenario: Update an issue's state
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :labels => :no,
+               :state => "closed"
+      }
+      """
+    Then I successfully run `hub issue update 1337 -s closed`
+    
+  Scenario: Update an issue's labels
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => :no,
+               :assignees => :no,
+               :labels => ["bug", "important"]
+      }
+      """
+    Then I successfully run `hub issue update 1337 -l bug,important`
+
+  Scenario: Update an issue's milestone
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => 42,
+               :assignees => :no,
+               :labels => :no
+      }
+      """
+    Then I successfully run `hub issue update 1337 -M 42`
+
+  Scenario: Update an issue's milestone by name
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/milestones') {
+        status 200
+        json [
+          { :number => 237, :title => "prerelease" },
+          { :number => 42, :title => "Hello World!" }
+        ]
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => 42,
+               :assignees => :no,
+               :labels => :no
+      }
+      """
+    Then I successfully run `hub issue update 1337 -M "hello world!"`
+
+  Scenario: Update an issue's assignees
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => :no,
+               :assignees => ["Cornwe19"],
+               :labels => :no
+      }
+      """
+    Then I successfully run `hub issue update 1337 -a Cornwe19`
+
+  Scenario: Update an issue's title, labels, milestone, and assignees
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "Not workie, pls fix",
+               :body => "",
+               :milestone => 42,
+               :assignees => ["Cornwe19"],
+               :labels => ["bug", "important"]
+      }
+      """
+    Then I successfully run `hub issue update 1337  -m "Not workie, pls fix" -M 42 -l bug,important -a Cornwe19`
+
+  Scenario: Clear existing issue labels, assignees, milestone
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => :no,
+               :body => :no,
+               :milestone => nil,
+               :assignees => [],
+               :labels => []
+      }
+      """
+    Then I successfully run `hub issue update 1337 --milestone= --assign= --labels=`
+
+  Scenario: Update an issue's title and body manually
+    Given the git commit editor is "vim"
+    And the text editor adds:
+      """
+      My new title
+      """
+    Given the GitHub API server:
+      """
+      get('/repos/github/hub/issues/1337') {
+        json \
+          :number => 1337,
+          :title => "My old title",
+          :body => "My old body"
+      }
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "My new title",
+               :body => "My old title\n\nMy old body",
+               :milestone => :no,
+               :assignees => :no,
+               :labels => :no
+      }
+      """
+    Then I successfully run `hub issue update 1337 --edit`
+
+  Scenario: Update an issue's title and body via a file
+    Given a file named "my-issue.md" with:
+      """
+      My new title
+      
+      My new body
+      """
+    Given the GitHub API server:
+      """
+      patch('/repos/github/hub/issues/1337') {
+        assert :title => "My new title",
+               :body => "My new body",
+               :milestone => :no,
+               :assignees => :no,
+               :labels => :no
+      }
+      """
+    Then I successfully run `hub issue update 1337 -F my-issue.md`
+
+  Scenario: Update an issue without specifying fields to update
+    When I run `hub issue update 1337`
+    Then the exit status should be 1
+    Then the stderr should contain "please specify fields to update"
+    Then the stderr should contain "Usage: hub issue"
+
   Scenario: Fetch issue labels
     Given the GitHub API server:
     """

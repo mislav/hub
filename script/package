@@ -38,8 +38,10 @@ crlf() {
 if [ "$os" = "windows" ]; then
   crlf README.md "${tmpdir}/README.txt"
   crlf LICENSE "${tmpdir}/LICENSE.txt"
-  mkdir "${tmpdir}/help"
-  for man in share/doc/*/*.html; do crlf "$man" "${tmpdir}/help/${man##*/}"; done
+  for man in share/doc/*/*.html; do
+    mkdir -p "${tmpdir}/${man%/*}"
+    cp "$man" "${tmpdir}/${man}"
+  done
   crlf script/install.bat "${tmpdir}/install.bat"
 else
   cp -R README.md LICENSE etc share "$tmpdir"

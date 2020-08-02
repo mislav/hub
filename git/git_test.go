@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/bmizerany/assert"
-	"github.com/github/hub/fixtures"
+	"github.com/github/hub/v2/fixtures"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func TestGitDir(t *testing.T) {
@@ -106,7 +106,7 @@ func TestRemotes(t *testing.T) {
 	type remote struct {
 		name    string
 		url     string
-		pushUrl string
+		pushURL string
 	}
 	testCases := map[string]remote{
 		"testremote1": {
@@ -127,7 +127,7 @@ func TestRemotes(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		repo.AddRemote(tc.name, tc.url, tc.pushUrl)
+		repo.AddRemote(tc.name, tc.url, tc.pushURL)
 	}
 
 	remotes, err := Remotes()

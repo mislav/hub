@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/v2/internal/assert"
 	"testing"
 )
 

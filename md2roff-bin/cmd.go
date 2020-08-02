@@ -11,8 +11,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/github/hub/md2roff"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/md2roff"
+	"github.com/github/hub/v2/utils"
 	"github.com/russross/blackfriday"
 )
 
@@ -95,15 +95,13 @@ func generateFromFile(mdFile string) error {
 		content = xRefRe.ReplaceAllStringFunc(content, func(match string) string {
 			if match == currentPage {
 				return match
-			} else {
-				matches := xRefRe.FindAllStringSubmatch(match, 1)
-				fileName := fmt.Sprintf("%s.%s", matches[0][1], matches[0][2])
-				if pageIndex[fileName] {
-					return fmt.Sprintf(`<a href="./%s.html">%s</a>`, fileName, match)
-				} else {
-					return match
-				}
 			}
+			matches := xRefRe.FindAllStringSubmatch(match, 1)
+			fileName := fmt.Sprintf("%s.%s", matches[0][1], matches[0][2])
+			if pageIndex[fileName] {
+				return fmt.Sprintf(`<a href="./%s.html">%s</a>`, fileName, match)
+			}
+			return match
 		})
 
 		tmplData := templateData{

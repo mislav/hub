@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/github/hub/cmd"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/cmd"
+	"github.com/github/hub/v2/utils"
 )
 
 type Args struct {
@@ -92,9 +92,7 @@ func (a *Args) ToCmd() *cmd.Cmd {
 	}
 
 	for _, arg := range a.Params {
-		if arg != "" {
-			c.WithArg(arg)
-		}
+		c.WithArg(arg)
 	}
 
 	return c
