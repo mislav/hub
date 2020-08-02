@@ -1,65 +1,16 @@
 #!/usr/bin/env bash
-# Usage: script/package <os> <arch> <version>
-#
-# Packages the project as a release asset and prints the archive's filename.
+# Usage: script/package <tarball>
 set -e
 
-os="${1?}"
-arch="${2?}"
-version="${3?}"
+tarball_file="${1?}"
+archive_path="${tarball_file%.tgz}"
 
-release="hub-${os}-${arch}-${version}"
+rm -rf "$archive_path" "$tarball_file"
+mkdir -p "$archive_path"
 
-case "$os" in
-  darwin | freebsd | linux | netbsd | openbsd | solaris | windows ) ;;
-  * ) echo "unsupported OS: $os" >&2; exit 1 ;;
-esac
+rsync -rR --exclude '*.md' --exclude '*.stamp' bin/hub README.md LICENSE etc share "$archive_path/"
+cp script/install.sh "${archive_path}/install"
+chmod +x "${archive_path}/install"
 
-case "$arch" in
-  386 | amd64 | arm | arm64 ) ;;
-  * ) echo "unsupported arch: $arch" >&2; exit 1 ;;
-esac
-
-export GOOS="$os"
-export GOARCH="$arch"
-
-tmpdir="tmp/${release}"
-rm -rf "$tmpdir"
-
-exename="${tmpdir}/bin/hub"
-[ "$os" != "windows" ] || exename="${exename}.exe"
-mkdir -p "${exename%/*}"
-script/build -o "$exename"
-
-crlf() {
-  sed $'s/$/\r/' "$1" > "$2"
-}
-
-if [ "$os" = "windows" ]; then
-  crlf README.md "${tmpdir}/README.txt"
-  crlf LICENSE "${tmpdir}/LICENSE.txt"
-  for man in share/doc/*/*.html; do
-    mkdir -p "${tmpdir}/${man%/*}"
-    cp "$man" "${tmpdir}/${man}"
-  done
-  crlf script/install.bat "${tmpdir}/install.bat"
-else
-  cp -R README.md LICENSE etc share "$tmpdir"
-  rm -rf "${tmpdir}/share/man/"*/*.md
-  cp script/install.sh "${tmpdir}/install"
-  chmod +x "${tmpdir}/install"
-fi
-
-if [ "$os" = "windows" ]; then
-  file="${PWD}/${tmpdir}.zip"
-  rm -f "$file"
-  pushd "$tmpdir" >/dev/null
-  zip -r "$file" * >/dev/null
-else
-  file="${PWD}/${tmpdir}.tgz"
-  rm -f "$file"
-  pushd "${tmpdir%/*}" >/dev/null
-  tar -czf "$file" "$release"
-fi
-
-echo "$file"
+tar -czf "$tarball_file" -C "$(dirname "$archive_path")" -- "$(basename "$archive_path")"
+rm -rf "$archive_path"

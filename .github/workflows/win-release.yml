@@ -1,0 +1,184 @@
+name: Release
+on: [push]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.15"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Build and package
+        env:
+          CGO_ENABLED: 0
+        run: |
+          version="2.15.0"
+          make man-pages
+
+          while read os arch; do
+            [ -n "$os" ] || continue
+            GOOS="$os" GOARCH="$arch" LDFLAGS="-s -w" script/build -o bin/hub
+            script/package "tmp/hub-${os}-${arch}-${version}.tgz"
+          done <<<"
+            linux    amd64
+            linux    386
+            linux    arm64
+            linux    arm
+            freebsd  amd64
+            freebsd  386
+          "
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: linux-packages
+          path: tmp/hub-*.tgz
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.15"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Obtain signing cert
+        id: obtain_cert
+        run: ./script/setup-macos-certificate.sh
+        env:
+          DESKTOP_CERT_TOKEN: ${{ secrets.DESKTOP_CERT_TOKEN }}
+          CERT_PASSWORD: ${{ secrets.MACOS_CERT_PASSWORD }}
+
+      - name: Build
+        env:
+          CGO_ENABLED: 1
+        run: |
+          LDFLAGS="-s -w" make bin/hub
+          make man-pages
+
+      - name: Sign binary
+        run: |
+          cert="$(security find-identity -v "$KEY_CHAIN" | awk '/Developer ID Application/ {print $2}')"
+          codesign -s "$cert" bin/hub
+        env:
+          KEY_CHAIN: ${{ steps.obtain_cert.outputs.keychain }}
+
+      - name: Package
+        run: |
+          version="2.15.0"
+          script/package "tmp/hub-darwin-amd64-${version}.tgz"
+
+      - name: Store artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: macos-packages
+          path: tmp/hub-*.tgz
+
+  windows:
+    needs: macos
+    runs-on: windows-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: "1.15"
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch generated man pages
+        uses: actions/download-artifact@v2
+        with:
+          name: macos-packages
+
+      - name: Extract man pages
+        shell: powershell
+        run: tar -xvzf $(dir 'hub-darwin-amd64-*.tgz') --strip-components 1 -- "*\share"
+
+      - name: Obtain signing cert
+        id: obtain_cert
+        shell: powershell
+        run: |
+          $certURL = 'https://api.github.com/repos/desktop/desktop-secrets/contents/windows-certificate.pfx'
+          $certFile = 'windows-certificate.pfx'
+
+          $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
+          $headers.Add("Authorization", "token $env:DESKTOP_CERT_TOKEN")
+          $headers.Add("Accept", 'application/vnd.github.v3.raw')
+
+          Invoke-WebRequest $certURL -Headers $headers -OutFile $certFile
+          "::set-output name={0}::{1}" -f "cert-file", $certFile
+        env:
+          DESKTOP_CERT_TOKEN: ${{ secrets.DESKTOP_CERT_TOKEN }}
+
+      - name: Build, sign, and package
+        shell: powershell
+        run: |
+          function Sign-Executable {
+            param (
+              [string]$File,
+              [string]$Description = ""
+            )
+            $signtool = dir 'C:\Program Files (x86)\Windows Kits\10\bin\*\x86\signtool.exe'
+            & $signtool[0] sign /d $Description /f $env:CERT_FILE /p $env:CERT_PASSWORD `
+              /sha1 $env:CERT_THUMBPRINT /fd sha256 /tr http://timestamp.digicert.com /td sha256 /q $File
+          }
+
+          $version = "2.15.0"
+
+          New-Item -Name tmp -ItemType Directory -Force >$null
+          go run script\windows-msi.go $version | Out-File -FilePath tmp\hub.wxs -Encoding utf8
+          if (-not $?) { throw 'windows-msi.go failed' }
+
+          Foreach ($arch in "amd64","386") {
+            $archive_path = "tmp\hub-windows-${arch}-${version}"
+            $env:GOARCH = $arch
+            go build -o bin\hub.exe -ldflags "-X github.com/github/hub/v2/version.Version=${version} -s -w"
+            Sign-Executable -File bin\hub.exe -Description "hub CLI"
+
+            & "${env:WIX}\bin\candle" tmp\hub.wxs -out tmp\hub.wixobj -arch $(If ($arch -eq "386") {"x86"} Else {"x64"})
+            if (-not $?) { throw 'candle failed' }
+
+            & "${env:WIX}\bin\light" tmp\hub.wixobj -out "${archive_path}.msi"
+            if (-not $?) { throw 'light failed' }
+            Sign-Executable -File "${archive_path}.msi" -Description "hub installer"
+
+            New-Item -Name "${archive_path}\bin" -ItemType Directory -Force >$null
+            Copy-Item -Path bin\hub.exe "${archive_path}\bin\"
+            Copy-Item -Path README.md "${archive_path}\README.txt"
+            Copy-Item -Path LICENSE "${archive_path}\LICENSE.txt"
+            Copy-Item -Path share -Recurse -Filter '*.html' "${archive_path}\"
+            Compress-Archive -Path "${archive_path}\*" -DestinationPath "${archive_path}.zip"
+          }
+        env:
+          CGO_ENABLED: 1
+          CERT_FILE: ${{ steps.obtain_cert.outputs.cert-file }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          CERT_THUMBPRINT: fb713a60a7fa79dfc03cb301ca05d4e8c1bdd431
+
+      - name: Store artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: windows-packages
+          path: |
+            tmp/hub-*.zip
+            tmp/hub-*.msi
+
+  release:
+    needs: [linux, macos, windows]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Collect artifacts
+        uses: actions/download-artifact@v2
+
+      - name: debug
+        run: ls -R

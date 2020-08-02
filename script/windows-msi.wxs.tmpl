@@ -1,0 +1,81 @@
+<?xml version='1.0' encoding='utf-8'?>
+
+<?if $(sys.BUILDARCH)="x86"?>
+    <?define ProgramFilesFolder='ProgramFilesFolder'?>
+<?elseif $(sys.BUILDARCH)="x64"?>
+    <?define ProgramFilesFolder='ProgramFiles64Folder'?>
+<?else?>
+    <?error Unsupported value of sys.BUILDARCH=$(sys.BUILDARCH)?>
+<?endif?>
+
+<?define UpgradeCode='270c929a-439c-11eb-b130-9f11db14c27c'?>
+
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
+  <Product Id='*' UpgradeCode='$(var.UpgradeCode)'
+    Name='hub CLI' Version='{{.Version}}' Manufacturer='GitHub, Inc.'
+    Language='1033'>
+
+    <Package Description='hub CLI {{.Version}} installer'
+      InstallerVersion='300' Compressed='yes' />
+
+    <Media Id='1' Cabinet='product.cab' EmbedCab='yes' />
+
+    <Upgrade Id='$(var.UpgradeCode)'>
+      <UpgradeVersion Minimum='{{.Version}}' OnlyDetect='yes' Property='NEWERVERSIONDETECTED' />
+      <UpgradeVersion OnlyDetect='no'
+        Minimum='0.0.0' IncludeMinimum='yes'
+        Maximum='{{.Version}}' IncludeMaximum='no'
+        Property='PREVIOUSFOUND' />
+    </Upgrade>
+    <Condition Message="A newer version of hub CLI is already installed.">NOT NEWERVERSIONDETECTED</Condition>
+
+    <Directory Id='TARGETDIR' Name='SourceDir'>
+      <Directory Id='$(var.ProgramFilesFolder)'>
+        <Directory Id='INSTALLDIR' Name='hub testing' />
+      </Directory>
+      <Component Id='ENV' Guid='09c5063d-5acf-4e03-ae95-56977e0e50a2'>
+          <Environment Id='EnvPath'
+            Name='PATH' Value='[BINDIR]'
+            Action='set' Permanent='no'
+            Part='last' System='yes' />
+        </Component>
+    </Directory>
+
+    <DirectoryRef Id='INSTALLDIR'>
+      <Directory Id='BINDIR' Name='bin'>
+        <Component Id='Executables' Guid='86ee1030-42c0-11eb-bf87-4bbb3858b5d2'>
+          <File Id='hubEXE' Source='bin\hub.exe' />
+        </Component>
+      </Directory>
+
+      <Directory Id='SHAREDIR' Name='share'>
+        <Directory Id='Share_Doc' Name='doc'>
+          <Directory Id='Share_HubDoc' Name='hub-doc'>
+            <Component Id='ManPages' Guid='c5450be6-42ce-11eb-b93a-13892dfa22e1'>
+              {{range glob "share/doc/hub-doc/*.html" -}}
+              <File Id='ManPages_{{id .}}' Source='{{. | html}}' />
+              {{end}}
+            </Component>
+          </Directory>
+        </Directory>
+      </Directory>
+
+      <Component Id='ApplicationFiles' Guid='d236bd92-4222-11eb-ae42-8b954490c2ab'>
+        <File Id='Manual' Name='README.txt' Source='README.md' />
+        <File Id='License' Name='LICENSE.txt' Source='LICENSE' />
+      </Component>
+    </DirectoryRef>
+
+    <InstallExecuteSequence>
+      <RemoveExistingProducts After='InstallValidate' />
+    </InstallExecuteSequence>
+
+    <Feature Id='Complete' Level='1'>
+      <ComponentRef Id='Executables' />
+      <ComponentRef Id='ENV' />
+      <ComponentRef Id='ApplicationFiles' />
+      <ComponentRef Id='ManPages' />
+    </Feature>
+
+  </Product>
+</Wix>
