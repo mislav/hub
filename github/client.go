@@ -146,8 +146,14 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	return
 }
 
-func (client *Client) MergePullRequest(project *Project, prNumber int, params map[string]interface{}) (err error) {
-	api, err := client.simpleApi()
+type PullRequestMergeResponse struct {
+	SHA     string
+	Merged  bool
+	Message string
+}
+
+func (client *Client) MergePullRequest(project *Project, prNumber int, params map[string]interface{}) (mr PullRequestMergeResponse, err error) {
+	api, err := client.simpleAPI()
 	if err != nil {
 		return
 	}
@@ -156,8 +162,29 @@ func (client *Client) MergePullRequest(project *Project, prNumber int, params ma
 	if err = checkStatus(200, "merging pull request", res, err); err != nil {
 		return
 	}
+	defer res.Body.Close()
 
-	res.Body.Close()
+	err = res.Unmarshal(&mr)
+	return
+}
+
+func (client *Client) DeleteBranch(project *Project, branchName string) (err error) {
+	api, err := client.simpleAPI()
+	if err != nil {
+		return
+	}
+
+	res, err := api.Delete(fmt.Sprintf("repos/%s/%s/git/refs/heads/%s", project.Owner, project.Name, branchName))
+	if err == nil {
+		defer res.Body.Close()
+		if res.StatusCode == 422 {
+			return
+		}
+	}
+	if err = checkStatus(204, "deleting branch", res, err); err != nil {
+		return
+	}
+
 	return
 }
 

@@ -19,6 +19,8 @@ change the state of the pull request. However, the pull request will get
 auto-closed and marked as "merged" as soon as the newly created merge commit is
 pushed to the default branch of the remote repository.
 
+To merge a pull request remotely, use ''hub pr merge''.
+
 ## Examples:
 		$ hub merge https://github.com/jingweno/gh/pull/73
 		> git fetch origin refs/pull/73/head
@@ -26,7 +28,7 @@ pushed to the default branch of the remote repository.
 
 ## See also:
 
-hub-checkout(1), hub(1), git-merge(1)
+hub-pr(1), hub-checkout(1), hub(1), git-merge(1)
 `,
 }
 
