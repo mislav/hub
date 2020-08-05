@@ -2,6 +2,7 @@ package commands
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -40,8 +41,6 @@ var cmdAPI = &Command{
 		If <VALUE> is "true", "false", "null", or looks like a number, an
 		appropriate JSON type is used instead of a string.
 
-		If <VALUE> is "[]", an empty JSON array is used instead of a string.
-
 		It is not possible to serialize <VALUE> as a nested JSON array or hash.
 		Instead, construct the request payload externally and pass it via
 		''--input''.
@@ -55,6 +54,10 @@ var cmdAPI = &Command{
 		Same as ''--field'', except that it allows values starting with "@", literal
 		strings "true", "false", and "null", as well as strings that look like
 		numbers.
+
+	-j, --json-field <KEY>=<VALUE>
+		Same as ''--field'', except that it expects a valid JSON value that will be
+		passed directly to <ENDPOINT>.
 
 	--input <FILE>
 		The filename to read the raw request body from. Use "-" to read from standard
@@ -157,7 +160,7 @@ func apiCommand(_ *Command, args *Args) {
 	method := "GET"
 	if args.Flag.HasReceived("--method") {
 		method = args.Flag.Value("--method")
-	} else if args.Flag.HasReceived("--field") || args.Flag.HasReceived("--raw-field") || args.Flag.HasReceived("--input") {
+	} else if args.Flag.HasReceived("--field") || args.Flag.HasReceived("--json-field") || args.Flag.HasReceived("--raw-field") || args.Flag.HasReceived("--input") {
 		method = "POST"
 	}
 	cacheTTL := args.Flag.Int("--cache")
@@ -173,6 +176,18 @@ func apiCommand(_ *Command, args *Args) {
 		parts := strings.SplitN(val, "=", 2)
 		if len(parts) >= 2 {
 			params[parts[0]] = parts[1]
+		}
+	}
+	for _, val := range args.Flag.AllValues("--json-field") {
+		parts := strings.SplitN(val, "=", 2)
+		if len(parts) >= 2 {
+			message := json.RawMessage(parts[1])
+			var any interface{}
+			if err := json.Unmarshal(message, &any); err != nil {
+				ui.Errorln(fmt.Sprintf("--json-field %q: %s\n", parts[0], err))
+				os.Exit(1)
+			}
+			params[parts[0]] = message
 		}
 	}
 
@@ -336,10 +351,9 @@ func pauseUntil(timestamp int) {
 }
 
 const (
-	trueVal       = "true"
-	falseVal      = "false"
-	nilVal        = "null"
-	emptyArrayVal = "[]"
+	trueVal  = "true"
+	falseVal = "false"
+	nilVal   = "null"
 )
 
 func magicValue(value string) interface{} {
@@ -350,8 +364,6 @@ func magicValue(value string) interface{} {
 		return false
 	case nilVal:
 		return nil
-	case emptyArrayVal:
-		return []interface{}{}
 	default:
 		if strings.HasPrefix(value, "@") {
 			return string(readFile(value[1:]))
