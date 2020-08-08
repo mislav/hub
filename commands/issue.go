@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
+issue [-a <ASSIGNEE>] [--unassigned] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue update <NUMBER> [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>] [-s <STATE>]
@@ -49,6 +49,9 @@ With no arguments, show a list of open issues.
 ## Options:
 	-a, --assignee <ASSIGNEE>
 		In list mode, display only issues assigned to <ASSIGNEE>.
+
+	--unassigned
+		In list mode, display only unassigned issues.
 
 	-a, --assign <USERS>
 		A comma-separated list of GitHub handles to assign to the created issue.
@@ -181,6 +184,7 @@ hub-pr(1), hub(1)
 `,
 		KnownFlags: `
 		-a, --assignee USER
+		--unassigned
 		-s, --state STATE
 		-f, --format FMT
 		-M, --milestone NAME
@@ -275,6 +279,9 @@ func listIssues(cmd *Command, args *Args) {
 		}
 		if args.Flag.HasReceived("--assignee") {
 			filters["assignee"] = args.Flag.Value("--assignee")
+		}
+		if args.Flag.HasReceived("--unassigned") {
+			filters["no"] = "assignee"
 		}
 		if args.Flag.HasReceived("--milestone") {
 			milestoneValue := args.Flag.Value("--milestone")
