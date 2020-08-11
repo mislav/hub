@@ -102,6 +102,7 @@ func (p *ArgsParser) Parse(args []string) ([]string, error) {
 			}
 		} else if strings.HasPrefix(arg, "--") {
 			flagName = arg
+			flagValue = ""
 			eq := strings.IndexByte(arg, '=')
 			hasFlagValue = eq >= 0
 			if hasFlagValue {
