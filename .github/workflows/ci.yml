@@ -11,7 +11,7 @@ jobs:
         go: ["1.11", "1.12", "1.13", "1.14"]
 
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
 
       - name: Set up Ruby
         uses: actions/setup-ruby@v1
@@ -19,7 +19,7 @@ jobs:
           ruby-version: 2.6.x
 
       - name: Cache gems
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: vendor/bundle
           key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
