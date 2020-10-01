@@ -17,7 +17,7 @@ var (
 	cmdIssue = &Command{
 		Run: listIssues,
 		Usage: `
-issue [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
+issue list [-a <ASSIGNEE>] [-c <CREATOR>] [-@ <USER>] [-s <STATE>] [-f <FORMAT>] [-M <MILESTONE>] [-l <LABELS>] [-d <DATE>] [-o <SORT_KEY> [-^]] [-L <LIMIT>]
 issue show [-f <FORMAT>] <NUMBER>
 issue create [-oc] [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>]
 issue update <NUMBER> [-m <MESSAGE>|-F <FILE>] [--edit] [-a <USERS>] [-M <MILESTONE>] [-l <LABELS>] [-s <STATE>]
@@ -28,7 +28,10 @@ issue transfer <NUMBER> <REPO>
 
 ## Commands:
 
-With no arguments, show a list of open issues.
+With no arguments, performs ''hub issue list''
+
+	* _list_:
+		Show a list of open issues for the current repository.
 
 	* _show_:
 		Show an existing issue specified by <NUMBER>.
@@ -196,6 +199,26 @@ hub-pr(1), hub(1)
 `,
 	}
 
+	cmdListIssue = &Command{
+		Key: "list",
+		Run: listIssues,
+		KnownFlags: `
+		-a, --assignee USER
+		-s, --state STATE
+		-f, --format FMT
+		-M, --milestone NAME
+		-c, --creator USER
+		-@, --mentioned USER
+		-l, --labels LIST
+		-d, --since DATE
+		-o, --sort KEY
+		-^, --sort-ascending
+		--include-pulls
+		-L, --limit N
+		--color
+`,
+	}
+
 	cmdCreateIssue = &Command{
 		Key: "create",
 		Run: createIssue,
@@ -249,6 +272,7 @@ hub-pr(1), hub(1)
 )
 
 func init() {
+	cmdIssue.Use(cmdListIssue)
 	cmdIssue.Use(cmdShowIssue)
 	cmdIssue.Use(cmdCreateIssue)
 	cmdIssue.Use(cmdLabel)

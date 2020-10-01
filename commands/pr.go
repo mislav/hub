@@ -13,7 +13,7 @@ import (
 
 var (
 	cmdPr = &Command{
-		Run: printHelp,
+		Run: listPulls,
 		Usage: `
 pr list [-s <STATE>] [-h <HEAD>] [-b <BASE>] [-o <SORT_KEY> [-^]] [-f <FORMAT>] [-L <LIMIT>]
 pr checkout <PR-NUMBER> [<BRANCH>]
@@ -24,6 +24,8 @@ pr merge [-d] [--squash | --rebase] <PR-NUMBER> [-m <MESSAGE> | -F <FILE>] [--he
 		Long: `Manage GitHub Pull Requests for the current repository.
 
 ## Commands:
+
+With no arguments, performs ''hub pr list''
 
 	* _list_:
 		List pull requests in the current repository.
@@ -225,10 +227,6 @@ func init() {
 	cmdPr.Use(cmdShowPr)
 	cmdPr.Use(cmdMergePr)
 	CmdRunner.Use(cmdPr)
-}
-
-func printHelp(command *Command, args *Args) {
-	utils.Check(command.UsageError(""))
 }
 
 func listPulls(cmd *Command, args *Args) {
