@@ -9,6 +9,18 @@ This repository and its issue tracker is **not for reporting problems with
 GitHub.com** web interface. If you have a problem with GitHub itself, please
 [contact Support](https://github.com/contact).
 
+Summary
+------
+- [Usage](https://github.com/github/hub#usage)
+- [Installation](https://github.com/github/hub#installation)
+  - [Standalone](https://github.com/github/hub#standalone)
+  - [GitHub Actions](https://github.com/github/hub#github-actions)
+  - [Source](https://github.com/github/hub#source)
+- [Aliasing](https://github.com/github/hub#aliasing)
+  - [PowerShell](https://github.com/github/hub#powershell)
+  - [Shell tab-completion](https://github.com/github/hub#shell-tab-completion)
+- [Meta](https://github.com/github/hub#meta)
+
 Usage
 -----
 
