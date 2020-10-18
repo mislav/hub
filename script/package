@@ -8,7 +8,7 @@ os="${1?}"
 arch="${2?}"
 version="${3?}"
 
-if [ $CI ]; then
+if [ ! -z "$CI" ]; then
   # Allows for stable references to latest release bin after publish, for example:
   # https://github.com/github/hub/releases/latest/download/hub-${os}-${arch}.tgz
   release="hub-${os}-${arch}"
