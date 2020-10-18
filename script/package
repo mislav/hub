@@ -8,7 +8,13 @@ os="${1?}"
 arch="${2?}"
 version="${3?}"
 
-release="hub-${os}-${arch}-${version}"
+if [ $CI ]; then
+  # Allows for stable references to latest release bin after publish, for example:
+  # https://github.com/github/hub/releases/latest/download/hub-${os}-${arch}.tgz
+  release="hub-${os}-${arch}"
+else
+  release="hub-${os}-${arch}-${version}"
+fi
 
 case "$os" in
   darwin | freebsd | linux | netbsd | openbsd | solaris | windows ) ;;
