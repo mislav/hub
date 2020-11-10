@@ -24,6 +24,12 @@ var cmdFork = &Command{
 	--org <ORGANIZATION>
 		Fork the repository within this organization.
 
+	-d, --set-push-default
+		Set remote.pushDefault to the name of the new git remote.
+
+	-n, --no-set-push-default
+		Don't set remote.pushDefault even if it's set in config.
+
 ## Examples:
 		$ hub fork
 		[ repo forked on GitHub ]
@@ -68,7 +74,7 @@ func fork(cmd *Command, args *Args) {
 	var newRemoteName string
 	if flagForkRemoteName := args.Flag.Value("--remote-name"); flagForkRemoteName != "" {
 		newRemoteName = flagForkRemoteName
-	} else if forkRemoteDefaultName, _ := git.GlobalConfig("hub.forkRemote"); forkRemoteDefaultName != "" {
+	} else if forkRemoteDefaultName, _ := git.GlobalConfig("hub.fork.remote"); forkRemoteDefaultName != "" {
 		newRemoteName = forkRemoteDefaultName
 	} else {
 		newRemoteName = forkProject.Owner
@@ -126,6 +132,20 @@ func fork(cmd *Command, args *Args) {
 
 		args.Before("git", "remote", "add", "-f", newRemoteName, originURL)
 		args.Before("git", "remote", "set-url", newRemoteName, url)
+
+		if func(args *Args)bool {
+			config, _ := git.GlobalConfig("hub.fork.setDefault")
+			switch config {
+				case
+					"yes",
+					"true",
+					"always":
+						return !args.Flag.Bool("--no-set-push-default")
+					}
+					return args.Flag.Bool("--set-push-default")
+		}(args) {
+			args.Before("git", "config", "remote.pushDefault", newRemoteName)
+		}
 
 		args.AfterFn(func() error {
 			ui.Printf("new remote: %s\n", newRemoteName)
