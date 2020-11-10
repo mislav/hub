@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/git"
 	"github.com/github/hub/v2/ui"
 	"github.com/github/hub/v2/utils"
 )
@@ -67,6 +68,8 @@ func fork(cmd *Command, args *Args) {
 	var newRemoteName string
 	if flagForkRemoteName := args.Flag.Value("--remote-name"); flagForkRemoteName != "" {
 		newRemoteName = flagForkRemoteName
+	} else if forkRemoteDefaultName, _ := git.GlobalConfig("hub.forkRemote"); forkRemoteDefaultName != "" {
+		newRemoteName = forkRemoteDefaultName
 	} else {
 		newRemoteName = forkProject.Owner
 	}
