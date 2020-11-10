@@ -13,13 +13,9 @@ publish_documentation() {
   git rm hub*.html >/dev/null
   cp ../share/doc/*/*.html .
 
-  local tracking="$(sed -n '/googletagmanager/,/^<\/script/p' index.html)"
-  local man_page
-  for man_page in hub*.html; do cat <<<"$tracking" >>"$man_page"; done
-
   git add hub*.html
-  GIT_COMMITTER_NAME='GitHub Actions' GIT_COMMITTER_EMAIL='mislav+actions@github.com' \
-    GIT_AUTHOR_NAME='Mislav Marohnić' GIT_AUTHOR_EMAIL='mislav@github.com' \
+  GIT_COMMITTER_NAME='GitHub Actions' GIT_COMMITTER_EMAIL='noreply@github.com' \
+    GIT_AUTHOR_NAME='GitHub Actions' GIT_AUTHOR_EMAIL='noreply@github.com' \
     git commit -m "Update documentation for $version"
 
   git push origin HEAD
