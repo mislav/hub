@@ -110,8 +110,7 @@ When working with forks, it's recommended that the git remote for your own fork
 is named "origin" and that the git remote for the upstream repository is named
 "upstream". See <https://help.github.com/articles/configuring-a-remote-for-a-fork/>
 
-The default branch (usually "master") for the current repository is detected
-like so:
+The main branch for the current repository is detected like so:
 
     git symbolic-ref refs/remotes/origin/HEAD
 

@@ -68,8 +68,8 @@ pull-request -i <ISSUE>
 		Push the current branch to <HEAD> before creating the pull request.
 
 	-b, --base <BASE>
-		The base branch in the "[<OWNER>:]<BRANCH>" format. Defaults to the default
-		branch of the upstream repository (usually "master").
+		The base branch in the "[<OWNER>:]<BRANCH>" format. Defaults to the main
+		branch of the upstream repository.
 
 		See the "CONVENTIONS" section of hub(1) for more information on how hub
 		selects the defaults in case of multiple git remotes.
@@ -107,7 +107,7 @@ pull-request -i <ISSUE>
 		[ opens a text editor for writing title and message ]
 		[ creates a pull request for the current branch ]
 
-		$ hub pull-request --base OWNER:master --head MYUSER:my-branch
+		$ hub pull-request --base OWNER:main --head MYUSER:my-branch
 		[ creates a pull request with explicit base and head branches ]
 
 		$ hub pull-request --browse -m "My title"

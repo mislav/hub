@@ -43,9 +43,9 @@ func (b *Branch) Upstream() (u *Branch, err error) {
 	return
 }
 
-func (b *Branch) IsMaster() bool {
-	masterName := b.Repo.MasterBranch().ShortName()
-	return b.ShortName() == masterName
+func (b *Branch) IsMain() bool {
+	mainName := b.Repo.MainBranch().ShortName()
+	return b.ShortName() == mainName
 }
 
 func (b *Branch) IsRemote() bool {

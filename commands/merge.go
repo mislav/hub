@@ -17,7 +17,7 @@ var cmdMerge = &Command{
 This creates a local merge commit in the current branch, but does not actually
 change the state of the pull request. However, the pull request will get
 auto-closed and marked as "merged" as soon as the newly created merge commit is
-pushed to the default branch of the remote repository.
+pushed to the main branch of the remote repository.
 
 To merge a pull request remotely, use ''hub pr merge''.
 
