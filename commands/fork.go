@@ -3,8 +3,8 @@ package commands
 import (
 	"fmt"
 
-	"github.com/github/hub/v2/github"
 	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/github"
 	"github.com/github/hub/v2/ui"
 	"github.com/github/hub/v2/utils"
 )
@@ -133,16 +133,16 @@ func fork(cmd *Command, args *Args) {
 		args.Before("git", "remote", "add", "-f", newRemoteName, originURL)
 		args.Before("git", "remote", "set-url", newRemoteName, url)
 
-		if func(args *Args)bool {
+		if func(args *Args) bool {
 			config, _ := git.GlobalConfig("hub.fork.setDefault")
 			switch config {
-				case
-					"yes",
-					"true",
-					"always":
-						return !args.Flag.Bool("--no-set-push-default")
-					}
-					return args.Flag.Bool("--set-push-default")
+			case
+				"yes",
+				"true",
+				"always":
+				return !args.Flag.Bool("--no-set-push-default")
+			}
+			return args.Flag.Bool("--set-push-default")
 		}(args) {
 			args.Before("git", "config", "remote.pushDefault", newRemoteName)
 		}
