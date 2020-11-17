@@ -196,8 +196,7 @@ const (
 type truncingMethod int
 
 const (
-	noTrunc truncingMethod = iota
-	truncLeft
+	truncLeft truncingMethod = iota
 	truncRight
 	truncMiddle
 )

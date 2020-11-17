@@ -76,13 +76,13 @@ func transformCloneArgs(args *Args) {
 	p.Parse(args.Params)
 
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
-	for _, i := range p.PositionalIndices {
+	if len(p.PositionalIndices) > 0 {
+		i := p.PositionalIndices[0]
 		a := args.Params[i]
 		if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
 			url := getCloneURL(a, isSSH, args.Command != "submodule")
 			args.ReplaceParam(i, url)
 		}
-		break
 	}
 }
 
