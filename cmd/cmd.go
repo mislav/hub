@@ -109,8 +109,8 @@ func detectWSL() bool {
 		b := make([]byte, 1024)
 		f, err := os.Open("/proc/version")
 		if err == nil {
-			f.Read(b)
-			f.Close()
+			_, _ = f.Read(b)
+			_ = f.Close()
 			detectedWSLContents = string(b)
 		}
 		detectedWSL = true

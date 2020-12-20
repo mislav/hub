@@ -63,7 +63,7 @@ func runHelp(helpCmd *Command, args *Args) {
 	p.RegisterBool("--plain-text")
 	p.RegisterBool("--man", "-m")
 	p.RegisterBool("--web", "-w")
-	p.Parse(args.Params)
+	_, _ = p.Parse(args.Params)
 
 	if p.Bool("--all") {
 		args.AfterFn(func() error {

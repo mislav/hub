@@ -67,9 +67,9 @@ func apply(command *Command, args *Args) {
 }
 
 func transformApplyArgs(args *Args) {
-	gistRegexp := regexp.MustCompile("^https?://gist\\.github\\.com/([\\w.-]+/)?([a-f0-9]+)")
-	commitRegexp := regexp.MustCompile("^(commit|pull/[0-9]+/commits)/([0-9a-f]+)")
-	pullRegexp := regexp.MustCompile("^pull/([0-9]+)")
+	gistRegexp := regexp.MustCompile(`^https?://gist\.github\.com/([\w.-]+/)?([a-f0-9]+)`)
+	commitRegexp := regexp.MustCompile(`^(commit|pull/[0-9]+/commits)/([0-9a-f]+)`)
+	pullRegexp := regexp.MustCompile(`^pull/([0-9]+)`)
 	for idx, arg := range args.Params {
 		var (
 			patch    io.ReadCloser

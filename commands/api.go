@@ -146,6 +146,8 @@ func init() {
 	CmdRunner.Use(cmdAPI)
 }
 
+var jsonTypeRE = regexp.MustCompile(`[/+]json(?:;|$)`)
+
 func apiCommand(_ *Command, args *Args) {
 	path := ""
 	if !args.IsParamsEmpty() {
@@ -261,12 +263,12 @@ func apiCommand(_ *Command, args *Args) {
 		success := response.StatusCode < 300
 		jsonType := true
 		if !success {
-			jsonType, _ = regexp.MatchString(`[/+]json(?:;|$)`, response.Header.Get("Content-Type"))
+			jsonType = jsonTypeRE.MatchString(response.Header.Get("Content-Type"))
 		}
 
 		if includeHeaders {
 			fmt.Fprintf(out, "%s %s\r\n", response.Proto, response.Status)
-			response.Header.Write(out)
+			_ = response.Header.Write(out)
 			fmt.Fprintf(out, "\r\n")
 		}
 
@@ -277,10 +279,10 @@ func apiCommand(_ *Command, args *Args) {
 			hasNextPage, endCursor = utils.JSONPath(out, response.Body, colorize)
 		} else if paginate && isGraphQL {
 			bodyCopy := &bytes.Buffer{}
-			io.Copy(out, io.TeeReader(response.Body, bodyCopy))
+			_, _ = io.Copy(out, io.TeeReader(response.Body, bodyCopy))
 			hasNextPage, endCursor = utils.JSONPath(ioutil.Discard, bodyCopy, false)
 		} else {
-			io.Copy(out, response.Body)
+			_, _ = io.Copy(out, response.Body)
 		}
 		response.Body.Close()
 

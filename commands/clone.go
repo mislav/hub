@@ -73,7 +73,7 @@ func transformCloneArgs(args *Args) {
 		p.RegisterValue("--template")
 		p.RegisterValue("--upload-pack", "-u")
 	}
-	p.Parse(args.Params)
+	_, _ = p.Parse(args.Params)
 
 	nameWithOwnerRegexp := regexp.MustCompile(NameWithOwnerRe)
 	if len(p.PositionalIndices) > 0 {

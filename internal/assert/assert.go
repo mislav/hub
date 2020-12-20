@@ -9,7 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-// Equal makes the test as failed using default formatting if got is not equal to want.
+// Equal fails the test if the provided values do not pass the deep equality test
 func Equal(t testing.TB, want, got interface{}, args ...interface{}) {
 	t.Helper()
 	if !reflect.DeepEqual(want, got) {
@@ -18,12 +18,28 @@ func Equal(t testing.TB, want, got interface{}, args ...interface{}) {
 	}
 }
 
-// NotEqual makes the test as failed using default formatting if got is equal to want.
+// NotEqual is the negative assertion of Equal
 func NotEqual(t testing.TB, want, got interface{}, args ...interface{}) {
 	t.Helper()
 	if reflect.DeepEqual(want, got) {
 		msg := fmt.Sprint(args...)
 		t.Errorf("%s\nUnexpected: <%#v>", msg, want)
+	}
+}
+
+// Nil checks whether the value is nil
+func Nil(t testing.TB, got interface{}) {
+	t.Helper()
+	if got != nil {
+		t.Errorf("expected nil, got: %v", got)
+	}
+}
+
+// NotNil is the negative assertion of Nil
+func NotNil(t testing.TB, got interface{}) {
+	t.Helper()
+	if got == nil {
+		t.Error("did not expect nil")
 	}
 }
 

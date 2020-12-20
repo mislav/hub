@@ -18,7 +18,7 @@ func init() {
 
 func runVersion(cmd *Command, args *Args) {
 	versionCmd := args.ToCmd()
-	versionCmd.Spawn()
+	_ = versionCmd.Spawn()
 	ui.Printf("hub version %s\n", version.Version)
 	args.NoForward()
 }

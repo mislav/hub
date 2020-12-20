@@ -56,7 +56,7 @@ func TestArgsForCommand(t *testing.T) {
 
 	args := NewArgs([]string{"foo", "bar", "baz"})
 
-	c.lookupSubCommand(args)
+	_, _ = c.lookupSubCommand(args)
 
 	assert.Equal(t, 2, len(args.Params))
 }
@@ -68,7 +68,7 @@ func TestArgsForSubCommand(t *testing.T) {
 
 	args := NewArgs([]string{"foo", "bar", "baz"})
 
-	c.lookupSubCommand(args)
+	_, _ = c.lookupSubCommand(args)
 
 	assert.Equal(t, 1, len(args.Params))
 }
@@ -96,7 +96,8 @@ func TestCommandCall(t *testing.T) {
 	c := &Command{Usage: "foo", Run: f}
 	args := NewArgs([]string{"foo", "bar"})
 
-	c.Call(args)
+	err := c.Call(args)
+	assert.Nil(t, err)
 	assert.Equal(t, "bar", result)
 }
 
@@ -106,7 +107,8 @@ func TestCommandHelp(t *testing.T) {
 	c := &Command{Usage: "foo", Run: f}
 	args := NewArgs([]string{"foo", "-h"})
 
-	c.Call(args)
+	err := c.Call(args)
+	assert.NotNil(t, err)
 	assert.Equal(t, "", result)
 }
 
@@ -121,7 +123,8 @@ func TestSubCommandCall(t *testing.T) {
 
 	args := NewArgs([]string{"foo", "bar", "baz"})
 
-	c.Call(args)
+	err := c.Call(args)
+	assert.Nil(t, err)
 	assert.Equal(t, "baz", result)
 }
 
