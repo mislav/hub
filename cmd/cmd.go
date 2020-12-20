@@ -8,6 +8,7 @@ import (
 	"strings"
 	"syscall"
 
+	"github.com/cli/safeexec"
 	"github.com/github/hub/v2/ui"
 )
 
@@ -49,9 +50,21 @@ func (cmd *Cmd) WithArgs(args ...string) *Cmd {
 	return cmd
 }
 
+func (cmd *Cmd) makeExecCmd() (*exec.Cmd, error) {
+	binary, err := safeexec.LookPath(cmd.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	return exec.Command(binary, cmd.Args...), nil
+}
+
 func (cmd *Cmd) Output() (string, error) {
 	verboseLog(cmd)
-	c := exec.Command(cmd.Name, cmd.Args...)
+	c, err := cmd.makeExecCmd()
+	if err != nil {
+		return "", err
+	}
 	c.Stderr = cmd.Stderr
 	output, err := c.Output()
 
@@ -60,15 +73,18 @@ func (cmd *Cmd) Output() (string, error) {
 
 func (cmd *Cmd) CombinedOutput() (string, error) {
 	verboseLog(cmd)
-	output, err := exec.Command(cmd.Name, cmd.Args...).CombinedOutput()
-
+	c, err := cmd.makeExecCmd()
+	if err != nil {
+		return "", err
+	}
+	output, err := c.CombinedOutput()
 	return string(output), err
 }
 
 func (cmd *Cmd) Success() bool {
 	verboseLog(cmd)
-	err := exec.Command(cmd.Name, cmd.Args...).Run()
-	return err == nil
+	c, err := cmd.makeExecCmd()
+	return err == nil && c.Run() == nil
 }
 
 // Run runs command with `Exec` on platforms except Windows
@@ -105,7 +121,10 @@ func detectWSL() bool {
 // Spawn runs command with spawn(3)
 func (cmd *Cmd) Spawn() error {
 	verboseLog(cmd)
-	c := exec.Command(cmd.Name, cmd.Args...)
+	c, err := cmd.makeExecCmd()
+	if err != nil {
+		return err
+	}
 	c.Stdin = cmd.Stdin
 	c.Stdout = cmd.Stdout
 	c.Stderr = cmd.Stderr
@@ -118,7 +137,7 @@ func (cmd *Cmd) Spawn() error {
 func (cmd *Cmd) Exec() error {
 	verboseLog(cmd)
 
-	binary, err := exec.LookPath(cmd.Name)
+	binary, err := safeexec.LookPath(cmd.Name)
 	if err != nil {
 		return &exec.Error{
 			Name: cmd.Name,

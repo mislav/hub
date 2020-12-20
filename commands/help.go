@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/cli/safeexec"
 	"github.com/github/hub/v2/git"
 	"github.com/github/hub/v2/ui"
 	"github.com/github/hub/v2/utils"
@@ -174,7 +175,12 @@ func displayManPage(manPage string, args *Args, isWeb bool) error {
 		env = append(env, fmt.Sprintf("MANPATH=%s:%s", manPath, os.Getenv("MANPATH")))
 	}
 
-	c := exec.Command(manArgs[0], manArgs[1:]...)
+	manBinary, err := safeexec.LookPath(manArgs[0])
+	if err != nil {
+		return err
+	}
+
+	c := exec.Command(manBinary, manArgs[1:]...)
 	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr

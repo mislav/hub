@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/cli/safeexec"
 	"github.com/github/hub/v2/ui"
 	"github.com/kballard/go-shellquote"
 )
@@ -52,7 +52,7 @@ func searchBrowserLauncher(goos string) (browser string) {
 		candidates := []string{"xdg-open", "cygstart", "x-www-browser", "firefox",
 			"opera", "mozilla", "netscape"}
 		for _, b := range candidates {
-			path, err := exec.LookPath(b)
+			path, err := safeexec.LookPath(b)
 			if err == nil {
 				browser = path
 				break
@@ -64,11 +64,7 @@ func searchBrowserLauncher(goos string) (browser string) {
 }
 
 func CommandPath(cmd string) (string, error) {
-	if runtime.GOOS == "windows" && !strings.HasSuffix(cmd, ".exe") {
-		cmd = cmd + ".exe"
-	}
-
-	path, err := exec.LookPath(cmd)
+	path, err := safeexec.LookPath(cmd)
 	if err != nil {
 		return "", err
 	}
