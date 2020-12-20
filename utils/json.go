@@ -80,7 +80,9 @@ func JSONPath(out io.Writer, src io.Reader, colorize bool) (hasNextPage bool, en
 
 				switch tt := token.(type) {
 				case string:
-					fmt.Fprintf(out, "%s\n", strings.Replace(tt, "\n", "\\n", -1))
+					sanitized := strings.Replace(tt, "\r\n", "\n", -1)
+					sanitized = strings.Replace(sanitized, "\n", "\\n", -1)
+					fmt.Fprintf(out, "%s\n", sanitized)
 					if strings.HasSuffix(k, ".pageInfo.endCursor") {
 						endCursor = tt
 					}
