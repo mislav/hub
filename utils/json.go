@@ -85,11 +85,11 @@ func JSONPath(out io.Writer, src io.Reader, colorize bool) (hasNextPage bool, en
 						endCursor = tt
 					}
 				case json.Number:
-					fmt.Fprintf(out, "%s\n", color("0;35", tt))
+					fmt.Fprintf(out, "%s\n", color("35;1", tt))
 				case nil:
 					fmt.Fprintf(out, "\n")
 				case bool:
-					fmt.Fprintf(out, "%s\n", color("1;33", fmt.Sprintf("%v", tt)))
+					fmt.Fprintf(out, "%s\n", color("33;1", fmt.Sprintf("%v", tt)))
 					if strings.HasSuffix(k, ".pageInfo.hasNextPage") {
 						hasNextPage = tt
 					}

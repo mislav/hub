@@ -436,19 +436,19 @@ func formatPullRequestPlaceholders(pr github.PullRequest, colorize bool) map[str
 	}
 
 	var stateColorSwitch string
-	var prColor int
+	var prColor string
 	if colorize {
 		switch prState {
 		case "draft":
-			prColor = 37
+			prColor = "37"
 		case "merged":
-			prColor = 35
+			prColor = "35;1"
 		case "closed":
-			prColor = 31
+			prColor = "31"
 		default:
-			prColor = 32
+			prColor = "32"
 		}
-		stateColorSwitch = fmt.Sprintf("\033[%dm", prColor)
+		stateColorSwitch = fmt.Sprintf("\033[%sm", prColor)
 	}
 
 	base := pr.Base.Ref

@@ -150,7 +150,10 @@ func verboseLog(cmd *Cmd) {
 	if os.Getenv("HUB_VERBOSE") != "" {
 		msg := fmt.Sprintf("$ %s", cmd.String())
 		if ui.IsTerminal(os.Stderr) {
-			msg = fmt.Sprintf("\033[35m%s\033[0m", msg)
+			// bizarre: color `35` does not display at all in PowerShell (it does in Windows Terminal), but
+			// using `35;1` works around that
+			color := "35;1"
+			msg = fmt.Sprintf("\033[%sm%s\033[m", color, msg)
 		}
 		ui.Errorln(msg)
 	}
