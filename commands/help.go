@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 
@@ -82,6 +83,9 @@ func runHelp(helpCmd *Command, args *Args) {
 		}
 		if f, err := git.Config("help.format"); err == nil {
 			return f == "web" || f == "html"
+		}
+		if runtime.GOOS == "windows" {
+			return true
 		}
 		return false
 	}
