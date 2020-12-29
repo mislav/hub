@@ -41,6 +41,7 @@ The `hub` executable has no dependencies, but since it was designed to wrap
 platform | manager | command to run
 ---------|---------|---------------
 macOS, Linux | [Homebrew](https://docs.brew.sh/Installation) | `brew install hub`
+macOS, Linux | [Nix](https://nixos.org/) | `nix-env -i hub`
 Windows | [Scoop](http://scoop.sh/) | `scoop install hub`
 Windows | [Chocolatey](https://chocolatey.org/) | `choco install hub`
 Fedora Linux | [DNF](https://fedoraproject.org/wiki/DNF) | `sudo dnf install hub`
