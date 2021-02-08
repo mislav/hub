@@ -1,6 +1,6 @@
-package commands
+# package commands
 
-import (
+ - import (
 	"fmt"
 	"sort"
 	"strings"
@@ -63,7 +63,7 @@ hub(1), hub-api(1)
 	cmdCreateGist = &Command{
 		Key: "create",
 		Run: createGist,
-		KnownFlags: `
+		Known: `
 		--public
 		-o, --browse
 		-c, --copy
@@ -132,13 +132,13 @@ func createGist(cmd *Command, args *Args) {
 			HTMLURL: fmt.Sprintf("https://gist.%s/%s", gh.Host.Host, "ID"),
 		}
 	} else {
-		gist, err = gh.CreateGist(filenames, args.Flag.Bool("--public"))
+		gist, err = gh.CreateGist(filenames, args.Bool("--public"))
 		utils.Check(err)
 	}
 
-	flagIssueBrowse := args.Flag.Bool("--browse")
-	flagIssueCopy := args.Flag.Bool("--copy")
-	printBrowseOrCopy(args, gist.HTMLURL, flagIssueBrowse, flagIssueCopy)
+	IssueBrowse := args.Bool("--browse")
+	IssueCopy := args.Bool("--copy")
+	printBrowseOrCopy(args, gist.HTMLURL,IssueBrowse, IssueCopy)
 }
 
 func showGist(cmd *Command, args *Args) {
