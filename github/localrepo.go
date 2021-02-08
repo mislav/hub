@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/github/hub/git"
+	"github.com/github/hub/v2/git"
 )
 
 func LocalRepo() (repo *GitHubRepo, err error) {
@@ -107,20 +107,21 @@ func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 func (r *GitHubRepo) MasterBranch() *Branch {
 	if remote, err := r.MainRemote(); err == nil {
 		return r.DefaultBranch(remote)
-	} else {
-		return r.DefaultBranch(nil)
 	}
+	return r.DefaultBranch(nil)
 }
 
 func (r *GitHubRepo) DefaultBranch(remote *Remote) *Branch {
-	var name string
+	b := Branch{
+		Repo: r,
+		Name: "refs/heads/master",
+	}
 	if remote != nil {
-		name, _ = git.BranchAtRef("refs", "remotes", remote.Name, "HEAD")
+		if name, err := git.SymbolicRef(fmt.Sprintf("refs/remotes/%s/HEAD", remote.Name)); err == nil {
+			b.Name = name
+		}
 	}
-	if name == "" {
-		name = "refs/heads/master"
-	}
-	return &Branch{r, name}
+	return &b
 }
 
 func (r *GitHubRepo) RemoteBranchAndProject(owner string, preferUpstream bool) (branch *Branch, project *Project, err error) {
@@ -204,12 +205,12 @@ func (r *GitHubRepo) RemoteForRepo(repo *Repository) (*Remote, error) {
 		return nil, err
 	}
 
-	repoUrl, err := url.Parse(repo.HtmlUrl)
+	repoURL, err := url.Parse(repo.HTMLURL)
 	if err != nil {
 		return nil, err
 	}
 
-	project := NewProject(repo.Owner.Login, repo.Name, repoUrl.Host)
+	project := NewProject(repo.Owner.Login, repo.Name, repoURL.Host)
 
 	for _, remote := range r.remotes {
 		if rp, err := remote.Project(); err == nil {
@@ -240,9 +241,8 @@ func (r *GitHubRepo) MainRemote() (*Remote, error) {
 
 	if len(r.remotes) > 0 {
 		return &r.remotes[0], nil
-	} else {
-		return nil, fmt.Errorf("no git remotes found")
 	}
+	return nil, fmt.Errorf("no git remotes found")
 }
 
 func (r *GitHubRepo) MainProject() (*Project, error) {

@@ -7,9 +7,9 @@ import (
 	"os/exec"
 	"syscall"
 
-	"github.com/github/hub/commands"
-	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
+	"github.com/github/hub/v2/commands"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/ui"
 )
 
 func main() {
@@ -28,9 +28,8 @@ func handleError(err error) int {
 	case *exec.ExitError:
 		if status, ok := e.Sys().(syscall.WaitStatus); ok {
 			return status.ExitStatus()
-		} else {
-			return 1
 		}
+		return 1
 	case *commands.ErrHelp:
 		ui.Println(err)
 		return 0

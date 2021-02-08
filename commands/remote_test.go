@@ -5,9 +5,9 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/bmizerany/assert"
-	"github.com/github/hub/fixtures"
-	"github.com/github/hub/github"
+	"github.com/github/hub/v2/fixtures"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func TestTransformRemoteArgs(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/bmizerany/assert"
+	"github.com/github/hub/v2/internal/assert"
 )
 
 func TestClient_FormatError(t *testing.T) {

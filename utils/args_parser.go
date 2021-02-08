@@ -20,9 +20,8 @@ func (f *argsFlag) lastValue() string {
 	l := len(f.values)
 	if l > 0 {
 		return f.values[l-1]
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (f *argsFlag) reset() {
@@ -103,6 +102,7 @@ func (p *ArgsParser) Parse(args []string) ([]string, error) {
 			}
 		} else if strings.HasPrefix(arg, "--") {
 			flagName = arg
+			flagValue = ""
 			eq := strings.IndexByte(arg, '=')
 			hasFlagValue = eq >= 0
 			if hasFlagValue {
@@ -152,25 +152,22 @@ func (p *ArgsParser) RegisterBool(name string, aliases ...string) {
 func (p *ArgsParser) Value(name string) string {
 	if f, found := p.flagMap[name]; found {
 		return f.lastValue()
-	} else {
-		return ""
 	}
+	return ""
 }
 
 func (p *ArgsParser) AllValues(name string) []string {
 	if f, found := p.flagMap[name]; found {
 		return f.values
-	} else {
-		return []string{}
 	}
+	return []string{}
 }
 
 func (p *ArgsParser) Bool(name string) bool {
 	if f, found := p.flagMap[name]; found {
 		return len(f.values) > 0 && f.lastValue() != "false"
-	} else {
-		return false
 	}
+	return false
 }
 
 func (p *ArgsParser) Int(name string) int {

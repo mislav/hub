@@ -2,7 +2,7 @@
 set -e
 
 source_files() {
-  script/build files | grep -vE '^\./(coverage|fixtures)/'
+  script/build files | grep -vE '^\./(coverage|fixtures|version)/'
 }
 
 prepare() {
@@ -18,7 +18,7 @@ prepare() {
     go tool cover -mode=set -var="LiveCoverage$((++n))" "$f" > "$f"~
     sed -E '
       /^package /a\
-      import "github.com/github/hub/coverage"
+      import "github.com/github/hub/v2/coverage"
       s/(LiveCoverage[0-9]+)\.Count\[([0-9]+)\][^;]+/coverage.Record(\1, \2)/g
     ' < "$f"~ > "$f"
     rm "$f"~
@@ -32,7 +32,7 @@ generate() {
   source_files | xargs git checkout --
 
   echo 'mode: count' > "$HUB_COVERAGE"~
-  sed -E 's!^.+/(github.com/github/hub/)!\1!' "$HUB_COVERAGE" | awk '
+  sed -E 's!^.+/(github.com/github/hub/v2/)!\1!' "$HUB_COVERAGE" | awk '
     { a[substr($0, 0, length()-2)] += $(NF) }
     END { for (k in a) print k, a[k] }
   ' >> "$HUB_COVERAGE"~
@@ -52,7 +52,7 @@ summarize() {
   echo "Code coverage: $total_coverage"
   local result="$(bc <<<"${total_coverage%\%} < $min_coverage")"
   if [ "$result" -eq 1 ]; then
-    echo "Error: coverage dropped below the minimum treshold of ${min_coverage}%!"
+    echo "Error: coverage dropped below the minimum threshold of ${min_coverage}%!"
     if [ -n "$CI" ]; then
       html_result="${HUB_COVERAGE%.out}.html"
       html_result="${html_result#$PWD/}"

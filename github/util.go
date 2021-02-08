@@ -1,10 +1,10 @@
 package github
 
 import (
-	"github.com/github/hub/git"
+	"github.com/github/hub/v2/git"
 )
 
-func IsHttpsProtocol() bool {
+func IsHTTPSProtocol() bool {
 	httpProtocol, _ := git.Config("hub.protocol")
 	return httpProtocol == "https"
 }

@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/github/hub/git"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 	"github.com/kballard/go-shellquote"
 )
 
@@ -175,6 +175,7 @@ func displayManPage(manPage string, args *Args, isWeb bool) error {
 	}
 
 	c := exec.Command(manArgs[0], manArgs[1:]...)
+	c.Stdin = os.Stdin
 	c.Stdout = os.Stdout
 	c.Stderr = os.Stderr
 	c.Env = env
@@ -188,14 +189,12 @@ func displayManPage(manPage string, args *Args, isWeb bool) error {
 func lookupCmd(name string) *Command {
 	if strings.HasPrefix(name, "hub-") {
 		return CmdRunner.Lookup(strings.TrimPrefix(name, "hub-"))
-	} else {
-		cmd := CmdRunner.Lookup(name)
-		if cmd != nil && !cmd.GitExtension {
-			return cmd
-		} else {
-			return nil
-		}
 	}
+	cmd := CmdRunner.Lookup(name)
+	if cmd != nil && !cmd.GitExtension {
+		return cmd
+	}
+	return nil
 }
 
 func customCommands() []string {
@@ -223,7 +222,7 @@ These GitHub commands are provided by hub:
    fork           Make a fork of a remote repository on GitHub and add as remote
    gist           Make a gist
    issue          List or create GitHub issues
-   pr             List or checkout GitHub pull requests
+   pr             Manage GitHub pull requests
    pull-request   Open a pull request on GitHub
    release        List or create GitHub releases
    sync           Fetch git objects from upstream and update branches

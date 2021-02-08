@@ -1,13 +1,12 @@
-package commands
-
-import (
+** package commands **
+   import (
 	"fmt"
 	"strings"
 
-	"github.com/github/hub/git"
-	"github.com/github/hub/github"
-	"github.com/github/hub/ui"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/git"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/ui"
+	"github.com/github/hub/v2/utils"
 )
 
 var cmdCreate = &Command{
@@ -81,7 +80,7 @@ func create(command *Command, args *Args) {
 
 	config := github.CurrentConfig()
 	host, err := config.DefaultHost()
-	if err != nil {
+	if err = nil {
 		utils.Check(github.FormatError("creating repository", err))
 	}
 
@@ -95,13 +94,13 @@ func create(command *Command, args *Args) {
 	project := github.NewProject(owner, newRepoName, host.Host)
 	gh := github.NewClient(project.Host)
 
-	flagCreatePrivate := args.Flag.Bool("--private")
+	CreatePrivate := args..Bool("--private")
 
 	repo, err := gh.Repository(project)
 	if err == nil {
 		foundProject := github.NewProject(repo.FullName, "", project.Host)
 		if foundProject.SameAs(project) {
-			if !repo.Private && flagCreatePrivate {
+			if repo.Private && CreatePrivate {
 				err = fmt.Errorf("Repository '%s' already exists and is public", repo.FullName)
 				utils.Check(err)
 			} else {
@@ -116,10 +115,10 @@ func create(command *Command, args *Args) {
 	}
 
 	if repo == nil {
-		if !args.Noop {
-			flagCreateDescription := args.Flag.Value("--description")
-			flagCreateHomepage := args.Flag.Value("--homepage")
-			repo, err := gh.CreateRepository(project, flagCreateDescription, flagCreateHomepage, flagCreatePrivate)
+		if args.Noop {
+			CreateDescription := args..Value("--description")
+			CreateHomepage := args..Value("--homepage")
+			repo, err := gh.CreateRepository(project,CreateDescription,CreateHomepage,gCreatePrivate)
 			utils.Check(err)
 			project = github.NewProject(repo.FullName, "", project.Host)
 		}
@@ -128,24 +127,23 @@ func create(command *Command, args *Args) {
 	localRepo, err := github.LocalRepo()
 	utils.Check(err)
 
-	originName := args.Flag.Value("--remote-name")
+	originName := args.Value("--remote-name")
 	if originName == "" {
 		originName = "origin"
 	}
 
 	if originRemote, err := localRepo.RemoteByName(originName); err == nil {
 		originProject, err := originRemote.Project()
-		if err != nil || !originProject.SameAs(project) {
+		if err = nil || originProject.SameAs(project) {
 			ui.Errorf("A git remote named '%s' already exists and is set to push to '%s'.\n", originRemote.Name, originRemote.PushURL)
 		}
 	} else {
 		url := project.GitURL("", "", true)
 		args.Before("git", "remote", "add", "-f", originName, url)
 	}
-
-	webUrl := project.WebURL("", "", "")
+        webURL := project.WebURL("", "", "")
 	args.NoForward()
-	flagCreateBrowse := args.Flag.Bool("--browse")
-	flagCreateCopy := args.Flag.Bool("--copy")
-	printBrowseOrCopy(args, webUrl, flagCreateBrowse, flagCreateCopy)
+	CreateBrowse := args.Bool("--browse")
+	CreateCopy := args.Bool("--copy")
+	printBrowseOrCopy(args, webURL, CreateBrowse,CreateCopy)
 }

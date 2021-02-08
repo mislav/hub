@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/github/hub/github"
+	"github.com/github/hub/v2/github"
 )
 
 type formatIssueTest struct {
@@ -16,6 +16,7 @@ type formatIssueTest struct {
 }
 
 func testFormatIssue(t *testing.T, tests []formatIssueTest) {
+	t.Helper()
 	for _, test := range tests {
 		if got := formatIssue(test.issue, test.format, test.colorize); got != test.expect {
 			t.Errorf("%s: formatIssue(..., %q, %t) = %q, want %q", test.name, test.format, test.colorize, got, test.expect)
@@ -123,7 +124,7 @@ func TestFormatIssue_customFormatString(t *testing.T) {
 			{Name: "bug", Color: "880000"},
 			{Name: "feature", Color: "008800"},
 		},
-		HtmlUrl:  "the://url",
+		HTMLURL:  "the://url",
 		Comments: 12,
 		Milestone: &github.Milestone{
 			Number: 31,

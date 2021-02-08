@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
@@ -114,28 +115,28 @@ func (f *expander) expandSpecialChar(firstChar byte, format string) (expand stri
 	case 'x':
 		if len(format) >= 2 {
 			if v, err := strconv.ParseInt(format[:2], 16, 32); err == nil {
-				return string(v), format[2:], true
+				return fmt.Sprintf("%c", v), format[2:], true
 			}
 		}
 	case '+':
-		if e, u := f.expandOneVar(format); e != "" {
+		e, u := f.expandOneVar(format)
+		if e != "" {
 			return "\n" + e, u, true
-		} else {
-			return "", u, true
 		}
+		return "", u, true
 	case ' ':
-		if e, u := f.expandOneVar(format); e != "" {
+		e, u := f.expandOneVar(format)
+		if e != "" {
 			return " " + e, u, true
-		} else {
-			return "", u, true
 		}
+		return "", u, true
 	case '-':
-		if e, u := f.expandOneVar(format); e != "" {
+		e, u := f.expandOneVar(format)
+		if e != "" {
 			return e, u, true
-		} else {
-			f.append(strings.TrimRight(f.crush(), "\n"))
-			return "", u, true
 		}
+		f.append(strings.TrimRight(f.crush(), "\n"))
+		return "", u, true
 	case '<', '>':
 		if m := paddingPattern.FindStringSubmatch(string(firstChar) + format); len(m) == 7 {
 			if p := padderFromConfig(m[1], m[2], m[3], m[4], m[5]); p != nil {
@@ -195,8 +196,7 @@ const (
 type truncingMethod int
 
 const (
-	noTrunc truncingMethod = iota
-	truncLeft
+	truncLeft truncingMethod = iota
 	truncRight
 	truncMiddle
 )

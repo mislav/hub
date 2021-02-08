@@ -2,12 +2,11 @@ package git
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/github/hub/cmd"
+	"github.com/github/hub/v2/cmd"
 )
 
 var GlobalFlags []string
@@ -105,32 +104,6 @@ func HasFile(segments ...string) bool {
 	return false
 }
 
-func BranchAtRef(paths ...string) (name string, err error) {
-	dir, err := Dir()
-	if err != nil {
-		return
-	}
-
-	segments := []string{dir}
-	segments = append(segments, paths...)
-	path := filepath.Join(segments...)
-	b, err := ioutil.ReadFile(path)
-	if err != nil {
-		return
-	}
-
-	n := string(b)
-	refPrefix := "ref: "
-	if strings.HasPrefix(n, refPrefix) {
-		name = strings.TrimPrefix(n, refPrefix)
-		name = strings.TrimSpace(name)
-	} else {
-		err = fmt.Errorf("No branch info in %s: %s", path, n)
-	}
-
-	return
-}
-
 func Editor() (string, error) {
 	varCmd := gitCmd("var", "GIT_EDITOR")
 	varCmd.Stderr = nil
@@ -143,9 +116,18 @@ func Editor() (string, error) {
 }
 
 func Head() (string, error) {
-	return BranchAtRef("HEAD")
+	return SymbolicRef("HEAD")
 }
 
+// SymbolicRef reads a branch name from a ref such as "HEAD"
+func SymbolicRef(ref string) (string, error) {
+	refCmd := gitCmd("symbolic-ref", ref)
+	refCmd.Stderr = nil
+	output, err := refCmd.Output()
+	return firstLine(output), err
+}
+
+// SymbolicFullName reads a branch name from a ref such as "@{upstream}"
 func SymbolicFullName(name string) (string, error) {
 	parseCmd := gitCmd("rev-parse", "--symbolic-full-name", name)
 	parseCmd.Stderr = nil
@@ -355,17 +337,15 @@ func outputLines(output string) []string {
 	output = strings.TrimSuffix(output, "\n")
 	if output == "" {
 		return []string{}
-	} else {
-		return strings.Split(output, "\n")
 	}
+	return strings.Split(output, "\n")
 }
 
 func firstLine(output string) string {
 	if i := strings.Index(output, "\n"); i >= 0 {
 		return output[0:i]
-	} else {
-		return output
 	}
+	return output
 }
 
 func gitCmd(args ...string) *cmd.Cmd {

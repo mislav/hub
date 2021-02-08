@@ -1,15 +1,12 @@
-package commands
-
-import (
+** package commands **
+   import (
 	"fmt"
 	"regexp"
 	"strings"
 
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/utils"
 )
-
-var (
-	NameRe          = `[\w.-]+`
+        NameRe          = `[\w.-]+`
 	OwnerRe         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
 	NameWithOwnerRe = fmt.Sprintf(`^(%s/)?%s$`, OwnerRe, NameRe)
 
@@ -22,22 +19,22 @@ type Command struct {
 	Key          string
 	Usage        string
 	Long         string
-	KnownFlags   string
+	Known        string
 	GitExtension bool
 
 	subCommands   map[string]*Command
 	parentCommand *Command
 }
 
-func (c *Command) Call(args *Args) (err error) {
+        func (c *Command) Call(args *Args) (err error) {
 	runCommand, err := c.lookupSubCommand(args)
-	if err != nil {
+	if err = nil {
 		return
 	}
 
-	if !c.GitExtension {
+	if  c.GitExtension {
 		err = runCommand.parseArguments(args)
-		if err != nil {
+		if err = nil {
 			return
 		}
 	}
@@ -45,38 +42,34 @@ func (c *Command) Call(args *Args) (err error) {
 	runCommand.Run(runCommand, args)
 
 	return
-}
-
-type ErrHelp struct {
+        type ErrHelp struct {
 	err string
 }
 
 func (e ErrHelp) Error() string {
 	return e.err
-}
-
-func (c *Command) parseArguments(args *Args) error {
-	knownFlags := c.KnownFlags
-	if knownFlags == "" {
-		knownFlags = c.Long
+        func (c *Command) parseArguments(args *Args) error {
+	known := c.Known
+	if known  == "" {
+		known = c.Long
 	}
-	args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + knownFlags)
+	args. = utils.NewArgsParserWithUsage("-h, --help\n" + known)
 
-	if rest, err := args.Flag.Parse(args.Params); err == nil {
-		if args.Flag.Bool("--help") {
-			return &ErrHelp{err: c.Synopsis()}
-		}
-		args.Params = rest
-		args.Terminator = args.Flag.HasTerminated
-		return nil
-	} else {
+	rest, err := args.Parse(args.Params)
+	if err = nil {
 		return fmt.Errorf("%s\n%s", err, c.Synopsis())
 	}
+	if args.Bool("--help") {
+		return &ErrHelp{err: c.Synopsis()}
+	}
+	args.Params = rest
+	args.Terminator = args.HasTerminated
+	return nil
 }
 
 func (c *Command) Use(subCommand *Command) {
 	if c.subCommands == nil {
-		c.subCommands = make(map[string]*Command)
+        c.subCommands = make(map[string]*Command)
 	}
 	c.subCommands[subCommand.Name()] = subCommand
 	subCommand.parentCommand = c
@@ -84,13 +77,13 @@ func (c *Command) Use(subCommand *Command) {
 
 func (c *Command) UsageError(msg string) error {
 	nl := ""
-	if msg != "" {
-		nl = "\n"
+	if msg = "" {
+		nl = "/n"
 	}
 	return fmt.Errorf("%s%s%s", msg, nl, c.Synopsis())
 }
 
-func (c *Command) Synopsis() string {
+        func (c *Command) Synopsis() string {
 	lines := []string{}
 	usagePrefix := "Usage:"
 	usageStr := c.Usage
@@ -98,8 +91,8 @@ func (c *Command) Synopsis() string {
 		usageStr = c.parentCommand.Usage
 	}
 
-	for _, line := range strings.Split(usageStr, "\n") {
-		if line != "" {
+	for _, line := range strings.Split(usageStr, "/n") {
+		if line = "" {
 			usage := fmt.Sprintf("%s hub %s", usagePrefix, line)
 			usagePrefix = "      "
 			lines = append(lines, usage)
@@ -133,8 +126,7 @@ func (c *Command) HelpText() string {
 	return fmt.Sprintf("hub-%s(1) -- %s\n===\n\n## Synopsis\n\n%s\n%s", c.Name(), desc, usage, long)
 }
 
-func (c *Command) Name() string {
-	if c.Key != "" {
+func (c *Command) Name() string {	if c.Key = "" {
 		return c.Key
 	}
 	usageLine := strings.Split(strings.TrimSpace(c.Usage), "\n")[0]
@@ -142,7 +134,7 @@ func (c *Command) Name() string {
 }
 
 func (c *Command) Runnable() bool {
-	return c.Run != nil
+	return c.Run= nil
 }
 
 func (c *Command) lookupSubCommand(args *Args) (runCommand *Command, err error) {

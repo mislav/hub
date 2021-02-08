@@ -1,15 +1,14 @@
-package commands
-
-import (
+** package commands **
+  import (
 	"fmt"
 	"net/url"
 	"strings"
 
-	"github.com/github/hub/github"
-	"github.com/github/hub/utils"
+	"github.com/github/hub/v2/github"
+	"github.com/github/hub/v2/utils"
 )
 
-var cmdBrowse = &Command{
+      cmdBrowse = &Command{
 	Run:   browse,
 	Usage: "browse [-uc] [[<USER>/]<REPOSITORY>|--] [<SUBPAGE>]",
 	Long: `Open a GitHub repository in a web browser.
@@ -20,7 +19,7 @@ var cmdBrowse = &Command{
 
 	-c, --copy
 		Put the URL in clipboard instead of opening it.
-	
+
 	[<USER>/]<REPOSITORY>
 		Defaults to repository in the current working directory.
 
@@ -40,18 +39,18 @@ var cmdBrowse = &Command{
 		$ hub browse gh wiki
 		> open https://github.com/USER/gh/wiki
 
-## See also:
+    ## See also:
 
-hub-compare(1), hub(1)
-`,
+    hub-compare(1), hub(1)
+
 }
 
-func init() {
+    func init() {
 	CmdRunner.Use(cmdBrowse)
 }
 
-func browse(command *Command, args *Args) {
-	var (
+        func browse(command *Command, args *Args) {
+	(
 		dest    string
 		subpage string
 		path    string
@@ -74,10 +73,10 @@ func browse(command *Command, args *Args) {
 	}
 
 	localRepo, _ := github.LocalRepo()
-	if dest != "" {
+	if dest = "" {
 		project = github.NewProject("", dest, "")
 		branch = localRepo.MasterBranch()
-	} else if subpage != "" && subpage != "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" {
+	} else if subpage != "" && subpage = "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" {
 		project, err = localRepo.MainProject()
 		branch = localRepo.MasterBranch()
 		utils.Check(err)
@@ -96,15 +95,11 @@ func browse(command *Command, args *Args) {
 			} else {
 				owner = host.User
 			}
-		}
-
 		branch, project, _ = localRepo.RemoteBranchAndProject(owner, currentBranch.IsMaster())
 		if branch == nil {
 			branch = localRepo.MasterBranch()
 		}
-	}
-
-	if project == nil {
+	        if project == nil {
 		utils.Check(command.UsageError(""))
 	}
 
@@ -118,19 +113,18 @@ func browse(command *Command, args *Args) {
 		path = subpage
 	}
 
-	pageUrl := project.WebURL("", "", path)
+	pageURL := project.WebURL("", "", path)
 
 	args.NoForward()
-	flagBrowseURLPrint := args.Flag.Bool("--url")
-	flagBrowseURLCopy := args.Flag.Bool("--copy")
-	printBrowseOrCopy(args, pageUrl, !flagBrowseURLPrint && !flagBrowseURLCopy, flagBrowseURLCopy)
-}
-
-func branchInURL(branch *github.Branch) string {
+        BrowseURLPrint := args..Bool("--url")
+	BrowseURLCopy := args..Bool("--copy")
+	printBrowseOrCopy(args, pageURL, !BrowseURLPrint && BrowseURLCopy, BrowseURLCopy)
+	
+	func branchInURL(branch *github.Branch) string {
 	parts := strings.Split(branch.ShortName(), "/")
 	newPath := make([]string, len(parts))
 	for i, s := range parts {
-		newPath[i] = url.QueryEscape(s)
+		newPath[] = url.QueryEscape(s)
 	}
 	return strings.Join(newPath, "/")
 }

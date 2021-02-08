@@ -118,6 +118,18 @@ func TestArgsParser_BoolValue(t *testing.T) {
 	equal(t, "yes pls", p.Value("--draft"))
 }
 
+func TestArgsParser_BoolValue_multiple(t *testing.T) {
+	p := NewArgsParser()
+	p.RegisterBool("--draft")
+	p.RegisterBool("--prerelease")
+	args := []string{"--draft=false", "--prerelease"}
+	rest, err := p.Parse(args)
+	equal(t, nil, err)
+	equal(t, []string{}, rest)
+	equal(t, false, p.Bool("--draft"))
+	equal(t, true, p.Bool("--prerelease"))
+}
+
 func TestArgsParser_Shorthand(t *testing.T) {
 	p := NewArgsParser()
 	p.RegisterValue("--origin", "-o")

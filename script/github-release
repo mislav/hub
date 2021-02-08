@@ -1,13 +1,12 @@
 #!/bin/bash
-# Usage: script/cross-compile | script/github-release <name> <tag>
+# Usage: script/cross-compile | script/github-release <tag>
 #
 # Takes in a list of asset filenames + labels via stdin and uploads them to the
 # corresponding release on GitHub. The release is created as a draft first if
 # missing and its body is the git changelog since the previous tagged release.
 set -e
 
-project_name="${1?}"
-tag_name="${2?}"
+tag_name="${1?}"
 [[ $tag_name == *-* ]] && pre=1 || pre=
 
 assets=()
@@ -15,15 +14,9 @@ while read -r filename label; do
   assets+=( -a "${filename}#${label}" )
 done
 
-notes="$(git tag --list "$tag_name" --format='%(contents:subject)%0a%0a%(contents:body)')"
-
 if hub release --include-drafts | grep -q "^${tag_name}\$"; then
   hub release edit "$tag_name" -m "" "${assets[@]}"
-elif [ $(wc -l <<<"$notes") -gt 1 ]; then
-  hub release create ${pre:+--prerelease} -F - "$tag_name" "${assets[@]}" <<<"$notes"
 else
-  { echo "${project_name} ${tag_name#v}"
-    echo
-    script/changelog
-  } | hub release create --draft ${pre:+--prerelease} -F - "$tag_name" "${assets[@]}"
+  git tag --list "$tag_name" --format='%(contents:subject)%0a%0a%(contents:body)' | \
+    hub release create ${pre:+--prerelease} -F- "$tag_name" "${assets[@]}"
 fi
