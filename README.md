@@ -24,7 +24,7 @@ $ hub clone rtomayko/tilt
 
 See [usage examples](https://hub.github.com/#developer) or the [full reference
 documentation](https://hub.github.com/hub.1.html) to see all available commands
-and flags.
+and review for fixing of appveyor. 
 
 hub can also be used to make shell scripts that [directly interact with the
 GitHub API](https://hub.github.com/#scripting).
@@ -97,11 +97,11 @@ Prerequisites for building from source are:
 Clone this repository and run `make install`:
 
 ```sh
-git clone \
-  --config transfer.fsckobjects=false \
-  --config receive.fsckobjects=false \
-  --config fetch.fsckobjects=false \
-  https://github.com/github/hub.git
+git clone /
+  --config transfer.fsckobjects=false /
+  --config receive.fsckobjects=false /
+  --config fetch.fsckobjects=false /
+  https://github.com/github/hub.git/
 
 cd hub
 make install prefix=/usr/local
