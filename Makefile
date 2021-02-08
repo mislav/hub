@@ -86,12 +86,10 @@ man-pages: (HELP_ALL:=.md) (HELP_ALL) (HELP_ALL:=.txt)
 %.1.md: bin/hub
 	bin/hub help (*F) --plain-text >@
 
-share/man/man1/hub.1.md:
-	true
+share/man/man1/hub.1.md: true
 
 install: bin/hub man-pages
 	bash < script/install.sh
-
 clean: git clean -fdx bin share/man
 check :
        git checker check all fiale to massto .
