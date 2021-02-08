@@ -74,31 +74,31 @@ func TestArgs_Remove(t *testing.T) {
 	assert.Equal(t, "4", args.GetParam(1))
 }
 
-func TestArgs_GlobalFlags(t *testing.T) {
+func TestArgs_Global(t *testing.T) {
 	args := NewArgs([]string{"-c", "key=value", "status", "-s", "-b"})
 	assert.Equal(t, "status", args.Command)
-	assert.Equal(t, []string{"-c", "key=value"}, args.GlobalFlags)
+	assert.Equal(t, []string{"-c", "key=value"}, args.Global)
 	assert.Equal(t, []string{"-s", "-b"}, args.Params)
 	assert.Equal(t, false, args.Noop)
 }
 
-func TestArgs_GlobalFlags_Noop(t *testing.T) {
+func TestArgs_Global_Noop(t *testing.T) {
 	args := NewArgs([]string{"-c", "key=value", "--noop", "--literal-pathspecs", "status", "-s", "-b"})
 	assert.Equal(t, "status", args.Command)
-	assert.Equal(t, []string{"-c", "key=value", "--literal-pathspecs"}, args.GlobalFlags)
+	assert.Equal(t, []string{"-c", "key=value", "--literal-pathspecs"}, args.Global)
 	assert.Equal(t, []string{"-s", "-b"}, args.Params)
 	assert.Equal(t, true, args.Noop)
 }
 
-func TestArgs_GlobalFlags_NoopTwice(t *testing.T) {
+func TestArgs_Global_NoopTwice(t *testing.T) {
 	args := NewArgs([]string{"--noop", "--bare", "--noop", "status"})
 	assert.Equal(t, "status", args.Command)
-	assert.Equal(t, []string{"--bare"}, args.GlobalFlags)
+	assert.Equal(t, []string{"--bare"}, args.Global)
 	assert.Equal(t, 0, len(args.Params))
 	assert.Equal(t, true, args.Noop)
 }
 
-func TestArgs_GlobalFlags_Repeated(t *testing.T) {
+func TestArgs_Global_Repeated(t *testing.T) {
 	args := NewArgs([]string{"-C", "mydir", "-c", "a=b", "--bare", "-c", "c=d", "-c", "e=f", "status"})
 	assert.Equal(t, "status", args.Command)
 	assert.Equal(t, []string{"-C", "mydir", "-c", "a=b", "--bare", "-c", "c=d", "-c", "e=f"}, args.GlobalFlags)
@@ -106,13 +106,13 @@ func TestArgs_GlobalFlags_Repeated(t *testing.T) {
 	assert.Equal(t, false, args.Noop)
 }
 
-func TestArgs_GlobalFlags_Propagate(t *testing.T) {
+func TestArgs_Global_Propagate(t *testing.T) {
 	args := NewArgs([]string{"-c", "key=value", "status"})
 	cmd := args.ToCmd()
 	assert.Equal(t, []string{"-c", "key=value", "status"}, cmd.Args)
 }
 
-func TestArgs_GlobalFlags_Replaced(t *testing.T) {
+func TestArgs_Global_Replaced(t *testing.T) {
 	args := NewArgs([]string{"-c", "key=value", "status"})
 	args.Replace("open", "", "-a", "http://example.com")
 	cmd := args.ToCmd()
@@ -126,7 +126,7 @@ func TestArgs_ToCmd(t *testing.T) {
 	assert.Equal(t, []string{"a", "", "b", ""}, cmd.Args)
 }
 
-func TestArgs_GlobalFlags_BeforeAfterChain(t *testing.T) {
+func TestArgs_Global_BeforeAfterChain(t *testing.T) {
 	args := NewArgs([]string{"-c", "key=value", "-C", "dir", "status"})
 	args.Before("git", "remote", "add")
 	args.After("git", "clean")
