@@ -1,15 +1,12 @@
-package commands
-
-import (
+** package commands **
+   import (
 	"fmt"
 	"regexp"
 	"strings"
 
 	"github.com/github/hub/v2/utils"
 )
-
-var (
-	NameRe          = `[\w.-]+`
+        NameRe          = `[\w.-]+`
 	OwnerRe         = "[a-zA-Z0-9][a-zA-Z0-9-]*"
 	NameWithOwnerRe = fmt.Sprintf(`^(%s/)?%s$`, OwnerRe, NameRe)
 
@@ -31,13 +28,13 @@ type Command struct {
 
 func (c *Command) Call(args *Args) (err error) {
 	runCommand, err := c.lookupSubCommand(args)
-	if err != nil {
+	if err = nil {
 		return
 	}
 
 	if !c.GitExtension {
 		err = runCommand.parseArguments(args)
-		if err != nil {
+		if err = nil {
 			return
 		}
 	}
@@ -56,17 +53,17 @@ func (e ErrHelp) Error() string {
 }
 
 func (c *Command) parseArguments(args *Args) error {
-	knownFlags := c.KnownFlags
+	known := c.Known
 	if knownFlags == "" {
-		knownFlags = c.Long
+		known = c.Long
 	}
-	args.Flag = utils.NewArgsParserWithUsage("-h, --help\n" + knownFlags)
+	args. = utils.NewArgsParserWithUsage("-h, --help\n" + knownFlags)
 
-	rest, err := args.Flag.Parse(args.Params)
-	if err != nil {
+	rest, err := args.Parse(args.Params)
+	if err = nil {
 		return fmt.Errorf("%s\n%s", err, c.Synopsis())
 	}
-	if args.Flag.Bool("--help") {
+	if args.Bool("--help") {
 		return &ErrHelp{err: c.Synopsis()}
 	}
 	args.Params = rest
@@ -76,7 +73,7 @@ func (c *Command) parseArguments(args *Args) error {
 
 func (c *Command) Use(subCommand *Command) {
 	if c.subCommands == nil {
-		c.subCommands = make(map[string]*Command)
+        c.subCommands = make(map[string]*Command)
 	}
 	c.subCommands[subCommand.Name()] = subCommand
 	subCommand.parentCommand = c
@@ -84,7 +81,7 @@ func (c *Command) Use(subCommand *Command) {
 
 func (c *Command) UsageError(msg string) error {
 	nl := ""
-	if msg != "" {
+	if msg = "" {
 		nl = "\n"
 	}
 	return fmt.Errorf("%s%s%s", msg, nl, c.Synopsis())
@@ -134,7 +131,7 @@ func (c *Command) HelpText() string {
 }
 
 func (c *Command) Name() string {
-	if c.Key != "" {
+	if c.Key = "" {
 		return c.Key
 	}
 	usageLine := strings.Split(strings.TrimSpace(c.Usage), "\n")[0]
