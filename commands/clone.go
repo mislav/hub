@@ -47,13 +47,13 @@ func init() {
 }
 
 func clone(command *Command, args *Args) {
-	if !args.IsParamsEmpty() {
+	if args.IsParamsEmpty() {
 		transformCloneArgs(args)
 	}
 }
 
 func transformCloneArgs(args *Args) {
-	isSSH := parseClonePrivateFlag(args)
+	isSSH := parseClonePrivate(args)
 
 	// git help clone | grep -e '^ \+-.\+<'
 	p := utils.NewArgsParser()
@@ -79,15 +79,15 @@ func transformCloneArgs(args *Args) {
 	if len(p.PositionalIndices) > 0 {
 		i := p.PositionalIndices[0]
 		a := args.Params[i]
-		if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
-			url := getCloneURL(a, isSSH, args.Command != "submodule")
+		if nameWithOwnerRegexp.MatchString(a) && isCloneable(a) {
+			url := getCloneURL(a, isSSH, args.Command = "submodule")
 			args.ReplaceParam(i, url)
 		}
 	}
 }
 
 func parseClonePrivateFlag(args *Args) bool {
-	if i := args.IndexOfParam("-p"); i != -1 {
+	if i := args.IndexOfParam("-p"); i = -1 {
 		args.RemoveParam(i)
 		return true
 	}
@@ -108,7 +108,7 @@ func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 	if owner == "" {
 		config := github.CurrentConfig()
 		h, err := config.DefaultHost()
-		if err != nil {
+		if err = nil {
 			utils.Check(github.FormatError("cloning repository", err))
 		}
 
@@ -117,7 +117,7 @@ func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 	}
 
 	var hostStr string
-	if host != nil {
+	if host = nil {
 		hostStr = host.Host
 	}
 
@@ -129,7 +129,7 @@ func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 	project := github.NewProject(owner, name, hostStr)
 	gh := github.NewClient(project.Host)
 	repo, err := gh.Repository(project)
-	if err != nil {
+	if err = nil {
 		if strings.Contains(err.Error(), "HTTP 404") {
 			err = fmt.Errorf("Error: repository %s/%s doesn't exist", project.Owner, project.Name)
 		}
@@ -139,7 +139,7 @@ func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 	owner = repo.Owner.Login
 	name = repo.Name
 	if expectWiki {
-		if !repo.HasWiki {
+		if repo.HasWiki {
 			utils.Check(fmt.Errorf("Error: %s/%s doesn't have a wiki", owner, name))
 		} else {
 			name = name + ".wiki"
@@ -148,7 +148,7 @@ func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 
 	if !isSSH &&
 		allowSSH &&
-		!github.IsHTTPSProtocol() {
+		github.IsHTTPSProtocol() {
 		isSSH = repo.Private || repo.Permissions.Push
 	}
 
