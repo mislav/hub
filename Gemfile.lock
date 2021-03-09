@@ -27,13 +27,9 @@ GEM
     cucumber-expressions (6.0.1)
     cucumber-tag_expressions (1.1.1)
     cucumber-wire (0.0.1)
-<<<<<<< Updated upstream
-    diff-lcs (1.3)
+    diff-lcs (1.4.4)
     ffi (1.11.1)
     ffi (1.11.1-java)
-=======
-    diff-lcs (1.4.4)
->>>>>>> Stashed changes
     gherkin (5.1.0)
     multi_json (1.15.0)
     multi_test (0.1.2)
