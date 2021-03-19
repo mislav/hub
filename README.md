@@ -48,7 +48,7 @@ Fedora Linux | [DNF](https://fedoraproject.org/wiki/DNF) | `sudo dnf install hub
 Arch Linux | [pacman](https://wiki.archlinux.org/index.php/pacman) | `sudo pacman -S hub`
 FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
 Debian | [apt(8)](https://manpages.debian.org/buster/apt/apt.8.en.html) | `sudo apt install hub`
-Ubuntu | [Snap](https://snapcraft.io) | [We do not recommend installing the snap anymore.](https://github.com/github/hub/issues?q=is%3Aissue+snap)
+Ubuntu | [[apt(8)](http://manpages.ubuntu.com/manpages/focal/man8/apt.8.html)<sup>1</sup> | `sudo apt install hub`
 openSUSE | [Zypper](https://en.opensuse.org/SDB:Zypper_manual) | `sudo zypper install hub`
 Void Linux | [xbps](https://github.com/void-linux/xbps) | `sudo xbps-install -S hub`
 Gentoo | [Portage](https://wiki.gentoo.org/wiki/Portage) | `sudo emerge dev-vcs/hub`
@@ -58,6 +58,8 @@ _any_ | [conda](https://docs.conda.io/en/latest/) | `conda install -c conda-forg
 Packages other than Homebrew are community-maintained (thank you!) and they
 are not guaranteed to match the [latest hub release][latest]. Check `hub
 version` after installing a community package.
+
+<sup>1</sup> [We do not recommend installing the snap anymore.](https://github.com/github/hub/issues?q=is%3Aissue+snap)
 
 #### Standalone
 
