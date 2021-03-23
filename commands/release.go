@@ -107,6 +107,9 @@ With no arguments, shows a list of existing releases.
 	-i, --include <PATTERN>
 		Filter the files in the release to those that match the glob <PATTERN>.
 
+	--newtag <TAG-NAME>
+		Update the tag associated with the release.
+
 	-f, --format <FORMAT>
 		Pretty print releases using <FORMAT> (default: "%T%n"). See the "PRETTY
 		FORMATS" section of git-log(1) for some additional details on how
@@ -209,6 +212,7 @@ hub(1), git-tag(1)
 		-m, --message MSG
 		-F, --file FILE
 		-t, --commitish C
+		--newtag TAG
 `,
 	}
 
@@ -568,6 +572,9 @@ func editRelease(cmd *Command, args *Args) {
 	params := map[string]interface{}{}
 	if args.Flag.HasReceived("--commitish") {
 		params["target_commitish"] = args.Flag.Value("--commitish")
+	}
+	if args.Flag.HasReceived("--newtag") {
+		params["tag_name"] = args.Flag.Value("--newtag")
 	}
 	if args.Flag.HasReceived("--draft") {
 		params["draft"] = args.Flag.Bool("--draft")

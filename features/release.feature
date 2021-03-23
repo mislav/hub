@@ -619,6 +619,24 @@ MARKDOWN
       Aborting editing due to empty release title\n
       """
 
+  Scenario: Edit existing release tag name
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/will_paginate/releases') {
+        json [
+          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+            tag_name: 'v1.2.0'
+          }
+        ]
+      }
+      patch('/repos/mislav/will_paginate/releases/123') {
+        assert :tag_name => 'v1.2.1'
+        json({})
+      }
+      """
+    When I successfully run `hub release edit v1.2.0 --newtag v1.2.1 -m ""`
+    Then the output should not contain anything
+
   Scenario: Edit existing release by uploading assets
     Given the GitHub API server:
       """
