@@ -171,10 +171,10 @@ Feature: hub fork
       }
       """
     When I run `hub fork`
-    Then the exit status should be 128
+    Then the exit status should be 3
     And the stderr should contain exactly:
       """
-      fatal: remote mislav already exists.\n
+      error: remote mislav already exists.\n
       """
     And the url for "mislav" should be "git@github.com:mislav/unrelated.git"
 
