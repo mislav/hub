@@ -26,7 +26,7 @@ Feature: OAuth authentication
     When I type "mislav"
     And I type "kitty"
     Then the output should contain "github.com username:"
-    And the output should contain "github.com password for mislav (never stored):"
+    And the output should contain "github.com access token with scope 'repo' for mislav (generate one at https://github.com/settings/tokens):"
     And the exit status should be 0
     And the file "~/.config/hub" should contain "user: MiSlAv"
     And the file "~/.config/hub" should contain "oauth_token: OTOKEN"
@@ -159,7 +159,7 @@ Feature: OAuth authentication
     Given $GITHUB_USER is "mislav"
     And $GITHUB_PASSWORD is "kitty"
     When I successfully run `hub create`
-    Then the output should not contain "github.com password for mislav"
+    Then the output should not contain "github.com access token with scope 'repo' for mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
   Scenario: XDG: legacy config found, credentials from GITHUB_USER & GITHUB_PASSWORD
@@ -371,7 +371,7 @@ Feature: OAuth authentication
     When I type "mislav"
     And I type "kitty"
     And I type "112233"
-    Then the output should contain "github.com password for mislav (never stored):"
+    Then the output should contain "github.com access token with scope 'repo' for mislav (generate one at https://github.com/settings/tokens):"
     Then the output should contain "two-factor authentication code:"
     And the output should not contain "warning: invalid two-factor code"
     And the exit status should be 0
@@ -429,7 +429,7 @@ Feature: OAuth authentication
     When I run `hub create` interactively
     When I type "mislav@example.com"
     And I type "my pass@phrase ok?"
-    Then the output should contain "github.com password for mislav@example.com (never stored):"
+    Then the output should contain "github.com access token with scope 'repo' for mislav@example.com (generate one at https://github.com/settings/tokens):"
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
@@ -457,7 +457,7 @@ Feature: OAuth authentication
     When I run `hub fork` interactively
     And I type "mislav"
     And I type "kitty"
-    Then the output should contain "git.my.org password for mislav (never stored):"
+    Then the output should contain "git.my.org access token with scope 'repo' for mislav (generate one at https://git.my.org/settings/tokens):"
     And the exit status should be 0
     And the file "../home/.config/hub" should contain "git.my.org"
     And the file "../home/.config/hub" should contain "user: mislav"
