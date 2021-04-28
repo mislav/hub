@@ -19,6 +19,14 @@ if [ -f /path/to/hub.bash_completion.sh ]; then
 fi
 ```
 
+Alternatively, to have completions dynamically loaded 
+(see the [bash-completion FAQ](https://github.com/scop/bash-completion#faq)):
+
+```sh
+cd ~/.local/share/bash-completion/completions/
+ln -s /path/to/hub.bash_completion.sh hub.bash
+```
+
 ## zsh
 
 Copy the file `etc/hub.zsh_completion` from the location where you downloaded
