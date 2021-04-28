@@ -14,8 +14,8 @@ Homebrew programs](https://docs.brew.sh/Shell-Completion).
 Open your `.bashrc` file if you're on Linux, or your `.bash_profile` if you're on macOS and add:
 
 ```sh
-if [ -f /path/to/hub.bash_completion ]; then
-  . /path/to/hub.bash_completion
+if [ -f /path/to/hub.bash_completion.sh ]; then
+  . /path/to/hub.bash_completion.sh
 fi
 ```
 
