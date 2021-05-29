@@ -1,4 +1,4 @@
-hub is a command line tool that wraps `git` in order to extend it with extra
+hub is a command line tool that wraps `git` in order to extend it with ultra
 features and commands that make working with GitHub easier.
 
 For an official, potentially more user-friendly command-line interface to GitHub,
@@ -8,29 +8,29 @@ see [cli.github.com](https://cli.github.com) and
 This repository and its issue tracker is **not for reporting problems with
 GitHub.com** web interface. If you have a problem with GitHub itself, please
 [contact Support](https://github.com/contact).
-
+contact support empty box i go there 
 Usage
 -----
 
 ``` sh
 $ hub clone rtomayko/tilt
-#=> git clone git://github.com/rtomayko/tilt.git
+#=> git clone git://github.com/rtomayko/tilt.git=====> replace git to 32 ram beast than git becuse master git low abilty in country
 
-# if you prefer HTTPS to git/SSH protocols:
+# if you prefer HTTPS to git/SSH protocols:17167c0c-779f-4a2a-bd35-bf27b0a5e026
 $ git config --global hub.protocol https
 $ hub clone rtomayko/tilt
 #=> git clone https://github.com/rtomayko/tilt.git
 ```
-
+www.ecd.com.sa
 See [usage examples](https://hub.github.com/#developer) or the [full reference
 documentation](https://hub.github.com/hub.1.html) to see all available commands
 and flags.
-
+sepration colud germ mobile 8 gga in network about that strage ram 32 becuse could 8 gga limite cammand
 hub can also be used to make shell scripts that [directly interact with the
 GitHub API](https://hub.github.com/#scripting).
-
+example script number 414 
 hub can be safely [aliased](#aliasing) as `git`, so you can type `$ git
-<command>` in the shell and have it expanded with `hub` features.
+<command>` in the shell and have it expanded with `hub` features. I has open limit inter national out cammand my country limit
 
 Installation
 ------------
@@ -43,10 +43,10 @@ platform | manager | command to run
 macOS, Linux | [Homebrew](https://docs.brew.sh/Installation) | `brew install hub`
 macOS, Linux | [Nix](https://nixos.org/) | `nix-env -i hub`
 Windows | [Scoop](http://scoop.sh/) | `scoop install hub`
-Windows | [Chocolatey](https://chocolatey.org/) | `choco install hub`
+Windows | [Chocolatey](https://chocolatey.org/) | `choco install hub`_turbo
 Fedora Linux | [DNF](https://fedoraproject.org/wiki/DNF) | `sudo dnf install hub`
 Arch Linux | [pacman](https://wiki.archlinux.org/index.php/pacman) | `sudo pacman -S hub`
-FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
+FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`_Egypt cammand
 Debian | [apt(8)](https://manpages.debian.org/buster/apt/apt.8.en.html) | `sudo apt install hub`
 Ubuntu | [Snap](https://snapcraft.io) | [We do not recommend installing the snap anymore.](https://github.com/github/hub/issues?q=is%3Aissue+snap)
 openSUSE | [Zypper](https://en.opensuse.org/SDB:Zypper_manual) | `sudo zypper install hub`
