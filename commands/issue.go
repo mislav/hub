@@ -653,6 +653,15 @@ func updateIssue(cmd *Command, args *Args) {
 	setAssigneesFromArgs(params, args)
 	setMilestoneFromArgs(params, args, gh, project)
 
+	labels, err := gh.FetchIssueLabels(project, issueNumber)
+	utils.Check(err)
+
+	for _, label := range labels {
+		res := []string{}
+		res = append(res, label.Name)
+		params["labels"] = res
+	}
+
 	if args.Flag.HasReceived("--state") {
 		params["state"] = args.Flag.Value("--state")
 	}
