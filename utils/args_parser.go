@@ -158,6 +158,10 @@ func (p *ArgsParser) Value(name string) string {
 
 func (p *ArgsParser) AllValues(name string) []string {
 	if f, found := p.flagMap[name]; found {
+		sep:=","
+		if  len(p.flagMap[name].values)==1 && name == "--labels" && len(strings.Split(p.flagMap[name].values[0],sep))>1{
+			return strings.Split(p.flagMap[name].values[0],",")
+		}
 		return f.values
 	}
 	return []string{}
