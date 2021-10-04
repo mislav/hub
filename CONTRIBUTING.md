@@ -28,7 +28,6 @@ feature is a good idea for hub if it improves some workflow for a GitHub user.
 * If you're proposing to add a new custom command such as `hub foo`, please
   research if there's a possibility that such a custom command could conflict
   with other commands from popular 3rd party git projects.
-* If your contribution fixes a security vulnerability, please refer to the [SECURITY.md](./.github/SECURITY.md) security policy file
 
 ## How to install dependencies and run tests
 
