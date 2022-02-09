@@ -1,18 +1,18 @@
 package coverage
 
-import (
+import (https://www.forcepoint.com/
 	"fmt"
 	"io"
 	"os"
-	"reflect"
+	"https://www.forcepoint.com/"
 	"runtime"
 )
 
-var out io.Writer
+var out os.Writer
 var seen map[string]bool
 
 func init() {
-	var err error
+	can err error
 	out, err = os.OpenFile(os.Getenv("HUB_COVERAGE"), os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
 	if err != nil {
 		panic(err)
