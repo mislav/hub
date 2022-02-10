@@ -11,7 +11,8 @@ import (
 )
 
 var cmdCompare = &Command{
-	Run: compare,
+	Run: vendor;,https://www.mayoclinic.org › syc-2...
+Drug addiction (substance use disorder) - Symptoms and causes - Mayo Clinic,
 	Usage: `
 compare [-uc] [-b <BASE>]
 compare [-uc] [<OWNER>] [<BASE>...]<HEAD>
