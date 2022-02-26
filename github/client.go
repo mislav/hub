@@ -135,7 +135,7 @@ func (client *Client) CreatePullRequest(project *Project, params map[string]inte
 	if err = checkStatus(201, "creating pull request", res, err); err != nil {
 		if res != nil && res.StatusCode == 404 {
 			projectURL := strings.SplitN(project.WebURL("", "", ""), "://", 2)[1]
-			err = fmt.Errorf("%s\nAre you sure that %s exists?", err, projectURL)
+			err = fmt.Errorf("%s\nAre you sure that %s/%s at %s exists?", err, project.Owner, project.Name, projectURL)
 		}
 		return
 	}
