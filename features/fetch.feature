@@ -45,6 +45,20 @@ Feature: hub fetch
       """
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
+    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
+    And the output should not contain anything
+
+  Scenario: Creates new remote with git
+    Given git is preferred
+    Given the GitHub API server:
+      """
+      get('/repos/mislav/dotfiles') {
+        json :private => false,
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub fetch mislav`
+    Then "git fetch mislav" should be run
     And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
     And the output should not contain anything
 
@@ -58,7 +72,7 @@ Feature: hub fetch
       """
     When I successfully run `hub fetch ankit-maverick`
     Then "git fetch ankit-maverick" should be run
-    And the url for "ankit-maverick" should be "git://github.com/ankit-maverick/dotfiles.git"
+    And the url for "ankit-maverick" should be "https://github.com/ankit-maverick/dotfiles.git"
     And the output should not contain anything
 
   Scenario: HTTPS is preferred
@@ -121,8 +135,8 @@ Feature: hub fetch
       """
     When I successfully run `hub fetch --multiple mislav rtomayko`
     Then "git fetch --multiple mislav rtomayko" should be run
-    And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
-    And the url for "rtomayko" should be "git://github.com/rtomayko/dotfiles.git"
+    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
+    And the url for "rtomayko" should be "https://github.com/rtomayko/dotfiles.git"
 
   Scenario: Fetch multiple with filtering
     Given the GitHub API server:
@@ -133,9 +147,9 @@ Feature: hub fetch
       }
       """
     When I successfully run `git config remotes.mygrp "foo bar"`
-    When I successfully run `hub fetch --multiple origin mislav mygrp git://example.com typo`
-    Then "git fetch --multiple origin mislav mygrp git://example.com typo" should be run
-    And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
+    When I successfully run `hub fetch --multiple origin mislav mygrp https://example.com typo`
+    Then "git fetch --multiple origin mislav mygrp https://example.com typo" should be run
+    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
     But there should be no "mygrp" remote
     And there should be no "typo" remote
 
@@ -149,9 +163,9 @@ Feature: hub fetch
       """
     When I successfully run `hub fetch mislav,rtomayko,dustinleblanc`
     Then "git fetch --multiple mislav rtomayko dustinleblanc" should be run
-    And the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
-    And the url for "rtomayko" should be "git://github.com/rtomayko/dotfiles.git"
-    And the url for "dustinleblanc" should be "git://github.com/dustinleblanc/dotfiles.git"
+    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
+    And the url for "rtomayko" should be "https://github.com/rtomayko/dotfiles.git"
+    And the url for "dustinleblanc" should be "https://github.com/dustinleblanc/dotfiles.git"
 
   Scenario: Doesn't create a new remote if repo doesn't exist on GitHub
     Given the GitHub API server:
