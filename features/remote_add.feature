@@ -60,7 +60,7 @@ Feature: hub remote add
       }
       """
     When I successfully run `hub remote add mislav`
-    Then the url for "mislav" should be "git://github.com/mislav/dotfiles.git"
+    Then the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Add detected private remote
@@ -123,7 +123,7 @@ Feature: hub remote add
       }
       """
     When I successfully run `hub remote add -f mislav`
-    Then "git remote add -f mislav git://github.com/mislav/dotfiles.git" should be run
+    Then "git remote add -f mislav https://github.com/mislav/dotfiles.git" should be run
     And the output should not contain anything
 
   Scenario: Add remote with branch argument
@@ -136,7 +136,7 @@ Feature: hub remote add
       }
       """
     When I successfully run `hub remote add -f -t feature mislav`
-    Then "git remote add -f -t feature mislav git://github.com/mislav/dotfiles.git" should be run
+    Then "git remote add -f -t feature mislav https://github.com/mislav/dotfiles.git" should be run
     And the output should not contain anything
 
   Scenario: Add HTTPS protocol remote
@@ -163,7 +163,7 @@ Feature: hub remote add
       }
       """
     When I successfully run `hub remote add mm mislav`
-    Then the url for "mm" should be "git://github.com/mislav/dotfiles.git"
+    Then the url for "mm" should be "https://github.com/mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: set-url
@@ -175,9 +175,9 @@ Feature: hub remote add
              :permissions => { :push => false }
       }
       """
-    Given the "origin" remote has url "git://github.com/evilchelu/dotfiles.git"
+    Given the "origin" remote has url "https://github.com/evilchelu/dotfiles.git"
     When I successfully run `hub remote set-url origin mislav`
-    Then the url for "origin" should be "git://github.com/mislav/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Add public remote including repo name
@@ -190,7 +190,7 @@ Feature: hub remote add
       }
       """
     When I successfully run `hub remote add mislav/dotfilez.js`
-    Then the url for "mislav" should be "git://github.com/mislav/dotfilez.js.git"
+    Then the url for "mislav" should be "https://github.com/mislav/dotfilez.js.git"
     And the output should not contain anything
 
   Scenario: Add named public remote including repo name
@@ -203,7 +203,7 @@ Feature: hub remote add
       }
       """
     When I successfully run `hub remote add mm mislav/dotfilez.js`
-    Then the url for "mm" should be "git://github.com/mislav/dotfilez.js.git"
+    Then the url for "mm" should be "https://github.com/mislav/dotfilez.js.git"
     And the output should not contain anything
 
   Scenario: Add named private remote
