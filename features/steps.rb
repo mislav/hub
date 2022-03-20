@@ -4,6 +4,10 @@ Given(/^HTTPS is preferred$/) do
   run_command_and_stop %(git config --global hub.protocol https)
 end
 
+Given(/^git is preferred$/) do
+  run_command_and_stop %(git config --global hub.protocol git)
+end
+
 Given(/^there are no remotes$/) do
   run_command_and_stop 'git remote'
   expect(last_command_started).not_to have_output
