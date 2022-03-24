@@ -52,7 +52,7 @@ Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
 end
 
 Given(/^a (bare )?git repo in "([^"]*)"$/) do |bare, dir_name|
-  run_ignored_command %(git init --quiet #{"--bare" if bare} '#{dir_name}')
+  run_ignored_command %(git -c init.defaultBranch=master init --quiet #{"--bare" if bare} '#{dir_name}')
 end
 
 Given(/^a git bundle named "([^"]*)"$/) do |file|

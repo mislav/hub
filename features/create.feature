@@ -107,7 +107,7 @@ Feature: hub create
 
   Scenario: Cannot create from bare repo
     Given the current dir is not a repo
-    And I run `git init --bare`
+    And I run `git -c init.defaultBranch=main init --bare`
     When I run `hub create`
     Then the stderr should contain exactly "unable to determine git working directory\n"
     And the exit status should be 1
