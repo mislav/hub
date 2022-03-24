@@ -35,6 +35,8 @@ type Host struct {
 
 type Config struct {
 	Hosts []*Host `toml:"hosts"`
+
+	stdinScanner *bufio.Scanner
 }
 
 func (c *Config) PromptForHost(host string) (h *Host, err error) {
@@ -181,8 +183,11 @@ func (c *Config) PromptForOTP() string {
 }
 
 func (c *Config) scanLine() string {
+	if c.stdinScanner == nil {
+		c.stdinScanner = bufio.NewScanner(os.Stdin)
+	}
 	var line string
-	scanner := bufio.NewScanner(os.Stdin)
+	scanner := c.stdinScanner
 	if scanner.Scan() {
 		line = scanner.Text()
 	}

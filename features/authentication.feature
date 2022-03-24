@@ -504,9 +504,9 @@ Feature: OAuth authentication
   Scenario: Config file is not writeable, should exit before asking for credentials
       Given $HUB_CONFIG is "/InvalidConfigFile"
       When I run `hub create` interactively
-      Then the output should contain exactly:
+      Then the output should contain:
         """
-        open /InvalidConfigFile: permission denied\n
+        open /InvalidConfigFile:
         """
       And the exit status should be 1
       And the file "../home/.config/hub" should not exist
