@@ -1,7 +1,7 @@
 require 'fileutils'
 
 Given(/^HTTPS is preferred$/) do
-  run_command_and_stop %(git config --global hub.protocol https)
+  run_ignored_command %(git config --global hub.protocol https)
 end
 
 Given(/^git is preferred$/) do
@@ -9,24 +9,24 @@ Given(/^git is preferred$/) do
 end
 
 Given(/^there are no remotes$/) do
-  run_command_and_stop 'git remote'
-  expect(last_command_started).not_to have_output
+  output = run_ignored_command 'git remote'
+  expect(output).to be_empty
 end
 
 Given(/^"([^"]*)" is a whitelisted Enterprise host$/) do |host|
-  run_command_and_stop %(git config --global --add hub.host "#{host}")
+  run_ignored_command %(git config --global --add hub.host "#{host}")
 end
 
 Given(/^git "(.+?)" is set to "(.+?)"$/) do |key, value|
-  run_command_and_stop %(git config #{key} "#{value}")
+  run_ignored_command %(git config #{key} "#{value}")
 end
 
 Given(/^the "([^"]*)" remote has(?: (push))? url "([^"]*)"$/) do |remote_name, push, url|
-  run_command_and_stop 'git remote'
-  unless last_command_started.stdout.split("\n").include? remote_name
-    run_command_and_stop %(git remote add #{remote_name} "#{url}")
+  remotes = run_ignored_command 'git remote'
+  unless remotes.split("\n").include? remote_name
+    run_ignored_command %(git remote add #{remote_name} "#{url}")
   else
-    run_command_and_stop %(git remote set-url #{"--push" if push} #{remote_name} "#{url}")
+    run_ignored_command %(git remote set-url #{"--push" if push} #{remote_name} "#{url}")
   end
 end
 
@@ -56,7 +56,7 @@ Given(/^I am in "([^"]*)" git repo$/) do |dir_name|
 end
 
 Given(/^a (bare )?git repo in "([^"]*)"$/) do |bare, dir_name|
-  run_command_and_stop %(git init --quiet #{"--bare" if bare} '#{dir_name}')
+  run_ignored_command %(git -c init.defaultBranch=master init --quiet #{"--bare" if bare} '#{dir_name}')
 end
 
 Given(/^a git bundle named "([^"]*)"$/) do |file|
@@ -75,8 +75,8 @@ end
 Given(/^there is a commit named "([^"]+)"$/) do |name|
   empty_commit
   empty_commit
-  run_command_and_stop %(git tag #{name})
-  run_command_and_stop %(git reset --quiet --hard HEAD^)
+  run_ignored_command %(git tag #{name})
+  run_ignored_command %(git reset --quiet --hard HEAD^)
 end
 
 Given(/^there is a git FETCH_HEAD$/) do
@@ -87,7 +87,7 @@ Given(/^there is a git FETCH_HEAD$/) do
       fetch_head.puts "%s\t\t'refs/heads/made-up' of git://github.com/made/up.git" % `git rev-parse HEAD`.chomp
     end
   end
-  run_command_and_stop %(git reset --quiet --hard HEAD^)
+  run_ignored_command %(git reset --quiet --hard HEAD^)
 end
 
 When(/^I make (a|\d+) commits?(?: with message "([^"]+)")?$/) do |num, msg|
@@ -118,15 +118,15 @@ Given(/^the "([^"]+)" branch is pushed to "([^"]+)"$/) do |name, upstream|
 end
 
 Given(/^I am on the "([^"]+)" branch(?: (pushed to|with upstream) "([^"]+)")?$/) do |name, type, upstream|
-  run_command_and_stop %(git checkout --quiet -b #{shell_escape name})
+  run_ignored_command %(git checkout --quiet -b #{shell_escape name})
   empty_commit
 
   if upstream
     full_upstream = upstream.start_with?('refs/') ? upstream : "refs/remotes/#{upstream}"
-    run_command_and_stop %(git update-ref #{shell_escape full_upstream} HEAD)
+    run_ignored_command %(git update-ref #{shell_escape full_upstream} HEAD)
 
     if type == 'with upstream'
-      run_command_and_stop %(git branch --set-upstream-to #{shell_escape upstream})
+      run_ignored_command %(git branch --set-upstream-to #{shell_escape upstream})
     end
   end
 end
@@ -140,13 +140,13 @@ Given(/^the default branch for "([^"]+)" is "([^"]+)"$/) do |remote, branch|
       FileUtils.cp '.git/refs/heads/master', ref_file
     end
   end
-  run_command_and_stop %(git remote set-head #{remote} #{branch})
+  run_ignored_command %(git remote set-head #{remote} #{branch})
 end
 
 Given(/^I am in detached HEAD$/) do
   empty_commit
   empty_commit
-  run_command_and_stop %(git checkout HEAD^)
+  run_ignored_command %(git checkout HEAD^)
 end
 
 Given(/^the current dir is not a repo$/) do
@@ -189,26 +189,26 @@ Then(/^the git command should be unchanged$/) do
 end
 
 Then(/^the url for "([^"]*)" should be "([^"]*)"$/) do |name, url|
-  run_command_and_stop %(git config --get-all remote.#{name}.url)
-  expect(last_command_started).to have_output(url)
+  output = run_ignored_command %(git config --get-all remote.#{name}.url)
+  expect(output).to include(url)
 end
 
 Then(/^the "([^"]*)" submodule url should be "([^"]*)"$/) do |name, url|
-  run_command_and_stop %(git config --get-all submodule."#{name}".url)
-  expect(last_command_started).to have_output(url)
+  output = run_ignored_command %(git config --get-all submodule."#{name}".url)
+  expect(output).to include(url)
 end
 
 Then(/^"([^"]*)" should merge "([^"]*)" from remote "([^"]*)"$/) do |name, merge, remote|
-  run_command_and_stop %(git config --get-all branch.#{name}.remote)
-  expect(last_command_started).to have_output(remote)
+  output = run_ignored_command %(git config --get-all branch.#{name}.remote)
+  expect(output).to include(remote)
 
-  run_command_and_stop %(git config --get-all branch.#{name}.merge)
-  expect(last_command_started).to have_output(merge)
+  output = run_ignored_command %(git config --get-all branch.#{name}.merge)
+  expect(output).to include(merge)
 end
 
 Then(/^there should be no "([^"]*)" remote$/) do |remote_name|
-  run_command_and_stop 'git remote'
-  expect(last_command_started.output.split("\n")).to_not include(remote_name)
+  remotes = run_ignored_command 'git remote'
+  expect(remotes.split("\n")).to_not include(remote_name)
 end
 
 Then(/^the file "([^"]*)" should have mode "([^"]*)"$/) do |file, expected_mode|
@@ -220,8 +220,8 @@ Given(/^the remote commit states of "(.*?)" "(.*?)" are:$/) do |proj, ref, json_
   if ref == 'HEAD'
     empty_commit
   end
-  run_command_and_stop %(git rev-parse #{ref})
-  rev = last_command_started.output.chomp
+  output = run_ignored_command %(git rev-parse #{ref})
+  rev = output.chomp
 
   host, owner, repo = proj.split('/', 3)
   if repo.nil?

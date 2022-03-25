@@ -112,6 +112,7 @@ Feature: hub pr list
           #102 luke, jyn\n
       """
 
+  @keep-ansi-escape-sequences
   Scenario: List draft status
     Given the GitHub API server:
     """
