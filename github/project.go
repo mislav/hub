@@ -62,7 +62,7 @@ func (p *Project) WebURL(name, owner, path string) string {
 	return url
 }
 
-func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
+func (p *Project) GitURL(name, owner string, allowPush bool) string {
 	if name == "" {
 		name = p.Name
 	}
@@ -72,17 +72,17 @@ func (p *Project) GitURL(name, owner string, isSSH bool) (url string) {
 
 	host := rawHost(p.Host)
 
-	if preferredProtocol() == "https" {
-		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
-	} else if !isSSH && preferredProtocol() == "git" {
-		url = fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
-	} else if isSSH || preferredProtocol() == "ssh" {
-		url = fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
-	} else {
-		url = fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
+	switch preferredProtocol() {
+	case "git":
+		if allowPush {
+			return fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
+		}
+		return fmt.Sprintf("git://%s/%s/%s.git", host, owner, name)
+	case "ssh":
+		return fmt.Sprintf("git@%s:%s/%s.git", host, owner, name)
+	default:
+		return fmt.Sprintf("https://%s/%s/%s.git", host, owner, name)
 	}
-
-	return url
 }
 
 // Remove the scheme from host when the host url is absolute.

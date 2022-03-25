@@ -27,14 +27,13 @@ var cmdClone = &Command{
 
 ## Protocol used for cloning
 
-The ''git:'' protocol will be used for cloning public repositories, while the SSH
-protocol will be used for private repositories and those that you have push
-access to. Alternatively, hub can be configured to use HTTPS protocol for
-everything. See "HTTPS instead of git protocol" and "HUB_PROTOCOL" of hub(1).
+HTTPS protocol is used by hub as the default. Alternatively, hub can be
+configured to use SSH protocol for all git operations. See "SSH instead
+of HTTPS protocol" and "HUB_PROTOCOL" of hub(1).
 
 ## Examples:
 		$ hub clone rtomayko/ronn
-		> git clone git://github.com/rtomayko/ronn.git
+		> git clone https://github.com/rtomayko/ronn.git
 
 ## See also:
 
@@ -53,7 +52,7 @@ func clone(command *Command, args *Args) {
 }
 
 func transformCloneArgs(args *Args) {
-	isSSH := parseClonePrivateFlag(args)
+	isPrivate := parseClonePrivateFlag(args)
 
 	// git help clone | grep -e '^ \+-.\+<'
 	p := utils.NewArgsParser()
@@ -80,7 +79,7 @@ func transformCloneArgs(args *Args) {
 		i := p.PositionalIndices[0]
 		a := args.Params[i]
 		if nameWithOwnerRegexp.MatchString(a) && !isCloneable(a) {
-			url := getCloneURL(a, isSSH, args.Command != "submodule")
+			url := getCloneURL(a, isPrivate, args.Command != "submodule")
 			args.ReplaceParam(i, url)
 		}
 	}
@@ -95,7 +94,7 @@ func parseClonePrivateFlag(args *Args) bool {
 	return false
 }
 
-func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
+func getCloneURL(nameWithOwner string, allowPush, allowPrivate bool) string {
 	name := nameWithOwner
 	owner := ""
 	if strings.Contains(name, "/") {
@@ -146,11 +145,9 @@ func getCloneURL(nameWithOwner string, isSSH, allowSSH bool) string {
 		}
 	}
 
-	if !isSSH &&
-		allowSSH &&
-		!github.IsHTTPSProtocol() {
-		isSSH = repo.Private || repo.Permissions.Push
+	if !allowPush && allowPrivate {
+		allowPush = repo.Private || repo.Permissions.Push
 	}
 
-	return project.GitURL(name, owner, isSSH)
+	return project.GitURL(name, owner, allowPush)
 }

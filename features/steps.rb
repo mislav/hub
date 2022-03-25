@@ -1,11 +1,7 @@
 require 'fileutils'
 
-Given(/^HTTPS is preferred$/) do
-  run_ignored_command %(git config --global hub.protocol https)
-end
-
-Given(/^git is preferred$/) do
-  run_command_and_stop %(git config --global hub.protocol git)
+Given(/^git protocol is preferred$/) do
+  set_environment_variable "HUB_PROTOCOL", "git"
 end
 
 Given(/^there are no remotes$/) do

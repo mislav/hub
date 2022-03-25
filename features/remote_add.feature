@@ -6,7 +6,7 @@ Feature: hub remote add
   Scenario: Add origin remote for my own repo
     Given there are no remotes
     When I successfully run `hub remote add origin`
-    Then the url for "origin" should be "git@github.com:EvilChelu/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/EvilChelu/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Add origin remote for my own repo using -C
@@ -14,7 +14,7 @@ Feature: hub remote add
     And I cd to ".."
     When I successfully run `hub -C dotfiles remote add origin`
     And I cd to "dotfiles"
-    Then the url for "origin" should be "git@github.com:EvilChelu/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/EvilChelu/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Unchanged public remote add
@@ -44,6 +44,7 @@ Feature: hub remote add
 
   Scenario: Add new remote for Enterprise repo
     Given "git.my.org" is a whitelisted Enterprise host
+    And git protocol is preferred
     And I am "ProLoser" on git.my.org with OAuth token "FITOKEN"
     And the "origin" remote has url "git@git.my.org:mislav/topsekrit.git"
     When I successfully run `hub remote add another`
@@ -72,6 +73,7 @@ Feature: hub remote add
              :permissions => { :push => false }
       }
       """
+    And git protocol is preferred
     When I successfully run `hub remote add mislav`
     Then the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
     And the output should not contain anything
@@ -86,7 +88,7 @@ Feature: hub remote add
       }
       """
     When I successfully run `hub remote add mislav`
-    Then the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    Then the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Add remote for missing repo
@@ -104,11 +106,13 @@ Feature: hub remote add
       """
 
   Scenario: Add explicitly private remote
+    Given git protocol is preferred
     When I successfully run `hub remote add -p mislav`
     Then the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Remote for my own repo is automatically private
+    Given git protocol is preferred
     When I successfully run `hub remote add evilchelu`
     Then the url for "evilchelu" should be "git@github.com:EvilChelu/dotfiles.git"
     And the output should not contain anything
@@ -137,20 +141,6 @@ Feature: hub remote add
       """
     When I successfully run `hub remote add -f -t feature mislav`
     Then "git remote add -f -t feature mislav https://github.com/mislav/dotfiles.git" should be run
-    And the output should not contain anything
-
-  Scenario: Add HTTPS protocol remote
-    Given the GitHub API server:
-      """
-      get('/repos/mislav/dotfiles') {
-        json :private => false,
-             :name => 'dotfiles', :owner => { :login => 'mislav' },
-             :permissions => { :push => false }
-      }
-      """
-    Given HTTPS is preferred
-    When I successfully run `hub remote add mislav`
-    Then the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Add named public remote
@@ -207,23 +197,24 @@ Feature: hub remote add
     And the output should not contain anything
 
   Scenario: Add named private remote
+    Given git protocol is preferred
     When I successfully run `hub remote add -p mm mislav`
     Then the url for "mm" should be "git@github.com:mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Add private remote including repo name
     When I successfully run `hub remote add -p mislav/dotfilez.js`
-    Then the url for "mislav" should be "git@github.com:mislav/dotfilez.js.git"
+    Then the url for "mislav" should be "https://github.com/mislav/dotfilez.js.git"
     And the output should not contain anything
 
   Scenario: Add named private remote including repo name
     When I successfully run `hub remote add -p mm mislav/dotfilez.js`
-    Then the url for "mm" should be "git@github.com:mislav/dotfilez.js.git"
+    Then the url for "mm" should be "https://github.com/mislav/dotfilez.js.git"
     And the output should not contain anything
 
   Scenario: Add named private remote for my own repo including repo name
     When I successfully run `hub remote add ec evilchelu/dotfilez.js`
-    Then the url for "ec" should be "git@github.com:EvilChelu/dotfilez.js.git"
+    Then the url for "ec" should be "https://github.com/EvilChelu/dotfilez.js.git"
     And the output should not contain anything
 
   Scenario: Avoid crash in argument parsing

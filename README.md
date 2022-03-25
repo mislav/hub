@@ -14,12 +14,12 @@ Usage
 
 ``` sh
 $ hub clone rtomayko/tilt
-#=> git clone git://github.com/rtomayko/tilt.git
-
-# if you prefer HTTPS to git/SSH protocols:
-$ git config --global hub.protocol https
-$ hub clone rtomayko/tilt
 #=> git clone https://github.com/rtomayko/tilt.git
+
+# or, if you prefer the SSH protocol:
+$ git config --global hub.protocol ssh
+$ hub clone rtomayko/tilt
+#=> git clone git@github.com:rtomayko/tilt.git
 ```
 
 See [usage examples](https://hub.github.com/#developer) or the [full reference

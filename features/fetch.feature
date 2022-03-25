@@ -49,7 +49,7 @@ Feature: hub fetch
     And the output should not contain anything
 
   Scenario: Creates new remote with git
-    Given git is preferred
+    Given git protocol is preferred
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') {
@@ -75,19 +75,6 @@ Feature: hub fetch
     And the url for "ankit-maverick" should be "https://github.com/ankit-maverick/dotfiles.git"
     And the output should not contain anything
 
-  Scenario: HTTPS is preferred
-    Given the GitHub API server:
-      """
-      get('/repos/mislav/dotfiles') {
-        json :private => false,
-             :permissions => { :push => false }
-      }
-      """
-    And HTTPS is preferred
-    When I successfully run `hub fetch mislav`
-    Then "git fetch mislav" should be run
-    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
-
   Scenario: Private repo
     Given the GitHub API server:
       """
@@ -96,6 +83,7 @@ Feature: hub fetch
              :permissions => { :push => false }
       }
       """
+    And git protocol is preferred
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
@@ -109,6 +97,7 @@ Feature: hub fetch
              :permissions => { :push => true }
       }
       """
+    And git protocol is preferred
     When I successfully run `hub fetch mislav`
     Then "git fetch mislav" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
