@@ -5,14 +5,9 @@ Feature: OAuth authentication
   Scenario: Ask for username & password, create authorization
     Given the GitHub API server:
       """
-      require 'socket'
-      require 'etc'
-      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
-
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         assert :scopes => ['repo', 'gist'],
-               :note => "hub for #{machine_id}",
                :note_url => 'https://hub.github.com/'
         status 201
         json :token => 'OTOKEN'
@@ -88,13 +83,9 @@ Feature: OAuth authentication
   Scenario: Rename & retry creating authorization if there's a token name collision
     Given the GitHub API server:
       """
-      require 'socket'
-      require 'etc'
-      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
-
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        if params[:note] == "hub for #{machine_id} 3"
+        if params[:note] =~ /\Ahub for .+ 3\Z/
           status 201
           json :token => 'OTOKEN'
         else
