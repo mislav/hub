@@ -5,40 +5,22 @@ on: [push, pull_request]
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        go: ["1.11", "1.12", "1.13", "1.14"]
+    env:
+      BUNDLE_BIN: bin
 
     steps:
       - uses: actions/checkout@v2
 
       - name: Set up Ruby
-        uses: actions/setup-ruby@v1
+        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 2.6.x
-
-      - name: Cache gems
-        uses: actions/cache@v2
-        with:
-          path: vendor/bundle
-          key: ${{ runner.os }}-gem-${{ hashFiles('**/Gemfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-gem-
-
-      - name: Bundle install
-        run: |
-          bundle install --path vendor/bundle
-          bundle binstub cucumber --path bin
+          ruby-version: "2.6"
+          bundler-cache: true
 
       - name: Set up Go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
-          go-version: ${{ matrix.go }}
-
-      # - name: Install system packages
-      #   if: runner.os == 'Linux'
-      #   run: sudo apt-get install -y zsh fish
+          go-version: "1.18"
 
       - name: Run tests
         run: make test-all
