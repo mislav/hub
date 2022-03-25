@@ -21,14 +21,14 @@ Feature: hub compare
   Scenario: No args, no upstream
     When I run `hub compare`
     Then the exit status should be 1
-    And the stderr should contain exactly "the current branch 'master' doesn't seem pushed to a remote"
+    And the stderr should contain exactly "the current branch 'master' doesn't seem pushed to a remote\n"
 
   Scenario: Can't compare default branch to self
     Given the default branch for "origin" is "develop"
     And I am on the "develop" branch with upstream "origin/develop"
     When I run `hub compare`
     Then the exit status should be 1
-    And the stderr should contain exactly "the branch to compare 'develop' is the default branch"
+    And the stderr should contain exactly "the branch to compare 'develop' is the default branch\n"
 
   Scenario: No args, has upstream branch
     Given I am on the "feature" branch with upstream "origin/experimental"

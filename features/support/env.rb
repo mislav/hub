@@ -2,6 +2,7 @@ require 'aruba/cucumber'
 require 'fileutils'
 require 'forwardable'
 require 'tmpdir'
+require 'open3'
 
 system_git = `which git 2>/dev/null`.chomp
 bin_dir = File.expand_path('../fakebin', __FILE__)
@@ -139,10 +140,17 @@ World Module.new {
       @empty_commit_count = defined?(@empty_commit_count) ? @empty_commit_count + 1 : 1
       message = "empty #{@empty_commit_count}"
     end
-    run_command_and_stop "git commit --quiet -m '#{message}' --allow-empty"
+    run_ignored_command "git commit --quiet -m '#{message}' --allow-empty"
   end
 
   def shell_escape(message)
     message.to_s.gsub(/['"\\ $]/) { |m| "\\#{m}" }
+  end
+
+  # runs a command entirely outside of Aruba's command system and returns its stdout
+  def run_ignored_command(cmd_string)
+    stdout, stderr, status = Open3.capture3(aruba.environment, cmd_string, chdir: expand_path('.'))
+    expect(status).to be_success
+    stdout
   end
 }
