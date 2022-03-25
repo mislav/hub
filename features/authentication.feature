@@ -536,5 +536,5 @@ Feature: OAuth authentication
       """
       Error fetching releases: Forbidden (HTTP 403)
       You must authorize your token to access this organization:
-      http://example.com?auth=HASH
+      http://example.com?auth=HASH\n
       """

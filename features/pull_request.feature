@@ -1241,7 +1241,7 @@ Feature: hub pull-request
     And stderr should contain exactly:
       """
       Error creating pull request: Post https://api.github.com/repositories/12345/pulls: refusing to follow HTTP 301 redirect for a POST request
-      Have your site admin use HTTP 308 for this kind of redirect
+      Have your site admin use HTTP 308 for this kind of redirect\n
       """
 
   Scenario: Default message with --push
