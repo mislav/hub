@@ -14,12 +14,12 @@ Usage
 
 ``` sh
 $ hub clone rtomayko/tilt
-#=> git clone git://github.com/rtomayko/tilt.git
-
-# if you prefer HTTPS to git/SSH protocols:
-$ git config --global hub.protocol https
-$ hub clone rtomayko/tilt
 #=> git clone https://github.com/rtomayko/tilt.git
+
+# or, if you prefer the SSH protocol:
+$ git config --global hub.protocol ssh
+$ hub clone rtomayko/tilt
+#=> git clone git@github.com:rtomayko/tilt.git
 ```
 
 See [usage examples](https://hub.github.com/#developer) or the [full reference
@@ -41,12 +41,13 @@ The `hub` executable has no dependencies, but since it was designed to wrap
 platform | manager | command to run
 ---------|---------|---------------
 macOS, Linux | [Homebrew](https://docs.brew.sh/Installation) | `brew install hub`
+macOS, Linux | [Nix](https://nixos.org/) | `nix-env -i hub`
 Windows | [Scoop](http://scoop.sh/) | `scoop install hub`
 Windows | [Chocolatey](https://chocolatey.org/) | `choco install hub`
 Fedora Linux | [DNF](https://fedoraproject.org/wiki/DNF) | `sudo dnf install hub`
 Arch Linux | [pacman](https://wiki.archlinux.org/index.php/pacman) | `sudo pacman -S hub`
 FreeBSD | [pkg(8)](http://man.freebsd.org/pkg/8) | `pkg install hub`
-Debian | [apt(8)](https://manpages.debian.org/buster/apt/apt.8.en.html) | `sudo apt install hub`
+Debian, Ubuntu | [apt(8)](https://manpages.debian.org/buster/apt/apt.8.en.html) | `sudo apt install hub`
 Ubuntu | [Snap](https://snapcraft.io) | [We do not recommend installing the snap anymore.](https://github.com/github/hub/issues?q=is%3Aissue+snap)
 openSUSE | [Zypper](https://en.opensuse.org/SDB:Zypper_manual) | `sudo zypper install hub`
 Void Linux | [xbps](https://github.com/void-linux/xbps) | `sudo xbps-install -S hub`

@@ -69,7 +69,7 @@ Feature: hub pr show
     Then "open https://github.com/ashemesh/hub/pull/102" should not be run
     And the output should contain exactly:
       """
-          #102 rey, github/troopers, github/cantina-band\n
+          #102 rey, github/troopers, github/cantina-band\n\n
       """
 
   Scenario: Current branch in fork
@@ -208,7 +208,7 @@ Feature: hub pr show
     Then "open https://github.com/ashemesh/hub/pull/102" should not be run
     And the output should contain exactly:
       """
-          #102 rey, github/troopers, github/cantina-band\n
+          #102 rey, github/troopers, github/cantina-band\n\n
       """
 
   Scenario: Show pull request by invalid number

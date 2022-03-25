@@ -18,7 +18,7 @@ Feature: hub submodule add
       }
       """
     When I successfully run `hub submodule add mojombo/grit vendor/grit`
-    Then the "vendor/grit" submodule url should be "git://github.com/mojombo/grit.git"
+    Then the "vendor/grit" submodule url should be "https://github.com/mojombo/grit.git"
     And the output should contain exactly:
       """
       Adding existing repo at 'vendor/grit' to the index\n
@@ -34,7 +34,7 @@ Feature: hub submodule add
       }
       """
     When I successfully run `hub submodule add -p mojombo/grit vendor/grit`
-    Then the "vendor/grit" submodule url should be "git@github.com:mojombo/grit.git"
+    Then the "vendor/grit" submodule url should be "https://github.com/mojombo/grit.git"
 
   Scenario: A submodule for my own repo is public nevertheless
     Given the GitHub API server:
@@ -46,7 +46,7 @@ Feature: hub submodule add
       }
       """
     When I successfully run `hub submodule add grit vendor/grit`
-    Then the "vendor/grit" submodule url should be "git://github.com/mislav/grit.git"
+    Then the "vendor/grit" submodule url should be "https://github.com/mislav/grit.git"
 
   Scenario: Add submodule with arguments
     Given the GitHub API server:
@@ -58,7 +58,7 @@ Feature: hub submodule add
       }
       """
     When I successfully run `hub submodule add -b foo --name grit mojombo/grit vendor/grit`
-    Then "git submodule add -b foo --name grit git://github.com/mojombo/grit.git vendor/grit" should be run
+    Then "git submodule add -b foo --name grit https://github.com/mojombo/grit.git vendor/grit" should be run
 
   Scenario: Add submodule with branch
     Given the GitHub API server:
@@ -70,4 +70,4 @@ Feature: hub submodule add
       }
       """
     When I successfully run `hub submodule add --branch foo mojombo/grit vendor/grit`
-    Then "git submodule add --branch foo git://github.com/mojombo/grit.git vendor/grit" should be run
+    Then "git submodule add --branch foo https://github.com/mojombo/grit.git vendor/grit" should be run

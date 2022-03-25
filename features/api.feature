@@ -231,7 +231,7 @@ Feature: hub api
       """
     Then the output should contain exactly:
       """
-      .query	query {\n  repository\n}\n
+      .query	query {\\n  repository\\n}\\n\n
       """
 
   Scenario: POST body from file
@@ -340,7 +340,7 @@ Feature: hub api
       """
     Then the output should contain exactly:
       """
-      .query	repository(owner: "octocat", name: "Hello-World", nameWithOwner: "octocat/Hello-World")\n
+      .query	repository(owner: "octocat", name: "Hello-World", nameWithOwner: "octocat/Hello-World")\\n\n
       """
 
   Scenario: Cache response
@@ -508,7 +508,7 @@ Feature: hub api
       """
       {}
       Your access token may have insufficient scopes. Visit http://github.com/settings/tokens
-      to edit the 'hub' token and enable one of the following scopes: admin, repo
+      to edit the 'hub' token and enable one of the following scopes: admin, repo\n
       """
 
   Scenario: Print the SSO challenge to stderr
@@ -526,5 +526,5 @@ Feature: hub api
       """
 
       You must authorize your token to access this organization:
-      http://example.com?auth=HASH
+      http://example.com?auth=HASH\n
       """

@@ -53,9 +53,6 @@ func fork(cmd *Command, args *Args) {
 	host, err := config.PromptForHost(project.Host)
 	utils.Check(github.FormatError("forking repository", err))
 
-	originRemote, err := localRepo.RemoteForProject(project)
-	utils.Check(err)
-
 	params := map[string]interface{}{}
 	forkOwner := host.User
 	if flagForkOrganization := args.Flag.Value("--org"); flagForkOrganization != "" {
@@ -100,8 +97,7 @@ func fork(cmd *Command, args *Args) {
 
 	args.NoForward()
 	if !args.Flag.Bool("--no-remote") {
-
-		originURL := originRemote.URL.String()
+		originURL := project.GitURL("", "", false)
 		url := forkProject.GitURL("", "", true)
 
 		// Check to see if the remote already exists.

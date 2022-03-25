@@ -20,11 +20,12 @@ Feature: hub fork
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
-    And "git remote add -f mislav git://github.com/evilchelu/dotfiles.git" should be run
-    And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
-    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And "git remote add -f mislav https://github.com/evilchelu/dotfiles.git" should be run
+    And "git remote set-url mislav https://github.com/mislav/dotfiles.git" should be run
+    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: Fork the repository with new remote name specified
+    Given git protocol is preferred
     Given the GitHub API server:
       """
       get('/repos/mislav/dotfiles') { 404 }
@@ -46,6 +47,7 @@ Feature: hub fork
     And the url for "upstream" should be "git://github.com/evilchelu/dotfiles.git"
 
   Scenario: Fork the repository with redirect
+    Given git protocol is preferred
     Given the GitHub API server:
       """
       before {
@@ -69,6 +71,7 @@ Feature: hub fork
 
   Scenario: Fork the repository when origin URL is private
     Given the "origin" remote has url "git@github.com:evilchelu/dotfiles.git"
+    And git protocol is preferred
     Given the GitHub API server:
       """
       before { halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN' }
@@ -80,7 +83,7 @@ Feature: hub fork
       """
     When I successfully run `hub fork`
     Then the output should contain exactly "new remote: mislav\n"
-    And "git remote add -f mislav ssh://git@github.com/evilchelu/dotfiles.git" should be run
+    And "git remote add -f mislav git://github.com/evilchelu/dotfiles.git" should be run
     And "git remote set-url mislav git@github.com:mislav/dotfiles.git" should be run
     And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
 
@@ -140,7 +143,7 @@ Feature: hub fork
       """
       new remote: mislav\n
       """
-    And the url for "mislav" should be "git@github.com:mislav/dotfiles.git"
+    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: Redirected repo already exists
     Given the GitHub API server:
@@ -171,10 +174,10 @@ Feature: hub fork
       }
       """
     When I run `hub fork`
-    Then the exit status should be 128
-    And the stderr should contain exactly:
+    Then the exit status should not be 0
+    And the stderr should contain:
       """
-      fatal: remote mislav already exists.\n
+      remote mislav already exists.
       """
     And the url for "mislav" should be "git@github.com:mislav/unrelated.git"
 
@@ -225,19 +228,6 @@ Feature: hub fork
       Error creating fork: Unauthorized (HTTP 401)\n
       """
 
-  Scenario: HTTPS is preferred
-    Given the GitHub API server:
-      """
-      post('/repos/evilchelu/dotfiles/forks') {
-        status 202
-        json :name => 'dotfiles', :owner => { :login => 'mislav' }
-      }
-      """
-    And HTTPS is preferred
-    When I successfully run `hub fork`
-    Then the output should contain exactly "new remote: mislav\n"
-    And the url for "mislav" should be "https://github.com/mislav/dotfiles.git"
-
   Scenario: Not in repo
     Given the current dir is not a repo
     When I run `hub fork`
@@ -279,7 +269,7 @@ Feature: hub fork
     And I am "mislav" on git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
-    Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+    Then the url for "mislav" should be "https://git.my.org/mislav/dotfiles.git"
 
   Scenario: Enterprise fork using regular HTTP
     Given the GitHub API server:
@@ -298,7 +288,7 @@ Feature: hub fork
     And I am "mislav" on http://git.my.org with OAuth token "FITOKEN"
     And "git.my.org" is a whitelisted Enterprise host
     When I successfully run `hub fork`
-    Then the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+    Then the url for "mislav" should be "https://git.my.org/mislav/dotfiles.git"
 
   Scenario: Fork a repo to a specific organization
     Given the GitHub API server:
@@ -312,4 +302,4 @@ Feature: hub fork
       """
     When I successfully run `hub fork --org=acme`
     Then the output should contain exactly "new remote: acme\n"
-    Then the url for "acme" should be "git@github.com:acme/dotfiles.git"
+    Then the url for "acme" should be "https://github.com/acme/dotfiles.git"

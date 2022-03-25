@@ -104,7 +104,7 @@ func (a *Args) GetParam(i int) string {
 
 func (a *Args) FirstParam() string {
 	if a.ParamsSize() == 0 {
-		panic(fmt.Sprintf("Index 0 is out of bound"))
+		panic("Index 0 is out of bound")
 	}
 
 	return a.Params[0]

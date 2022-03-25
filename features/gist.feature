@@ -19,7 +19,7 @@ Feature: hub gist
     When I successfully run `hub gist show myhash`
     Then the output should contain exactly:
       """
-      my content is here
+      my content is here\n
       """
   
   Scenario: Fetch a gist with many files
@@ -70,7 +70,7 @@ Feature: hub gist
     When I successfully run `hub gist show myhash hub_gist1.txt`
     Then the output should contain exactly:
       """
-      my content is here
+      my content is here\n
       """
 
   Scenario: Create a gist from file
@@ -88,7 +88,7 @@ Feature: hub gist
     When I successfully run `hub gist create testfile.txt`
     Then the output should contain exactly:
       """
-      http://gists.github.com/somehash
+      http://gists.github.com/somehash\n
       """
 
   Scenario: Open the new gist in a browser
@@ -130,7 +130,7 @@ Feature: hub gist
     When I successfully run `hub gist create testfile.txt testfile2.txt`
     Then the output should contain exactly:
       """
-      http://gists.github.com/somehash
+      http://gists.github.com/somehash\n
       """
 
   Scenario: Create a gist from stdin
@@ -149,7 +149,7 @@ Feature: hub gist
       """
     Then the output should contain exactly:
       """
-      http://gists.github.com/somehash
+      http://gists.github.com/somehash\n
       """
 
   Scenario: Insufficient OAuth scopes
@@ -172,7 +172,7 @@ Feature: hub gist
       """
       Error creating gist: Not Found (HTTP 404)
       Your access token may have insufficient scopes. Visit http://github.com/settings/tokens
-      to edit the 'hub' token and enable one of the following scopes: gist
+      to edit the 'hub' token and enable one of the following scopes: gist\n
       """
 
   Scenario: Infer correct OAuth scopes for gist
@@ -194,7 +194,7 @@ Feature: hub gist
       """
       Error creating gist: Not Found (HTTP 404)
       Your access token may have insufficient scopes. Visit http://github.com/settings/tokens
-      to edit the 'hub' token and enable one of the following scopes: gist
+      to edit the 'hub' token and enable one of the following scopes: gist\n
       """
 
   Scenario: Create error

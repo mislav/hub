@@ -5,14 +5,9 @@ Feature: OAuth authentication
   Scenario: Ask for username & password, create authorization
     Given the GitHub API server:
       """
-      require 'socket'
-      require 'etc'
-      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
-
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
         assert :scopes => ['repo', 'gist'],
-               :note => "hub for #{machine_id}",
                :note_url => 'https://hub.github.com/'
         status 201
         json :token => 'OTOKEN'
@@ -88,13 +83,9 @@ Feature: OAuth authentication
   Scenario: Rename & retry creating authorization if there's a token name collision
     Given the GitHub API server:
       """
-      require 'socket'
-      require 'etc'
-      machine_id = "#{Etc.getlogin}@#{Socket.gethostname}"
-
       post('/authorizations') {
         assert_basic_auth 'mislav', 'kitty'
-        if params[:note] == "hub for #{machine_id} 3"
+        if params[:note] =~ /\Ahub for .+ 3\Z/
           status 201
           json :token => 'OTOKEN'
         else
@@ -331,7 +322,7 @@ Feature: OAuth authentication
       """
     Given $GITHUB_TOKEN is "PTOKEN"
     When I successfully run `hub clone dotfiles`
-    Then it should clone "git@github.com:parkr/dotfiles.git"
+    Then it should clone "https://github.com/parkr/dotfiles.git"
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
@@ -471,7 +462,7 @@ Feature: OAuth authentication
     And the file "../home/.config/hub" should contain "git.my.org"
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-    And the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+    And the url for "mislav" should be "https://git.my.org/mislav/dotfiles.git"
 
   Scenario: Broken config is missing user.
     Given a file named "../home/.config/hub" with:
@@ -504,9 +495,9 @@ Feature: OAuth authentication
   Scenario: Config file is not writeable, should exit before asking for credentials
       Given $HUB_CONFIG is "/InvalidConfigFile"
       When I run `hub create` interactively
-      Then the output should contain exactly:
+      Then the output should contain:
         """
-        open /InvalidConfigFile: permission denied\n
+        open /InvalidConfigFile:
         """
       And the exit status should be 1
       And the file "../home/.config/hub" should not exist
@@ -536,5 +527,5 @@ Feature: OAuth authentication
       """
       Error fetching releases: Forbidden (HTTP 403)
       You must authorize your token to access this organization:
-      http://example.com?auth=HASH
+      http://example.com?auth=HASH\n
       """
