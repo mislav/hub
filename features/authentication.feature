@@ -322,7 +322,7 @@ Feature: OAuth authentication
       """
     Given $GITHUB_TOKEN is "PTOKEN"
     When I successfully run `hub clone dotfiles`
-    Then it should clone "git@github.com:parkr/dotfiles.git"
+    Then it should clone "https://github.com/parkr/dotfiles.git"
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
 
@@ -462,7 +462,7 @@ Feature: OAuth authentication
     And the file "../home/.config/hub" should contain "git.my.org"
     And the file "../home/.config/hub" should contain "user: mislav"
     And the file "../home/.config/hub" should contain "oauth_token: OTOKEN"
-    And the url for "mislav" should be "git@git.my.org:mislav/dotfiles.git"
+    And the url for "mislav" should be "https://git.my.org/mislav/dotfiles.git"
 
   Scenario: Broken config is missing user.
     Given a file named "../home/.config/hub" with:

@@ -34,7 +34,7 @@ Feature: hub submodule add
       }
       """
     When I successfully run `hub submodule add -p mojombo/grit vendor/grit`
-    Then the "vendor/grit" submodule url should be "git@github.com:mojombo/grit.git"
+    Then the "vendor/grit" submodule url should be "https://github.com/mojombo/grit.git"
 
   Scenario: A submodule for my own repo is public nevertheless
     Given the GitHub API server:
