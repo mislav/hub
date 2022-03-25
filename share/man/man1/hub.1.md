@@ -141,12 +141,12 @@ variables.
 Alternatively, you may provide `GITHUB_TOKEN`, an access token with
 **repo** permissions. This will not be written to `~/.config/hub`.
 
-### HTTPS instead of git protocol
+### SSH instead of HTTPS protocol
 
-If you prefer the HTTPS protocol for git operations, you can configure hub to
-generate all URLs with `https:` instead of `git:` or `ssh:`:
+If you prefer the SSH protocol for git operations, you can configure hub to
+generate SSH-style URLs:
 
-    $ git config --global hub.protocol https
+    $ git config --global hub.protocol ssh
 
 This will affect `clone`, `fork`, `remote add` and other hub commands that
 expand shorthand references to GitHub repo URLs.

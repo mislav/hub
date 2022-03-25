@@ -13,7 +13,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create`
-    Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/mislav/dotfiles.git"
     And the output should contain exactly "https://github.com/mislav/dotfiles\n"
 
   Scenario: Create private repo
@@ -25,6 +25,7 @@ Feature: hub create
         json :full_name => 'mislav/dotfiles'
       }
       """
+    And git protocol is preferred
     When I successfully run `hub create -p`
     Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
@@ -37,20 +38,8 @@ Feature: hub create
       }
       """
     When I successfully run `hub create --remote-name=work`
-    Then the url for "work" should be "git@github.com:mislav/dotfiles.git"
+    Then the url for "work" should be "https://github.com/mislav/dotfiles.git"
     And there should be no "origin" remote
-
-  Scenario: HTTPS is preferred
-    Given the GitHub API server:
-      """
-      post('/user/repos') {
-        status 201
-        json :full_name => 'mislav/dotfiles'
-      }
-      """
-    And HTTPS is preferred
-    When I successfully run `hub create`
-    Then the url for "origin" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: Create in organization
     Given the GitHub API server:
@@ -61,7 +50,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create acme/dotfiles`
-    Then the url for "origin" should be "git@github.com:acme/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/acme/dotfiles.git"
     And the output should contain exactly "https://github.com/acme/dotfiles\n"
 
   Scenario: Creating repo failed
@@ -84,7 +73,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create myconfig`
-    Then the url for "origin" should be "git@github.com:mislav/myconfig.git"
+    Then the url for "origin" should be "https://github.com/mislav/myconfig.git"
 
   Scenario: With description and homepage
     Given the GitHub API server:
@@ -97,7 +86,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create -d mydesc -h http://example.com`
-    Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: Not in git repo
     Given the current dir is not a repo
@@ -152,7 +141,7 @@ Feature: hub create
       """
     And the "github" remote has url "git://github.com/mislav/dotfiles.git"
     When I successfully run `hub create`
-    Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    Then the url for "origin" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: GitHub repo already exists
     Given the GitHub API server:
@@ -163,7 +152,7 @@ Feature: hub create
       """
     When I successfully run `hub create`
     Then the output should contain "Existing repository detected\n"
-    And the url for "origin" should be "git@github.com:mislav/dotfiles.git"
+    And the url for "origin" should be "https://github.com/mislav/dotfiles.git"
 
   Scenario: GitHub repo already exists and is not private
     Given the GitHub API server:
@@ -186,6 +175,7 @@ Feature: hub create
              :private => true
       }
       """
+    And git protocol is preferred
     When I successfully run `hub create -p`
     Then the url for "origin" should be "git@github.com:mislav/dotfiles.git"
 
@@ -200,7 +190,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create`
-    And the url for "origin" should be "git@github.com:mislav/DOTfiles.git"
+    And the url for "origin" should be "https://github.com/mislav/DOTfiles.git"
 
   Scenario: Renamed GitHub repo is unrelated
     Given the GitHub API server:
@@ -217,7 +207,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create`
-    And the url for "origin" should be "git@github.com:mislav/mydotfiles.git"
+    And the url for "origin" should be "https://github.com/mislav/mydotfiles.git"
 
   Scenario: API response changes the clone URL
     Given the GitHub API server:
@@ -228,7 +218,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create`
-    Then the url for "origin" should be "git@github.com:Mooslav/myconfig.git"
+    Then the url for "origin" should be "https://github.com/Mooslav/myconfig.git"
     And the output should contain exactly "https://github.com/Mooslav/myconfig\n"
 
   Scenario: Open new repository in web browser
@@ -254,7 +244,7 @@ Feature: hub create
       }
       """
     When I successfully run `hub create`
-    Then the url for "origin" should be "git@github.com:mislav/my-dot-files.git"
+    Then the url for "origin" should be "https://github.com/mislav/my-dot-files.git"
 
   Scenario: Verbose API output
     Given the GitHub API server:
@@ -299,7 +289,7 @@ Feature: hub create
       """
     And $GITHUB_HOST is "git.my.org"
     When I successfully run `hub create`
-    Then the url for "origin" should be "git@git.my.org:nsartor/dotfiles.git"
+    Then the url for "origin" should be "https://git.my.org/nsartor/dotfiles.git"
     And the output should contain exactly "https://git.my.org/nsartor/dotfiles\n"
 
   Scenario: Invalid GITHUB_HOST

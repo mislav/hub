@@ -273,6 +273,7 @@ Feature: hub checkout <PULLREQ-URL>
         }, :maintainer_can_modify => true
       }
       """
+    And git protocol is preferred
     When I successfully run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
     Then "git fetch origin refs/pull/77/head:fixes" should be run
     And "git checkout -f fixes -q" should be run
@@ -299,6 +300,7 @@ Feature: hub checkout <PULLREQ-URL>
         }, :maintainer_can_modify => true
       }
       """
+    And git protocol is preferred
     And I am on the "fixes" branch
     And there is a git FETCH_HEAD
     When I successfully run `hub checkout https://github.com/mojombo/jekyll/pull/77`
@@ -328,7 +330,6 @@ Feature: hub checkout <PULLREQ-URL>
         }, :maintainer_can_modify => true
       }
       """
-    And HTTPS is preferred
     When I successfully run `hub checkout -f https://github.com/mojombo/jekyll/pull/77 -q`
     Then "git fetch origin refs/pull/77/head:fixes" should be run
     And "git checkout -f fixes -q" should be run

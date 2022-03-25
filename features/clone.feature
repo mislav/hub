@@ -12,7 +12,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone rtomayko/ronn`
-    Then it should clone "git://github.com/rtomayko/ronn.git"
+    Then it should clone "https://github.com/rtomayko/ronn.git"
     And the output should not contain anything
 
   Scenario: Clone a public repo with period in name
@@ -25,7 +25,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone hookio/hook.js`
-    Then it should clone "git://github.com/hookio/hook.js.git"
+    Then it should clone "https://github.com/hookio/hook.js.git"
     And the output should not contain anything
 
   Scenario: Clone a public repo that starts with a period
@@ -38,7 +38,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone zhuangya/.vim`
-    Then it should clone "git://github.com/zhuangya/.vim.git"
+    Then it should clone "https://github.com/zhuangya/.vim.git"
     And the output should not contain anything
 
   Scenario: Clone a repo even if same-named directory exists
@@ -52,11 +52,24 @@ Feature: hub clone
       """
     And a directory named "rtomayko/ronn"
     When I successfully run `hub clone rtomayko/ronn`
+    Then it should clone "https://github.com/rtomayko/ronn.git"
+    And the output should not contain anything
+
+  Scenario: Clone a public repo with git
+    Given git protocol is preferred
+    Given the GitHub API server:
+      """
+      get('/repos/rtomayko/ronn') {
+        json :private => false,
+             :name => 'ronn', :owner => { :login => 'rtomayko' },
+             :permissions => { :push => false }
+      }
+      """
+    When I successfully run `hub clone rtomayko/ronn`
     Then it should clone "git://github.com/rtomayko/ronn.git"
     And the output should not contain anything
 
   Scenario: Clone a public repo with HTTPS
-    Given HTTPS is preferred
     Given the GitHub API server:
       """
       get('/repos/rtomayko/ronn') {
@@ -80,7 +93,7 @@ Feature: hub clone
       """
     When I successfully run `git config --global alias.c "clone --bare"`
     And I successfully run `hub c rtomayko/ronn`
-    Then "git clone --bare git://github.com/rtomayko/ronn.git" should be run
+    Then "git clone --bare https://github.com/rtomayko/ronn.git" should be run
     And the output should not contain anything
 
   Scenario: Unchanged public clone
@@ -133,8 +146,8 @@ Feature: hub clone
              :permissions => { :push => false }
       }
       """
-    When I successfully run `hub --noop clone -p rtomayko/ronn`
-    Then the output should contain exactly "git clone git@github.com:rtomayko/ronn.git\n"
+    When I successfully run `hub --noop clone rtomayko/ronn`
+    Then the output should contain exactly "git clone https://github.com/rtomayko/ronn.git\n"
     But it should not clone anything
 
   Scenario: Clone a private repo
@@ -147,7 +160,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone -p rtomayko/ronn`
-    Then it should clone "git@github.com:rtomayko/ronn.git"
+    Then it should clone "https://github.com/rtomayko/ronn.git"
     And the output should not contain anything
 
   Scenario: Clone my repo
@@ -160,7 +173,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone dotfiles`
-    Then it should clone "git@github.com:mislav/dotfiles.git"
+    Then it should clone "https://github.com/mislav/dotfiles.git"
     And the output should not contain anything
 
   Scenario: Clone my repo that doesn't exist
@@ -184,7 +197,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone --bare -o master dotfiles`
-    Then "git clone --bare -o master git@github.com:mislav/dotfiles.git" should be run
+    Then "git clone --bare -o master https://github.com/mislav/dotfiles.git" should be run
     And the output should not contain anything
 
   Scenario: Clone repo to which I have push access to
@@ -196,6 +209,7 @@ Feature: hub clone
              :permissions => { :push => true }
       }
       """
+    And git protocol is preferred
     When I successfully run `hub clone sstephenson/rbenv`
     Then "git clone git@github.com:sstephenson/rbenv.git" should be run
     And the output should not contain anything
@@ -209,6 +223,7 @@ Feature: hub clone
              :permissions => { :push => true }
       }
       """
+    And git protocol is preferred
     When I successfully run `hub --noop clone sstephenson/rbenv`
     Then the output should contain exactly "git clone git@github.com:sstephenson/rbenv.git\n"
     But it should not clone anything
@@ -225,7 +240,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone myorg/myrepo`
-    Then it should clone "git@git.my.org:myorg/myrepo.git"
+    Then it should clone "https://git.my.org/myorg/myrepo.git"
     And the output should not contain anything
 
   Scenario: Clone from existing directory is a local clone
@@ -251,7 +266,7 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone rtomayko/ronn.wiki`
-    Then it should clone "git://github.com/RTomayko/ronin.wiki.git"
+    Then it should clone "https://github.com/RTomayko/ronin.wiki.git"
     And the output should not contain anything
 
   Scenario: Clone a nonexisting wiki
@@ -284,5 +299,5 @@ Feature: hub clone
       }
       """
     When I successfully run `hub clone rtomayko/ronn`
-    Then it should clone "git://github.com/RTomayko/ronin.git"
+    Then it should clone "https://github.com/RTomayko/ronin.git"
     And the output should not contain anything
