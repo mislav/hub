@@ -44,11 +44,11 @@ to date</em>, and <em>share logs or code snippets via Gist</em>.
 <pre>
 <span class="comment"># clone your own project</span>
 <span class=p></span><strong>hub clone</strong> dotfiles
-<span class="result">→ git clone git://github.com/YOUR_USER/dotfiles.git</span>
+<span class="result">→ git clone https://github.com/YOUR_USER/dotfiles.git</span>
 
 <span class="comment"># clone another project</span>
 <span class=p></span><strong>hub clone</strong> github/hub
-<span class="result">→ git clone git://github.com/github/hub.git</span>
+<span class="result">→ git clone https://github.com/github/hub.git</span>
 
 <span class="comment"># fast-forward all local branches to match the latest state on the remote</span>
 <span class=p></span>cd myproject
@@ -181,8 +181,8 @@ commits by URL</em>.
 <pre>
 <span class="comment"># fetch from multiple trusted forks, even if they don't yet exist as remotes</span>
 <span class=p></span><strong>hub fetch</strong> mislav,cehoffman
-<span class="result">→ git remote add mislav git://github.com/mislav/hub.git</span>
-<span class="result">→ git remote add cehoffman git://github.com/cehoffman/hub.git</span>
+<span class="result">→ git remote add mislav https://github.com/mislav/hub.git</span>
+<span class="result">→ git remote add cehoffman https://github.com/cehoffman/hub.git</span>
 <span class="result">→ git fetch --multiple mislav cehoffman</span>
 
 <span class="comment"># check out a pull request for review</span>
