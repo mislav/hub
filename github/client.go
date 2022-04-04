@@ -542,7 +542,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 		return
 	}
 
-	res, err := api.Get(fmt.Sprintf("repos/%s/%s/commits/%s/status", project.Owner, project.Name, sha))
+	res, err := api.Get(fmt.Sprintf("repos/%s/%s/commits/%s/status?per_page=100", project.Owner, project.Name, sha))
 	if err = checkStatus(200, "fetching statuses", res, err); err != nil {
 		return
 	}
@@ -565,7 +565,7 @@ func (client *Client) FetchCIStatus(project *Project, sha string) (status *CISta
 	}
 	sortStatuses()
 
-	res, err = api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s/check-runs", project.Owner, project.Name, sha), checksType)
+	res, err = api.GetFile(fmt.Sprintf("repos/%s/%s/commits/%s/check-runs?per_page=100", project.Owner, project.Name, sha), checksType)
 	if err == nil && (res.StatusCode == 403 || res.StatusCode == 404 || res.StatusCode == 422) {
 		return
 	}
