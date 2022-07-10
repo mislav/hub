@@ -103,20 +103,15 @@ func getCloneURL(nameWithOwner string, allowPush, allowPrivate bool) string {
 		name = split[1]
 	}
 
-	var host *github.Host
+	var hostStr string
 	if owner == "" {
 		config := github.CurrentConfig()
-		h, err := config.DefaultHost()
+		host, err := config.DefaultHost()
 		if err != nil {
 			utils.Check(github.FormatError("cloning repository", err))
 		}
 
-		host = h
 		owner = host.User
-	}
-
-	var hostStr string
-	if host != nil {
 		hostStr = host.Host
 	}
 
