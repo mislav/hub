@@ -1,4 +1,4 @@
-hub is a command line tool that wraps `git` in order to extend it with extra
+hub is a awesome command line tool that wraps `git` in order to extend it with extra
 features and commands that make working with GitHub easier.
 
 For an official, potentially more user-friendly command-line interface to GitHub,
