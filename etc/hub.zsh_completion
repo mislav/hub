@@ -68,6 +68,100 @@ __hub_setup_zsh_fns () {
         '::issue-url:_urls'
   }
 
+  (( $+functions[__hub_github_repositories] )) ||
+  __hub_github_repositories () {
+    local -a tokens
+    local user
+    tokens=(${(@s:/:)PREFIX})
+    if [[ $PREFIX =~ "/" ]]; then
+      user="$tokens[1]"
+      repo_names=("${(@f)$(hub internal-list-repos --qualified $user)}")
+    else
+      repo_names=("${(@f)$(hub internal-list-repos)}")
+    fi
+    _wanted hub-repositories expl 'GitHub repositories' compadd -a repo_names
+  }
+
+  (( $+functions[__hub_some_repositories] )) ||
+  __hub_some_repositories () {
+    _alternative \
+      'hub-repositories::__hub_github_repositories' \
+      'local-repositories::__git_local_repositories' \
+      'remote-repositories::__git_remote_repositories'
+  }
+
+  # This function definition must be unconditional, because we are 
+  # clobbering ZSH's definition of it.
+  __git_any_repositories () {
+    _alternative \
+      'hub-repositories::__hub_github_repositories' \
+      'local-repositories::__git_local_repositories' \
+      'remotes: :__git_remotes' \
+      'remote-repositories::__git_remote_repositories'
+  }
+
+  # This function definition must be unconditional, because we are 
+  # clobbering ZSH's definition of it.
+  # This is a straight copy of Zsh's _git-clone, except that we
+  # use __hub_some_repositories intead of __git_any_repositories, so
+  # we can include GitHub repo names, and exclude remotes, which shouldn't
+  # be used in this context in the first place.
+  _git-clone () {
+    local curcontext=$curcontext state line ret=1
+    declare -A opt_args
+
+    # TODO: Argument to -o should be a remote name.
+    # TODO: Argument to -b should complete branch names in the repository being
+    # cloned (see __git_references())
+    _arguments -C -S -s \
+      '(-l --local --no-local)'{-l,--local}'[clone locally, hardlink refs and objects if possible]' \
+      '(-l --local --no-local)--no-local[override --local, as if file:/// URL was given]' \
+      '--no-hardlinks[copy files instead of hardlinking when doing a local clone]' \
+      '(-s --shared)'{-s,--shared}'[share the objects with the source repository (warning: see man page)]' \
+      '(-j --jobs)'{-j+,--jobs=}'[specify number of submodules cloned in parallel]:jobs' \
+      '--reference[reference repository]:repository:_directories' \
+      '--reference-if-able[reference repository]:repository:_directories' \
+      '--dissociate[make the newly-created repository independent of the --reference repository]' \
+      '(-q --quiet)'{-q,--quiet}'[operate quietly]' \
+      '(-v --verbose)'{-v,--verbose}'[always display the progressbar]' \
+      '--progress[output progress even if stderr is not a terminal]' \
+      '(-n --no-checkout)'{-n,--no-checkout}'[do not checkout HEAD after clone is complete]' \
+      '(-o --origin)--bare[make a bare GIT repository]' \
+      '(--bare)--mirror[clone refs into refs/* instead of refs/remotes/origin/*]' \
+      '(-o --origin --bare)'{-o+,--origin=}'[use given remote name instead of "origin"]: :__git_guard_branch-name' \
+      '(-b --branch)'{-b+,--branch=}'[point HEAD to the given branch]: :__git_guard_branch-name' \
+      '(-u --upload-pack)'{-u+,--upload-pack=}'[specify path to git-upload-pack on remote side]:remote path' \
+      '--template=[directory to use as a template for the object database]: :_directories' \
+      '*'{-c,--config}'[<key>=<value> set a configuration variable in the newly created repository]' \
+      '--depth[create a shallow clone, given number of revisions deep]: :__git_guard_number depth' \
+      '--shallow-since=[shallow clone since a specific time]:time' \
+      '*--shallow-exclude=[shallow clone excluding commits reachable from specified remote revision]:revision' \
+      '(--no-single-branch)--single-branch[clone only history leading up to the main branch or the one specified by -b]' \
+      '(--single-branch)--no-single-branch[clone history leading up to each branch]' \
+      "--no-tags[don't clone any tags and make later fetches not follow them]" \
+      '--shallow-submodules[any cloned submodules will be shallow]' \
+      '--recursive[initialize all contained submodules]' \
+      '--recurse-submodules=-[initialize submodules in the clone]::file:__git_files' \
+      '--separate-git-dir[place .git dir outside worktree]:path to .git dir:_path_files -/' \
+      '(-4 --ipv4 -6 --ipv6)'{-4,--ipv4}'[use IPv4 addresses only]' \
+      '(-4 --ipv4 -6 --ipv6)'{-6,--ipv6}'[use IPv6 addresses only]' \
+      '--filter=[object filtering]:filter:_git_rev-list_filters' \
+      ': :->repository' \
+      ': :_directories' && ret=0
+
+    case $state in
+      (repository)
+        if [[ -n ${opt_args[(I)-l|--local|--no-hardlinks|-s|--shared|--reference]} ]]; then
+          __git_local_repositories && ret=0
+        else
+          __hub_some_repositories && ret=0
+        fi
+        ;;
+    esac
+
+    return ret
+  }
+
   # stash the "real" command for later
   functions[_hub_orig_git_commands]=$functions[_git_commands]
 
@@ -171,4 +265,4 @@ _hub () {
 }
 
 # make sure we actually attempt to complete on the first "tab" from the user
-_hub
+_hub "$@"

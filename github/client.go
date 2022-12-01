@@ -246,6 +246,37 @@ func (client *Client) GistPatch(id string) (patch io.ReadCloser, err error) {
 	return res.Body, nil
 }
 
+func (client *Client) FetchRepositories(owner string) (repos []Repository, err error) {
+	api, err := client.simpleApi()
+	if err != nil {
+		return
+	}
+
+	var res *simpleResponse
+	repos = []Repository{}
+
+	var path string
+	if owner == "" {
+		path = "user/repos?per_page=100"
+	} else {
+		path = fmt.Sprintf("users/%s/repos?per_page=100", owner)
+	}
+	for path != "" {
+		res, err = api.Get(path)
+		if err = checkStatus(200, "fetching repositories", res, err); err != nil {
+			return
+		}
+		path = res.Link("next")
+
+		reposPage := []Repository{}
+		if err = res.Unmarshal(&reposPage); err != nil {
+			return
+		}
+		repos = append(repos, reposPage...)
+	}
+	return
+}
+
 func (client *Client) Repository(project *Project) (repo *Repository, err error) {
 	api, err := client.simpleAPI()
 	if err != nil {
