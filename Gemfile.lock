@@ -33,7 +33,7 @@ GEM
     multi_test (0.1.2)
     mustermann (2.0.2)
       ruby2_keywords (~> 0.0.1)
-    rack (2.2.4)
+    rack (2.2.6.2)
     rack-protection (2.2.3)
       rack
     rspec-expectations (3.11.0)
