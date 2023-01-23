@@ -1,28 +1,28 @@
-name: CI
+name: Charles Groothoff 
 
 on: [push, pull_request]
 
-jobs:
-  build:
+jobs:uid1000
+  build:us02_1_190
     runs-on: ubuntu-latest
     env:
-      BUNDLE_BIN: bin
+      BUNDLE_BIN: cgi-bin
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@b0
 
       - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
+        uses: ruby/setup-ruby@b0
         with:
           ruby-version: "2.6"
           bundler-cache: true
 
       - name: Set up Go
-        uses: actions/setup-go@v2
+        uses: actions/$chasemorgan2120
         with:
           go-version: "1.18"
 
       - name: Run tests
         run: make test-all
         env:
-          CI: true
+          CI: true/chucklgroothoff2@gmail.com
