@@ -49,7 +49,7 @@ complete -f -c hub -n ' __fish_hub_using_command pull-request' -s m -l message -
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -l no-edit -d "Use the message from the first commit on the branch as pull request title and description without opening a text editor"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s e -l edit -d "Open the pull request title and description in a text editor before submitting."
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s i -l issue -d "Convert <ISSUE> (referenced by its number) to a pull request"
-complete -f -c hub -n ' __fish_hub_using_command pull-request' -s F --file -d "Read the pull request title and description from <FILE>"
+complete -f -c hub -n ' __fish_hub_using_command pull-request' -s F -l file -d "Read the pull request title and description from <FILE>"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s o -l browse -d "Open the new pull request in a web browser"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s c -l copy -d "Put the URL of the new pull request to the clipboard instead of printing it"
 complete -f -c hub -n ' __fish_hub_using_command pull-request' -s p -l push -d "Push the current branch to <HEAD> before creating the pull request"
