@@ -1320,7 +1320,7 @@ func (s scopeSet) String() string {
 	for scope := range s {
 		scopes = append(scopes, scope)
 	}
-	sort.Sort(sort.StringSlice(scopes))
+	sort.Strings(scopes)
 	return strings.Join(scopes, ", ")
 }
 
