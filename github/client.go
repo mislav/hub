@@ -362,17 +362,25 @@ func (client *Client) FetchReleases(project *Project, limit int, filter func(*Re
 }
 
 func (client *Client) FetchRelease(project *Project, tagName string) (*Release, error) {
-	releases, err := client.FetchReleases(project, 100, func(release *Release) bool {
-		return release.TagName == tagName
-	})
-
+	api, err := client.simpleAPI()
 	if err != nil {
 		return nil, err
 	}
-	if len(releases) < 1 {
-		return nil, fmt.Errorf("Unable to find release with tag name `%s'", tagName)
+
+	path := fmt.Sprintf("repos/%s/%s/releases/tags/%s", project.Owner, project.Name, tagName)
+	var res *simpleResponse
+
+	res, err = api.Get(path)
+	if err = checkStatus(200, "fetching release", res, err); err != nil {
+		return nil, err
 	}
-	return &releases[0], nil
+
+	var release *Release
+	if err = res.Unmarshal(&release); err != nil {
+		return nil, err
+	}
+
+	return release, nil
 }
 
 func (client *Client) CreateRelease(project *Project, releaseParams *Release) (release *Release, err error) {
