@@ -1,16 +1,17 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    aruba (1.0.4)
+    aruba (1.1.2)
+      bundler (>= 1.17, < 3.0)
       childprocess (>= 2.0, < 5.0)
-      contracts (~> 0.16.0)
-      cucumber (>= 2.4, < 6.0)
+      contracts (>= 0.16.0, < 0.18.0)
+      cucumber (>= 2.4, < 7.0)
       rspec-expectations (~> 3.4)
       thor (~> 1.0)
     backports (3.24.1)
     builder (3.2.4)
     childprocess (4.1.0)
-    contracts (0.16.1)
+    contracts (0.17)
     cucumber (3.1.2)
       builder (>= 2.1.2)
       cucumber-core (~> 3.2.0)
@@ -54,7 +55,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  aruba (~> 1.0.4)
+  aruba (~> 1.1.2)
   cucumber (~> 3.1.2)
   sinatra
 
