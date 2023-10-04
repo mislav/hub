@@ -4,7 +4,7 @@ go 1.11
 
 require (
 	github.com/BurntSushi/toml v0.3.0
-	github.com/atotto/clipboard v0.0.0-20171229224153-bc5958e1c833
+	github.com/atotto/clipboard v0.1.4
 	github.com/google/go-cmp v0.4.0
 	github.com/kballard/go-shellquote v0.0.0-20170619183022-cd60e84ee657
 	github.com/mattn/go-colorable v0.0.9
