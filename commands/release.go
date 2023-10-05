@@ -17,7 +17,7 @@ var (
 	cmdRelease = &Command{
 		Run: listReleases,
 		Usage: `
-release [--include-drafts] [--exclude-prereleases] [-L <LIMIT>] [-f <FORMAT>]
+release list [--include-drafts] [--exclude-prereleases] [-L <LIMIT>] [-f <FORMAT>]
 release show [-f <FORMAT>] <TAG>
 release create [-dpoc] [-a <FILE>] [-m <MESSAGE>|-F <FILE>] [-t <TARGET>] <TAG>
 release edit [<options>] <TAG>
@@ -28,7 +28,13 @@ release delete <TAG>
 
 ## Commands:
 
-With no arguments, shows a list of existing releases.
+With no arguments, performs ''hub release list''
+
+	* _list_:
+		Show a list of existing releases for the current repository.
+
+		With  --include-drafts,  include  draft  releases  in the listing. With
+		--prereleases, exclude non-stable releases from the listing.
 
 	* _show_:
 		Show GitHub release notes for <TAG>.
@@ -172,6 +178,18 @@ hub(1), git-tag(1)
 `,
 	}
 
+	cmdListRelease = &Command{
+		Key: "list",
+		Run: listReleases,
+		KnownFlags: `
+		-d, --include-drafts
+		-p, --exclude-prereleases
+		-L, --limit N
+		-f, --format FMT
+		--color
+`,
+	}
+
 	cmdShowRelease = &Command{
 		Key: "show",
 		Run: showRelease,
@@ -227,6 +245,7 @@ hub(1), git-tag(1)
 )
 
 func init() {
+	cmdRelease.Use(cmdListRelease)
 	cmdRelease.Use(cmdShowRelease)
 	cmdRelease.Use(cmdCreateRelease)
 	cmdRelease.Use(cmdEditRelease)
