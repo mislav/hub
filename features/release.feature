@@ -250,26 +250,25 @@ Feature: hub release
   Scenario: Show specific release
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            name: 'will_paginate 1.2.0',
-            draft: true,
-            prerelease: false,
-            tarball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz",
-            zipball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.zip",
-            assets: [
-              { browser_download_url: "https://github.com/mislav/will_paginate/releases/download/v1.2.0/example.zip",
-              },
-            ],
-            body: <<MARKDOWN
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          name: 'will_paginate 1.2.0',
+          draft: true,
+          prerelease: false,
+          tarball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz",
+          zipball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.zip",
+          assets: [
+            { browser_download_url: "https://github.com/mislav/will_paginate/releases/download/v1.2.0/example.zip",
+            },
+          ],
+          body: <<MARKDOWN
 ### Hello to my release
 
 Here is what's broken:
 - everything
 MARKDOWN
-          },
-        ]
+        }
       }
       """
     When I successfully run `hub release show v1.2.0`
@@ -286,26 +285,25 @@ MARKDOWN
   Scenario: Show specific release including downloads
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            name: 'will_paginate 1.2.0',
-            draft: true,
-            prerelease: false,
-            tarball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz",
-            zipball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.zip",
-            assets: [
-              { browser_download_url: "https://github.com/mislav/will_paginate/releases/download/v1.2.0/example.zip",
-              },
-            ],
-            body: <<MARKDOWN
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          name: 'will_paginate 1.2.0',
+          draft: true,
+          prerelease: false,
+          tarball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz",
+          zipball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.zip",
+          assets: [
+            { browser_download_url: "https://github.com/mislav/will_paginate/releases/download/v1.2.0/example.zip",
+            },
+          ],
+          body: <<MARKDOWN
 ### Hello to my release
 
 Here is what's broken:
 - everything
 MARKDOWN
-          },
-        ]
+        }
       }
       """
     When I successfully run `hub release show v1.2.0 --show-downloads`
@@ -328,26 +326,25 @@ MARKDOWN
   Scenario: Format specific release
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            name: 'will_paginate 1.2.0',
-            draft: true,
-            prerelease: false,
-            tarball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz",
-            zipball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.zip",
-            assets: [
-              { browser_download_url: "https://github.com/mislav/will_paginate/releases/download/v1.2.0/example.zip",
-              },
-            ],
-            body: <<MARKDOWN
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          name: 'will_paginate 1.2.0',
+          draft: true,
+          prerelease: false,
+          tarball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.tar.gz",
+          zipball_url: "https://github.com/mislav/will_paginate/archive/v1.2.0.zip",
+          assets: [
+            { browser_download_url: "https://github.com/mislav/will_paginate/releases/download/v1.2.0/example.zip",
+            },
+          ],
+          body: <<MARKDOWN
 ### Hello to my release
 
 Here is what's broken:
 - everything
 MARKDOWN
-          },
-        ]
+        }
       }
       """
     When I successfully run `hub release show v1.2.0 --format='%t (%T)%n%as%n%n%b%n'`
@@ -548,21 +545,20 @@ MARKDOWN
   Scenario: Edit existing release
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-            tag_name: 'v1.2.0',
-            name: 'will_paginate 1.2.0',
-            draft: true,
-            prerelease: false,
-            body: <<MARKDOWN
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+          tag_name: 'v1.2.0',
+          name: 'will_paginate 1.2.0',
+          draft: true,
+          prerelease: false,
+          body: <<MARKDOWN
 ### Hello to my release
 
 Here is what's broken:
 - everything
 MARKDOWN
-          },
-        ]
+        }
       }
       patch('/repos/mislav/will_paginate/releases/123') {
         assert :name => 'KITTENS EVERYWHERE',
@@ -584,12 +580,11 @@ MARKDOWN
     And I am on the "feature" branch with upstream "doge/feature"
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-            tag_name: 'v1.2.0',
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+          tag_name: 'v1.2.0',
+        }
       }
       patch('/repos/mislav/will_paginate/releases/123') {
         json({})
@@ -601,12 +596,11 @@ MARKDOWN
   Scenario: Edit existing release no title
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            name: 'will_paginate 1.2.0',
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          name: 'will_paginate 1.2.0',
+        }
       }
       """
     And a file named "message.txt" with:
@@ -623,21 +617,20 @@ MARKDOWN
     Given the GitHub API server:
       """
       deleted = false
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-            upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
-            tag_name: 'v1.2.0',
-            name: 'will_paginate 1.2.0',
-            draft: true,
-            prerelease: false,
-            assets: [
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/456',
-                name: 'hello-1.2.0.tar.gz',
-              },
-            ],
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+          upload_url: 'https://uploads.github.com/uploads/assets{?name,label}',
+          tag_name: 'v1.2.0',
+          name: 'will_paginate 1.2.0',
+          draft: true,
+          prerelease: false,
+          assets: [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/456',
+              name: 'hello-1.2.0.tar.gz',
+            },
+          ],
+        }
       }
       delete('/repos/mislav/will_paginate/assets/456') {
         deleted = true
@@ -669,16 +662,15 @@ MARKDOWN
   Scenario: Download a release asset
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            assets: [
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-1.2.0.tar.gz',
-              },
-            ],
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          assets: [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-1.2.0.tar.gz',
+            },
+          ],
+        }
       }
       get('/repos/mislav/will_paginate/assets/9876') {
         halt 401 unless request.env['HTTP_AUTHORIZATION'] == 'token OTOKEN'
@@ -707,22 +699,21 @@ MARKDOWN
   Scenario: Download release assets that match pattern
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            assets: [
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.0.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
-                name: 'hello-amd64-1.2.0.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
-                name: 'hello-x86-1.2.0.tar.gz',
-              },
-            ],
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          assets: [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.0.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
+              name: 'hello-amd64-1.2.0.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
+              name: 'hello-x86-1.2.0.tar.gz',
+            },
+          ],
+        }
       }
       get('/repos/mislav/will_paginate/assets/9876') { "TARBALL" }
       get('/repos/mislav/will_paginate/assets/9877') { "TARBALL" }
@@ -738,22 +729,21 @@ MARKDOWN
   Scenario: Glob pattern allows exact match
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            assets: [
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.0.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
-                name: 'hello-amd64-1.2.0.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
-                name: 'hello-x86-1.2.0.tar.gz',
-              },
-            ],
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          assets: [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.0.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9877',
+              name: 'hello-amd64-1.2.0.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9878',
+              name: 'hello-x86-1.2.0.tar.gz',
+            },
+          ],
+        }
       }
       get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
       """
@@ -772,22 +762,21 @@ MARKDOWN
   Scenario: Advanced glob pattern
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            assets: [
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.0.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.1.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.2.tar.gz',
-              },
-            ],
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          assets: [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.0.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.1.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.2.tar.gz',
+            },
+          ],
+        }
       }
       get('/repos/mislav/will_paginate/assets/9876') { "ASSET_TARBALL" }
       """
@@ -801,22 +790,21 @@ MARKDOWN
   Scenario: No matches for download pattern
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        json [
-          { tag_name: 'v1.2.0',
-            assets: [
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.0.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.1.tar.gz',
-              },
-              { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
-                name: 'hello-amd32-1.2.2.tar.gz',
-              },
-            ],
-          },
-        ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+        json {
+          tag_name: 'v1.2.0',
+          assets: [
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.0.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.1.tar.gz',
+            },
+            { url: 'https://api.github.com/repos/mislav/will_paginate/assets/9876',
+              name: 'hello-amd32-1.2.2.tar.gz',
+            },
+          ],
+        }
       }
       """
       When I run `hub release download v1.2.0 --include amd32`
@@ -837,12 +825,11 @@ MARKDOWN
   Scenario: Delete a release
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-          json [
-            { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
-              tag_name: 'v1.2.0',
-            },
-          ]
+      get('/repos/mislav/will_paginate/releases/tags/v1.2.0') {
+          json {
+            url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
+            tag_name: 'v1.2.0',
+          }
       }
 
       delete('/repos/mislav/will_paginate/releases/123') {
@@ -855,17 +842,13 @@ MARKDOWN
   Scenario: Release not found
     Given the GitHub API server:
       """
-      get('/repos/mislav/will_paginate/releases') {
-        assert :per_page => "100"
+      get('/repos/mislav/will_paginate/releases/tags/v2.0') {
+        // TODO!!!
         json [
           { url: 'https://api.github.com/repos/mislav/will_paginate/releases/123',
             tag_name: 'v1.2.0',
           },
         ]
-      }
-
-      delete('/repos/mislav/will_paginate/releases/123') {
-        status 204
       }
       """
     When I run `hub release delete v2.0`
