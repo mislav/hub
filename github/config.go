@@ -165,7 +165,7 @@ func (c *Config) PromptForPassword(host, user string) (pass string) {
 		return
 	}
 
-	ui.Printf("%s password for %s (never stored): ", host, user)
+	ui.Printf("%s access token with scope 'repo' for %s (generate one at https://%s/settings/tokens): ", host, user, host)
 	if ui.IsTerminal(os.Stdin) {
 		if password, err := getPassword(); err == nil {
 			pass = password
