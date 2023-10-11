@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -100,6 +101,12 @@ pr merge [-d] [--squash | --rebase] <PR-NUMBER> [-m <MESSAGE> | -F <FILE>] [--he
 		%as: comma-separated list of assignees
 
 		%rs: comma-separated list of requested reviewers
+
+		%cs: checks status ("success", "failure", etc.)
+		
+		%ci: checks status icon
+
+		%cC: set color according to checks status
 
 		%Mn: milestone number
 
@@ -271,8 +278,13 @@ func listPulls(cmd *Command, args *Args) {
 	}
 
 	onlyMerged := false
+	filtersWithMerged := filters
 	if filters["state"] == "merged" {
-		filters["state"] = "closed"
+		filtersWithMerged = map[string]interface{}{}
+		for key, value := range filters {
+			filtersWithMerged[key] = value
+		}
+		filtersWithMerged["state"] = "closed"
 		onlyMerged = true
 	}
 
@@ -282,10 +294,23 @@ func listPulls(cmd *Command, args *Args) {
 		flagPullRequestFormat = "%pC%>(8)%i%Creset  %t%  l%n"
 	}
 
-	pulls, err := gh.FetchPullRequests(project, filters, flagPullRequestLimit, func(pr *github.PullRequest) bool {
+	pulls, err := gh.FetchPullRequests(project, filtersWithMerged, flagPullRequestLimit, func(pr *github.PullRequest) bool {
 		return !(onlyMerged && pr.MergedAt.IsZero())
 	})
 	utils.Check(err)
+
+	statusInFormatRE := regexp.MustCompile(`%(cs|ci|cC)\b`)
+	if statusInFormatRE.MatchString(flagPullRequestFormat) {
+		prsWithStatus, err := gh.FetchPullRequestsCheckStatus(project, filters, flagPullRequestLimit)
+		utils.Check(err)
+		for _, prWithStatus := range prsWithStatus {
+			for i, pr := range pulls {
+				if prWithStatus.Number == pr.Number {
+					pulls[i].CheckStatus = prWithStatus.Status
+				}
+			}
+		}
+	}
 
 	colorize := colorizeOutput(args.Flag.HasReceived("--color"), args.Flag.Value("--color"))
 	for _, pr := range pulls {

@@ -457,6 +457,24 @@ func formatPullRequestPlaceholders(pr github.PullRequest, colorize bool) map[str
 		head = pr.Head.Ref
 	}
 
+	var checkStatusIcon string
+	var checkStatusColor int
+	switch pr.CheckStatus {
+	case "SUCCESS":
+		checkStatusIcon = "✔︎"
+		checkStatusColor = 32
+	case "ERROR", "FAILURE":
+		checkStatusIcon = "✖︎"
+		checkStatusColor = 31
+	case "PENDING", "EXPECTED":
+		checkStatusIcon = "●"
+		checkStatusColor = 33
+	}
+	var checkStatusColorSwitch string
+	if colorize {
+		checkStatusColorSwitch = fmt.Sprintf("\033[%dm", checkStatusColor)
+	}
+
 	var requestedReviewers []string
 	for _, requestedReviewer := range pr.RequestedReviewers {
 		requestedReviewers = append(requestedReviewers, requestedReviewer.Login)
@@ -483,6 +501,9 @@ func formatPullRequestPlaceholders(pr github.PullRequest, colorize bool) map[str
 		"sH": pr.Head.Sha,
 		"sm": pr.MergeCommitSha,
 		"rs": strings.Join(requestedReviewers, ", "),
+		"cs": strings.ToLower(pr.CheckStatus),
+		"ci": checkStatusIcon,
+		"cC": checkStatusColorSwitch,
 		"mD": mergedDate,
 		"mI": mergedAtISO8601,
 		"mt": mergedAtUnix,

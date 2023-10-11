@@ -94,6 +94,195 @@ func (client *Client) FetchPullRequests(project *Project, filterParams map[strin
 	return
 }
 
+type PRWithStatus struct {
+	Number int
+	Status string
+}
+
+type GraphQLPullRequest struct {
+	Number      int
+	HeadRefName string
+
+	IsCrossRepository   bool
+	HeadRepositoryOwner struct {
+		Login string
+	}
+
+	Commits struct {
+		Nodes []struct {
+			Commit struct {
+				Status struct {
+					State string
+				}
+			}
+		}
+	}
+}
+
+func (pr GraphQLPullRequest) Status() string {
+	if len(pr.Commits.Nodes) > 0 {
+		return pr.Commits.Nodes[0].Commit.Status.State
+	}
+	return ""
+}
+
+func (pr GraphQLPullRequest) HeadLabel(fullyQualified bool) string {
+	if fullyQualified || pr.IsCrossRepository {
+		return fmt.Sprintf("%s:%s", pr.HeadRepositoryOwner.Login, pr.HeadRefName)
+	}
+	return pr.HeadRefName
+}
+
+func (client *Client) FetchPullRequestsCheckStatus(project *Project, filterParams map[string]interface{}, limit int) ([]PRWithStatus, error) {
+	responseData := struct {
+		Repository struct {
+			PullRequests struct {
+				Nodes    []GraphQLPullRequest
+				PageInfo struct {
+					HasNextPage bool
+					EndCursor   string
+				}
+			}
+		}
+	}{}
+
+	states := []string{"OPEN"}
+	if state, ok := filterParams["state"].(string); ok {
+		switch state {
+		case "open":
+			states = []string{"OPEN"}
+		case "closed":
+			states = []string{"CLOSED", "MERGED"}
+		case "merged":
+			states = []string{"MERGED"}
+		case "all":
+			states = []string{"OPEN", "CLOSED", "MERGED"}
+		default:
+			return nil, fmt.Errorf("unsupported state: %q", state)
+		}
+	}
+
+	perPage := limit
+	if limit < 1 {
+		perPage = 100
+	}
+	results := make([]PRWithStatus, 0, perPage)
+	if perPage > 100 {
+		perPage = 100
+	}
+	variables := map[string]interface{}{
+		"owner":   project.Owner,
+		"repo":    project.Name,
+		"states":  states,
+		"perPage": perPage,
+	}
+
+	if sort, ok := filterParams["sort"].(string); ok {
+		switch sort {
+		case "created":
+			variables["orderField"] = "CREATED_AT"
+		case "updated":
+			variables["orderField"] = "UPDATED_AT"
+		case "popularity":
+			variables["orderField"] = "COMMENTS"
+		default:
+			return nil, fmt.Errorf("unsupported sort field: %q", sort)
+		}
+	}
+
+	if orderDirection, ok := filterParams["direction"].(string); ok && orderDirection == "asc" {
+		variables["orderDirection"] = "ASC"
+	}
+
+	if baseBranch, ok := filterParams["base"].(string); ok {
+		variables["baseRefName"] = baseBranch
+	}
+	headBranch, hasHeadFilter := filterParams["head"].(string)
+	if hasHeadFilter {
+		headBranchWithoutOwner := headBranch
+		if strings.Contains(headBranch, ":") {
+			headBranchWithoutOwner = headBranch[strings.Index(headBranch, ":")+1:]
+		}
+		variables["headRefName"] = headBranchWithoutOwner
+	}
+
+	for {
+		err := client.GraphQL(`
+		fragment pr on PullRequest {
+			number
+			headRefName
+			headRepositoryOwner {
+				login
+			}
+			isCrossRepository
+			commits(last: 1) {
+				nodes {
+					commit {
+						status {
+							state
+						}
+					}
+				}
+			}
+		}
+		query (
+			$owner: String!,
+			$repo: String!,
+			$states: [PullRequestState!],
+			$baseRefName: String,
+			$headRefName: String,
+			$orderField: IssueOrderField = CREATED_AT,
+			$orderDirection: OrderDirection = DESC,
+			$perPage: Int!,
+			$endCursor: String
+		) {
+			repository(owner: $owner, name: $repo) {
+				pullRequests(
+					states: $states,
+					orderBy: {field: $orderField, direction: $orderDirection},
+					baseRefName: $baseRefName,
+					headRefName: $headRefName,
+					first: $perPage,
+					after: $endCursor
+				) {
+					nodes {
+						...pr
+					}
+					pageInfo {
+						hasNextPage
+						endCursor
+					}
+				}
+			}
+		}`, variables, &responseData)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, pr := range responseData.Repository.PullRequests.Nodes {
+			if hasHeadFilter && !strings.EqualFold(pr.HeadLabel(true), headBranch) {
+				continue
+			}
+			results = append(results, PRWithStatus{
+				Number: pr.Number,
+				Status: pr.Status(),
+			})
+			if len(results) == limit {
+				goto done
+			}
+		}
+
+		if pageInfo := responseData.Repository.PullRequests.PageInfo; pageInfo.HasNextPage {
+			variables["endCursor"] = pageInfo.EndCursor
+			continue
+		}
+	done:
+		break
+	}
+
+	return results, nil
+}
+
 func (client *Client) PullRequest(project *Project, id string) (pr *PullRequest, err error) {
 	api, err := client.simpleAPI()
 	if err != nil {
@@ -668,6 +857,8 @@ type Issue struct {
 	HTMLURL string `json:"html_url"`
 
 	ClosedBy *User `json:"closed_by"`
+
+	CheckStatus string `json:"checkStatus"`
 }
 
 type PullRequest Issue
