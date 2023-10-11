@@ -28,7 +28,7 @@ Feature: hub compare
     And I am on the "develop" branch with upstream "origin/develop"
     When I run `hub compare`
     Then the exit status should be 1
-    And the stderr should contain exactly "the branch to compare 'develop' is the default branch\n"
+    And the stderr should contain exactly "the branch to compare 'develop' is the main branch\n"
 
   Scenario: No args, has upstream branch
     Given I am on the "feature" branch with upstream "origin/experimental"

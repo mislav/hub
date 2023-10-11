@@ -33,7 +33,7 @@ compare [-uc] [<OWNER>] [<BASE>...]<HEAD>
 		If a range with two dots (''A..B'') is given, it will be transformed into a
 		range with three dots.
 
-		The <BASE> portion defaults to the default branch of the repository.
+		The <BASE> portion defaults to the main branch of the repository.
 
 		The <HEAD> argument defaults to the current branch. If the current branch
 		is not pushed to a remote, the command will error.
@@ -97,8 +97,8 @@ func compare(command *Command, args *Args) {
 
 		r = remoteBranch.ShortName()
 		if remoteProject.SameAs(mainProject) {
-			if flagCompareBase == "" && remoteBranch.IsMaster() {
-				utils.Check(fmt.Errorf("the branch to compare '%s' is the default branch", remoteBranch.ShortName()))
+			if flagCompareBase == "" && remoteBranch.IsMain() {
+				utils.Check(fmt.Errorf("the branch to compare '%s' is the main branch", remoteBranch.ShortName()))
 			}
 		} else {
 			r = fmt.Sprintf("%s:%s", remoteProject.Owner, r)

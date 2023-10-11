@@ -76,15 +76,15 @@ func browse(command *Command, args *Args) {
 	localRepo, _ := github.LocalRepo()
 	if dest != "" {
 		project = github.NewProject("", dest, "")
-		branch = localRepo.MasterBranch()
+		branch = localRepo.MainBranch()
 	} else if subpage != "" && subpage != "commits" && subpage != "tree" && subpage != "blob" && subpage != "settings" {
 		project, err = localRepo.MainProject()
-		branch = localRepo.MasterBranch()
+		branch = localRepo.MainBranch()
 		utils.Check(err)
 	} else {
 		currentBranch, err := localRepo.CurrentBranch()
 		if err != nil {
-			currentBranch = localRepo.MasterBranch()
+			currentBranch = localRepo.MainBranch()
 		}
 
 		var owner string
@@ -98,9 +98,9 @@ func browse(command *Command, args *Args) {
 			}
 		}
 
-		branch, project, _ = localRepo.RemoteBranchAndProject(owner, currentBranch.IsMaster())
+		branch, project, _ = localRepo.RemoteBranchAndProject(owner, currentBranch.IsMain())
 		if branch == nil {
-			branch = localRepo.MasterBranch()
+			branch = localRepo.MainBranch()
 		}
 	}
 
@@ -111,7 +111,7 @@ func browse(command *Command, args *Args) {
 	if subpage == "commits" {
 		path = fmt.Sprintf("commits/%s", branchInURL(branch))
 	} else if subpage == "tree" || subpage == "" {
-		if !branch.IsMaster() {
+		if !branch.IsMain() {
 			path = fmt.Sprintf("tree/%s", branchInURL(branch))
 		}
 	} else {

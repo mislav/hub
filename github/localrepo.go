@@ -104,7 +104,7 @@ func (r *GitHubRepo) CurrentBranch() (branch *Branch, err error) {
 	return
 }
 
-func (r *GitHubRepo) MasterBranch() *Branch {
+func (r *GitHubRepo) MainBranch() *Branch {
 	if remote, err := r.MainRemote(); err == nil {
 		return r.DefaultBranch(remote)
 	}
