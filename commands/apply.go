@@ -22,7 +22,7 @@ var cmdApply = &Command{
 
 ## Examples:
 		$ hub apply https://github.com/jingweno/gh/pull/55
-		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
+		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch -L
 		> git apply /tmp/55.patch
 
 ## See also:
@@ -46,7 +46,7 @@ var cmdAm = &Command{
 
 ## Examples:
 		$ hub am -3 https://github.com/jingweno/gh/pull/55
-		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch
+		> curl https://github.com/jingweno/gh/pull/55.patch -o /tmp/55.patch -L
 		> git am -3 /tmp/55.patch
 
 ## See also:
