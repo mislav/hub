@@ -12,7 +12,7 @@ require (
 	github.com/mitchellh/go-homedir v0.0.0-20161203194507-b8bc1bf76747
 	github.com/russross/blackfriday v0.0.0-20180526075726-670777b536d3
 	github.com/shurcooL/sanitized_anchor_name v0.0.0-20170918181015-86672fcb3f95 // indirect
-	golang.org/x/crypto v0.0.0-20220314234659-1baeb1ce4c0b
-	golang.org/x/net v0.7.0
+	golang.org/x/crypto v0.17.0
+	golang.org/x/net v0.10.0
 	gopkg.in/yaml.v2 v2.2.8
 )
