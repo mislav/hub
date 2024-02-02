@@ -2,12 +2,12 @@
 # This script complements the completion script that ships with git.
 
 # If there is no git tab completion, but we have the _completion loader try to load it
-if ! declare -F _git > /dev/null && declare -F _completion_loader > /dev/null; then
+if ! declare -F __git_complete > /dev/null && declare -F _completion_loader > /dev/null; then
   _completion_loader git
 fi
 
 # Check that git tab completion is available and we haven't already set up completion
-if declare -F _git > /dev/null && ! declare -F __git_list_all_commands_without_hub > /dev/null; then
+if declare -F __git_complete > /dev/null && ! declare -F __git_list_all_commands_without_hub > /dev/null; then
   # Duplicate and rename the 'list_all_commands' function
   eval "$(declare -f __git_list_all_commands | \
         sed 's/__git_list_all_commands/__git_list_all_commands_without_hub/')"
@@ -382,6 +382,15 @@ EOF
   }
 
   # Enable completion for hub even when not using the alias
-  complete -o bashdefault -o default -o nospace -F _git hub 2>/dev/null \
-    || complete -o default -o nospace -F _git hub
+  if declare -F _git >/dev/null; then
+    # git < 2.30
+    complete -o bashdefault -o default -o nospace -F _git hub 2>/dev/null \
+      || complete -o default -o nospace -F _git hub
+  elif declare -F __git_main >/dev/null; then
+    # in git 2.30 both __git_complete and __git_main are private
+    __git_complete hub __git_main
+  else
+    # git > 2.31 if __git_main is removed
+    __git_complete hub git
+  fi
 fi
